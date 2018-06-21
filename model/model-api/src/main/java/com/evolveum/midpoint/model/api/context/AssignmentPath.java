@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,17 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.util.AssignmentPathUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -32,9 +40,15 @@ import java.util.List;
  * @author semancik
  * @author mederly
  */
-public interface AssignmentPath extends DebugDumpable {
+public interface AssignmentPath extends DebugDumpable, ShortDumpable {
 
 	List<? extends AssignmentPathSegment> getSegments();
+	
+	/**
+	 * Returns segment specified by index. Negative indexes work in reverse direction.
+	 * @throws IndexOutOfBoundsException
+	 */
+	AssignmentPathSegment getSegment(int index);
 
 	AssignmentPathSegment first();
 
@@ -50,7 +64,7 @@ public interface AssignmentPath extends DebugDumpable {
 	// beforeLast(1) means one before last()
 	AssignmentPathSegment beforeLast(int n);
 
-	boolean containsTarget(ObjectType target);
+	int countTargetOccurrences(ObjectType target);
 
 	/**
 	 * Returns a "user understandable" part of this path. I.e. only those objects that are of "order 1" above the focal object.
@@ -66,6 +80,49 @@ public interface AssignmentPath extends DebugDumpable {
 	 */
 	@NotNull
 	List<ObjectType> getFirstOrderChain();
+	
+	/**
+	 * In the context of meta-roles this is the role that the currently-processed inducement "applies to".
+	 * I.e. the role that would contain this inducement in case that meta-roles were not used.
+	 * Technically, this is the last element in the "first order chain" or roles.
+	 * 
+	 * Note: proto- is the opposite of meta-
+	 */
+	ObjectType getProtoRole();
 
-	AssignmentPathType toAssignmentPathType();
+	/**
+	 * Shallow clone.
+	 */
+	AssignmentPath clone();
+
+	AssignmentPath cloneFirst(int n);
+
+	AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent);
+
+	ExtensionType collectExtensions(int startAt) throws SchemaException;
+
+	static ExtensionType collectExtensions(AssignmentPathType path, int startAt, ModelService modelService, Task task, OperationResult result)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		return AssignmentPathUtil.collectExtensions(path, startAt, modelService, task, result);
+	}
+	
+	// Groovy [] operator
+	default AssignmentPathSegment getAt(int index) {
+		return getSegment(index);
+	}
+
+	/**
+	 * Returns true if the path matches specified order constraints. All of them must match.
+	 * Although there are some defaults, it is recommended to specify constraints explicitly.
+	 * Currently not supported on empty paths.
+	 *
+	 * Not all parts of OrderConstraintsType are supported. Namely, resetOrder item has no meaning here.
+	 */
+	boolean matches(@NotNull List<OrderConstraintsType> orderConstraints);
+
+	/**
+	 * Preliminary (limited) implementation. To be used to compare paths pointing to the same target object. Use with care.
+	 */
+	boolean equivalent(AssignmentPath other);
 }

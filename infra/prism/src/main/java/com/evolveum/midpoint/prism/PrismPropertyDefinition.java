@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public interface PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty
 
 	/**
 	 * Returns QName of the property value type.
-	 * <p/>
+	 * <p>
 	 * The returned type is either XSD simple type or complex type. It may not
 	 * be defined in the same schema (especially if it is standard XSD simple
 	 * type).
@@ -70,4 +70,7 @@ public interface PrismPropertyDefinition<T> extends ItemDefinition<PrismProperty
 	@NotNull
 	@Override
 	PrismPropertyDefinition<T> clone();
+
+	@Override
+	Class<T> getTypeClass();
 }

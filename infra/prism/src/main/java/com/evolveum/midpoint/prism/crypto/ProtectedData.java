@@ -23,30 +23,30 @@ import com.evolveum.prism.xml.ns._public.types_3.HashedDataType;
  *
  */
 public interface ProtectedData<T> {
-	
+
 	byte[] getClearBytes();
-	
+
 	void setClearBytes(byte[] bytes);
-	
+
 	T getClearValue();
-	
+
 	void setClearValue(T data);
-	
+
 	void destroyCleartext();
-	
+
 	boolean canGetCleartext();
 
 	EncryptedDataType getEncryptedDataType();
 
 	void setEncryptedData(EncryptedDataType encryptedDataType);
-	
+
 	boolean isEncrypted();
-	
+
 	HashedDataType getHashedDataType();
-	
+
 	void setHashedData(HashedDataType hashedDataType);
-	
+
 	boolean isHashed();
-	
+
 	boolean canSupportType(Class<?> type);
 }

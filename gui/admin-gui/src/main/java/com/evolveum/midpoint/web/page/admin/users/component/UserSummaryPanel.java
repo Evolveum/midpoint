@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,12 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -38,13 +41,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 	private static final long serialVersionUID = -5077637168906420769L;
-	
+
 	private static final String ID_TAG_SECURITY = "summaryTagSecurity";
 	private static final String ID_TAG_ORG = "summaryTagOrg";
 
-	public UserSummaryPanel(String id, IModel<ObjectWrapper<UserType>> model) {
-		super(id, model);
-		
+	public UserSummaryPanel(String id, IModel<ObjectWrapper<UserType>> model, ModelServiceLocator serviceLocator) {
+		super(id, UserType.class, model, serviceLocator);
+
 		SummaryTag<UserType> tagSecurity = new SummaryTag<UserType>(ID_TAG_SECURITY, model) {
 			private static final long serialVersionUID = 1L;
 
@@ -60,12 +63,17 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 				boolean isSuperuser = false;
 				boolean isEndUser = false;
 				for (AssignmentType assignment: assignments) {
-					if (assignment.getTargetRef() != null) {
-						if (SystemObjectsType.ROLE_SUPERUSER.value().equals(assignment.getTargetRef().getOid())) {
-							isSuperuser = true;
-						} else if (SystemObjectsType.ROLE_END_USER.value().equals(assignment.getTargetRef().getOid())) {
-							isEndUser = true;
-						}
+					if (assignment.getTargetRef() == null) {
+						continue;
+					}
+					QName relation = assignment.getTargetRef().getRelation();
+					if (relation != null && !QNameUtil.match(SchemaConstants.ORG_DEFAULT, relation)) {
+						continue;
+					}
+					if (SystemObjectsType.ROLE_SUPERUSER.value().equals(assignment.getTargetRef().getOid())) {
+						isSuperuser = true;
+					} else if (SystemObjectsType.ROLE_END_USER.value().equals(assignment.getTargetRef().getOid())) {
+						isEndUser = true;
 					}
 				}
 				if (isSuperuser) {
@@ -82,7 +90,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 			}
 		};
 		addTag(tagSecurity);
-		
+
 		SummaryTag<UserType> tagOrg = new SummaryTag<UserType>(ID_TAG_ORG, model) {
 			private static final long serialVersionUID = 1L;
 

@@ -20,24 +20,40 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 /**
  * @author semancik
  *
  */
+@Component
 public class Migrator {
-	
+
+	private static final Trace LOGGER = TraceManager.getTrace(Migrator.class);
+
+	@Autowired private PrismContext prismContext;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private transient RepositoryService repositoryService;
+
 	public <I extends ObjectType, O extends ObjectType> PrismObject<O> migrate(PrismObject<I> original) {
 		Class<I> origType = original.getCompileTimeClass();
 		if (ObjectTemplateType.class.isAssignableFrom(origType)) {
@@ -58,7 +74,7 @@ public class Migrator {
 		}
 		return (PrismObject<O>) original;
 	}
-	
+
 	private PrismObject<ObjectTemplateType> migrateObjectTemplate(PrismObject<ObjectTemplateType> orig) {
 		QName elementName = orig.getElementName();
 		if (elementName.equals(SchemaConstants.C_OBJECT_TEMPLATE)) {
@@ -72,18 +88,18 @@ public class Migrator {
 	private PrismObject<ResourceType> migrateResource(PrismObject<ResourceType> orig) {
 		return orig;
 	}
-	
+
 	private void migrateObjectSynchronization(ObjectSynchronizationType sync) {
 		if (sync == null || sync.getReaction() == null){
 			return;
 		}
-		
-		List<SynchronizationReactionType> migratedReactions = new ArrayList<SynchronizationReactionType>();
+
+		List<SynchronizationReactionType> migratedReactions = new ArrayList<>();
 		for (SynchronizationReactionType reaction : sync.getReaction()){
 			if (reaction.getAction() == null){
 				continue;
 			}
-			List<SynchronizationActionType> migratedAction = new ArrayList<SynchronizationActionType>();
+			List<SynchronizationActionType> migratedAction = new ArrayList<>();
 			for (SynchronizationActionType action : reaction.getAction()){
 				migratedAction.add(migrateAction(action));
 			}
@@ -92,7 +108,7 @@ public class Migrator {
 			migratedReaction.getAction().addAll(migratedAction);
 			migratedReactions.add(migratedReaction);
 		}
-		
+
 		sync.getReaction().clear();
 		sync.getReaction().addAll(migratedReactions);
 	}
@@ -101,18 +117,56 @@ public class Migrator {
 		if (action.getUserTemplateRef() == null){
 			return action;
 		}
-		
+
 		action.setObjectTemplateRef(action.getUserTemplateRef());
-		
+
 		return action;
 	}
-	
+
 	private PrismObject<FocusType> migrateFocus(PrismObject<FocusType> orig) {
 		return orig;
 	}
-	
+
 	private PrismObject<UserType> migrateUser(PrismObject<UserType> orig) {
 		return orig;
 	}
 
+	public <F extends ObjectType> void executeAfterOperationMigration(LensContext<F> context, OperationResult result) {
+		removeEvaluatedTriggers(context, result);           // from 3.6 to 3.7
+	}
+
+	private <F extends ObjectType> void removeEvaluatedTriggers(LensContext<F> context, OperationResult result) {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null || focusContext.getObjectNew() == null) {
+			return;
+		}
+		F objectNew = focusContext.getObjectNew().asObjectable();
+		if (!(objectNew instanceof FocusType) || objectNew.getOid() == null) {
+			return;
+		}
+		try {
+			List<ItemDelta<?, ?>> deltas = new ArrayList<>();
+			for (AssignmentType assignment : ((FocusType) objectNew).getAssignment()) {
+				if (!assignment.getTrigger().isEmpty()) {
+					Long id = assignment.getId();
+					if (id == null) {
+						LOGGER.warn("Couldn't remove evaluated triggers from an assignment because the assignment has no ID. "
+								+ "Object: {}, assignment: {}", objectNew, assignment);
+					} else {
+						deltas.add(
+								DeltaBuilder.deltaFor(FocusType.class, prismContext)
+										.item(FocusType.F_ASSIGNMENT, id, AssignmentType.F_TRIGGER)
+										.replace()
+										.asItemDelta());
+					}
+				}
+			}
+			if (!deltas.isEmpty()) {
+				LOGGER.info("Removing old-style evaluated triggers from {}", objectNew);
+				repositoryService.modifyObject(objectNew.getClass(), objectNew.getOid(), deltas, result);
+			}
+		} catch (ObjectNotFoundException|SchemaException|ObjectAlreadyExistsException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove old-style evaluated triggers from object {}", e, objectNew);
+		}
+	}
 }

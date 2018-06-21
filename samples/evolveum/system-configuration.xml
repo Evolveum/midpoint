@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,6 +24,41 @@
     <!-- THIS IS NOT A COMPLETE EXAMPLE -->
     <!-- This is an object that has part that are supposed to be
          copied (added) into the default system configuration. -->
+         
+    <globalSecurityPolicyRef oid="b50aff7e-3784-11e6-b97e-0b955775c407"/>
+    
+    
+    <notificationConfiguration>
+    	<handler>
+    		<passwordResetNotifier>
+			    <recipientExpression>
+			        <script>
+			            <code>return requestee.getEmailAddress()</code>
+			        </script>
+			    </recipientExpression>
+			    <bodyExpression>
+			        <script>
+			            <code>
+			                import com.evolveum.midpoint.notifications.api.events.ModelEvent
+			                modelEvent = (ModelEvent) event
+			                newUser = modelEvent.getFocusContext().getObjectNew();
+			                userType = newUser.asObjectable();
+			     
+			                link = midpoint.createPasswordResetLink(userType)
+			                bodyMessage = "Did you request password reset? If yes, click on the link bellow \n" + link
+			           
+			                return bodyMessage;
+			            </code>
+			        </script>
+			    </bodyExpression>
+			    <transport>mail</transport>
+			</passwordResetNotifier>
+    	</handler>
+    	<mail>
+            <redirectToFile>/var/opt/midpoint/mail.log</redirectToFile>
+        </mail>
+    </notificationConfiguration>
+    
     
     <!-- Role lifecycle implementation -->     
     <globalPolicyRule>

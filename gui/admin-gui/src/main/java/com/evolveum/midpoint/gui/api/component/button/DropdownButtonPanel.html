@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <a class="btn btn-app" data-toggle="dropdown">
+    <button wicket:id="buttonContainer" class="btn dropdown-toggle" type="button" data-toggle="dropdown">
         <span class="badge bg-teal" wicket:id="info"></span>
         <i class="fa " wicket:id="icon"></i>
-        <label wicket:id="label"></label>
-        &nbsp;<span class="caret"/>
-    </a>
+        <wicket:enclosure child="label">
+        	<label wicket:id="label"></label>&nbsp;
+        </wicket:enclosure>
+        <span class="caret"/>
+    </button>
     <ul class="dropdown-menu pull-right" role="menu">
         <li wicket:id="menuItem">
             <div wicket:id="menuItemBody"/>

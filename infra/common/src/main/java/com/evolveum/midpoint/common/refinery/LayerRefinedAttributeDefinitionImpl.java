@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttributeDefinition<T> {
-	
+
 	private RefinedAttributeDefinition<T> refinedAttributeDefinition;
 	private LayerType layer;
 	private Boolean overrideCanRead = null;
@@ -57,9 +58,9 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		if (rAttrDef == null) {
 			return null;
 		}
-		return new LayerRefinedAttributeDefinitionImpl<T>(rAttrDef, layer);
+		return new LayerRefinedAttributeDefinitionImpl<>(rAttrDef, layer);
 	}
-	
+
 	static List<LayerRefinedAttributeDefinition<?>> wrapCollection(
 			Collection<? extends ItemDefinition> defs, LayerType layer) {
 		List outs = new ArrayList<LayerRefinedAttributeDefinition<?>>(defs.size());
@@ -120,6 +121,12 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		return refinedAttributeDefinition.getLimitations(layer);
 	}
 
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		refinedAttributeDefinition.accept(visitor);
+	}
+	
 	@NotNull
 	@Override
 	public RefinedAttributeDefinition<T> clone() {
@@ -144,6 +151,16 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public boolean isIgnored(LayerType layer) {
 		return refinedAttributeDefinition.isIgnored(layer);
 	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return refinedAttributeDefinition.getProcessing(layer);
+	}
+	
+	@Override
+	public ItemProcessing getProcessing(LayerType layer) {
+		return refinedAttributeDefinition.getProcessing(layer);
+	}
 
 	@Override
 	public boolean canModify() {
@@ -151,6 +168,21 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 			return overrideCanModify;
 		}
 		return refinedAttributeDefinition.canModify(layer);
+	}
+	
+	@Override
+	public void setCanRead(boolean val) {
+		throw new UnsupportedOperationException("read only");
+	}
+
+	@Override
+	public void setCanModify(boolean val) {
+		throw new UnsupportedOperationException("read only");
+	}
+
+	@Override
+	public void setCanAdd(boolean val) {
+		throw new UnsupportedOperationException("read only");
 	}
 
 	//	@Override
@@ -161,7 +193,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = super.hashCode();
+		int result = 17;
 		result = prime * result + ((layer == null) ? 0 : layer.hashCode());
 		result = prime * result + ((refinedAttributeDefinition == null) ? 0 : refinedAttributeDefinition.hashCode());
 		return result;
@@ -185,7 +217,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 			return false;
 		return true;
 	}
-	
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);
@@ -199,7 +231,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		sb.append(refinedAttributeDefinition.debugDump(indent+1, layer));
 		return sb.toString();
 	}
-	
+
 	/**
      * Return a human readable name of this class suitable for logs.
      */
@@ -240,8 +272,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public ItemDefinition<PrismProperty<T>> deepClone(boolean ultraDeep) {
-		return refinedAttributeDefinition.deepClone(ultraDeep);
+	public ItemDefinition<PrismProperty<T>> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
+		return refinedAttributeDefinition.deepClone(ultraDeep, postCloneAction);
 	}
 
 	@Override
@@ -549,7 +581,22 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public boolean isDeprecated() {
 		return refinedAttributeDefinition.isDeprecated();
 	}
+	
+	@Override
+	public String getDeprecatedSince() {
+		return refinedAttributeDefinition.getDeprecatedSince();
+	}
 
+	@Override
+	public boolean isExperimental() {
+		return refinedAttributeDefinition.isExperimental();
+	}
+	
+	@Override
+	public boolean isElaborate() {
+		return refinedAttributeDefinition.isElaborate();
+	}
+	
 	@Override
 	public boolean isOperational() {
 		return refinedAttributeDefinition.isOperational();
@@ -576,8 +623,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
-		return new LayerRefinedAttributeDefinitionImpl<T>(refinedAttributeDefinition.deepClone(ctdMap), layer);
+	public RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+		return new LayerRefinedAttributeDefinitionImpl<>(refinedAttributeDefinition.deepClone(ctdMap, onThisPath, postCloneAction), layer);
 	}
 
 	@Override
@@ -596,5 +643,25 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	//endregion
-	
+
+	@Override
+	public void setMaxOccurs(int maxOccurs) {
+		refinedAttributeDefinition.setMaxOccurs(maxOccurs);
+	}
+
+	@Override
+	public boolean canBeDefinitionOf(PrismProperty<T> item) {
+		return refinedAttributeDefinition.canBeDefinitionOf(item);
+	}
+
+	@Override
+	public boolean canBeDefinitionOf(PrismValue pvalue) {
+		return refinedAttributeDefinition.canBeDefinitionOf(pvalue);
+	}
+
+	@Override
+	public String toString() {
+		return String.valueOf(refinedAttributeDefinition) + ":" + layer;
+	}
+
 }

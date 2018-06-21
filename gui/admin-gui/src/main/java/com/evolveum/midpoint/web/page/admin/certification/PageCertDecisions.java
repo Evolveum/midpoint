@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -102,7 +101,7 @@ public class PageCertDecisions extends PageAdminCertification {
     private static final String ID_SHOW_NOT_DECIDED_ONLY = "showNotDecidedOnly";
     private static final String ID_TABLE_HEADER = "tableHeader";
 
-    CertDecisionHelper helper = new CertDecisionHelper();
+    private CertDecisionHelper helper = new CertDecisionHelper();
 
     private IModel<Boolean> showNotDecidedOnlyModel = new Model<>(false);
 
@@ -130,7 +129,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
     private String getCurrentUserOid() {
         try {
-            return getSecurityEnforcer().getPrincipal().getOid();
+            return getSecurityContextManager().getPrincipal().getOid();
         } catch (SecurityViolationException e) {
             // TODO handle more cleanly
             throw new SystemException("Couldn't get currently logged user OID", e);
@@ -140,11 +139,11 @@ public class PageCertDecisions extends PageAdminCertification {
 
     //region Layout
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
         CertWorkItemDtoProvider provider = createProvider();
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
-        BoxedTablePanel table = new BoxedTablePanel(ID_DECISIONS_TABLE, provider, initColumns(),
+        BoxedTablePanel<CertWorkItemDto> table = new BoxedTablePanel<CertWorkItemDto>(ID_DECISIONS_TABLE, provider, initColumns(),
                 UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL, itemsPerPage) {
 
             @Override
@@ -174,7 +173,7 @@ public class PageCertDecisions extends PageAdminCertification {
     private List<IColumn<CertWorkItemDto, String>> initColumns() {
         List<IColumn<CertWorkItemDto, String>> columns = new ArrayList<>();
 
-        IColumn column;
+        IColumn<CertWorkItemDto, String> column;
 
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
@@ -308,14 +307,14 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
-        final AvailableResponses availableResponses = new AvailableResponses(getPage());
+        final AvailableResponses availableResponses = new AvailableResponses(this);
         final int responses = availableResponses.getResponseKeys().size();
 
-        column = new MultiButtonColumn<CertWorkItemDto>(new Model(), responses+1) {
+        column = new MultiButtonColumn<CertWorkItemDto>(new Model<>(), responses+1) {
 
             @Override
-            public String getCaption(int id) {
-                return availableResponses.getCaption(id);
+            public String getButtonTitle(int id) {
+                return availableResponses.getTitle(id);
             }
 
             @Override
@@ -356,7 +355,7 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
-        column = new DirectlyEditablePropertyColumn(
+        column = new DirectlyEditablePropertyColumn<CertWorkItemDto>(
                 createStringResource("PageCertDecisions.table.comment"),
                 CertWorkItemDto.F_COMMENT) {
             @Override
@@ -458,6 +457,9 @@ public class PageCertDecisions extends PageAdminCertification {
         OperationResult result = new OperationResult(OPERATION_RECORD_ACTION);
         try {
             Task task = createSimpleTask(OPERATION_RECORD_ACTION);
+            if (response == null) {
+                response = workItemDto.getResponse();
+            }
             // TODO work item ID
             getCertificationService().recordDecision(
                     workItemDto.getCampaignRef().getOid(),
@@ -472,8 +474,8 @@ public class PageCertDecisions extends PageAdminCertification {
         if (!result.isSuccess()) {
             showResult(result);
         }
-        target.add(getFeedbackPanel());
-        target.add((Component) getDecisionsTable());
+        resetCertWorkItemCountModel();
+        target.add(this);
     }
 
     private void searchFilterPerformed(AjaxRequestTarget target) {
@@ -523,7 +525,7 @@ public class PageCertDecisions extends PageAdminCertification {
         }
 
         private void initLayout() {
-            final Form searchForm = new Form(ID_SEARCH_FORM);
+            final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
             add(searchForm);
             searchForm.setOutputMarkupId(true);
 

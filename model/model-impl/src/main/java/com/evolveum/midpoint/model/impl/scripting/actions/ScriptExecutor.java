@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,18 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
-import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
-import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +46,10 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
+import static com.evolveum.midpoint.model.impl.scripting.VariablesUtil.cloneIfNecessary;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_C;
 
 /**
  * @author mederly
@@ -52,12 +59,13 @@ public class ScriptExecutor extends BaseActionExecutor {
 
     //private static final Trace LOGGER = TraceManager.getTrace(ScriptExecutor.class);
 
-	@Autowired
-	private ScriptExpressionFactory scriptExpressionFactory;
+	@Autowired private ScriptExpressionFactory scriptExpressionFactory;
+	@Autowired private ExpressionFactory expressionFactory;
 
     private static final String NAME = "execute-script";
     private static final String PARAM_SCRIPT = "script";
     private static final String PARAM_OUTPUT_ITEM = "outputItem";		// item name or type (as URI!) -- EXPERIMENTAL
+	private static final String PARAM_FOR_WHOLE_INPUT = "forWholeInput";
 
     @PostConstruct
     public void init() {
@@ -65,61 +73,96 @@ public class ScriptExecutor extends BaseActionExecutor {
     }
 
     @Override
-    public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
+
+		checkRootAuthorization(context, globalResult, NAME);
 
 		ScriptExpressionEvaluatorType script = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_SCRIPT, true, true,
-				NAME, input, context, ScriptExpressionEvaluatorType.class, result);
+				NAME, input, context, ScriptExpressionEvaluatorType.class, globalResult);
 		String outputItem = expressionHelper.getSingleArgumentValue(expression.getParameter(), PARAM_OUTPUT_ITEM, false, false,
-				NAME, input, context, String.class, result);
+				NAME, input, context, String.class, globalResult);
+	    boolean forWholeInput = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_FOR_WHOLE_INPUT, input, context, false, PARAM_FOR_WHOLE_INPUT, globalResult);
 
 		ItemDefinition<?> outputDefinition = getItemDefinition(outputItem);
 
 		ScriptExpression scriptExpression;
 		try {
-			scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition, "script");
+			scriptExpression = scriptExpressionFactory.createScriptExpression(script, outputDefinition, expressionFactory, "script", context.getTask(), globalResult);
 		} catch (ExpressionSyntaxException e) {
 			throw new ScriptExecutionException("Couldn't parse script expression: " + e.getMessage(), e);
 		}
 
-		Data output = Data.createEmpty();
-        for (PrismValue value: input.getData()) {
+		PipelineData output = PipelineData.createEmpty();
+
+		if (forWholeInput) {
+			OperationResult result = operationsHelper.createActionResult(null, this, context, globalResult);
 			context.checkTaskStop();
-			String valueDescription;
-        	long started;
-			if (value instanceof PrismObjectValue) {
-				started = operationsHelper.recordStart(context, asObjectType(value));
-				valueDescription = asObjectType(value).asPrismObject().toString();
-			} else {
-				started = 0;
-				valueDescription = value.toHumanReadableString();
-			}
 			Throwable exception = null;
 			try {
-				Object outObject = executeScript(scriptExpression, value, context, result);
+				Object outObject = executeScript(scriptExpression, input, context.getInitialVariables(), context, result);
 				if (outObject != null) {
-					addToData(outObject, output);
-				}
-				if (value instanceof PrismObjectValue) {
-					operationsHelper.recordEnd(context, asObjectType(value), started, null);
+					addToData(outObject, PipelineData.newOperationResult(), output);
+				} else {
+					// no definition means we don't plan to provide any output - so let's just copy the input item to the output
+					// (actually, null definition with non-null outObject should not occur)
+					if (outputDefinition == null) {
+						output.addAllFrom(input);
+					}
 				}
 			} catch (Throwable ex) {
-				if (value instanceof PrismObjectValue) {
-					operationsHelper.recordEnd(context, asObjectType(value), started, ex);
-				}
-				exception = processActionException(ex, NAME, value, context);
+				exception = processActionException(ex, NAME, null, context);        // TODO value for error reporting (3rd parameter)
 			}
 			context.println((exception != null ? "Attempted to execute " : "Executed ")
-					+ "script on " + valueDescription + exceptionSuffix(exception));
-        }
+					+ "script on the pipeline" + exceptionSuffix(exception));
+			operationsHelper.trimAndCloneResult(result, globalResult, context);
+		} else {
+			for (PipelineItem item : input.getData()) {
+				PrismValue value = item.getValue();
+				OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
+
+				context.checkTaskStop();
+				String valueDescription;
+				long started;
+				if (value instanceof PrismObjectValue) {
+					started = operationsHelper.recordStart(context, asObjectType(value));
+					valueDescription = asObjectType(value).asPrismObject().toString();
+				} else {
+					started = 0;
+					valueDescription = value.toHumanReadableString();
+				}
+				Throwable exception = null;
+				try {
+					Object outObject = executeScript(scriptExpression, value, item.getVariables(), context, result);
+					if (outObject != null) {
+						addToData(outObject, item.getResult(), output);
+					} else {
+						// no definition means we don't plan to provide any output - so let's just copy the input item to the output
+						// (actually, null definition with non-null outObject should not occur)
+						if (outputDefinition == null) {
+							output.add(item);
+						}
+					}
+					if (value instanceof PrismObjectValue) {
+						operationsHelper.recordEnd(context, asObjectType(value), started, null);
+					}
+				} catch (Throwable ex) {
+					if (value instanceof PrismObjectValue) {
+						operationsHelper.recordEnd(context, asObjectType(value), started, ex);
+					}
+					exception = processActionException(ex, NAME, value, context);
+				}
+				context.println((exception != null ? "Attempted to execute " : "Executed ")
+						+ "script on " + valueDescription + exceptionSuffix(exception));
+				operationsHelper.trimAndCloneResult(result, globalResult, context);
+			}
+		}
         return output;
     }
 
-	private void addToData(Object outObject, Data output) throws SchemaException {
-		if (outObject == null) {
-			// nothing to do
-		} else if (outObject instanceof Collection) {
+	private void addToData(@NotNull Object outObject, @NotNull OperationResult result, PipelineData output) throws SchemaException {
+		if (outObject instanceof Collection) {
 			for (Object o : (Collection) outObject) {
-				addToData(o, output);
+				addToData(o, result, output);
 			}
 		} else {
 			PrismValue value;
@@ -132,7 +175,7 @@ public class ScriptExecutor extends BaseActionExecutor {
 			} else {
 				value = new PrismPropertyValue<>(outObject, prismContext);
 			}
-			output.addValue(value);
+			output.add(new PipelineItem(value, result));
 		}
 	}
 
@@ -153,15 +196,17 @@ public class ScriptExecutor extends BaseActionExecutor {
 		throw new ScriptExecutionException("Supplied item identification " + itemUri + " corresponds neither to item name nor type name");
 	}
 
-	private Object executeScript(ScriptExpression scriptExpression, PrismValue prismValue, ExecutionContext context, OperationResult result)
+	private Object executeScript(ScriptExpression scriptExpression, Object input,
+			Map<String, Object> externalVariables, ExecutionContext context, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, prismValue);
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, input);
 		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
-		ExpressionUtil.addActorVariable(variables, securityEnforcer);
-		
+		ExpressionUtil.addActorVariable(variables, securityContextManager);
+		externalVariables.forEach((k, v) -> variables.addVariableDefinition(new QName(NS_C, k), cloneIfNecessary(k, v)));
+
 		List<?> rv = Utils.evaluateScript(scriptExpression, null, variables, true, "in '"+NAME+"' action", context.getTask(), result);
-		
+
 		if (rv == null || rv.size() == 0) {
 			return null;
 		} else if (rv.size() == 1) {

@@ -10,20 +10,20 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class SingleValueChoosePanel<U, T extends ObjectType> extends ConvertingMultiValueChoosePanel<U,T> {
-	
+
 	private static final long serialVersionUID = 1L;
 	private IModel<U> singleTargetModel;
 
 	public SingleValueChoosePanel(String id, List<Class<? extends T>> types,
 			Function<T, U> transformFunction, IModel<U> targetModel) {
-		super(id, types, transformFunction, new ListModel<U>(), false);
+		super(id, types, transformFunction, new ListModel<>(), false);
 		singleTargetModel = targetModel;
 	}
 
 	@Override
 	protected void choosePerformedHook(AjaxRequestTarget target, List<T> selected) {
 		super.choosePerformedHook(target, selected);
-		
+
 		if(selected != null) {
 			U transformedSelectedObject = selected.stream()
 				.findFirst()

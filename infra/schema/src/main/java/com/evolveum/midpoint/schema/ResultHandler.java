@@ -24,9 +24,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  * It is only used to handle iterative search results now. It may be reused for
  * other purposes as well.
- * 
+ *
  * @author Radovan Semancik
  */
+@FunctionalInterface
 public interface ResultHandler<T extends ObjectType> {
 
     /**
@@ -35,5 +36,5 @@ public interface ResultHandler<T extends ObjectType> {
      * @return true if the operation should proceed, false if it should stop
      */
 	boolean handle(PrismObject<T> object, OperationResult parentResult);
-    
+
 }

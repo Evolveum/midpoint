@@ -23,7 +23,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 public class PrismValidate {
-	
+
 	public static void notEmpty(PolyString value, String message) {
 		if (value == null || value.isEmpty()) {
 			throw new IllegalArgumentException(message);

@@ -20,11 +20,11 @@ package com.evolveum.midpoint.prism.path;
  *
  */
 public class IdItemPathSegment extends ItemPathSegment {
-	
-	public static final IdItemPathSegment WILDCARD = IdItemPathSegment.createWildcard(); 
-	
+
+	public static final IdItemPathSegment WILDCARD = IdItemPathSegment.createWildcard();
+
 	private Long id;
-	
+
 	public IdItemPathSegment() {
 		this.id = null;
 	}
@@ -42,7 +42,7 @@ public class IdItemPathSegment extends ItemPathSegment {
 	public Long getId() {
 		return id;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "[" + ( isWildcard() ? "*" : id ) + "]";
@@ -83,5 +83,5 @@ public class IdItemPathSegment extends ItemPathSegment {
         clone.id = this.id;
         return clone;
     }
-	
+
 }

@@ -1,0 +1,13 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+objects:
+- user:
+    name: u1
+- user:
+    name: u2
+---
+- user:
+    name: u3
+- '@ns': "http://a/"
+  user:
+    name: u4

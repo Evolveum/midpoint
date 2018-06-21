@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,12 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class InternalsConfigDto implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-    public static final String F_CONSISTENCY_CHECKS = "consistencyChecks";
+	public static final String F_CONSISTENCY_CHECKS = "consistencyChecks";
     public static final String F_ENCRYPTION_CHECKS = "encryptionChecks";
     public static final String F_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
+    public static final String F_MODEL_PROFILING = "modelProfiling";
     public static final String F_DETAILED_DEBUG_DUMP = "detailedDebugDump";
     public static final String F_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
 
@@ -37,15 +39,17 @@ public class InternalsConfigDto implements Serializable {
     private boolean consistencyChecks;
     private boolean encryptionChecks;
     private boolean readEncryptionChecks;
+    private boolean modelProfiling;
     //debug util
     private boolean detailedDebugDump;
     //DOM util
     private boolean tolerateUndeclaredPrefixes;
 
     public InternalsConfigDto() {
-        consistencyChecks = InternalsConfig.consistencyChecks;
-        encryptionChecks = InternalsConfig.encryptionChecks;
-        readEncryptionChecks = InternalsConfig.readEncryptionChecks;
+        consistencyChecks = InternalsConfig.isConsistencyChecks();
+        encryptionChecks = InternalsConfig.isEncryptionChecks();
+        readEncryptionChecks = InternalsConfig.isReadEncryptionChecks();
+        modelProfiling = InternalsConfig.isModelProfiling();
 
         detailedDebugDump = DebugUtil.isDetailedDebugDump();
 
@@ -76,7 +80,15 @@ public class InternalsConfigDto implements Serializable {
         this.readEncryptionChecks = readEncryptionChecks;
     }
 
-    public boolean isDetailedDebugDump() {
+	protected boolean isModelProfiling() {
+		return modelProfiling;
+	}
+
+	protected void setModelProfiling(boolean modelProfiling) {
+		this.modelProfiling = modelProfiling;
+	}
+
+	public boolean isDetailedDebugDump() {
         return detailedDebugDump;
     }
 
@@ -94,9 +106,10 @@ public class InternalsConfigDto implements Serializable {
 
     // undeclared prefixes is also handled here
     public void saveInternalsConfig() {
-        InternalsConfig.consistencyChecks = consistencyChecks;
-        InternalsConfig.encryptionChecks = encryptionChecks;
-        InternalsConfig.readEncryptionChecks = readEncryptionChecks;
+        InternalsConfig.setConsistencyChecks(consistencyChecks);
+        InternalsConfig.setEncryptionChecks(encryptionChecks);
+        InternalsConfig.setReadEncryptionChecks(readEncryptionChecks);
+        InternalsConfig.setModelProfiling(modelProfiling);
         QNameUtil.setTolerateUndeclaredPrefixes(tolerateUndeclaredPrefixes);
     }
 

@@ -36,12 +36,12 @@ public class TestRestServiceXml extends TestAbstractRestService {
 		return MediaType.APPLICATION_XML;
 	}
 
-	
+
 	@Override
 	protected File getRepoFile(String fileBaseName) {
 		return new File(BASE_REPO_DIR + "/xml", fileBaseName + ".xml");
 	}
-	
+
 	@Override
 	protected File getRequestFile(String fileBaseName) {
 		return new File(BASE_REQ_DIR + "/xml", fileBaseName + ".xml");

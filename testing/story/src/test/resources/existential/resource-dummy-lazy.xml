@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Creates account only if the focus is enabled. Keeps the account on unassign. Deletes only when focus is deleted. -->
+
+<resource oid="306555be-3e38-11e8-bd96-7b572e4e7d89"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+								  
+	<name>Lazy</name>
+	
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>lazy</icfi:instanceId>
+			<icfi:uselessString>
+				<expression>
+					<const>useless</const>
+				</expression>
+			</icfi:uselessString>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<outbound>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>name + iterationToken</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<displayName>Full Name</displayName>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+
+			<activation>
+				<!-- Explicit existence mapping. Unassigned accounts are disabled, not deleted.
+				     They are deleted only when the focus is deleted. MID-4564 -->
+            	<existence>
+            		<outbound>
+            			<name>lazy-existence</name>
+            			<expression>
+            				<variable>
+								<name>effectiveStatus</name>
+								<path>$focus/activation/effectiveStatus</path>
+							</variable>
+            				<script>
+            					<code>
+            						import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+									
+                        			focusExists &amp;&amp; ( effectiveStatus == ActivationStatusType.ENABLED || shadow != null )
+            					</code>
+            				</script>
+            			</expression>
+            		</outbound>
+            	</existence>
+            	<administrativeStatus>
+                    <outbound>
+                    	<strength>strong</strength>
+                    	<expression>
+                        	<script>
+                        		<code>
+                        			import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+                        			if (legal) {
+                        				input;
+                        			} else {
+                        				ActivationStatusType.DISABLED;
+                        			}
+                        		</code>
+                        	</script>
+                        </expression>
+                    </outbound>            	
+            	</administrativeStatus>
+            </activation>
+			<credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                </password>
+            </credentials>
+		</objectType>
+	</schemaHandling>
+	
+</resource>

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query2.definition.JpaDataNodeDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -106,13 +105,13 @@ public class ItemPathResolutionState implements DebugDumpable {
         DataSearchResult<?> result = hqlDataInstance.getJpaDefinition().nextLinkDefinition(remainingItemPath, itemDefinition, prismContext);
         LOGGER.trace("nextLinkDefinition on '{}' returned '{}'", remainingItemPath, result != null ? result.getLinkDefinition() : "(null)");
         if (result == null) {       // sorry we failed (however, this should be caught before -> so IllegalStateException)
-            throw new IllegalStateException("Couldn't find '" + remainingItemPath + "' in " + hqlDataInstance.getJpaDefinition());
+            throw new IllegalStateException("Couldn't find '" + remainingItemPath + "' in " + hqlDataInstance.getJpaDefinition() +", looks like item can't be used in search.");
         }
         JpaLinkDefinition linkDefinition = result.getLinkDefinition();
         String newHqlPath = hqlDataInstance.getHqlPath();
         if (linkDefinition.hasJpaRepresentation()) {
             if (singletonOnly && linkDefinition.isMultivalued()) {
-                throw new QueryException("Collections are not allowable for right-side paths");     // TODO better message + context
+                throw new QueryException("Collections are not allowable for right-side paths nor for dereferencing");     // TODO better message + context
             }
             if (!linkDefinition.isEmbedded() || linkDefinition.isMultivalued()) {
                 LOGGER.trace("Adding join for '{}' to context", linkDefinition);

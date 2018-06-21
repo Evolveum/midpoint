@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@
 <wicket:panel>
     <div class="box box-primary">
         <form wicket:id="mainForm">
-            <div class="row">
-                <span wicket:id="feedback" class="text-danger"/>
-            </div>
+
             <div wicket:id="parametersPanel" class="box-body">
                 <div class="col-md-6 form-horizontal">
                 	<div class="form-group">
@@ -70,7 +68,18 @@
 	                    <label class="col-sm-3 control-label"><wicket:message key="PageAuditLogViewer.hostIdentifierLabel" /></label>
                     	<div class="col-sm-9" wicket:id="hostIdentifierField" />
                    	</div>
-                    <span class="btn-group" style="float:right; padding-top: 5px;"><a class="btn btn-primary" wicket:id="searchButton"/></span>
+                    <div class="form-group" wicket:id="valueRefTargetNames">
+	                    <label class="col-sm-3 control-label"><wicket:message key="PageAuditLogViewer.valueRefTargetNamesLabel" /></label>
+                    	<div class="col-sm-9" wicket:id="valueRefTargetNamesField" />
+                   	</div>
+                    <div  class="main-button-bar pull-right">
+                    <!--<span class="btn-group" style="padding-top: 5px;">-->
+                        <a class="btn btn-primary" wicket:id="searchButton"/>
+                    <!--</span>-->
+                    <!--<span class="btn-group">-->
+                        <a class="btn btn-primary" wicket:id="resetSearchButton"/>
+                        <!--.</span>-->
+                    </div>
                 </div>
             </div>
             <div wicket:id="table"/>

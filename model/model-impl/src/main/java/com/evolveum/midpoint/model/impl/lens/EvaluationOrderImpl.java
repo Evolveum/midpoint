@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,7 +81,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		}
 		return rv;
 	}
-	
+
 	@Override
 	public EvaluationOrder advance(QName relation) {
 		checkConsistence();
@@ -107,13 +107,16 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 
 	// must always be private: public interface will not allow to modify object state!
 	private void advanceThis(QName relation, int amount) {
-		relation = ObjectTypeUtil.normalizeRelation(relation);
-		orderMap.put(relation, getMatchingRelationOrder(relation) + amount);
+		@NotNull QName normalizedRelation = ObjectTypeUtil.normalizeRelation(relation);
+		orderMap.put(normalizedRelation, getMatchingRelationOrder(normalizedRelation) + amount);
 	}
 
 	@Override
 	public int getMatchingRelationOrder(QName relation) {
 		checkConsistence();
+		if (relation == null) {
+			return getSummaryOrder();
+		}
 		return orderMap.getOrDefault(ObjectTypeUtil.normalizeRelation(relation), 0);
 	}
 
@@ -133,6 +136,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		@SuppressWarnings({"unchecked", "raw"})
 		Collection<QName> relations = CollectionUtils.union(getRelations(), newState.getRelations());
 		Map<QName, Integer> rv = new HashMap<>();
+		// relation is not null below
 		relations.forEach(relation -> rv.put(relation, newState.getMatchingRelationOrder(relation) - getMatchingRelationOrder(relation)));
 		return rv;
 	}
@@ -183,10 +187,16 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	public String toString() {
 		return "EvaluationOrder(" + shortDump() + ")";
 	}
-	
+
 	@Override
 	public String shortDump() {
 		StringBuilder sb = new StringBuilder();
+		shortDump(sb);
+		return sb.toString();
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
 		for (Entry<QName,Integer> entry: orderMap.entrySet()) {
 			if (entry.getKey() != null) {
 				sb.append(entry.getKey().getLocalPart());
@@ -199,7 +209,6 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		}
 		sb.setLength(sb.length() - 1);
 		sb.append("=").append(getSummaryOrder());
-		return sb.toString();
 	}
 
 	@Override
@@ -218,5 +227,10 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	@Override
 	public boolean isValid() {
 		return orderMap.values().stream().allMatch(c -> c >= 0);
+	}
+
+	@Override
+	public boolean isOrderOne() {
+		return getSummaryOrder() == 1;
 	}
 }

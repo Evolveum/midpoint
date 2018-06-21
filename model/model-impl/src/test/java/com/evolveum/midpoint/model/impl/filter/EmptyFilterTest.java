@@ -44,7 +44,7 @@ public class EmptyFilterTest {
     @Test
     public void testNode() {
         String input = "test content";
-        PrismPropertyValue<String> value = new PrismPropertyValue<String>(input);
+        PrismPropertyValue<String> value = new PrismPropertyValue<>(input);
         value = filter.apply(value);
 
         AssertJUnit.assertEquals(input, value.getValue());

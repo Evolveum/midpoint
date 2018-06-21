@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -102,10 +101,25 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		assertResource(resource, true, true, true);
 	}
 
+	@Test
+	public void testParseResourceRoundtripXml() throws Exception {
+		displayTestTitle("testParseResourceRoundtripXml");
+		doTestParseResourceRoundtrip(PrismContext.LANG_XML);
+	}
 
 	@Test
-	public void testParseResourceRoundtrip() throws Exception {
-		displayTestTitle("testParseResourceRoundtrip");
+	public void testParseResourceRoundtripJson() throws Exception {
+		displayTestTitle("testParseResourceRoundtripJson");
+		doTestParseResourceRoundtrip(PrismContext.LANG_JSON);
+	}
+
+	@Test
+	public void testParseResourceRoundtripYaml() throws Exception {
+		displayTestTitle("testParseResourceRoundtripYaml");
+		doTestParseResourceRoundtrip(PrismContext.LANG_YAML);
+	}
+
+	private void doTestParseResourceRoundtrip(String serializeInto) throws Exception {
 
 		// GIVEN
 		PrismContext prismContext = getPrismContext();
@@ -119,7 +133,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 
 		// SERIALIZE
 
-		String serializedResource = prismContext.serializerFor(language).serialize(resource);
+		String serializedResource = prismContext.serializerFor(serializeInto).serialize(resource);
 
 		System.out.println("serialized resource:");
 		System.out.println(serializedResource);
@@ -201,6 +215,200 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		Element reparsedXsdSchemaElement = defType.getDefinition().getSchema();
 		ResourceSchema reparsedSchema = ResourceSchemaImpl.parse(reparsedXsdSchemaElement, "reparsed schema", prismContext);
 
+	}
+
+	@Test
+	public void testParseResourceFileExpression() throws Exception {
+		final String TEST_NAME = "testParseResourceFileExpression";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = getPrismContext();
+
+		// WHEN
+		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(TestConstants.RESOURCE_FILE_EXPRESSION_BASENAME));
+
+		// THEN
+		System.out.println("Parsed resource:");
+		System.out.println(resource.debugDump());
+
+		assertResourceExpression(resource, prismContext, true);
+
+	}
+
+	private void assertResourceExpression(PrismObject<ResourceType> resource, PrismContext prismContext, boolean checkExpressions) throws SchemaException {
+		resource.checkConsistence();
+
+		AssertJUnit.assertEquals("Wrong oid (prism)", TestConstants.RESOURCE_OID, resource.getOid());
+		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
+		assertNotNull("No resource definition", resourceDefinition);
+		PrismAsserts.assertObjectDefinition(resourceDefinition, new QName(SchemaConstantsGenerated.NS_COMMON, "resource"),
+				ResourceType.COMPLEX_TYPE, ResourceType.class);
+		assertEquals("Wrong class in resource", ResourceType.class, resource.getCompileTimeClass());
+		ResourceType resourceType = resource.asObjectable();
+		assertNotNull("asObjectable resulted in null", resourceType);
+
+		assertPropertyValue(resource, "name", PrismTestUtil.createPolyString("Resource with expressions"));
+
+        PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
+		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
+		List<Item<?,?>> configItems = configContainerValue.getItems();
+		assertEquals("Wrong number of config items", 1, configItems.size());
+
+		PrismContainer<?> ldapConfigPropertiesContainer = configurationContainer.findContainer(ICFC_CONFIGURATION_PROPERTIES);
+		assertNotNull("No icfcldap:configurationProperties container", ldapConfigPropertiesContainer);
+		PrismContainerDefinition<?> ldapConfigPropertiesContainerDef = ldapConfigPropertiesContainer.getDefinition();
+		assertNotNull("No icfcldap:configurationProperties container definition", ldapConfigPropertiesContainerDef);
+		assertEquals("icfcldap:configurationProperties container definition maxOccurs", 1, ldapConfigPropertiesContainerDef.getMaxOccurs());
+		List<Item<?,?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
+		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());
+
+		if (checkExpressions) {
+			PrismProperty<String> hostProp = findProp(ldapConfigPropItems, "host");
+			assertRaw(hostProp);
+			hostProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","host"), DOMUtil.XSD_STRING, prismContext));
+			assertNotRaw(hostProp);
+			assertExpression(hostProp, "const");
+
+			PrismProperty<String> baseContextsProp = findProp(ldapConfigPropItems, "baseContexts");
+			assertRaw(baseContextsProp);
+			baseContextsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","baseContexts"), DOMUtil.XSD_STRING, prismContext));
+			assertNotRaw(baseContextsProp);
+			assertExpression(baseContextsProp, "script");
+			
+			PrismProperty<ProtectedStringType> credentialsProp = findProp(ldapConfigPropItems, "credentials");
+			assertRaw(credentialsProp);
+			credentialsProp.applyDefinition(new PrismPropertyDefinitionImpl<>(new QName("whatever","credentials"), ProtectedStringType.COMPLEX_TYPE, prismContext));
+			assertNotRaw(credentialsProp);
+			assertExpression(credentialsProp, "const");
+		}
+
+		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
+		assertNull("Schema sneaked in", schemaContainer);
+
+		PrismContainer<?> schemaHandlingContainer = resource.findContainer(ResourceType.F_SCHEMA_HANDLING);
+		assertNull("SchemaHandling sneaked in", schemaHandlingContainer);
+
+	}
+
+	@Test
+	public void testParseResourceExpressionRoundtripXml() throws Exception {
+		displayTestTitle("testParseResourceExpressionRoundtripXml");
+		doTestParseResourceExpressionRoundtrip(PrismContext.LANG_XML);
+	}
+
+	@Test
+	public void testParseResourceExpressionRoundtripJson() throws Exception {
+		displayTestTitle("testParseResourceExpressionRoundtripJson");
+		doTestParseResourceExpressionRoundtrip(PrismContext.LANG_JSON);
+	}
+
+	@Test
+	public void testParseResourceExpressionRoundtripYaml() throws Exception {
+		displayTestTitle("testParseResourceExpressionRoundtripYaml");
+		doTestParseResourceExpressionRoundtrip(PrismContext.LANG_YAML);
+	}
+
+	private void doTestParseResourceExpressionRoundtrip(String serializeInto) throws Exception {
+
+		// GIVEN
+		PrismContext prismContext = getPrismContext();
+
+		PrismObject<ResourceType> resource = prismContext.parseObject(getFile(TestConstants.RESOURCE_FILE_EXPRESSION_BASENAME));
+
+		System.out.println("Parsed resource:");
+		System.out.println(resource.debugDump());
+
+		assertResourceExpression(resource, prismContext, false);
+
+		// SERIALIZE (1)
+
+		String serializedResource = prismContext.serializerFor(serializeInto).serialize(resource);
+
+		System.out.println("\nserialized resource (1):");
+		System.out.println(serializedResource);
+
+        // hack ... to make sure there's no "<clazz>" element there
+        assertFalse("<clazz> element is present in the serialized form!", serializedResource.contains("<clazz>"));
+
+        // RE-PARSE (1)
+
+		PrismObject<ResourceType> reparsedResource = prismContext.parseObject(serializedResource);
+
+		System.out.println("Re-parsed resource (1):");
+		System.out.println(reparsedResource.debugDump());
+
+		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
+		assertResourceExpression(reparsedResource, prismContext, true);
+
+		ObjectDelta<ResourceType> objectDelta = resource.diff(reparsedResource);
+		System.out.println("Delta:");
+		System.out.println(objectDelta.debugDump());
+		assertTrue("Delta is not empty", objectDelta.isEmpty());
+
+		PrismAsserts.assertEquivalent("Resource re-parsed equivalence", resource, reparsedResource);
+
+		// SERIALIZE (2)
+		// Do roundtrip again, this time after the expressions were checked and definitions applied.
+
+		assertResourceExpression(resource, prismContext, true);
+		System.out.println("\nResource (2):");
+		System.out.println(resource.debugDump());
+
+		serializedResource = prismContext.serializerFor(serializeInto).serialize(resource);
+
+		System.out.println("\nserialized resource (2):");
+		System.out.println(serializedResource);
+
+        // hack ... to make sure there's no "<clazz>" element there
+        assertFalse("<clazz> element is present in the serialized form!", serializedResource.contains("<clazz>"));
+
+        // RE-PARSE (2)
+
+		reparsedResource = prismContext.parseObject(serializedResource);
+
+		System.out.println("Re-parsed resource (2):");
+		System.out.println(reparsedResource.debugDump());
+
+		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
+		assertResourceExpression(reparsedResource, prismContext, true);
+
+	}
+
+	private <T> void assertRaw(PrismProperty<T> prop) {
+		assertTrue("Prop "+prop+" no raw", prop.isRaw());
+	}
+
+	private <T> void assertNotRaw(PrismProperty<T> prop) {
+		assertFalse("Prop "+prop+" raw (unexpected)", prop.isRaw());
+	}
+
+	private <T> PrismProperty<T> findProp(List<Item<?, ?>> items, String local) {
+		for (Item<?, ?> item: items) {
+			if (local.equals(item.getElementName().getLocalPart())) {
+				return (PrismProperty<T>) item;
+			}
+		}
+		fail("No item "+local);
+		return null; // not reached
+	}
+
+	private <T> void assertExpression(PrismProperty<T> prop, String evaluatorName) {
+		System.out.println("Prop:");
+		System.out.println(prop.debugDump(1));
+		PrismPropertyValue<T> pval = prop.getValue();
+		ExpressionWrapper expressionWrapper = pval.getExpression();
+		assertNotNull("No expression wrapper in "+prop, expressionWrapper);
+		Object expressionObj = expressionWrapper.getExpression();
+		assertNotNull("No expression in "+prop, expressionObj);
+		System.out.println("- Expression: "+expressionObj);
+		if (namespaces) {
+			assertTrue("Wrong expression type ("+language+","+(namespaces?"ns":"no-ns") + ") : " +expressionObj.getClass(), expressionObj instanceof ExpressionType);
+			ExpressionType expressionType = (ExpressionType)expressionObj;
+			JAXBElement<?> evaluatorElement = expressionType.getExpressionEvaluator().iterator().next();
+			assertEquals("Wrong expression evaluator name", evaluatorName, evaluatorElement.getName().getLocalPart());
+		}
 	}
 
 	@Override

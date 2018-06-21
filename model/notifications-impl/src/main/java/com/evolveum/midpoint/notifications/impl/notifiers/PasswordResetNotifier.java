@@ -33,16 +33,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class PasswordResetNotifier extends ConfirmationNotifier {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
-	
+
 	@Override
 	public void init() {
 		register(PasswordResetNotifierType.class);
 	}
-	
+
 	@Override
 	protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType,
 			OperationResult result) {
-		if (!(super.checkApplicability(event, generalNotifierType, result)) || !((ModelEvent) event).hasFocusOfType(UserType.class)) {
+		if (!(super.quickCheckApplicability(event, generalNotifierType, result)) || !((ModelEvent) event).hasFocusOfType(UserType.class)) {
 			LOGGER.trace(
 					"PasswordResetNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
 							+ event.getClass());
@@ -73,25 +73,24 @@ public class PasswordResetNotifier extends ConfirmationNotifier {
 			return false;
 		}
 	}
-	
+
 	@Override
 	protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport,
 			Task task, OperationResult result) {
 		return "Password reset";
 	}
-	
+
 	@Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
-		
+
 		UserType userType = getUser(event);
-		
-      return "Did you request password reset? If yes, click on the link bellow \n" + createConfirmationLink(userType, generalNotifierType, result);
- 	
+
+      return "Did you request password reset? If yes, click on the link bellow \n\n" + createConfirmationLink(userType, generalNotifierType, result);
+
     }
-	
+
 	@Override
 	public String getConfirmationLink(UserType userType) {
-		return SchemaConstants.PASSWORD_RESET_CONFIRMATION_PREFIX + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig() + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType);
-		
+		return getMidpointFunctions().createPasswordResetLink(userType);
 	}
 }

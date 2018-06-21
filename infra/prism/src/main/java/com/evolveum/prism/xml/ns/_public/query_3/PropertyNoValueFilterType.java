@@ -25,22 +25,20 @@ import org.w3c.dom.Element;
 
 /**
  * <p>Java class for PropertyNoValueFilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="PropertyNoValueFilterType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType">
- *       &lt;sequence>
- *         &lt;element name="property" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType"/>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="PropertyNoValueFilterType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="property" type="{http://prism.evolveum.com/xml/ns/public/types-3}XPathType"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/extension&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "PropertyNoValueFilterType", propOrder = {
@@ -58,7 +56,7 @@ public class PropertyNoValueFilterType
 
     /**
      * Creates a new {@code PropertyNoValueFilterType} instance.
-     * 
+     *
      */
     public PropertyNoValueFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -67,8 +65,8 @@ public class PropertyNoValueFilterType
 
     /**
      * Creates a new {@code PropertyNoValueFilterType} instance by deeply copying a given {@code PropertyNoValueFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -86,11 +84,11 @@ public class PropertyNoValueFilterType
 
     /**
      * Gets the value of the property property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Element }
-     *     
+     *
      */
     public Element getProperty() {
         return property;
@@ -98,11 +96,11 @@ public class PropertyNoValueFilterType
 
     /**
      * Sets the value of the property property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Element }
-     *     
+     *
      */
     public void setProperty(Element value) {
         this.property = value;
@@ -111,7 +109,7 @@ public class PropertyNoValueFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -163,8 +161,8 @@ public class PropertyNoValueFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

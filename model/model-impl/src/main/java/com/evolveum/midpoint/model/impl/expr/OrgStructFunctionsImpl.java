@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
      */
     @Override
     public Collection<String> getManagersOids(UserType user, boolean preAuthorized) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        Set<String> retval = new HashSet<String>();
+        Set<String> retval = new HashSet<>();
         for (UserType u : getManagers(user, preAuthorized)) {
             retval.add(u.getOid());
         }
@@ -98,7 +98,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList, boolean preAuthorized)
-			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Set<String> rv = new HashSet<>();
 		for (ObjectReferenceType ref : userRefList) {
 			UserType user = getObject(UserType.class, ref.getOid(), preAuthorized);
@@ -119,14 +119,14 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public Collection<UserType> getManagers(UserType user, String orgType, boolean allowSelf, boolean preAuthorized) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        Set<UserType> retval = new HashSet<UserType>();
+        Set<UserType> retval = new HashSet<>();
         if (user == null) {
         	return retval;
         }
         Collection<String> orgOids = getOrgUnits(user, null, preAuthorized);
         while (!orgOids.isEmpty()) {
             LOGGER.trace("orgOids: {}", orgOids);
-            Collection<OrgType> thisLevelOrgs = new ArrayList<OrgType>();
+            Collection<OrgType> thisLevelOrgs = new ArrayList<>();
             for (String orgOid : orgOids) {
                 if (orgType != null) {
                     OrgType org = getOrgByOid(orgOid, preAuthorized);
@@ -150,7 +150,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             if (!retval.isEmpty()) {
                 return retval;
             }
-            Collection<String> nextLevelOids = new ArrayList<String>();
+            Collection<String> nextLevelOids = new ArrayList<>();
             if (orgType == null) {
                 for (String orgOid : orgOids) {
                     OrgType org = getOrgByOid(orgOid, preAuthorized);
@@ -176,7 +176,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     // however, the syntax of orgType attribute is not standardized
     @Override
     public Collection<String> getOrgUnits(UserType user, boolean preAuthorized) {
-        Set<String> retval = new HashSet<String>();
+        Set<String> retval = new HashSet<>();
         if (user == null){
             return retval;
         }
@@ -206,7 +206,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             return getObject(OrgType.class, oid, preAuthorized);
         } catch (ObjectNotFoundException|SecurityViolationException e) {
             return null;
-        } catch (CommunicationException|ConfigurationException e) {
+        } catch (CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
             throw new SystemException("Couldn't get org: " + e.getMessage(), e);        // really shouldn't occur
         }
     }
@@ -272,7 +272,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
                 LOGGER.warn("Org "+parentOrgRef.getOid()+" specified in parentOrgRef in "+object+" was not found: "+e.getMessage(), e);
                 // but do not rethrow, just skip this
                 continue;
-            } catch (CommunicationException | ConfigurationException e) {
+            } catch (CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 // This should not happen.
                 throw new SystemException(e.getMessage(), e);
             }
@@ -285,7 +285,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public Collection<UserType> getManagersOfOrg(String orgOid, boolean preAuthorized) throws SchemaException, SecurityViolationException {
-        Set<UserType> retval = new HashSet<UserType>();
+        Set<UserType> retval = new HashSet<>();
         OperationResult result = new OperationResult("getManagerOfOrg");
 
         PrismReferenceValue parentOrgRefVal = new PrismReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
@@ -338,7 +338,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     }
 
     public <T extends ObjectType> T getObject(Class<T> type, String oid, boolean preAuthorized) throws ObjectNotFoundException, SchemaException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
+            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         PrismObject<T> prismObject;
         if (preAuthorized) {
             prismObject = repositoryService.getObject(type, oid, null, getCurrentResult());
@@ -355,7 +355,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         } else {
             try {
                 return modelService.searchObjects(clazz, query, null, getCurrentTask(), result);
-            } catch (ObjectNotFoundException|CommunicationException|ConfigurationException e) {
+            } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 throw new SystemException("Couldn't search objects: " + e.getMessage(), e);
             }
         }

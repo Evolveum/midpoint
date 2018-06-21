@@ -15,27 +15,23 @@
  */
 package com.evolveum.midpoint.gui.impl.util;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Class for misc GUI util methods (impl).
- * 
+ *
  * @author semancik
  *
  */
 public class GuiImplUtil {
-	
-	public static ItemPathType getPathType(AbstractFormItemType aItem) {
-		if (aItem == null) {
+
+	public static ItemPath getItemPath(AbstractFormItemType aItem) {
+		if (aItem != null && aItem.getBinding() != null && aItem.getBinding().getPath() != null) {
+			return aItem.getBinding().getPath().getItemPath();
+		} else {
 			return null;
 		}
-		VariableBindingDefinitionType binding = aItem.getBinding();
-		if (binding == null) {
-			return null;
-		}
-		return binding.getPath();
 	}
 
 }

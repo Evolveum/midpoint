@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,18 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_RESOURCE_OBJECT_CLASS_CONTENT = "resourceObjectClassContent";
     public static final String KEY_RESOURCE_PAGE_RESOURCE_CONTENT = "Resource";
     public static final String KEY_RESOURCE_PAGE_REPOSITORY_CONTENT = "Repository";
+    public static final String KEY_ASSIGNMENTS_TAB = "assignmentsTab";
+    public static final String KEY_INDUCEMENTS_TAB = "inducementsTab";
+    public static final String KEY_INDUCED_ENTITLEMENTS_TAB = "inducedEntitlementsTab";
 
     private static final String KEY_TASKS = "tasks";
+    private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
+
+    /**
+     * Contains state for first level menu items. Key is menu label text, value if true then
+     * menu is expanded, if false menu is minimized.
+     */
+    private Map<String, Boolean> mainMenuState = new HashMap<>();
 
     /**
     *   Store session information for user preferences about paging size in midPoint GUI
@@ -64,6 +74,10 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public Map<String, PageStorage> getPageStorageMap() {
 		return pageStorageMap;
 	}
+
+    public Map<String, Boolean> getMainMenuState() {
+        return mainMenuState;
+    }
 
     public ConfigurationStorage getConfiguration() {
         if (pageStorageMap.get(KEY_CONFIGURATION) == null) {
@@ -145,6 +159,27 @@ public class SessionStorage implements Serializable, DebugDumpable {
 
 	}
 
+    public AssignmentsTabStorage getAssignmentsTabStorage() {
+        if (pageStorageMap.get(KEY_ASSIGNMENTS_TAB) == null) {
+            pageStorageMap.put(KEY_ASSIGNMENTS_TAB, new AssignmentsTabStorage());
+        }
+        return (AssignmentsTabStorage)pageStorageMap.get(KEY_ASSIGNMENTS_TAB);
+	}
+
+    public AssignmentsTabStorage getInducementsTabStorage() {
+        if (pageStorageMap.get(KEY_INDUCEMENTS_TAB) == null) {
+            pageStorageMap.put(KEY_INDUCEMENTS_TAB, new AssignmentsTabStorage());
+        }
+        return (AssignmentsTabStorage)pageStorageMap.get(KEY_INDUCEMENTS_TAB);
+	}
+
+    public AssignmentsTabStorage getInducedEntitlementsTabStorage() {
+        if (pageStorageMap.get(KEY_INDUCED_ENTITLEMENTS_TAB) == null) {
+            pageStorageMap.put(KEY_INDUCED_ENTITLEMENTS_TAB, new AssignmentsTabStorage());
+        }
+        return (AssignmentsTabStorage)pageStorageMap.get(KEY_INDUCED_ENTITLEMENTS_TAB);
+	}
+
     private String getContentStorageKey(ShadowKindType kind, String searchMode) {
     	if (kind == null) {
 			return KEY_RESOURCE_OBJECT_CLASS_CONTENT;
@@ -171,6 +206,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(KEY_TASKS, new TasksStorage());
         }
         return (TasksStorage)pageStorageMap.get(KEY_TASKS);
+    }
+
+    public CertCampaignsStorage getCertCampaigns() {
+        if (pageStorageMap.get(KEY_CERT_CAMPAIGNS) == null) {
+            pageStorageMap.put(KEY_CERT_CAMPAIGNS, new CertCampaignsStorage());
+        }
+        return (CertCampaignsStorage)pageStorageMap.get(KEY_CERT_CAMPAIGNS);
     }
 
     public ReportsStorage getReports() {
@@ -240,7 +282,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
 		}
 	}
 
-    public void clearResourceContentStorage(){
+    public void clearResourceContentStorage() {
         pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
         pageStorageMap.remove(KEY_RESOURCE_ACCOUNT_CONTENT + KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
         pageStorageMap.remove(KEY_RESOURCE_ENTITLEMENT_CONTENT + KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);

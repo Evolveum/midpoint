@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;
 
@@ -51,6 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileOld;
+
 /**
  * @author mederly
  */
@@ -82,18 +83,18 @@ public class MailTransport implements Transport {
     public void send(Message mailMessage, String transportName, Event event, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
-        result.addCollectionOfSerializablesAsParam("mailMessage recipient(s)", mailMessage.getTo());
+        result.addArbitraryObjectCollectionAsParam("mailMessage recipient(s)", mailMessage.getTo());
         result.addParam("mailMessage subject", mailMessage.getSubject());
 
         SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, new OperationResult("dummy"));
-        
+
 //        if (systemConfiguration == null) {
 //        	String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
 //        	 LOGGER.warn(msg) ;
 //             result.recordWarning(msg);
 //             return;
 //        }
-//        
+//
 //        MailConfigurationType mailConfigurationType = null;
 //        SecurityPolicyType securityPolicyType = NotificationFuctionsImpl.getSecurityPolicyConfiguration(systemConfiguration.getGlobalSecurityPolicyRef(), cacheRepositoryService, result);
 //        if (securityPolicyType != null && securityPolicyType.getAuthentication() != null && securityPolicyType.getAuthentication().getMailAuthentication() != null) {
@@ -103,7 +104,7 @@ public class MailTransport implements Transport {
 //        		}
 //        	}
 //        }
-        
+
         if (systemConfiguration == null  || systemConfiguration.getNotificationConfiguration() == null
                 || systemConfiguration.getNotificationConfiguration().getMail() == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
@@ -115,15 +116,13 @@ public class MailTransport implements Transport {
 //		if (mailConfigurationType == null) {
 			MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
 //		}
+		String logToFile = mailConfigurationType.getLogToFile();
+		if (logToFile != null) {
+			TransportUtil.logToFile(logToFile, formatToFileOld(mailMessage), LOGGER);
+		}
         String redirectToFile = mailConfigurationType.getRedirectToFile();
         if (redirectToFile != null) {
-            try {
-                TransportUtil.appendToFile(redirectToFile, formatToFile(mailMessage));
-                result.recordSuccess();
-            } catch (IOException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't write to mail redirect file {}", e, redirectToFile);
-                result.recordPartialError("Couldn't write to mail redirect file " + redirectToFile, e);
-            }
+            TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
             return;
         }
 
@@ -178,7 +177,7 @@ public class MailTransport implements Transport {
                 LOGGER.debug("Using mail properties: ");
                 for (Object key : properties.keySet()) {
                     if (key instanceof String && ((String) key).startsWith("mail.")) {
-                        LOGGER.debug(" - " + key + " = " + properties.get(key));
+                        LOGGER.debug(" - {} = {}", key, properties.get(key));
                     }
                 }
             }
@@ -191,7 +190,7 @@ public class MailTransport implements Transport {
                 MimeMessage mimeMessage = new MimeMessage(session);
                 String from = mailMessage.getFrom() != null ? mailMessage.getFrom() : defaultFrom;
                 mimeMessage.setFrom(new InternetAddress(from));
-                
+
                	for (String recipient : mailMessage.getTo()) {
                		mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
                	}

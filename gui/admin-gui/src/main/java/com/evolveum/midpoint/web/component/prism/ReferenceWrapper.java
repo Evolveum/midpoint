@@ -18,19 +18,32 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference, PrismReferenceDefinition> implements Serializable {
 
 	private static final long serialVersionUID = 3132143219403214903L;
+	
+	private ObjectFilter filter;
+	
+	private List<QName> targetTypes;
 
-	public ReferenceWrapper(ContainerWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
-		super(container, reference, readonly, status);
+	public ReferenceWrapper(@Nullable ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status) {
+		super(container, reference, readonly, status, null);
+	}
+	
+	public ReferenceWrapper(@Nullable ContainerValueWrapper container, PrismReference reference, boolean readonly, ValueStatus status, ItemPath path) {
+		super(container, reference, readonly, status, path);
 	}
 
 	public List<ValueWrapper> getValues() {
@@ -41,31 +54,47 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 	}
 
 	private List<ValueWrapper> createValues() {
-		List<ValueWrapper> values = new ArrayList<ValueWrapper>();
+		List<ValueWrapper> values = new ArrayList<>();
 
 		for (PrismReferenceValue prismValue : item.getValues()) {
-			values.add(new ValueWrapper(this, prismValue, prismValue, ValueStatus.NOT_CHANGED));
+			
+			values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
 		}
 
 		int minOccurs = getItemDefinition().getMinOccurs();
 		while (values.size() < minOccurs) {
 			values.add(createAddedValue());
 		}
-
+ 
 		if (values.isEmpty()) {
 			values.add(createAddedValue());
 		}
 
 		return values;
 	}
-
+	
+	public void setTargetTypes(List<QName> targetTypes) {
+		this.targetTypes = targetTypes;
+	}
+	
+	public List<QName> getTargetTypes() {
+		return targetTypes;
+	}
+	
 	@Override
 	public ValueWrapper createAddedValue() {
 		PrismReferenceValue prv = new PrismReferenceValue();
-		ValueWrapper wrapper = new ValueWrapper(this, prv, ValueStatus.ADDED);
-		return wrapper;
+		return new ValueWrapper(this, prv, ValueStatus.ADDED);
 	}
-
+	
+	public ObjectFilter getFilter() {
+		return filter;
+	}
+	
+	public void setFilter(ObjectFilter filter) {
+		this.filter = filter;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -97,7 +126,7 @@ public class ReferenceWrapper extends PropertyOrReferenceWrapper<PrismReference,
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent+1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", itemDefinition == null?null:itemDefinition.toString(), indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", getItemDefinition() == null?null:getItemDefinition().toString(), indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "reference", item, indent+1);
 		sb.append("\n");

@@ -34,7 +34,7 @@ public class FilterConfiguration extends Selectable implements Editable {
 
     private boolean editing;
     private LoggingLevelType level;
-    private List<String> appenders = new ArrayList<String>();
+    private List<String> appenders = new ArrayList<>();
     private LoggingComponentType component;
 
     public FilterConfiguration(SubSystemLoggerConfigurationType config) {

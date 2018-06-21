@@ -43,7 +43,7 @@ public abstract class PrismContainerArrayList<T extends Containerable> extends A
     // For deserialization
     public PrismContainerArrayList() {
     }
-    
+
     public PrismContainerArrayList(PrismContainer<T> container) {
         Validate.notNull(container);
         this.container = container;

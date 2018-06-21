@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,11 +45,9 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ContextImage;
 import org.apache.wicket.markup.html.image.NonCachingImage;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -62,26 +60,27 @@ import java.util.*;
 public class UserMenuPanel extends BasePanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserMenuPanel.class);
-    private static final String ID_USERNAME_LINK = "usernameLink";
-    private static final String ID_LOGOUT_LINK = "logoutLink";
 
-    private static final String ID_USERNAME = "username";
-
-    private static final String ID_EDIT_PROFILE = "editProfile";
-    private static final String ID_PASSWORD_QUESTIONS = "passwordQuestions";
-    private IModel<PasswordQuestionsDto> passwordQuestionsDtoIModel;
-    private IModel<List<SecurityQuestionDefinitionType>> securityPolicyQuestionsModel;
-//    private PrismObject<UserType> userModel;
-    private Model<PrismObject<UserType>> userModel = new Model<PrismObject<UserType>>();
     private static final String DOT_CLASS = UserMenuPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loaduser";
     private static final String OPERATION_LOAD_QUESTION_POLICY = DOT_CLASS + "LOAD Question Policy";
+
+    private static final String ID_USERNAME_LINK = "usernameLink";
+    private static final String ID_CSRF_FIELD = "csrfField";
+    private static final String ID_USERNAME = "username";
+    private static final String ID_EDIT_PROFILE = "editProfile";
+    private static final String ID_PASSWORD_QUESTIONS = "passwordQuestions";
     private static final String ID_ICON_BOX = "menuIconBox";
     private static final String ID_PHOTO = "menuPhoto";
     private static final String ID_ICON = "menuIcon";
     private static final String ID_PANEL_ICON_BOX = "menuPanelIconBox";
     private static final String ID_PANEL_PHOTO = "menuPanelPhoto";
     private static final String ID_PANEL_ICON = "menuPanelIcon";
+
+    private IModel<PasswordQuestionsDto> passwordQuestionsDtoIModel;
+    private IModel<List<SecurityQuestionDefinitionType>> securityPolicyQuestionsModel;
+//    private PrismObject<UserType> userModel;
+    private Model<PrismObject<UserType>> userModel = new Model<>();
 
     private boolean isUserModelLoaded = false;
     private boolean isPasswordModelLoaded = false;
@@ -211,10 +210,8 @@ public class UserMenuPanel extends BasePanel {
         username.setRenderBodyOnly(true);
         add(username);
 
-        ExternalLink logoutLink = new ExternalLink(ID_LOGOUT_LINK,
-                new Model<>(RequestCycle.get().getRequest().getContextPath() + "/j_spring_security_logout"),
-                createStringResource("UserMenuPanel.logout"));
-        add(logoutLink);
+        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
+        add(csrfField);
 
         AjaxButton editPasswordQ = new AjaxButton(ID_PASSWORD_QUESTIONS,
                 createStringResource("UserMenuPanel.editPasswordQuestions")) {
@@ -279,11 +276,11 @@ public class UserMenuPanel extends BasePanel {
 
         PasswordQuestionsDto dto =new PasswordQuestionsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-        
+
         if (parentPage == null) {
         	parentPage = ((PageBase)getPage());
         }
-        
+
         try {
 
         	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
@@ -326,7 +323,7 @@ public class UserMenuPanel extends BasePanel {
         List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
         if (secQuestAnsList != null) {
-            List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<SecurityQuestionAnswerDTO>();
+            List<SecurityQuestionAnswerDTO> secQuestAnswListDTO = new ArrayList<>();
             for (Iterator iterator = secQuestAnsList.iterator(); iterator.hasNext();) {
                 SecurityQuestionAnswerType securityQuestionAnswerType = (SecurityQuestionAnswerType) iterator
                         .next();
@@ -342,7 +339,7 @@ public class UserMenuPanel extends BasePanel {
                         continue;
                     }
                 }
-                
+
             }
 
             return secQuestAnswListDTO;
@@ -355,7 +352,7 @@ public class UserMenuPanel extends BasePanel {
 
 
     private List<SecurityQuestionDefinitionType> loadSecurityPloicyQuestionsModel() {
-        List<SecurityQuestionDefinitionType> questionList = new ArrayList<SecurityQuestionDefinitionType>();
+        List<SecurityQuestionDefinitionType> questionList = new ArrayList<>();
         OperationResult result = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
         try {
             Task task = ((PageBase) getPage()).createSimpleTask(OPERATION_LOAD_QUESTION_POLICY);

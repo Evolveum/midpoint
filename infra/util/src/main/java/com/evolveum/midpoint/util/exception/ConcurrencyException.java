@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,33 @@
  */
 package com.evolveum.midpoint.util.exception;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 /**
  * Exceptional concurrency state or operation invocation.
- * 
+ *
  * This exception is thrown in case of race conditions and similar conflicting concurrency conditions.
  * It is also thrown in an attempt to acquire already acquired locks and similar cases.
- * 
+ *
  * This condition is implemented as exception in a hope that it will help avoid silently ignoring the
  * concurrency problems and that the developers will be forced to handle the condition.
  * It is much easier to ignore a return value than to ignore an exception.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class ConcurrencyException extends CommonException {
+	private static final long serialVersionUID = 1L;
 
 	public ConcurrencyException() {
 	}
 
 	public ConcurrencyException(String message) {
 		super(message);
+	}
+
+	public ConcurrencyException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
 	}
 
 	public ConcurrencyException(Throwable cause) {
@@ -45,11 +52,15 @@ public class ConcurrencyException extends CommonException {
 		super(message, cause);
 	}
 
+	public ConcurrencyException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
+	}
+
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Concurrency exception";
 	}
-	
-	
+
+
 
 }

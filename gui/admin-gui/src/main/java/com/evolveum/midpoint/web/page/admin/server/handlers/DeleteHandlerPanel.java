@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class DeleteHandlerPanel extends QueryBasedHandlerPanel<DeleteHandlerDto>
 
 	private void initLayout() {
 		WebMarkupContainer rawContainer = new WebMarkupContainer(ID_RAW_CONTAINER);
-		CheckBox raw = new CheckBox(ID_RAW, new PropertyModel<Boolean>(getModelObject(), DeleteHandlerDto.F_RAW));
+		CheckBox raw = new CheckBox(ID_RAW, new PropertyModel<>(getModelObject(), DeleteHandlerDto.F_RAW));
 		raw.setEnabled(false);
 		rawContainer.add(raw);
 		add(rawContainer);

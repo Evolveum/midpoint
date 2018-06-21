@@ -167,7 +167,7 @@ public class ActivitiInterface {
 		String taskOid = ActivitiUtil.getTaskOid(event.getVariables());
 		Task task;
 		try {
-			task = taskManager.getTask(taskOid, result);
+			task = taskManager.getTaskWithResult(taskOid, result);
 		} catch (ObjectNotFoundException|SchemaException|RuntimeException e) {
 			throw new SystemException("Couldn't get task " + taskOid + " from repository: " + e.getMessage(), e);
 		}

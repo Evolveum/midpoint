@@ -23,13 +23,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
  */
 public enum ChangeType {
 	ADD, MODIFY, DELETE;
-	
+
 	public static ChangeType toChangeType(ChangeTypeType changeType){
-		
+
 		if (changeType == null){
 			return null;
 		}
-		
+
 		switch (changeType){
 		case ADD : return ChangeType.ADD;
 		case DELETE : return ChangeType.DELETE;

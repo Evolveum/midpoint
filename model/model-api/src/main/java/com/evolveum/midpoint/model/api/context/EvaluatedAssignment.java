@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 package com.evolveum.midpoint.model.api.context;
 
 import java.util.Collection;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,22 +33,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable {
 
 	AssignmentType getAssignmentType();
 
+	Long getAssignmentId();
+
 	Collection<Authorization> getAuthorizations();
-	
+
 	Collection<AdminGuiConfigurationType> getAdminGuiConfigurations();
-	
+
 	DeltaSetTriple<? extends EvaluatedAssignmentTarget> getRoles();
 
 	DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
 	PrismObject<?> getTarget();
-	
+
+	AssignmentType getAssignmentType(boolean old);
+
 	QName getRelation();
 
 	boolean isValid();
@@ -56,7 +59,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	boolean isPresentInCurrentObject();
 
 	boolean isPresentInOldObject();
-	
+
 	/**
 	 * Returns all policy rules that apply to the focal object and are derived from this assignment
 	 * - even those that were not triggered. The policy rules are compiled from all the applicable
@@ -64,7 +67,7 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 	 */
 	@NotNull
 	Collection<EvaluatedPolicyRule> getFocusPolicyRules();
-	
+
 	/**
 	 * Returns all policy rules that directly apply to the target object of this assignment
 	 * (and are derived from this assignment) - even those that were not triggered. The policy rules
@@ -97,6 +100,9 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 
 
 	Collection<String> getPolicySituations();
-	
-	void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException;
+
+	void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
+
+	void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger,
+			LocalizationService localizationService) throws PolicyViolationException;
 }

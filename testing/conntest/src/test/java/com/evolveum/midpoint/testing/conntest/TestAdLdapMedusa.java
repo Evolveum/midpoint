@@ -34,7 +34,7 @@ public class TestAdLdapMedusa extends AbstractAdLdapCookedTest {
 	protected String getResourceOid() {
 		return "eced6d24-73e3-11e5-8457-93eff15a6b85";
 	}
-	
+
 	@Override
 	protected File getResourceFile() {
 		return new File(getBaseDir(), "resource-medusa.xml");
@@ -49,5 +49,5 @@ public class TestAdLdapMedusa extends AbstractAdLdapCookedTest {
 	protected int getLdapServerPort() {
 		return 636;
 	}
-	
+
 }

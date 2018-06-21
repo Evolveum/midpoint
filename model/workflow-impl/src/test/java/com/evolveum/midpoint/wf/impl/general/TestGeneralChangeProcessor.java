@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,6 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -134,11 +133,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
 	@Test
     public void test010AddRole1() throws Exception {
-        TestUtil.displayTestTile(this, "test010UserModifyAddRole");
+        TestUtil.displayTestTitle(this, "test010UserModifyAddRole");
         executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                 return context;
@@ -189,14 +188,14 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Test
     public void test020AddAccountRejected() throws Exception {
-        TestUtil.displayTestTile(this, "test020AddAccountRejected");
+        TestUtil.displayTestTitle(this, "test020AddAccountRejected");
 
         enableDisableScenarios(false, true);
 
         executeTest("test020AddAccountRejected", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILE);
                 return context;
@@ -289,14 +288,14 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Test
     public void test030AddAccountApproved() throws Exception {
-        TestUtil.displayTestTile(this, "test030AddAccountApproved");
+        TestUtil.displayTestTitle(this, "test030AddAccountApproved");
 
         enableDisableScenarios(false, true);
 
         executeTest("test030AddAccountApproved", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILE);
                 return context;
@@ -347,13 +346,15 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Test
     public void test000LoadContext() throws Exception {
-        TestUtil.displayTestTile(this, "test000LoadContext");
+    	final String TEST_NAME = "test000LoadContext";
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
-        OperationResult result = new OperationResult("test000LoadContext");
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
 
         LensContextType lensContextType = prismContext.parserFor(new File("src/test/resources/model-contexts/context-dummy-resource.xml")).xml().parseRealValue(LensContextType.class);
         display("LensContextType", lensContextType);
-        LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, result);
+        LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, task, result);
         display("LensContext", lensContext);
     }
 

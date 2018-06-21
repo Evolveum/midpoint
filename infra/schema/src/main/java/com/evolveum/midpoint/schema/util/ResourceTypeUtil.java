@@ -36,6 +36,9 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -62,7 +65,7 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 /**
  * Methods that would belong to the ResourceType class but cannot go there
  * because of JAXB.
- * 
+ *
  * @author Radovan Semancik
  */
 public class ResourceTypeUtil {
@@ -70,7 +73,7 @@ public class ResourceTypeUtil {
 	public static String getConnectorOid(PrismObject<ResourceType> resource) {
 		return getConnectorOid(resource.asObjectable());
 	}
-	
+
 	public static String getConnectorOid(ResourceType resource) {
 		if (resource.getConnectorRef() != null) {
 			return resource.getConnectorRef().getOid();
@@ -80,11 +83,11 @@ public class ResourceTypeUtil {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * The usage of "resolver" is experimental. Let's see if it will be
 	 * practical ...
-	 * 
+	 *
 	 * @see ObjectResolver
 	 */
 	public static ConnectorType getConnectorType(ResourceType resource, ObjectResolver resolver, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
@@ -114,7 +117,7 @@ public class ResourceTypeUtil {
 		}
 		return ObjectTypeUtil.findXsdElement(xmlSchemaType);
 	}
-	
+
 	public static Element getResourceXsdSchema(PrismObject<ResourceType> resource) {
 		PrismContainer<XmlSchemaType> xmlSchema = resource.findContainer(ResourceType.F_SCHEMA);
 		if (xmlSchema == null) {
@@ -122,12 +125,12 @@ public class ResourceTypeUtil {
 		}
 		return ObjectTypeUtil.findXsdElement(xmlSchema);
 	}
-	
+
 	public static void setResourceXsdSchema(ResourceType resourceType, Element xsdElement) {
 		PrismObject<ResourceType> resource = resourceType.asPrismObject();
 		setResourceXsdSchema(resource, xsdElement);
 	}
-	
+
 	public static void setResourceXsdSchema(PrismObject<ResourceType> resource, Element xsdElement) {
 		try {
 			PrismContainer<XmlSchemaType> schemaContainer = resource.findOrCreateContainer(ResourceType.F_SCHEMA);
@@ -137,7 +140,7 @@ public class ResourceTypeUtil {
 			// Should not happen
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
-		
+
 	}
 
 	/**
@@ -156,31 +159,31 @@ public class ResourceTypeUtil {
 		}
 		return nativeCap.getAny();
 	}
-	
+
 	public static boolean hasSchemaGenerationConstraints(ResourceType resource){
 		if (resource == null){
 			return false;
 		}
-		
+
 		if (resource.getSchema() == null){
 			return false;
 		}
-		
+
 		if (resource.getSchema().getGenerationConstraints() == null){
 			return false;
 		}
-		
+
 		List<QName> constainst = resource.getSchema().getGenerationConstraints().getGenerateObjectClass();
-		
+
 		if (constainst == null){
 			return false;
 		}
-		
+
 		return !constainst.isEmpty();
 	}
-	
+
 	public static List<QName> getSchemaGenerationConstraints(ResourceType resource){
-	
+
 		if (hasSchemaGenerationConstraints(resource)){
 			return resource.getSchema().getGenerationConstraints().getGenerateObjectClass();
 		}
@@ -195,7 +198,7 @@ public class ResourceTypeUtil {
 	}
 
 	/**
-	 * Assumes that native capabilities are already cached. 
+	 * Assumes that native capabilities are already cached.
 	 */
 	@Nullable
 	public static <T extends CapabilityType> T getEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
@@ -234,10 +237,10 @@ public class ResourceTypeUtil {
 				return connectorCapability;
 			}
 		}
-		
+
 		return CapabilityUtil.getEffectiveCapability(resource.getCapabilities(), capabilityClass);
 	}
-	
+
 	public static <T extends CapabilityType> boolean hasEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
 		return getEffectiveCapability(resource, capabilityClass) != null;
 	}
@@ -250,7 +253,7 @@ public class ResourceTypeUtil {
 	}
 
 	/**
-	 * Assumes that native capabilities are already cached. 
+	 * Assumes that native capabilities are already cached.
 	 */
 	public static List<Object> getEffectiveCapabilities(ResourceType resource) throws SchemaException {
 		return getEffectiveCapabilities(resource, false);
@@ -281,7 +284,7 @@ public class ResourceTypeUtil {
 	public static boolean isActivationCapabilityEnabled(ResourceType resource) {
 		return getEffectiveCapability(resource, ActivationCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isActivationLockoutStatusCapabilityEnabled(ResourceType resource) {
 		return getEffectiveActivationLockoutStatusCapability(resource) != null;
 	}
@@ -329,19 +332,19 @@ public class ResourceTypeUtil {
 	public static boolean isActivationValidityCapabilityEnabled(ResourceType resource) {
 		return getEffectiveActivationValidFromCapability(resource) != null || getEffectiveActivationValidToCapability(resource) != null;
 	}
-	
+
 	public static boolean isCredentialsCapabilityEnabled(ResourceType resource) {
 		return getEffectiveCapability(resource, CredentialsCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isCreateCapabilityEnabled(ResourceType resource){
 		return getEffectiveCapability(resource, CreateCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isCountObjectsCapabilityEnabled(ResourceType resource){
 		return getEffectiveCapability(resource, CountObjectsCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isPasswordCapabilityEnabled(ResourceType resource){
 		return getEffectivePasswordCapability(resource) != null;
 	}
@@ -358,39 +361,39 @@ public class ResourceTypeUtil {
 	public static boolean isLiveSyncCapabilityEnabled(ResourceType resource) {
 		return getEffectiveCapability(resource, LiveSyncCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isScriptCapabilityEnabled(ResourceType resource) {
 		return getEffectiveCapability(resource, ScriptCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isTestConnectionCapabilityEnabled(ResourceType resource) {
 		return getEffectiveCapability(resource, TestConnectionCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isAuxiliaryObjectClassCapabilityEnabled(ResourceType resource) {
 		return getEffectiveCapability(resource, AuxiliaryObjectClassesCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isPagedSearchCapabilityEnabled(ResourceType resource) {
 		return getEffectiveCapability(resource, PagedSearchCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isReadCapabilityEnabled(ResourceType resource){
 		return getEffectiveCapability(resource, ReadCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isUpdateCapabilityEnabled(ResourceType resource){
 		return getEffectiveCapability(resource, UpdateCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isAddRemoveAttributesValuesCapabilityEnabled(ResourceType resource){
 		return getEffectiveCapability(resource, AddRemoveAttributeValuesCapabilityType.class) != null;
 	}
-	
+
 	public static boolean isDeleteCapabilityEnabled(ResourceType resource){
 		return getEffectiveCapability(resource, DeleteCapabilityType.class) != null;
 	}
-	
+
 
 	public static boolean hasResourceNativeActivationCapability(ResourceType resource) {
 		ActivationCapabilityType activationCapability = null;
@@ -405,7 +408,7 @@ public class ResourceTypeUtil {
 		}
 		return true;
 	}
-	
+
 	public static boolean hasResourceNativeActivationStatusCapability(ResourceType resource) {
 		ActivationCapabilityType activationCapability = null;
 		if (resource.getCapabilities() != null && resource.getCapabilities().getNative() != null) {
@@ -414,7 +417,7 @@ public class ResourceTypeUtil {
 		}
 		return CapabilityUtil.getEffectiveActivationStatus(activationCapability) != null;
 	}
-	
+
 	public static boolean hasResourceNativeActivationLockoutCapability(ResourceType resource) {
 		ActivationCapabilityType activationCapability = null;
 		// check resource native capabilities. if resource cannot do
@@ -425,7 +428,7 @@ public class ResourceTypeUtil {
 		}
 		return CapabilityUtil.getEffectiveActivationLockoutStatus(activationCapability) != null;
 	}
-	
+
 	public static boolean hasResourceConfiguredActivationCapability(ResourceType resource) {
 		if (resource.getCapabilities() == null) {
 			return false;
@@ -471,7 +474,7 @@ public class ResourceTypeUtil {
 	public static PrismContainer<ConnectorConfigurationType> getConfigurationContainer(ResourceType resourceType) {
 		return getConfigurationContainer(resourceType.asPrismObject());
 	}
-	
+
 	public static PrismContainer<ConnectorConfigurationType> getConfigurationContainer(PrismObject<ResourceType> resource) {
 		return resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 	}
@@ -521,31 +524,31 @@ public class ResourceTypeUtil {
 			return dependency.getStrictness();
 		}
 	}
-	
+
 	public static boolean isForceLoadDependentShadow(ResourceObjectTypeDependencyType dependency){
 		Boolean force = dependency.isForceLoad();
 		if (force == null){
 			return false;
 		}
-		
+
 		return force;
 	}
-	
+
 	public static boolean isDown(ResourceType resource){
 		return (resource.getOperationalState() != null && AvailabilityStatusType.DOWN == resource.getOperationalState().getLastAvailabilityStatus());
 	}
-	
+
 	public static AvailabilityStatusType getLastAvailabilityStatus(ResourceType resource){
 		if (resource.getOperationalState() == null) {
 			return null;
 		}
-		
+
 		if (resource.getOperationalState().getLastAvailabilityStatus() == null) {
 			return null;
 		}
-		
+
 		return resource.getOperationalState().getLastAvailabilityStatus();
-		
+
 	}
 
 	public static boolean isAvoidDuplicateValues(ResourceType resource) {
@@ -635,5 +638,72 @@ public class ResourceTypeUtil {
 	@NotNull
 	public static QName fillDefaultFocusType(QName focusType) {
 		return focusType != null ? focusType : UserType.COMPLEX_TYPE;
+	}
+
+	public static ShadowCheckType getShadowConstraintsCheck(ResourceType resource) {
+		ResourceConsistencyType consistency = resource.getConsistency();
+		if (consistency == null) {
+			return ShadowCheckType.NONE;
+		}
+		ShadowCheckType shadowCheckType = consistency.getShadowConstraintsCheck();
+		if (shadowCheckType == null) {
+			return ShadowCheckType.NONE;
+		}
+		return shadowCheckType;
+	}
+
+	public static boolean isValidateSchema(ResourceType resource) {
+		ResourceConsistencyType consistency = resource.getConsistency();
+		if (consistency == null) {
+			return false;
+		}
+		return Boolean.TRUE.equals(consistency.isValidateSchema());
+	}
+
+	// TODO: maybe later move to ResourceSchema?
+	public static void validateSchema(ResourceSchema resourceSchema, PrismObject<ResourceType> resource) throws SchemaException {
+
+		Set<QName> objectClassNames = new HashSet<>();
+
+		for (ObjectClassComplexTypeDefinition objectClassDefinition: resourceSchema.getObjectClassDefinitions()) {
+			QName typeName = objectClassDefinition.getTypeName();
+			if (objectClassNames.contains(typeName)) {
+				throw new SchemaException("Duplicate definition of object class "+typeName+" in resource schema of "+resource);
+			}
+			objectClassNames.add(typeName);
+
+			validateObjectClassDefinition(objectClassDefinition, resource);
+		}
+	}
+
+	public static void validateObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition,
+			PrismObject<ResourceType> resource) throws SchemaException {
+		Set<QName> attributeNames = new HashSet<>();
+		for (ResourceAttributeDefinition<?> attributeDefinition: objectClassDefinition.getAttributeDefinitions()) {
+			QName attrName = attributeDefinition.getName();
+			if (attributeNames.contains(attrName)) {
+				throw new SchemaException("Duplicate definition of attribute "+attrName+" in object class "+objectClassDefinition.getTypeName()+" in resource schema of "+resource);
+			}
+			attributeNames.add(attrName);
+		}
+
+		Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = objectClassDefinition.getPrimaryIdentifiers();
+		Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifiers = objectClassDefinition.getSecondaryIdentifiers();
+
+		if (primaryIdentifiers.isEmpty() && secondaryIdentifiers.isEmpty()) {
+			throw new SchemaException("No identifiers in definition of object class "+objectClassDefinition.getTypeName()+" in resource schema of "+resource);
+		}
+	}
+
+	public static RecordPendingOperationsType getRecordPendingOperations(ResourceType resourceType) {
+		ResourceConsistencyType consistencyType = resourceType.getConsistency();
+		if (consistencyType == null) {
+			return RecordPendingOperationsType.ASYNCHRONOUS;
+		}
+		RecordPendingOperationsType recordPendingOperations = consistencyType.getRecordPendingOperations();
+		if (recordPendingOperations == null) {
+			return RecordPendingOperationsType.ASYNCHRONOUS;
+		}
+		return recordPendingOperations;
 	}
 }

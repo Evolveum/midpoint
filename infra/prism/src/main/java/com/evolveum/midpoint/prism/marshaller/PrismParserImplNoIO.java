@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,6 +172,15 @@ public class PrismParserImplNoIO extends PrismParserImpl implements PrismParserN
 	public List<PrismObject<? extends Objectable>> parseObjects() throws SchemaException {
 		try {
 			return doParseObjects();
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@Override
+	public void parseObjectsIteratively(@NotNull ObjectHandler handler) throws SchemaException {
+		try {
+			doParseObjectsIteratively(handler);
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}

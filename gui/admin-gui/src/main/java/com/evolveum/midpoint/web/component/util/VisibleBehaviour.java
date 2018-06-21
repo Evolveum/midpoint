@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component.util;
 
-import com.evolveum.midpoint.util.Producer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,14 +25,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class VisibleBehaviour extends VisibleEnableBehaviour {
 
-	@NotNull private final SerializableBooleanProducer visibility;
+	@NotNull private final SerializableSupplier<Boolean> visibility;
 
-	public VisibleBehaviour(@NotNull SerializableBooleanProducer visibility) {
+	public VisibleBehaviour(@NotNull SerializableSupplier<Boolean> visibility) {
 		this.visibility = visibility;
 	}
 
 	@Override
 	public boolean isVisible() {
-		return visibility.run();
+		return visibility.get();
 	}
 }

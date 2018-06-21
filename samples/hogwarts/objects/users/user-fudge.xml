@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+   <name>c.fudge</name>
+   <assignment id="1">
+      <targetRef oid="d163d767-2467-4304-badf-aaae421f2171"
+                 relation="org:default"
+                 type="c:OrgType"><!-- Minister of magic --></targetRef>
+   </assignment>
+   <assignment id="2">
+      <targetRef oid="00000000-0000-0000-0000-000000000008"
+                 relation="org:default"
+                 type="c:RoleType"><!-- End user --></targetRef>
+   </assignment>
+   <assignment id="4">
+      <targetRef oid="00000000-role-0000-0000-111111111112"
+                 relation="org:owner"
+                 type="c:RoleType"><!-- Potions Teacher --></targetRef>
+   </assignment>
+   <assignment id="5">
+      <targetRef oid="00000000-role-0000-0000-111111111111"
+                 relation="org:owner"
+                 type="c:RoleType"><!-- Transfiguration Teacher --></targetRef>
+   </assignment>
+   <assignment id="6">
+      <targetRef oid="00000000-role-0000-0000-111111111113"
+                 relation="org:owner"
+                 type="c:RoleType"><!-- Herbology Teacher --></targetRef>
+   </assignment>
+   <assignment id="8">
+      <targetRef oid="00000000-0000-0000-0000-00000000000a"
+                 relation="org:default"
+                 type="c:RoleType"><!-- Approver --></targetRef>
+   </assignment>
+   <assignment id="10">
+      <targetRef oid="00000000-role-0000-0000-111111111155"
+                 relation="org:owner"
+                 type="c:RoleType"><!-- Defence Against the Dark Arts Teacher --></targetRef>
+   </assignment>
+   <assignment id="12">
+      <targetRef oid="00000000-role-0000-0000-111111111777"
+                 relation="org:owner"
+                 type="c:RoleType"><!-- Duelling classroom access --></targetRef>
+   </assignment>
+   <fullName>Cornelius Fudge</fullName>
+   <givenName>Cornelius</givenName>
+   <familyName>Fudge</familyName>
+   <credentials>
+      <password>
+         <value>
+            <t:clearValue>asd123</t:clearValue>
+         </value>
+      </password>
+   </credentials>
+</user>

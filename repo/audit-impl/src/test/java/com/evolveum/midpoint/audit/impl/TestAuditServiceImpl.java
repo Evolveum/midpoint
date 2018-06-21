@@ -44,24 +44,24 @@ import com.evolveum.midpoint.task.api.TaskManager;
         "classpath:ctx-repository-test.xml",
         "classpath:ctx-configuration-test.xml"})
 public class TestAuditServiceImpl extends AbstractTestNGSpringContextTests {
-	
+
 	private static final String LOG_FILENAME = "target/test.log";
-	
+
 	@Autowired
 	AuditService auditService;
-	
+
 	@Autowired
 	TaskManager taskManager;
-	
+
 	@Test
 	public void testAuditSimple() throws FileNotFoundException, InterruptedException {
 		// GIVEN
 		AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.ADD_OBJECT);
 		Task task = taskManager.createTaskInstance();
-		
+
 		// WHEN
 		auditService.audit(auditRecord, task);
-		
+
 		// THEN
 
 		//Thread.sleep(2000);

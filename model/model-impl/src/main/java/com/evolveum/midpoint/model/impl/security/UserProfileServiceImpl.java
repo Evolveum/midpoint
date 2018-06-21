@@ -18,12 +18,13 @@ package com.evolveum.midpoint.model.impl.security;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.UserComputer;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
@@ -36,30 +37,41 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceAware;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,85 +91,83 @@ import java.util.List;
  * @author semancik
  */
 @Service(value = "userDetailsService")
-public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper {
+public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
-    
-    @Autowired(required = true)
-    private transient RepositoryService repositoryService;
-    
-    @Autowired(required = true)
-    private ObjectResolver objectResolver;
-    
-    @Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
-    
-    @Autowired(required = true)
-    private MappingFactory mappingFactory;
 
-    @Autowired(required = true)
-    private MappingEvaluator mappingEvaluator;
-    
-    @Autowired(required = true)
-    private SecurityHelper securityHelper;
+    @Autowired
+	@Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
-    @Autowired(required = true)
-    private UserComputer userComputer;
-    
-    @Autowired(required = true)
-	private ActivationComputer activationComputer;
-    
-    @Autowired(required = true)
-    private Clock clock;
-    
-    @Autowired(required = true)
-    private PrismContext prismContext;
-    
-    @Autowired(required = true)
-    private TaskManager taskManager;
+	@Autowired private ObjectResolver objectResolver;
+	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private MappingFactory mappingFactory;
+	@Autowired private MappingEvaluator mappingEvaluator;
+	@Autowired private SecurityHelper securityHelper;
+	@Autowired private UserComputer userComputer;
+	@Autowired private ActivationComputer activationComputer;
+	@Autowired private Clock clock;
+	@Autowired private PrismContext prismContext;
+	@Autowired private TaskManager taskManager;
 
-    @Override
+	private MessageSourceAccessor messages;
+
+	@Override
+	public void setMessageSource(MessageSource messageSource) {
+		this.messages = new MessageSourceAccessor(messageSource);
+	}
+
+	@Override
     public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	PrismObject<UserType> user = null;
+    	PrismObject<UserType> user;
         try {
             user = findByUsername(username, result);
+
+            if (user == null) {
+                throw new ObjectNotFoundException("Couldn't find user with name '" + username + "'");
+            }
         } catch (ObjectNotFoundException ex) {
-        	LOGGER.trace("Couldn't find user with name '{}', reason: {}.",
-                    new Object[]{username, ex.getMessage(), ex});
-        	throw ex;
+            LOGGER.trace("Couldn't find user with name '{}', reason: {}.", username, ex.getMessage(), ex);
+            throw ex;
         } catch (Exception ex) {
-            LOGGER.warn("Error getting user with name '{}', reason: {}.",
-                    new Object[]{username, ex.getMessage(), ex});
+            LOGGER.warn("Error getting user with name '{}', reason: {}.", username, ex.getMessage(), ex);
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return createPrincipal(user, result);
+        return getPrincipal(user, null, result);
     }
 
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	return createPrincipal(user, result);
+    	return getPrincipal(user, null, result);
     }
     
-    private MidPointPrincipal createPrincipal(PrismObject<UserType> user, OperationResult result) throws SchemaException {
+    @Override
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
-        
-        PrismObject<SystemConfigurationType> systemConfiguration = null;
-        try {
-        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
-					null, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
-		}
+
+        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
 
     	userComputer.recompute(user);
         MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
-        initializePrincipalFromAssignments(principal, systemConfiguration);
+        initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
         return principal;
+    }
+    
+    private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
+    	PrismObject<SystemConfigurationType> systemConfiguration = null;
+        try {
+        	// TODO: use SystemObjectCache instead?
+        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+					null, result);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
+		} 
+        return systemConfiguration;
     }
 
     @Override
@@ -166,8 +176,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         try {
             save(principal, result);
         } catch (Exception ex) {
-            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
-                    new Object[]{principal.getFullName(), principal.getOid(), ex.getMessage(), ex});
+            LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.", principal.getFullName(), principal.getOid(), ex.getMessage(), ex);
         }
     }
 
@@ -176,23 +185,21 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
-        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 
-                result);
-        LOGGER.trace("Users found: {}.", (list != null ? list.size() : 0));
-        if (list == null || list.size() != 1) {
+        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, result);
+		LOGGER.trace("Users found: {}.", list.size());
+        if (list.size() != 1) {
             return null;
         }
-        
         return list.get(0);
     }
-        
-	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
+
+	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException {
 		UserType userType = principal.getUser();
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 
-		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
+		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
 
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(userType.asPrismObject(), systemConfiguration, task, result));
@@ -222,37 +229,33 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
-			for (AssignmentType assignmentType: userType.getAssignment()) {
-				try {
-					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-					assignmentIdi.recompute();
-					EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, false, userType, userType.toString(), task, result);
-					if (assignment.isValid()) {
-						authorizations.addAll(assignment.getAuthorizations());
-						adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
-					}
-					for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-						if (target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
-							&& DeputyUtils.isDelegationPath(target.getAssignmentPath())) {
-							List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-							principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
-									(UserType) target.getTarget().asObjectable(), limitations));
+			try {
+				RepositoryCache.enter();
+				for (AssignmentType assignmentType: userType.getAssignment()) {
+					try {
+						ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+						assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+						assignmentIdi.recompute();
+						EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), task, result);
+						if (assignment.isValid()) {
+							addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
+							adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
 						}
+						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
+							if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
+									&& DeputyUtils.isDelegationPath(target.getAssignmentPath())) {
+								List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
+								principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
+										(UserType) target.getTarget().asObjectable(), limitations));
+							}
+						}
+					} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
+						LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
+								userType, e.getMessage(), assignmentType, e);
 					}
-				} catch (SchemaException e) {
-					LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}",
-							userType, e.getMessage(), assignmentType, e);
-				} catch (ObjectNotFoundException e) {
-					LOGGER.error("Object not found while processing assignment of {}: {}; assignment: {}",
-							userType, e.getMessage(), assignmentType, e);
-				} catch (ExpressionEvaluationException e) {
-					LOGGER.error("Evaluation error while processing assignment of {}: {}; assignment: {}",
-							userType, e.getMessage(), assignmentType, e);
-				} catch (PolicyViolationException e) {
-					LOGGER.error("Policy violation while processing assignment of {}: {}; assignment: {}",
-							userType, e.getMessage(), assignmentType, e);
 				}
+			} finally {
+				RepositoryCache.exit();
 			}
 		}
 		if (userType.getAdminGuiConfiguration() != null) {
@@ -260,6 +263,22 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
 		}
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
+	}
+
+	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
+		if (sourceCollection == null) {
+			return;
+		}
+		for (Authorization autz: sourceCollection) {
+			if (authorizationTransformer == null) {
+				targetCollection.add(autz);
+			} else {
+				Collection<Authorization> transformedAutzs = authorizationTransformer.transform(autz);
+				if (transformedAutzs != null) {
+					targetCollection.addAll(transformedAutzs);
+				}
+			}
+		}
 	}
 
 	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -279,13 +298,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     private UserType getUserByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        ObjectType object = repositoryService.getObject(UserType.class, oid,
-        		null, result).asObjectable();
-        if (object != null && (object instanceof UserType)) {
-            return (UserType) object;
-        }
-
-        return null;
+	    return repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
     }
 
 	@Override
@@ -294,12 +307,42 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			return null;
 		}
 		PrismObject<F> owner = null;
+		OperationResult result = new OperationResult(UserProfileServiceImpl.class+".resolveOwner");
+
 		if (object.canRepresent(ShadowType.class)) {
-			owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
+			owner = repositoryService.searchShadowOwner(object.getOid(), null, result);
+
+		} else if (object.canRepresent(UserType.class)) {
+			ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
+			SearchResultList<PrismObject<UserType>> owners;
+			try {
+				owners = repositoryService.searchObjects(UserType.class, query, null, result);
+				if (owners.isEmpty()) {
+					return null;
+				}
+				if (owners.size() > 1) {
+					LOGGER.warn("More than one owner of {}: {}", object, owners);
+				}
+				owner = (PrismObject<F>) owners.get(0);
+			} catch (SchemaException e) {
+				LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+			}
+
 		} else if (object.canRepresent(AbstractRoleType.class)) {
 			ObjectReferenceType ownerRef = ((AbstractRoleType)(object.asObjectable())).getOwnerRef();
 			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
-				OperationResult result = new OperationResult(UserProfileService.class.getName() + ".resolveOwner");
+				try {
+					owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
+							ownerRef.getOid(), null, result);
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+				}
+			}
+
+		} else if (object.canRepresent(TaskType.class)) {
+			ObjectReferenceType ownerRef = ((TaskType)(object.asObjectable())).getOwnerRef();
+			if (ownerRef != null && ownerRef.getOid() != null && ownerRef.getType() != null) {
 				try {
 					owner = (PrismObject<F>) repositoryService.getObject(ObjectTypes.getObjectTypeFromTypeQName(ownerRef.getType()).getClassDefinition(),
 							ownerRef.getOid(), null, result);
@@ -308,6 +351,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 				}
 			}
 		}
+
 		if (owner == null) {
 			return null;
 		}
@@ -316,7 +360,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		}
 		return owner;
 	}
-	
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		try {
@@ -334,7 +378,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		try {
 			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
-			throw new UsernameNotFoundException(e.getMessage(), e);
+			throw new UsernameNotFoundException("UserProfileServiceImpl.unknownUser", e);
 		} catch (SchemaException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
@@ -343,8 +387,8 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Override
 	public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
-	
+
+
 }

@@ -1,0 +1,35 @@
+<role
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+	oid="10000000-0000-0000-0000-000000006601">
+	<name>role-ldap</name>
+	
+	<inducement>
+		<construction>
+			<resourceRef type="c:ResourceType">
+				<filter xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+					<q:equal>
+						<q:path>name</q:path>
+						<q:value>Embedded Test OpenDJ</q:value>
+					</q:equal>
+				</filter>
+			</resourceRef>
+			<kind>account</kind>
+			<intent>default</intent>
+		</construction>
+		<condition>
+			<expression>
+				<script>
+					<code>
+						(focus.getClass() == com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.class)
+					</code>
+				</script>
+			</expression>
+		</condition>
+	</inducement>
+</role>

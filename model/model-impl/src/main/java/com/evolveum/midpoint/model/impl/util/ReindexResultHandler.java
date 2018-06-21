@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -53,7 +53,7 @@ public class ReindexResultHandler extends AbstractSearchIterativeResultHandler<O
     @Override
     protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "handleObject");
-        repositoryService.modifyObject(object.asObjectable().getClass(), object.getOid(), new ArrayList<ItemDelta>(),
+        repositoryService.modifyObject(object.asObjectable().getClass(), object.getOid(), new ArrayList<>(),
                 RepoModifyOptions.createExecuteIfNoChanges(), result);
         result.computeStatusIfUnknown();
         return true;

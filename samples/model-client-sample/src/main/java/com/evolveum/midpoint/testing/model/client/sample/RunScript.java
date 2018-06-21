@@ -65,7 +65,7 @@ import java.util.Properties;
  *
  */
 public class RunScript {
-	
+
 	// Configuration
 	public static final String ADM_USERNAME = "administrator";
 	public static final String ADM_PASSWORD = "5ecr3t";
@@ -261,8 +261,8 @@ public class RunScript {
 
     private static <T> T unmarshalFile(File file) throws JAXBException, FileNotFoundException {
 		JAXBContext jc = getJaxbContext();
-		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
-		 
+		Unmarshaller unmarshaller = jc.createUnmarshaller();
+
 		InputStream is = null;
 		JAXBElement<T> element = null;
 		try {
@@ -301,8 +301,8 @@ public class RunScript {
 
     private static <T> T unmarshallResouce(String path) throws JAXBException, FileNotFoundException {
 		JAXBContext jc = getJaxbContext();
-		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
-		 
+		Unmarshaller unmarshaller = jc.createUnmarshaller();
+
 		InputStream is = null;
 		JAXBElement<T> element = null;
 		try {
@@ -327,23 +327,23 @@ public class RunScript {
         String user = cmdLine.getOptionValue(OPT_USER, ADM_USERNAME);
 		ClientPasswordHandler.setPassword(cmdLine.getOptionValue(OPT_PASSWORD, ADM_PASSWORD));
 		System.out.println("Endpoint URL: " + endpointUrl);
-		
+
 		ModelService modelService = new ModelService();
 		ModelPortType modelPort = modelService.getModelPort();
 		BindingProvider bp = (BindingProvider)modelPort;
 		Map<String, Object> requestContext = bp.getRequestContext();
 		requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpointUrl);
-		
+
 		org.apache.cxf.endpoint.Client client = ClientProxy.getClient(modelPort);
 		org.apache.cxf.endpoint.Endpoint cxfEndpoint = client.getEndpoint();
-		
+
 		Map<String,Object> outProps = new HashMap<>();
-		
+
 		outProps.put(WSHandlerConstants.ACTION, WSHandlerConstants.USERNAME_TOKEN);
 		outProps.put(WSHandlerConstants.USER, user);
 		outProps.put(WSHandlerConstants.PASSWORD_TYPE, WSConstants.PW_DIGEST);
 		outProps.put(WSHandlerConstants.PW_CALLBACK_CLASS, ClientPasswordHandler.class.getName());
-		
+
 		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
 		cxfEndpoint.getOutInterceptors().add(wssOut);
 

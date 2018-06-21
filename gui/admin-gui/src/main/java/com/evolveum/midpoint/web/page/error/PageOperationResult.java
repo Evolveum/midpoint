@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
@@ -29,17 +30,21 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
  * Page that displays just the operation result. Comes handy
  * for places where the operation result cannot be displayed
  * on the main page (e.g. object list warnings, projection list, etc.)
- * 
+ *
  * @author semancik
  */
-@PageDescriptor(url = "/result")
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/result", matchUrlForSecurity = "/result")
+        }, permitAll = true)
 public class PageOperationResult extends PageBase {
-	private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = 1L;
 
     private static final String ID_BACK = "back";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOperationResult.class);
-    
+
     private OperationResult result = null;
 
     public PageOperationResult() {
@@ -54,21 +59,24 @@ public class PageOperationResult extends PageBase {
     }
 
     private void initLayout() {
-    	if (result != null) {
-    		OpResult opresult = showResult(result);
-    		opresult.setShowMoreAll(true);
-    	}
+        if (result != null) {
+            OpResult opresult = showResult(result);
+            if (opresult != null) {
+                opresult.setShowMoreAll(true);
+            } else {
+                warn(getString("PageOperationResult.noResultAvailable"));
+            }
+        }
 
-    	AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageError.button.back")) {
-			private static final long serialVersionUID = 1L;
+        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageError.button.back")) {
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public void onClick(AjaxRequestTarget target) {
                 backPerformed(target);
             }
         };
         add(back);
-
     }
 
     private void backPerformed(AjaxRequestTarget target) {

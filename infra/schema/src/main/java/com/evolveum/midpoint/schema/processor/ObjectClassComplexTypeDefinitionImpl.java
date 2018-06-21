@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,22 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -97,7 +103,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	void setDescriptionAttribute(ResourceAttributeDefinition<?> descriptionAttribute) {
 		this.descriptionAttribute = descriptionAttribute;
 	}
-	
+
 	@Override
 	public <X> ResourceAttributeDefinition<X> getNamingAttribute() {
 		return namingAttribute;
@@ -106,11 +112,11 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public void setNamingAttribute(ResourceAttributeDefinition<?> namingAttribute) {
 		this.namingAttribute = namingAttribute;
 	}
-	
+
 	public void setNamingAttribute(QName namingAttribute) {
 		setNamingAttribute(findAttributeDefinition(namingAttribute));
 	}
-	
+
 	@Override
 	public String getNativeObjectClass() {
 		return nativeObjectClass;
@@ -119,7 +125,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public void setNativeObjectClass(String nativeObjectClass) {
 		this.nativeObjectClass = nativeObjectClass;
 	}
-	
+
 	@Override
 	public boolean isAuxiliary() {
 		return auxiliary;
@@ -142,20 +148,20 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public boolean isDefaultInAKind() {
 		return defaultInAKind;
 	}
-	
+
 	public void setDefaultInAKind(boolean defaultAccountType) {
 		this.defaultInAKind = defaultAccountType;
 	}
-	
+
 	@Override
 	public String getIntent() {
 		return intent;
 	}
-	
+
 	public void setIntent(String intent) {
 		this.intent = intent;
 	}
-	
+
 	@Override
 	public ResourceAttributeDefinition<?> getDisplayNameAttribute() {
 		return displayNameAttribute;
@@ -164,10 +170,10 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public void setDisplayNameAttribute(ResourceAttributeDefinition<?> displayName) {
 		this.displayNameAttribute = displayName;
 	}
-	
+
 	/**
 	 * TODO
-	 * 
+	 *
 	 * Convenience method. It will internally look up the correct definition.
 	 */
 	public void setDisplayNameAttribute(QName displayName) {
@@ -179,18 +185,29 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		add(propDef);
 		return propDef;
 	}
-	
+
 	public <X> ResourceAttributeDefinitionImpl<X> createAttributeDefinition(String localName, QName typeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		return createAttributeDefinition(name,typeName);
 	}
-	
+
 	public <X> ResourceAttributeDefinition<X> createAttributeDefinition(String localName, String localTypeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
 		return createAttributeDefinition(name,typeName);
 	}
-	
+
+	@Override
+	public boolean matches(ShadowType shadowType) {
+		if (shadowType == null) {
+			return false;
+		}
+		if (!QNameUtil.match(getTypeName(), shadowType.getObjectClass())) {
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * This may not be really "clean" as it actually does two steps instead of one. But it is useful.
 	 */
@@ -198,7 +215,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	public ResourceAttributeContainer instantiate(QName elementName) {
 		return instantiate(elementName, this);
 	}
-	
+
 	public static ResourceAttributeContainer instantiate(QName elementName, ObjectClassComplexTypeDefinition ocdef) {
 		ResourceAttributeContainerDefinition racDef = ocdef.toResourceAttributeContainerDefinition(elementName);
 		return new ResourceAttributeContainer(elementName, racDef, ocdef.getPrismContext());
@@ -210,9 +227,16 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		ObjectClassComplexTypeDefinitionImpl clone = new ObjectClassComplexTypeDefinitionImpl(
 				getTypeName(), prismContext);
 		copyDefinitionData(clone);
+		clone.shared = false;
 		return clone;
 	}
-	
+
+	@NotNull
+	@Override
+	public ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+		return (ObjectClassComplexTypeDefinition) super.deepClone(ctdMap, onThisPath, postCloneAction);
+	}
+
 	protected void copyDefinitionData(ObjectClassComplexTypeDefinitionImpl clone) {
 		super.copyDefinitionData(clone);
 		clone.kind = this.kind;
@@ -226,7 +250,7 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 		clone.secondaryIdentifiers.addAll(this.secondaryIdentifiers);
 		clone.auxiliary = this.auxiliary;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

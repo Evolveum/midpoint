@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 /**
  * Matching rule for universally unique identifier (UUID).
- * 
+ *
  * Currently it is (almost) simple case ignore matching.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class UuidMatchingRule implements MatchingRule<String> {
-	
+
 	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "uuid");
 
 	@Override
@@ -77,7 +77,7 @@ public class UuidMatchingRule implements MatchingRule<String> {
 		if (a == null){
 			return false;
 		}
-		
+
 		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 		Matcher matcher = pattern.matcher(a);
 		return matcher.matches();

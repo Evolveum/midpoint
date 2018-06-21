@@ -268,10 +268,10 @@ public class ProfilingDataManager {
     }
 
     private static void printMap(Map<String, MethodUsageStatistics> logMap, Subsystem subsystem, boolean afterTest){
-
-        for(String key: logMap.keySet()){
-            if(logMap.get(key) != null && subsystem.equals(logMap.get(key).getSubsystem())){
-                logMap.get(key).appendToLogger(afterTest);
+        for (Map.Entry<String, MethodUsageStatistics> usage : logMap.entrySet()){
+            final MethodUsageStatistics value = usage.getValue();
+            if(subsystem.equals(value.getSubsystem())){
+                value.appendToLogger(afterTest);
             }
         }
     }

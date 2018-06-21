@@ -15,22 +15,24 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import com.evolveum.midpoint.util.ShortDumpable;
+
 /**
  * Primary goal of this class is to support asynchronous operations.
  * The call to operation may return even if the resource operation
  * is still in progress. The IN_PROGRESS status will be indicated in
- * this class in the operation result. The result may also include 
+ * this class in the operation result. The result may also include
  * the asynchronous operation reference in the operational status.
  * This reference may be later used to check the status of the
- * operation. 
- * 
+ * operation.
+ *
  * This may seems too simple and maybe pointless now. But we expect
  * that it may later evolve to something like future/promise.
- * 
+ *
  * @author semancik
  *
  */
-public class AsynchronousOperationResult {
+public class AsynchronousOperationResult implements ShortDumpable {
 
 	private OperationResult operationResult;
 
@@ -41,14 +43,21 @@ public class AsynchronousOperationResult {
 	public void setOperationResult(OperationResult operationResult) {
 		this.operationResult = operationResult;
 	}
-	
+
 	public static AsynchronousOperationResult wrap(OperationResult result) {
 		AsynchronousOperationResult ret = new AsynchronousOperationResult();
 		ret.setOperationResult(result);
 		return ret;
 	}
-	
+
 	public boolean isInProgress() {
 		return operationResult.isInProgress();
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		if (operationResult != null) {
+			sb.append(operationResult.getStatus());
+		}
 	}
 }

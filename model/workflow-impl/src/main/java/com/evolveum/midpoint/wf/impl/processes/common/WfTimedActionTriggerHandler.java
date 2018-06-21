@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processes.common;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -64,6 +64,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	@Autowired private WfTaskController wfTaskController;
 	@Autowired private TaskManager taskManager;
 	@Autowired private WfExpressionEvaluationHelper evaluationHelper;
+	@Autowired private WfStageComputeHelper stageComputeHelper;
 
 	@PostConstruct
 	private void initialize() {
@@ -109,7 +110,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 				}
 				executeActions(actions, workItem, wfTask, triggerScannerTask, result);
 			}
-		} catch (RuntimeException|ObjectNotFoundException|SchemaException|SecurityViolationException|ExpressionEvaluationException e) {
+		} catch (RuntimeException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
 			String message = "Exception while handling work item trigger for ID " + workItemId + ": " + e.getMessage();
 			result.recordFatalError(message, e);
 			throw new SystemException(message, e);
@@ -122,15 +123,16 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 			Task wfTask, OperationResult result) throws SchemaException {
 		WorkItemOperationKindType operationKind = WfContextUtil.getOperationKind(action);
 		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(action);
+		List<ObjectReferenceType> assigneesAndDeputies = wfTaskController.getAssigneesAndDeputies(workItem, wfTask, result);
 		WorkItemAllocationChangeOperationInfo operationInfo =
-				new WorkItemAllocationChangeOperationInfo(operationKind, workItem.getAssigneeRef(), null);
+				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
 		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
 		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, WorkItemType workItem, Task wfTask, Task triggerScannerTask,
 			OperationResult result)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		for (WorkItemNotificationActionType notificationAction : actions.getNotify()) {
 			executeNotificationAction(workItem, notificationAction, wfTask, result);
 		}
@@ -146,7 +148,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 	}
 
 	private void executeCompleteAction(WorkItemType workItem, CompleteWorkItemActionType completeAction,
-			OperationResult result) throws SchemaException, SecurityViolationException {
+			OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		WorkItemOutcomeType outcome = completeAction.getOutcome() != null ? ApprovalUtils.fromUri(completeAction.getOutcome()) : WorkItemOutcomeType.REJECT;
 		workItemManager.completeWorkItem(workItem.getExternalId(), ApprovalUtils.toUri(outcome),
 				null, null, WfContextUtil.createCause(completeAction), result);
@@ -154,7 +156,7 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeDelegateAction(WorkItemType workItem, DelegateWorkItemActionType delegateAction, boolean escalate,
 			Task wfTask, Task triggerScannerTask, OperationResult result)
-			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		WorkItemEscalationLevelType escLevel = escalate ? WfContextUtil.createEscalationLevelInformation(delegateAction) : null;
 		List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, wfTask, triggerScannerTask, result);
 		workItemManager.delegateWorkItem(workItem.getExternalId(), delegates,
@@ -164,11 +166,11 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 
 	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction, WorkItemType workItem,
 			Task wfTask, Task triggerScannerTask, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		rv.addAll(CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef()));
 		if (!delegateAction.getApproverExpression().isEmpty()) {
-			ExpressionVariables variables = evaluationHelper.getDefaultVariables(null, wfTask, result);
+			ExpressionVariables variables = stageComputeHelper.getDefaultVariables(null, wfTask, result);
 			variables.addVariableDefinition(SchemaConstants.C_WORK_ITEM, workItem);
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
 					variables, "computing delegates", triggerScannerTask, result));
@@ -183,8 +185,9 @@ public class WfTimedActionTriggerHandler implements TriggerHandler {
 			OperationResult result) throws SchemaException {
 		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(notificationAction);
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
-			for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
-				wfTaskController.notifyWorkItemCustom(assignee, workItem, cause, wfTask, notificationAction, result);
+			List<ObjectReferenceType> assigneesAndDeputies = wfTaskController.getAssigneesAndDeputies(workItem, wfTask, result);
+			for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
+				wfTaskController.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, wfTask, notificationAction, result);
 			}
 		} else {
 			wfTaskController.notifyWorkItemCustom(null, workItem, cause, wfTask, notificationAction, result);

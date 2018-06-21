@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,37 +19,64 @@
 	<div class="form-inline search-form">
         <div class="row">
             <div class="form-group col-md-12">
-                <label>
-                    <wicket:message key="roleMemberPanel.type"/>
-                </label>
-                <select class="form-control input-sm" wicket:id="type"/>
+	            <div class="col-md-3">
+	                <label >
+	                    <wicket:message key="roleMemberPanel.type"/>
+	                </label>
+	                <span wicket:id="type"/>
+	           	</div>
+	            <div class="col-md-3" wicket:id="relationContainer">
+	                <label>
+	              		<wicket:message key="AssignmentEditorPanel.relation"/>
+	        	    </label>
+	          	  	<span wicket:id="relation" />
+	          	</div>
+				<div class="col-md-3" wicket:id="kindContainer">
+	                <label>
+	              		<wicket:message key="TypedAssignablePanel.Kind"/>
+	        	    </label>
+	          	  	<span wicket:id="kind" />
+	          	</div>
+				<div class="col-md-3" wicket:id="intentContainer">
+	                <label>
+	              		<wicket:message key="TypedAssignablePanel.Intent"/>
+	        	    </label>
+	          	  	<span wicket:id="intent" />
+	          	</div>
+				<div class="col-md-3" wicket:id="orgTreeViewContainer">
+					<input type="checkbox" wicket:id="orgTreeView" />
+					<label>
+	              		<wicket:message key="TypedAssignablePanel.orgTreeView"/>
+	        	    </label>
+	          	</div>
             </div>
         </div>
-		<div wicket:id="countContainer">
-			<div class="form-group col-md-3">
-				<label><wicket:message key="typedAssignablePanel.selectedResources" /></label> 
-				<label wicket:id="resourcesSelected" />
-			</div>
-			<div class="form-group col-md-3">
-				<label><wicket:message key="typedAssignablePanel.selectedRoles" /></label> 
-				<label wicket:id="rolesSelected" />
-			</div>
-			<div class="form-group col-md-3">
-				<label><wicket:message key="typedAssignablePanel.selectedOrgs" /></label> 
-				<label wicket:id="orgSelected" />
-			</div>
-			<div class="form-group col-md-3">
-				<label><wicket:message key="typedAssignablePanel.selectedServices" /></label> 
-				<label wicket:id="servicesSelected" />
-			</div>
-		</div>
+		<!--<div wicket:id="countContainer">-->
+			<!--<div class="form-group col-md-3">-->
+				<!--<label><wicket:message key="typedAssignablePanel.selectedResources" /></label> -->
+				<!--<label wicket:id="resourcesSelected" />-->
+			<!--</div>-->
+			<!--<div class="form-group col-md-3">-->
+				<!--<label><wicket:message key="typedAssignablePanel.selectedRoles" /></label> -->
+				<!--<label wicket:id="rolesSelected" />-->
+			<!--</div>-->
+			<!--<div class="form-group col-md-3">-->
+				<!--<label><wicket:message key="typedAssignablePanel.selectedOrgs" /></label> -->
+				<!--<label wicket:id="orgSelected" />-->
+			<!--</div>-->
+			<!--<div class="form-group col-md-3">-->
+				<!--<label><wicket:message key="typedAssignablePanel.selectedServices" /></label> -->
+				<!--<label wicket:id="servicesSelected" />-->
+			<!--</div>-->
+		<!--</div>-->
 	</div>
 
-	<div wicket:id="tablesContainer">
+	<div wicket:id="tablesContainer" style="margin: 5px;">
 		<div wicket:id="roleTable"></div>
 		<div wicket:id="resourceTable"></div>
 		<div wicket:id="orgTable"></div>
 		<div wicket:id="serviceTable"></div>
+		<div wicket:id="orgTreeViewPanel"></div>
 	</div>
 	
 	<p align="center">

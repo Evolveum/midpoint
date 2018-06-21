@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Provides a definition for a complex type, i.e. type that prescribes inner items.
@@ -31,7 +34,7 @@ import java.util.Map;
  * @author semancik
  * @author mederly
  */
-public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionStore {
+public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionStore, Visitable {
 
 	/**
 	 * Returns definitions for all inner items.
@@ -47,12 +50,26 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	List<? extends ItemDefinition> getDefinitions();
 
 	/**
+	 * Is this definition shared, i.e. used by more than one prism object?
+	 * If so, it should not be e.g. trimmed.
+	 *
+	 * EXPERIMENTAL
+ 	 */
+	boolean isShared();
+
+	/**
 	 * If not null, indicates that this type defines the structure of 'extension' element of a given type.
 	 * E.g. getExtensionForType() == c:UserType means that this complex type defines structure of
 	 * 'extension' elements of UserType objects.
 	 */
 	@Nullable
 	QName getExtensionForType();
+
+	/**
+	 * Flag indicating whether this type was marked as "objectReference"
+	 * in the original schema.
+	 */
+	boolean isReferenceMarker();
 
 	/**
 	 * Flag indicating whether this type was marked as "container"
@@ -118,8 +135,21 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
 	/**
 	 * Does a deep clone of this definition.
 	 *
-	 * @param ctdMap Keeps already cloned definitions in order to prevent indefinite loops.
+	 * @param ctdMap Keeps already cloned definitions when 'ultra deep cloning' is not requested.
+	 *               Each definition is then cloned only once.
+	 * @param onThisPath Keeps already cloned definitions on the path from root to current node;
+	 *                   in order to prevent infinite loops when doing ultra deep cloning.
 	 */
 	@NotNull
-	ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
+	ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
+
+	/**
+	 * Trims the definition (and any definitions it refers to) to contain only items related to given paths.
+	 * USE WITH CARE. Be sure no shared definitions would be affected by this operation!
+	 */
+	void trimTo(@NotNull Collection<ItemPath> paths);
+
+	default boolean containsItemDefinition(QName itemName) {
+		return findItemDefinition(itemName) != null;
+	}
 }

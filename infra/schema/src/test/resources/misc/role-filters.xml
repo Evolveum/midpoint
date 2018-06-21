@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="aad19b9a-d511-11e7-8bf7-cfecde275e59"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Role with import filters</name>
+    <description>Role with strange filters (MID-3879)</description>
+    <inducement>
+		<targetRef type="RoleType">
+			<filter>
+				<q:equal>
+					<q:path>name</q:path>
+					<q:value>Pirate</q:value>
+				</q:equal>
+			</filter>
+		</targetRef>
+	</inducement>
+	<inducement>
+		<targetRef type="RoleType">
+			<filter>
+				<q:equal>
+					<q:path>name</q:path>
+					<q:value>Sailor</q:value>
+				</q:equal>
+			</filter>
+		</targetRef>
+	</inducement>
+</role>

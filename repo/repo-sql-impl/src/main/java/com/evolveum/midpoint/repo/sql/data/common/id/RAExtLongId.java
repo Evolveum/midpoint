@@ -16,32 +16,28 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
-import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author lazyman
  */
-public class RAExtLongId implements Serializable {
+public class RAExtLongId extends RAExtBaseId {
 
-    private String ownerOid;
-    private Integer ownerId;
     private Long value;
-    private String name;
 
+    @Override
     public String getOwnerOid() {
-        return ownerOid;
+        return super.getOwnerOid();
     }
 
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
-
+    @Override
     public Integer getOwnerId() {
-        return ownerId;
+        return super.getOwnerId();
     }
 
-    public void setOwnerId(Integer ownerId) {
-        this.ownerId = ownerId;
+    @Override
+    public Integer getItemId() {
+        return super.getItemId();
     }
 
     public Long getValue() {
@@ -52,36 +48,21 @@ public class RAExtLongId implements Serializable {
         this.value = value;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RAExtLongId raLongId = (RAExtLongId) o;
-
-        if (name != null ? !name.equals(raLongId.name) : raLongId.name != null) return false;
-        if (ownerId != null ? !ownerId.equals(raLongId.ownerId) : raLongId.ownerId != null) return false;
-        if (ownerOid != null ? !ownerOid.equals(raLongId.ownerOid) : raLongId.ownerOid != null) return false;
-        if (value != null ? !value.equals(raLongId.value) : raLongId.value != null) return false;
-
+        if (this == o)
         return true;
+        if (!(o instanceof RAExtLongId))
+            return false;
+        if (!super.equals(o))
+            return false;
+        RAExtLongId that = (RAExtLongId) o;
+        return Objects.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
-        int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        return result;
+        return Objects.hash(super.hashCode(), value);
     }
 
     @Override
@@ -89,6 +70,7 @@ public class RAExtLongId implements Serializable {
         return "RALongId{" +
                 "ownerOid='" + ownerOid + '\'' +
                 ", ownerId=" + ownerId +
+                ", itemId=" + itemId +
                 ", value=" + value +
                 '}';
     }

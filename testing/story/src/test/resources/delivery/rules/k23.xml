@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+The currently unassigned role has at least one other assignee.
+
+Expects the following extension items:
+ - remediatorRef
+
+Matches if the currently unassigned role is not assigned to any other user.
+
+-->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		oid="a19ede0a-94ff-4edd-990b-699b3ad7ab94">
+	<name>k23</name>
+	<inducement>
+		<policyRule>
+			<policyConstraints>
+				<minAssignees>
+					<multiplicity>1</multiplicity>
+				</minAssignees>
+			</policyConstraints>
+			<policyActions>
+				<enforcement>
+					<condition>
+						<script>
+							<code>
+								!rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext]).realValue			// remove '.realValue' hack
+							</code>
+						</script>
+					</condition>
+				</enforcement>
+				<approval>
+					<condition>
+						<script>
+							<code>
+								rulesLib.execute('remediatorPresent', [ruleEvaluationContext : ruleEvaluationContext])
+							</code>
+						</script>
+					</condition>
+					<approvalSchema>
+						<stage>
+							<approverExpression>
+								<script>
+									<code>
+										rulesLib.execute('computeApprovers', [
+											workflowContext : workflowContext,
+											stageDefinition : stageDefinition
+										])
+									</code>
+								</script>
+							</approverExpression>
+						</stage>
+					</approvalSchema>
+				</approval>
+			</policyActions>
+			<evaluationTarget>assignment</evaluationTarget>
+		</policyRule>
+		<order>2</order>
+	</inducement>
+</role>

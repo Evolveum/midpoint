@@ -16,38 +16,32 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.Collection;
-
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
+import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-
-import org.hibernate.annotations.ForeignKey;
-
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 
 /**
  * @author lazyman
  */
 @Entity
 @ForeignKey(name = "fk_connector_host")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_connector_host_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_connector_host_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iConnectorHostNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class RConnectorHost extends RObject<ConnectorHostType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private String hostname;
     private String port;
 
@@ -67,13 +61,18 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         this.port = port;
     }
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Override
@@ -84,7 +83,7 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
 
         RConnectorHost that = (RConnectorHost) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (hostname != null ? !hostname.equals(that.hostname) : that.hostname != null) return false;
         if (port != null ? !port.equals(that.port) : that.port != null) return false;
 
@@ -94,7 +93,7 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (hostname != null ? hostname.hashCode() : 0);
         result = 31 * result + (port != null ? port.hashCode() : 0);
         return result;
@@ -104,18 +103,8 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());
-    }
-
-    @Override
-    public ConnectorHostType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        ConnectorHostType object = new ConnectorHostType();
-        RUtil.revive(object, prismContext);
-        RConnectorHost.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }

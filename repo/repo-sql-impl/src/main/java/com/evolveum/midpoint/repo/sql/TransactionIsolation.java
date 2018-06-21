@@ -24,6 +24,7 @@ import java.sql.Connection;
 public enum TransactionIsolation {
 
     READ_COMMITTED("readCommitted", Connection.TRANSACTION_READ_COMMITTED),
+    REPEATABLE_READ("repeatableRead", Connection.TRANSACTION_REPEATABLE_READ),
     SERIALIZABLE("serializable", Connection.TRANSACTION_SERIALIZABLE),
     SNAPSHOT("snapshot", null);       // this is a non-standard setting for MS SQL Server
 

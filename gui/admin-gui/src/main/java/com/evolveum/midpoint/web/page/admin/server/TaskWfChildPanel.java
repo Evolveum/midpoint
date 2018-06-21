@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,20 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsPanel;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -55,6 +58,8 @@ public class TaskWfChildPanel extends Panel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_CHANGES = "changes";
+	private static final String ID_TRIGGERS_CONTAINER = "triggersContainer";
+	private static final String ID_TRIGGERS = "triggers";
 	private static final String ID_HISTORY = "history";
 	private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
 	private static final String ID_CURRENT_WORK_ITEMS_CONTAINER = "currentWorkItemsContainer";
@@ -65,6 +70,7 @@ public class TaskWfChildPanel extends Panel {
 	private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
 	private static final String ID_SHOW_PARENT = "showParent";
 	private static final String ID_SHOW_PARENT_HELP = "showParentHelp";
+	private static final String ID_PREVIEWS_PANEL = "previewsPanel";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
@@ -84,6 +90,13 @@ public class TaskWfChildPanel extends Panel {
 		TaskChangesPanel changesPanel = new TaskChangesPanel(ID_CHANGES, changesModel);
 		changesPanel.setOutputMarkupId(true);
 		add(changesPanel);
+
+		WebMarkupContainer triggersContainer = new WebMarkupContainer(ID_TRIGGERS_CONTAINER);
+		PropertyModel<List<EvaluatedTriggerGroupDto>> triggersModel = new PropertyModel<>(taskDtoModel, TaskDto.F_TRIGGERS);
+		WebMarkupContainer triggers = new EvaluatedTriggerGroupListPanel(ID_TRIGGERS, triggersModel);
+		triggersContainer.add(triggers);
+		triggersContainer.add(new VisibleBehaviour(() -> !EvaluatedTriggerGroupDto.isEmpty(triggersModel.getObject())));
+		add(triggersContainer);
 
 		final ItemApprovalHistoryPanel history = new ItemApprovalHistoryPanel(ID_HISTORY,
 				new PropertyModel<>(taskDtoModel, TaskDto.F_WORKFLOW_CONTEXT),
@@ -127,6 +140,9 @@ public class TaskWfChildPanel extends Panel {
 				ProcessInstancesPanel.View.TASKS_FOR_PROCESS, null));
 		relatedRequestsContainer.add(WebComponentUtil.createHelp(ID_RELATED_REQUESTS_HELP));
 
+		IModel<String> taskOidModel = new PropertyModel<>(taskDtoModel, TaskDto.F_OID);
+		IModel<Boolean> showNextStagesModel = new PropertyModel<>(taskDtoModel, TaskDto.F_IN_STAGE_BEFORE_LAST_ONE);
+		add(new SwitchableApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, parentPage));
 		add(new AjaxFallbackLink(ID_SHOW_PARENT) {
 			public void onClick(AjaxRequestTarget target) {
 				String oid = taskDtoModel.getObject().getParentTaskOid();

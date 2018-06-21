@@ -1,4 +1,4 @@
-"id","fullname","firstname","lastname","orgId","job","active"
+"empno","fullname","firstname","lastname","orgId","job","active"
 "001","Mgr. Igor Farinič","Igor","Farinič","F1200","CEO","true"
 "002","Ing. Radovan Semančík, PhD","Radovan","Semančík","F1100","Software Architect","true"
 "003","Ing. Katarína Valaliková","Katarína","Valaliková","F1110","Software Developer","true"

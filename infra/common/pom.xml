@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>infra</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.6-SNAPSHOT</version>
+		<version>3.9-SNAPSHOT</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,17 +35,17 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>prism</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>schema</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -54,6 +54,10 @@
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -86,7 +90,6 @@
 		<dependency>
 			<groupId>org.codehaus.staxmate</groupId>
 			<artifactId>staxmate</artifactId>
-			<version>2.0.1</version>
 		</dependency>
 		<dependency>
 			<!-- Some of the the third-party libs are still using JUL. We want them in our logs. -->
@@ -103,13 +106,13 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

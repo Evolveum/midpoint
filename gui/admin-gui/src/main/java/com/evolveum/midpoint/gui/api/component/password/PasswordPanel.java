@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package com.evolveum.midpoint.gui.api.component.password;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,28 +59,28 @@ public class PasswordPanel extends InputPanel {
 	private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(PasswordPanel.class);
-    
+
     private boolean passwordInputVisble;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
-        this(id, model, false, false);
+        this(id, model, false);
     }
 
-    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean showRemoveButton) {
+    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly) {
         super(id);
         this.passwordInputVisble = model.getObject() == null;
-        initLayout(model, isReadOnly, showRemoveButton);
-    }
-    
-    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible, boolean showRemoveButton) {
-        super(id);
-        this.passwordInputVisble = isInputVisible;
-        initLayout(model, isReadOnly, showRemoveButton);
+        initLayout(model, isReadOnly);
     }
 
-    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly, boolean showRemoveButton) {
+    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
+        super(id);
+        this.passwordInputVisble = isInputVisible;
+        initLayout(model, isReadOnly);
+    }
+
+    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly) {
     	setOutputMarkupId(true);
 		final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER) {
 			@Override
@@ -87,7 +90,7 @@ public class PasswordPanel extends InputPanel {
 		};
 		inputContainer.setOutputMarkupId(true);
 		add(inputContainer);
-    	
+
         final PasswordTextField password1 = new PasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model));
         password1.setRequired(false);
         password1.setResetPassword(false);
@@ -95,13 +98,13 @@ public class PasswordPanel extends InputPanel {
         password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password1);
 
-        final PasswordTextField password2 = new PasswordTextField(ID_PASSWORD_TWO, new Model<String>());
+        final PasswordTextField password2 = new PasswordTextField(ID_PASSWORD_TWO, new Model<>());
         password2.setRequired(false);
         password2.setResetPassword(false);
         password2.setOutputMarkupId(true);
         password2.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password2);
-        
+
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
@@ -113,7 +116,7 @@ public class PasswordPanel extends InputPanel {
 			}
 		});
         password2.add(new PasswordValidator(password1, password2));
-        
+
         final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER) {
 			@Override
 			public boolean isVisible() {
@@ -123,10 +126,10 @@ public class PasswordPanel extends InputPanel {
 		inputContainer.setOutputMarkupId(true);
         linkContainer.setOutputMarkupId(true);
 		add(linkContainer);
-		
+
 		final Label passwordSetLabel = new Label(ID_PASSWORD_SET, new ResourceModel("passwordPanel.passwordSet"));
 		linkContainer.add(passwordSetLabel);
-        
+
 		final Label passwordRemoveLabel = new Label(ID_PASSWORD_REMOVE, new ResourceModel("passwordPanel.passwordRemoveLabel"));
         passwordRemoveLabel.setVisible(false);
 		linkContainer.add(passwordRemoveLabel);
@@ -161,13 +164,30 @@ public class PasswordPanel extends InputPanel {
             }
 
         };
-        removePassword.setVisible(showRemoveButton);
+        removePassword.add(new VisibleEnableBehaviour() {
+
+        	@Override
+        	public boolean isVisible() {
+        		PageBase pageBase = (PageBase)getPage();
+                if (pageBase == null){
+                    return false;
+                }
+                if (pageBase instanceof PageSelfProfile){
+                    return false;
+                }
+                if (pageBase instanceof PageUser && !((PageUser) pageBase).isLoggedInUserPage()
+                        && model.getObject() != null){
+                    return true;
+                }
+                return false;
+        	}
+        });
         removePassword.setBody(new ResourceModel("passwordPanel.passwordRemove"));
         removePassword.setOutputMarkupId(true);
         removeButtonContainer.add(removePassword);
         add(removeButtonContainer);
     }
-    
+
 	private void onLinkClick(AjaxRequestTarget target) {
     	passwordInputVisble = true;
     	target.add(this);
@@ -183,7 +203,7 @@ public class PasswordPanel extends InputPanel {
 
     @Override
     public List<FormComponent> getFormComponents() {
-        List<FormComponent> list = new ArrayList<FormComponent>();
+        List<FormComponent> list = new ArrayList<>();
         list.add((FormComponent) get(ID_INPUT_CONTAINER + ":" + ID_PASSWORD_ONE));
         list.add((FormComponent) get(ID_INPUT_CONTAINER + ":" + ID_PASSWORD_TWO));
         return list;
@@ -214,7 +234,7 @@ public class PasswordPanel extends InputPanel {
             if (StringUtils.isEmpty(s1) && StringUtils.isEmpty(s2)) {
                 return;
             }
-            
+
             boolean equal = s1 != null ? s1.equals(s2) : s2 == null;
             if (!equal) {
             	validatable = p1.newValidatable();
@@ -224,7 +244,7 @@ public class PasswordPanel extends InputPanel {
             }
         }
     }
-    
+
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
         public EmptyOnBlurAjaxFormUpdatingBehaviour() {
@@ -235,15 +255,15 @@ public class PasswordPanel extends InputPanel {
         protected void onUpdate(AjaxRequestTarget target) {
         }
     }
-    
-    private class PasswordModel implements IModel<String> {
+
+    private static class PasswordModel implements IModel<String> {
 
     	IModel<ProtectedStringType> psModel;
-    	
+
     	PasswordModel(IModel<ProtectedStringType> psModel) {
     		this.psModel = psModel;
     	}
-    	
+
 		@Override
 		public void detach() {
 			// Nothing to do
@@ -265,10 +285,12 @@ public class PasswordPanel extends InputPanel {
 			} else {
 				if (psModel.getObject() == null) {
 					psModel.setObject(new ProtectedStringType());
+				} else {
+					psModel.getObject().clear();
 				}
 				psModel.getObject().setClearValue(object);
 			}
 		}
-    	
+
     }
 }

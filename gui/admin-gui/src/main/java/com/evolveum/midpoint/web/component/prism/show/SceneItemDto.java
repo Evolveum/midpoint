@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,6 +90,22 @@ public class SceneItemDto implements Serializable {
 
 	public boolean isDelta() {
 		return sceneItem instanceof SceneDeltaItem;
+	}
+
+	public boolean isNullEstimatedOldValues(){
+		return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().getEstimatedOldValues() == null;
+	}
+
+	public boolean isAdd(){
+		return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().isAdd();
+	}
+
+	public boolean isDelete(){
+		return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().isDelete();
+	}
+
+	public boolean isReplace(){
+		return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().isReplace();
 	}
 
 	public boolean isDeltaScene() {

@@ -21,8 +21,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface Structured {
-	
+
 	Object resolve(ItemPath subpath);
 
 }

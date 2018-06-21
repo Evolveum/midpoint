@@ -24,6 +24,7 @@ import java.util.Collection;
 /**
  * @author Pavol Mederly
  */
+@FunctionalInterface
 public interface DuplicateShadowsResolver {
 
     /**

@@ -21,48 +21,46 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Function;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismParser;
-import com.evolveum.midpoint.prism.PrismSerializer;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public abstract class MidpointAbstractProvider<T> extends AbstractConfigurableProvider implements MessageBodyReader<T>, MessageBodyWriter<T>{
 
 	private static transient Trace LOGGER = TraceManager.getTrace(MidpointAbstractProvider.class);
-	
-	@Autowired(required=true)
-	protected PrismContext prismContext;
-	
-//	@Override
+
+	@Autowired protected PrismContext prismContext;
+	@Autowired protected LocalizationService localizationService;
+
+	@Override
     public void init(List<ClassResourceInfo> cris) {
         setEnableStreaming(true);
     }
-	
+
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
@@ -87,16 +85,19 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 			WebApplicationException {
 
 		// TODO implement in the standard serializer; also change root name
-		QName fakeQName = new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
+		QName fakeQName = new QName(PrismConstants.NS_TYPES, "object");
 		String xml;
-		
-		PrismSerializer<String> serializer = getSerializer();
-		
+
+		PrismSerializer<String> serializer = getSerializer()
+				.options(SerializationOptions.createSerializeReferenceNames());
+
 		try {
 			if (object instanceof PrismObject) {
 				xml = serializer.serialize((PrismObject<?>) object);
 			} else if (object instanceof OperationResult) {
-				OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
+//				OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
+				Function<LocalizableMessage, String> resolveKeys = msg -> localizationService.translate(msg, Locale.US);
+				OperationResultType operationResultType = ((OperationResult) object).createOperationResultType(resolveKeys);
 				xml = serializer.serializeAnyData(operationResultType, fakeQName);
 			} else {
 				xml = serializer.serializeAnyData(object, fakeQName);
@@ -106,7 +107,7 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 			LoggingUtils.logException(LOGGER, "Couldn't marshal element to string: {}", e, object);
 		}
 	}
-	
+
 	protected abstract PrismSerializer<String> getSerializer();
 	protected abstract PrismParser getParser(InputStream entityStream);
 
@@ -124,30 +125,37 @@ public abstract class MidpointAbstractProvider<T> extends AbstractConfigurablePr
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
-		
-		if (entityStream == null){
+
+		if (entityStream == null) {
 			return null;
 		}
-		
+
 		PrismParser parser = getParser(entityStream);
-				
-		T object = null;
+
+		T object;
 		try {
-			LOGGER.info("type of respose: {}", type);
-			if (PrismObject.class.isAssignableFrom(type) || type.isAssignableFrom(PrismObject.class) || ObjectType.class.isAssignableFrom(type)){
+			if (PrismObject.class.isAssignableFrom(type)) {
 				object = (T) parser.parse();
 			} else {
-                object = parser.parseRealValue();
+                object = parser.parseRealValue();			// TODO consider prescribing type here (if no convertor is specified)
 			}
-			
-			return object;
-		} catch (SchemaException ex){
-			throw new WebApplicationException(ex);
-		} catch (IOException ex){
-			throw new IOException(ex);
-		}
-		
-	}
-	
 
+			if (object != null && !type.isAssignableFrom(object.getClass())) {	// TODO treat multivalues here
+				Optional<Annotation> convertorAnnotation = Arrays.stream(annotations).filter(a -> a instanceof Convertor).findFirst();
+				if (convertorAnnotation.isPresent()) {
+					Class<? extends ConvertorInterface> convertorClass = ((Convertor) convertorAnnotation.get()).value();
+					ConvertorInterface convertor;
+					try {
+						convertor = convertorClass.newInstance();
+					} catch (InstantiationException | IllegalAccessException e) {
+						throw new SystemException("Couldn't instantiate convertor class " + convertorClass, e);
+					}
+					object = (T) convertor.convert(object);
+				}
+			}
+			return object;
+		} catch (SchemaException ex) {
+			throw new WebApplicationException(ex);
+		}
+	}
 }

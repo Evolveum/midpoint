@@ -69,7 +69,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     private static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000030";
     private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-    
+
     public static final File OBJECT_TEMPLATE_ORG_FILE = new File(COMMON_DIR, "object-template-org.xml");
 	public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
 
@@ -120,7 +120,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
-        
+
         importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
 		setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
 
@@ -214,7 +214,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     @Test
     public void test100TreeImport() throws Exception {
         final String TEST_NAME = "test100TreeImport";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
         task.setOwner(getUser(USER_ADMINISTRATOR_OID));
@@ -242,7 +242,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     @Test
     public void test200MoveRootChild() throws Exception {
         final String TEST_NAME = "test200MoveRootChild";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         //todo move one child of one root to root position
     }

@@ -31,7 +31,7 @@ public class InfoBoxType implements Serializable{
 	public static final String NUMBER = "number";
 	public static final String PROGRESS = "progress";
 	public static final String DESCRIPTION = "description";
-	
+
 	private String iconBackgroundColor;
 	private String boxBackgroundColor;
 	private String imageId;
@@ -39,21 +39,21 @@ public class InfoBoxType implements Serializable{
 	private String number;
 	private Integer progress;
 	private String description;
-	
+
 	public InfoBoxType(String boxBackgroundColor, String imageId, String message) {
 		this.boxBackgroundColor = boxBackgroundColor;
 		this.imageId = imageId;
 		this.message = message;
 	}
-	
+
 	public String getIconBackgroundColor() {
 		return iconBackgroundColor;
 	}
-	
+
 	public void setIconBackgroundColor(String iconBackgroundColor) {
 		this.iconBackgroundColor = iconBackgroundColor;
 	}
-	
+
 	public String getBoxBackgroundColor() {
 		return boxBackgroundColor;
 	}
@@ -65,7 +65,7 @@ public class InfoBoxType implements Serializable{
 	public String getImageId() {
 		return imageId;
 	}
-	
+
 	public void setImageId(String imageId) {
 		this.imageId = imageId;
 	}

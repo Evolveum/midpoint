@@ -34,34 +34,34 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * WARNING! Only works on Linux.
- * 
+ *
  * @author semancik
  */
 public class Lsof implements DebugDumpable {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(Lsof.class);
-	
+
 	private int pid;
 	private int toleranceUp = 2;
 	private int toleranceDown = 10;
-	
+
 	private String lsofOutput;
 	private int totalFds;
 	private Map<String, Integer> typeMap;
 	private Map<String, Integer> miscMap;
 	private Map<String, String> nodeMap;
-	
+
 	private String baselineLsofOutput;
 	private int baselineTotalFds;
 	private Map<String, Integer> baselineTypeMap;
 	private Map<String, Integer> baselineMiscMap;
 	private Map<String, String> baselineNodeMap;
-	
+
 	public Lsof(int pid) {
 		super();
 		this.pid = pid;
 	}
-	
+
 	public int getToleranceUp() {
 		return toleranceUp;
 	}
@@ -84,33 +84,33 @@ public class Lsof implements DebugDumpable {
 		baselineTypeMap = typeMap;
 		baselineMiscMap = miscMap;
 		baselineNodeMap = nodeMap;
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Baseline LSOF output:\n{}", baselineLsofOutput);
 		}
-		
+
 		return baselineTotalFds;
 	}
-	
+
 	public int count() throws NumberFormatException, IOException, InterruptedException {
 		lsofOutput = execLsof(pid);
-		
+
 //		if (LOGGER.isTraceEnabled()) {
 //			LOGGER.trace("LSOF output:\n{}", lsofOutput);
 //		}
-		
+
 		String[] lines = lsofOutput.split("\n");
-		
+
 		Pattern fdPattern = Pattern.compile("(\\d+)(\\S*)");
 		Pattern namePatternJar = Pattern.compile("/.+\\.jar");
 		Pattern namePatternFile = Pattern.compile("/.*");
 		Pattern namePatternPipe = Pattern.compile("pipe");
 		Pattern namePatternEventpoll = Pattern.compile("\\[eventpoll\\]");
-		
+
 		typeMap = new HashMap<>();
 		miscMap = new HashMap<>();
 		nodeMap = new HashMap<>();
-		
+
 		totalFds = 0;
 		for (int lineNum = 1; lineNum < lines.length; lineNum++) {
 			String line = lines[lineNum];
@@ -119,26 +119,26 @@ public class Lsof implements DebugDumpable {
 			if (Integer.parseInt(pidCol) != pid) {
 				throw new IllegalStateException("Unexpected pid in line "+lineNum+", expected "+pid+"\n"+line);
 			}
-			
+
 			String fd = columns[3];
 			Matcher fdMatcher = fdPattern.matcher(fd);
 //			if (!fdMatcher.matches()) {
 //				LOGGER.trace("SKIP fd {}", fd);
 //				continue;
 //			}
-			
+
 			totalFds++;
-			
+
 			String type = columns[4];
 			increment(typeMap, type);
-			
+
 			String node = columns[7];
 			String nodeKey = node;
 			if (!StringUtils.isNumeric(nodeKey)) {
 				nodeKey = nodeKey + ":" + fd;
 			}
 			nodeMap.put(nodeKey, line);
-			
+
 			String name = columns[8];
 			if (namePatternJar.matcher(name).matches()) {
 				increment(miscMap, "jar");
@@ -154,11 +154,11 @@ public class Lsof implements DebugDumpable {
 				increment(miscMap, "other");
 			}
 		}
-		
+
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("lsof counts:\n{}", debugDump(1));
 		}
-		
+
 		return totalFds;
 	}
 
@@ -168,7 +168,7 @@ public class Lsof implements DebugDumpable {
 			typeCount = 0;
 		}
 		typeCount++;
-		map.put(key, typeCount);	
+		map.put(key, typeCount);
 	}
 
 	private String execLsof(int pid) throws IOException, InterruptedException {
@@ -204,7 +204,7 @@ public class Lsof implements DebugDumpable {
 		}
 		return output;
 	}
-	
+
 	public void assertStable() throws NumberFormatException, IOException, InterruptedException {
 		count();
 		if (!checkWithinTolerance(baselineTotalFds, totalFds)) {
@@ -215,7 +215,7 @@ public class Lsof implements DebugDumpable {
 			LOGGER.debug("FD situation stable (total {})", totalFds);
 		}
 	}
-		
+
 	public void assertFdIncrease(int increase) throws NumberFormatException, IOException, InterruptedException {
 		count();
 		if (!checkWithinTolerance(baselineTotalFds + increase,  totalFds)) {
@@ -240,7 +240,7 @@ public class Lsof implements DebugDumpable {
 			LOGGER.trace("LSOF output:\n{}", lsofOutput);
 		}
 	}
-	
+
 	private String diffNodeMap() {
 		StringBuilder sb = new StringBuilder();
 		for (Entry<String, String> baselineEntry: baselineNodeMap.entrySet()) {
@@ -253,7 +253,7 @@ public class Lsof implements DebugDumpable {
 				sb.append("+ ").append(currentEntry.getValue()).append("\n");
 			}
 		}
-		
+
 		return sb.toString();
 	}
 
@@ -310,6 +310,6 @@ public class Lsof implements DebugDumpable {
 		// Do not display output and nodemap, that is too much
 		return sb.toString();
 	}
-	
-	
+
+
 }

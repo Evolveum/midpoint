@@ -19,32 +19,26 @@ package com.evolveum.midpoint.certification.test;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCasesStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NOT_DECIDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -75,7 +69,7 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
     @Test
     public void test010CreateCampaign() throws Exception {
         final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -124,7 +118,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test020OpenFirstStage() throws Exception {
         final String TEST_NAME = "test020OpenFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -180,7 +174,7 @@ jack->CTO                   none (A) -> A
     @Test
     public void test100RecordDecisions1() throws Exception {
         final String TEST_NAME = "test100RecordDecisions1";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -212,12 +206,13 @@ jack->CTO                   none (A) -> A
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, ACCEPT, ACCEPT, null);
 
         assertPercentComplete(campaignOid, 100, 100, 100);
+        assertCases(campaignOid, 6);
     }
 
     @Test
     public void test150CloseFirstStage() throws Exception {
         final String TEST_NAME = "test150CloseFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -249,12 +244,13 @@ jack->CTO                   none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 1);
 
         assertPercentComplete(campaignOid, 100, 100, 100);
+        assertCases(campaignOid, 6);
     }
 
     @Test
     public void test200OpenSecondStage() throws Exception {
         final String TEST_NAME = "test200OpenSecondStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -311,12 +307,13 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, null);
 
         assertPercentComplete(campaignOid, 17, 17, 0);
+        assertCases(campaignOid, 6);
     }
 
     @Test
     public void test220StatisticsAllStages() throws Exception {
         final String TEST_NAME = "test220StatisticsAllStages";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -345,7 +342,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test250RecordDecisionsSecondStage() throws Exception {
         final String TEST_NAME = "test250RecordDecisionsSecondStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -424,7 +421,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test260Statistics() throws Exception {
         final String TEST_NAME = "test260Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -453,7 +450,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test290CloseSecondStage() throws Exception {
         final String TEST_NAME = "test290CloseSecondStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -489,7 +486,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
     @Test
     public void test300OpenThirdStage() throws Exception {
         final String TEST_NAME = "test300OpenThirdStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -535,12 +532,12 @@ jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
 jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine,administrator
          */
 
-        assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(elaineCeoCase, NO_RESPONSE, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
         assertCaseReviewers(guybrushCooCase, REVOKE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
-        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCooCase, NO_RESPONSE, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
         assertCaseReviewers(jackCeoCase, NO_RESPONSE, 2, Collections.singletonList(USER_ELAINE_OID));
-        assertCaseReviewers(jackCtoCase, NO_RESPONSE, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(jackCtoCase, NO_RESPONSE, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
 
         assertCaseOutcome(caseList, USER_ELAINE_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, REVOKE, REVOKE, null);
@@ -555,7 +552,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test330RecordDecisionsThirdStage() throws Exception {
         final String TEST_NAME = "test330RecordDecisionsThirdStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -651,7 +648,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test390CloseThirdStage() throws Exception {
         final String TEST_NAME = "test390CloseThirdStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -706,7 +703,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test400OpenFourthStage() throws Exception {
         final String TEST_NAME = "test400OpenFourthStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -752,7 +749,7 @@ jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
 jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine:null,administrator:null -> NR       | NR   cheese
          */
 
-        assertCaseReviewers(elaineCeoCase, NOT_DECIDED, 3, Arrays.asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
+        assertCaseReviewers(elaineCeoCase, NOT_DECIDED, 3, asList(USER_ELAINE_OID, USER_ADMINISTRATOR_OID));
         assertCaseReviewers(guybrushCooCase, REVOKE, 2, Collections.singletonList(USER_ADMINISTRATOR_OID));
         assertCaseReviewers(administratorCooCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
         assertCaseReviewers(administratorCeoCase, NO_RESPONSE, 4, Collections.singletonList(USER_CHEESE_OID));
@@ -772,7 +769,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test430RecordDecisionsFourthStage() throws Exception {
         final String TEST_NAME = "test430RecordDecisionsFourthStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -869,7 +866,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test490CloseFourthStage() throws Exception {
         final String TEST_NAME = "test490CloseFourthStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -927,7 +924,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test900StartRemediation() throws Exception {
         final String TEST_NAME = "test900StartRemediation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -980,7 +977,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
     @Test
     public void test910Statistics() throws Exception {
         final String TEST_NAME = "test910Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
@@ -996,6 +993,9 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
+//        AccessCertificationCampaignType campaignWithCases = getCampaignWithCases(campaignOid);
+//        display("campaignWithCases", campaignWithCases);
+
         display("statistics", stat.asPrismContainerValue());
         assertEquals(1, stat.getMarkedAsAccept());
         assertEquals(1, stat.getMarkedAsRevoke());
@@ -1004,6 +1004,28 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertEquals(0, stat.getMarkedAsReduceAndRemedied());
         assertEquals(1, stat.getMarkedAsNotDecide());
         assertEquals(3, stat.getWithoutResponse());
+    }
+
+    @Test
+    public void test920CheckAfterClose() throws Exception {
+        final String TEST_NAME = "test920CheckAfterClose";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator.asPrismObject());
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN
+        waitForCampaignTasks(campaignOid, 20000, result);
+
+        // THEN
+        userAdministrator = getUser(USER_ADMINISTRATOR_OID).asObjectable();
+        display("administrator", userAdministrator);
+        AssignmentType assignment = findAssignmentByTargetRequired(userAdministrator.asPrismObject(), ROLE_COO_OID);
+        assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT,
+                new HashSet<>(asList(USER_ADMINISTRATOR_OID, USER_ELAINE_OID, USER_CHEESE_OID)), singleton("administrator: ok"));
     }
 
 }

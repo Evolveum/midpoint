@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -63,35 +64,35 @@ import static org.testng.AssertJUnit.assertEquals;
 @ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLdapUniversity extends AbstractModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "ldap-university");
-	
+
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
     protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-	
+
 	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
-	
+
 	protected static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj-university.xml");
     protected static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
 	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-	
+
 	// Make it at least 1501 so it will go over the 3000 entries size limit
-	private static final int NUM_LDAP_ENTRIES = 20000;
+	private static final int NUM_LDAP_ENTRIES = 3100;
 
 	private static final String LDAP_GROUP_PIRATES_DN = "cn=Pirates,ou=groups,dc=example,dc=com";
-	
+
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 
     @Autowired
     private ReconciliationTaskHandler reconciliationTaskHandler;
-	
+
     @Override
     protected void startResources() throws Exception {
         openDJController.startCleanServer();
@@ -106,7 +107,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		modelService.postInit(initResult);
-		
+
 		// System Configuration
         PrismObject<SystemConfigurationType> config;
 		try {
@@ -124,21 +125,21 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		login(userAdministrator);
-		
+
 		// Resources
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
-		
+
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
 		display("initial LDAP content", openDJController.dumpEntries());
 	}
-	
+
 	@Test
     public void test100BigImportWithLinking() throws Exception {
 		final String TEST_NAME = "test100BigImportWithLinking";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 
@@ -156,19 +157,19 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         //task.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS, 5);
-        modelService.importFromResource(RESOURCE_OPENDJ_OID, 
-        		new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
-        
+        modelService.importFromResource(RESOURCE_OPENDJ_OID,
+        		new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
         OperationResult subresult = result.getLastSubresult();
         TestUtil.assertInProgress("importAccountsFromResource result", subresult);
-        
+
         waitForTaskFinish(task, true, 20000 + NUM_LDAP_ENTRIES*2000, 10000L);
-        
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        
+
         int userCount = modelService.countObjects(UserType.class, null, null, task, result);
         display("Users", userCount);
         assertEquals("Unexpected number of users", NUM_LDAP_ENTRIES+1, userCount);
@@ -201,17 +202,17 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
     }
 
-    private void assertUser(String name, Task task, OperationResult result) throws com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SchemaException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException {
+    private void assertUser(String name, Task task, OperationResult result) throws com.evolveum.midpoint.util.exception.ObjectNotFoundException, com.evolveum.midpoint.util.exception.SchemaException, com.evolveum.midpoint.util.exception.SecurityViolationException, com.evolveum.midpoint.util.exception.CommunicationException, com.evolveum.midpoint.util.exception.ConfigurationException, ExpressionEvaluationException {
         UserType user = findUserByUsername(name).asObjectable();
         display("user " + name, user.asPrismObject());
 
-        //assertEquals("Wrong number of assignments", 4, user.getAssignment().size());
+        //assertEquals("Wrong number of assignments", 4, user.getAssignmentNew().size());
     }
 
     @Test
     public void test120BigReconciliation() throws Exception {
         final String TEST_NAME = "test120BigReconciliation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
 
@@ -225,7 +226,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 
         ResourceType resource = modelService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result).asObjectable();
         reconciliationTaskHandler.launch(resource,
-                new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson"), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -271,9 +272,9 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
 //        if (!namesToAdd.isEmpty()) {
 //            addToGroups(namesToAdd);
 //        }
-        
+
         long ldapPopEnd = System.currentTimeMillis();
-        
+
         display("Loaded "+NUM_LDAP_ENTRIES+" LDAP entries in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
 	}
 
@@ -297,7 +298,7 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
         Entry ldifEntry = ldifReader.readEntry();
 		return ldifEntry;
 	}
-	
+
 	private String toDn(String username) {
 		return "uid="+username+","+OPENDJ_PEOPLE_SUFFIX;
 	}

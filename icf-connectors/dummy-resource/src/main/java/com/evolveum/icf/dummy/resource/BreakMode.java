@@ -20,7 +20,7 @@ package com.evolveum.icf.dummy.resource;
  *
  */
 public enum BreakMode {
-	
+
 	NONE,
 	NETWORK,
 	IO,
@@ -28,6 +28,7 @@ public enum BreakMode {
 	CONFLICT, // results in AlreadyExists exceptions
 	GENERIC,
 	UNSUPPORTED,
-	RUNTIME;
+	RUNTIME,
+	ASSERTION_ERROR;
 
 }

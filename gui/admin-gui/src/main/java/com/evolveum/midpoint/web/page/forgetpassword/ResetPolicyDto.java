@@ -1,8 +1,6 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,7 +47,7 @@ public class ResetPolicyDto implements Serializable {
 		if (securityPolicyType.getCredentialsReset() == null) {
 			return;
 		}
-		
+
 		MailResetPolicyType mailResetPolicy = securityPolicyType.getCredentialsReset().getMailReset();
 		if (mailResetPolicy != null) {
 			this.resetMethod = ResetMethod.MAIL;
@@ -138,7 +136,7 @@ public class ResetPolicyDto implements Serializable {
 	public void setNoncePolicy(NonceCredentialsPolicyType noncePolicy) {
 		this.noncePolicy = noncePolicy;
 	}
-	
+
 	public ObjectReferenceType getFormRef() {
 		return formRef;
 	}

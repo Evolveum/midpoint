@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ public class DefaultHandlerPanel<D extends HandlerDto> extends BasePanel<D> {
 		initLayout(parentPage);
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout(final PageTaskEdit parentPage) {
 		WebMarkupContainer objectRefContainer = new WebMarkupContainer(ID_OBJECT_REF_CONTAINER);
 		objectRefContainer.add(new VisibleEnableBehaviour() {
@@ -51,7 +51,7 @@ public class DefaultHandlerPanel<D extends HandlerDto> extends BasePanel<D> {
 			}
 		});
 
-		final LinkPanel objectRef = new LinkPanel(ID_OBJECT_REF, new PropertyModel<String>(getModel(), HandlerDto.F_OBJECT_REF_NAME)) {
+		final LinkPanel objectRef = new LinkPanel(ID_OBJECT_REF, new PropertyModel<>(getModel(), HandlerDto.F_OBJECT_REF_NAME)) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				ObjectReferenceType ref = getModelObject().getObjectRef();

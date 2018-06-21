@@ -16,9 +16,12 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.PipelineItem;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -30,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.springframework.stereotype.Component;
@@ -53,42 +57,58 @@ public class ModifyExecutor extends BaseActionExecutor {
     }
 
     @Override
-    public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        boolean raw = getParamRaw(expression, input, context, result);
-        boolean dryRun = getParamDryRun(expression, input, context, result);
+        ModelExecuteOptions executionOptions = getOptions(expression, input, context, globalResult);
+        boolean dryRun = getParamDryRun(expression, input, context, globalResult);
 
         ActionParameterValueType deltaParameterValue = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
-        Data deltaData = expressionHelper.evaluateParameter(deltaParameterValue, ObjectDeltaType.class, input, context, result);
+        PipelineData deltaData = expressionHelper.evaluateParameter(deltaParameterValue, ObjectDeltaType.class, input, context, globalResult);
 
-        for (PrismValue value : input.getData()) {
+        for (PipelineItem item: input.getData()) {
+            PrismValue value = item.getValue();
+            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue) {
+                @SuppressWarnings({"unchecked", "raw"})
                 PrismObject<? extends ObjectType> prismObject = ((PrismObjectValue) value).asPrismObject();
                 ObjectType objectType = prismObject.asObjectable();
                 long started = operationsHelper.recordStart(context, objectType);
                 Throwable exception = null;
                 try {
-                    operationsHelper.applyDelta(createDelta(objectType, deltaData), operationsHelper.createExecutionOptions(raw), dryRun, context, result);
+                    ObjectDelta<? extends ObjectType> delta = createDelta(objectType, deltaData);
+                    result.addParam("delta", delta);
+                    // This is only a preliminary solution for MID-4138. There are few things to improve:
+                    // 1. References could be resolved earlier (before the main cycle); however it would require much more
+                    //    coding, as we have only skeleton of ObjectDeltaType there - we don't know the specific object type
+                    //    the delta will be applied to. It is not a big problem, but still a bit of work.
+                    // 2. If the evaluation time is IMPORT, and the bulk action is part of a task that is being imported into
+                    //    repository, it should be perhaps resolved at that time. But again, it is a lot of work and it does
+                    //    not cover bulk actions which are not part of a task.
+                    // We consider this solution to be adequate for now.
+                    Utils.resolveReferences(delta, cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
+                    operationsHelper.applyDelta(delta, executionOptions, dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {
                     operationsHelper.recordEnd(context, objectType, started, ex);
 					exception = processActionException(ex, NAME, value, context);
                 }
-                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + rawDrySuffix(raw, dryRun) + exceptionSuffix(exception));
+                context.println((exception != null ? "Attempted to modify " : "Modified ") + prismObject.toString() + optionsSuffix(executionOptions, dryRun) + exceptionSuffix(exception));
             } else {
 				//noinspection ThrowableNotThrown
 				processActionException(new ScriptExecutionException("Item is not a PrismObject"), NAME, value, context);
             }
+            operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
-        return Data.createEmpty();
+        return input;
     }
 
-    private ObjectDelta createDelta(ObjectType objectType, Data deltaData) throws ScriptExecutionException {
+    private ObjectDelta<? extends ObjectType> createDelta(ObjectType objectType, PipelineData deltaData) throws ScriptExecutionException {
         if (deltaData.getData().size() != 1) {
             throw new ScriptExecutionException("Expected exactly one delta to apply, found "  + deltaData.getData().size() + " instead.");
         }
-        ObjectDeltaType deltaType = ((PrismPropertyValue<ObjectDeltaType>) deltaData.getData().get(0)).clone().getRealValue();
+        @SuppressWarnings({"unchecked", "raw"})
+        ObjectDeltaType deltaType = ((PrismPropertyValue<ObjectDeltaType>) deltaData.getData().get(0).getValue()).clone().getRealValue();
         if (deltaType.getChangeType() == null) {
             deltaType.setChangeType(ChangeTypeType.MODIFY);
         }

@@ -35,35 +35,39 @@
 			<filter>
 				<q:equal>
 					<q:path>c:connectorType</q:path>
-					<q:value>com.evolveum.polygon.csvfile.CSVFileConnector</q:value>
+					<q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
 				</q:equal>
 			</filter>
 		</connectorRef>
-
-		<c:connectorConfiguration>
-
-			<icfc:configurationProperties
-					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector">
-				<icfccsvfile:filePath>/var/opt/midpoint-evolveum/resources/hr.csv</icfccsvfile:filePath>
-				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
-				<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
-				<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
-				<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-				<icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
-				<icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
+		
+		<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+						   
+			<icfc:configurationProperties>
+				<icfi:filePath>/var/opt/midpoint-evolveum/resources/hr.csv</icfi:filePath>
+				<icfi:encoding>utf-8</icfi:encoding>
+				<icfi:fieldDelimiter>,</icfi:fieldDelimiter>
+				<icfi:multivalueDelimiter>;</icfi:multivalueDelimiter>
+				<icfi:uniqueAttribute>empno</icfi:uniqueAttribute>
 			</icfc:configurationProperties>
-
-		</c:connectorConfiguration>
+		
+		</connectorConfiguration>
 
 		<schemaHandling>
 
 			<objectType>
 				<default>true</default>
 				<objectClass>ri:AccountObjectClass</objectClass>
+				
 				<attribute>
-					<ref>icfs:uid</ref>
+					<ref>ri:empno</ref>
 					<displayName>Employee ID</displayName>
+					<inbound>
+						<target>
+							<path>employeeNumber</path>
+						</target>
+					</inbound>
 				</attribute>
+				
 				<attribute>
 					<ref>ri:fullname</ref>
 					<inbound>
@@ -90,6 +94,7 @@
 						</target>
 					</inbound>
 				</attribute>
+				
 				<attribute>
 					<ref>ri:orgId</ref>
 					<inbound>
@@ -98,6 +103,7 @@
 						</target>
 					</inbound>
 				</attribute>
+				
 				<attribute>
 					<ref>ri:job</ref>
 					<inbound>
@@ -140,9 +146,9 @@
 			</configured>
 		</capabilities>
 
-	<projection>
-		<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
-	</projection>
+		<projection>
+			<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+		</projection>
 
 		<synchronization>
 			<objectSynchronization>
@@ -152,7 +158,7 @@
 					<q:equal>
 						<q:path>c:employeeNumber</q:path>
 						<expression>
-							<path>$account/attributes/uid</path>
+							<path>$account/attributes/empno</path>
 						</expression>
 					</q:equal>
 				</correlation>

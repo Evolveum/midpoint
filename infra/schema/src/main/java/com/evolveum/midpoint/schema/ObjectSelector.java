@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.ShortDumpable;
 
 import java.io.Serializable;
 
@@ -23,8 +24,8 @@ import java.io.Serializable;
  * @author semancik
  *
  */
-public class ObjectSelector implements Serializable {
-	
+public class ObjectSelector implements Serializable, ShortDumpable {
+
 	private ItemPath path;
 
 	public ObjectSelector(ItemPath path) {
@@ -40,5 +41,10 @@ public class ObjectSelector implements Serializable {
 	public String toString() {
 		return "ObjectSelector(" + path + ")";
 	}
-	
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(path);
+	}
+
 }

@@ -23,17 +23,17 @@ import java.util.Collection;
  *
  */
 public class DummyObjectClass {
-	
+
 	private Collection<DummyAttributeDefinition> attributeDefinitions;
 
 	public DummyObjectClass() {
-		attributeDefinitions = new ArrayList<DummyAttributeDefinition>();
+		attributeDefinitions = new ArrayList<>();
 	}
 
 	public Collection<DummyAttributeDefinition> getAttributeDefinitions() {
 		return attributeDefinitions;
 	}
-	
+
 	public DummyAttributeDefinition getAttributeDefinition(String attrName) {
 		for (DummyAttributeDefinition attrDef: attributeDefinitions) {
 			if (attrName.equals(attrDef.getAttributeName())) {
@@ -46,11 +46,11 @@ public class DummyObjectClass {
 	public void add(DummyAttributeDefinition attrDef) {
 		attributeDefinitions.add(attrDef);
 	}
-	
+
 	public void clear() {
 		attributeDefinitions.clear();
 	}
-	
+
 	public void addAttributeDefinition(String attributeName) {
 		addAttributeDefinition(attributeName,String.class,false,false);
 	}
@@ -68,5 +68,5 @@ public class DummyObjectClass {
 		DummyAttributeDefinition attrDef = new DummyAttributeDefinition(attributeName,attributeType,isRequired,isMulti);
 		add(attrDef);
 	}
-	
+
 }

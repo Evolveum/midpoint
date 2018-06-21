@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -26,12 +27,13 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 /**
  * Runnable with proper set of exceptions that fit running of projector components.
- * 
+ *
  * @author semancik
  */
+@FunctionalInterface
 public interface ProjectorComponentRunnable {
-	
-	void run() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
-	SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
+
+	void run() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+	SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException;
 
 }

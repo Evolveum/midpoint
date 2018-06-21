@@ -24,6 +24,7 @@
 			<lockoutMaxFailedAttempts>3</lockoutMaxFailedAttempts>
 			<lockoutFailedAttemptsDuration>PT3M</lockoutFailedAttemptsDuration>
 			<lockoutDuration>PT15M</lockoutDuration>
+			<historyLength>3</historyLength>
 		</password>
 		<nonce>
 			<maxAge>P30D</maxAge>
@@ -58,4 +59,11 @@
 			</question>
 		</securityQuestions>
 	</credentials>
+	<credentialsReset>
+		<name>passwordReset</name>
+		<forceChange>true</forceChange>
+		<newCredentialSource>
+			<userEntry/>
+		</newCredentialSource>
+	</credentialsReset>
 </securityPolicy>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+ 
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
+         xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+
+	<!-- Functional organizational structure -->
+
+	<org oid="00000000-8888-6666-0000-100000000001">
+		<name>F0001</name>
+		<description>The office of the most respectful Governor.</description>
+		<displayName>Governor Office</displayName>
+		<identifier>0001</identifier>
+		<orgType>functional</orgType>
+		<costCenter>CC0</costCenter>
+		<locality>The Governor's Mansion</locality>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000002">
+		<name>F0002</name>
+		<description>Defending the scum since the ancient times.</description>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Ministry of Defense</displayName>
+		<identifier>0002</identifier>
+		<orgType>functional</orgType>
+		<locality>The towers, bastions and bars</locality>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000003">
+		<name>F0003</name>
+		<description>Offending. Anyone. Anywhere.</description>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Ministry of Offense</displayName>
+		<identifier>0003</identifier>
+		<orgType>functional</orgType>
+		<costCenter>CC666</costCenter>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000004">
+		<name>F0004</name>
+		<description>Why is the rum always gone?</description>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000001"/>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000001" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Ministry of Rum</displayName>
+		<identifier>0004</identifier>
+		<orgType>functional</orgType>
+		<costCenter>CCRUM</costCenter>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000005">
+		<name>F0005</name>
+		<description>Swashing, buckling and insulting. Hard.</description>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000003"/>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000003" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Swashbuckler Section</displayName>
+		<identifier>0005</identifier>
+		<orgType>functional</orgType>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-100000000006">
+		<name>F0006</name>
+		<extension>
+			<piracy:transformationEnabled>true</piracy:transformationEnabled>
+			<piracy:transformDescription>Piratical spelling</piracy:transformDescription>
+			<piracy:transform>
+				<piracy:pattern>A</piracy:pattern>
+				<piracy:replacement>Avast!</piracy:replacement>
+			</piracy:transform>
+			<piracy:transform>
+				<piracy:pattern>B</piracy:pattern>
+				<piracy:replacement>Bounty</piracy:replacement>
+			</piracy:transform>
+			<piracy:transform>
+				<piracy:pattern>C</piracy:pattern>
+				<piracy:replacement>Cutlass</piracy:replacement>
+			</piracy:transform>
+		</extension>
+		<description>Hosting the worst scumm of the Caribbean.</description>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000003"/>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000004"/>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-100000000003" type="OrgType"/>
+		</assignment>
+		<assignment id="2">
+			<targetRef oid="00000000-8888-6666-0000-100000000004" type="OrgType"/>
+		</assignment>
+		<activation>
+			<administrativeStatus>enabled</administrativeStatus>
+		</activation>
+		<delegable>true</delegable>
+		<displayName>Scumm Bar</displayName>
+		<identifier>0006</identifier>
+		<orgType>functional</orgType>
+		<locality>Mêlée Island</locality>
+	</org>
+
+	<!-- Project organizational structure -->
+
+	<org oid="00000000-8888-6666-0000-200000000000">
+		<name>PRoot</name>
+		<description>Project organizational structure root</description>
+		<displayName>Projects</displayName>
+		<orgType>project</orgType>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-200000000001">
+		<name>P0001</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-200000000000"/>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-200000000000" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Save Elaine</displayName>
+		<identifier>0001</identifier>
+		<orgType>project</orgType>
+	</org>
+
+	<org oid="00000000-8888-6666-0000-200000000002">
+		<name>P0002</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-200000000000"/>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-0000-200000000000" type="OrgType"/>
+		</assignment>
+		<delegable>true</delegable>
+		<displayName>Kidnap and marry Elaine</displayName>
+		<identifier>0002</identifier>
+		<orgType>project</orgType>
+	</org>
+	
+</objects>

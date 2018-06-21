@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.report.impl;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -36,31 +37,32 @@ import java.util.ResourceBundle;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedPolicyRuleTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedExclusionTriggerType;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;   
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceValueType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.stream.Collectors;
+import org.apache.commons.lang.WordUtils;
 
 /**
  * Utility methods for report. Mostly pretty print functions. Do not use any
@@ -88,6 +90,64 @@ public class ReportUtils {
         }
 
         return timestamp;
+    }
+
+    public static String prettyPrintPerformerOrAssigneesForReport(PrismContainerValue<AbstractWorkItemType> workItemPcv) {
+        if (workItemPcv == null) {      // should not occur
+            return "";
+        }
+        AbstractWorkItemType workItem = workItemPcv.asContainerable();
+        if (workItem.getPerformerRef() != null && workItem.getOutput() != null
+                && (workItem.getOutput().getOutcome() != null || StringUtils.isNotBlank(workItem.getOutput().getComment()))) {
+            // performer is shown only if there's a real outcome (either result or comment)
+            return prettyPrintForReport(workItem.getPerformerRef(), false);
+        } else {
+            return "(" + prettyPrintReferencesForReport(workItem.getAssigneeRef(), false) + ")";
+        }
+    }
+
+    public static String prettyPrintOutputChangeForReport(PrismContainerValue<AccessCertificationWorkItemType> workItemPcv) {
+        if (workItemPcv == null) {      // should not occur
+            return "";
+        }
+        AccessCertificationWorkItemType workItem = workItemPcv.asContainerable();
+        if (workItem.getOutputChangeTimestamp() != null && workItem.getOutput() != null
+                && (workItem.getOutput().getOutcome() != null || StringUtils.isNotBlank(workItem.getOutput().getComment()))) {
+            // output change timestamp is shown only if there's a real outcome (either result or comment)
+            return prettyPrintForReport(workItem.getOutputChangeTimestamp());
+        } else {
+            return "";
+        }
+    }
+
+    public static String prettyPrintReferencesForReport(@NotNull List<ObjectReferenceType> references, boolean showType) {
+        return references.stream()
+                .map(ref -> prettyPrintForReport(ref, showType))
+                .collect(Collectors.joining(", "));
+    }
+
+    public static String prettyPrintCertOutcomeForReport(String uri, boolean noResponseIfEmpty) {
+        return prettyPrintForReport(OutcomeUtils.fromUri(uri), noResponseIfEmpty);
+    }
+
+    public static String prettyPrintCertOutcomeForReport(String uri) {
+        return prettyPrintCertOutcomeForReport(uri, false);
+    }
+
+    public static String prettyPrintCertOutcomeForReport(AbstractWorkItemOutputType output) {
+        return prettyPrintCertOutcomeForReport(output, false);
+    }
+
+    public static String prettyPrintCertOutcomeForReport(AbstractWorkItemOutputType output, boolean noResponseIfEmpty) {
+        String outcome = output != null ? output.getOutcome() : null;
+        if (noResponseIfEmpty && outcome == null) {
+            outcome = SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE;
+        }
+        return prettyPrintCertOutcomeForReport(outcome, noResponseIfEmpty);
+    }
+
+    public static String prettyPrintCertCommentForReport(AbstractWorkItemOutputType output) {
+        return output != null ? output.getComment() : null;
     }
 
     public static String prettyPrintForReport(XMLGregorianCalendar dateTime) {
@@ -187,12 +247,12 @@ public class ReportUtils {
         }
         return val;
     }
-    
+
 	public static String getPropertyString(String key, Object values, String defaultValue) {
 		if (key == null || values == null) {
 			return defaultValue;
 		}
-		
+
 		if (!List.class.isAssignableFrom(values.getClass())) {
 			return getPropertyString((key.endsWith(".") ? key + values.toString() : key + "." + values.toString()), defaultValue);
 		}
@@ -227,7 +287,7 @@ public class ReportUtils {
 				builder.append(", ");
 			}
 		}
-		
+
 		return builder.toString();
 
 	}
@@ -244,7 +304,7 @@ public class ReportUtils {
         return "*****";
     }
 
-    public static String prettyPrintForReport(PrismPropertyValue ppv) {
+    public static String prettyPrintForReport(PrismPropertyValue<?> ppv) {
         String retPPV;
         try {
             retPPV = prettyPrintForReport(ppv.getValue());
@@ -254,26 +314,24 @@ public class ReportUtils {
         return retPPV;
     }
 
-    public static String prettyPrintForReport(PrismContainerValue pcv) {
+    public static String prettyPrintForReport(PrismContainerValue<?> pcv) {
         StringBuilder sb = new StringBuilder();
-        for (Iterator<Item> iter = pcv.getItems().iterator(); iter.hasNext();) {
-            Item item = iter.next();
+        for (Item<?, ?> item : pcv.getItems()) {
             if ("metadata".equals(item.getElementName().getLocalPart())) {
                 continue;
             }
             sb.append(prettyPrintForReport(item.getElementName()));
             sb.append("=");
             sb.append("{");
-            for (Iterator iter2 = item.getValues().iterator(); iter2.hasNext();) {
-                Object item2 = iter2.next();
+            for (PrismValue item2 : item.getValues()) {
                 sb.append(prettyPrintForReport(item2));
                 sb.append(", ");
             }
-            sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+            sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
             sb.append("}");
             sb.append(", ");
         }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
         return sb.toString();
     }
 
@@ -350,7 +408,7 @@ public class ReportUtils {
         if (ba == null) {
             return "null";
         }
-        return "[" + ((byte[]) ba).length + " bytes]"; //Jasper doesnt like byte[] 
+        return "[" + ((byte[]) ba).length + " bytes]"; //Jasper doesnt like byte[]
     }
 
     public static String prettyPrintForReport(Collection prismValueList) {
@@ -362,14 +420,14 @@ public class ReportUtils {
                 sb.append("#");
             }
         }
-        sb.setLength(Math.max(sb.length() - 1, 0)); // delete last # delimiter        
+        sb.setLength(Math.max(sb.length() - 1, 0)); // delete last # delimiter
         return sb.toString();
     }
 
     /*
      Multiplexer method for various input classes, using Reflection
      - Mostly Copied from com.evolveum.midpoint.util.PrettyPrinter
-     - Credit goes to Evolveum        
+     - Credit goes to Evolveum
      */
     public static String prettyPrintForReport(Object value) {
         if (value == null) {
@@ -380,7 +438,7 @@ public class ReportUtils {
             return "";
         }
 
-        //special handling for byte[], some problems with jasper when printing 
+        //special handling for byte[], some problems with jasper when printing
         if (byte[].class.equals(value.getClass())) {
             return prettyPrintForReport((byte[]) value);
         }
@@ -405,9 +463,9 @@ public class ReportUtils {
 
         // 2. Default to PrettyPrinter.prettyPrint
         String str = PrettyPrinter.prettyPrint(value);
-        if (str.length() > 1000) {
-            return str.substring(0, 1000);
-        }
+//        if (str.length() > 1000) {
+//            return str.substring(0, 1000);
+//        }
         return str;
 
     }
@@ -422,7 +480,7 @@ public class ReportUtils {
                 sb.append(", ");
             }
         }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
         return sb.toString();
     }
 
@@ -462,7 +520,7 @@ public class ReportUtils {
                 sb.append(", ");
             }
         }
-        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter 
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
         return sb.toString();
 
     }
@@ -650,29 +708,42 @@ public class ReportUtils {
         }
     }
 
+    public static String prettyPrintForReport(AccessCertificationResponseType response, boolean noResponseIfEmpty) {
+        if (noResponseIfEmpty) {
+            if (response == null) {
+                response = AccessCertificationResponseType.NO_RESPONSE;
+            }
+        } else {
+            if (response == null || response == AccessCertificationResponseType.NO_RESPONSE) {
+                return "";
+            }
+        }
+        return getPropertyString("AccessCertificationResponseType."+response.name());
+    }
+
     public static String prettyPrintForReport(AccessCertificationResponseType response) {
         if (response == null || response == AccessCertificationResponseType.NO_RESPONSE) {
             return "";
         }
         return getPropertyString("AccessCertificationResponseType."+response.name());
     }
-    
+
     public static String prettyPrintForReport(EvaluatedPolicyRuleTriggerType trigger) {
         return prettyPrintRuleTriggerForReport(trigger);
-    }    
-    
+    }
+
     public static String prettyPrintForReport(EvaluatedSituationTriggerType trigger) {
         return prettyPrintRuleTriggerForReport(trigger);
-    } 
-    
+    }
+
     public static String prettyPrintForReport(EvaluatedExclusionTriggerType trigger) {
         return prettyPrintRuleTriggerForReport(trigger);
     }
-    
+
     public static String prettyPrintForReport(PrismObjectValue pov) {
         return prettyPrintForReport((PrismContainerValue) pov);
     }
-            
+
     private static String prettyPrintRuleTriggerForReport(EvaluatedPolicyRuleTriggerType trigger) {
         if (trigger == null) {
             return "";
@@ -691,6 +762,113 @@ public class ReportUtils {
         if (typeName == null) {
             return null;
         }
-        return getPropertyString("ObjectType." + typeName.getLocalPart(), typeName.getLocalPart());
+        return getPropertyString(SchemaConstants.OBJECT_TYPE_KEY_PREFIX + typeName.getLocalPart(), typeName.getLocalPart());
     }
+    
+    public static String getEventProperty(List<AuditEventRecordPropertyType> properties, String key) {
+		return getEventProperty(properties, key, "empty");
+	}
+	
+	public static String getEventProperty(List<AuditEventRecordPropertyType> properties, String key, String defaultValue) {
+		if(properties != null) {
+			return properties.stream()
+				.filter(property -> key.equals(property.getName()))
+				.findFirst()
+				.map(AuditEventRecordPropertyType::getValue)
+				.map(it -> printProperty(it, defaultValue))
+				.orElse(defaultValue);
+		} else {
+			return defaultValue;
+		}
+	}
+
+	public static String getEventReferenceOrig(List<AuditEventRecordReferenceType> references, String key) {
+		return getEventReferenceOrig(references, key, "empty");
+	}
+	public static String getEventReferenceOrig(List<AuditEventRecordReferenceType> references, String key, String defaultValue) {
+		if(references != null) {
+			return references.stream()
+				.filter(ref -> key.equals(ref.getName()))
+				.findFirst()
+				.map(AuditEventRecordReferenceType::getValue)
+				.map(it -> printReference(it, defaultValue))
+				.orElse(defaultValue);
+		} else {
+			return defaultValue;
+		}
+	}
+	
+	/**
+	 * Returns delta items modification types.
+	 * @param delta
+	 * @return
+	 */
+	public static String getDeltaNature(List<ObjectDeltaOperationType> delta) {
+		if(delta == null) {
+			return "";
+		} else {
+			String result = String.join(
+					"/", 
+					delta.stream()
+					.map(ObjectDeltaOperationType::getObjectDelta)
+					.filter(java.util.Objects::nonNull)
+					.map(ObjectDeltaType::getItemDelta)
+					.flatMap(Collection::stream)
+					.map(ItemDeltaType::getModificationType)
+					.map(ModificationTypeType::name)
+					.map(String::toLowerCase)
+					.map(WordUtils::capitalize)
+					.collect(Collectors.toList()));
+			return result;
+		}
+	}
+        
+        public static String getObjectDeltaNature(List<ObjectDeltaOperationType> delta) {
+		if(delta == null) {
+			return "";
+		} else {
+			String result = String.join(
+					"/", 
+					delta.stream()
+					.map(ObjectDeltaOperationType::getObjectDelta)
+					.filter(java.util.Objects::nonNull)
+					.map(ObjectDeltaType::getChangeType)
+					.map(Enum::toString)
+					.collect(Collectors.toList()));
+			return result;
+		}
+	}
+        
+	public static String getDeltaForWFReport(List<ObjectDeltaOperationType> delta) {
+		if(delta == null) {
+			return "";
+		} else {
+			String result = String.join(
+					", ", 
+					delta.stream()
+					.map(ObjectDeltaOperationType::getObjectDelta)
+					.filter(java.util.Objects::nonNull)
+					.map(ObjectDeltaType::getItemDelta)
+					.flatMap(Collection::stream)
+					.map(ItemDeltaType::getPath)
+					.map(ItemPathType::toString)
+					.collect(Collectors.toList()));
+			return result;
+		}
+	}
+	
+	public static String printReference(List<AuditEventRecordReferenceValueType> reference, String defaultValue) {
+		return reference != null ?
+						reference.stream()
+						.map(AuditEventRecordReferenceValueType::getTargetName)
+						.map(PolyStringType::getOrig)
+						.collect(Collectors.joining(",")) 
+						: defaultValue;
+	}
+	
+	public static String printProperty(List<String> property, String defaultValue) {
+		return property != null ? 
+					String.join(",", property)
+					: defaultValue;
+	}
 }

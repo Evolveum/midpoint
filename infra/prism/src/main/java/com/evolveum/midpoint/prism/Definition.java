@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.IdentityHashMap;
 
 /**
  * @author mederly
@@ -58,22 +59,8 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	QName getTypeName();
 
 	/**
-	 * This means that the entities described by this schema (items, complex types) or their content
-	 * is not defined by fixed (compile-time) schema. I.e. it is known only at run time.
-	 *
-	 * Some examples for "false" value:
-	 *  - c:user, c:UserType - statically defined type with statically defined content.
-	 *
-	 * Some examples for "true" value:
-	 *  - c:extension, c:ExtensionType - although the entity itself (item, type) are defined in
-	 *       the static schema, their content is not known at compile time;
-	 *  - c:attributes, c:ShadowAttributeType - the same as extension/ExtensionType;
-	 *  - ext:weapon (of type xsd:string) - even if the content is statically defined,
-	 *       the definition of the item itself is not known at compile time;
-	 *  - ri:inetOrgPerson, ext:LocationsType, ext:locations - both the entity
-	 *       and their content are known at run time only.
-	 *
-	 *  TODO clarify the third point; provide some tests for the 3rd and 4th point
+	 * This means that this particular definition (of an item or of a type) is part of the runtime schema, e.g.
+	 * extension schema, resource schema or connector schema or something like that. I.e. it is not defined statically.
 	 */
 	boolean isRuntimeSchema();
 
@@ -91,11 +78,30 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	 *
 	 * Semantics of this flag for complex type definitions is to be defined yet.
 	 */
+	@Deprecated
 	boolean isIgnored();
+	
+	ItemProcessing getProcessing();
 
 	boolean isAbstract();
 
 	boolean isDeprecated();
+	
+	/**
+	 * Experimental functionality is not stable and it may be changed in any
+     * future release without any warning. Use at your own risk.
+	 */
+	boolean isExperimental();
+	/**
+	 * Elaborate items are complicated data structure that may deviate from
+     * normal principles of the system. For example elaborate items may not
+     * be supported in user interface and may only be manageable by raw edits
+     * or a special-purpose tools. Elaborate items may be not fully supported
+     * by authorizations, schema tools and so on.
+	 */
+	boolean isElaborate();
+	
+	String getDeprecatedSince();
 
 	/**
 	 * True for definitions that are more important than others and that should be emphasized
@@ -160,8 +166,13 @@ public interface Definition extends Serializable, DebugDumpable, Revivable {
 	// TODO fix this!
 	Class getTypeClassIfKnown();
 
+	// todo suspicious, please investigate and document
 	Class getTypeClass();
 
 	@NotNull
 	Definition clone();
+
+	default String debugDump(int indent, IdentityHashMap<Definition,Object> seen) {
+		return debugDump(indent);
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -63,21 +64,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class UserProfileServiceMock implements UserProfileService, UserDetailsService {
 
     private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceMock.class);
-    
+
     @Autowired(required = true)
     private transient RepositoryService repositoryService;
-    
+
     @Autowired(required = true)
 	private ActivationComputer activationComputer;
-    
+
     @Autowired(required = true)
     private Clock clock;
-    
+
     @Autowired(required = true)
     private PrismContext prismContext;
-    
+
     @Override
-    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException {
+    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	PrismObject<UserType> user = null;
         try {
@@ -92,33 +93,43 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
             throw new SystemException(ex.getMessage(), ex);
         }
 
-        return createPrincipal(user, result);
+        return getPrincipal(user, null, result);
     }
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) {
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
-    	return createPrincipal(user, result);
+    	return getPrincipal(user, null, result);
     }
     
-    private MidPointPrincipal createPrincipal(PrismObject<UserType> user, OperationResult result) {
+    
+    
+    @Override
+	public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
+			AuthorizationTransformer authorizationLimiter, OperationResult result) throws SchemaException {
         if (user == null) {
             return null;
         }
-        
-        PrismObject<SystemConfigurationType> systemConfiguration = null;
-        try {
-        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), 
-					null, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
-		}
+
+        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
 
         MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
         initializePrincipalFromAssignments(principal, systemConfiguration);
         return principal;
     }
 
+    private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
+    	PrismObject<SystemConfigurationType> systemConfiguration = null;
+        try {
+        	// TODO: use SystemObjectCache instead?
+        	systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+					null, result);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
+		} 
+        return systemConfiguration;
+    }
+    
     @Override
     public void updateUser(MidPointPrincipal principal) {
     	OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
@@ -135,30 +146,30 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
-        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 
+        List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null,
                 result);
         LOGGER.trace("Users found: {}.", (list != null ? list.size() : 0));
         if (list == null || list.size() != 1) {
             return null;
         }
-        
+
         return list.get(0);
     }
-        
+
 	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration) {
 
         OperationResult result = new OperationResult(UserProfileServiceMock.class.getName() + ".addAuthorizations");
 
         principal.setApplicableSecurityPolicy(locateSecurityPolicy(principal, systemConfiguration, result));
-        
+
         if (systemConfiguration != null) {
     		principal.setAdminGuiConfiguration(systemConfiguration.asObjectable().getAdminGuiConfiguration());
     	}
-        
+
         AuthorizationType authorizationType = new AuthorizationType();
         authorizationType.getAction().add("FAKE");
 		principal.getAuthorities().add(new Authorization(authorizationType));
-       
+
         ActivationType activation = principal.getUser().getActivation();
         if (activation != null) {
         	activationComputer.computeEffective(principal.getUser().getLifecycleState(), activation);
@@ -230,7 +241,7 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
 		}
 		return owner;
 	}
-	
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 //		 TODO Auto-generated method stub
@@ -238,8 +249,10 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
 			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException(e.getMessage(), e);
+		} catch (SchemaException e) {
+			throw new IllegalArgumentException(e.getMessage(), e);
 		}
 	}
-	
-	
+
+
 }

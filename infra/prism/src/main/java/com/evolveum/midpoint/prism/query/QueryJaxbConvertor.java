@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,22 +136,24 @@ public class QueryJaxbConvertor {
 
 	}
 	
-    public static QueryType createQueryType(ObjectQuery query, PrismContext prismContext) throws SchemaException{
-
+    public static QueryType createQueryType(ObjectQuery query, PrismContext prismContext) throws SchemaException {
 		ObjectFilter filter = query.getFilter();
 		QueryType queryType = new QueryType();
-		if (filter != null){
-			SearchFilterType filterType = new SearchFilterType();
-            MapXNode filterXNode = QueryConvertor.serializeFilter(filter, prismContext);
-			filterType.setFilterClauseXNode(filterXNode);
-			queryType.setFilter(filterType);
+		if (filter != null) {
+			queryType.setFilter(createSearchFilterType(filter, prismContext));
 		}
-				
 		queryType.setPaging(PagingConvertor.createPagingType(query.getPaging()));
 		return queryType;
-
 	}
     
-    
+    public static SearchFilterType createSearchFilterType(ObjectFilter filter, PrismContext prismContext) throws SchemaException {
+		if (filter == null) {
+			return null;
+		}
+		SearchFilterType filterType = new SearchFilterType();
+        MapXNode filterXNode = QueryConvertor.serializeFilter(filter, prismContext);
+		filterType.setFilterClauseXNode(filterXNode);
+		return filterType;
+	}
 
 }

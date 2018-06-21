@@ -23,11 +23,11 @@ import java.io.Serializable;
  * @author semancik
  */
 public class SearchResultMetadata implements Serializable {
-	
+
 	private String pagingCookie;
 	private Integer approxNumberOfAllResults;
 	private boolean partialResults = false;
-	
+
 	/**
 	 * Returns the paging cookie. The paging cookie is used for optimization of paged searches.
 	 * The presence of the cookie may allow the data store to correlate queries and associate
@@ -39,7 +39,7 @@ public class SearchResultMetadata implements Serializable {
 	public String getPagingCookie() {
 		return pagingCookie;
 	}
-	
+
 	/**
 	 * Sets paging cookie. The paging cookie is used for optimization of paged searches.
 	 * The presence of the cookie may allow the data store to correlate queries and associate
@@ -51,7 +51,7 @@ public class SearchResultMetadata implements Serializable {
 	public void setPagingCookie(String pagingCookie) {
 		this.pagingCookie = pagingCookie;
 	}
-	
+
 	/**
 	 * Returns the approximate number of all results that would be returned for the
 	 * filter if there was no paging limitation. This property is optional and it is
@@ -63,11 +63,11 @@ public class SearchResultMetadata implements Serializable {
 	public Integer getApproxNumberOfAllResults() {
 		return approxNumberOfAllResults;
 	}
-	
+
 	public void setApproxNumberOfAllResults(Integer approxNumberOfAllResults) {
 		this.approxNumberOfAllResults = approxNumberOfAllResults;
 	}
-	
+
 	/**
 	 * Flag indicating whether the search returned partial results.
 	 * If set to false then all the results requested by the query were returned.

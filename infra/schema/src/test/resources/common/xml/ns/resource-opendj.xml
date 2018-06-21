@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -75,11 +75,11 @@
         <!-- Configuration specific for the LDAP connector -->
         <icfc:configurationProperties>
 
-            <icfcldap:port>10389</icfcldap:port>
-            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:port xsi:type="xsd:int">10389</icfcldap:port>				<!-- xsi:type is here just for fun; to see if serialization-parsing cycle works correctly also in such cases -->
+            <icfcldap:host xsi:type="xsd:string">localhost</icfcldap:host>
             <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
             <icfcldap:principal>cn=directory manager</icfcldap:principal>
-            <icfcldap:credentials>
+            <icfcldap:credentials xsi:type="t:ProtectedStringType">
                 <t:clearValue>secret</t:clearValue>
             </icfcldap:credentials>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
@@ -626,8 +626,10 @@ This is now the only account type that midPoint can work with. -->
                 </q:description>
                 <q:equal>
                     <q:path>c:name</q:path>
-                    <expression>        <!-- testing namespace processing in RawTypes (my:yyy) -->
+                    <expression>
                         <path>
+							declare namespace my='http://myself.me/schemas/whatever';
+							declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-3';
                             $account/c:attributes/my:yyy
                         </path>
                     </expression>

@@ -84,7 +84,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 				}
 				executeActions(actions, campaign, triggerScannerTask, result);
 			}
-		} catch (RuntimeException|ObjectNotFoundException|ObjectAlreadyExistsException|SchemaException|SecurityViolationException|ExpressionEvaluationException e) {
+		} catch (RuntimeException|ObjectNotFoundException|ObjectAlreadyExistsException|SchemaException|SecurityViolationException|ExpressionEvaluationException | ConfigurationException | CommunicationException e) {
 			String message = "Exception while handling campaign trigger for " + campaign + ": " + e.getMessage();
 			result.recordFatalError(message, e);
 			throw new SystemException(message, e);
@@ -108,7 +108,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 	private void executeActions(WorkItemActionsType actions, AccessCertificationCampaignType campaign, Task triggerScannerTask,
 			OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
-			ObjectAlreadyExistsException {
+			ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
 		for (WorkItemNotificationActionType notificationAction : actions.getNotify()) {
 			executeNotificationAction(campaign, notificationAction, result);
 		}
@@ -125,7 +125,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 
 	private void executeCompleteAction(AccessCertificationCampaignType campaign, CompleteWorkItemActionType completeAction,
 			Task task, OperationResult result)
-			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
 				CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
 				null, true, null, result);
@@ -143,7 +143,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 	private void executeDelegateAction(AccessCertificationCampaignType campaign, DelegateWorkItemActionType delegateAction,
 			Task task, OperationResult result)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-			ObjectAlreadyExistsException {
+			ObjectAlreadyExistsException, ConfigurationException, CommunicationException {
 		List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
 				CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaign.getOid(), prismContext),
 				null, true, null, result);

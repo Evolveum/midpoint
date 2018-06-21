@@ -18,17 +18,17 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -40,11 +40,14 @@ import javax.xml.namespace.QName;
 import java.util.Date;
 
 /**
+ * TODO unify with PrettyPrinter somehow
+ *
  * @author mederly
  */
 public class ValueDisplayUtil {
     public static String toStringValue(PrismPropertyValue propertyValue) {
         Object value = propertyValue.getValue();
+        String defaultStr = "(a value of type " + value.getClass().getSimpleName() + ")";  // todo i18n
         if (value == null) {
             return null;
         } else if (value instanceof String) {
@@ -66,6 +69,8 @@ public class ValueDisplayUtil {
             } else {
                 return "";
             }
+        } else if (value instanceof ScheduleType) {
+        	return SchemaDebugUtil.prettyPrint((ScheduleType) value);
         } else if (value instanceof ApprovalSchemaType) {
             ApprovalSchemaType approvalSchemaType = (ApprovalSchemaType) value;
             return approvalSchemaType.getName() + (approvalSchemaType.getDescription() != null ? (": " + approvalSchemaType.getDescription()) : "") + " (...)";
@@ -134,8 +139,47 @@ public class ValueDisplayUtil {
 			return String.valueOf(value);
         } else if (value instanceof byte[]) {
             return "(binary data)";
+        } else if (value instanceof RawType) {
+            return PrettyPrinter.prettyPrint(value);
+        } else if (value instanceof ItemPathType && ((ItemPathType) value).getItemPath() != null) {
+            ItemPath itemPath = ((ItemPathType) value).getItemPath();
+            StringBuilder sb = new StringBuilder();
+            itemPath.getSegments().forEach(segment -> {
+                if (segment instanceof NameItemPathSegment){
+                    sb.append(PrettyPrinter.prettyPrint(((NameItemPathSegment) segment).getName()));
+                } else {
+                    sb.append(segment.toString());
+                }
+                sb.append("; ");
+            });
+            return sb.toString();
+        } else if (value instanceof ExpressionType) {
+            StringBuilder expressionString = new StringBuilder();
+            if (((ExpressionType)value).getExpressionEvaluator() != null && ((ExpressionType) value).getExpressionEvaluator().size() > 0){
+                ((ExpressionType) value).getExpressionEvaluator().forEach(evaluator -> {
+                    if (evaluator.getValue() instanceof RawType){
+                        expressionString.append(PrettyPrinter.prettyPrint(evaluator.getValue()));
+                        expressionString.append("; ");
+                    } else if (evaluator.getValue() instanceof SearchObjectExpressionEvaluatorType){
+                        SearchObjectExpressionEvaluatorType evaluatorValue = (SearchObjectExpressionEvaluatorType)evaluator.getValue();
+                        if (evaluatorValue.getFilter() != null) {
+                            DebugUtil.debugDumpMapMultiLine(expressionString, evaluatorValue.getFilter().getFilterClauseXNode(),
+                                    0, false, null);
+
+                            //TODO temporary hack: removing namespace part of the QName
+                            while (expressionString.indexOf("}") >= 0 && expressionString.indexOf("{") >= 0 &&
+                                    expressionString.indexOf("}") - expressionString.indexOf("{") > 0){
+                                expressionString.replace(expressionString.indexOf("{"), expressionString.indexOf("}") + 1, "");
+                            }
+                        }
+                    } else {
+                        expressionString.append(defaultStr);
+                    }
+                });
+            }
+            return expressionString.toString();
         } else {
-            return "(a value of type " + value.getClass().getName() + ")";  // todo i18n
+            return defaultStr;
         }
     }
 

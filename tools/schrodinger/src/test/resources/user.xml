@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<user oid="abebabaf-c001-f00d-1111-222233330001"
+      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>ceresnickova</name>
+    <fullName>Ing. Mária Žofia Ľudmila Čerešničková</fullName>
+    <givenName>Mária Žofia Ľudmila</givenName>
+    <familyName>Čerešničková</familyName>
+    <honorificPrefix>Ing.</honorificPrefix>
+</user>

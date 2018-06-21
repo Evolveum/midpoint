@@ -65,7 +65,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
@@ -116,6 +115,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     public static final File USER_BILL_FILE = new File(TEST_RESOURCE_DIR, "user-bill.xml");
     public static final String USER_BILL_OID = "c0c010c0-d34d-b33f-f00d-11111111111a";
     public static final String ROLE_R10_OID = "00000001-d34d-b33f-f00d-000000000010";
+    public static final String ROLE_R10_SKIP_OID = "00000001-d34d-b33f-f00d-000000000S10";
 
     public static final File ROLE_R11_FILE = new File(TEST_RESOURCE_DIR, "role11.xml");
     public static final String ROLE_R11_OID = "00000001-d34d-b33f-f00d-000000000011";
@@ -175,7 +175,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 //        could be done also like this
 //        RoleType role2 = repositoryService.getObject(RoleType.class, ROLE_R2_OID, null, initResult).asObjectable();
 
-        ObjectReferenceType approver = role2.getApprovalSchema().getLevel().get(0).getApproverRef().get(0);
+        ObjectReferenceType approver = role2.getApprovalSchema().getStage().get(0).getApproverRef().get(0);
         assertEquals("Wrong OID of Role2's approver", R2BOSS_OID, approver.getOid());
 
         importObjectFromFile(GROUP_TESTERS_FILE, initResult);
@@ -205,20 +205,20 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
     }
 
     protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {
-        Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
+        Map<String,WorkflowResult> retval = new HashMap<>();
         retval.put(oid, result);
         return retval;
     }
 
     protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2, WorkflowResult approved2) {
-        Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
+        Map<String,WorkflowResult> retval = new HashMap<>();
         retval.put(oid, approved);
         retval.put(oid2, approved2);
         return retval;
     }
 
     protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2, WorkflowResult approved2, String oid3, WorkflowResult approved3) {
-        Map<String,WorkflowResult> retval = new HashMap<String,WorkflowResult>();
+        Map<String,WorkflowResult> retval = new HashMap<>();
         retval.put(oid, approved);
         retval.put(oid2, approved2);
         retval.put(oid3, approved3);
@@ -252,7 +252,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         abstract boolean immediate();
         abstract boolean checkObjectOnSubtasks();
         boolean approvedAutomatically() { return false; }
-        LensContext createModelContext(OperationResult result) throws Exception { return null; }
+        LensContext createModelContext(Task task, OperationResult result) throws Exception { return null; }
         void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception { }
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
         void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception { }
@@ -261,7 +261,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         boolean removeAssignmentsBeforeTest() { return true; }
     }
 
-    protected boolean decideOnRoleApproval(String executionId) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
+    protected boolean decideOnRoleApproval(String executionId) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         LightweightObjectRef targetRef = (LightweightObjectRef) activitiEngine.getRuntimeService().getVariable(executionId, CommonProcessVariableNames.VARIABLE_TARGET_REF);
         assertNotNull("targetRef not found", targetRef);
         String roleOid = targetRef.getOid();
@@ -297,7 +297,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
             removeAllAssignments(oid, result);
         }
 
-        LensContext<UserType> context = (LensContext<UserType>) testDetails.createModelContext(result);
+        LensContext<UserType> context = (LensContext<UserType>) testDetails.createModelContext(modelTask, result);
 
         display("Input context", context);
 
@@ -481,7 +481,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
 
             PrismObject<UserType> user = findUserInRepo(name, result);
 
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             deltas.add(ObjectDelta.createDeleteDelta(UserType.class, user.getOid(), prismContext));
             modelService.executeChanges(deltas, new ModelExecuteOptions(), t, result);
 

@@ -24,22 +24,20 @@ import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 
 /**
  * <p>Java class for FilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="FilterType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="matching" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="FilterType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="matching" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "FilterType", propOrder = {
@@ -62,7 +60,7 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates a new {@code FilterType} instance.
-     * 
+     *
      */
     public FilterClauseType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -71,8 +69,8 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates a new {@code FilterType} instance by deeply copying a given {@code FilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -90,11 +88,11 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Gets the value of the matching property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getMatching() {
         return matching;
@@ -102,11 +100,11 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Sets the value of the matching property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setMatching(String value) {
         this.matching = value;
@@ -115,7 +113,7 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -164,8 +162,8 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

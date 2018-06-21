@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/error/410")
+@PageDescriptor(url = "/error/410", permitAll = true)
 public class PageError410 extends PageError {
 
     public PageError410() {

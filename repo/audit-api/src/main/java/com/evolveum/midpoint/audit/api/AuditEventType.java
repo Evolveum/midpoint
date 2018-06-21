@@ -55,26 +55,25 @@ public enum AuditEventType {
 
     RECONCILIATION;
 
-    /**
+    /*
      * Query session, modify session
      */
 
-	/**
+	/*
 	 * Task states???
 	 */
 
-	/**
+	/*
 	 * Startup, shutdown, critical failure (whole system)
 	 */
 
 	// backup, restores
 
-    public static AuditEventType toAuditEventType(AuditEventTypeType event){
-    	if (event == null){
+    public static AuditEventType toAuditEventType(AuditEventTypeType event) {
+    	if (event == null) {
     		return null;
     	}
-
-    	switch (event){
+    	switch (event) {
 			case ADD_OBJECT:
 				return AuditEventType.ADD_OBJECT;
 			case CREATE_SESSION:
@@ -99,17 +98,14 @@ public enum AuditEventType {
 				return AuditEventType.WORKFLOW_PROCESS_INSTANCE;
 			default:
 				throw new IllegalArgumentException("Unknown audit event type: " + event);
-
     	}
-
     }
 
-    public static AuditEventTypeType fromAuditEventType(AuditEventType event){
-    	if (event == null){
+    public static AuditEventTypeType fromAuditEventType(AuditEventType event) {
+    	if (event == null) {
     		return null;
     	}
-
-    	switch (event){
+    	switch (event) {
 			case ADD_OBJECT:
 				return AuditEventTypeType.ADD_OBJECT;
 			case CREATE_SESSION:

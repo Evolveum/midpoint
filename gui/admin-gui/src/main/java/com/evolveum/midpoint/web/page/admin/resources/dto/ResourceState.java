@@ -120,7 +120,7 @@ public class ResourceState implements Serializable {
 	public void setExtraName(String extraName) {
 		this.extraName = extraName;
 	}
-	
+
 	public OperationResultStatus getLastAvailability() {
 		if (lastAvailability == null) {
 			return OperationResultStatus.UNKNOWN;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,65 +19,54 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPropertiesSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PopulateItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PopulateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpressionEvaluatorType;
 
 /**
  * @author Radovan Semancik
  */
-public class AssignmentTargetSearchExpressionEvaluator 
+public class AssignmentTargetSearchExpressionEvaluator
 			extends AbstractSearchExpressionEvaluator<PrismContainerValue<AssignmentType>,
 			                                          PrismContainerDefinition<AssignmentType>> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTargetSearchExpressionEvaluator.class);
-	
-	public AssignmentTargetSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType, 
-			PrismContainerDefinition<AssignmentType> outputDefinition, Protector protector, ObjectResolver objectResolver, 
-			ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
-		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityEnforcer);
+
+	public AssignmentTargetSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType,
+			PrismContainerDefinition<AssignmentType> outputDefinition, Protector protector, ObjectResolver objectResolver,
+			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
+			LocalizationService localizationService) {
+		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext, securityContextManager, localizationService);
 	}
-	
+
 	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
 		AssignmentType assignmentType = new AssignmentType();
 		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
-		
+
 		ObjectReferenceType targetRef = new ObjectReferenceType();
 		targetRef.setOid(oid);
 		targetRef.setType(targetTypeQName);
-		targetRef.setRelation(((SearchObjectRefExpressionEvaluatorType)getExpressionEvaluatorType()).getRelation());
+		targetRef.setRelation(getRelation());
 		assignmentType.setTargetRef(targetRef);
-				
+
 		try {
 			if (additionalAttributeDeltas != null) {
 				ItemDelta.applyTo(additionalAttributeDeltas, assignmentCVal);
@@ -90,8 +79,18 @@ public class AssignmentTargetSearchExpressionEvaluator
 			// Should not happen
 			throw new SystemException(e);
 		}
-		
+
 		return assignmentCVal;
+	}
+
+	private QName getRelation() {
+		SearchObjectRefExpressionEvaluatorType expressionEvaluatorType = (SearchObjectRefExpressionEvaluatorType) getExpressionEvaluatorType();
+		AssignmentPropertiesSpecificationType assignmentProperties = expressionEvaluatorType.getAssignmentProperties();
+		if (assignmentProperties != null) {
+			return assignmentProperties.getRelation();
+		} else {
+			return expressionEvaluatorType.getRelation();
+		}
 	}
 
 	/* (non-Javadoc)

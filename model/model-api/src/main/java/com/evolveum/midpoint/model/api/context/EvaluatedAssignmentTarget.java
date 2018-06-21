@@ -19,19 +19,26 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
  *
  */
 public interface EvaluatedAssignmentTarget extends DebugDumpable {
-	
+
 	PrismObject<? extends FocusType> getTarget();
 
 	boolean isDirectlyAssigned();
 
 	// if this target applies to focus (by direct assignment or by some inducement)
+	// currently matches only default (member) relations - TODO clarify this
 	boolean appliesToFocus();
+
+	// if this target applies to focus (by direct assignment or by some inducement)
+	// accepts all relations
+	// TODO clarify this
+	boolean appliesToFocusWithAnyRelation();
 
 	/**
 	 * True for roles whose constructions are evaluated - i.e. those roles that are considered to be applied
@@ -46,6 +53,7 @@ public interface EvaluatedAssignmentTarget extends DebugDumpable {
 	 */
 	AssignmentType getAssignment();
 
+	@NotNull
 	AssignmentPath getAssignmentPath();
 
 	boolean isValid();

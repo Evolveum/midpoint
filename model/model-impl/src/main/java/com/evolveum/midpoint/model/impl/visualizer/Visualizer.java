@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,17 +81,17 @@ public class Visualizer {
 				new ItemPath(ShadowType.F_INTENT)));
 	}
 
-	public SceneImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException {
+	public SceneImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
 		return visualize(object, new VisualizationContext(), task, parentResult);
 	}
 
 	public SceneImpl visualize(PrismObject<? extends ObjectType> object, VisualizationContext context, Task task, OperationResult parentResult)
-			throws SchemaException {
+			throws SchemaException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualize");
 		try {
 			resolver.resolve(object, task, result);
 			return visualize(object, null, context, task, result);
-		} catch (RuntimeException|SchemaException e) {
+		} catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
 			result.recordFatalError("Couldn't visualize data structure: " + e.getMessage(), e);
 			throw e;
 		} finally {
@@ -134,12 +134,12 @@ public class Visualizer {
 		return scene;
 	}
 
-	public List<? extends SceneImpl> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) throws SchemaException {
+	public List<? extends SceneImpl> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDeltas");
 		try {
 			resolver.resolve(deltas, task, result);
 			return visualizeDeltas(deltas, new VisualizationContext(), task, result);
-		} catch (RuntimeException|SchemaException e) {
+		} catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
 			result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
 			throw e;
 		} finally {
@@ -162,12 +162,12 @@ public class Visualizer {
 	}
 
 	@NotNull
-	public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult parentResult) throws SchemaException {
+	public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDelta");
 		try {
 			resolver.resolve(objectDelta, task, result);
 			return visualizeDelta(objectDelta, null, new VisualizationContext(), task, result);
-		} catch (RuntimeException|SchemaException e) {
+		} catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
 			result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
 			throw e;
 		} finally {
@@ -244,7 +244,7 @@ public class Visualizer {
 			LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
 			result.recordHandledError(e);
 			return null;
-		} catch (RuntimeException|SchemaException|ConfigurationException|CommunicationException|SecurityViolationException e) {
+		} catch (RuntimeException|SchemaException|ConfigurationException|CommunicationException|SecurityViolationException|ExpressionEvaluationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
 			result.recordWarning("Couldn't resolve object " + oid + ": " + e.getMessage(), e);
 			return null;

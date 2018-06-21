@@ -78,7 +78,7 @@ public class ResourceOperationDescription implements DebugDumpable {
     public void setResource(PrismObject<ResourceType> resource) {
         this.resource = resource;
     }
-    
+
     /**
      * Result of the failed operation.
      */
@@ -95,10 +95,10 @@ public class ResourceOperationDescription implements DebugDumpable {
 	 * cannot provide direct return value and therefore the invocation of
 	 * the listener is the only way how to pass operation return value to
 	 * the upper layers.
-	 * 
+	 *
 	 * This may be useful e.g. for decided whether log the message and what
 	 * log level to use (it can be assumed that the error gets logged at least
-	 * once for synchronous operations, but this may be the only chance to 
+	 * once for synchronous operations, but this may be the only chance to
 	 * properly log it for asynchronous operations).
 	 */
 	public boolean isAsynchronous() {
@@ -148,12 +148,12 @@ public class ResourceOperationDescription implements DebugDumpable {
 	public String toString() {
 		return "ResourceOperationDescription(objectDelta=" + objectDelta + ", currentShadow="
 				+ SchemaDebugUtil.prettyPrint(currentShadow) + ", sourceChannel=" + sourceChannel
-				+ ", resource=" + resource + 
+				+ ", resource=" + resource +
 				(asynchronous ? ", ASYNC" : "") +
 				(attemptNumber != 0 ? ", attemptNumber="+attemptNumber : "") +
 				", result=" + result + ")";
 	}
-    
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
 	 */
@@ -172,7 +172,7 @@ public class ResourceOperationDescription implements DebugDumpable {
 		sb.append("ResourceOperationDescription(");
 		sb.append(sourceChannel);
 		sb.append(")\n");
-		
+
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("resource:");
 		if (resource == null) {
@@ -180,7 +180,7 @@ public class ResourceOperationDescription implements DebugDumpable {
 		} else {
 			sb.append(resource);
 		}
-		
+
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("objectDelta:");
@@ -189,7 +189,7 @@ public class ResourceOperationDescription implements DebugDumpable {
 		} else {
 			sb.append(objectDelta.debugDump(indent+2));
 		}
-		
+
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("currentShadow:");
@@ -199,7 +199,7 @@ public class ResourceOperationDescription implements DebugDumpable {
 			sb.append("\n");
 			sb.append(currentShadow.debugDump(indent+2));
 		}
-		
+
 		sb.append("\n");
 		DebugUtil.debugDumpLabel(sb, "Asynchronous", indent+1);
 		sb.append(asynchronous);
@@ -209,7 +209,7 @@ public class ResourceOperationDescription implements DebugDumpable {
 		sb.append(attemptNumber);
 
 		sb.append("\n");
-		SchemaDebugUtil.indentDebugDump(sb, indent+1);		
+		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("result:");
 		if (result == null) {
 			sb.append(" null\n");

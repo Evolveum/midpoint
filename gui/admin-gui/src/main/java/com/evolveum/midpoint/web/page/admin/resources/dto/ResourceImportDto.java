@@ -33,7 +33,7 @@ public class ResourceImportDto implements Serializable {
 	private OperationResult lastError;
 	private long progress;
 	private boolean running;
-	
+
 	public ResourceImportDto(){
 		//TODO
 	}

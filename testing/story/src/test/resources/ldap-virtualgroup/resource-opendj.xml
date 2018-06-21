@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ~ Copyright (c) 2010-2017 Evolveum ~ ~ Licensed under the Apache License, 
+	Version 2.0 (the "License"); ~ you may not use this file except in compliance 
+	with the License. ~ You may obtain a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 
+	~ ~ Unless required by applicable law or agreed to in writing, software ~ 
+	distributed under the License is distributed on an "AS IS" BASIS, ~ WITHOUT 
+	WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. ~ See the 
+	License for the specific language governing permissions and ~ limitations 
+	under the License. -->
+
+<resource oid="10000000-0000-0000-0000-000000000003"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+	xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
+	xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+
+	<name>Embedded Test OpenDJ</name>
+
+	<connectorRef type="ConnectorType">
+		<description>Dummy description, just for the test</description>
+		<filter>
+			<q:equal>
+				<q:path>c:connectorType</q:path>
+				<q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+			</q:equal>
+		</filter>
+	</connectorRef>
+
+	<connectorConfiguration
+		xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+
+		<icfc:configurationProperties>
+			<icfcldap:port>10389</icfcldap:port>
+			<icfcldap:host>localhost</icfcldap:host>
+			<icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+			<icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+			<icfcldap:bindPassword>
+				<t:clearValue>secret</t:clearValue>
+			</icfcldap:bindPassword>
+			<icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+			<icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+			<icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+			<icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+			<icfcldap:operationalAttributes>uniqueMember</icfcldap:operationalAttributes>
+		</icfc:configurationProperties>
+
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false
+			</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false
+			</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false
+			</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+
+	</connectorConfiguration>
+	
+	<schema xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+   <generationConstraints>
+      <generateObjectClass>ri:groupOfUniqueNames</generateObjectClass>
+      <generateObjectClass>ri:organizationalUnit</generateObjectClass>
+      <generateObjectClass>ri:groupOfURLs</generateObjectClass>
+      <generateObjectClass>ri:ds-virtual-static-group</generateObjectClass>
+      <generateObjectClass>ri:inetOrgPerson</generateObjectClass>
+      <generateObjectClass>ri:organizationalPerson</generateObjectClass>
+      <generateObjectClass>ri:person</generateObjectClass>
+      <generateObjectClass>ri:top</generateObjectClass>
+   </generationConstraints>
+   </schema>
+
+ 	<schemaHandling>
+
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:inetOrgPerson</objectClass>
+			<attribute>
+				<ref>ri:dn</ref>
+				<displayName>Distinguished Name</displayName>
+				<outbound>
+					Name cannot be weak. Changes in name trigger object rename.
+					<source>
+						<path>$user/name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								basic.composeDnWithSuffix('uid', name, 'ou=people,dc=example,dc=com')
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+
+			<attribute>
+				<ref>ri:cn</ref>
+				<displayName>Common Name</displayName>
+				<outbound>
+					<source>
+						<path>fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+
+			<attribute>
+				<ref>ri:sn</ref>
+				<outbound>
+					<source>
+						<path>familyName</path>
+					</source>
+				</outbound>
+			</attribute>
+
+			<attribute>
+				<ref>ri:givenName</ref>
+				<outbound>
+					<source>
+						<path>givenName</path>
+					</source>
+				</outbound>
+			</attribute>
+			
+			<attribute>
+				<ref>ri:isMemberOf</ref>
+			</attribute>
+			
+			<protected>
+       			<filter>
+	       			<q:equal>
+	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+		            	<q:path>attributes/ri:dn</q:path>
+		                <q:value>cn=Directory Manager</q:value>
+		            </q:equal>
+	            </filter>
+			</protected>
+
+			<activation>
+				<administrativeStatus>
+					<outbound />
+					<inbound />
+				</administrativeStatus>
+			</activation>
+
+			<credentials>
+				<password>
+					<outbound />
+				</password>
+			</credentials>
+
+		</objectType>
+		
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>virtualstatic</intent>
+			<description>virtual-static-group</description>
+			<objectClass>ri:groupOfUniqueNames</objectClass>
+			<auxiliaryObjectClass>ri:ds-virtual-static-group</auxiliaryObjectClass>
+			<attribute>
+				<ref>ri:entryUUID</ref>
+				<limitations>
+					<access>
+						<read>true</read>
+						<add>false</add>
+						<modify>false</modify>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:dn</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								basic.composeDnWithSuffix('cn', 'vrtgrp-'+name, 'ou=groups,dc=example,dc=com')
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<!-- <attribute>
+				<ref>ri:cn</ref>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<access>
+						<read>true</read>
+						<add>true</add>
+						<modify>true</modify>
+					</access>
+				</limitations>
+				<outbound>
+					<source>
+						<path>$focus/name</path>
+					</source>
+				</outbound>
+			</attribute> -->
+			<attribute>
+				<ref>ri:uniqueMember</ref>
+				<!--  should be minimal, but we want to see this -->
+				<!-- <fetchStrategy>minimal</fetchStrategy> -->
+			</attribute>
+			<attribute>
+				<ref>ri:ds-target-group-dn</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								basic.composeDnWithSuffix('cn', 'dyngrp-'+name, 'ou=groups,dc=example,dc=com')
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+		</objectType>
+		<objectType>
+			<kind>generic</kind>
+			<intent>dynamic</intent>
+			<description>dynamic group </description>
+			<objectClass>ri:groupOfURLs</objectClass>
+			<attribute>
+				<ref>ri:entryUUID</ref>
+				<limitations>
+					<access>
+						<read>true</read>
+						<add>false</add>
+						<modify>false</modify>
+					</access>
+				</limitations>
+			</attribute>
+			<attribute>
+				<ref>ri:dn</ref>
+				<displayName>Distinguished Name</displayName>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<maxOccurs>1</maxOccurs>
+					<access>
+                        <read>true</read>
+						<add>true</add>
+						<modify>true</modify>
+					</access>
+				</limitations>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								basic.composeDnWithSuffix('cn', 'dyngrp-'+name, 'ou=groups,dc=example,dc=com')
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:memberURL</ref>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>name</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								'ldap:///ou=people,dc=example,dc=com??sub?(description=dyngrp_'+name+')'
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+		</objectType>
+		
+	</schemaHandling> 
+
+	<capabilities>
+		<configured
+			xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+			<cap:activation>
+				<cap:status>
+					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+					<cap:enableValue />
+					<cap:disableValue>true</cap:disableValue>
+				</cap:status>
+			</cap:activation>
+		</configured>
+	</capabilities>
+
+</resource>

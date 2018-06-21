@@ -16,14 +16,17 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.credentials;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.stringpolicy.AbstractValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ObjectValuePolicyEvaluator;
+import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -50,10 +53,16 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -88,25 +97,18 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	private static final Trace LOGGER = TraceManager.getTrace(CredentialPolicyEvaluator.class);
 	
 	private static final ItemPath CREDENTIAL_RELATIVE_VALUE_PATH = new ItemPath(PasswordType.F_VALUE);
-	
+
 	// Configuration
 	
 	private PrismContext prismContext;
-	
 	private Protector protector;
-	
+	private LocalizationService localizationService;
 	private OperationalDataManager metadataManager;
-	
 	private ValuePolicyProcessor valuePolicyProcessor;
-	
 	private ModelObjectResolver resolver;
-	
 	private LensContext<UserType> context;
-	
 	private XMLGregorianCalendar now;
-	
 	private Task task;
-	
 	private OperationResult result;
 	
 	// State
@@ -128,6 +130,14 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 
 	public void setProtector(Protector protector) {
 		this.protector = protector;
+	}
+
+	public LocalizationService getLocalizationService() {
+		return localizationService;
+	}
+
+	public void setLocalizationService(LocalizationService localizationService) {
+		this.localizationService = localizationService;
 	}
 
 	public OperationalDataManager getMetadataManager() {
@@ -206,7 +216,8 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	}
 
 	protected abstract String getCredentialHumanReadableName();
-	
+	protected abstract String getCredentialHumanReadableKey();
+
 	protected boolean supportsHistory() {
 		return false;
 	}
@@ -226,14 +237,14 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	
 	private ObjectValuePolicyEvaluator getObjectValuePolicyEvaluator() {
 		if (objectValuePolicyEvaluator == null) {
-			PrismObject<UserType> user = getUser();
+			AbstractValuePolicyOriginResolver originResolver = getOriginResolver();
 			
 			objectValuePolicyEvaluator = new ObjectValuePolicyEvaluator();
 			objectValuePolicyEvaluator.setNow(now);
-			objectValuePolicyEvaluator.setObject(user);
+			objectValuePolicyEvaluator.setOriginResolver(originResolver);
 			objectValuePolicyEvaluator.setProtector(protector);
 			objectValuePolicyEvaluator.setSecurityPolicy(getSecurityPolicy());
-			objectValuePolicyEvaluator.setShortDesc(getCredentialHumanReadableName() + " for " + user);
+			objectValuePolicyEvaluator.setShortDesc(getCredentialHumanReadableName() + " for " + originResolver.getObject());
 			objectValuePolicyEvaluator.setTask(task);
 			objectValuePolicyEvaluator.setValueItemPath(getCredentialValuePath());
 			objectValuePolicyEvaluator.setValuePolicyProcessor(valuePolicyProcessor);
@@ -248,14 +259,14 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	}
 
 	
-	private PrismObject<UserType> getUser() {
-		return context.getFocusContext().getObjectAny();
+	private UserValuePolicyOriginResolver getOriginResolver() {
+		return new UserValuePolicyOriginResolver(context.getFocusContext().getObjectAny(), resolver);
 	}
 
-	public void process() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+	public void process() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 		PrismObject<UserType> focus = focusContext.getObjectAny();
-		
+
 		if (focusContext.isAdd()) {
 			if (focusContext.wasAddExecuted()) {
 				LOGGER.trace("Skipping processing {} policies. User addition was already executed.", getCredentialHumanReadableName());
@@ -267,11 +278,12 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 					processCredentialContainerValue(focus, cVal);
 				}
 			}
-		
+			validateMinOccurs(credentialsContainer);
 		} else if (focusContext.isModify()) {
 			boolean credentialValueChanged = false;
+			boolean checkMinOccurs = false;
 			ObjectDelta<UserType> focusDelta = focusContext.getDelta();
-			ContainerDelta<R> containerDelta = focusDelta.findContainerDelta(getCredentialsContainerPath());
+			ContainerDelta<R> containerDelta = focusDelta.findContainerDelta(getCredentialsContainerPath());        // e.g. credentials/password
 			if (containerDelta != null) {
 				if (containerDelta.isAdd()) {
 					for (PrismContainerValue<R> cVal : containerDelta.getValuesToAdd()) {
@@ -284,34 +296,65 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 						credentialValueChanged = true;
 						processCredentialContainerValue(focus, cVal);
 					}
+					checkMinOccurs = true;
+				}
+				if (containerDelta.isDelete()) {
+					checkMinOccurs = true;
 				}
 			} else {
 				if (hasValueDelta(focusDelta, getCredentialsContainerPath())) {
 					credentialValueChanged = true;
+					checkMinOccurs = true;     // might not be precise (e.g. might check minOccurs even if a value is being added)
 					processValueDelta(focusDelta);
 					addMetadataDelta();
 				}
 			}
-			
+
+			if (checkMinOccurs) {
+				PrismObject<UserType> objectNew = focusContext.getObjectNew();
+				if (objectNew == null) {
+					focusContext.recompute();
+					objectNew = focusContext.getObjectNew();
+					if (objectNew == null) {
+						throw new IllegalStateException("Unexpected null objectNew in " + focusContext);        // temporary (during testing)
+						// LOGGER.warn("Unexpected null objectNew in {}", focusContext);   // if we would not be just before release, here an exception would be thrown!
+					}
+				}
+				//noinspection ConstantConditions
+				if (objectNew != null) {
+					PrismContainer<R> credentialsContainer = objectNew.findContainer(getCredentialsContainerPath());
+					validateMinOccurs(credentialsContainer);
+				}
+			}
 			if (credentialValueChanged) {
 				addHistoryDeltas();
 			}
-			
 		} else if (focusContext.isDelete()) {
 			LOGGER.trace("Skipping processing {} policies. User will be deleted.", getCredentialHumanReadableName());
-			return;
 		}
 	}
-	
 
 	/**
 	 * Process values from credential deltas that add/replace the whole container.
 	 * E.g. $user/credentials/password, $user/credentials/securityQuestions   
 	 */
 	protected void processCredentialContainerValue(PrismObject<UserType> focus, PrismContainerValue<R> cVal)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		addMissingMetadata(cVal);
 		validateCredentialContainerValues(cVal);
+	}
+
+	// e.g. for checking minOccurs; override for non-standard cases
+	protected int getValuesCount(PrismContainer<R> credentialsContainer) {
+		Collection<PrismValue> allValues = Item.getAllValues(credentialsContainer, getCredentialRelativeValuePath());
+		// todo check for duplicates?
+		return MiscUtil.nonNullValues(allValues).size();
+	}
+
+	private void validateMinOccurs(PrismContainer<R> credentialsContainer) throws SchemaException, PolicyViolationException {
+		int values = getValuesCount(credentialsContainer);
+		OperationResult validationResult = getObjectValuePolicyEvaluator().validateMinOccurs(values);
+		processValidationResult(validationResult);
 	}
 
 	/**
@@ -321,9 +364,9 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 	 *      $user/credentials/securityQuestions/questionAnswer/questionAnswer
 	 *      
 	 *  This implementation is OK for the password, nonce and similar simple cases. It needs to be
-	 *  overridden for more complex cases.
+	 *  overridden for more complex cases. 
 	 */
-	protected void processValueDelta(ObjectDelta<UserType> focusDelta) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	protected void processValueDelta(ObjectDelta<UserType> focusDelta) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PropertyDelta<ProtectedStringType> valueDelta = focusDelta.findPropertyDelta(getCredentialValuePath());
 		if (valueDelta == null) {
 			LOGGER.trace("Skipping processing {} policies. User delta does not contain value change.", getCredentialHumanReadableName());
@@ -333,7 +376,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		processPropertyValueCollection(valueDelta.getValuesToReplace());
 	}
 	
-	private void processPropertyValueCollection(Collection<PrismPropertyValue<ProtectedStringType>> collection) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private void processPropertyValueCollection(Collection<PrismPropertyValue<ProtectedStringType>> collection) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (collection == null) {
 			return;
 		}
@@ -342,35 +385,44 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		}
 	}
 
-	protected void validateCredentialContainerValues(PrismContainerValue<R> cVal) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	protected void validateCredentialContainerValues(PrismContainerValue<R> cVal) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismProperty<ProtectedStringType> credentialValueProperty = cVal.findProperty(getCredentialRelativeValuePath());
-		for (PrismPropertyValue<ProtectedStringType> credentialValuePropertyValue: credentialValueProperty.getValues()) {
-			validateProtectedStringValue(credentialValuePropertyValue.getValue());
+		if (credentialValueProperty != null) {
+			for (PrismPropertyValue<ProtectedStringType> credentialValuePropertyValue : credentialValueProperty.getValues()) {
+				validateProtectedStringValue(credentialValuePropertyValue.getValue());
+			}
 		}
 	}
 
-	protected void validateProtectedStringValue(ProtectedStringType value) throws PolicyViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		
+	protected void validateProtectedStringValue(ProtectedStringType value) throws PolicyViolationException, SchemaException,
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
 		OperationResult validationResult = getObjectValuePolicyEvaluator().validateProtectedStringValue(value);
+		processValidationResult(validationResult);
+	}
+
+	private void processValidationResult(OperationResult validationResult) throws PolicyViolationException {
 		result.addSubresult(validationResult);
-		
+
 		if (!validationResult.isAcceptable()) {
-			throw new PolicyViolationException("Provided "+getCredentialHumanReadableName()+" does not satisfy the policies: " + validationResult.getMessage());
+			SingleLocalizableMessage message = new LocalizableMessageBuilder()
+					.key("PolicyViolationException.message.credentials." + getCredentialHumanReadableKey())
+					.arg(validationResult.getUserFriendlyMessage())
+					.build();
+			throw localizationService.translate(new PolicyViolationException(message));
 		}
 	}
 
 	private void addMetadataDelta() throws SchemaException {
 		Collection<? extends ItemDelta<?, ?>> metaDeltas = metadataManager.createModifyMetadataDeltas(
 				context, getCredentialsContainerPath().subPath(AbstractCredentialType.F_METADATA),
-				context.getFocusContext().getObjectDefinition(), now, task);
+				context.getFocusClass(), now, task);
 		for (ItemDelta<?, ?> metaDelta : metaDeltas) {
 			context.getFocusContext().swallowToSecondaryDelta(metaDelta);
 		}
 	}
 	
-	private void addMissingMetadata(PrismContainerValue<R> cVal)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-
+	private void addMissingMetadata(PrismContainerValue<R> cVal) throws SchemaException {
 		if (hasValueChange(cVal)) {
 			if (!hasMetadata(cVal)) {
 				MetadataType metadataType = metadataManager.createCreateMetadata(context, now, task);
@@ -445,8 +497,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 			return;
 		}
 		int historyLength = SecurityUtil.getCredentialHistoryLength(getCredentialPolicy());
-		
-		
+
 		PrismContainer<R> oldCredentialContainer = getOldCredentialContainer();
 		if (oldCredentialContainer == null) {
 			return;
@@ -474,7 +525,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		ProtectedStringType newHistoryValue = oldValueProperty.getRealValue();
 		ProtectedStringType passwordPsForStorage = newHistoryValue.clone();
 		
-		CredentialsStorageTypeType storageType = SecurityUtil.getCredentialStoragetTypeType(getCredentialPolicy().getHistoryStorageMethod());
+		CredentialsStorageTypeType storageType = SecurityUtil.getCredentialStorageTypeType(getCredentialPolicy().getHistoryStorageMethod());
 		if (storageType == null) {
 			storageType = CredentialsStorageTypeType.HASHING;
 		}
@@ -483,16 +534,16 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		PrismContainerDefinition<PasswordHistoryEntryType> historyEntryDefinition = oldCredentialContainer.getDefinition().findContainerDefinition(PasswordType.F_HISTORY_ENTRY);
 		PrismContainer<PasswordHistoryEntryType> historyEntry = historyEntryDefinition.instantiate();
 		
-		PrismContainerValue<PasswordHistoryEntryType> hisotryEntryValue = historyEntry.createNewValue();
+		PrismContainerValue<PasswordHistoryEntryType> historyEntryValue = historyEntry.createNewValue();
 		
-		PasswordHistoryEntryType entryType = hisotryEntryValue.asContainerable();
+		PasswordHistoryEntryType entryType = historyEntryValue.asContainerable();
 		entryType.setValue(passwordPsForStorage);
 		entryType.setMetadata(oldCredentialMetadata==null?null:oldCredentialMetadata.clone());
 		entryType.setChangeTimestamp(now);
 	
-		ContainerDelta<PasswordHistoryEntryType> addHisotryDelta = ContainerDelta
+		ContainerDelta<PasswordHistoryEntryType> addHistoryDelta = ContainerDelta
 				.createModificationAdd(new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_HISTORY_ENTRY), UserType.class, prismContext, entryType.clone());
-		context.getFocusContext().swallowToSecondaryDelta(addHisotryDelta);
+		context.getFocusContext().swallowToSecondaryDelta(addHistoryDelta);
 		
 		return 1;
 	}
@@ -511,15 +562,29 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		// in the old object. In the new object there will be one new history entry for the changed password.
 		int numberOfHistoryEntriesToDelete = historyEntries.size() - historyLength + addedValues + 1;
 		
-		for (int i = 0; i < numberOfHistoryEntriesToDelete; i++) {
+		Iterator<PrismContainerValue<PasswordHistoryEntryType>> historyEntryIterator = historyEntryValues.iterator();
+		
+		int i = 0;
+		while (historyEntryIterator.hasNext() && i < numberOfHistoryEntriesToDelete) {
 			ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDelta
 					.createModificationDelete(
 							new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
 									PasswordType.F_HISTORY_ENTRY),
 							UserType.class, prismContext,
-							historyEntryValues.get(i).clone());
+							historyEntryIterator.next().clone());
 			context.getFocusContext().swallowToSecondaryDelta(deleteHistoryDelta);
+			i++;
 		}
+		
+//		for (int i = 0; i < numberOfHistoryEntriesToDelete; i++) {
+//			ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDelta
+//					.createModificationDelete(
+//							new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+//									PasswordType.F_HISTORY_ENTRY),
+//							UserType.class, prismContext,
+//							historyEntryValues.get(i).clone());
+//			context.getFocusContext().swallowToSecondaryDelta(deleteHistoryDelta);
+//		}
 	}
 	
 	private void prepareProtectedStringForStorage(ProtectedStringType ps, CredentialsStorageTypeType storageType) throws SchemaException {

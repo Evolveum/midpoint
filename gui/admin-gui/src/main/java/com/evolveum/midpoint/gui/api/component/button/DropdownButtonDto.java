@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 public class DropdownButtonDto implements Serializable, InlineMenuable{
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 	private String info;
 	private String icon;
 	private String label;
-	
+
 	private List<InlineMenuItem> items;
 
 	public DropdownButtonDto(String info, String icon, String label, List<InlineMenuItem> items) {
@@ -63,7 +63,7 @@ public class DropdownButtonDto implements Serializable, InlineMenuable{
 	public void setLabel(String label) {
 		this.label = label;
 	}
-	
+
 
 	@Override
 	public List<InlineMenuItem> getMenuItems() {

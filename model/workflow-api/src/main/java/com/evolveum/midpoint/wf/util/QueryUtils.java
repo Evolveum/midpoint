@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,12 @@ import java.util.List;
  */
 public class QueryUtils {
 
+	/**
+	 * Augments work item query by including filter to see only work items assigned to the current user or any of his delegators,
+	 * providing that the limitation(s) allow it.
+	 *
+	 * Note that work item limitations are supported only in the current (crude) form: all or none.
+	 */
 	public static S_AtomicFilterExit filterForAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal,
 			QName limitationItemName) throws SchemaException {
 		if (principal == null) {

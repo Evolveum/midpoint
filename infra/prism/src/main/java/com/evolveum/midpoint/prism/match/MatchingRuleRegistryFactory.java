@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@ package com.evolveum.midpoint.prism.match;
 
 /**
  * Creates MatchingRuleRegistry populated with standard matching rules.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class MatchingRuleRegistryFactory {
-	
+
 	public static MatchingRuleRegistry createRegistry() {
-		
+
 		MatchingRuleRegistry registry = new MatchingRuleRegistry();
 		registry.registerMatchingRule(new StringIgnoreCaseMatchingRule());
 		registry.registerMatchingRule(new PolyStringStrictMatchingRule());

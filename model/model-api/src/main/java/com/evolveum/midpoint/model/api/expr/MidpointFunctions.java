@@ -16,9 +16,24 @@
 
 package com.evolveum.midpoint.model.api.expr;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -40,21 +55,14 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author mederly
  */
+@SuppressWarnings("unused")
 public interface MidpointFunctions {
 	
 	/**
@@ -134,12 +142,12 @@ public interface MidpointFunctions {
 	<T extends ObjectType> T resolveReference(ObjectReferenceType reference)
             throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException,
-            SecurityViolationException;
+            SecurityViolationException, ExpressionEvaluationException;
 
 	<T extends ObjectType> T resolveReferenceIfExists(ObjectReferenceType reference)
             throws SchemaException,
             CommunicationException, ConfigurationException,
-            SecurityViolationException;
+            SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -162,12 +170,12 @@ public interface MidpointFunctions {
 	 *             requested object does not exist
 	 * @throws SchemaException 
 	 * 				the object is not schema compliant
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws CommunicationException
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw ConfigurationException
+	 * @throws ConfigurationException
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws IllegalArgumentException
 	 *             missing required parameter, wrong OID format, etc.
@@ -179,7 +187,7 @@ public interface MidpointFunctions {
 	 *             state
 	 */
 	<T extends ObjectType> T getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException;
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -200,12 +208,12 @@ public interface MidpointFunctions {
 	 *             requested object does not exist
 	 * @throws SchemaException 
 	 * 				the object is not schema compliant
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws CommunicationException
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw ConfigurationException
+	 * @throws ConfigurationException
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws IllegalArgumentException
 	 *             missing required parameter, wrong OID format, etc.
@@ -217,7 +225,7 @@ public interface MidpointFunctions {
 	 *             state
 	 */
 	<T extends ObjectType> T getObject(Class<T> type, String oid)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SecurityViolationException;
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 	
 	/**
 	 * <p>
@@ -280,7 +288,7 @@ public interface MidpointFunctions {
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws IllegalArgumentException
@@ -351,7 +359,7 @@ public interface MidpointFunctions {
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws IllegalArgumentException
@@ -422,7 +430,7 @@ public interface MidpointFunctions {
 	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws IllegalArgumentException
@@ -430,7 +438,8 @@ public interface MidpointFunctions {
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected state
 	 */
-	void executeChanges(ObjectDelta<? extends ObjectType>... deltas) 
+	@SuppressWarnings("unchecked")
+	void executeChanges(ObjectDelta<? extends ObjectType>... deltas)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
 
@@ -495,15 +504,19 @@ public interface MidpointFunctions {
 	 * @return owner of the account or null
 	 * @throws ObjectNotFoundException
 	 *             specified account was not found
-	 * @throws SchemaException 
-	 * @throws SecurityViolationException 
+	 * @throws SchemaException
+	 *              todo
+	 * @throws SecurityViolationException
+	 *              todo
+	 * @throws CommunicationException
+	 *              todo
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException;
+	PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
 
 	/**
 	 * <p>
@@ -541,7 +554,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -551,7 +564,7 @@ public interface MidpointFunctions {
 	 */
 	<T extends ObjectType> List<T> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -587,7 +600,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -596,7 +609,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> List<T> searchObjects(Class<T> type, ObjectQuery query) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -625,7 +638,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -634,7 +647,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
-			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -661,7 +674,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -670,7 +683,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, ResultHandler<T> handler) 
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -695,7 +708,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -704,7 +717,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> T searchObjectByName(Class<T> type, String name) throws SecurityViolationException, 
-					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException;
 	
 	/**
 	 * <p>
@@ -729,7 +742,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -738,7 +751,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name) throws SecurityViolationException, 
-					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException;
 	
 	/**
 	 * <p>
@@ -763,7 +776,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -772,7 +785,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name) throws SecurityViolationException, 
-					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException, ExpressionEvaluationException;
 	
 	/**
 	 * <p>
@@ -799,7 +812,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -808,7 +821,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) 
-            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
+            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -833,7 +846,7 @@ public interface MidpointFunctions {
 	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
-	 * @throw SecurityViolationException
+	 * @throws SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
 	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws ConfigurationException
@@ -842,7 +855,7 @@ public interface MidpointFunctions {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query) 
-    		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
+    		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -878,10 +891,10 @@ public interface MidpointFunctions {
 
     Collection<String> getManagersOids(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
 
-    Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
+    Collection<String> getManagersOidsExceptUser(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
 
     Collection<String> getManagersOidsExceptUser(@NotNull Collection<ObjectReferenceType> userRefList)
-			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ExpressionEvaluationException,
 			ConfigurationException;
 
     Collection<UserType> getManagers(UserType user) throws SchemaException, ObjectNotFoundException, SecurityViolationException;
@@ -966,7 +979,7 @@ public interface MidpointFunctions {
     Collection<UserType> getManagersOfOrg(String orgOid) throws SchemaException, SecurityViolationException;
 
     /**
-     * Returns true if user is a manager of specified organiational unit. 
+     * Returns true if user is a manager of specified organizational unit.
      */
     boolean isManagerOf(UserType user, String orgOid);
     
@@ -991,7 +1004,7 @@ public interface MidpointFunctions {
 
 	Task getCurrentTask();
 
-	ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+	ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
     
@@ -1001,23 +1014,22 @@ public interface MidpointFunctions {
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target);
 
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
-    ShadowType getLinkedShadow(FocusType focus, ResourceType resource)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, ResourceType resource)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
-    ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, ResourceType resource, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
-    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+    ShadowType getLinkedShadow(FocusType focus, String resourceOid, ShadowKindType kind, String intent, boolean repositoryObjectOnly) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
     
     /**
      * Returns aggregated delta that is to be executed on a given resource.
      * @param context model context
      * @param resourceOid OID of the resource in question
-     * @return
      */
     ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) throws SchemaException;
 
@@ -1027,21 +1039,22 @@ public interface MidpointFunctions {
 	/**
 	 * Returns a map from the translated xml attribute - value pairs.
 	 *
-	 * @param A string representation of xml formated data. 
-	 * @return
-	 * @throws SystemException when an xml stream exception occurs 
+	 * @param xml A string representation of xml formatted data.
+	 * @throws SystemException when an xml stream exception occurs
 	 */
 	Map<String, String> parseXmlToMap(String xml);
 	
 	boolean isFullShadow();
 
+	boolean isProjectionExists();
+
 	List<UserType> getMembers(String orgOid)
 			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-			ObjectNotFoundException;
+			ObjectNotFoundException, ExpressionEvaluationException;
 
 	List<ObjectReferenceType> getMembersAsReferences(String orgOid)
 			throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
-			ObjectNotFoundException;
+			ObjectNotFoundException, ExpressionEvaluationException;
 	
 	/**
 	 * Default function used to compute projection lifecycle. It is provided here so it can be explicitly
@@ -1057,4 +1070,79 @@ public interface MidpointFunctions {
 	String getChannel();
 
 	WorkflowService getWorkflowService();
+	
+	/**
+	 * Used for account activation notifier to collect all shadows which are going to be activated.
+	 */
+	List<ShadowType> getShadowsToActivate(Collection<? extends ModelElementContext> projectionContexts);
+	
+	String createRegistrationConfirmationLink(UserType userType);
+	
+	String createPasswordResetLink(UserType userType);
+	
+	String createAccountActivationLink(UserType userType);
+	
+	String getConst(String name);
+	
+	ShadowType resolveEntitlement(ShadowAssociationType shadowAssociationType);
+
+	ExtensionType collectExtensions(AssignmentPathType path, int startAt)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException;
+
+	TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+	TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+	TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options, String templateTaskOid) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+	TaskType executeChangesAsynchronously(Collection<ObjectDelta<?>> deltas, ModelExecuteOptions options,
+			String templateTaskOid, Task opTask,
+			OperationResult result) throws SecurityViolationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+
+	String translate(LocalizableMessage message);
+
+	String translate(LocalizableMessageType message);
+
+	<F extends ObjectType> ModelContext<F> getModelContext();
+
+	<F extends ObjectType> ModelElementContext<F> getFocusContext();
+
+	ModelProjectionContext getProjectionContext();
+	
+	Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
+			throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException;
+	
+	Object executeAdHocProvisioningScript(String resourceOid, String language, String code) 
+			throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException;
+	
+	/**
+	 * Returns indication whether a script code is evaluating a new value.
+	 * If this method returns true value then the script code is evaluating "new" value.
+	 * That means a value that is going to be set to target, e.g.
+	 * value from "add" or "replace" parts of the delta.
+	 * If this method returns false value then the script code is evaluating "old" value.
+	 * That means a value that is used for the purposes of removing values from target,
+	 * e.g. value from "delete" part of the delta or values from an existing object.
+	 * If this method returns null then the old/new status cannot be determined or this
+	 * method is invoked in a situation when such a distinction is not applicable.
+	 */
+	Boolean isEvaluateNew();
+
+	/**
+	 * Returns all non-negative values from all focus mappings (targeted to given path)
+	 * from all non-negative evaluated assignments.
+	 *
+	 * Highly experimental. Use at your own risk.
+	 */
+	@NotNull
+	Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException;
 }

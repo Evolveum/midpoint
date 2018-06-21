@@ -19,15 +19,11 @@ import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.w3c.dom.Element;
 
@@ -51,7 +47,7 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 	public ConnectorSchemaImpl(String namespace, PrismContext prismContext) {
 		super(namespace, prismContext);
 	}
-	
+
 	public static ConnectorSchemaImpl parse(Element element, String shortDesc, PrismContext prismContext) throws SchemaException {
 		// TODO: make sure correct parser plugins are used
 		return (ConnectorSchemaImpl) PrismSchemaImpl.parse(element, new ConnectorSchemaImpl(prismContext), true, shortDesc, prismContext);
@@ -101,7 +97,7 @@ public class ConnectorSchemaImpl extends PrismSchemaImpl implements ConnectorSch
 //		add(cTypeDef);
 //		return cTypeDef;
 //	}
-	
+
 
 	@Override
 	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName qName) {

@@ -58,7 +58,4 @@ IS
                         l_enabled_constraints(j);
     END LOOP;
 
--- recreate sequence
-    EXECUTE IMMEDIATE 'drop sequence hibernate_sequence';
-    EXECUTE IMMEDIATE 'create sequence hibernate_sequence start with 1 increment by 1';
   END;

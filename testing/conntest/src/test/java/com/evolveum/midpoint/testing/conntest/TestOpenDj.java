@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class TestOpenDj extends AbstractLdapConnTest {
 
 	private static final String OPENDJ_TEMPLATE_NAME = "opendj-4000.template";
-	
-	private static final int INITIAL_SYNC_TOKEN = 25;
+
+	private static final int INITIAL_SYNC_TOKEN = 23;
 
 	@Override
 	protected String getResourceOid() {
@@ -52,13 +52,13 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	public String getStopSystemCommand() {
 		return null;
 	}
-	
+
 	@Override
 	protected void startResources() throws Exception {
 		super.startResources();
 		openDJController.startCleanServer(OPENDJ_TEMPLATE_NAME);
 	}
-	
+
 	@AfterClass
     public static void stopResources() throws Exception {
 		AbstractLdapConnTest.stopResources();
@@ -84,12 +84,12 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	protected String getLdapBindPassword() {
 		return "secret";
 	}
-	
+
 	@Override
 	protected String getPeopleLdapSuffix() {
 		return "ou=people,"+getLdapSuffix();
 	}
-	
+
 	@Override
 	protected String getAccount0Cn() {
 		return "Warlaz Kunjegjul (00000000)";
@@ -114,7 +114,7 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	protected String getLdapGroupMemberAttribute() {
 		return "uniqueMember";
 	}
-	
+
 	@Override
 	protected boolean needsGroupFakeMemeberEntry() {
 		return true;
@@ -124,11 +124,11 @@ public class TestOpenDj extends AbstractLdapConnTest {
 	protected String getSyncTaskOid() {
 		return "cd1e0ff2-0099-11e5-9e22-001e8c717e5b";
 	}
-	
+
 	protected int getInitialSyncToken() {
 		return INITIAL_SYNC_TOKEN;
 	}
-	
+
 	@Override
 	protected boolean isAssertOpenFiles() {
 		// Cannot do this here. OpenDJ is embedded, the
@@ -136,11 +136,11 @@ public class TestOpenDj extends AbstractLdapConnTest {
 		// vary significantly because of OpenDJ.
 		return false;
 	}
-	
+
 	@Override
 	protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
 			throws ObjectNotFoundException, SchemaException {
 		assertSyncToken(syncTaskOid, (Integer)(step + getInitialSyncToken()));
 	}
-	
+
 }

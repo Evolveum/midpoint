@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.DisplayableValueImpl;
  *
  */
 public class RoleSelectionSpecEntry extends DisplayableValueImpl<String> {
-	
+
 	boolean negative = false;
 
 	public RoleSelectionSpecEntry(String value, String label, String description) {
@@ -39,7 +39,7 @@ public class RoleSelectionSpecEntry extends DisplayableValueImpl<String> {
 	public void setNegative(boolean negative) {
 		this.negative = negative;
 	}
-	
+
 	public void negate() {
 		this.negative = !this.negative;
 	}
@@ -52,7 +52,7 @@ public class RoleSelectionSpecEntry extends DisplayableValueImpl<String> {
 			entry.negate();
 		}
 	}
-	
+
 	public static boolean hasNegative(Collection<RoleSelectionSpecEntry> col) {
 		if (col == null) {
 			return false;
@@ -64,7 +64,7 @@ public class RoleSelectionSpecEntry extends DisplayableValueImpl<String> {
 		}
 		return false;
 	}
-	
+
 	public static boolean hasNegativeValue(Collection<RoleSelectionSpecEntry> col, String value) {
 		if (col == null) {
 			return false;
@@ -76,7 +76,7 @@ public class RoleSelectionSpecEntry extends DisplayableValueImpl<String> {
 		}
 		return false;
 	}
-	
+
 	public static Collection<RoleSelectionSpecEntry> getPositive(Collection<RoleSelectionSpecEntry> col) {
 		if (col == null) {
 			return null;

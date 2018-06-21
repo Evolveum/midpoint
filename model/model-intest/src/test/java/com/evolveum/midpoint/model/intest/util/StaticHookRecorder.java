@@ -25,7 +25,7 @@ import java.util.Map;
  * @author semancik
  */
 public class StaticHookRecorder {
-    private static Map<String,Integer> hookInvocationCountMap = new HashMap<String,Integer>();
+    private static Map<String,Integer> hookInvocationCountMap = new HashMap<>();
 
     public static void record(String hookName) {
         Integer count = hookInvocationCountMap.get(hookName);
@@ -41,7 +41,7 @@ public class StaticHookRecorder {
     }
 
     public static void reset() {
-        hookInvocationCountMap = new HashMap<String,Integer>();
+        hookInvocationCountMap = new HashMap<>();
     }
 
     public static String dump() {

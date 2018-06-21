@@ -37,7 +37,7 @@
         <icfc:configurationProperties xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector">
             <icfcldap:host>chimera.ad.evolveum.com</icfcldap:host>
             <icfcldap:port>636</icfcldap:port>
-            <icfcldap:baseContext>DC=ad,DC=evolveum,DC=com</icfcldap:baseContext>
+            <icfcldap:baseContext><expression><const>adBaseDn</const></expression></icfcldap:baseContext>
             <icfcldap:bindDn>CN=midpoint,CN=Users,DC=ad,DC=evolveum,DC=com</icfcldap:bindDn>
             <icfcldap:connectionSecurity>ssl</icfcldap:connectionSecurity>
             <icfcldap:bindPassword>
@@ -46,13 +46,16 @@
             <icfcldap:servers>host=hydra.ad.evolveum.com; baseContext=DC=sub,DC=ad,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub,DC=ad,DC=evolveum,DC=com</icfcldap:servers>
             <icfcldap:referralStrategy>ignore</icfcldap:referralStrategy>
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
+            <icfcldap:operationalAttributes>msExchHideFromAddressLists</icfcldap:operationalAttributes>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
+            <icfcldap:timestampPresentation>string</icfcldap:timestampPresentation>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
             <icfcldap:winRmUsername>midpoint</icfcldap:winRmUsername>
             <icfcldap:winRmDomain>midpoint</icfcldap:winRmDomain>
             <icfcldap:winRmAuthenticationScheme>credssp</icfcldap:winRmAuthenticationScheme>
             <icfcldap:winRmPort>5986</icfcldap:winRmPort>
             <icfcldap:winRmUseHttps>true</icfcldap:winRmUseHttps>
+            <icfcldap:powershellArgumentStyle>variables</icfcldap:powershellArgumentStyle>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -67,7 +70,8 @@
             <generateObjectClass>ri:group</generateObjectClass>
             <generateObjectClass>ri:organizationalUnit</generateObjectClass>
             <generateObjectClass>ri:domain</generateObjectClass>
-        </generationConstraints>
+            <generateObjectClass>ri:msExchBaseClass</generateObjectClass>
+        </generationConstraints> 
     </schema>
 
 
@@ -83,7 +87,7 @@
             	<filter>
             		<q:equal>
             			<q:path>attributes/dn</q:path>
-            			<q:value>CN=Users,DC=ad,DC=evolveum,DC=com</q:value>
+            			<expression><const>adUsersDn</const></expression>
             		</q:equal>
             	</filter>
             </baseContext>
@@ -98,7 +102,7 @@
 					<expression>
 						<script>
 							<code>
-								basic.composeDnWithSuffix('CN', fullName + iterationToken, 'CN=Users,DC=ad,DC=evolveum,DC=com')
+								basic.composeDnWithSuffix('CN', fullName + iterationToken, midpoint.getConst('adUsersDn'))
 							</code>
 						</script>
 					</expression>
@@ -223,6 +227,28 @@
 					<source>
 						<path>extension/showInAdvancedViewOnly</path>
 					</source>
+				</outbound>
+			</attribute>
+			
+			<attribute>
+				<ref>ri:msExchHideFromAddressLists</ref>
+				<description>MID-4041</description>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>activation/effectiveStatus</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								if (effectiveStatus == com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.DISABLED) {
+									return true
+								} else {
+									return false
+								}
+							</code>
+						</script>
+					</expression>
 				</outbound>
 			</attribute>
 			
@@ -708,14 +734,24 @@
 		<script>
 			<host>resource</host>
 			<language>powerhell</language>
-			<code>Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) ADD`n" }</code>
+			<argument>
+		      <path>$focus/name</path>
+		      <name>username</name>
+		   </argument>
+			<!-- Single-line command, but parameters in variable. This may make it multi-line. -->
+			<code>$T = Get-Date -format u; $M = $T + " (CredSSP) ADD " + $username +"`n"; write-host $M; $block = $ExecutionContext.InvokeCommand.NewScriptBlock("Add-Content c:\conn.txt `""+$M+"`""); Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock $block</code>
 			<operation>add</operation>
 			<order>before</order>
 		</script>
 		<script>
 			<host>resource</host>
 			<language>powerhell</language>
-			<code>Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) MOD`n" }</code>
+			<!-- Make sure that this is a multi-line command. -->
+			<code>
+				write-host "before"
+				Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) MOD`n" }
+				write-host "after"
+			</code>
 			<operation>modify</operation>
 			<order>before</order>
 		</script>
@@ -723,6 +759,7 @@
 
 	<consistency>
 		<avoidDuplicateValues>true</avoidDuplicateValues>
+		<validateSchema>true</validateSchema>
 	</consistency>
     
     	<synchronization>

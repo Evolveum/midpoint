@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,13 @@ import com.evolveum.midpoint.web.component.search.Search;
  *  @author shood
  * */
 public interface PageStorage extends Serializable, DebugDumpable {
-	
+
 	public Search getSearch();
-	
+
 	public void setSearch(Search search);
-	
+
 	public void setPaging(ObjectPaging paging);
-	
+
 	public ObjectPaging getPaging();
 
 }

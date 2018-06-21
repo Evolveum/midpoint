@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.notifications.impl.helpers;
 
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -34,9 +34,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -100,17 +103,13 @@ public abstract class BaseHelper {
     // expressions
 
     // shortDesc = what is to be evaluated e.g. "event filter expression"
-    protected boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    protected boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
         try {
             return evaluateBooleanExpression(expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException e) {
-            failReason = e;
-        } catch (SchemaException e) {
-            failReason = e;
-        } catch (ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             failReason = e;
         }
 
@@ -119,8 +118,8 @@ public abstract class BaseHelper {
         throw new SystemException(failReason);
     }
 
-    protected boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc, 
-    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    protected boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc,
+    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<Boolean> resultDef = new PrismPropertyDefinitionImpl(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
@@ -139,17 +138,13 @@ public abstract class BaseHelper {
         return boolResult != null ? boolResult : false;
     }
 
-    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
         try {
             return evaluateExpression(expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException e) {
-            failReason = e;
-        } catch (SchemaException e) {
-            failReason = e;
-        } catch (ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             failReason = e;
         }
 
@@ -158,8 +153,8 @@ public abstract class BaseHelper {
         throw new SystemException(failReason);
     }
 
-    private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
-    		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables,
+    		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = new PrismPropertyDefinitionImpl(resultName, DOMUtil.XSD_STRING, prismContext);
@@ -170,7 +165,7 @@ public abstract class BaseHelper {
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult;
 		exprResult = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
 
-        List<String> retval = new ArrayList<String>();
+        List<String> retval = new ArrayList<>();
         for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
             retval.add(item.getValue());
         }
@@ -180,7 +175,7 @@ public abstract class BaseHelper {
     protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
 
     	ExpressionVariables expressionVariables = new ExpressionVariables();
-        Map<QName, Object> variables = new HashMap<QName, Object>();
+        Map<QName, Object> variables = new HashMap<>();
 		event.createExpressionVariables(variables, result);
 		expressionVariables.addVariableDefinitions(variables);
         return expressionVariables;

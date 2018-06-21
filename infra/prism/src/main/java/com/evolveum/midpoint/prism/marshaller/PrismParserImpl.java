@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,11 +180,25 @@ abstract class PrismParserImpl implements PrismParser {
 		List<RootXNode> roots = getLexicalProcessor().readObjects(source, context);
 		List<PrismObject<? extends Objectable>> objects = new ArrayList<>();
 		for (RootXNode root : roots) {
+			// caller must make sure that itemDefinition, itemName, typeName, typeClass apply to all the objects
 			PrismObject<? extends Objectable> object = prismContext.getPrismUnmarshaller()
-					.parseObject(root, null, null, null, null, context);
+					.parseObject(root, itemDefinition, itemName, typeName, typeClass, context);
 			objects.add(object);
 		}
 		return objects;
+	}
+
+	void doParseObjectsIteratively(ObjectHandler handler) throws IOException, SchemaException {
+		getLexicalProcessor().readObjectsIteratively(source, context, root -> {
+			try {
+				// caller must make sure that itemDefinition, itemName, typeName, typeClass apply to all the objects
+				PrismObject<?> object = prismContext.getPrismUnmarshaller()
+						.parseObject(root, itemDefinition, itemName, typeName, typeClass, context);
+				return handler.handleData(object);
+			} catch (Throwable t) {
+				return handler.handleError(t);
+			}
+		});
 	}
 
 	Object doParseItemOrRealValue() throws IOException, SchemaException {

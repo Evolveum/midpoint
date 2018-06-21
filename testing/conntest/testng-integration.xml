@@ -31,6 +31,7 @@
             <class name="com.evolveum.midpoint.testing.conntest.TestEDirDeimos"/>
             <class name="com.evolveum.midpoint.testing.conntest.TestAdLdapMedusa"/>
             <class name="com.evolveum.midpoint.testing.conntest.TestAdLdapRawMedusa"/>
+            <class name="com.evolveum.midpoint.testing.conntest.TestAdLdapChimera"/>
         </classes>
     </test>
 </suite>

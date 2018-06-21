@@ -29,7 +29,7 @@ import java.nio.charset.Charset;
 
 /**
  * Unit tests for Util class
- * 
+ *
  * @author semancik
  */
 public class UtilsTest {

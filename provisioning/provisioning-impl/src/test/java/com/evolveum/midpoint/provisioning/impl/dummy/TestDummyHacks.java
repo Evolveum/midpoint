@@ -15,13 +15,14 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
 
 import javax.xml.namespace.QName;
 
@@ -62,21 +63,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 /**
  * The test of Provisioning service on the API level. The test is using dummy resource for speed and flexibility.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyHacks extends AbstractIntegrationTest {
-	
-	private static final String TEST_DIR = "src/test/resources/impl/dummy-hacks/";
 
-	private static final String CONNECTOR_DUMMY_FILENAME = TEST_DIR + "connector-dummy.xml";
+	private static final File TEST_DIR = new File(AbstractDummyTest.TEST_DIR_DUMMY, "dummy-hacks");
 
-	private static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
-	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";	
-		
+	private static final File CONNECTOR_DUMMY_FILE = new File(TEST_DIR, "connector-dummy.xml");
+
+	private static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
+	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyHacks.class);
 
 	private PrismObject<ConnectorType> connector;
@@ -84,17 +85,17 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 	private ResourceType resourceType;
 	private static DummyResource dummyResource;
 	private static Task syncTask;
-	
+
 	@Autowired(required=true)
 	private ProvisioningService provisioningService;
-	
+
 	// Used to make sure that the connector is cached
 	@Autowired(required=true)
 	private ConnectorManager connectorManager;
-	
+
 	@Autowired(required=true)
-	private SynchornizationServiceMock syncServiceMock; 
-	
+	private SynchornizationServiceMock syncServiceMock;
+
 
 	public TestDummyHacks() {
 		super();
@@ -102,7 +103,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
 	 */
 
@@ -111,12 +112,12 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		// DO NOT DO provisioningService.postInit(..)
 		// We want to avoid connector discovery and insert our own connector object
 //		provisioningService.postInit(initResult);
-		
-		connector = repoAddObjectFromFile(CONNECTOR_DUMMY_FILENAME, initResult);
-		
-		resource = repoAddObjectFromFile(RESOURCE_DUMMY_FILENAME, initResult);
+
+		connector = repoAddObjectFromFile(CONNECTOR_DUMMY_FILE, initResult);
+
+		resource = repoAddObjectFromFile(RESOURCE_DUMMY_FILE, initResult);
 		resourceType = resource.asObjectable();
-		
+
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();
 		dummyResource.populateWithDefaultSchema();
@@ -127,7 +128,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 
 	/**
 	 * This should be the very first test that works with the resource.
-	 * 
+	 *
 	 * The original repository object does not have resource schema. The schema
 	 * should be generated from the resource on the first use. This is the test
 	 * that executes testResource and checks whether the schema was generated.
@@ -135,10 +136,10 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 	@Test
 	public void test003Connection() throws Exception {
 		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestDummyHacks.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		// Check that there is no schema before test (pre-condition)
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID,
 				null, result).asObjectable();
@@ -152,21 +153,21 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		AssertJUnit.assertNull("Found schema before test connection. Bad test setup?", resourceXsdSchemaElementBefore);
 
 		// WHEN
-		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID);
+		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
 
 		// THEN
 		display("Test result", testResult);
 		TestUtil.assertSuccess("Test resource failed (result)", testResult);
 
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
-		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable(); 
+		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
 		display("Resource after test", resourceTypeRepoAfter);
 
 		XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
 		assertNotNull("No schema after test connection", xmlSchemaTypeAfter);
 		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
-		
+
 		String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
 		display("Resource XML", resourceXml);
 
@@ -179,19 +180,19 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		ResourceSchema parsedSchema = ResourceSchemaImpl.parse(xsdElement, resourceBefore.toString(), prismContext);
 		assertNotNull("No schema after parsing", parsedSchema);
 		display("Parsed schema", parsedSchema);
-		
+
 		ComplexTypeDefinition accountDef = parsedSchema.findComplexTypeDefinition(
 				new QName(parsedSchema.getNamespace(),SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
 		assertNotNull("No account definition in schema after parsing", accountDef);
 		PrismAsserts.assertPropertyDefinition(accountDef,
 				SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1);
 		PrismAsserts.assertPropertyDefinition(accountDef,
-				new QName(SchemaConstants.NS_ICF_SCHEMA, "description"), 
+				new QName(SchemaConstants.NS_ICF_SCHEMA, "description"),
 				DOMUtil.XSD_STRING, 0, 1);
 
 		// The useless configuration variables should be reflected to the resource now
 		assertEquals("Wrong useless string", "Shiver me timbers!", dummyResource.getUselessString());
 		assertEquals("Wrong guarded useless string", "Dead men tell no tales", dummyResource.getUselessGuardedString());
 	}
-	
+
 }

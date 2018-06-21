@@ -19,6 +19,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,13 +27,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author mederly
  */
-public class ModelInvocationContext {
+public class ModelInvocationContext<T extends ObjectType> {
 	@NotNull public final PrismContext prismContext;
-	@NotNull public final ModelContext<?> modelContext;
+	@NotNull public final ModelContext<T> modelContext;
 	@Nullable public final WfConfigurationType wfConfiguration;
 	@NotNull public final Task taskFromModel;
 
-	public ModelInvocationContext(@NotNull PrismContext prismContext, @NotNull ModelContext<?> modelContext,
+	public ModelInvocationContext(@NotNull PrismContext prismContext, @NotNull ModelContext<T> modelContext,
 			@Nullable WfConfigurationType wfConfiguration,
 			@NotNull Task taskFromModel) {
 		this.prismContext = prismContext;

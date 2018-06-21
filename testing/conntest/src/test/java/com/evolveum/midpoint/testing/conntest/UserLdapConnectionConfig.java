@@ -22,23 +22,23 @@ import org.apache.directory.ldap.client.api.LdapConnectionConfig;
  *
  */
 public class UserLdapConnectionConfig extends LdapConnectionConfig {
-	
+
 	private String bindDn;
 	private String bindPassword;
 	private String baseContext;
-	
+
 	public String getBindDn() {
 		return bindDn;
 	}
-	
+
 	public void setBindDn(String bindDn) {
 		this.bindDn = bindDn;
 	}
-	
+
 	public String getBindPassword() {
 		return bindPassword;
 	}
-	
+
 	public void setBindPassword(String bindPassword) {
 		this.bindPassword = bindPassword;
 	}
@@ -50,5 +50,5 @@ public class UserLdapConnectionConfig extends LdapConnectionConfig {
 	public void setBaseContext(String baseContext) {
 		this.baseContext = baseContext;
 	}
-	
+
 }

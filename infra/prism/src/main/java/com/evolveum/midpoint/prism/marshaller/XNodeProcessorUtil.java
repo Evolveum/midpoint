@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.prism.marshaller;
 
+import java.lang.reflect.Field;
+
+import javax.xml.bind.annotation.XmlValue;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ParsingContext;
@@ -76,10 +79,10 @@ public class XNodeProcessorUtil {
 					}
 					return new QName(null, elementName);
 				});
-                
+
                 EncryptedDataType encryptedDataType = prismContext.parserFor(xConvertedEncryptedData).context(pc).parseRealValue(EncryptedDataType.class);
                 protectedType.setEncryptedData(encryptedDataType);
-       
+
                 if (protectedType instanceof ProtectedStringType){
                 	transformEncryptedValue(protectedType, prismContext);
                 }
@@ -114,7 +117,7 @@ public class XNodeProcessorUtil {
         }
 
     }
-	
+
 	private static void transformEncryptedValue(ProtectedDataType protectedType, PrismContext prismContext) throws SchemaException{
 		Protector protector = prismContext.getDefaultProtector();
 		if (protector == null) {
@@ -140,4 +143,13 @@ public class XNodeProcessorUtil {
         }
 	}
 
+	public static <T> Field findXmlValueField(Class<T> beanClass) {
+		for (Field field: beanClass.getDeclaredFields()) {
+			XmlValue xmlValue = field.getAnnotation(XmlValue.class);
+			if (xmlValue != null) {
+				return field;
+			}
+		}
+		return null;
+	}
 }

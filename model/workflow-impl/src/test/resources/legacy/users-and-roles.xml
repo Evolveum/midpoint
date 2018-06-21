@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -66,12 +66,15 @@
     <role oid="00000001-d34d-b33f-f00d-000000000001">
         <name>Role1</name>
         <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
+        <activation>
+            <administrativeStatus>disabled</administrativeStatus>
+        </activation>
     </role>
 
-    <role oid="00000001-d34d-b33f-f00d-000000000002">
+    <role oid="00000001-d34d-b33f-f00d-000000000002" xsi:type="RoleType">
         <name>Role2</name>
         <approvalSchema>
-            <level>
+            <stage>
                 <approverRef type="c:UserType">
                     <filter>
                         <q:equal>
@@ -80,31 +83,64 @@
                         </q:equal>
                     </filter>
                 </approverRef>
-            </level>
+            </stage>
         </approvalSchema>
     </role>
 
-    <role oid="00000001-d34d-b33f-f00d-000000000003">
+    <role oid="00000001-d34d-b33f-f00d-000000000003" xsi:type="RoleType">
         <name>Role3</name>
         <approverExpression>
             <description>Role3 Boss' OID</description>
-            <value>00000000-d34d-b33f-f00d-111111111113</value>
+            <value xsi:type="c:ObjectReferenceType" oid="00000000-d34d-b33f-f00d-111111111113" type="UserType"/>
         </approverExpression>
     </role>
 
-    <role oid="00000001-d34d-b33f-f00d-000000000004">
+    <role oid="00000001-d34d-b33f-f00d-000000000004" xsi:type="RoleType">
         <name>Role4</name>
     </role>
 
-    <role oid="00000001-d34d-b33f-f00d-000000000010">
+    <role oid="00000001-d34d-b33f-f00d-000000000010" xsi:type="RoleType">
         <name>Role R10</name>
-        <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
-        <automaticallyApproved>
-            <description>Assignment of this role is always automatically approved.</description>
-            <script>
-                <code>true</code>
-            </script>
-        </automaticallyApproved>
+        <approvalSchema>
+            <stage>
+                <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
+                <automaticallyCompleted>
+                    <script>
+                        <code>
+                            com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE
+                        </code>
+                    </script>
+                </automaticallyCompleted>
+            </stage>
+        </approvalSchema>
+    </role>
+
+    <role oid="00000001-d34d-b33f-f00d-000000000S10" xsi:type="RoleType">
+        <name>Role R10 skip</name>
+        <approvalSchema>
+            <stage>
+                <approverRef oid="00000000-d34d-b33f-f00d-111111111111" type="UserType"/>
+                <automaticallyCompleted>
+                    <script>
+                        <code>
+                            if (requester == null) {
+                                throw new IllegalStateException("No requester variable")
+                            }
+                            if (object == null) {
+                                throw new IllegalStateException("No object variable")
+                            }
+                            if (target == null) {
+                                throw new IllegalStateException("No target variable")
+                            }
+                            if (objectDelta == null) {
+                                throw new IllegalStateException("No objectDelta variable")
+                            }
+                            com.evolveum.midpoint.schema.constants.SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP
+                        </code>
+                    </script>
+                </automaticallyCompleted>
+            </stage>
+        </approvalSchema>
     </role>
 
 </objects>

@@ -44,7 +44,7 @@ object.
 		<filter>
 			<q:equal>
 				<q:path>c:connectorType</q:path>
-				<q:value>com.evolveum.polygon.csvfile.CSVFileConnector</q:value>
+				<q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
 			</q:equal>
 		</filter>
 	</connectorRef>
@@ -55,14 +55,12 @@ object.
 
 		<!-- Configuration specific for the CSVfile connector -->
 		<icfc:configurationProperties
-					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csvfile/com.evolveum.polygon.csvfile.CSVFileConnector">
-			<icfccsvfile:filePath>tmp</icfccsvfile:filePath> <!-- machineintelligence/HR.csv -->
+					xmlns:icfccsvfile="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+			<icfccsvfile:filePath>shold-be-replaced-by-test-code</icfccsvfile:filePath> <!-- machineintelligence/HR.csv -->
 			<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
-			<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
 			<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
 			<icfccsvfile:multivalueDelimiter>;</icfccsvfile:multivalueDelimiter>
-			<icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
-			<icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
+			<icfccsvfile:uniqueAttribute>identifier</icfccsvfile:uniqueAttribute>
 			<!--			<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
 			<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
 		</icfc:configurationProperties>
@@ -91,11 +89,7 @@ object.
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
-               <c:ref>icfs:uid</c:ref>
-               <displayName>Entry UUID</displayName>
-            </attribute>
-            <attribute>
-               <c:ref>icfs:name</c:ref>
+               <c:ref>ri:identifier</c:ref>
                <displayName>Person ID</displayName>
                <inbound>
                   <strength>strong</strength>
@@ -351,7 +345,7 @@ object.
 				<q:equal>
 					<q:path>c:name</q:path>
 					<expression>
-						<path>$account/attributes/icfs:name</path>
+						<path>$account/attributes/ri:identifier</path>
 					</expression>
 				</q:equal>
 			</correlation>

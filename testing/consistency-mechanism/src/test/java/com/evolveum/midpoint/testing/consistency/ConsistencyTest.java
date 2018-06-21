@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
  */
 package com.evolveum.midpoint.testing.consistency;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static org.testng.AssertJUnit.assertEquals;
@@ -26,7 +24,6 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -361,7 +358,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test000Integrity() throws Exception {
 		final String TEST_NAME = "test000Integrity";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		assertNotNull(modelWeb);
 		assertNotNull(modelService);
 		assertNotNull(repositoryService);
@@ -402,7 +399,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test001TestConnectionOpenDJ() throws Exception {
 		final String TEST_NAME = "test001TestConnectionOpenDJ";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance();
 		// GIVEN
@@ -491,7 +488,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test110PrepareOpenDjWithAccounts() throws Exception {
 		final String TEST_NAME = "test110PrepareOpenDjWithAccounts";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
 		ShadowType jackeAccount = unmarshallValueFromFile(REQUEST_ADD_ACCOUNT_JACKIE,
@@ -560,8 +557,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		assertNoRepoCache();
 
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+		Holder<OperationResultType> resultHolder = new Holder<>();
+		Holder<ObjectType> objectHolder = new Holder<>();
 
 		// WHEN
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
@@ -590,7 +587,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull("No 'enabled' in the shadow", modelShadow.getActivation().getAdministrativeStatus());
 		assertEquals("The account is not enabled in the shadow", ActivationStatusType.ENABLED, modelShadow.getActivation().getAdministrativeStatus());
 
-		TestUtil.displayTestTile("test013prepareOpenDjWithAccounts - add second account");
+		displayTestTitle("test013prepareOpenDjWithAccounts - add second account");
 
 		OperationResult secondResult = new OperationResult(
 				"test013prepareOpenDjWithAccounts - add second account");
@@ -606,7 +603,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test120AddAccountAlreadyExistLinked() throws Exception {
 		final String TEST_NAME = "test120AddAccountAlreadyExistLinked";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		Task task = taskManager.createTaskInstance();
 		// GIVEN
 		OperationResult parentResult = new OperationResult("Add account already exist linked");
@@ -634,7 +631,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test122AddAccountAlreadyExistUnlinked() throws Exception {
 		final String TEST_NAME = "test122AddAccountAlreadyExistUnlinked";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
@@ -683,7 +680,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test124AddAccountDirectAlreadyExists() throws Exception {
 		final String TEST_NAME = "test124AddAccountDirectAlreadyExists";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		Task task = taskManager.createTaskInstance();
 
@@ -813,7 +810,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test130DeleteObjectNotFound() throws Exception {
 		final String TEST_NAME = "test130DeleteObjectNotFound";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
 		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, parentResult);
@@ -847,7 +844,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test140ModifyObjectNotFound() throws Exception {
 		final String TEST_NAME = "test140ModifyObjectNotFound";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		OperationResult result = new OperationResult(TEST_NAME);
 
 		repoAddShadowFromFile(ACCOUNT_GUYBRUSH_FILE, result);
@@ -881,7 +878,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test142ModifyObjectNotFoundAssignedAccount() throws Exception {
 		final String TEST_NAME = "test142ModifyObjectNotFoundAssignedAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -923,7 +920,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test144GetObjectNotFoundAssignedAccount() throws Exception {
 		final String TEST_NAME = "test144GetObjectNotFoundAssignedAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -953,7 +950,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test150RecomputeUserAccountNotFound() throws Exception {
 		final String TEST_NAME = "test150RecomputeUserAccountNotFound";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -1003,7 +1000,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test152RecomputeUserAccountAndShadowNotFound() throws Exception {
 		final String TEST_NAME = "test152RecomputeUserAccountAndShadowNotFound";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -1040,7 +1037,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test159DeleteUSerGuybrush() throws Exception {
 		final String TEST_NAME = "test159DeleteUSerGuybrush";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -1071,7 +1068,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test200StopOpenDj() throws Exception {
 		final String TEST_NAME = "test200StopOpenDj";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		openDJController.stop();
 
 		assertEquals("Resource is running", false, EmbeddedUtils.isRunning());
@@ -1080,7 +1077,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test210AddObjectCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test210AddObjectCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1107,7 +1104,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test212AddModifyObjectCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test212AddModifyObjectCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1128,7 +1125,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test214ModifyObjectCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test214ModifyObjectCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1150,7 +1147,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test220DeleteObjectCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test220DeleteObjectCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1175,7 +1172,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test230GetAccountCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test230GetAccountCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1190,7 +1187,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test240AddObjectCommunicationProblemAlreadyExists() throws Exception{
 		final String TEST_NAME = "test240AddObjectCommunicationProblemAlreadyExists";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeRunning();
@@ -1228,7 +1225,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test250ModifyObjectTwoTimesCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test250ModifyObjectTwoTimesCommunicationProblem";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
 		openDJController.assumeStopped();
@@ -1236,12 +1233,12 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		assertUserOneAccountRef(USER_JACK2_OID);
 		
-		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		Collection<PropertyDelta> modifications = new ArrayList<>();
 		
 		PropertyDelta fullNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), getUserDefinition(), new PolyString("jackNew2"));
 		modifications.add(fullNameDelta);
 		
-		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValue<ActivationStatusType>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
+		PrismPropertyValue<ActivationStatusType> enabledUserAction = new PrismPropertyValue<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
 		PropertyDelta<ActivationStatusType> enabledDelta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDelta.addValueToAdd(enabledUserAction);
 		modifications.add(enabledDelta);
@@ -1263,7 +1260,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		display("shadow after communication problem", shadow);
 		
 		
-		Collection<PropertyDelta> newModifications = new ArrayList<PropertyDelta>();
+		Collection<PropertyDelta> newModifications = new ArrayList<>();
 		PropertyDelta fullNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_FULL_NAME), getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(fullNameDeltaNew);
 		
@@ -1271,7 +1268,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PropertyDelta givenNameDeltaNew = PropertyDelta.createModificationReplaceProperty(new ItemPath(UserType.F_GIVEN_NAME), getUserDefinition(), new PolyString("jackNew2a"));
 		newModifications.add(givenNameDeltaNew);
 		
-		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValue<ActivationStatusType>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
+		PrismPropertyValue<ActivationStatusType> enabledOutboundAction = new PrismPropertyValue<>(ActivationStatusType.ENABLED, OriginType.USER_ACTION, null);
 		PropertyDelta<ActivationStatusType> enabledDeltaNew = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getUserDefinition());
 		enabledDeltaNew.addValueToAdd(enabledOutboundAction);
 		newModifications.add(enabledDeltaNew);
@@ -1301,7 +1298,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test260GetDiscoveryAddCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test260GetDiscoveryAddCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1342,7 +1339,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test262GetDiscoveryModifyCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test262GetDiscoveryModifyCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeRunning();		
@@ -1377,13 +1374,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		//and then try to get account -> result is that the modifications will be applied to the account
 		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, parentResult);
-		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(aliceAccount, "employeeNumber", "emp4321");
 	}
 	
 	@Test
 	public void test264GetDiscoveryModifyUserPasswordCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test264GetDiscoveryModifyUserPasswordCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1406,7 +1403,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// WHEN (restore)
 		//and then try to get account -> result is that the modifications will be applied to the account
 		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, parentResult);
-		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(aliceAccount, "employeeNumber", "emp4321");
 		
 		PrismObject<UserType> userAliceAfter = getUser(USER_ALICE_OID);
 		assertPassword(userAliceAfter, "DEADmenTELLnoTALES");
@@ -1422,7 +1419,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test265ModifyUserPasswordCommunicationProblemRecon() throws Exception {
 		final String TEST_NAME = "test265ModifyUserPasswordCommunicationProblemRecon";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1457,7 +1454,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			
 		// Do this as a last step so it will not interfere with the results
 		ShadowType aliceAccount = checkNormalizedShadowWithAttributes(accountOid, "alice", "Jackkk", "alice", "alice", true, task, result);
-		assertAttribute(aliceAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(aliceAccount, "employeeNumber", "emp4321");
 
 	}
 	
@@ -1469,7 +1466,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test270ModifyDiscoveryAddCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test270ModifyDiscoveryAddCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1528,7 +1525,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test280ModifyObjectCommunicationProblemWeakMapping() throws Exception{
 		final String TEST_NAME = "test280ModifyObjectCommunicationProblemWeakMapping";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		openDJController.assumeRunning();
@@ -1567,7 +1564,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test282ModifyObjectCommunicationProblemWeakAndStrongMapping() throws Exception {
 		final String TEST_NAME = "test282ModifyObjectCommunicationProblemWeakAndStrongMapping";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeRunning();
@@ -1589,7 +1586,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_DONALD_OID);
 				
 		ShadowType johnAccountType = checkNormalizedShadowWithAttributes(accountOid, "donald", "donald", "trump", "donald trump", false, task, parentResult);
-		assertAttribute(johnAccountType, resourceTypeOpenDjrepo, "employeeType", "manager");
+		assertAttribute(johnAccountType, "employeeType", "manager");
 
 		//stop opendj and try to modify employeeType (weak mapping)
 		openDJController.stop();
@@ -1611,7 +1608,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test283GetObjectNoFetchShadowAndRecompute() throws Exception {
 		final String TEST_NAME = "test283GetObjectNoFetchShadowAndRecompute";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		openDJController.assumeRunning();
@@ -1648,7 +1645,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test284ModifyObjectAssignToGroupCommunicationProblem() throws Exception {
 		final String TEST_NAME = "test284ModifyObjectAssignToGroupCommunicationProblem";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		Task task = taskManager.createTaskInstance();
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 		// GIVEN
@@ -1702,7 +1699,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test(enabled = false)
 	public void test400GetDiscoveryAddCommunicationProblemAlreadyExists() throws Exception{
 		final String TEST_NAME = "test400GetDiscoveryAddCommunicationProblemAlreadyExists";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		openDJController.assumeStopped();
@@ -1749,7 +1746,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test500AddUserMorganWithAssignment() throws Exception {
 		final String TEST_NAME = "test500AddUserMorganWithAssignment";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         // GIVEN
         openDJController.assumeRunning();        
@@ -1766,12 +1763,14 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
+		display("result", result);
+		assertSuccess(result);
 //		assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
         
 		PrismObject<UserType> userMorgan = modelService.getObject(UserType.class, USER_MORGAN_OID, null, task, result);
@@ -1784,14 +1783,16 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        provisioningService.applyDefinition(accountShadow, task, result);
+        display("account shadow (repo)", accountShadow);
         assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("account shadow (model)", accountModel);
         assertShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
-        
-        // TODO: check OpenDJ Account        
 	}
+
 	
 	/**
 	 * Adding a user (morgan) that has an OpenDJ assignment. But the equivalent account already exists on
@@ -1800,7 +1801,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test501AddUserChuckWithAssignment() throws Exception {
 		final String TEST_NAME = "test501AddUserChuckWithAssignment";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN	
         openDJController.assumeRunning();
@@ -1839,6 +1840,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        provisioningService.applyDefinition(accountShadow, task, result);
         assertShadowRepo(accountShadow, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // Check account
@@ -1846,10 +1848,10 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         assertShadowModel(accountModel, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         ShadowType accountTypeModel = accountModel.asObjectable();
         
-        assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "uid", "chuck");
-		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "givenName", "Chuck");
-		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "sn", "Norris");
-		assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "cn", "Chuck Norris");
+        assertAttribute(accountTypeModel, "uid", "chuck");
+		assertAttribute(accountTypeModel, "givenName", "Chuck");
+		assertAttribute(accountTypeModel, "sn", "Norris");
+		assertAttribute(accountTypeModel, "cn", "Chuck Norris");
 		
         // TODO: check OpenDJ Account        
 	}
@@ -1861,7 +1863,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test502AssignAccountToHerman() throws Exception {
 		final String TEST_NAME = "test502AssignAccountToHerman";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN	
         openDJController.assumeRunning();
@@ -1900,6 +1902,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        provisioningService.applyDefinition(accountShadow, task, result);
         assertShadowRepo(accountShadow, accountOid, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // Check account
@@ -1919,7 +1922,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test510UnlinkAndUnassignAccountMorgan() throws Exception {
 		final String TEST_NAME = "test510UnlinkAndUnassignAccountMorgan";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -1989,7 +1992,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
     public void test511AssignAccountMorgan() throws Exception {
 		final String TEST_NAME = "test511AssignAccountMorgan";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         openDJController.assumeRunning();
@@ -2047,6 +2050,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// Check shadow
         
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        provisioningService.applyDefinition(accountShadow, task, result);
         assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         
         // Check account
@@ -2061,7 +2065,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test600DeleteUserAlice() throws Exception {
 		String TEST_NAME = "test600DeleteUserAlice";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		openDJController.assumeRunning();
 		Task task = taskManager.createTaskInstance(TEST_NAME);
@@ -2084,7 +2088,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test601GetDiscoveryModifyCommunicationProblemDirectAccount() throws Exception {
 		String TEST_NAME = "test601GetDiscoveryModifyCommunicationProblemDirectAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		
 		openDJController.assumeRunning();
 		OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -2131,7 +2135,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	@Test
 	public void test800Reconciliation() throws Exception {
 		final String TEST_NAME = "test800Reconciliation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
         
         openDJController.assumeRunning();
 
@@ -2166,7 +2170,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_E_OID);
 		
 		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e", "Jackkk", "e", "e", true, null, result);
-		assertAttribute(eAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(eAccount, "employeeNumber", "emp4321");
 		ResourceAttributeContainer attributeContainer = ShadowUtil
 				.getAttributesContainer(eAccount);
 		Collection<ResourceAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
@@ -2178,8 +2182,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// check if the account was modified during reconciliation process
 		String jackAccountOid = assertUserOneAccountRef(USER_JACK_OID);
 		ShadowType modifiedAccount = checkNormalizedShadowBasic(jackAccountOid, "jack", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
-		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
-		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(modifiedAccount, "givenName", "Jackkk");
+		assertAttribute(modifiedAccount, "employeeNumber", "emp4321");
 
 		
 		// check if the account was deleted during the reconciliation process
@@ -2199,18 +2203,19 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		accountOid = assertUserOneAccountRef(USER_JACK2_OID);
 		ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
-		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "givenName", "jackNew2a");
-		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "cn", "jackNew2a");
+		assertAttribute(jack2Shadow, "givenName", "jackNew2a");
+		assertAttribute(jack2Shadow, "cn", "jackNew2a");
 
 	}
 	
 	@Test
-	public void test801TestReconciliationRename() throws Exception{
+	public void test801TestReconciliationRename() throws Exception {
 		final String TEST_NAME = "test801TestReconciliationRename";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         openDJController.assumeRunning();
-		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
+		final OperationResult result = task.getResult();
 
 		LOGGER.info("starting rename");
 		
@@ -2236,7 +2241,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountOid = assertUserOneAccountRef(USER_E_OID);
 		
 		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "Jackkk", "e", "e", true, null, result);
-		assertAttribute(eAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		assertAttribute(eAccount, "employeeNumber", "emp4321");
 		ResourceAttributeContainer attributeContainer = ShadowUtil
 				.getAttributesContainer(eAccount);
 		Collection<ResourceAttribute<?>> identifiers = attributeContainer.getPrimaryIdentifiers();
@@ -2252,7 +2257,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
 		
-		provisioningService.applyDefinition(repoShadow, result);
+		provisioningService.applyDefinition(repoShadow, task, result);
 		
 		ResourceAttributeContainer repoAttributeContainer = ShadowUtil.getAttributesContainer(repoShadow);
 		ResourceAttribute repoIcfNameAttr = repoAttributeContainer.findAttribute(getOpenDjSecondaryIdentifierQName());
@@ -2505,26 +2510,26 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 		
 	private void assertAttributes(ShadowType shadow, String uid, String givenName, String sn, String cn){
-		assertAttribute(shadow, resourceTypeOpenDjrepo, "uid", uid);
+		assertAttribute(shadow, "uid", uid);
 		if (givenName != null) {
-			assertAttribute(shadow, resourceTypeOpenDjrepo, "givenName", givenName);
+			assertAttribute(shadow, "givenName", givenName);
 		}
 		if (sn != null) {
-			assertAttribute(shadow, resourceTypeOpenDjrepo, "sn", sn);
+			assertAttribute(shadow, "sn", sn);
 		}
-		assertAttribute(shadow, resourceTypeOpenDjrepo, "cn", cn);
+		assertAttribute(shadow, "cn", cn);
 	}
 	
 	
 	private void checkPostponedAccountWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, String employeeNumber, FailedOperationTypeType failedOperation, boolean modify, Task task, OperationResult parentResult) throws Exception{
 		ShadowType account = checkPostponedAccountWithAttributes(accountOid, uid, givenName, sn, cn, failedOperation, modify, task, parentResult);
 		display("account shadow (postponed operation)", account);
-		assertAttribute(account, resourceTypeOpenDjrepo, "employeeNumber", employeeNumber);
+		assertAttribute(account, "employeeNumber", employeeNumber);
 	}
 	
 	private ShadowType checkPostponedAccountWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, FailedOperationTypeType failedOperation, boolean modify, Task task, OperationResult parentResult) throws Exception{
 		ShadowType failedAccountType = checkPostponedAccountBasic(accountOid, failedOperation, modify, parentResult);
-		
+		provisioningService.applyDefinition(failedAccountType.asPrismObject(), task, parentResult);
 		// assertNull(ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
 		assertAttributes(failedAccountType, uid, givenName, sn, cn);
 		return failedAccountType;
@@ -2586,7 +2591,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PropertyDelta resourceStatusDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
 				ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
 				resourceTypeOpenDjrepo.asPrismObject().getDefinition(), status);
-		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(resourceStatusDelta);
 		repositoryService.modifyObject(ResourceType.class, resourceTypeOpenDjrepo.getOid(), modifications, parentResult);
 	}
@@ -2594,7 +2599,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private void checkNormalizedShadowWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, String employeeType, boolean modify, Task task, OperationResult parentResult) throws Exception{
 		ShadowType resourceAccount = checkNormalizedShadowBasic(accountOid, uid, modify, null, task, parentResult);
 		assertAttributes(resourceAccount, uid, givenName, sn, cn);
-		assertAttribute(resourceAccount, resourceTypeOpenDjrepo, "employeeType", employeeType);
+		assertAttribute(resourceAccount, "employeeType", employeeType);
 	}
 	
 	private ShadowType checkNormalizedShadowWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, boolean modify, Task task, OperationResult parentResult) throws Exception{
@@ -2622,5 +2627,16 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 	}
 
+	protected <T> void assertAttribute(ShadowType shadowType, String attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
+	}
+    
+    protected <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadow.asObjectable(), attrName, expectedValues);
+	}
+    
+    protected <T> void assertAttribute(ShadowType shadowType, QName attrName,  T... expectedValues) {
+		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
+	}
 
 }

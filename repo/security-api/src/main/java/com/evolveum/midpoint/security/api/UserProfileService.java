@@ -17,27 +17,35 @@
 package com.evolveum.midpoint.security.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 
 /**
- * Service that exposes security functions for GUI and other spring-security-enabled authentication front-ends. 
+ * Service that exposes security functions for GUI and other spring-security-enabled authentication front-ends.
+ *
+ * This would be more appropriate in the security-impl. But we need it as low as this.
+ * Otherwise there is a dependency cycle (task->security->repo-common->task)
+ * Moving this to task yields better cohesion. So, it may in fact belong here.
  *
  * @author lazyman
  * @author Igor Farinic
  * @author Radovan Semancik
  */
 public interface UserProfileService extends OwnerResolver {
-    
+
     String DOT_CLASS = UserProfileService.class.getName() + ".";
     String OPERATION_GET_PRINCIPAL = DOT_CLASS + "getPrincipal";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
-    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException;
-    
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException;
+    MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException;
 
-    public void updateUser(MidPointPrincipal principal);
+    MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException;
+    
+    MidPointPrincipal getPrincipal(PrismObject<UserType> user, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException;
+
+    void updateUser(MidPointPrincipal principal);
+    
 }

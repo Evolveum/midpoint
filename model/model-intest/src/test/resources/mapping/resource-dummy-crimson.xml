@@ -190,9 +190,7 @@
 
 			<activation>
             	<administrativeStatus>
-                    <outbound>
-                    	<strength>strong</strength>
-                    </outbound>            	
+                    <outbound/>
             	</administrativeStatus>
             </activation>
 			<credentials>

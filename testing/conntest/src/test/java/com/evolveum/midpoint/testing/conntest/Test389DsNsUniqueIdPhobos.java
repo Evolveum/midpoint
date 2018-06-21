@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class Test389DsNsUniqueIdPhobos extends Abstract389DsNsUniqueIdTest {
 
-	
+
 	@Override
 	protected File getResourceFile() {
 		return new File(getBaseDir(), "resource-nsuniqueid-phobos.xml");
@@ -44,7 +44,7 @@ public class Test389DsNsUniqueIdPhobos extends Abstract389DsNsUniqueIdTest {
 	public String getStopSystemCommand() {
 		return getScriptDirectoryName()+"/389ds-phobos-stop";
 	}
-	
+
 	@Override
 	protected String getLdapServerHost() {
 		return "phobos.lab.evolveum.com";

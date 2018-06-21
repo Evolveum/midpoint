@@ -27,13 +27,14 @@ public enum RTaskWaitingReason implements SchemaEnum<TaskWaitingReasonType> {
 
     OTHER_TASKS(TaskWaitingReasonType.OTHER_TASKS),
 
+    // DEPRECATED
     WORKFLOW(TaskWaitingReasonType.WORKFLOW),
 
     OTHER(TaskWaitingReasonType.OTHER);
 
     private TaskWaitingReasonType reason;
 
-    private RTaskWaitingReason(TaskWaitingReasonType reason) {
+    RTaskWaitingReason(TaskWaitingReasonType reason) {
         this.reason = reason;
     }
 

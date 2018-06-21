@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016 Evolveum, AMI Praha
+  ~ Copyright (c) 2017 Evolveum, AMI Praha
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +19,15 @@
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
 
 	<name>Languages</name>
+	
+	<description>
+		Lookup table for languages directly supported by midPoint.
+		This lookup table contains language codes that are supported by
+		midPoint product localizations. The idea is that only the list of
+		supported languages will be presented to midPoint user.
+		For full list of language code please see lookup-languages-all.xml
+		in midPoint samples.
+	</description>
 
 	<row>
 		<key>cs</key>
@@ -41,8 +50,20 @@
 		<label>Español</label>
 	</row>
 	<row>
+		<key>fi</key>
+		<label>Suomi</label>
+	</row>
+	<row>
+		<key>fr</key>
+		<label>Français</label>
+	</row>
+	<row>
 		<key>hu</key>
 		<label>Magyar</label>
+	</row>
+	<row>
+		<key>it</key>
+		<label>Italiano</label>
 	</row>
 	<row>
 		<key>pl</key>
@@ -63,6 +84,10 @@
 	<row>
 		<key>tr</key>
 		<label>Türkçe</label>
+	</row>
+	<row>
+		<key>zh_CN</key>
+		<label>中文</label>
 	</row>
 
 </lookupTable>

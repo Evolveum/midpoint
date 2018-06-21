@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ public class WizardIssuesDto implements Serializable {
 		}
 	}
 
-	public class Issue implements Serializable {
+	public static class Issue implements Serializable {
 		@NotNull private final Severity severity;
 		@NotNull private final String text;
 		@Nullable private final Class<? extends WizardStep> relatedStep;

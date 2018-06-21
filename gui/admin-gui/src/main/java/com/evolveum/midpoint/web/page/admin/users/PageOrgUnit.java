@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements ProgressReportingAwarePage {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
-	
+
 	public PageOrgUnit() {
 		initialize(null);
 	}
@@ -53,15 +53,23 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 		initialize(unitToEdit);
 	}
 
+	public PageOrgUnit(final PrismObject<OrgType> unitToEdit, boolean isNewObject)  {
+		initialize(unitToEdit, isNewObject);
+	}
+
+	public PageOrgUnit(final PrismObject<OrgType> unitToEdit, boolean isNewObject, boolean isReadonly) {
+		initialize(unitToEdit, isNewObject, isReadonly);
+	}
+
 	public PageOrgUnit(PageParameters parameters) {
 		getPageParameters().overwriteWith(parameters);
 		initialize(null);
 	}
-	
+
 	@Override
 	protected OrgType createNewObject() {
 		return new OrgType();
-	}	
+	}
 
 	@Override
 	public Class<OrgType> getCompileTimeClass() {
@@ -75,18 +83,19 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 	@Override
 	protected FocusSummaryPanel<OrgType> createSummaryPanel() {
-    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
     }
 
 	@Override
 	protected AbstractObjectMainPanel<OrgType> createMainPanel(String id) {
-		return new AbstractRoleMainPanel<OrgType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), getInducementsModel(), this) {
-			
+		return new AbstractRoleMainPanel<OrgType>(id, getObjectModel(),
+				getProjectionModel(), this) {
+
 			@Override
 			public AbstractRoleMemberPanel<OrgType> createMemberPanel(String panelId) {
-				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()), PageOrgUnit.this);
+				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()));
 			}
 		};
 	}
-	
+
 }

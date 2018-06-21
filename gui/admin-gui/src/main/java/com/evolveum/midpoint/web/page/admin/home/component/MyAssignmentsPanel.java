@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentHeaderPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -50,7 +51,7 @@ public class MyAssignmentsPanel extends BasePanel<List<AssignmentItemDto>> {
     }
 
     private void initLayout() {
-        List<IColumn<AssignmentItemDto, String>> columns = new ArrayList<IColumn<AssignmentItemDto, String>>();
+        List<IColumn<AssignmentItemDto, String>> columns = new ArrayList<>();
         columns.add(new IconColumn<AssignmentItemDto>(null) {
         	private static final long serialVersionUID = 1L;
 
@@ -73,50 +74,29 @@ public class MyAssignmentsPanel extends BasePanel<List<AssignmentItemDto>> {
 
             @Override
             protected IModel<String> createTitleModel(final IModel<AssignmentItemDto> rowModel) {
-                return new AbstractReadOnlyModel<String>() {
-                	private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject() {
-                        AssignmentItemDto item = rowModel.getObject();
-                        if (item.getType() == null) {
-                            return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.error");
-                        }
-
-                        switch (item.getType()) {
-                            case CONSTRUCTION:
-                                return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.accountConstruction");
-                            case ORG_UNIT:
-                                return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.orgUnit");
-                            case ROLE:
-                                return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.role");
-                            default:
-                                return MyAssignmentsPanel.this.getString("MyAssignmentsPanel.type.error");
-                        }
-                    }
-                };
+                return AssignmentsUtil.createAssignmentIconTitleModel(MyAssignmentsPanel.this, rowModel.getObject().getType());
             }
-        });
+                    });
 
-        columns.add(new AbstractColumn<AssignmentItemDto, String>(
-                createStringResource("MyAssignmentsPanel.assignment.displayName")) {
-        	private static final long serialVersionUID = 1L;
+                    columns.add(new AbstractColumn<AssignmentItemDto, String>(
+        createStringResource("MyAssignmentsPanel.assignment.displayName")) {
+private static final long serialVersionUID = 1L;
 
-            @Override
-            public void populateItem(Item<ICellPopulator<AssignmentItemDto>> cellItem, String componentId,
-                                     final IModel<AssignmentItemDto> rowModel) {
+@Override
+public void populateItem(Item<ICellPopulator<AssignmentItemDto>> cellItem, String componentId,
+final IModel<AssignmentItemDto> rowModel) {
 
-                AssignmentHeaderPanel panel = new AssignmentHeaderPanel(componentId, rowModel);
-                panel.add(new AttributeModifier("class", "dash-assignment-header"));
-                cellItem.add(panel);
-            }
+        AssignmentHeaderPanel panel = new AssignmentHeaderPanel(componentId, rowModel);
+        panel.add(new AttributeModifier("class", "dash-assignment-header"));
+        cellItem.add(panel);
+        }
         });
 
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
-        TablePanel accountsTable = new TablePanel<AssignmentItemDto>(ID_ASSIGNMETNS_TABLE, provider, columns);
+        TablePanel accountsTable = new TablePanel<>(ID_ASSIGNMETNS_TABLE, provider, columns);
         accountsTable.setShowPaging(false);
 
         add(accountsTable);
-    }
-}
+        }
+        }

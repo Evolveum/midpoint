@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.util.exception;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 /**
  * @author semancik
  *
@@ -29,8 +31,16 @@ public class PolicyViolationException extends CommonException {
 		super(message);
 	}
 
+	public PolicyViolationException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
+	}
+
 	public PolicyViolationException(Throwable cause) {
 		super(cause);
+	}
+
+	public PolicyViolationException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
 	}
 
 	public PolicyViolationException(String message, Throwable cause) {
@@ -38,9 +48,8 @@ public class PolicyViolationException extends CommonException {
 	}
 
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Policy violation";
 	}
-
 
 }

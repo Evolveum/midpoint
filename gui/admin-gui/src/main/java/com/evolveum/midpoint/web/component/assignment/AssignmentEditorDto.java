@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+\ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,11 +25,15 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -36,13 +41,6 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -57,10 +55,10 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 
 /**
  * TODO: unify with AssignmentItemDto
- * 
+ *
  * @author lazyman
  */
-public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto> {
+public class AssignmentEditorDto extends SelectableBean implements Comparable<AssignmentEditorDto>, Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentEditorDto.class);
@@ -88,7 +86,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	private AssignmentEditorDtoType type;
 	private UserDtoStatus status;
 	private AssignmentType oldAssignment;
-	private List<AssignmentsPreviewDto> privilegeLimitationList;
+	private List<AssignmentInfoDto> privilegeLimitationList;
 	private ObjectViewDto<OrgType> tenantRef;
 	private ObjectViewDto<OrgType> orgRef;
 
@@ -209,6 +207,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 		AssignmentType assignment = new AssignmentType();
 		assignment.setTargetRef(targetRef);
+		assignment.setTarget(object);
 
 		return new AssignmentEditorDto(status, assignment, pageBase);
 	}
@@ -219,17 +218,22 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			return AssignmentEditorDtoType.getType(assignment.getTarget().getClass());
 		} else if (assignment.getTargetRef() != null) {
 			return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
-		} // account assignment through account construction
+		}
+		if (assignment.asPrismContainerValue() != null
+				&& getPolicyRuleContainer(assignment) != null){
+			return AssignmentEditorDtoType.POLICY_RULE;
+		}
+		// account assignment through account construction
 		return AssignmentEditorDtoType.CONSTRUCTION;
 
 	}
 
-	private List<AssignmentsPreviewDto> getAssignmentPrivilegesList(AssignmentType assignment){
-		List<AssignmentsPreviewDto> list = new ArrayList<>();
+	private List<AssignmentInfoDto> getAssignmentPrivilegesList(AssignmentType assignment){
+		List<AssignmentInfoDto> list = new ArrayList<>();
 		AssignmentSelectorType assignmentSelectorType = assignment.getLimitTargetContent();
 		if (assignmentSelectorType != null && assignmentSelectorType.getTargetRef() != null){
 			for (ObjectReferenceType objectRef : assignmentSelectorType.getTargetRef()){
-				AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+				AssignmentInfoDto dto = new AssignmentInfoDto();
 				Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(objectRef.getType()).getClassDefinition();
 				dto.setTargetClass(targetClass);
 				dto.setTargetName(WebModelServiceUtils.resolveReferenceName(objectRef, pageBase,
@@ -381,7 +385,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 					dto = new ObjectViewDto(ObjectViewDto.BAD_OID);
 					dto.setType(OrgType.class);
 				}
-				
+
 				return dto;
 			}
 		}
@@ -396,6 +400,16 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			return null;
 		}
 
+		if (AssignmentEditorDtoType.POLICY_RULE.equals(type)){
+			PrismContainer<PolicyRuleType> policyRuleContainer = getPolicyRuleContainer(assignment);
+			PrismProperty policyRuleNameProperty = policyRuleContainer != null && policyRuleContainer.getValue() != null ?
+					(PrismProperty)policyRuleContainer.getValue().find(new ItemPath(PolicyRuleType.F_NAME)) : null;
+			String policyRuleName = policyRuleNameProperty != null ?
+					policyRuleNameProperty.getValue().getValue().toString() : "";
+			return pageBase.createStringResource("AssignmentEditorDto.policyRuleTitle").getString() +
+					(StringUtils.isEmpty(policyRuleName) ? "" : " - " + policyRuleName);
+
+		}
 		StringBuilder sb = new StringBuilder();
 
 		if (assignment.getConstruction() != null) {
@@ -540,6 +554,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public PrismContainerValue<AssignmentType> getNewValue(PrismContext prismContext) throws SchemaException {
+		prismContext.adopt(newAssignment);
 		// this removes activation element if it's empty
 		ActivationType activation = newAssignment.getActivation();
 		if (activation == null || activation.asPrismContainerValue().isEmpty()) {
@@ -596,12 +611,15 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public String getRelation() {
+		return getRelationQName() != null ? getRelationQName().getLocalPart() : null;
+	}
+
+	public QName getRelationQName() {
 		ObjectReferenceType ref = newAssignment.getTargetRef();
 		if (ref == null || ref.getRelation() == null) {
 			return null;		// TODO default vs. null ?
 		}
-
-		return ref.getRelation().getLocalPart();
+		return ref.getRelation();
 	}
 
 	public void setDescription(String description) {
@@ -611,7 +629,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	public void setFocusType(QName focusType) {
 		newAssignment.setFocusType(focusType);
 	}
-	
+
 	public Boolean isOrgUnitManager() {
 		return isOrgUnitManager;
 	}
@@ -690,8 +708,19 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		isAlreadyAssigned = alreadyAssigned;
 	}
 
-	public AssignmentConstraintsType getDefualtAssignmentConstraints() {
+	public AssignmentConstraintsType getDefaultAssignmentConstraints() {
 		return defualtAssignmentConstraints;
+	}
+
+	public PrismContainer<PolicyRuleType> getPolicyRuleContainer(AssignmentType assignment){
+		if (assignment == null){
+			assignment = this.newAssignment;
+		}
+		if (assignment == null){
+			return null;
+		}
+		PrismContainer policyRuleContainer = assignment.asPrismContainerValue().findContainer(AssignmentType.F_POLICY_RULE);
+		return policyRuleContainer != null ? (PrismContainer<PolicyRuleType>) policyRuleContainer : null;
 	}
 
 	public void setDefualtAssignmentConstraints(AssignmentConstraintsType defualtAssignmentConstraints) {
@@ -706,12 +735,12 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		this.assignedRelationsList = assignedRelationsList;
 	}
 
-	public List<AssignmentsPreviewDto> getPrivilegeLimitationList() {
+	public List<AssignmentInfoDto> getPrivilegeLimitationList() {
 		return privilegeLimitationList;
 	}
 
-	public void setPrivilegeLimitationList(List<AssignmentsPreviewDto> privilegeLimitationList) {
-		if (newAssignment.getLimitTargetContent() == null){
+	public void setPrivilegeLimitationList(List<AssignmentInfoDto> privilegeLimitationList) {
+		if (newAssignment.getLimitTargetContent() == null) {
 			newAssignment.setLimitTargetContent(new AssignmentSelectorType());
 		}
 		List<ObjectReferenceType> referencesList = newAssignment.getLimitTargetContent().getTargetRef();
@@ -719,14 +748,39 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			referencesList = new ArrayList<>();
 		}
 		referencesList.clear();
-		for (AssignmentsPreviewDto previewDto : privilegeLimitationList){
+		for (AssignmentInfoDto previewDto : privilegeLimitationList){
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(previewDto.getTargetOid());
 			ref.setTargetName(new PolyStringType(previewDto.getTargetName()));
 			ref.setType(previewDto.getTargetType());
+			ref.setRelation(previewDto.getRelation());
 			referencesList.add(ref);
 		}
 		this.privilegeLimitationList = privilegeLimitationList;
+	}
+	
+	public boolean isLimitTargetAllowTransitive() {
+		AssignmentSelectorType limitTargetContent = newAssignment.getLimitTargetContent();
+		if (limitTargetContent == null) {
+			return false;
+		}
+		Boolean allowTransitive = limitTargetContent.isAllowTransitive();
+		if (allowTransitive == null) {
+			return false;
+		}
+		return allowTransitive;
+	}
+	
+	public void setLimitTargetAllowTransitive(Boolean newValue) {
+		AssignmentSelectorType limitTargetContent = newAssignment.getLimitTargetContent();
+		if (limitTargetContent == null) {
+			if (newValue == null) {
+				return;
+			}
+			limitTargetContent = new AssignmentSelectorType();
+			newAssignment.setLimitTargetContent(limitTargetContent);
+		}
+		limitTargetContent.setAllowTransitive(newValue);
 	}
 
 	public UserType getDelegationOwner() {
@@ -807,11 +861,11 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		}
 	}
 
-	public OtherPrivilegesLimitationType getPrivilegesLimitation(){
+	public OtherPrivilegesLimitationType getPrivilegesLimitation() {
 		return newAssignment.getLimitOtherPrivileges();
 	}
 
-	public void setPrivilegesLimitation(OtherPrivilegesLimitationType limitations){
+	public void setPrivilegesLimitation(OtherPrivilegesLimitationType limitations) {
 		newAssignment.setLimitOtherPrivileges(limitations);
 
 	}
@@ -855,6 +909,11 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 			return false;
 
 		return true;
+	}
+
+	@Override
+	public AssignmentEditorDto clone(){
+		return new AssignmentEditorDto(UserDtoStatus.ADD, newAssignment, pageBase);
 	}
 
 	@Override

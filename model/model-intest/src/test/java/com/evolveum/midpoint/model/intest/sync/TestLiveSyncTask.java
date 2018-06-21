@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import java.io.FileNotFoundException;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,22 +35,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		dummyResourceGreen.setSyncStyle(DummySyncStyle.SMART);
 		getDummyResource().setSyncStyle(DummySyncStyle.DUMB);
-		dummyResourceBlue.setSyncStyle(DummySyncStyle.SMART);
-		
+		getDummyResource(RESOURCE_DUMMY_BLUE_NAME).setSyncStyle(DummySyncStyle.SMART);
 	}
-	
+
+	@Override
+	protected String getExpectedChannel() {
+		return SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI;
+	}
+
 	@Override
 	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
 		if (resource == resourceDummyGreen) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_GREEN_FILENAME);
-		} else if (resource == resourceDummyBlue) {
+		} else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_BLUE_FILENAME);
 		} else if (resource == getDummyResourceObject()) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_FILENAME);
@@ -62,7 +67,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 	protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
 		if (resource == resourceDummyGreen) {
 			return TASK_LIVE_SYNC_DUMMY_GREEN_OID;
-		} else if (resource == resourceDummyBlue) {
+		} else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
 			return TASK_LIVE_SYNC_DUMMY_BLUE_OID;
 		} else if (resource == getDummyResourceObject()) {
 			return TASK_LIVE_SYNC_DUMMY_OID;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 
 import javax.xml.namespace.QName;
@@ -26,7 +25,7 @@ import javax.xml.namespace.QName;
  *
  */
 public final class PropertyModificationOperation<T> extends Operation {
-	
+
 	private PropertyDelta<T> propertyDelta;
 
 	// Matching rule for entitlements can be specified at the level of association definition.
@@ -34,12 +33,12 @@ public final class PropertyModificationOperation<T> extends Operation {
 	// So, in order to preserve it, we store it here.
 
 	private QName matchingRuleQName;
-	
+
 	public PropertyModificationOperation(PropertyDelta<T> propertyDelta) {
 		super();
 		this.propertyDelta = propertyDelta;
 	}
-	
+
 	public QName getMatchingRuleQName() {
 		return matchingRuleQName;
 	}
@@ -102,7 +101,7 @@ public final class PropertyModificationOperation<T> extends Operation {
 		DebugUtil.debugDumpWithLabel(sb, "matchingRule", matchingRuleQName, indent + 1);
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String toString() {
 		return propertyDelta.toString();

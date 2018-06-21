@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,11 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
@@ -52,6 +56,7 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -70,35 +75,34 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
  */
 @Component
 public class ResourceObjectReferenceResolver {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectReferenceResolver.class);
-	
-	@Autowired(required = true)
-	private PrismContext prismContext;
+
+	@Autowired private PrismContext prismContext;	
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private ShadowManager shadowManager;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	
+
 	@Autowired(required = true)
 	@Qualifier("shadowCacheProvisioner")
 	private ShadowCache shadowCache;
-	
-	@Autowired(required = true)
-	private ShadowManager shadowManager;
-	
-	PrismObject<ShadowType> resolve(ProvisioningContext ctx, ResourceObjectReferenceType resourceObjectReference, 
-			QName objectClass, final String desc, OperationResult result) 
-					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
-					SecurityViolationException {
+
+	PrismObject<ShadowType> resolve(ProvisioningContext ctx, ResourceObjectReferenceType resourceObjectReference,
+			QName objectClass, final String desc, OperationResult result)
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+					SecurityViolationException, ExpressionEvaluationException {
 		if (resourceObjectReference == null) {
 			return null;
 		}
 		ObjectReferenceType shadowRef = resourceObjectReference.getShadowRef();
 		if (shadowRef != null && shadowRef.getOid() != null) {
-			if (resourceObjectReference.getResolutionFrequency() == null 
+			if (resourceObjectReference.getResolutionFrequency() == null
 					|| resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.ONCE) {
 				PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(), null, result);
+				shadowCache.applyDefinition(shadow, result);
 				return shadow;
 			}
 		} else if (resourceObjectReference.getResolutionFrequency() == ResourceObjectReferenceResolutionFrequencyType.NEVER) {
@@ -114,20 +118,23 @@ public class ResourceObjectReferenceResolver {
 		// Use "raw" definitions from the original schema to avoid endless loops
 		subctx.setUseRefinedDefinition(false);
 		subctx.assertDefinition();
-		
+
 		ObjectQuery refQuery = QueryJaxbConvertor.createObjectQuery(ShadowType.class, resourceObjectReference.getFilter(), prismContext);
+		// No variables. At least not now. We expect that mostly constants will be used here.
+		ExpressionVariables variables = new ExpressionVariables();
+		ObjectQuery evaluatedRefQuery = ExpressionUtil.evaluateQueryExpressions(refQuery, variables, expressionFactory, prismContext, desc, ctx.getTask(), result);
 		ObjectFilter baseFilter = ObjectQueryUtil.createResourceAndObjectClassFilter(ctx.getResource().getOid(), objectClass, prismContext);
-		ObjectFilter filter = AndFilter.createAnd(baseFilter, refQuery.getFilter());
+		ObjectFilter filter = AndFilter.createAnd(baseFilter, evaluatedRefQuery.getFilter());
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		
-		// TODO: implement "repo" search strategies
-		
+
+		// TODO: implement "repo" search strategies, don't forget to apply definitions
+
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
-		
-		final Holder<ShadowType> shadowHolder = new Holder<>();
-		ShadowHandler<ShadowType> handler = new ShadowHandler<ShadowType>() {
+
+		final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
-			public boolean handle(ShadowType shadow) {
+			public boolean handle(PrismObject<ShadowType> shadow, OperationResult objResult) {
 				if (shadowHolder.getValue() != null) {
 					throw new IllegalStateException("More than one search results for " + desc);
 				}
@@ -135,22 +142,22 @@ public class ResourceObjectReferenceResolver {
 				return true;
 			}
 		};
-		
+
 		shadowCache.searchObjectsIterative(subctx, query, options, handler, true, result);
-		
+
 		// TODO: implement storage of OID (ONCE search frequency)
-		
-		ShadowType shadowType = shadowHolder.getValue();
-		return shadowType==null?null:shadowType.asPrismObject();
+
+		return shadowHolder.getValue();
 	}
-	
+
 	/**
-	 * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers. 
+	 * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers.
 	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	Collection<? extends ResourceAttribute<?>> resolvePrimaryIdentifier(ProvisioningContext ctx,
-			Collection<? extends ResourceAttribute<?>> identifiers, final String desc, OperationResult result) 
-					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
-					SecurityViolationException {
+			Collection<? extends ResourceAttribute<?>> identifiers, final String desc, OperationResult result)
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+					SecurityViolationException, ExpressionEvaluationException {
 		if (identifiers == null) {
 			return null;
 		}
@@ -159,16 +166,17 @@ public class ResourceObjectReferenceResolver {
 		if (repoShadow == null) {
 			return null;
 		}
+		shadowCache.applyDefinition(repoShadow, result);
 		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null) {
 			return null;
 		}
 		RefinedObjectClassDefinition ocDef = ctx.getObjectClassDefinition();
 		Collection primaryIdentifiers = new ArrayList<>();
-		for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
+		for (PrismProperty property: attributesContainer.getValue().getProperties()) {
 			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
 				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
-				ResourceAttribute<?> primaryIdentifier = new ResourceAttribute<>(property.getElementName(), 
+				ResourceAttribute primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
 						attrDef, prismContext);
 				primaryIdentifier.setRealValue(property.getRealValue());
 				primaryIdentifiers.add(primaryIdentifier);
@@ -177,14 +185,15 @@ public class ResourceObjectReferenceResolver {
 		LOGGER.trace("Resolved identifiers {} to primary identifiers {} (object class {})", identifiers, primaryIdentifiers, ocDef);
 		return primaryIdentifiers;
 	}
-	
+
 	/**
-	 * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers. 
+	 * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers.
 	 */
+	@SuppressWarnings("unchecked")
 	private ResourceObjectIdentification resolvePrimaryIdentifiers(ProvisioningContext ctx,
-			ResourceObjectIdentification identification, OperationResult result) 
-					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
-					SecurityViolationException {
+			ResourceObjectIdentification identification, OperationResult result)
+					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+					SecurityViolationException, ExpressionEvaluationException {
 		if (identification == null) {
 			return identification;
 		}
@@ -206,37 +215,38 @@ public class ResourceObjectReferenceResolver {
 		for (PrismProperty<?> property: attributesContainer.getValue().getProperties()) {
 			if (ocDef.isPrimaryIdentifier(property.getElementName())) {
 				RefinedAttributeDefinition<?> attrDef = ocDef.findAttributeDefinition(property.getElementName());
-				ResourceAttribute<?> primaryIdentifier = new ResourceAttribute<>(property.getElementName(), 
+				@SuppressWarnings("rawtypes")
+				ResourceAttribute primaryIdentifier = new ResourceAttribute<>(property.getElementName(),
 						attrDef, prismContext);
 				primaryIdentifier.setRealValue(property.getRealValue());
 				primaryIdentifiers.add(primaryIdentifier);
 			}
 		}
 		LOGGER.trace("Resolved {} to primary identifiers {} (object class {})", identification, primaryIdentifiers, ocDef);
-		return new ResourceObjectIdentification(identification.getObjectClassDefinition(), primaryIdentifiers, 
+		return new ResourceObjectIdentification(identification.getObjectClassDefinition(), primaryIdentifiers,
 				identification.getSecondaryIdentifiers());
 	}
-	
-	
+
+
 	public PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
-			Collection<? extends ResourceAttribute<?>> identifiers, 
+			Collection<? extends ResourceAttribute<?>> identifiers,
 			AttributesToReturn attributesToReturn,
 			OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
+			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 		ResourceType resource = ctx.getResource();
 		ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-		
+
 		try {
-		
+
 			if (!ResourceTypeUtil.isReadCapabilityEnabled(resource)){
 				throw new UnsupportedOperationException("Resource does not support 'read' operation");
 			}
-			
+
 			ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiers);
 			identification = resolvePrimaryIdentifiers(ctx, identification, parentResult);
 			identification.validatePrimaryIdenfiers();
-			return connector.fetchObject(ShadowType.class, identification, attributesToReturn, ctx,
+			return connector.fetchObject(identification, attributesToReturn, ctx,
 					parentResult);
 		} catch (ObjectNotFoundException e) {
 			parentResult.recordFatalError(
@@ -255,6 +265,9 @@ public class ResourceObjectReferenceResolver {
 					+ e.getMessage(), e);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
+			throw ex;
+		} catch (ExpressionEvaluationException ex) {
+			parentResult.recordFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
 			throw ex;
 		} catch (ConfigurationException e) {
 			parentResult.recordFatalError(e);

@@ -1,11 +1,38 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -21,6 +48,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -70,6 +98,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
+	private static final String DOT_CLASS = AbstractRoleMemberPanel.class.getName() + ".";
+	private static final String OPERATION_LOAD_APPROVER_RELATION_OBJECTS = DOT_CLASS + "loadApproverRelationObjects";
+	private static final String OPERATION_LOAD_OWNER_RELATION_OBJECTS = DOT_CLASS + "loadOwnerRelationObjects";
+	private static final String OPERATION_LOAD_MANAGER_RELATION_OBJECTS = DOT_CLASS + "loadManagerRelationObjects";
 
 	protected static final String ID_FORM = "form";
 	protected static final String ID_CONTAINER_MANAGER = "managerContainer";
@@ -79,51 +111,69 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected static final String ID_MEMBER_TABLE = "memberTable";
 
 	protected List<RelationTypes> relations = new ArrayList<>();
+	private TableId tableId;
 
-	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model, PageBase parentPage) {
-		super(id, model);
-		setParent(parentPage);
-		initLayout(tableId);
+	private LoadableModel<List<String>> approverRelationObjectsModel;
+	private LoadableModel<List<String>> ownerRelationObjectsModel;
+	private LoadableModel<List<String>> managerRelationObjectsModel;
+	protected LoadableModel<List<String>> memberRelationObjectsModel;
+
+	private boolean areModelsInitialized = false;
+
+	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model) {
+		this(id, tableId, model, new ArrayList<>());
 	}
 
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model,
-								   List<RelationTypes> relations, PageBase parentPage) {
+								   List<RelationTypes> relations) {
 		super(id, model);
 		this.relations = relations;
-		setParent(parentPage);
-		initLayout(tableId);
+		this.tableId = tableId;
 	}
 
-	private void initLayout(TableId tableId) {
-		Form form = new Form(ID_FORM);
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
+		initLayout();
+	}
+
+	private void initLayout() {
+		Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
 		form.setOutputMarkupId(true);
 		add(form);
 
 		initSearch(form);
 
-		initMemberTable(tableId, form);
+		loadAllRelationModels();
+		initMemberTable(form);
 
-		initCustomLayout(form);
+		initCustomLayout(form, getPageBase());
 	}
 
-	protected abstract void initCustomLayout(Form form);
+	protected abstract void initCustomLayout(Form form, ModelServiceLocator serviceLocator);
 
 	protected abstract void initSearch(Form form);
 
-	private void initMemberTable(TableId tableId, Form form) {
+	private void initMemberTable(Form form) {
 		WebMarkupContainer memberContainer = new WebMarkupContainer(ID_CONTAINER_MEMBER);
 		memberContainer.setOutputMarkupId(true);
 		memberContainer.setOutputMarkupPlaceholderTag(true);
 		form.add(memberContainer);
 
+		PageBase pageBase =  getPageBase();
 		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
-				ID_MEMBER_TABLE, ObjectType.class, tableId, null, getPageBase()) {
+				ID_MEMBER_TABLE, ObjectType.class, tableId, getSearchOptions(), pageBase) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
 				detailsPerformed(target, object);
+			}
+
+			@Override
+			protected PrismObject<ObjectType> getNewObjectListObject(){
+				return null;
 			}
 
 			@Override
@@ -157,6 +207,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			}
 
 			@Override
+			protected Search createSearch() {
+				return SearchFactory.createSearch(getDefaultObjectType(), pageBase);
+			}
+
+			@Override
 			protected ObjectQuery createContentQuery() {
 				ObjectQuery q = super.createContentQuery();
 
@@ -183,15 +238,44 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		memberContainer.add(childrenListPanel);
 	}
 
-	protected List<InlineMenuItem> createMembersHeaderInlineMenu() {
+	private List<InlineMenuItem> createMembersHeaderInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.addAll(createNewMemberInlineMenuItems());
-
-		headerMenuItems.add(new InlineMenuItem());
-        headerMenuItems.addAll(createRemoveMemberInlineMenuItems());
-        headerMenuItems.addAll(createMemberRecomputeInlineMenuItems());
-
+		if (isAuthorizedToCreateMembers()){
+			headerMenuItems.addAll(createNewMemberInlineMenuItems());
+		}
+		if (isAuthorizedToAssignMembers()){
+			headerMenuItems.addAll(assignNewMemberInlineMenuItems());
+		}
+		if (isAuthorizedToUnassignMembers()) {
+			headerMenuItems.addAll(createUnassignMemberInlineMenuItems());
+		}
+		if (isAuthorizedToUnassignAllMembers()) {
+			headerMenuItems.addAll(createUnassignAllMemberInlineMenuItems());
+		}
+		if (isAuthorizedToRecomputeMembers()) {
+			headerMenuItems.addAll(createMemberRecomputeInlineMenuItems());
+		}
 		return headerMenuItems;
+	}
+
+	protected boolean isAuthorizedToCreateMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI);
+	}
+
+	protected boolean isAuthorizedToAssignMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_MEMBER_ACTION_URI);
+	}
+
+	protected boolean isAuthorizedToUnassignMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_MEMBER_TAB_ACTION_URI);
+	}
+
+	protected boolean isAuthorizedToUnassignAllMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_TAB_ACTION_URI);
+	}
+
+	protected boolean isAuthorizedToRecomputeMembers(){
+		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI);
 	}
 
 	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
@@ -205,7 +289,11 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 				createFocusMemberPerformed(null, target);
 			}
 		}));
+		return newMemberMenuItems;
+	}
 
+	protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
+		List<InlineMenuItem> newMemberMenuItems = new ArrayList<>();
 		newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMembers"), false,
 				new HeaderMenuAction(this) {
 					private static final long serialVersionUID = 1L;
@@ -257,30 +345,35 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
         return recomputeMenuItems;
 	}
 
-	protected List<InlineMenuItem> createRemoveMemberInlineMenuItems() {
-		List<InlineMenuItem> removeMenuItems = new ArrayList<>();
-        removeMenuItems
-                .add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersSelected"),
-                        false, new HeaderMenuAction(this) {
-                    private static final long serialVersionUID = 1L;
+	protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
+		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
+		unassignMenuItems
+				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersSelected"),
+						false, new HeaderMenuAction(this) {
+					private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        removeMembersPerformed(QueryScope.SELECTED, target);
-                    }
-                }));
-        removeMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll"),
-                false, new HeaderMenuAction(this) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                removeMembersPerformed(QueryScope.ALL, target);
-            }
-        }));
-
-        return removeMenuItems;
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						removeMembersPerformed(QueryScope.SELECTED, null , target);
+					}
+				}));
+		return unassignMenuItems;
 	}
+
+	protected List<InlineMenuItem> createUnassignAllMemberInlineMenuItems() {
+		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
+		unassignMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll"),
+				false, new HeaderMenuAction(this) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				removeMembersPerformed(QueryScope.ALL, null, target);
+			}
+		}));
+		return unassignMenuItems;
+	}
+
 
 	protected void createFocusMemberPerformed(final QName relation, AjaxRequestTarget target) {
 
@@ -327,14 +420,12 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			objType.getParentOrgRef().add(parentOrgRef.clone());
 		}
 
-		WebComponentUtil.dispatchToObjectDetailsPage(obj, this);
+		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, this);
 	}
 
 	protected void addMembers(final QName relation, AjaxRequestTarget target) {
 
-		List<QName> types = WebComponentUtil.createObjectTypeList();
-		types.remove(NodeType.COMPLEX_TYPE);
-		types.remove(ShadowType.COMPLEX_TYPE);
+		List<QName> types = getNewMemberSupportedTypes();
 
 		ObjectBrowserPanel<ObjectType> browser = new ObjectBrowserPanel(getPageBase().getMainPopupBodyId(),
 				UserType.class, types, true, getPageBase()) {
@@ -343,7 +434,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			@Override
 			protected void addPerformed(AjaxRequestTarget target, QName type, List selected) {
 				AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
-				AbstractRoleMemberPanel.this.addMembersPerformed(type, relation, selected, target);
+				AbstractRoleMemberPanel.this.addMembersPerformed(type, Arrays.asList(relation), selected, target);
 
 			}
 		};
@@ -351,6 +442,13 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		getPageBase().showMainPopup(browser, target);
 
+	}
+
+	protected List<QName> getNewMemberSupportedTypes(){
+		List<QName> types = WebComponentUtil.createObjectTypeList();
+		types.remove(NodeType.COMPLEX_TYPE);
+		types.remove(ShadowType.COMPLEX_TYPE);
+		return types;
 	}
 
 	protected ObjectQuery createQueryForAdd(List selected) {
@@ -365,10 +463,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
 	}
 
-	protected abstract void addMembersPerformed(QName type, QName relation, List selected,
+	protected abstract void addMembersPerformed(QName type, List<QName> relation, List selected,
 			AjaxRequestTarget target);
 
-	protected abstract void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target);
+	protected abstract void removeMembersPerformed(QueryScope scope, List<QName> relation, AjaxRequestTarget target);
 
 	protected abstract void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target);
 
@@ -378,13 +476,16 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		OperationResult parentResult = operationalTask.getResult();
 
 		try {
-			TaskType task = WebComponentUtil.createSingleRecurenceTask(parentResult.getOperation(), type,
-					memberQuery, delta, category, getPageBase());
+			ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
+					? ModelExecuteOptions.createReconcile()		// This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
+					: null;
+			TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type,
+					memberQuery, delta, options, category, getPageBase());
 			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(parentResult.getOperation(), e);
 			LoggingUtils.logUnexpectedException(LOGGER,
-					"Failed to execute operaton " + parentResult.getOperation(), e);
+					"Failed to execute operation " + parentResult.getOperation(), e);
 			target.add(getPageBase().getFeedbackPanel());
 		}
 
@@ -427,7 +528,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		}
 	}
 
-	private List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {
+	protected List<IColumn<SelectableBean<ObjectType>, String>> createMembersColumns() {
 		List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
 		IColumn<SelectableBean<ObjectType>, String> column = new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
@@ -470,32 +571,60 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		};
 		columns.add(column);
+		if (isRelationColumnVisible()){
+			columns.add(createRelationColumn());
+		}
 		return columns;
+	}
+
+	protected IColumn<SelectableBean<ObjectType>, String> createRelationColumn() {
+		return new AbstractExportableColumn<SelectableBean<ObjectType>, String>(
+				createStringResource("roleMemberPanel.relation")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
+									 String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
+				cellItem.add(new Label(componentId,
+						getRelationValue((FocusType) rowModel.getObject().getValue())));
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
+				return Model.of(getRelationValue((FocusType) rowModel.getObject().getValue()));
+			}
+
+		};
+	}
+
+	protected boolean isRelationColumnVisible(){
+		return false;
 	}
 
 	protected abstract ObjectQuery createContentQuery();
 
 	protected String getTaskName(String operation, QueryScope scope, boolean managers) {
 		StringBuilder nameBuilder = new StringBuilder(operation);
-		nameBuilder.append(" ");
+		nameBuilder.append(".");
 		if (scope != null) {
 			nameBuilder.append(scope.name());
-			nameBuilder.append(" ");
+			nameBuilder.append(".");
 		}
 		if (managers) {
-			nameBuilder.append("managers: ");
+			nameBuilder.append("managers");
 		} else {
-			nameBuilder.append("members: ");
+			nameBuilder.append("members");
 		}
-		nameBuilder
-				.append(WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
+//		nameBuilder.append(".");
+//		nameBuilder
+//				.append(WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
 		return nameBuilder.toString();
 	}
 
 	protected String getTaskName(String operation, QueryScope scope) {
 		return getTaskName(operation, scope, false);
 	}
-	
+
 	private String getMemberObjectDisplayName(ObjectType object){
 		if (object == null){
 			return "";
@@ -522,4 +651,136 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			return object.getDescription();
 		}
 	}
+
+	private Collection<SelectorOptions<GetOperationOptions>> getSearchOptions(){
+			return SelectorOptions
+					.createCollection(GetOperationOptions.createDistinct());
+	}
+
+	protected Class getDefaultObjectType(){
+		return ObjectType.class;
+	}
+
+	protected Form getFormComponent(){
+		return (Form) get(ID_FORM);
+	}
+
+	protected void loadAllRelationModels(){
+		if (approverRelationObjectsModel != null) {
+			approverRelationObjectsModel.reset();
+		} else {
+			initApproverRelationObjectsModel();
+		}
+		if (managerRelationObjectsModel != null) {
+			managerRelationObjectsModel.reset();
+		} else {
+			initManagerRelationObjectsModel();
+		}
+		if (ownerRelationObjectsModel != null) {
+			ownerRelationObjectsModel.reset();
+		} else {
+			initOwnerRelationObjectsModel();
+		}
+		if (memberRelationObjectsModel != null) {
+			memberRelationObjectsModel.reset();
+		} else {
+			initMemberRelationObjectsModel();
+		}
+	}
+
+	private void initApproverRelationObjectsModel(){
+		approverRelationObjectsModel = new LoadableModel<List<String>>(false) {
+			@Override
+			protected List<String> load() {
+				OperationResult result = new OperationResult(OPERATION_LOAD_APPROVER_RELATION_OBJECTS);
+				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.APPROVER.getRelation()));
+			}
+		};
+	}
+
+	private void initOwnerRelationObjectsModel(){
+		ownerRelationObjectsModel = new LoadableModel<List<String>>(false) {
+			@Override
+			protected List<String> load() {
+				OperationResult result = new OperationResult(OPERATION_LOAD_OWNER_RELATION_OBJECTS);
+				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.OWNER.getRelation()));
+			}
+		};
+	}
+
+	private void initManagerRelationObjectsModel(){
+		managerRelationObjectsModel = new LoadableModel<List<String>>(false) {
+			@Override
+			protected List<String> load() {
+				OperationResult result = new OperationResult(OPERATION_LOAD_MANAGER_RELATION_OBJECTS);
+				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.MANAGER.getRelation()));
+			}
+		};
+	}
+
+	protected void initMemberRelationObjectsModel(){
+		memberRelationObjectsModel = new LoadableModel<List<String>>(false) {
+			@Override
+			protected List<String> load() {
+				return new ArrayList<>();
+			}
+		};
+	}
+
+	protected List<PrismObject<FocusType>> loadMemberObjectsByRelation(OperationResult result, QName relation){
+		PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
+		rv.setRelation(relation);
+
+		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
+				.item(getMemberRelationQueryItem())
+				.ref(rv).build();
+
+		return WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
+	}
+
+	protected QName[] getMemberRelationQueryItem(){
+		return new QName[]{FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF};
+	}
+
+	private String getRelationValue(FocusType focusObject){
+		StringBuilder relations = new StringBuilder();
+		if (focusObject == null){
+			return "";
+		}
+
+		if (approverRelationObjectsModel.getObject().contains(focusObject.getOid())){
+			relations.append(createStringResource("RelationTypes.APPROVER").getString());
+		}
+		if (ownerRelationObjectsModel.getObject().contains(focusObject.getOid())){
+			relations.append(relations.length() > 0 ? ", " : "");
+			relations.append(createStringResource("RelationTypes.OWNER").getString());
+		}
+		if (managerRelationObjectsModel.getObject().contains(focusObject.getOid())){
+			relations.append(relations.length() > 0 ? ", " : "");
+			relations.append(createStringResource("RelationTypes.MANAGER").getString());
+		}
+		if (memberRelationObjectsModel.getObject().contains(focusObject.getOid())){
+			relations.append(relations.length() > 0 ? ", " : "");
+			relations.append(createStringResource("RelationTypes.MEMBER").getString());
+		}
+		return relations.toString();
+	}
+
+	protected List<String> getObjectOidsList(List<PrismObject<FocusType>> objectList){
+		List<String> oidsList = new ArrayList<>();
+		if (objectList == null){
+			return oidsList;
+		}
+		for (PrismObject<FocusType> object : objectList){
+			if (object == null){
+				continue;
+			}
+			if (!oidsList.contains(object.getOid())){
+				oidsList.add(object.getOid());
+			}
+		}
+		return oidsList;
+	}
+
+
 }

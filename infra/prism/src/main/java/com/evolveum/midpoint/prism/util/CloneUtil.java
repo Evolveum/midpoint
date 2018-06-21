@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.SerializationUtils;
 
-import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -49,7 +48,7 @@ import javax.xml.namespace.QName;
 public class CloneUtil {
 
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
-	
+
 	public static <T> T clone(T orig) {
 		if (orig == null) {
 			return null;
@@ -114,7 +113,7 @@ public class CloneUtil {
 			T clone = javaLangClone(orig);
 			if (clone != null) {
 				return clone;
-			} 
+			}
 		}
 		if (orig instanceof Serializable) {
 			// Brute force

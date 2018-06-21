@@ -62,6 +62,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -75,31 +76,31 @@ import java.util.List;
  */
 @Service(value = "reportManager")
 public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
-	
+
     public static final String HOOK_URI = "http://midpoint.evolveum.com/model/report-hook-1";
-    
+
     private static final Trace LOGGER = TraceManager.getTrace(ReportManagerImpl.class);
-    
-    private static final String CLASS_NAME_WITH_DOT = ReportManagerImpl.class + ".";
+
+    private static final String CLASS_NAME_WITH_DOT = ReportManagerImpl.class.getSimpleName() + ".";
     private static final String CLEANUP_REPORT_OUTPUTS = CLASS_NAME_WITH_DOT + "cleanupReportOutputs";
     private static final String DELETE_REPORT_OUTPUT = CLASS_NAME_WITH_DOT + "deleteReportOutput";
     private static final String REPORT_OUTPUT_DATA = CLASS_NAME_WITH_DOT + "getReportOutputData";
-    
+
 	@Autowired
     private HookRegistry hookRegistry;
 
 	@Autowired
     private TaskManager taskManager;
-	
+
 	@Autowired
 	private PrismContext prismContext;
-	
+
 	@Autowired
 	private ModelService modelService;
 
 
 	@PostConstruct
-    public void init() {   	
+    public void init() {
         hookRegistry.registerChangeHook(HOOK_URI, this);
         hookRegistry.registerReadHook(HOOK_URI, this);
     }
@@ -133,9 +134,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      * @param task
      * @param parentResult describes report which has to be created
      */
-    
+
     @Override
-    public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) {    	
+    public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) {
         task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
         try {
@@ -145,10 +146,10 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 		} catch (SchemaException e) {
 			throw new SystemException(e);
 		}
-        
+
         task.setThreadStopAction(ThreadStopActionType.CLOSE);
     	task.makeSingle();
-    	
+
     	taskManager.switchToBackground(task, parentResult);
 		parentResult.setBackgroundTaskOid(task.getOid());
     }
@@ -161,7 +162,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      * @param task
      * @param result
      * @return
-     * @throws UnsupportedEncodingException 
+     * @throws UnsupportedEncodingException
      */
     @Override
     public HookOperationMode invoke(@NotNull ModelContext context, @NotNull Task task, @NotNull OperationResult parentResult)  {
@@ -178,9 +179,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
          }
 
          boolean relatesToReport = false;
-         boolean isDeletion = false; 
+         boolean isDeletion = false;
          PrismObject<?> object = null;
-         for (Object o : context.getProjectionContexts()) {     
+         for (Object o : context.getProjectionContexts()) {
              boolean deletion = false;
              object = ((ModelElementContext<?>) o).getObjectNew();
              if (object == null) {
@@ -188,7 +189,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                  object = ((ModelElementContext<?>) o).getObjectOld();
              }
              if (object == null) {
-                 LOGGER.warn("Probably invalid projection context: both old and new objects are null");  
+                 LOGGER.warn("Probably invalid projection context: both old and new objects are null");
              } else if (object.getCompileTimeClass().isAssignableFrom(ReportType.class)) {
                  relatesToReport = true;
                  isDeletion = deletion;
@@ -203,7 +204,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              LOGGER.trace("invoke() EXITING: Changes not related to report");
              return HookOperationMode.FOREGROUND;
          }
-         
+
          if (isDeletion) {
              LOGGER.trace("invoke() EXITING because operation is DELETION");
              return HookOperationMode.FOREGROUND;
@@ -218,23 +219,6 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
             	 LOGGER.error(message);
                  result.recordFatalError(message, new SystemException());
              }
-//             {
-//            	 PrismSchema reportSchema = null;
-//            	 PrismContainer<ReportConfigurationType> parameterConfiguration = null;  
-//            	 try
-//            	 {
-//            		reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
-//            		parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);
-//             		
-//            	 } catch (Exception ex){
-//            		 String message = "Cannot create parameter configuration: " + ex.getMessage();
-//            		 LOGGER.error(message);
-//            		 result.recordFatalError(message, ex);
-//            	 }
-//            	 
-//            	 jasperDesign = ReportUtils.createJasperDesign(reportType, parameterConfiguration, reportSchema) ;
-//            	 LOGGER.trace("create jasper design : {}", jasperDesign);
-//             }
              else
              {
             	 byte[] reportTemplateBase64 = reportType.getTemplate();
@@ -246,7 +230,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              // Compile template
              JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
              LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
-             
+
              //result.computeStatus();
              result.recordSuccessIfUnknown();
 
@@ -255,18 +239,18 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              String message = "Cannot load or compile jasper report: " + ex.getMessage();
              LOGGER.error(message);
              result.recordFatalError(message, ex);
-         } 
-        
+         }
+
 
         return HookOperationMode.FOREGROUND;
     }
-    
-    
+
+
     @Override
     public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task, @NotNull OperationResult result) {
-    	
+
     }
-  
+
     @Override
     public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
     	OperationResult result = parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS);
@@ -286,8 +270,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                 new Object[]{deleteReportOutputsTo, duration});
 
         XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteReportOutputsTo.getTime());
-        
-        List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<PrismObject<ReportOutputType>>();
+
+        List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<>();
         try {
             ObjectQuery obsoleteReportOutputsQuery = QueryBuilder.queryFor(ReportOutputType.class, prismContext)
 					.item(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
@@ -302,11 +286,11 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         boolean interrupted = false;
         int deleted = 0;
         int problems = 0;
-        
+
         for (PrismObject<ReportOutputType> reportOutputPrism : obsoleteReportOutputs){
         	ReportOutputType reportOutput = reportOutputPrism.asObjectable();
-        	
-        	LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(), 
+
+        	LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(),
         			reportOutput.getFilePath());
         	boolean problem = false;
         	try {
@@ -324,37 +308,56 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         }
         result.computeStatusIfUnknown();
 
-        LOGGER.info("Report cleanup procedure " + 
-        (interrupted ? "was interrupted" : "finished") + 
+        LOGGER.info("Report cleanup procedure " +
+        (interrupted ? "was interrupted" : "finished") +
         ". Successfully deleted {} report outputs; there were problems with deleting {} report ouptuts.", deleted, problems);
         String suffix = interrupted ? " Interrupted." : "";
         if (problems == 0) {
             parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS + ".statistics").recordStatus(OperationResultStatus.SUCCESS,
             		"Successfully deleted " + deleted + " report output(s)." + suffix);
         } else {
-            parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS + ".statistics").recordPartialError("Successfully deleted " + 
+            parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS + ".statistics").recordPartialError("Successfully deleted " +
         deleted + " report output(s), "
                     + "there was problems with deleting " + problems + " report outputs.");
         }
     }
-    
-    private void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception {
+
+    @Override
+    public void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception {
     	String oid = reportOutput.getOid();
 
     	Task task = taskManager.createTaskInstance(DELETE_REPORT_OUTPUT);
     	parentResult.addSubresult(task.getResult());
     	OperationResult result = parentResult.createSubresult(DELETE_REPORT_OUTPUT);
 
+
+        String filePath = reportOutput.getFilePath();
         result.addParam("oid", oid);
         try {
-            File reportFile = new File(reportOutput.getFilePath());
-            reportFile.delete();
-            
+			File reportFile = new File(filePath);
+
+			if (reportFile.exists()) {
+				reportFile.delete();
+			} else {
+				// TODO deduplicate this code
+				ObjectReferenceType nodeRef = reportOutput.getNodeRef();
+				String nodeOid = nodeRef.getOid();
+				NodeType node = modelService.getObject(NodeType.class, nodeOid, null, null, parentResult).asObjectable();
+				String hostName = node.getHostname();
+				SystemConfigurationType systemConfig = modelService
+						.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task,
+								result).asObjectable();
+				String icUrlPattern = systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern();
+				String[] splitted = filePath.split("/");
+				String filename = splitted[splitted.length - 1];
+				ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "DELETE");
+			}
+
 			ObjectDelta<ReportOutputType> delta = ObjectDelta.createDeleteDelta(ReportOutputType.class, oid, prismContext);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
-			modelService.executeChanges(deltas, null, task, result);	
-            
+			modelService.executeChanges(deltas, null, task, result);
+
             result.recordSuccessIfUnknown();
         }
         catch (Exception e) {
@@ -362,10 +365,11 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
             throw e;
         }
     }
-	
-   
+
+
+    //TODO re-throw exceptions?
     @Override
-    public InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) {
+    public InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException {
     	Task task = taskManager.createTaskInstance(REPORT_OUTPUT_DATA);
 
     	OperationResult result = parentResult.createSubresult(REPORT_OUTPUT_DATA);
@@ -374,7 +378,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     	InputStream reportData = null;
         try {
         	ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null,
-                    task, result).asObjectable();
+				        task, result).asObjectable();
 
             String filePath = reportOutput.getFilePath();
             if (StringUtils.isEmpty(filePath)) {
@@ -382,12 +386,31 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                 return null;
             }
             File file = new File(filePath);
-            reportData = FileUtils.openInputStream(file);
-
+            if (file.exists()) {
+                reportData = FileUtils.openInputStream(file);
+            } else {
+            	// TODO deduplicate this code
+				ObjectReferenceType nodeRef = reportOutput.getNodeRef();
+				String nodeOid = nodeRef.getOid();
+				NodeType node = modelService.getObject(NodeType.class, nodeOid, null, null, parentResult).asObjectable();
+				String hostName = node.getHostname();
+				SystemConfigurationType systemConfig = modelService
+						.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task,
+								result).asObjectable();
+				String icUrlPattern = systemConfig.getInfrastructure() != null ? systemConfig.getInfrastructure().getIntraClusterHttpUrlPattern() : null;
+				String[] splitted = filePath.split("/");
+				String filename = splitted[splitted.length - 1];
+				reportData = ReportNodeUtils.executeOperation(hostName, filename, icUrlPattern, "GET");
+			}
             result.recordSuccessIfUnknown();
-        } catch (Exception e) {
-            LOGGER.trace("Cannot read the report data : {}", e.getMessage());
-        	result.recordFatalError("Cannot read the report data.", e);
+        } catch (IOException ex) {
+        	LoggingUtils.logException(LOGGER, "Error while fetching file. File might not exist on the corresponding file system", ex);
+        	result.recordPartialError("Error while fetching file. File might not exist on the corresponding file system. Reason: " + ex.getMessage(), ex);
+        	throw ex;
+        }  catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
+				| ConfigurationException | ExpressionEvaluationException e) {
+			result.recordFatalError("Problem with reading report output. Reason: " + e.getMessage(), e);
+			throw e;
         } finally {
             result.computeStatusIfUnknown();
         }

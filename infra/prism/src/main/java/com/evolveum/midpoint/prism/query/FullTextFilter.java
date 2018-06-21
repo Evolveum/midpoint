@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -44,7 +45,7 @@ public class FullTextFilter extends ObjectFilter {
 	public static FullTextFilter createFullText(Collection<String> values){
 		return new FullTextFilter(values);
 	}
-	
+
 	public static FullTextFilter createFullText(String... values){
 		return new FullTextFilter(Arrays.asList(values));
 	}
@@ -101,11 +102,11 @@ public class FullTextFilter extends ObjectFilter {
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("IN OID: ");
+		sb.append("FULLTEXT: ");
 		if (values != null) {
 			sb.append(values.stream().collect(Collectors.joining("; ")));
 		}

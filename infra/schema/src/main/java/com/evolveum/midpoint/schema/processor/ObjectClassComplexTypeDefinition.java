@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -30,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -196,7 +197,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	boolean isAuxiliary();
 
 	/**
-	 * TODO
+	 * TODO: THIS SHOULD NOT BE HERE
 	 * @return
 	 */
 	ShadowKindType getKind();
@@ -215,7 +216,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	boolean isDefaultInAKind();
 
 	/**
-	 * TODO
+	 * TODO: THIS SHOULD NOT BE HERE
 	 * @return
 	 */
 	String getIntent();
@@ -237,4 +238,9 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	@NotNull
 	ObjectClassComplexTypeDefinition clone();
 
+	@NotNull
+	@Override
+	ObjectClassComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
+
+	boolean matches(ShadowType shadowType);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ public class MidPointAuthWebSession extends AuthenticatedWebSession implements D
 		DebugUtil.debugDumpWithLabel(sb, "sessionStorage", sessionStorage, indent+1);
 		return sb.toString();
 	}
-	
+
 	public String dumpSizeEstimates(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.dumpObjectSizeEstimate(sb, "MidPointAuthWebSession", this, indent);

@@ -173,7 +173,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         refTooltip.setOutputMarkupId(true);
         schemaRefPanel.add(refTooltip);
 
-        DropDownChoice refSelect = new DropDownChoice<ItemPathType>(ID_REFERENCE_SELECT, new PropertyModel<ItemPathType>(getModel(), "ref"),
+        DropDownChoice refSelect = new DropDownChoice<ItemPathType>(ID_REFERENCE_SELECT, new PropertyModel<>(getModel(), "ref"),
                 new AbstractReadOnlyModel<List<ItemPathType>>() {
 
                     @Override
@@ -259,11 +259,11 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         };
         add(limitations);
 
-        CheckBox exclusiveStrong = new CheckBox(ID_EXCLUSIVE_STRONG, new PropertyModel<Boolean>(getModel(), "exclusiveStrong"));
+        CheckBox exclusiveStrong = new CheckBox(ID_EXCLUSIVE_STRONG, new PropertyModel<>(getModel(), "exclusiveStrong"));
 		exclusiveStrong.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(exclusiveStrong);
 
-        CheckBox tolerant = new CheckBox(ID_TOLERANT, new PropertyModel<Boolean>(getModel(), "tolerant"));
+        CheckBox tolerant = new CheckBox(ID_TOLERANT, new PropertyModel<>(getModel(), "tolerant"));
 		tolerant.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(tolerant);
 
@@ -278,9 +278,9 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         add(intolerantVP);
 
         DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
-                new PropertyModel<AttributeFetchStrategyType>(getModel(), "fetchStrategy"),
+            new PropertyModel<>(getModel(), "fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
-                new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+            new EnumChoiceRenderer<>(this));
         fetchStrategy.setNullValid(true);
 		fetchStrategy.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(fetchStrategy);
@@ -341,7 +341,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         add(deleteOutbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-                new PropertyModel<List<MappingType>>(getModel(), "inbound"), null, false, true, readOnlyModel) {
+            new PropertyModel<>(getModel(), "inbound"), null, false, true, readOnlyModel) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -427,7 +427,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 
 	private void initModals(NonEmptyModel<Boolean> readOnlyModel) {
         ModalWindow limitationsEditor = new LimitationsEditorDialog(ID_MODAL_LIMITATIONS,
-                new PropertyModel<List<PropertyLimitationsType>>(getModel(), "limitations"), readOnlyModel);
+            new PropertyModel<>(getModel(), "limitations"), readOnlyModel);
         add(limitationsEditor);
 
         ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null, readOnlyModel) {
@@ -538,7 +538,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 
     private void outboundEditPerformed(AjaxRequestTarget target){
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_OUTBOUND);
-        window.updateModel(target, new PropertyModel<MappingType>(getModel(), "outbound"), false);
+        window.updateModel(target, new PropertyModel<>(getModel(), "outbound"), false);
         window.show(target);
     }
 

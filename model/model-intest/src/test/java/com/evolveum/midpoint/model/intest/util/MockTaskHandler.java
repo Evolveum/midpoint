@@ -22,7 +22,6 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,20 +37,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * This task handler does nothing. Used in the tests.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @Component
 public class MockTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-3";
 
-	@Autowired(required = true)
-	private TaskManager taskManager;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
+	@Autowired private TaskManager taskManager;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockTaskHandler.class);
 
@@ -68,13 +63,13 @@ public class MockTaskHandler implements TaskHandler {
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
-		
+
 		opResult.recordSuccess();
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(1);
+		runResult.setProgress(1L);
 
 		LOGGER.trace("MockTaskHandler.run ending");
-		
+
 		return runResult;
 	}
 
@@ -91,10 +86,5 @@ public class MockTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.SYSTEM;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

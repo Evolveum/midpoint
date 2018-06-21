@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,11 +36,11 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition> implements DebugDumpable {
-	
+
 	private V itemValue;
 	private PrismValueDeltaSetTripleProducer<V, D> mapping;
 	private Construction construction;
-	
+
 	public ItemValueWithOrigin(V propertyValue,
 			PrismValueDeltaSetTripleProducer<V, D> mapping, Construction accountConstruction) {
 		super();
@@ -58,11 +58,11 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
     public void setItemValue(V value) {
         this.itemValue = value;
     }
-	
+
 	public PrismValueDeltaSetTripleProducer<V, D> getMapping() {
 		return mapping;
 	}
-	
+
 	public Construction getConstruction() {
 		return construction;
 	}
@@ -75,6 +75,10 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		return construction == null || construction.isValid();
 	}
 	
+	public boolean wasValid() {
+		return construction == null || construction.getWasValid();
+	}
+
 	public <T> boolean equalsRealValue(V pvalue, ValueMatcher<T> valueMatcher) throws SchemaException {
 		if (itemValue == null) {
 			return false;
@@ -83,11 +87,11 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 			return itemValue.equalsRealValue(pvalue);
 		} else {
 			// this must be a property, otherwise there would be no matcher
-			return valueMatcher.match(((PrismPropertyValue<T>)itemValue).getValue(), 
+			return valueMatcher.match(((PrismPropertyValue<T>)itemValue).getValue(),
 					((PrismPropertyValue<T>)pvalue).getValue());
 		}
 	}
-	
+
 	public ItemValueWithOrigin<V,D> clone() {
 		ItemValueWithOrigin<V,D> clone = new ItemValueWithOrigin<>(itemValue, mapping, construction);
 		copyValues(clone);
@@ -103,7 +107,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 		}
 		clone.construction = this.construction;
 	}
-	
+
 	public static <V extends PrismValue, D extends ItemDefinition> DeltaSetTriple<ItemValueWithOrigin<V,D>> createOutputTriple(PrismValueDeltaSetTripleProducer<V, D> mapping) {
 		PrismValueDeltaSetTriple<V> outputTriple = mapping.getOutputTriple();
 		if (outputTriple == null) {
@@ -125,11 +129,6 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 			ivwoSet.add(ivwo);
 		}
 		return ivwoSet;
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,11 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.ItemSecurityDecisions;
+import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -48,38 +48,36 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
+import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.*;
@@ -139,30 +137,21 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	private IModel<List<ACAttributeDto>> attributesModel;
 	protected WebMarkupContainer headerRow;
-	protected PageBase pageBase;
-	protected List<AssignmentsPreviewDto> privilegesList;
+	protected IModel<List<AssignmentInfoDto>> privilegesListModel;
 	protected boolean delegatedToMe;
-	private LoadableModel<ItemSecurityDecisions> decisionsModel;
+	private LoadableDetachableModel<ItemSecurityConstraints> itemSecurityConstraintsModel;
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, boolean delegatedToMe,
-								 List<AssignmentsPreviewDto> privilegesList,
-								 PageBase pageBase) {
+			LoadableModel<List<AssignmentInfoDto>> privilegesListModel) {
 		super(id, model);
-		this.pageBase = pageBase;
-		this.privilegesList = privilegesList;
+		this.privilegesListModel = privilegesListModel;
 		this.delegatedToMe = delegatedToMe;
 
-		initDecisionsModel();
-		initLayout();
+
 	}
 
 	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
-		this(id, model, null);
-	}
-
-	public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
 		super(id, model);
-		this.pageBase = pageBase;
 
 		attributesModel = new LoadableModel<List<ACAttributeDto>>(false) {
 			@Override
@@ -170,6 +159,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				return loadAttributes();
 			}
 		};
+	}
+
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
 		initDecisionsModel();
 		initLayout();
 	}
@@ -208,7 +202,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	protected void initHeaderRow(){
 		AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
-				new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
+				new PropertyModel<>(getModel(), AssignmentEditorDto.F_SELECTED)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -271,7 +265,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		nameLabel.setOutputMarkupId(true);
 		name.add(nameLabel);
 
-		Label activation = new Label(ID_ACTIVATION, createActivationModel());
+		Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel().getObject().getActivation(), "-", AssignmentEditorPanel.this));
 		headerRow.add(activation);
 
 		ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
@@ -337,71 +331,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	protected IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
-		return new AbstractReadOnlyModel<String>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				AssignmentEditorDto dto = model.getObject();
-				return dto.getStatus().name().toLowerCase();
-			}
-		};
-	}
-
-	private IModel<String> createActivationModel() {
-		return new AbstractReadOnlyModel<String>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getObject() {
-				AssignmentEditorDto dto = getModel().getObject();
-				ActivationType activation = dto.getActivation();
-				if (activation == null) {
-					return "-";
-				}
-
-				ActivationStatusType status = activation.getAdministrativeStatus();
-				String strEnabled = createStringResource(status, "lower", "ActivationStatusType.null")
-						.getString();
-
-				if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-					return getString("AssignmentEditorPanel.enabledFromTo", strEnabled,
-							MiscUtil.asDate(activation.getValidFrom()),
-							MiscUtil.asDate(activation.getValidTo()));
-				} else if (activation.getValidFrom() != null) {
-					return getString("AssignmentEditorPanel.enabledFrom", strEnabled,
-							MiscUtil.asDate(activation.getValidFrom()));
-				} else if (activation.getValidTo() != null) {
-					return getString("AssignmentEditorPanel.enabledTo", strEnabled,
-							MiscUtil.asDate(activation.getValidTo()));
-				}
-
-				return "-";
-			}
-		};
-	}
-
-	protected IModel<Date> createDateModel(final IModel<XMLGregorianCalendar> model) {
-		return new Model<Date>() {
-
-			@Override
-			public Date getObject() {
-				XMLGregorianCalendar calendar = model.getObject();
-				if (calendar == null) {
-					return null;
-				}
-				return MiscUtil.asDate(calendar);
-			}
-
-			@Override
-			public void setObject(Date object) {
-				if (object == null) {
-					model.setObject(null);
-				} else {
-					model.setObject(MiscUtil.asXMLGregorianCalendar(object));
-				}
-			}
-		};
+		return AssignmentsUtil.createAssignmentStatusClassModel(model.getObject().getStatus());
 	}
 
 	protected void initBodyLayout(WebMarkupContainer body) {
@@ -472,7 +402,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		body.add(focusTypeContainer);
 
 		ObjectTypeSelectPanel<FocusType> focusType = new ObjectTypeSelectPanel<>(ID_FOCUS_TYPE,
-				new PropertyModel<QName>(getModel(), AssignmentEditorDto.F_FOCUS_TYPE), FocusType.class);
+				new PropertyModel<>(getModel(), AssignmentEditorDto.F_FOCUS_TYPE), FocusType.class);
 		focusTypeContainer.add(focusType);
 
 		Label relationLabel = new Label(ID_RELATION_LABEL, new AbstractReadOnlyModel<String>() {
@@ -582,7 +512,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		activationBlock.add(validFromContainer);
 
 		DateInput validFrom = new DateInput(ID_VALID_FROM,
-				createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+				AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
 						AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
 		validFrom.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
@@ -608,7 +538,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		activationBlock.add(validToContainer);
 
 		DateInput validTo = new DateInput(ID_VALID_TO,
-				createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+				AssignmentsUtil.createDateModel(new PropertyModel<>(getModel(),
 						AssignmentEditorDto.F_ACTIVATION + ".validTo")));
 		validTo.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
@@ -684,7 +614,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 public MetadataType getObject() {
                     return getModelObject().getOldValue().getValue().getMetadata();
                 }
-            }, "row");
+            }, "", "row");
         }
         metadataPanel.setOutputMarkupId(true);
 		metadataPanel.add(new VisibleEnableBehaviour(){
@@ -695,11 +625,11 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		});
 		body.add(metadataPanel);
 
-		addAjaxOnUpdateBehavior(body);
+		WebComponentUtil.addAjaxOnUpdateBehavior(body);
 	}
-	
+
 	private void updateAssignmentName(AjaxRequestTarget target, Boolean isManager){
-		
+
 		Label nameLabel = new Label(ID_NAME_LABEL, createAssignmentNameLabelModel(isManager));
 		nameLabel.setOutputMarkupId(true);
 		AjaxLink name = (AjaxLink) get(createComponentPath(ID_HEADER_ROW, ID_NAME));
@@ -790,28 +720,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		return tenantRefContainer;
 	}
 
-	private void addAjaxOnBlurUpdateBehaviorToComponent(final Component component) {
-		component.setOutputMarkupId(true);
-		component.add(new AjaxFormComponentUpdatingBehavior("blur") {
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-			}
-		});
-	}
-
-	private void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
-		container.visitChildren(new IVisitor<Component, Object>() {
-			@Override
-			public void component(Component component, IVisit<Object> objectIVisit) {
-				if (component instanceof InputPanel) {
-					addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
-				} else if (component instanceof FormComponent) {
-					addAjaxOnBlurUpdateBehaviorToComponent(component);
-				}
-			}
-		});
-	}
 
 	private void initAttributesLayout(WebMarkupContainer constructionContainer) {
 		WebMarkupContainer attributes = new WebMarkupContainer(ID_ATTRIBUTES);
@@ -1145,7 +1053,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	private <O extends ObjectType> PrismObject<O> getTargetObject(AssignmentEditorDto dto)
 			throws ObjectNotFoundException, SchemaException, SecurityViolationException,
-			CommunicationException, ConfigurationException {
+			CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismContainerValue<AssignmentType> assignment = dto.getOldValue();
 
 		PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
@@ -1199,43 +1107,44 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		return false;
 	}
 
-	private void initDecisionsModel(){
-		decisionsModel = new LoadableModel<ItemSecurityDecisions>(false) {
+	private void initDecisionsModel() {
+		itemSecurityConstraintsModel = new LoadableDetachableModel<ItemSecurityConstraints>() {
 			@Override
-			protected ItemSecurityDecisions load() {
-				return loadSecurityDecisions();
+			protected ItemSecurityConstraints load() {
+				return loadSecurityConstraints();
 			}
 		};
 
 	}
 
-	private boolean isItemAllowed(ItemPath itemPath){
-		ItemSecurityDecisions decisions = decisionsModel.getObject();
-		if (itemPath == null || decisions == null || decisions.getItemDecisionMap() == null
-				|| decisions.getItemDecisionMap().size() == 0){
+	private boolean isItemAllowed(ItemPath itemPath) {
+		ItemSecurityConstraints constraints = itemSecurityConstraintsModel.getObject();
+		if (itemPath == null || constraints == null) {
 			return true;
 		}
-		Map<ItemPath, AuthorizationDecisionType> decisionsMap = decisions.getItemDecisionMap();
-		boolean isAllowed = false;
-		for (ItemPath path : decisionsMap.keySet()) {
-			if (path.equivalent(itemPath)
-					&& AuthorizationDecisionType.ALLOW.value().equals(decisionsMap.get(path).value())) {
-				return true;
-			}
-		}
-		return isAllowed;
+		AuthorizationDecisionType decision = constraints.findItemDecision(itemPath);
+		return AuthorizationDecisionType.ALLOW.equals(decision);
 	}
 
-	private ItemSecurityDecisions loadSecurityDecisions(){
+	private ItemSecurityConstraints loadSecurityConstraints() {
+		PageBase pageBase = getPageBase();
 		if (pageBase == null || getModelObject().getTargetRef() == null){
 			return null;
 		}
-		PrismObject<UserType> user = null;
-		List<PrismObject<UserType>> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
-		if (targetUserList == null || targetUserList.size() == 0){
-			user = pageBase.loadUserSelf(pageBase);
-		} else {
-			user = targetUserList.get(0);
+		PrismObject<? extends FocusType> operationObject = null;
+		if (pageBase instanceof PageAdminFocus){
+			operationObject = ((PageAdminFocus)pageBase).getObjectWrapper().getObject();
+		} else if ((pageBase instanceof PageAssignmentDetails || pageBase instanceof PageAssignmentsList) //shopping cart assignment details panels
+				&& !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()){
+			List<UserType> targetUserList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserList();
+			if (targetUserList == null || targetUserList.size() == 0){
+				operationObject = pageBase.loadUserSelf();
+			} else {
+				operationObject = targetUserList.get(0).asPrismObject();
+			}
+		}
+		if (operationObject == null){
+			return null;
 		}
 		String targetObjectOid = getModelObject().getTargetRef().getOid();
 
@@ -1243,14 +1152,15 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TARGET_OBJECT);
 		PrismObject<AbstractRoleType> targetRefObject = WebModelServiceUtils.loadObject(AbstractRoleType.class,
 				targetObjectOid, pageBase, task, result);
-		ItemSecurityDecisions decisions = null;
+		ItemSecurityConstraints constraints = null;
 		try{
-			decisions =
-					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(user, targetRefObject);
+			constraints =
+					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject, task, result);
 
-		} catch (SchemaException|SecurityViolationException ex){
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security decisions for assignment items.", ex);
+		} catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException ex){
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load security constraints for assignment items.", ex);
 		}
-		return decisions;
+		return constraints;
 	}
+
 }

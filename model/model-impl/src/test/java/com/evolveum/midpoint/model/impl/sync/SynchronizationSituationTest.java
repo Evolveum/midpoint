@@ -23,9 +23,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public class SynchronizationSituationTest {
 

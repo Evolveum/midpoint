@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * @author lazyman
  * @author mederly
  */
-public class ExistsFilter extends ObjectFilter {
+public class ExistsFilter extends ObjectFilter implements ItemFilter {
 
 	@NotNull private final ItemPath fullPath;
     private ItemDefinition definition;
@@ -44,6 +44,7 @@ public class ExistsFilter extends ObjectFilter {
     }
 
     @NotNull
+    @Override
 	public ItemPath getFullPath() {
         return fullPath;
     }
@@ -85,9 +86,24 @@ public class ExistsFilter extends ObjectFilter {
 
 	@Override
     public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        throw new UnsupportedOperationException();
-    }
-    
+		Item itemToFind = value.findItem(fullPath);
+		if (itemToFind == null || itemToFind.getValues().isEmpty()) {
+			return false;
+		}
+		if (!(itemToFind instanceof PrismContainer)) {
+			throw new SchemaException("Couldn't use exists query to search for items other than containers: " + itemToFind);
+		}
+		if (filter == null) {
+			return true;
+		}
+		for (PrismContainerValue<?> pcv : ((PrismContainer<?>) itemToFind).getValues()) {
+			if (filter.match(pcv, matchingRuleRegistry)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
     @Override
 	public void checkConsistence(boolean requireDefinitions) {
 		if (fullPath.isEmpty()) {
@@ -121,10 +137,10 @@ public class ExistsFilter extends ObjectFilter {
         } else {
             sb.append("null");
         }
+        sb.append("\n");
         if (filter != null) {
             sb.append(filter.debugDump(indent + 1));
         }
-
         return sb.toString();
     }
 

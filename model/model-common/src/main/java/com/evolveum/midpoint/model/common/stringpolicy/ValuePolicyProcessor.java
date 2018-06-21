@@ -16,18 +16,6 @@
 
 package com.evolveum.midpoint.model.common.stringpolicy;
 
-/**
- * Processor for values that match value policies (mostly passwords).
- * This class is supposed to process the parts of the value policy
- * as defined in the ValuePolicyType. So it will validate the values
- * and generate the values. It is NOT supposed to process
- * more complex credential policies such as password lifetime
- * and history.
- * 
- *  @author mamut
- *  @author semancik 
- */
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,27 +24,44 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.LocalizableMessageList;
+import com.evolveum.midpoint.util.LocalizableMessageListBuilder;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.apache.commons.lang.text.StrBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
@@ -65,9 +70,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordLifeTimeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProhibitedValueItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProhibitedValuesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+/**
+ * Processor for values that match value policies (mostly passwords).
+ * This class is supposed to process the parts of the value policy
+ * as defined in the ValuePolicyType. So it will validate the values
+ * and generate the values. It is NOT supposed to process
+ * more complex credential policies such as password lifetime
+ * and history.
+ *
+ *  @author mamut
+ *  @author semancik
+ */
 
 @Component
 public class ValuePolicyProcessor {
@@ -81,75 +105,89 @@ public class ValuePolicyProcessor {
 	private static final String OPERATION_STRING_POLICY_VALIDATION = DOT_CLASS + "stringPolicyValidation";
 	private static final int DEFAULT_MAX_ATTEMPTS = 10;
 	
-	@Autowired
-	private ExpressionFactory expressionFactory;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private Protector protector;
+
+	static class Context {
+		final ItemPath path;
+
+		public Context(ItemPath path) {
+			this.path = defaultIfNull(path, SchemaConstants.PATH_PASSWORD_VALUE);
+		}
+	}
 
 	public ExpressionFactory getExpressionFactory() {
 		return expressionFactory;
 	}
 
+	// Used in tests
 	public void setExpressionFactory(ExpressionFactory expressionFactory) {
 		this.expressionFactory = expressionFactory;
 	}
-
-	public <O extends ObjectType> String generate(StringPolicyType policy, int defaultLength, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
-		return generate(policy, defaultLength, false, object, shortDesc, task, result);
-	}
-
-	public <O extends ObjectType>  String generate(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
-			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
-		
+	
+	public <O extends ObjectType> String generate(ItemPath path, ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
+			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Context ctx = new Context(path);
 		OperationResult result = parentResult.createSubresult(OP_GENERATE);
 		
+		if (policy == null) {
+			//lets create some default policy
+			policy = new ValuePolicyType().stringPolicy(new StringPolicyType().limitations(new LimitationsType().maxLength(defaultLength).minLength(defaultLength)));
+							
+		}
+		
+		StringPolicyType stringPolicy = policy.getStringPolicy();
 		int maxAttempts = DEFAULT_MAX_ATTEMPTS;
-		if (policy.getLimitations() != null && policy.getLimitations().getMaxAttempts() != null) {
-			maxAttempts = policy.getLimitations().getMaxAttempts(); 
+		if (stringPolicy.getLimitations() != null && stringPolicy.getLimitations().getMaxAttempts() != null) {
+			maxAttempts = stringPolicy.getLimitations().getMaxAttempts(); 
 		}
 		if (maxAttempts < 1) {
-			ExpressionEvaluationException e = new ExpressionEvaluationException("Illegal number of maximum value genaration attemps: "+maxAttempts);
+			ExpressionEvaluationException e = new ExpressionEvaluationException("Illegal number of maximum value generation attempts: "+maxAttempts);
 			result.recordFatalError(e);
 			throw e;
 		}
-		String generatedValue = null;
+		String generatedValue;
 		int attempt = 1;
 		for (;;) {
-			generatedValue = generateAttempt(policy, defaultLength, generateMinimalSize, result);
+			generatedValue = generateAttempt(policy, defaultLength, generateMinimalSize, ctx, result);
 			if (result.isError()) {
 				throw new ExpressionEvaluationException(result.getMessage());
 			}
-			if (checkAttempt(generatedValue, policy, object, shortDesc, task, result)) {
+			if (checkAttempt(generatedValue, policy, originResolver, shortDesc, task, result)) {
 				break;
 			}
 			LOGGER.trace("Generator attempt {}: check failed", attempt);
 			if (attempt == maxAttempts) {
-				ExpressionEvaluationException e =  new ExpressionEvaluationException("Unable to genarate value, maximum number of attemps exceeded");
+				ExpressionEvaluationException e =  new ExpressionEvaluationException("Unable to generate value, maximum number of attempts exceeded");
 				result.recordFatalError(e);
 				throw e;
 			}
 			attempt++;
 		}
-		
 		return generatedValue;
-		
 	}
 	
 	public <O extends ObjectType> boolean validateValue(String newValue, ValuePolicyType pp, 
-			PrismObject<O> object, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		return validateValue(newValue, pp, object, new StringBuilder(), shortDesc, task, parentResult);
+			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		return validateValue(newValue, pp, originResolver, new ArrayList<>(), shortDesc, task, parentResult);
 	}
 	
 	public <O extends ObjectType> boolean validateValue(String newValue, ValuePolicyType pp, 
-			PrismObject<O> object, StringBuilder message, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-
-		Validate.notNull(pp, "Password policy must not be null.");
+			AbstractValuePolicyOriginResolver<O> originResolver, List<LocalizableMessage> messages, String shortDesc, Task task,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+		//TODO: do we want to throw exception when no value policy defined??
+		Validate.notNull(pp, "Value policy must not be null.");
 
 		OperationResult result = parentResult.createSubresult(OPERATION_STRING_POLICY_VALIDATION);
-		result.addParam("policyName", pp.getName());
+		result.addArbitraryObjectAsParam("policyName", pp.getName());
 		normalize(pp);
 
-		if (newValue == null && 
-				(pp.getMinOccurs() == null || XsdTypeMapper.multiplicityToInteger(pp.getMinOccurs()) == 0)) {
-			// No password is allowed
+		if (newValue == null &&
+				defaultIfNull(XsdTypeMapper.multiplicityToInteger(pp.getMinOccurs()), 0) == 0) {
+			// No value is allowed
 			result.recordSuccess();
 			return true;
 		}
@@ -160,51 +198,43 @@ public class ValuePolicyProcessor {
 
 		LimitationsType lims = pp.getStringPolicy().getLimitations();
 
-		testMinimalLength(newValue, lims, result, message);
-		testMaximalLength(newValue, lims, result, message);
+		testMinimalLength(newValue, lims, result, messages);
+		testMaximalLength(newValue, lims, result, messages);
 
-		testMinimalUniqueCharacters(newValue, lims, result, message);
-		
-		if (lims.getLimit() == null || lims.getLimit().isEmpty()) {
-			if (message.toString() == null || message.toString().isEmpty()) {
-				result.computeStatus();
-			} else {
-				result.computeStatus(message.toString());
+		testMinimalUniqueCharacters(newValue, lims, result, messages);
 
+		testProhibitedValues(newValue, pp.getProhibitedValues(), originResolver, shortDesc, task, result, messages);
+		testCheckExpression(newValue, lims, originResolver, shortDesc, task, result, messages);
+
+		if (!lims.getLimit().isEmpty()) {
+			// check limitation
+			HashSet<String> validChars;
+			HashSet<String> allValidChars = new HashSet<>();
+			List<String> characters = StringPolicyUtils.stringTokenizer(newValue);
+			for (StringLimitType stringLimitationType : lims.getLimit()) {
+				OperationResult limitResult = new OperationResult("Tested limitation: " + stringLimitationType.getDescription());
+
+				validChars = getValidCharacters(stringLimitationType.getCharacterClass(), pp);
+				int count = countValidCharacters(validChars, characters);
+				allValidChars.addAll(validChars);
+				testMinimalOccurrence(stringLimitationType, count, limitResult, messages);
+				testMaximalOccurrence(stringLimitationType, count, limitResult, messages);
+				testMustBeFirst(stringLimitationType, limitResult, messages, newValue, validChars);
+
+				limitResult.computeStatus();
+				result.addSubresult(limitResult);
 			}
-
-			return result.isAcceptable();
+			testInvalidCharacters(characters, allValidChars, result, messages);
 		}
 
-		// check limitation
-		HashSet<String> validChars = null;
-		HashSet<String> allValidChars = new HashSet<>();
-		List<String> passwd = StringPolicyUtils.stringTokenizer(newValue);
-		for (StringLimitType stringLimitationType : lims.getLimit()) {
-			OperationResult limitResult = new OperationResult(
-					"Tested limitation: " + stringLimitationType.getDescription());
-
-			validChars = getValidCharacters(stringLimitationType.getCharacterClass(), pp);
-			int count = countValidCharacters(validChars, passwd);
-			allValidChars.addAll(validChars);
-			testMinimalOccurence(stringLimitationType, count, limitResult, message);
-			testMaximalOccurence(stringLimitationType, count, limitResult, message);
-			testMustBeFirst(stringLimitationType, count, limitResult, message, newValue, validChars);
-
-			limitResult.computeStatus();
-			result.addSubresult(limitResult);
+		result.computeStatus();
+		if (!result.isSuccess() && !messages.isEmpty()) {
+			result.setUserFriendlyMessage(
+					new LocalizableMessageListBuilder()
+							.messages(messages)
+							.separator(LocalizableMessageList.SPACE)
+							.buildOptimized());
 		}
-		testInvalidCharacters(passwd, allValidChars, result, message);
-		
-		testCheckExpression(newValue, lims, object, shortDesc, task, result, message);
-
-		if (message.toString() == null || message.toString().isEmpty()) {
-			result.computeStatus();
-		} else {
-			result.computeStatus(message.toString());
-
-		}
-
 		return result.isAcceptable();
 	}
 	
@@ -231,70 +261,49 @@ public class ValuePolicyProcessor {
 			lt.setMinPasswordAge(0);
 			lt.setPasswordHistoryLength(0);
 		}
-		return;
 	}
 	
-	private void testMustBeFirst(StringLimitType stringLimitationType, int count,
-			OperationResult limitResult, StringBuilder message, String password, Set<String> validChars) {
-		// test if first character is valid
-		if (stringLimitationType.isMustBeFirst() == null) {
-			stringLimitationType.setMustBeFirst(false);
+	private void testMustBeFirst(StringLimitType stringLimitation, OperationResult result, List<LocalizableMessage> messages,
+			String value, Set<String> validFirstChars) {
+		if (StringUtils.isNotEmpty(value) && isTrue(stringLimitation.isMustBeFirst()) && !validFirstChars.contains(value.substring(0, 1))) {
+			LocalizableMessage msg = new LocalizableMessageBuilder()
+					.key("ValuePolicy.firstCharacterNotAllowed")
+					.arg(validFirstChars.toString())
+					.build();
+			result.addSubresult(new OperationResult("Check valid first char", OperationResultStatus.FATAL_ERROR, msg));
+			messages.add(msg);
 		}
-		// we check mustBeFirst only for non-empty passwords
-		if (StringUtils.isNotEmpty(password) && stringLimitationType.isMustBeFirst()
-				&& !validChars.contains(password.substring(0, 1))) {
-			String msg = "First character is not from allowed set. Allowed set: " + validChars.toString();
-			limitResult.addSubresult(
-					new OperationResult("Check valid first char", OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
-		}
-		// else {
-		// limitResult.addSubresult(new OperationResult("Check valid first char
-		// in password OK.",
-		// OperationResultStatus.SUCCESS, "PASSED"));
-		// }
-
 	}
 
-	private void testMaximalOccurence(StringLimitType stringLimitationType, int count,
-			OperationResult limitResult, StringBuilder message) {
-		// Test maximal occurrence
-		if (stringLimitationType.getMaxOccurs() != null) {
-
-			if (stringLimitationType.getMaxOccurs() < count) {
-				String msg = "Required maximal occurrence (" + stringLimitationType.getMaxOccurs()
-						+ ") of characters (" + stringLimitationType.getDescription()
-						+ ") in password was exceeded (occurrence of characters in password " + count + ").";
-				limitResult.addSubresult(new OperationResult("Check maximal occurrence of characters",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			}
-			// else {
-			// limitResult.addSubresult(new OperationResult(
-			// "Check maximal occurrence of characters in password OK.",
-			// OperationResultStatus.SUCCESS,
-			// "PASSED"));
-			// }
+	private void testMaximalOccurrence(StringLimitType stringLimitation, int count, OperationResult result, List<LocalizableMessage> messages) {
+		if (stringLimitation.getMaxOccurs() == null) {
+			return;
 		}
-
+		if (count > stringLimitation.getMaxOccurs()) {
+			LocalizableMessage msg = new LocalizableMessageBuilder()
+					.key("ValuePolicy.maximalOccurrenceExceeded")
+					.arg(stringLimitation.getMaxOccurs())
+					.arg(stringLimitation.getDescription())
+					.arg(count)
+					.build();
+			result.addSubresult(new OperationResult("Check maximal occurrence of characters", OperationResultStatus.FATAL_ERROR, msg));
+			messages.add(msg);
+		}
 	}
 
-	private void testMinimalOccurence(StringLimitType stringLimitation, int count,
-			OperationResult result, StringBuilder message) {
-		// Test minimal occurrence
+	private void testMinimalOccurrence(StringLimitType stringLimitation, int count, OperationResult result, List<LocalizableMessage> messages) {
 		if (stringLimitation.getMinOccurs() == null) {
-			stringLimitation.setMinOccurs(0);
+			return;
 		}
-		if (stringLimitation.getMinOccurs() > count) {
-			String msg = "Required minimal occurrence (" + stringLimitation.getMinOccurs()
-					+ ") of characters (" + stringLimitation.getDescription()
-					+ ") in password is not met (occurrence of characters in password " + count + ").";
-			result.addSubresult(new OperationResult("Check minimal occurrence of characters",
-					OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
+		if (count < stringLimitation.getMinOccurs()) {
+			LocalizableMessage msg = new LocalizableMessageBuilder()
+					.key("ValuePolicy.minimalOccurrenceNotMet")
+					.arg(stringLimitation.getMinOccurs())
+					.arg(stringLimitation.getDescription())
+					.arg(count)
+					.build();
+			result.addSubresult(new OperationResult("Check minimal occurrence of characters", OperationResultStatus.FATAL_ERROR, msg));
+			messages.add(msg);
 		}
 	}
 
@@ -311,117 +320,186 @@ public class ValuePolicyProcessor {
 	private HashSet<String> getValidCharacters(CharacterClassType characterClassType,
 			ValuePolicyType passwordPolicy) {
 		if (null != characterClassType.getValue()) {
-			return new HashSet<String>(StringPolicyUtils.stringTokenizer(characterClassType.getValue()));
+			return new HashSet<>(StringPolicyUtils.stringTokenizer(characterClassType.getValue()));
 		} else {
-			return new HashSet<String>(StringPolicyUtils.stringTokenizer(StringPolicyUtils
+			return new HashSet<>(StringPolicyUtils.stringTokenizer(StringPolicyUtils
 					.collectCharacterClass(passwordPolicy.getStringPolicy().getCharacterClass(),
 							characterClassType.getRef())));
 		}
 	}
 
 	private void testMinimalUniqueCharacters(String password, LimitationsType limitations,
-			OperationResult result, StringBuilder message) {
-		// Test uniqueness criteria
-		HashSet<String> tmp = new HashSet<String>(StringPolicyUtils.stringTokenizer(password));
-		if (limitations.getMinUniqueChars() != null) {
-			if (limitations.getMinUniqueChars() > tmp.size()) {
-				String msg = "Required minimal count of unique characters (" + limitations.getMinUniqueChars()
-						+ ") in password are not met (unique characters in password " + tmp.size() + ")";
-				result.addSubresult(new OperationResult("Check minimal count of unique chars",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			}
-
+			OperationResult result, List<LocalizableMessage> message) {
+		if (limitations.getMinUniqueChars() == null) {
+			return;
+		}
+		HashSet<String> distinctCharacters = new HashSet<>(StringPolicyUtils.stringTokenizer(password));
+		if (limitations.getMinUniqueChars() > distinctCharacters.size()) {
+			LocalizableMessage msg = new LocalizableMessageBuilder()
+					.key("ValuePolicy.minimalUniqueCharactersNotMet")
+					.arg(limitations.getMinUniqueChars())
+					.arg(distinctCharacters.size())
+					.build();
+			result.addSubresult(new OperationResult("Check minimal count of unique chars", OperationResultStatus.FATAL_ERROR, msg));
+			message.add(msg);
 		}
 	}
 
-	private void testMinimalLength(String password, LimitationsType limitations,
-			OperationResult result, StringBuilder message) {
-		// Test minimal length
+	private void testMinimalLength(String value, LimitationsType limitations, OperationResult result, List<LocalizableMessage> messages) {
 		if (limitations.getMinLength() == null) {
-			limitations.setMinLength(0);
+			return;
 		}
-		if (limitations.getMinLength() > password.length()) {
-			String msg = "Required minimal size (" + limitations.getMinLength()
-					+ ") of password is not met (password length: " + password.length() + ")";
-			result.addSubresult(new OperationResult("Check global minimal length",
-					OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
+		if (value.length() < limitations.getMinLength()) {
+			LocalizableMessage msg = new LocalizableMessageBuilder()
+					.key("ValuePolicy.minimalSizeNotMet")
+					.arg(limitations.getMinLength())
+					.arg(value.length())
+					.build();
+			result.addSubresult(new OperationResult("Check global minimal length", OperationResultStatus.FATAL_ERROR, msg));
+			messages.add(msg);
 		}
 	}
 
-	private void testMaximalLength(String password, LimitationsType limitations,
-			OperationResult result, StringBuilder message) {
-		// Test maximal length
-		if (limitations.getMaxLength() != null) {
-			if (limitations.getMaxLength() < password.length()) {
-				String msg = "Required maximal size (" + limitations.getMaxLength()
-						+ ") of password was exceeded (password length: " + password.length() + ").";
-				result.addSubresult(new OperationResult("Check global maximal length",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
-			}
+	private void testMaximalLength(String value, LimitationsType limitations, OperationResult result, List<LocalizableMessage> messages) {
+		if (limitations.getMaxLength() == null) {
+			return;
+		}
+		if (value.length() > limitations.getMaxLength()) {
+			LocalizableMessage msg = new LocalizableMessageBuilder()
+					.key("ValuePolicy.maximalSizeExceeded")
+					.arg(limitations.getMaxLength())
+					.arg(value.length())
+					.build();
+			result.addSubresult(new OperationResult("Check global maximal length", OperationResultStatus.FATAL_ERROR, msg));
+			messages.add(msg);
 		}
 	}
 	
-	private void testInvalidCharacters(List<String> password, HashSet<String> validChars,
-			OperationResult result, StringBuilder message) {
-
-		// Check if there is no invalid character
+	private void testInvalidCharacters(List<String> valueCharacters, HashSet<String> validChars, OperationResult result, List<LocalizableMessage> message) {
 		StringBuilder invalidCharacters = new StringBuilder();
-		for (String s : password) {
-			if (!validChars.contains(s)) {
-				// memorize all invalid characters
-				invalidCharacters.append(s);
+		for (String character : valueCharacters) {
+			if (!validChars.contains(character)) {
+				invalidCharacters.append(character);
 			}
 		}
 		if (invalidCharacters.length() > 0) {
-			String msg = "Characters [ " + invalidCharacters + " ] are not allowed in password";
-			result.addSubresult(new OperationResult("Check if password does not contain invalid characters",
-					OperationResultStatus.FATAL_ERROR, msg));
-			message.append(msg);
-			message.append("\n");
+			LocalizableMessage msg = new LocalizableMessageBuilder()
+					.key("ValuePolicy.charactersNotAllowed")
+					.arg(invalidCharacters)
+					.build();
+			result.addSubresult(new OperationResult("Check if value does not contain invalid characters", OperationResultStatus.FATAL_ERROR, msg));
+			message.add(msg);
 		}
-		// else {
-		// ret.addSubresult(new OperationResult("Check if password does not
-		// contain invalid characters OK.",
-		// OperationResultStatus.SUCCESS, "PASSED"));
-		// }
-
 	}
 	
-	private <O extends ObjectType> void testCheckExpression(String newPassword, LimitationsType lims, PrismObject<O> object,
-			String shortDesc, Task task, OperationResult result, StringBuilder message) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-
-		List<CheckExpressionType> checkExpressions = lims.getCheckExpression();
-		if (checkExpressions.isEmpty()) {
-			return;
-		}
-		for (CheckExpressionType checkExpression: checkExpressions) {
+	private <O extends ObjectType> void testCheckExpression(String newPassword, LimitationsType lims,
+			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result,
+			List<LocalizableMessage> messages) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+		for (CheckExpressionType checkExpression: lims.getCheckExpression()) {
 			ExpressionType expressionType = checkExpression.getExpression();
 			if (expressionType == null) {
 				return;
 			}
-			if (!checkExpression(newPassword, expressionType, object, shortDesc, task, result)) {
-				String msg = checkExpression.getFailureMessage();
-				if (msg == null) {
-					msg = "Check expression failed";
+			if (!checkExpression(newPassword, expressionType, originResolver, shortDesc, task, result)) {
+				LocalizableMessage msg;
+				if (checkExpression.getLocalizableFailureMessage() != null) {
+					msg = LocalizationUtil.toLocalizableMessage(checkExpression.getLocalizableFailureMessage());
+				} else if (checkExpression.getFailureMessage() != null) {
+					msg = LocalizableMessageBuilder.buildFallbackMessage(checkExpression.getFailureMessage());
+				} else {
+					msg = LocalizableMessageBuilder.buildKey("ValuePolicy.checkExpressionFailed");
 				}
-				result.addSubresult(new OperationResult("Check expression",
-						OperationResultStatus.FATAL_ERROR, msg));
-				message.append(msg);
-				message.append("\n");
+				result.addSubresult(new OperationResult("Check expression", OperationResultStatus.FATAL_ERROR, msg));
+				messages.add(msg);
 			}
 		}
-
 	}
 	
-	private String generateAttempt(StringPolicyType policy, int defaultLength, boolean generateMinimalSize,
-			OperationResult result) {
+	private <O extends ObjectType> void testProhibitedValues(String newPassword, ProhibitedValuesType prohibitedValuesType,
+			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result,
+			List<LocalizableMessage> messages) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
+		if (prohibitedValuesType == null || originResolver == null) {
+			return;
+		}
+		Consumer<ProhibitedValueItemType> failAction = (prohibitedItemType) -> {
+			LocalizableMessage msg = new LocalizableMessageBuilder()
+					.key("ValuePolicy.prohibitedValue")
+					.build();
+			result.addSubresult(new OperationResult("Prohibited value", OperationResultStatus.FATAL_ERROR, msg));
+			messages.add(msg);
+		};
+		checkProhibitedValues(newPassword, prohibitedValuesType, originResolver, failAction, shortDesc, task, result);
+	}
+	
+	private <O extends ObjectType, R extends ObjectType> boolean checkProhibitedValues(String newPassword, ProhibitedValuesType prohibitedValuesType, AbstractValuePolicyOriginResolver<O> originResolver,
+			Consumer<ProhibitedValueItemType> failAction, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+		if (prohibitedValuesType == null || originResolver == null) {
+			return true;
+		}
+		
+		MutableBoolean isAcceptable = new MutableBoolean(true);
+		for (ProhibitedValueItemType prohibitedItemType: prohibitedValuesType.getItem()) {
+			
+			ItemPathType itemPathType = prohibitedItemType.getPath();
+			if (itemPathType == null) {
+				throw new SchemaException("No item path defined in prohibited item in "+shortDesc);
+			}
+			ItemPath itemPath = itemPathType.getItemPath();
+			
+			ResultHandler<R> handler = (object, objectResult) -> {
+				
+				PrismProperty<Object> objectProperty = object.findProperty(itemPath);
+				if (objectProperty == null) {
+					return true;
+				}
+				
+				if (isMatching(newPassword, objectProperty)) {
+					if (failAction != null) {
+						failAction.accept(prohibitedItemType);
+					}
+					isAcceptable.setValue(false);
+					return false;
+				}
+				
+				return true;
+			};
+			originResolver.resolve(handler, prohibitedItemType, shortDesc, task, result);			
+		}
+
+		return isAcceptable.booleanValue();
+	}
+	
+	private boolean isMatching(String newPassword, PrismProperty<Object> objectProperty) {
+		for (Object objectRealValue: objectProperty.getRealValues()) {
+			if (objectRealValue instanceof String) {
+				if (newPassword.equals(objectRealValue)) {
+					return true;
+				}
+			} else if (objectRealValue instanceof ProtectedStringType) {
+				ProtectedStringType newPasswordPs = new ProtectedStringType();
+				newPasswordPs.setClearValue(newPassword);
+				try {
+					if (protector.compare(newPasswordPs, (ProtectedStringType)objectRealValue)) {
+						return true;
+					}
+				} catch (SchemaException | EncryptionException e) {
+					throw new SystemException(e);
+				}
+			} else {
+				if (newPassword.equals(objectRealValue.toString())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private String generateAttempt(ValuePolicyType policy, int defaultLength, boolean generateMinimalSize, Context ctx, OperationResult result) {
+
+		StringPolicyType stringPolicy = policy.getStringPolicy();
 		// if (policy.getLimitations() != null &&
 		// policy.getLimitations().getMinLength() != null){
 		// generateMinimalSize = true;
@@ -431,38 +509,33 @@ public class ValuePolicyProcessor {
 
 		// Optimize usage of limits ass hashmap of limitas and key is set of
 		// valid chars for each limitation
-		Map<StringLimitType, List<String>> lims = new HashMap<StringLimitType, List<String>>();
+		Map<StringLimitType, List<String>> lims = new HashMap<>();
 		int minLen = defaultLength;
 		int maxLen = defaultLength;
 		int unique = defaultLength / 2;
-		if (policy != null) {
-			for (StringLimitType l : policy.getLimitations().getLimit()) {
+		if (stringPolicy != null) {
+			for (StringLimitType l : stringPolicy.getLimitations().getLimit()) {
 				if (null != l.getCharacterClass().getValue()) {
 					lims.put(l, StringPolicyUtils.stringTokenizer(l.getCharacterClass().getValue()));
 				} else {
 					lims.put(l, StringPolicyUtils.stringTokenizer(StringPolicyUtils.collectCharacterClass(
-							policy.getCharacterClass(), l.getCharacterClass().getRef())));
+							stringPolicy.getCharacterClass(), l.getCharacterClass().getRef())));
 				}
 			}
 
 			// Get global limitations
-			minLen = policy.getLimitations().getMinLength() == null ? 0
-					: policy.getLimitations().getMinLength().intValue();
+			minLen = defaultIfNull(stringPolicy.getLimitations().getMinLength(), 0);
 			if (minLen != 0 && minLen > defaultLength) {
 				defaultLength = minLen;
 			}
-			maxLen = (policy.getLimitations().getMaxLength() == null ? 0
-					: policy.getLimitations().getMaxLength().intValue());
-			unique = policy.getLimitations().getMinUniqueChars() == null ? minLen
-					: policy.getLimitations().getMinUniqueChars().intValue();
-
-		} 
+			maxLen = defaultIfNull(stringPolicy.getLimitations().getMaxLength(), 0);
+			unique = defaultIfNull(stringPolicy.getLimitations().getMinUniqueChars(), minLen);
+		}
 		// test correctness of definition
 		if (unique > minLen) {
 			minLen = unique;
 			OperationResult reportBug = new OperationResult("Global limitation check");
-			reportBug.recordWarning(
-					"There is more required uniq characters then definied minimum. Raise minimum to number of required uniq chars.");
+			reportBug.recordWarning("There is more required unique characters then defined minimum. Raise minimum to number of required unique chars.");
 		}
 
 		if (minLen == 0 && maxLen == 0) {
@@ -486,10 +559,11 @@ public class ValuePolicyProcessor {
 		 * ********************************** Try to find best characters to be
 		 * first in password
 		 */
-		Map<StringLimitType, List<String>> mustBeFirst = new HashMap<StringLimitType, List<String>>();
-		for (StringLimitType l : lims.keySet()) {
-			if (l.isMustBeFirst() != null && l.isMustBeFirst()) {
-				mustBeFirst.put(l, lims.get(l));
+		Map<StringLimitType, List<String>> mustBeFirst = new HashMap<>();
+		for (Map.Entry<StringLimitType, List<String>> entry : lims.entrySet()) {
+			final StringLimitType key = entry.getKey();
+			if (key.isMustBeFirst() != null && key.isMustBeFirst()) {
+				mustBeFirst.put(key, entry.getValue());
 			}
 		}
 
@@ -502,13 +576,13 @@ public class ValuePolicyProcessor {
 			// If no intersection was found then raise error
 			if (null == intersectionCharacters || intersectionCharacters.size() == 0) {
 				result.recordFatalError(
-						"No intersection for required first character sets in password policy:"
-								+ policy.getDescription());
+						"No intersection for required first character sets in value policy:"
+								+ stringPolicy.getDescription());
 				// Log error
 				if (LOGGER.isErrorEnabled()) {
 					LOGGER.error(
-							"Unable to generate password: No intersection for required first character sets in password policy: ["
-									+ policy.getDescription()
+							"Unable to generate value for " + ctx.path + ": No intersection for required first character sets in value policy: ["
+									+ stringPolicy.getDescription()
 									+ "] following character limitation and sets are used:");
 					for (StringLimitType l : mustBeFirst.keySet()) {
 						StrBuilder tmp = new StrBuilder();
@@ -524,7 +598,7 @@ public class ValuePolicyProcessor {
 					StrBuilder tmp = new StrBuilder();
 					tmp.appendSeparator(", ");
 					tmp.appendAll(intersectionCharacters);
-					LOGGER.trace("Generate first character intersection items [" + tmp + "] into password.");
+					LOGGER.trace("Generate first character intersection items [" + tmp + "] into " + ctx.path + ".");
 				}
 				// Generate random char into password from intersection
 				password.append(intersectionCharacters.get(RAND.nextInt(intersectionCharacters.size())));
@@ -571,7 +645,7 @@ public class ValuePolicyProcessor {
 		// test if maximum is not exceeded
 		if (password.length() > maxLen) {
 			result.recordFatalError(
-					"Unable to meet minimal criteria and not exceed maximxal size of password.");
+					"Unable to meet minimal criteria and not exceed maximal size of " + ctx.path + ".");
 			return null;
 		}
 
@@ -637,10 +711,10 @@ public class ValuePolicyProcessor {
 
 		if (password.length() < minLen) {
 			result.recordFatalError(
-					"Unable to generate password and meet minimal size of password. Password lenght: "
+					"Unable to generate value for " + ctx.path + " and meet minimal size of " + ctx.path + ". Actual length: "
 							+ password.length() + ", required: " + minLen);
 			LOGGER.trace(
-					"Unable to generate password and meet minimal size of password. Password lenght: {}, required: {}",
+					"Unable to generate value for " + ctx.path + " and meet minimal size of " + ctx.path + ". Actual length: {}, required: {}",
 					password.length(), minLen);
 			return null;
 		}
@@ -656,34 +730,43 @@ public class ValuePolicyProcessor {
 		return sb.toString();
 	}
 
-	private <O extends ObjectType> boolean checkAttempt(String generatedValue, StringPolicyType policy, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		LimitationsType limitationsType = policy.getLimitations();
-		if (limitationsType == null) {
-			return true;
+	private <O extends ObjectType> boolean checkAttempt(String generatedValue, ValuePolicyType policy, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		StringPolicyType stringPolicy = policy.getStringPolicy();
+		if (stringPolicy != null) {
+			LimitationsType limitationsType = stringPolicy.getLimitations();
+			if (limitationsType != null) {
+				List<CheckExpressionType> checkExpressionTypes = limitationsType.getCheckExpression();
+				if (!checkExpressions(generatedValue, checkExpressionTypes, originResolver, shortDesc, task, result)) {
+					LOGGER.trace("Check expression returned false for generated value in {}", shortDesc);
+					return false;
+				}
+			}
 		}
-		List<CheckExpressionType> checkExpressionTypes = limitationsType.getCheckExpression();
-		if (!checkExpressions(generatedValue, checkExpressionTypes, object, shortDesc, task, result)) {
-			LOGGER.trace("Check expression returned false for generated value in {}", shortDesc);
+		if (!checkProhibitedValues(generatedValue, policy.getProhibitedValues(), originResolver, null, shortDesc, task, result)) {
+			LOGGER.trace("Generated value is prohibited in {}", shortDesc);
 			return false;
 		}
 		// TODO Check pattern
 		return true;
 	}
 	
-	private <O extends ObjectType> boolean checkExpressions(String generatedValue, List<CheckExpressionType> checkExpressionTypes, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <O extends ObjectType> boolean checkExpressions(String generatedValue, List<CheckExpressionType> checkExpressionTypes, AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		for (CheckExpressionType checkExpressionType: checkExpressionTypes) {
 			ExpressionType expression = checkExpressionType.getExpression();
-			if (!checkExpression(generatedValue, expression, object, shortDesc, task, result)) {
+			if (!checkExpression(generatedValue, expression, originResolver, shortDesc, task, result)) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	public <O extends ObjectType> boolean checkExpression(String generatedValue, ExpressionType checkExpression, PrismObject<O> object, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <O extends ObjectType> boolean checkExpression(String generatedValue, ExpressionType checkExpression,
+			AbstractValuePolicyOriginResolver<O> originResolver, String shortDesc, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, generatedValue);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, object);
+		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, originResolver == null ? null : originResolver.getObject());
 		PrismPropertyValue<Boolean> output = ExpressionUtil.evaluateCondition(variables, checkExpression, expressionFactory, shortDesc, task, result);
 		return ExpressionUtil.getBooleanConditionOutput(output);
 	}
@@ -693,28 +776,30 @@ public class ValuePolicyProcessor {
 	 */
 	private Map<Integer, List<String>> cardinalityCounter(Map<StringLimitType, List<String>> lims,
 			List<String> password, Boolean skipMatchedLims, boolean uniquenessReached, OperationResult op) {
-		HashMap<String, Integer> counter = new HashMap<String, Integer>();
+		HashMap<String, Integer> counter = new HashMap<>();
 
-		for (StringLimitType l : lims.keySet()) {
+		Map<StringLimitType, List<String>> mustBeFirst = new HashMap<>();
+		for (Map.Entry<StringLimitType, List<String>> entry : lims.entrySet()) {
+			final StringLimitType key = entry.getKey();
 			int counterKey = 1;
-			List<String> chars = lims.get(l);
+			List<String> chars = entry.getValue();
 			int i = 0;
 			if (null != password) {
-				i = charIntersectionCounter(lims.get(l), password);
+				i = charIntersectionCounter(entry.getValue(), password);
 			}
 			// If max is exceed then error unable to continue
-			if (l.getMaxOccurs() != null && i > l.getMaxOccurs()) {
-				OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
+			if (key.getMaxOccurs() != null && i > key.getMaxOccurs()) {
+				OperationResult o = new OperationResult("Limitation check :" + key.getDescription());
 				o.recordFatalError(
-						"Exceeded maximal value for this limitation. " + i + ">" + l.getMaxOccurs());
+					"Exceeded maximal value for this limitation. " + i + ">" + key.getMaxOccurs());
 				op.addSubresult(o);
 				return null;
 				// if max is all ready reached or skip enabled for minimal skip
 				// counting
-			} else if (l.getMaxOccurs() != null && i == l.getMaxOccurs()) {
+			} else if (key.getMaxOccurs() != null && i == key.getMaxOccurs()) {
 				continue;
 				// other cases minimum is not reached
-			} else if ((l.getMinOccurs() == null || i >= l.getMinOccurs()) && !skipMatchedLims) {
+			} else if ((key.getMinOccurs() == null || i >= key.getMinOccurs()) && !skipMatchedLims) {
 				continue;
 			}
 			for (String s : chars) {
@@ -727,8 +812,8 @@ public class ValuePolicyProcessor {
 				}
 			}
 			counterKey++;
-
 		}
+
 
 		// If need to remove disabled chars (already reached limitations)
 		if (null != password) {
@@ -751,12 +836,10 @@ public class ValuePolicyProcessor {
 		}
 
 		// Transpone to better format
-		Map<Integer, List<String>> ret = new HashMap<Integer, List<String>>();
+		Map<Integer, List<String>> ret = new HashMap<>();
 		for (String s : counter.keySet()) {
 			// if not there initialize
-			if (null == ret.get(counter.get(s))) {
-				ret.put(counter.get(s), new ArrayList<String>());
-			}
+			ret.computeIfAbsent(counter.get(s), k -> new ArrayList<>());
 			ret.get(counter.get(s)).add(s);
 		}
 		return ret;

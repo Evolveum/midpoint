@@ -46,8 +46,8 @@ public class MyPasswordQuestionsPanel extends InputPanel {
 
 	/*
 	 * public void initLayout(){
-	 * 
-	 * 
+	 *
+	 *
 	 * // final Label question = new Label (F_QUESTION, new
 	 * PropertyModel(model,SecurityQuestionAnswerDTO
 	 * .F_PASSWORD_QUESTION_ITSELF)); final Label question = new Label
@@ -59,12 +59,12 @@ public class MyPasswordQuestionsPanel extends InputPanel {
 	 * answer = new TextField<String>(F_ANSWER, new PropertyModel(model,
 	 * SecurityQuestionAnswerDTO.F_PASSWORD_QUESTION_ANSWER));
 	 * answer.setRequired(true); answer.setOutputMarkupId(true); add(answer);
-	 * 
+	 *
 	 * }
 	 */
 	@Override
 	public List<FormComponent> getFormComponents() {
-		List<FormComponent> list = new ArrayList<FormComponent>();
+		List<FormComponent> list = new ArrayList<>();
 		list.add((FormComponent) get(F_QUESTION));
 		list.add((FormComponent) get(F_ANSWER));
 

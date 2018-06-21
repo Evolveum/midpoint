@@ -28,7 +28,7 @@ public class PerfRecorder {
 	private Double min = null;
 	private Double max = null;
 	private Double sum = 0D;
-	
+
 	public PerfRecorder(String name) {
 		super();
 		this.name = name;
@@ -68,12 +68,12 @@ public class PerfRecorder {
 	public void assertAverageBelow(double expected) {
 		AssertJUnit.assertTrue(name+ ": Expected average below "+expected+" but was "+getAverage(), getAverage() < expected);
 	}
-	
+
 	public void assertMaxBelow(double expected) {
-		AssertJUnit.assertTrue(name+ ": Expected maximum below "+expected+" but was "+max, max < expected);		
+		AssertJUnit.assertTrue(name+ ": Expected maximum below "+expected+" but was "+max, max < expected);
 	}
 
-	
+
 	public String dump() {
 		return name + ": min / avg / max = "+min+" / "+getAverage()+" / "+max + " (sum="+sum+", count="+count+")";
 	}

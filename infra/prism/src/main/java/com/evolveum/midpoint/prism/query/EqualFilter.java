@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -71,7 +72,7 @@ public class EqualFilter<T> extends PropertyValueFilter<T> implements Itemable {
 	@NotNull
 	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
 			@Nullable QName matchingRule) {
-		return new EqualFilter<T>(path, definition, matchingRule, null, null, null, null);
+		return new EqualFilter<>(path, definition, matchingRule, null, null, null, null);
 	}
 
 	// values
@@ -79,7 +80,7 @@ public class EqualFilter<T> extends PropertyValueFilter<T> implements Itemable {
 	public static <T> EqualFilter<T> createEqual(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> definition,
 			@Nullable QName matchingRule, @NotNull PrismContext prismContext, Object... values) {
 		List<PrismPropertyValue<T>> propertyValues = anyArrayToPropertyValueList(prismContext, values);
-		return new EqualFilter<T>(path, definition, matchingRule, propertyValues, null, null, null);
+		return new EqualFilter<>(path, definition, matchingRule, propertyValues, null, null, null);
 	}
 
 	// expression-related
@@ -109,21 +110,21 @@ public class EqualFilter<T> extends PropertyValueFilter<T> implements Itemable {
 	}
 
 	@Override
-	public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		if (!super.match(cvalue, matchingRuleRegistry)){
+	public boolean match(PrismContainerValue objectValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		if (!super.match(objectValue, matchingRuleRegistry)){
 			return false;
 		}
-		Item objectItem = getObjectItem(cvalue);
-		if (objectItem == null || objectItem.isEmpty()) {
+		Collection<PrismValue> objectItemValues = getObjectItemValues(objectValue);
+		if (objectItemValues.isEmpty()) {
 			return true;					// because filter item is empty as well (checked by super.match)
 		}
 		Item filterItem = getFilterItem();
 		MatchingRule<?> matchingRule = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
-		for (Object filterValue : filterItem.getValues()) {
-			checkPrismPropertyValue(filterValue);
-			for (Object objectValue : objectItem.getValues()) {
-				checkPrismPropertyValue(objectValue);
-				if (matches((PrismPropertyValue<?>) filterValue, (PrismPropertyValue<?>) objectValue, matchingRule)) {
+		for (Object filterItemValue : filterItem.getValues()) {
+			checkPrismPropertyValue(filterItemValue);
+			for (Object objectItemValue : objectItemValues) {
+				checkPrismPropertyValue(objectItemValue);
+				if (matches((PrismPropertyValue<?>) filterItemValue, (PrismPropertyValue<?>) objectItemValue, matchingRule)) {
 					return true;
 				}
 			}

@@ -49,4 +49,12 @@ public class RFocusPhotoId implements Serializable {
     public int hashCode() {
         return ownerOid != null ? ownerOid.hashCode() : 0;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("RFocusPhotoId{");
+        sb.append("ownerOid='").append(ownerOid).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ public class ServicesStorage implements PageStorage{
 
 	private Search servicesSearch;
 	private ObjectPaging servicesPaging;
-	
+
 	@Override
 	public Search getSearch() {
 		return servicesSearch;
@@ -38,7 +38,7 @@ public class ServicesStorage implements PageStorage{
 	@Override
 	public void setPaging(ObjectPaging paging) {
 		this.servicesPaging = paging;
-		
+
 	}
 
 	@Override

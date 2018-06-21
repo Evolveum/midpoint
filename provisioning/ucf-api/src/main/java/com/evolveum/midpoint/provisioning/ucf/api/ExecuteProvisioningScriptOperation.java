@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 
 /**
- * 
+ *
  * @author Radovan Semancik
  */
 public class ExecuteProvisioningScriptOperation extends Operation {
@@ -38,14 +39,16 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 	private String language;
 
 	private BeforeAfterType scriptOrder;
-	
+
+	private CriticalityType criticality;
+
 	public ExecuteProvisioningScriptOperation() {
 
 	}
 
 	public List<ExecuteScriptArgument> getArgument() {
 		if (argument == null){
-			argument = new ArrayList<ExecuteScriptArgument>();
+			argument = new ArrayList<>();
 		}
 		return argument;
 	}
@@ -90,12 +93,21 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 		this.scriptOrder = scriptOrder;
 	}
 
+	public CriticalityType getCriticality() {
+		return criticality;
+	}
+
+	public void setCriticality(CriticalityType criticality) {
+		this.criticality = criticality;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((argument == null) ? 0 : argument.hashCode());
 		result = prime * result + (connectorHost ? 1231 : 1237);
+		result = prime * result + ((criticality == null) ? 0 : criticality.hashCode());
 		result = prime * result + ((language == null) ? 0 : language.hashCode());
 		result = prime * result + (resourceHost ? 1231 : 1237);
 		result = prime * result + ((scriptOrder == null) ? 0 : scriptOrder.hashCode());
@@ -123,6 +135,9 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 			return false;
 		}
 		if (connectorHost != other.connectorHost) {
+			return false;
+		}
+		if (criticality != other.criticality) {
 			return false;
 		}
 		if (language == null) {
@@ -161,7 +176,7 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 	public String toString() {
 		return "ExecuteProvisioningScriptOperation(" + toStringInternal() + ")";
 	}
-	
+
 	private String toStringInternal() {
 		StringBuilder sb = new StringBuilder();
 		if (connectorHost) {
@@ -177,6 +192,9 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 		} else {
 			sb.append(textCode.substring(0, DEBUG_MAX_CODE_LENGTH));
 			sb.append(" ...(truncated)...");
+		}
+		if (criticality != null) {
+			sb.append(" criticality=").append(criticality.value());
 		}
 		return sb.toString();
 	}

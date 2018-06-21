@@ -50,12 +50,12 @@ public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T
             @Override
             public List<InlineMenuItem> load() {
                 if (!(rowModel.getObject() instanceof InlineMenuable)) {
-                    return new ArrayList<InlineMenuItem>();
+                    return new ArrayList<>();
                 }
 
                 T row = rowModel.getObject();
                 if (row.getMenuItems() == null) {
-                    return new ArrayList<InlineMenuItem>();
+                    return new ArrayList<>();
                 }
 
                 for (InlineMenuItem item : row.getMenuItems()) {

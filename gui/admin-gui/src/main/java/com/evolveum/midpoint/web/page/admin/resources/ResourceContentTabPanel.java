@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,13 +127,13 @@ public class ResourceContentTabPanel extends Panel {
 	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
 		setOutputMarkupId(true);
 
-		final Form mainForm = new Form(ID_MAIN_FORM);
+		final Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		mainForm.setOutputMarkupId(true);
 		mainForm.addOrReplace(initTable(model));
 		add(mainForm);
 
 		AutoCompleteTextPanel<String> intent = new AutoCompleteTextPanel<String>(ID_INTENT,
-				new PropertyModel<String>(resourceContentSearch, "intent"), String.class) {
+            new PropertyModel<>(resourceContentSearch, "intent"), String.class) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -200,7 +200,7 @@ public class ResourceContentTabPanel extends Panel {
 		add(realObjectClassLabel);
 
 		AutoCompleteQNamePanel objectClassPanel = new AutoCompleteQNamePanel(ID_OBJECT_CLASS,
-				new PropertyModel<QName>(resourceContentSearch, "objectClass")) {
+            new PropertyModel<>(resourceContentSearch, "objectClass")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -229,7 +229,7 @@ public class ResourceContentTabPanel extends Panel {
 		add(objectClassPanel);
 
 		AjaxLink<Boolean> repoSearch = new AjaxLink<Boolean>(ID_REPO_SEARCH,
-				new PropertyModel<Boolean>(resourceContentSearch, "resourceSearch")) {
+            new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -257,7 +257,7 @@ public class ResourceContentTabPanel extends Panel {
 		add(repoSearch);
 
 		AjaxLink<Boolean> resourceSearch = new AjaxLink<Boolean>(ID_RESOURCE_SEARCH,
-				new PropertyModel<Boolean>(resourceContentSearch, "resourceSearch")) {
+            new PropertyModel<>(resourceContentSearch, "resourceSearch")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -293,10 +293,10 @@ public class ResourceContentTabPanel extends Panel {
 					parentPage.getPrismContext());
 		} catch (SchemaException e) {
 			warn("Could not determine defined obejct classes for resource");
-			return new ArrayList<QName>();
+			return new ArrayList<>();
 		}
 		Collection<ObjectClassComplexTypeDefinition> defs = refinedSchema.getObjectClassDefinitions();
-		List<QName> objectClasses = new ArrayList<QName>(defs.size());
+		List<QName> objectClasses = new ArrayList<>(defs.size());
 		for (ObjectClassComplexTypeDefinition def : defs) {
 			objectClasses.add(def.getTypeName());
 		}

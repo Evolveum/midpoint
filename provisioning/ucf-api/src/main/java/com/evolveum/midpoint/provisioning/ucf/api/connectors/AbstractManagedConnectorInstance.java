@@ -17,7 +17,6 @@ package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -30,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnectorConfiguration;
@@ -53,11 +51,11 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 	private PrismSchema connectorConfigurationSchema;
 	private String resourceSchemaNamespace;
 	private PrismContext prismContext;
-	
+
 	private PrismContainerValue<?> connectorConfiguration;
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
-	
+
 	public ConnectorType getConnectorObject() {
 		return connectorObject;
 	}
@@ -97,7 +95,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 	public void setPrismContext(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
-	
+
 	protected ResourceSchema getResourceSchema() {
 		return resourceSchema;
 	}
@@ -118,10 +116,9 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 	public void configure(PrismContainerValue<?> configuration, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException,
 			ConfigurationException {
-		
+
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
-		result.addParam("configuration", configuration);
-		
+
 		boolean immutable = configuration.isImmutable();
 		try {
 			if (immutable) {
@@ -133,32 +130,32 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 				configuration.setImmutable(true);
 			}
 		}
-		
+
 		setConnectorConfiguration(configuration);
 		applyConfigurationToConfigurationClass(configuration);
-		
+
 		// TODO: transform configuration in a subclass
-		
+
 		result.recordSuccessIfUnknown();
 	}
-	
+
 	@Override
 	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities,
 			boolean caseIgnoreAttributeNames, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException {
-		
+
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
-		result.addContext("connector", getConnectorObject());
+		result.addContext("connector", getConnectorObject().toString());
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, this.getClass());
-		
+
 		setResourceSchema(resourceSchema);
 		setCapabilities(capabilities);
-		
+
 		connect(result);
-		
+
 		result.recordSuccessIfUnknown();
 	}
-	
+
 	protected abstract void connect(OperationResult result);
 
 	protected PrismContainerDefinition<?> getConfigurationContainerDefinition() throws SchemaException {
@@ -172,7 +169,7 @@ public abstract class AbstractManagedConnectorInstance implements ConnectorInsta
 		}
 		return configContainerDef;
 	}
-	
+
 	private void applyConfigurationToConfigurationClass(PrismContainerValue<?> configurationContainer) throws ConfigurationException {
 		BeanWrapper connectorBean = new BeanWrapperImpl(this);
 		PropertyDescriptor connectorConfigurationProp = UcfUtil.findAnnotatedProperty(connectorBean, ManagedConnectorConfiguration.class);

@@ -24,7 +24,7 @@ import org.mockito.Mockito;
 import static org.mockito.Mockito.withSettings;
 
 /**
- * 
+ *
  * @author lazyman
  */
 public class MockFactory {
@@ -36,9 +36,9 @@ public class MockFactory {
 	public static RepositoryService createRepositoryPortType() {
 		return Mockito.mock(RepositoryService.class, withSettings().defaultAnswer(new MidpointDefaultAnswer()));
 	}
-	
+
 	public static ChangeNotificationDispatcher createChangeNotificationDispatcher() {
 		return Mockito.mock(ChangeNotificationDispatcher.class);
 	}
-	
+
 }

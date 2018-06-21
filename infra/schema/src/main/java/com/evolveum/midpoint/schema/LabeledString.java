@@ -19,10 +19,10 @@ import java.io.Serializable;
 
 /**
  * A free-form string value with a label. Useful for displaying a free-form data in forms and tables that
- * require a label. 
- * 
+ * require a label.
+ *
  * IMMUTABLE
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -80,5 +80,5 @@ public class LabeledString implements Serializable {
 	public String toString() {
 		return "LabeledString(" + label + ": " + data + ")";
 	}
-	
+
 }

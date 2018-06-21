@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  oid="7a1ec439-865a-42cd-8acd-361df6dc41dd">
+	<name>correct-high-risk</name>
+	<description>
+		Lorem ipsum dolor sit amet
+		Consectetuer nisl sapien ut tortor
+		Vel est In Phasellus dolor
+		Interdum volutpat In semper eu
+		Libero id ligula iaculis rutrum
+		Habitant egestas est sociis cursus
+		Facilisis at tincidunt iaculis gravida
+		Pede dis Curabitur justo Nunc
+		Neque leo et at hac
+		Lorem neque ante Ut justo
+		Tortor elit at egestas nec
+		Hendrerit enim sed interdum Cum
+		Sagittis purus felis pede sem
+		Maecenas pretium a Maecenas nulla
+	</description>
+	<lifecycleState>draft</lifecycleState>
+	<activation>
+		<validTo>2017-09-11T23:29:54.230+02:00</validTo>
+	</activation>
+	<riskLevel>high</riskLevel>
+</role>

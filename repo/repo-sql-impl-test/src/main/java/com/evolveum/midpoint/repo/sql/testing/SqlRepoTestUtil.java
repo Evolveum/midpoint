@@ -23,14 +23,14 @@ import org.testng.AssertJUnit;
  *
  */
 public class SqlRepoTestUtil {
-	
+
 	public static void assertVersionProgress(String prevVersion, String nextVersion) {
 		String error = checkVersionProgress(prevVersion, nextVersion);
 		if (error != null) {
 			AssertJUnit.fail(error);
 		}
 	}
-	
+
 	public static String checkVersionProgress(String prevVersion, String nextVersion) {
 		String error = checkVersionProgressInternal(prevVersion, nextVersion);
 		if (error == null) {
@@ -38,7 +38,7 @@ public class SqlRepoTestUtil {
 		}
 		return "Invalid version progress from '"+prevVersion+"' to '"+nextVersion+"': "+error;
 	}
-	
+
 	private static String checkVersionProgressInternal(String prevVersion, String nextVersion) {
 		if (nextVersion == null) {
 			return "null next version";

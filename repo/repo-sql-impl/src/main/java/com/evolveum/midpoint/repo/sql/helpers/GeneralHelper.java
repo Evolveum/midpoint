@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +30,7 @@ public class GeneralHelper {
 
     public int findLastIdInRepo(Session session, String tableOid, String queryName) {
         Query query = session.getNamedQuery(queryName);
-        query.setString("oid", tableOid);
+        query.setParameter("oid", tableOid);
         Integer lastId = (Integer) query.uniqueResult();
         if (lastId == null) {
             lastId = 0;

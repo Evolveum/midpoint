@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,11 +54,11 @@ public class ReconciliationPopupPanel extends BasePanel<ReconciliationReportDto>
     private void initLayout(IModel<List<ResourceItemDto>> resources,
                             final Component component) {
 
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), ReconciliationReportDto.F_NAME),
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<>(getModel(), ReconciliationReportDto.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(name);
 
-        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ReconciliationReportDto.F_DESCRIPTION),
+        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<>(getModel(), ReconciliationReportDto.F_DESCRIPTION),
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(description);
 

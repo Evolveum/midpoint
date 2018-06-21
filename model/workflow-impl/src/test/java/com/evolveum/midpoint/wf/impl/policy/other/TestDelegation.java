@@ -44,8 +44,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.ADD_ASSIGNEES;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType.REPLACE_ASSIGNEES;
 import static org.testng.AssertJUnit.*;
@@ -82,7 +80,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test100CreateTask() throws Exception {
 		final String TEST_NAME = "test100CreateTask";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		userLead1 = getUser(userLead1Oid);
@@ -107,7 +105,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test110DelegateToUser2Unauthorized() throws Exception {
 		final String TEST_NAME = "test110DelegateToUser2Unauthorized";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userLead3);
 
 		Task task = createTask(TEST_NAME);
@@ -127,7 +125,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test120DelegateToUser2() throws Exception {
 		final String TEST_NAME = "test120DelegateToUser2";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userLead1);
 
 		Task task = createTask(TEST_NAME);
@@ -170,7 +168,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test130DelegateToUser3ByReplace() throws Exception {
 		final String TEST_NAME = "test130DelegateToUser3ByReplace";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userLead1);
 
 		Task task = createTask(TEST_NAME);
@@ -207,7 +205,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 	@Test
 	public void test140DelegateToNoneByReplace() throws Exception {
 		final String TEST_NAME = "test140DelegateToNoneByReplace";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userLead3);
 
 		Task task = createTask(TEST_NAME);

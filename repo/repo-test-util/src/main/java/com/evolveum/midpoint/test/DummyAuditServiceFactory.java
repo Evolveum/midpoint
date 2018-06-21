@@ -23,7 +23,7 @@ import com.evolveum.midpoint.audit.api.AuditServiceFactoryException;
 
 /**
  * Factory for DummyAuditService. Only for test use.
- * 
+ *
  * @author semancik
  *
  */
@@ -33,7 +33,7 @@ public class DummyAuditServiceFactory implements AuditServiceFactory {
 	public AuditService getAuditService() throws AuditServiceFactoryException {
 		return DummyAuditService.getInstance();
 	}
-	
+
 	@Override
 	public void init(Configuration config) throws AuditServiceFactoryException {
 		// Nothing to do

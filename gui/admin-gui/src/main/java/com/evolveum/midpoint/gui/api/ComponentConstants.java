@@ -36,20 +36,32 @@ public class ComponentConstants {
     public static final QName UI_FOCUS_TAB_PROJECTIONS = new QName(NS_COMPONENTS_PREFIX, "focusTabProjections");
     public static final String UI_FOCUS_TAB_PROJECTIONS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_PROJECTIONS);
 
+    public static final QName UI_FOCUS_TAB_PERSONAS = new QName(NS_COMPONENTS_PREFIX, "focusTabPersonas");
+    public static final String UI_FOCUS_TAB_PERSONAS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_PERSONAS);
+
     public static final QName UI_FOCUS_TAB_ASSIGNMENTS = new QName(NS_COMPONENTS_PREFIX, "focusTabAssignments");
     public static final String UI_FOCUS_TAB_ASSIGNMENTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_ASSIGNMENTS);
 
+    public static final QName UI_FOCUS_TAB_POLICY_RULES = new QName(NS_COMPONENTS_PREFIX, "focusTabPolicyRules");
+    public static final String UI_FOCUS_TAB_POLICY_RULES_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_POLICY_RULES);
+
+    public static final QName UI_FOCUS_TAB_APPLICABLE_POLICIES = new QName(NS_COMPONENTS_PREFIX, "focusTabApplicablePolicies");
+    public static final String UI_FOCUS_TAB_APPLICABLE_POLICIES_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_APPLICABLE_POLICIES);
+
+    public static final QName UI_FOCUS_TAB_CONSENTS = new QName(NS_COMPONENTS_PREFIX, "focusTabConsents");
+    public static final String UI_FOCUS_TAB_CONSENTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_CONSENTS);
+
     public static final QName UI_FOCUS_TAB_TASKS = new QName(NS_COMPONENTS_PREFIX, "focusTabTasks");
     public static final String UI_FOCUS_TAB_TASKS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_TASKS);
-
-    public static final QName UI_FOCUS_TAB_REQUEST_ROLE = new QName(NS_COMPONENTS_PREFIX, "focusTabRequestRole");
-    public static final String UI_FOCUS_TAB_REQUEST_ROLE_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_REQUEST_ROLE);
 
     public static final QName UI_FOCUS_TAB_OBJECT_HISTORY = new QName(NS_COMPONENTS_PREFIX, "focusTabObjectHistory");
     public static final String UI_FOCUS_TAB_OBJECT_HISTORY_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_OBJECT_HISTORY);
 
     public static final QName UI_FOCUS_TAB_INDUCEMENTS = new QName(NS_COMPONENTS_PREFIX, "focusTabInducements");
     public static final String UI_FOCUS_TAB_INDUCEMENTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_INDUCEMENTS);
+
+    public static final QName UI_ROLE_TAB_INDUCED_ENTITLEMENTS = new QName(NS_COMPONENTS_PREFIX, "roleTabInducedEntitlements");
+    public static final String UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_INDUCEMENTS);
 
     public static final QName UI_FOCUS_TAB_GOVERNANCE = new QName(NS_COMPONENTS_PREFIX, "focusTabGovernance");
     public static final String UI_FOCUS_TAB_GOVERNANCE_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_GOVERNANCE);
@@ -64,6 +76,6 @@ public class ComponentConstants {
     public static final String UI_FOCUS_TAB_POLICY_CONSTRAINTS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_POLICY_CONSTRAINTS);
 
     public static final QName UI_FOCUS_TAB_MEMBERS = new QName(NS_COMPONENTS_PREFIX, "focusTabMembers");
-    public static final String UI_FOCUS_TAB_MEMBERS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_MEMBERS);    
+    public static final String UI_FOCUS_TAB_MEMBERS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_MEMBERS);
 
 }

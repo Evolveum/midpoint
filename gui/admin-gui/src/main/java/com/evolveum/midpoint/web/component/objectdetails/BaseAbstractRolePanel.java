@@ -24,18 +24,18 @@ public class BaseAbstractRolePanel extends SimplePanel<AbstractRoleType>{
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-6";
 
-	
+
 	private AbstractRoleType abstractRole;
-	
+
 	LoadableModel<List<MultiplicityPolicyConstraintType>> minAssignmentModel;
 	LoadableModel<List<MultiplicityPolicyConstraintType>> maxAssignmentsModel;
-	
+
 	public BaseAbstractRolePanel(String id, AbstractRoleType abstractRole) {
 		super(id);
 		this.abstractRole = abstractRole;
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	 private WebMarkupContainer getMinAssignmentsContainer(){
 	        return (WebMarkupContainer) get(StringUtils.join(new String[]{"mainForm", ID_MIN_ASSIGNMENTS}, ":"));
 	    }
@@ -43,7 +43,7 @@ public class BaseAbstractRolePanel extends SimplePanel<AbstractRoleType>{
 	    private WebMarkupContainer getMaxAssignmentsContainer(){
 	        return (WebMarkupContainer) get(StringUtils.join(new String[]{"mainForm", ID_MAX_ASSIGNMENTS}, ":"));
 	    }
-	    
+
 	    private IModel<String> createMultiplicityPolicyLabel(final IModel<MultiplicityPolicyConstraintType> model){
 	        return new AbstractReadOnlyModel<String>() {
 
@@ -71,12 +71,12 @@ public class BaseAbstractRolePanel extends SimplePanel<AbstractRoleType>{
 	        };
 	    }
 
-	   
 
-	
+
+
 	@Override
 	protected void initLayout() {
-		
+
 		minAssignmentModel = new LoadableModel<List<MultiplicityPolicyConstraintType>>(false) {
 
             @Override
@@ -101,7 +101,7 @@ public class BaseAbstractRolePanel extends SimplePanel<AbstractRoleType>{
                 return abstractRole.getPolicyConstraints().getMaxAssignees();
             }
         };
-		
+
 		GenericMultiValueLabelEditPanel minAssignments = new GenericMultiValueLabelEditPanel<MultiplicityPolicyConstraintType>(ID_MIN_ASSIGNMENTS,
                 minAssignmentModel, createStringResource("PageRoleEditor.label.minAssignments"), ID_LABEL_SIZE, ID_INPUT_SIZE, true){
 

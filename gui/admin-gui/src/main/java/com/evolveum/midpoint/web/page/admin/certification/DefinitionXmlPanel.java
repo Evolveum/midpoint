@@ -36,7 +36,7 @@ public class DefinitionXmlPanel extends BasePanel<CertDefinitionDto> {
     }
 
     protected void initLayout() {
-        AceEditor editor = new AceEditor(ID_ACE_EDITOR, new PropertyModel<String>(getModel(), CertDefinitionDto.F_XML));
+        AceEditor editor = new AceEditor(ID_ACE_EDITOR, new PropertyModel<>(getModel(), CertDefinitionDto.F_XML));
         //TODO for now it is only readonly
         editor.setReadonly(true);
         add(editor);

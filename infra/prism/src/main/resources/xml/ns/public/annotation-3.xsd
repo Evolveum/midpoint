@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -144,7 +144,7 @@
         </xsd:annotation>
     </xsd:element>
     
-        <xsd:simpleType name="IndexType">
+    <xsd:simpleType name="IndexType">
         <xsd:annotation>
             <xsd:documentation>
                 Type of index maintained by the data store.
@@ -193,6 +193,69 @@
         </xsd:annotation>
     </xsd:element>
     
+    <xsd:element name="processing" type="tns:ItemProcessingType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Specifies the "depth" of item processing.
+    			In midPoint 3.8 this is only supported by the user interface
+    			(presentation layer) and only as an experimental feature.
+    		</xsd:documentation>
+    	</xsd:annotation>
+    </xsd:element>
+    
+    <xsd:simpleType name="ItemProcessingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies the "depth" of item processing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="ignore">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Item is ignored. No processing is done at all.
+                		The item will behave in the same way as it is does not
+                		exists at all.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IGNORE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="minimal">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Only very minimal item processing is done. This usually means
+                		that basic data structures about the item is maintained.
+                		The item values may be logged. But all automatic processing,
+                		presentation, transformation or any similar processing is
+                		skipped. This type of processing is designed to support
+                		item processing by custom code. The underlying data structures
+                		will be present and they can be manipulated by custom code.
+                		But any built-in automatic processing will be skipped.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MINIMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="auto">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		All usual processing of the item is applied. Or automated presentation,
+                		transformation or any other processing will take place. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUTO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
     <xsd:element name="operational" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>
@@ -220,6 +283,31 @@
         <xsd:annotation>
             <xsd:documentation>
                 Marks deprecated parts of the schema.
+                Deprecated parts are supposed to work, but their use is discouraged.
+                Deprecated functionality may be removed in any future release.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="experimental" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marks experimental functionality.
+                Experimental functionality is not stable and it may be changed in any
+                future release without any warning. Use at your own risk.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="elaborate" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Marks elaborate items.
+                Elaborate items are complicated data structure that may deviate from
+                normal principles of the system. For example elaborate items may not
+                be supported in user interface and may only be manageable by raw edits
+                or a special-purpose tools. Elaborate items may be not fully supported
+                by authorizations, schema tools and so on.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -418,6 +506,19 @@
 				several values with different types. (All having a common declared supertype.) This annotation is necessary
 				to minimize "guesswork" that XML parser has to do when processing substitutable elements - in order to lower
 				the risk of accidentally merging two unrelated subsequent elements into one.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="instantiationOrder" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                When parsing a field that is known to contain an abstract data type (e.g. LocalizableMessageType)
+                and has no xsi:type, one has to guess which subtype to instantiate. Candidate subtypes can be derived
+                when looking at sub-items. However, if there are more candidates, one of them must be selected.
+                This is done using instantiationOrder annotation.
+
+                EXPERIMENTAL. Maybe this is really a wrong idea, so be prepared it could be removed.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

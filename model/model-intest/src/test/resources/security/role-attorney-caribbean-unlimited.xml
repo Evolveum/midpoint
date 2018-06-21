@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="b27b9f3c-b962-11e7-9c89-03e5b32f525d"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Attorney Caribbean Unlimited</name>
+    <description>Unlimited power of attorney. But limited only to Caribbean users (objects)</description>
+    
+    <authorization>
+    	<name>attorney-read-all</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    </authorization>
+    
+    <authorization>
+    	<name>attorney-unlimited</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#attorney</action>
+    	<object>
+    		<type>UserType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>locality</q:path>
+    				<q:value>Caribbean</q:value>
+    			</q:equal>
+    		</filter>
+    	</object>
+    </authorization>
+    
+</role>

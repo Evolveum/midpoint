@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public class TaskAddDto implements Serializable {
 	private String category;
 	private TaskAddResourcesDto resource;
 	private String name;
-	
+
 	//Scheduling
 	private boolean reccuring;
 	private boolean bound;
@@ -62,9 +62,9 @@ public class TaskAddDto implements Serializable {
 	private String cron;
 	private Date notStartBefore;
 	private Date notStartAfter;
-	
+
 	private boolean runUntilNodeDown;
-	
+
 	//Advanced
 	private boolean suspendedState;
 	private ThreadStopActionType threadStop;
@@ -76,7 +76,7 @@ public class TaskAddDto implements Serializable {
     private String intent;
     private String objectClass;
     private List<QName> objectClassList;
-	
+
 	public String getCategory() {
 		return category;
 	}
@@ -84,7 +84,7 @@ public class TaskAddDto implements Serializable {
 	public void setCategory(String category) {
 		this.category = category;
 	}
-	
+
 	public TaskAddResourcesDto getResource() {
 		return resource;
 	}
@@ -164,7 +164,7 @@ public class TaskAddDto implements Serializable {
 	public void setSuspendedState(Boolean suspendedState) {
 		this.suspendedState = suspendedState;
 	}
-	
+
 	public ThreadStopActionType getThreadStop() {
 		return threadStop;
 	}
@@ -188,11 +188,11 @@ public class TaskAddDto implements Serializable {
     public void setDryRun(boolean dryRun) {
         this.dryRun = dryRun;
     }
-    
+
     public QName getFocusType() {
 		return focusType;
 	}
-    
+
     public void setFocusType(QName focusType) {
 		this.focusType = focusType;
 	}

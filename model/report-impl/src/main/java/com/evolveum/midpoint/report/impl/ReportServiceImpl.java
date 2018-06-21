@@ -25,6 +25,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import org.apache.commons.lang.StringUtils;
@@ -33,10 +34,10 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -73,41 +74,25 @@ public class ReportServiceImpl implements ReportService {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReportServiceImpl.class);
 
-	@Autowired(required = true)
-	private ModelService model;
-
-	@Autowired(required = true)
-	private TaskManager taskManager;
-
-	@Autowired(required = true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private ExpressionFactory expressionFactory;
-
-	@Autowired(required = true)
-	private ObjectResolver objectResolver;
-
-	@Autowired(required = true)
-	private AuditService auditService;
-	
-	@Autowired(required = true)
-	private FunctionLibrary logFunctionLibrary;
-	
-	@Autowired(required = true)
-	private FunctionLibrary basicFunctionLibrary;
-	
-	@Autowired(required = true)
-	private FunctionLibrary midpointFunctionLibrary;
+	@Autowired private ModelService model;
+	@Autowired private TaskManager taskManager;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private ObjectResolver objectResolver;
+	@Autowired private AuditService auditService;
+	@Autowired private FunctionLibrary logFunctionLibrary;
+	@Autowired private FunctionLibrary basicFunctionLibrary;
+	@Autowired private FunctionLibrary midpointFunctionLibrary;
+	@Autowired private LocalizationService localizationService;
 
 	@Override
 	public ObjectQuery parseQuery(String query, Map<QName, Object> parameters) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException {
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (StringUtils.isBlank(query)) {
 			return null;
 		}
 
-		ObjectQuery parsedQuery = null;
+		ObjectQuery parsedQuery;
 		try {
 			Task task = taskManager.createTaskInstance();
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
@@ -122,17 +107,17 @@ public class ReportServiceImpl implements ReportService {
 
 			ObjectFilter subFilter = ((TypeFilter) f).getFilter();
 			ObjectQuery q = ObjectQuery.createObjectQuery(subFilter);
-			
+
 			ExpressionVariables variables = new ExpressionVariables();
 			variables.addVariableDefinitions(parameters);
-			
+
 			q = ExpressionUtil.evaluateQueryExpressions(q, variables, expressionFactory, prismContext,
 					"parsing expression values for report", task, task.getResult());
 			((TypeFilter) f).setFilter(q.getFilter());
 			parsedQuery = ObjectQuery.createObjectQuery(f);
 
 			LOGGER.trace("query dump {}", parsedQuery.debugDump());
-		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException e) {
+		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block
 			throw e;
 		} finally {
@@ -146,7 +131,7 @@ public class ReportServiceImpl implements ReportService {
 	public Collection<PrismObject<? extends ObjectType>> searchObjects(ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
 			ObjectNotFoundException, SecurityViolationException, CommunicationException,
-			ConfigurationException {
+			ConfigurationException, ExpressionEvaluationException {
 		// List<PrismObject<? extends ObjectType>> results = new ArrayList<>();
 
 		// GetOperationOptions options = GetOperationOptions.createRaw();
@@ -177,7 +162,7 @@ public class ReportServiceImpl implements ReportService {
 			results = model.searchObjects(clazz, queryForSearch, options, task, parentResult);
 			return results;
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-				| CommunicationException | ConfigurationException e) {
+				| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			// TODO Auto-generated catch block
 			throw e;
 		}
@@ -201,9 +186,9 @@ public class ReportServiceImpl implements ReportService {
 		Collection<FunctionLibrary> functions = createFunctionLibraries();
 
 		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
-				prismContext.getDefaultProtector());
+				prismContext.getDefaultProtector(), localizationService);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
-		Object o = null;
+		Object o;
 		try{
 			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
 				parentResult);
@@ -244,7 +229,7 @@ public class ReportServiceImpl implements ReportService {
 
 	public Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		Collection<AuditEventRecord> results = new ArrayList<AuditEventRecord>();
+		Collection<AuditEventRecord> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();
 			variables.addVariableDefinition(new QName("auditParams"), getConvertedParams(parameters));
@@ -255,9 +240,9 @@ public class ReportServiceImpl implements ReportService {
 		Collection<FunctionLibrary> functions = createFunctionLibraries();
 
 		Jsr223ScriptEvaluator scripts = new Jsr223ScriptEvaluator("Groovy", prismContext,
-				prismContext.getDefaultProtector());
+				prismContext.getDefaultProtector(), localizationService);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, task.getResult()));
-		Object o = null;
+		Object o;
 		try{
 			o = scripts.evaluateReportScript(script, variables, objectResolver, functions, "desc",
 				parentResult);
@@ -292,7 +277,7 @@ public class ReportServiceImpl implements ReportService {
 			return null;
 		}
 
-		Map<String, Object> resultParams = new HashMap<String, Object>();
+		Map<String, Object> resultParams = new HashMap<>();
 		Set<Entry<QName, Object>> paramEntries = parameters.entrySet();
 		for (Entry<QName, Object> e : paramEntries) {
 			if (e.getValue() instanceof PrismPropertyValue) {
@@ -313,7 +298,7 @@ public class ReportServiceImpl implements ReportService {
 		midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
 		ReportFunctions reportFunctions = new ReportFunctions(prismContext, model, taskManager, auditService);
 		midPointLib.setGenericFunctions(reportFunctions);
-//		
+//
 //		MidpointFunctionsImpl mp = new MidpointFunctionsImpl();
 //		mp.
 

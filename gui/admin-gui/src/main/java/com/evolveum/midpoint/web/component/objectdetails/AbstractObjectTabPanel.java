@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
@@ -51,7 +53,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
 
 	private LoadableModel<ObjectWrapper<O>> objectWrapperModel;
-	private PageBase pageBase;
+	protected PageBase pageBase;
 	private Form<ObjectWrapper<O>> mainForm;
 
 	public AbstractObjectTabPanel(String id, Form<ObjectWrapper<O>> mainForm, LoadableModel<ObjectWrapper<O>> objectWrapperModel, PageBase pageBase) {
@@ -76,7 +78,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	protected PageParameters getPageParameters() {
 		return pageBase.getPageParameters();
 	}
-	
+
 	public PageBase getPageBase() {
 		return pageBase;
 	}
@@ -101,12 +103,12 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	protected void showResult(OperationResult result) {
 		pageBase.showResult(result);
 	}
-	
+
 	protected void showResult(OperationResult result, boolean showSuccess) {
 		pageBase.showResult(result, false);
 	}
-	
-	
+
+
 	protected WebMarkupContainer getFeedbackPanel() {
 		return pageBase.getFeedbackPanel();
 	}
@@ -134,14 +136,15 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		target.add(getFeedbackPanel());
 	}
 
-	protected void addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName propertyName) {
-		addPrismPropertyPanel(parentComponent, id, new ItemPath(propertyName));
+	protected PrismPropertyPanel addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName propertyName) {
+		return addPrismPropertyPanel(parentComponent, id, new ItemPath(propertyName));
 	}
-	
-	protected void addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
-		parentComponent.add(
-				new PrismPropertyPanel(id,
-						new PropertyWrapperFromObjectWrapperModel<PolyString,O>(getObjectWrapperModel(), propertyPath),
-						mainForm, pageBase));
+
+	protected PrismPropertyPanel addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
+		PrismPropertyPanel panel = new PrismPropertyPanel(id,
+				new PropertyWrapperFromObjectWrapperModel<PolyString,O>(getObjectWrapperModel(), propertyPath),
+				mainForm, wrapper -> ItemVisibility.VISIBLE, pageBase);
+		parentComponent.add(panel);
+		return panel;
 	}
 }

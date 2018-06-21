@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationCase;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertWorkItemReference;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
@@ -49,14 +50,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.NativeQuery;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import java.util.*;
 
 /**
@@ -79,6 +81,7 @@ public class CertificationCaseHelper {
     @Autowired private NameResolutionHelper nameResolutionHelper;
     @Autowired private ObjectRetriever objectRetriever;
     @Autowired private RepositoryService repositoryService;
+    @Autowired private ExtItemDictionary extItemDictionary;
 
     public void addCertificationCampaignCases(Session session, RObject object, boolean deleteBeforeAdd) {
         if (!(object instanceof RAccessCertificationCampaign)) {
@@ -107,8 +110,8 @@ public class CertificationCaseHelper {
             }
 
             // we need to generate IDs but we (currently) do not use that for setting "isTransient" flag
-            PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-            generator.generate(caseType, PrismIdentifierGenerator.Operation.MODIFY);
+            PrismIdentifierGenerator generator = new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
+            generator.generate(caseType);
 
             RAccessCertificationCase row = RAccessCertificationCase.toRepo(campaignOid, caseType, createRepositoryContext());
             row.setId(RUtil.toInteger(caseType.getId()));
@@ -119,7 +122,7 @@ public class CertificationCaseHelper {
 
     @NotNull
     private RepositoryContext createRepositoryContext() {
-        return new RepositoryContext(repositoryService, prismContext);
+        return new RepositoryContext(repositoryService, prismContext, extItemDictionary);
     }
 
     public void deleteCertificationCampaignCases(Session session, String oid) {
@@ -198,24 +201,24 @@ public class CertificationCaseHelper {
                         affectedIds.add(id);
                         // TODO couldn't this cascading be done by hibernate itself?
                         Integer integerCaseId = RUtil.toInteger(id);
-//                        Query deleteCaseReferences = session.createSQLQuery("delete from " + RCertCaseReference.TABLE +
+//                        NativeQuery deleteCaseReferences = session.createNativeQuery("delete from " + RCertCaseReference.TABLE +
 //                                " where owner_owner_oid=:oid and owner_id=:id");
-//                        deleteCaseReferences.setString("oid", campaignOid);
-//                        deleteCaseReferences.setInteger("id", integerCaseId);
+//                        deleteCaseReferences.setParameter("oid", campaignOid);
+//                        deleteCaseReferences.setParameter("id", integerCaseId);
 //                        deleteCaseReferences.executeUpdate();
-                        Query deleteWorkItemReferences = session.createSQLQuery("delete from " + RCertWorkItemReference.TABLE +
+                        NativeQuery deleteWorkItemReferences = session.createNativeQuery("delete from " + RCertWorkItemReference.TABLE +
                                 " where owner_owner_owner_oid=:oid and owner_owner_id=:id");
-                        deleteWorkItemReferences.setString("oid", campaignOid);
-                        deleteWorkItemReferences.setInteger("id", integerCaseId);
+                        deleteWorkItemReferences.setParameter("oid", campaignOid);
+                        deleteWorkItemReferences.setParameter("id", integerCaseId);
                         deleteWorkItemReferences.executeUpdate();
-                        Query deleteCaseWorkItems = session.createSQLQuery("delete from " + RAccessCertificationWorkItem.TABLE +
+                        NativeQuery deleteCaseWorkItems = session.createNativeQuery("delete from " + RAccessCertificationWorkItem.TABLE +
                                 " where owner_owner_oid=:oid and owner_id=:id");
-                        deleteCaseWorkItems.setString("oid", campaignOid);
-                        deleteCaseWorkItems.setInteger("id", integerCaseId);
+                        deleteCaseWorkItems.setParameter("oid", campaignOid);
+                        deleteCaseWorkItems.setParameter("id", integerCaseId);
                         deleteCaseWorkItems.executeUpdate();
                         Query deleteCase = session.getNamedQuery("delete.campaignCase");
-                        deleteCase.setString("oid", campaignOid);
-                        deleteCase.setInteger("id", integerCaseId);
+                        deleteCase.setParameter("oid", campaignOid);
+                        deleteCase.setParameter("id", integerCaseId);
                         deleteCase.executeUpdate();
                     }
                 }
@@ -263,8 +266,8 @@ public class CertificationCaseHelper {
                 delta.applyTo(aCase.asPrismContainerValue());
 
                 // we need to generate IDs but we (currently) do not use that for setting "isTransient" flag
-                PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
-                generator.generate(aCase, PrismIdentifierGenerator.Operation.MODIFY);
+                PrismIdentifierGenerator generator = new PrismIdentifierGenerator(PrismIdentifierGenerator.Operation.MODIFY);
+                generator.generate(aCase);
 
                 RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
                 session.merge(rCase);
@@ -278,6 +281,7 @@ public class CertificationCaseHelper {
 		if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
 			Query query = session.getNamedQuery("get.campaignCases");
 			query.setString("ownerOid", campaignOid);
+			@SuppressWarnings({"raw", "unchecked"})
 			List<Object> cases = query.list();
 			for (Object o : cases) {
 				if (!(o instanceof byte[])) {
@@ -319,7 +323,8 @@ public class CertificationCaseHelper {
 			Collection<SelectorOptions<GetOperationOptions>> options,
 			Session session, OperationResult operationResult) throws SchemaException {
 
-        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(result.getFullObject(), prismContext, false);
+		byte[] fullObject = result.getFullObject();
+		AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
 
         String ownerOid = result.getOwnerOid();
@@ -327,7 +332,8 @@ public class CertificationCaseHelper {
         if (campaign != null && !campaign.asObjectable().getCase().contains(aCase)) {
             campaign.asObjectable().getCase().add(aCase);
         }
-        return aCase;
+		objectRetriever.attachDiagDataIfRequested(aCase.asPrismContainerValue(), fullObject, options);
+		return aCase;
     }
 
     public AccessCertificationWorkItemType updateLoadedCertificationWorkItem(GetCertificationWorkItemResult result,
@@ -347,6 +353,7 @@ public class CertificationCaseHelper {
 					.and().id(caseId)
 					.build();
 			RQuery caseQuery = engine.interpret(query, AccessCertificationCaseType.class, null, false, session);
+			@SuppressWarnings({"raw", "unchecked"})
 			List<GetContainerableResult> cases = caseQuery.list();
 			if (cases.size() > 1) {
 				throw new IllegalStateException(
@@ -355,6 +362,7 @@ public class CertificationCaseHelper {
 				// we need it, because otherwise we have only identifiers for the work item, no data
 				throw new IllegalStateException("No certification case found for campaign " + campaignOid + ", ID " + caseId);
 			}
+			// TODO really use options of 'null' ?
 			AccessCertificationCaseType _case = updateLoadedCertificationCase(cases.get(0), campaignsCache, null, session, operationResult);
 			casePcv = _case.asPrismContainerValue();
 			casesCache.put(caseKey, casePcv);
@@ -395,11 +403,15 @@ public class CertificationCaseHelper {
 
         LOGGER.debug("Loading certification campaign cases.");
 
-        Criteria criteria = session.createCriteria(RAccessCertificationCase.class);
-        criteria.add(Restrictions.eq("ownerOid", object.getOid()));
+        CriteriaBuilder cb = session.getCriteriaBuilder();
+        CriteriaQuery cq = cb.createQuery(RAccessCertificationCase.class);
+        cq.where(cb.equal(cq.from(RAccessCertificationCase.class).get("ownerOid"), object.getOid()));
+
+        Query query = session.createQuery(cq);
 
         // TODO fetch only XML representation
-        List<RAccessCertificationCase> cases = criteria.list();
+		@SuppressWarnings({"raw", "unchecked"})
+        List<RAccessCertificationCase> cases = query.list();
         if (cases == null || cases.isEmpty()) {
             return;
         }

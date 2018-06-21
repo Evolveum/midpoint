@@ -53,7 +53,7 @@
           <xsd:sequence>
             <xsd:element name="query" type="xsd:string"/>
             <xsd:element name="parameters" type="tns:RemoteReportParametersType"/>
-            <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" minOccurs="0"/>
+            <xsd:element name="options" type="c:SelectorQualifiedGetOptionsType" minOccurs="0"/>
           </xsd:sequence>
         </xsd:complexType>
       <xsd:element name="processReport" type="tns:ProcessReportType" />

@@ -25,7 +25,7 @@
 			<policyActions>
 				<approval>
 					<approvalSchema>
-						<level>
+						<stage>
 							<approverRef oid="00000001-d34d-b33f-f00d-L00000000001" type="UserType"/>		<!-- lead1 -->
 							<approverRef oid="00000001-d34d-b33f-f00d-L00000000002" type="UserType"/>		<!-- lead2 -->
 							<evaluationStrategy>firstDecides</evaluationStrategy>
@@ -65,7 +65,7 @@
 								<escalationLevelFrom>1</escalationLevelFrom>
 								<escalationLevelTo>1</escalationLevelTo>
 							</timedActions>
-						</level>
+						</stage>
 					</approvalSchema>
 				</approval>
 			</policyActions>

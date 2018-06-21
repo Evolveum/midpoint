@@ -14,7 +14,7 @@ public abstract class NavigatorPageLink extends AjaxLink<String> {
     private final long pageNumber;
 
     public NavigatorPageLink(String id, long pageNumber) {
-        super(id, new Model<String>(Long.toString(pageNumber + 1)));
+        super(id, new Model<>(Long.toString(pageNumber + 1)));
         this.pageNumber = pageNumber;
     }
 

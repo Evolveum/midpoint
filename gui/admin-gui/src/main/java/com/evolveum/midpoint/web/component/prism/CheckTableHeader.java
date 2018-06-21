@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,9 +66,9 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
     }
 
     private void initLayout() {
-    	
+
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK,
-                new PropertyModel<Boolean>(getModel(), ObjectWrapper.F_SELECTED)) {
+            new PropertyModel<>(getModel(), ObjectWrapper.F_SELECTED)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -151,16 +151,16 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
             }
         });
         add(description);
-        
+
         ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND,
         		GuiStyleConstants.CLASS_ICON_EXPAND, GuiStyleConstants.CLASS_ICON_COLLAPSE) {
         	private static final long serialVersionUID = 1L;
-        	
+
         	@Override
             public void onClick(AjaxRequestTarget target) {
         		onClickPerformed(target);
             }
-        	
+
         	@Override
 			public boolean isOn() {
 				return !CheckTableHeader.this.getModelObject().isMinimalized();
@@ -223,12 +223,6 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
                 if (fetchResult != null && !WebComponentUtil.isSuccessOrHandledError(fetchResult)) {
                     return true;
                 }
-
-                OperationResult result = getModelObject().getResult();
-                if (result != null && !WebComponentUtil.isSuccessOrHandledError(result)) {
-                    return true;
-                }
-
                 return false;
             }
         };
@@ -236,12 +230,39 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
 
     private String getDisplayName() {
         ObjectWrapper<O> wrapper = getModel().getObject();
+        PrismObject<O> object = wrapper.getObject();
+        if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
+        	ShadowType shadow = (ShadowType) object.asObjectable();
+        	String resourceName = null;
+        	if (shadow.getResource() != null) {
+        		resourceName = WebComponentUtil.getOrigStringFromPoly(shadow.getResource().getName());
+        	}
+        	if (resourceName == null) {
+        		resourceName = WebComponentUtil.getName(shadow.getResourceRef());
+        	}
+        	
+        	return translate(resourceName);
+        }
+        
         String key = wrapper.getDisplayName();
         return translate(key);
     }
 
     private String getDescription() {
         ObjectWrapper<O> wrapper = getModel().getObject();
+        PrismObject<O> object = wrapper.getObject();
+        if (ShadowType.class.isAssignableFrom(object.getCompileTimeClass())) {
+        	ShadowType shadow = (ShadowType) object.asObjectable();
+        	String description = shadow.getIntent();
+        	
+        	if (StringUtils.isNotBlank(description)) {
+        		description += ", " + shadow.getName();
+        	} else {
+        		description = WebComponentUtil.getOrigStringFromPoly(shadow.getName());
+        	}
+        	return translate(description);
+        }
+        
         String key = wrapper.getDescription();
         return translate(key);
     }
@@ -251,7 +272,6 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
             key = "";
         }
         return PageBase.createStringResourceStatic(getPage(), key).getString();
-//        return new StringResourceModel(key, getPage(), null, key).getString();
     }
 
     protected void onClickPerformed(AjaxRequestTarget target) {
@@ -261,7 +281,7 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
 
     protected void onShowMorePerformed(AjaxRequestTarget target){
         showResult(getModelObject().getFetchResult());
-        showResult(getModelObject().getResult());
+//        showResult(getModelObject().getResult());
 
         target.add(getPageBase().getFeedbackPanel());
     }

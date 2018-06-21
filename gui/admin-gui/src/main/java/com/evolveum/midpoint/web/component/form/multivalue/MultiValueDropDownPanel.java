@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -239,7 +239,7 @@ public class MultiValueDropDownPanel<T extends Serializable> extends BasePanel<L
      * */
     protected IChoiceRenderer<T> createRenderer(){
         return new IChoiceRenderer<T>() {
-        	
+
         	@Override
         	public T getObject(String id, IModel<? extends List<? extends T>> choices) {
         		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;

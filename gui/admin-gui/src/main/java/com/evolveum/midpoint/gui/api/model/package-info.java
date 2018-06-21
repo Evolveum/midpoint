@@ -15,9 +15,9 @@
  */
 
 /**
- * The package that contains Wicket models (implementations of IModel 
+ * The package that contains Wicket models (implementations of IModel
  * interface) and other model-related utilities.
- * 
+ *
  * @author Radovan Semancik
  */
 package com.evolveum.midpoint.gui.api.model;

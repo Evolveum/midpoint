@@ -17,8 +17,10 @@
 package com.evolveum.midpoint.prism.schema;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,24 +29,22 @@ import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  *
  * @author Radovan Semancik
- * 
+ *
  */
 public class PrismSchemaImpl implements PrismSchema {
 
 	//private static final long serialVersionUID = 5068618465625931984L;
 
 	//private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
-	
+
 	@NotNull protected final Collection<Definition> definitions = new ArrayList<>();
+	@NotNull private final Map<QName, ItemDefinition<?>> itemDefinitionMap = new HashMap<>();		// key is the item name (qualified or unqualified)
 	protected String namespace;			// may be null if not properly initialized
 	protected PrismContext prismContext;
 
@@ -56,7 +56,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	protected PrismSchemaImpl(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
-	
+
 	public PrismSchemaImpl(@NotNull String namespace, PrismContext prismContext) {
 		if (StringUtils.isEmpty(namespace)) {
 			throw new IllegalArgumentException("Namespace can't be null or empty.");
@@ -78,7 +78,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	@NotNull
 	@Override
 	public Collection<Definition> getDefinitions() {
-		return definitions;
+		return Collections.unmodifiableCollection(definitions);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -107,8 +107,12 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	public void add(@NotNull Definition def) {
 		definitions.add(def);
+		if (def instanceof ItemDefinition) {
+			ItemDefinition<?> itemDef = (ItemDefinition<?>) def;
+			itemDefinitionMap.put(itemDef.getName(), itemDef);
+		}
 	}
-	
+
 	@Override
 	public PrismContext getPrismContext() {
 		return prismContext;
@@ -117,34 +121,53 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	//region XSD parsing and serialization
 	// TODO: cleanup this chaos
+	// used for report, connector, resource schemas
 	public static PrismSchema parse(Element element, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
 		return parse(element, prismContext.getEntityResolver(), new PrismSchemaImpl(prismContext), isRuntime, shortDescription,
 				false, prismContext);
 	}
-	
+
+	// used for parsing prism schemas; only in exceptional cases
 	public static PrismSchema parse(Element element, EntityResolver resolver, boolean isRuntime, String shortDescription,
 			boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
 		return parse(element, resolver, new PrismSchemaImpl(prismContext), isRuntime, shortDescription, allowDelayedItemDefinitions, prismContext);
 	}
-	
+
+	// main entry point for parsing standard prism schemas
+	public static void parseSchemas(Element wrapperElement, XmlEntityResolver resolver,
+			List<SchemaDescription> schemaDescriptions,
+			boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
+
+		for (SchemaDescription schemaDescription : schemaDescriptions) {
+			setSchemaNamespace((PrismSchemaImpl) schemaDescription.getSchema(), schemaDescription.getDomElement());
+		}
+		DomToSchemaProcessor processor = new DomToSchemaProcessor(resolver, prismContext);
+		processor.parseSchemas(schemaDescriptions, wrapperElement, allowDelayedItemDefinitions, "multiple schemas");
+	}
+
+	// used for connector and resource schemas
 	protected static PrismSchema parse(Element element, PrismSchemaImpl schema, boolean isRuntime, String shortDescription, PrismContext prismContext) throws SchemaException {
 		return parse(element, prismContext.getEntityResolver(), schema, isRuntime, shortDescription, false, prismContext);
 	}
-	
+
 	private static PrismSchema parse(Element element, EntityResolver resolver, PrismSchemaImpl schema, boolean isRuntime,
 			String shortDescription, boolean allowDelayedItemDefinitions, PrismContext prismContext) throws SchemaException {
 		if (element == null) {
 			throw new IllegalArgumentException("Schema element must not be null in "+shortDescription);
 		}
+		setSchemaNamespace(schema, element);
 
-		DomToSchemaProcessor processor = new DomToSchemaProcessor();
-		processor.setEntityResolver(resolver);
-		processor.setPrismContext(prismContext);
-		processor.setShortDescription(shortDescription);
-		processor.setRuntime(isRuntime);
-		processor.setAllowDelayedItemDefinitions(allowDelayedItemDefinitions);
-		processor.parseDom(schema, element);
+		DomToSchemaProcessor processor = new DomToSchemaProcessor(resolver, prismContext);
+		processor.parseSchema(schema, element, isRuntime, allowDelayedItemDefinitions, shortDescription);
 		return schema;
+	}
+
+	private static void setSchemaNamespace(PrismSchemaImpl prismSchema, Element xsdSchema) throws SchemaException {
+		String targetNamespace = DOMUtil.getAttribute(xsdSchema, DOMUtil.XSD_ATTR_TARGET_NAMESPACE);
+		if (StringUtils.isEmpty(targetNamespace)) {
+			throw new SchemaException("Schema does not have targetNamespace specification");
+		}
+		prismSchema.setNamespace(targetNamespace);
 	}
 
 	@NotNull
@@ -159,9 +182,9 @@ public class PrismSchemaImpl implements PrismSchema {
 	//region Creating definitions
 	/**
 	 * Creates a new property container definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param localTypeName
 	 *            type name "relative" to schema namespace
 	 * @return new property container definition
@@ -171,35 +194,35 @@ public class PrismSchemaImpl implements PrismSchema {
 		QName name = new QName(getNamespace(), toElementName(localTypeName));
 		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
 		PrismContainerDefinitionImpl def = new PrismContainerDefinitionImpl(name, cTypeDef, prismContext);
-		definitions.add(cTypeDef);
-		definitions.add(def);
+		add(cTypeDef);
+		add(def);
 		return def;
 	}
-	
+
 	public PrismContainerDefinitionImpl createPropertyContainerDefinition(String localElementName, String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), localElementName);
 		ComplexTypeDefinition cTypeDef = findComplexTypeDefinitionByType(typeName);
 		if (cTypeDef == null) {
 			cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
-			definitions.add(cTypeDef);
+			add(cTypeDef);
 		}
 		PrismContainerDefinitionImpl def = new PrismContainerDefinitionImpl(name, cTypeDef, prismContext);
-		definitions.add(def);
+		add(def);
 		return def;
 	}
-	
+
 	public ComplexTypeDefinition createComplexTypeDefinition(QName typeName) {
 		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinitionImpl(typeName, prismContext);
-		definitions.add(cTypeDef);
+		add(cTypeDef);
 		return cTypeDef;
 	}
 
 	/**
 	 * Creates a top-level property definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param localName
 	 *            element name "relative" to schema namespace
 	 * @param typeName
@@ -213,9 +236,9 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	/*
 	 * Creates a top-level property definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param localName
 	 *            element name "relative" to schema namespace
 	 * @param localTypeName
@@ -230,9 +253,9 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	/**
 	 * Creates a top-level property definition and adds it to the schema.
-	 * 
+	 *
 	 * This is a preferred way how to create definition in the schema.
-	 * 
+	 *
 	 * @param name
 	 *            element name
 	 * @param typeName
@@ -241,7 +264,7 @@ public class PrismSchemaImpl implements PrismSchema {
 	 */
 	public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
 		PrismPropertyDefinition def = new PrismPropertyDefinitionImpl(name, typeName, prismContext);
-		definitions.add(def);
+		add(def);
 		return def;
 	}
 
@@ -265,6 +288,7 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	@Override
 	public String debugDump(int indent) {
+		IdentityHashMap<Definition, Object> seen = new IdentityHashMap<>();
 		StringBuilder sb = new StringBuilder();
 		for (int i=0;i<indent;i++) {
 			sb.append(INDENT_STRING);
@@ -273,7 +297,7 @@ public class PrismSchemaImpl implements PrismSchema {
 		Iterator<Definition> i = definitions.iterator();
 		while (i.hasNext()) {
 			Definition def = i.next();
-			sb.append(def.debugDump(indent+1));
+			sb.append(def.debugDump(indent+1, seen));
 			if (i.hasNext()) {
 				sb.append("\n");
 			}
@@ -368,21 +392,21 @@ public class PrismSchemaImpl implements PrismSchema {
 
 	@NotNull
 	@Override
+	@SuppressWarnings("unchecked")
 	public <ID extends ItemDefinition> List<ID> findItemDefinitionsByElementName(@NotNull QName elementName,
 			@NotNull Class<ID> definitionClass) {
-		List<ID> rv = new ArrayList<ID>();
-		for (Definition definition : definitions) {
-			if (definitionClass.isAssignableFrom(definition.getClass())) {
-				@SuppressWarnings("unchecked")
-				ID itemDef = (ID) definition;
-				if (QNameUtil.match(elementName, itemDef.getName())) {
-					rv.add(itemDef);
-				}
-			}
+		List<Definition> matching = new ArrayList<>();
+		CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(elementName));
+		if (QNameUtil.hasNamespace(elementName)) {
+			CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(QNameUtil.unqualify(elementName)));
+		} else if (namespace != null) {
+			CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(new QName(namespace, elementName.getLocalPart())));
 		}
-		return rv;
+		return matching.stream()
+				.filter(d -> definitionClass.isAssignableFrom(d.getClass()))
+				.map(d -> (ID) d)
+				.collect(Collectors.toList());
 	}
-
 
 	//	private Map<Class<? extends Objectable>, PrismObjectDefinition> classToDefCache = Collections.synchronizedMap(new HashMap<>());
 //	@Override
@@ -450,7 +474,6 @@ public class PrismSchemaImpl implements PrismSchema {
 		}
 		return null;
 	}
-
 
 	//endregion
 }

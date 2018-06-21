@@ -45,7 +45,7 @@ public abstract class BaseAction implements Action {
     private PrismContext prismContext;
     private AuditService auditService;
     private ContextFactory contextFactory;
-    
+
 	public AuditService getAuditService() {
     	return auditService;
     }
@@ -53,7 +53,7 @@ public abstract class BaseAction implements Action {
     public void setAuditService(AuditService auditService) {
 		this.auditService = auditService;
 	}
-    
+
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -110,5 +110,5 @@ public abstract class BaseAction implements Action {
     public void setExecutor(ChangeExecutor executor) {
         this.executor = executor;
     }
-    
+
 }

@@ -45,7 +45,7 @@ public class StringResourceChoiceRenderer implements IChoiceRenderer<String> {
 	public String getIdValue(String object, int index) {
 		return String.valueOf(index);
 	}
-	
+
 	@Override
 	public String getObject(String id, IModel<? extends List<? extends String>> choices) {
 		return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;

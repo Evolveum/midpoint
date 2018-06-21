@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -390,7 +390,7 @@ It also contains inbound mappings and definition to enable synchronization.
 			</attribute>
 			<configuredCapabilities>
 				<cap:pagedSearch>
-					<cap:defaultSortField>ri:uid</cap:defaultSortField>
+					<cap:defaultSortField>ri:cn</cap:defaultSortField>
 				</cap:pagedSearch>
 			</configuredCapabilities>
 		</objectType>

@@ -29,20 +29,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *
  */
 public abstract class SummaryTag<O extends ObjectType> extends Panel {
-	
+
 	private static final String ID_TAG_ICON = "summaryTagIcon";
 	private static final String ID_TAG_LABEL = "summaryTagLabel";
-	
+
 	private boolean initialized = false;
 	private String cssClass;
 	private String iconCssClass;
 	private String label;
 	private String color = null;
 	private boolean hideTag = false;
-	
+
 	public SummaryTag(String id, final IModel<ObjectWrapper<O>> model) {
 		super(id, model);
-		
+
 		Label tagIcon = new Label(ID_TAG_ICON, "");
 		tagIcon.add(new AttributeModifier("class", new SummaryTagWrapperModel<String>(model) {
 			@Override
@@ -51,14 +51,14 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 			}
 		}));
 		add(tagIcon);
-		
+
 		add(new Label(ID_TAG_LABEL, new SummaryTagWrapperModel<String>(model) {
 			@Override
 			protected String getValue() {
 				return getLabel();
 			}
 		}));
-		
+
 		add(new AttributeModifier("style", new SummaryTagWrapperModel<String>(model) {
 			@Override
 			protected String getValue() {
@@ -68,15 +68,15 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 				return "color: " + getColor();
 			}
 		}));
-		
+
 		add(new AttributeModifier("class", new SummaryTagWrapperModel<String>(model) {
 			@Override
 			protected String getValue() {
 				return getCssClass();
 			}
 		}));
-		
-		add(new VisibleEnableBehaviour(){    		
+
+		add(new VisibleEnableBehaviour(){
             @Override
             public boolean isVisible(){
             	if (!initialized) {
@@ -86,7 +86,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
             }
         });
 	}
-	
+
 	public String getCssClass() {
 		return cssClass;
 	}
@@ -102,7 +102,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 	public void setIconCssClass(String iconCssClass) {
 		this.iconCssClass = iconCssClass;
 	}
-	
+
 	public String getLabel() {
 		return label;
 	}
@@ -110,7 +110,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 	public void setLabel(String label) {
 		this.label = label;
 	}
-	
+
 	public String getColor() {
 		return color;
 	}
@@ -118,7 +118,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 	public void setColor(String color) {
 		this.color = color;
 	}
-	
+
 	public boolean isHideTag() {
 		return hideTag;
 	}
@@ -130,7 +130,7 @@ public abstract class SummaryTag<O extends ObjectType> extends Panel {
 	protected abstract void initialize(ObjectWrapper<O> objectWrapper);
 
 	abstract class SummaryTagWrapperModel<T> extends ReadOnlyWrapperModel<T,O> {
-		
+
 		public SummaryTagWrapperModel(IModel<ObjectWrapper<O>> wrapperModel) {
 			super(wrapperModel);
 		}

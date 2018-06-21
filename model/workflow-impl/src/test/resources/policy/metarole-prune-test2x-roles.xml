@@ -20,14 +20,34 @@
 	<name>metarole-pruning-test2x-roles</name>
 	<inducement>
 		<policyRule>
-			<name>pruning-test2x-roles</name>
+			<name>pruning-test2x-roles-2</name>
 			<policyConstraints>
 				<exclusion>
 					<targetRef oid="00000001-d34d-b33f-f00d-000000000002" type="RoleType"/> <!-- role2 -->
 				</exclusion>
+			</policyConstraints>
+			<policyActions>
+				<prune/>
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>pruning-test2x-roles-2a</name>
+			<policyConstraints>
 				<exclusion>
 					<targetRef oid="00000001-d34d-b33f-f00d-00000000002a" type="RoleType"/> <!-- role2a -->
 				</exclusion>
+			</policyConstraints>
+			<policyActions>
+				<prune/>
+			</policyActions>
+		</policyRule>
+	</inducement>
+	<inducement>
+		<policyRule>
+			<name>pruning-test2x-roles-2b</name>
+			<policyConstraints>
 				<exclusion>
 					<targetRef oid="00000001-d34d-b33f-f00d-00000000002b" type="RoleType"/> <!-- role2b -->
 				</exclusion>

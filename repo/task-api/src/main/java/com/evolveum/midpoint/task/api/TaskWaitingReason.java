@@ -19,9 +19,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonTyp
 
 /**
  * Task waiting reason.
- * 
+ *
  * @author mederly
- * 
+ *
  */
 public enum TaskWaitingReason {
 	/**
@@ -30,11 +30,6 @@ public enum TaskWaitingReason {
 	 */
 	OTHER_TASKS,
 
-	/**
-	 * The task is waiting for a workflow process (that it monitors/shadows) to be finished.
-	 */
-	WORKFLOW,
-	
 	/**
      * The task is waiting because of other reason.
 	 */
@@ -48,7 +43,7 @@ public enum TaskWaitingReason {
 		}
         switch (xmlValue) {
             case OTHER_TASKS: return OTHER_TASKS;
-            case WORKFLOW: return WORKFLOW;
+            case WORKFLOW: return OTHER;
             case OTHER: return OTHER;
             default: throw new IllegalArgumentException("Unknown waiting reason type " + xmlValue);
         }
@@ -58,7 +53,6 @@ public enum TaskWaitingReason {
 
         switch (this) {
             case OTHER_TASKS: return TaskWaitingReasonType.OTHER_TASKS;
-            case WORKFLOW: return TaskWaitingReasonType.WORKFLOW;
             case OTHER: return TaskWaitingReasonType.OTHER;
             default: throw new IllegalArgumentException("Unknown execution status type "+this);
         }

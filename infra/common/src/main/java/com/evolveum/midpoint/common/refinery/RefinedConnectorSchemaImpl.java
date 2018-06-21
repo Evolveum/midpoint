@@ -17,11 +17,9 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchema;
 import com.evolveum.midpoint.schema.processor.ConnectorSchemaImpl;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 
@@ -43,7 +41,7 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
 		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
 		return getConnectorSchema(connector, prismContext);
 	}
-	
+
 	public static ConnectorSchema getConnectorSchema(PrismObject<ConnectorType> connector, PrismContext prismContext) throws SchemaException {
 		Element connectorXsdSchema = ConnectorTypeUtil.getConnectorXsdSchema(connector);
 		if (connectorXsdSchema == null) {
@@ -68,7 +66,7 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
 			return parsedSchema;
 		}
 	}
-	
+
 	public static void setParsedConnectorSchemaConditional(ConnectorType connectorType, ConnectorSchema parsedSchema) {
 		if (hasParsedSchema(connectorType)) {
 			return;

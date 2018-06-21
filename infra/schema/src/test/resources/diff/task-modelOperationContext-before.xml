@@ -1,0 +1,161 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="9498f1b3-afb2-4696-8d5a-ef138365790b"
+      version="3">
+    <name>Approving and executing change of user "jack" (started Feb 1, 2018 11:28:55 AM)</name>
+    <taskIdentifier>1517480935810-0-1</taskIdentifier>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002"
+              relation="org:default"
+              type="c:UserType"/>
+    <executionStatus>runnable</executionStatus>
+    <waitingReason>otherTasks</waitingReason>
+    <node>DefaultNode</node>
+    <category>Workflow</category>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/workflow/prepare-root-operation/handler-3</handlerUri>
+    <otherHandlersUriStack>
+        <uriStackEntry>
+            <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3</handlerUri>
+            <recurrence>single</recurrence>
+            <binding>tight</binding>
+        </uriStackEntry>
+    </otherHandlersUriStack>
+    <result>
+        <operation>run</operation>
+        <status>in_progress</status>
+        <token>1000000000000000895</token>
+    </result>
+    <resultStatus>in_progress</resultStatus>
+    <objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111"
+               relation="org:default"
+               type="c:UserType"/>
+    <lastRunStartTimestamp>2018-02-01T11:29:19.960+01:00</lastRunStartTimestamp>
+    <progress>0</progress>
+    <recurrence>single</recurrence>
+    <binding>tight</binding>
+    <schedule/>
+    <modelOperationContext>
+        <state>primary</state>
+        <focusContext>
+            <objectOldRef oid="c0c010c0-d34d-b33f-f00d-111111111111"
+                          relation="org:default"
+                          type="c:UserType"/>
+            <objectNewRef oid="c0c010c0-d34d-b33f-f00d-111111111111"
+                          relation="org:default"
+                          type="c:UserType"/>
+            <primaryDelta>
+                <t:changeType>modify</t:changeType>
+                <t:objectType>c:UserType</t:objectType>
+                <t:oid>c0c010c0-d34d-b33f-f00d-111111111111</t:oid>
+            </primaryDelta>
+            <objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</objectTypeClass>
+            <oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
+            <iteration>0</iteration>
+            <iterationToken/>
+            <secondaryDeltas>
+                <wave number="0">
+                    <delta>
+                        <t:changeType>modify</t:changeType>
+                        <t:objectType>c:UserType</t:objectType>
+                        <t:oid>c0c010c0-d34d-b33f-f00d-111111111111</t:oid>
+                        <t:itemDelta>
+                            <t:modificationType>replace</t:modificationType>
+                            <t:path>c:roleMembershipRef</t:path>
+                        </t:itemDelta>
+                        <t:itemDelta>
+                            <t:modificationType>replace</t:modificationType>
+                            <t:path>c:credentials/c:password/c:metadata/c:modifyChannel</t:path>
+                        </t:itemDelta>
+                        <t:itemDelta>
+                            <t:modificationType>replace</t:modificationType>
+                            <t:path>c:credentials/c:password/c:metadata/c:modifyTimestamp</t:path>
+                            <t:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                     xsi:type="xsd:dateTime">2018-02-01T11:28:55.652+01:00</t:value>
+                        </t:itemDelta>
+                        <t:itemDelta>
+                            <t:modificationType>replace</t:modificationType>
+                            <t:path>c:credentials/c:password/c:metadata/c:modifierRef</t:path>
+                            <t:value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                     oid="00000000-0000-0000-0000-000000000002"
+                                     relation="org:default"
+                                     type="c:UserType"
+                                     xsi:type="c:ObjectReferenceType"/>
+                        </t:itemDelta>
+                        <t:itemDelta>
+                            <t:modificationType>replace</t:modificationType>
+                            <t:path>c:credentials/c:password/c:metadata/c:modifyTaskRef</t:path>
+                        </t:itemDelta>
+                    </delta>
+                </wave>
+            </secondaryDeltas>
+        </focusContext>
+        <focusClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</focusClass>
+        <doReconciliationForAllProjections>false</doReconciliationForAllProjections>
+        <executionPhaseOnly>false</executionPhaseOnly>
+        <projectionWave>1</projectionWave>
+        <executionWave>0</executionWave>
+        <lazyAuditRequest>false</lazyAuditRequest>
+        <requestAudited>false</requestAudited>
+        <executionAudited>false</executionAudited>
+        <requestAuthorized>true</requestAuthorized>
+        <stats/>
+        <requestMetadata>
+            <requestTimestamp>2018-02-01T11:28:55.645+01:00</requestTimestamp>
+            <requestorRef oid="00000000-0000-0000-0000-000000000002"
+                          relation="org:default"
+                          type="c:UserType"/>
+        </requestMetadata>
+    </modelOperationContext>
+    <workflowContext>
+        <localizableTaskName xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                             xsi:type="c:SingleLocalizableMessageType">
+            <key>ApprovingAndExecuting.ChangeOf</key>
+            <argument>
+                <localizable xsi:type="c:SingleLocalizableMessageType">
+                    <key>ObjectSpecification</key>
+                    <argument>
+                        <localizable xsi:type="c:SingleLocalizableMessageType">
+                            <key>ObjectTypeLowercase.UserType</key>
+                            <fallbackMessage>UserType</fallbackMessage>
+                        </localizable>
+                    </argument>
+                    <argument>
+                        <value>jack</value>
+                    </argument>
+                </localizable>
+            </argument>
+            <argument>
+                <value>Feb 1, 2018 11:28:55 AM</value>
+            </argument>
+        </localizableTaskName>
+        <startTimestamp>2018-02-01T11:28:55.805+01:00</startTimestamp>
+        <requesterRef oid="00000000-0000-0000-0000-000000000002"
+                      relation="org:default"
+                      type="c:UserType"/>
+        <objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111"
+                   relation="org:default"
+                   type="c:UserType"/>
+        <changeProcessor>com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor</changeProcessor>
+    </workflowContext>
+</task>

@@ -19,8 +19,9 @@ package com.evolveum.midpoint.prism;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface SimpleVisitor<T> {
-	
+
 	void visit(T element);
 
 }

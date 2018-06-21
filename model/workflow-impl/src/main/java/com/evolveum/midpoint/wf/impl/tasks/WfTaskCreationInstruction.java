@@ -17,15 +17,20 @@
 package com.evolveum.midpoint.wf.impl.tasks;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -40,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 
+import javax.xml.datatype.Duration;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
@@ -56,37 +62,39 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskCreationInstruction.class);
 	private static final Integer DEFAULT_PROCESS_CHECK_INTERVAL = 30;
+	private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:";
+	private static final long DEFAULT_SERIALIZATION_RETRY_TIME = 10000L;
 
-	private final ChangeProcessor changeProcessor;
+	protected final ChangeProcessor changeProcessor;
 
     protected final WfContextType wfContext = new WfContextType();    // workflow context to be put into the task
 	private ModelContext taskModelContext;   						// model context to be put into the task
 
-	private final Date processCreationTimestamp = new Date();
+	protected final Date processCreationTimestamp = new Date();
 
 	protected final PRC processorContent;
-	private final PCS processContent;
+	protected final PCS processContent;
 
-    private PrismObject taskObject;          // object to be attached to the task; this object must have its definition available
-    private PrismObject<UserType> taskOwner; // if null, owner from parent task will be taken (if there's no parent task, exception will be thrown)
-    private PolyStringType taskName;         // name of task to be created/updated (applies only if the task has no name already) - e.g. "Approve adding role R to U"
+	protected PrismObject taskObject;          // object to be attached to the task; this object must have its definition available
+	protected PrismObject<UserType> taskOwner; // if null, owner from parent task will be taken (if there's no parent task, exception will be thrown)
+	protected PolyStringType taskName;         // name of task to be created/updated (applies only if the task has no name already) - e.g. "Approve adding role R to U"
 
-    private boolean executeModelOperationHandler;       // should the task contain model operation to be executed?
-    private boolean noProcess;                          // should the task provide no wf process (only direct execution of model operation)?
+	protected boolean executeModelOperationHandler;       // should the task contain model operation to be executed?
+	protected boolean noProcess;                          // should the task provide no wf process (only direct execution of model operation)?
 
-    private boolean simple;                             // is workflow process simple? (i.e. such that requires periodic watching of its state)
-    private boolean sendStartConfirmation = true;       // should we send explicit "process started" event when the process was started by midPoint?
+	protected boolean simple;                             // is workflow process simple? (i.e. such that requires periodic watching of its state)
+	protected boolean sendStartConfirmation = true;       // should we send explicit "process started" event when the process was started by midPoint?
                                                         // for listener-enabled processes this can be misleading, because "process started" event could come
                                                         // after "process finished" one (for immediately-finishing processes)
                                                         //
                                                         // unfortunately, it seems we have to live with this (unless we define a "process started" listener)
 
-	private TaskExecutionStatus taskInitialState = TaskExecutionStatus.RUNNABLE;
+	protected TaskExecutionStatus taskInitialState = TaskExecutionStatus.RUNNABLE;
 
     // what should be executed at a given occasion (in the order of being in this list)
-    private final List<UriStackEntry> handlersAfterModelOperation = new ArrayList<>();
-    private final List<UriStackEntry> handlersBeforeModelOperation = new ArrayList<>();
-    private final List<UriStackEntry> handlersAfterWfProcess = new ArrayList<>();
+    protected final List<UriStackEntry> handlersAfterModelOperation = new ArrayList<>();
+	protected final List<UriStackEntry> handlersBeforeModelOperation = new ArrayList<>();
+	protected final List<UriStackEntry> handlersAfterWfProcess = new ArrayList<>();
 
     //region Constructors
     protected WfTaskCreationInstruction(ChangeProcessor changeProcessor, PRC processorContent, PCS processContent) {
@@ -152,6 +160,17 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	public void setProcessInstanceName(String name) {
 		wfContext.setProcessInstanceName(name);
+	}
+
+	public void setLocalizableProcessInstanceName(LocalizableMessage name) {
+    	if (name != null) {
+		    wfContext.getLocalizableProcessInstanceName().add(LocalizationUtil.createLocalizableMessageType(name));
+	    }
+	}
+
+	// use only for the root task
+	public void setLocalizableTaskName(LocalizableMessage name) {
+		wfContext.setLocalizableTaskName(name != null ? LocalizationUtil.createLocalizableMessageType(name) : null);
 	}
 
     public void setTaskName(String taskName) {
@@ -255,7 +274,13 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 	public void setObjectRef(ModelContext<?> modelContext, OperationResult result) {
 		ObjectType focus = MiscDataUtil.getFocusObjectNewOrOld(modelContext);
-		setObjectRef(ObjectTypeUtil.createObjectRef(focus), result);
+		ObjectDelta<?> primaryDelta = modelContext.getFocusContext().getPrimaryDelta();
+		if (primaryDelta != null && primaryDelta.isAdd()) {
+			ObjectReferenceType ref = ObjectTypeUtil.createObjectRefWithFullObject(focus);
+			wfContext.setObjectRef(ref);
+		} else {
+			setObjectRef(ObjectTypeUtil.createObjectRef(focus), result);
+		}
 	}
 
 	public void setTargetRef(ObjectReferenceType ref, OperationResult result) {
@@ -278,6 +303,11 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 	public PCS getProcessContent() {
 		return processContent;
 	}
+
+	public WfContextType getWfContext() {
+		return wfContext;
+	}
+
 	//endregion
 
     //region Diagnostics
@@ -342,9 +372,10 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		task.setCategory(TaskCategory.WORKFLOW);
 
 		if (taskObject != null) {
-			task.setObjectRef(taskObject.getOid(), taskObject.getDefinition().getTypeName());
+			//noinspection unchecked
+			task.setObjectRef(ObjectTypeUtil.createObjectRef(taskObject));
 		} else if (parentTask != null && parentTask.getObjectRef() != null) {
-			task.setObjectRef(parentTask.getObjectRef());
+			task.setObjectRef(parentTask.getObjectRef().clone());
 		}
 		if (task.getName() == null || task.getName().toPolyString().isEmpty()) {
 			task.setName(taskName);
@@ -366,25 +397,107 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 				task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
 			} else {
 				task.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
-				task.makeWaiting();
+				task.makeWaiting(TaskWaitingReason.OTHER);
 			}
 		}
 
 		// model and workflow context
 		if (taskModelContext != null) {
-			task.setModelOperationContext(((LensContext) taskModelContext).toLensContextType());
+			boolean reduced = taskModelContext.getState() == ModelState.PRIMARY;
+			task.setModelOperationContext(((LensContext) taskModelContext).toLensContextType(reduced));
 		}
 		wfContext.setChangeProcessor(changeProcessor.getClass().getName());
 		wfContext.setStartTimestamp(createXMLGregorianCalendar(processCreationTimestamp));
-		if (processorContent != null) {
-			wfContext.setProcessorSpecificState(processorContent.createProcessorSpecificState());
-		}
+		createProcessorContent();
 		if (processContent != null) {
 			wfContext.setProcessSpecificState(processContent.createProcessSpecificState());
 		}
 		task.setWorkflowContext(wfContext);
 
+		WfExecutionTasksConfigurationType tasksConfig = wfConfigurationType != null ? wfConfigurationType.getExecutionTasks() : null;
+		if (executeModelOperationHandler && tasksConfig != null) {
+			TaskType taskBean = task.getTaskPrismObject().asObjectable();
+			// execution constraints
+			TaskExecutionConstraintsType constraints = tasksConfig.getExecutionConstraints();
+			if (constraints != null) {
+				taskBean.setExecutionConstraints(constraints.clone());
+			}
+			// serialization
+			WfExecutionTasksSerializationType serialization = tasksConfig.getSerialization();
+			if (serialization != null && !Boolean.FALSE.equals(serialization.isEnabled())) {
+				List<WfExecutionTasksSerializationScopeType> scopes = new ArrayList<>(serialization.getScope());
+				if (scopes.isEmpty()) {
+					scopes.add(WfExecutionTasksSerializationScopeType.OBJECT);
+				}
+				List<String> groups = new ArrayList<>(scopes.size());
+				for (WfExecutionTasksSerializationScopeType scope : scopes) {
+					String groupPrefix = serialization.getGroupPrefix() != null
+							? serialization.getGroupPrefix() : DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION;
+					String groupSuffix = getGroupSuffix(scope, wfContext, parentTask, task);
+					if (groupSuffix == null) {
+						continue;
+					}
+					groups.add(groupPrefix + scope.value() + ":" + groupSuffix);
+				}
+				if (!groups.isEmpty()) {
+					Duration retryAfter;
+					if (serialization.getRetryAfter() != null) {
+						if (constraints != null && constraints.getRetryAfter() != null && !constraints.getRetryAfter()
+								.equals(serialization.getRetryAfter())) {
+							LOGGER.warn(
+									"Workflow configuration: task constraints retryAfter ({}) is different from serialization retryAfter ({}) -- using the latter",
+									constraints.getRetryAfter(), serialization.getRetryAfter());
+						}
+						retryAfter = serialization.getRetryAfter();
+					} else if (constraints != null && constraints.getRetryAfter() != null) {
+						retryAfter = constraints.getRetryAfter();
+					} else {
+						retryAfter = XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
+					}
+					TaskExecutionConstraintsType executionConstraints = taskBean.getExecutionConstraints();
+					if (executionConstraints == null) {
+						executionConstraints = new TaskExecutionConstraintsType();
+						taskBean.setExecutionConstraints(executionConstraints);
+					}
+					for (String group : groups) {
+						executionConstraints
+								.beginSecondaryGroup()
+								.group(group)
+								.groupTaskLimit(1);
+					}
+					executionConstraints.setRetryAfter(retryAfter);
+					LOGGER.trace("Setting groups {} with a limit of 1 for task {}", groups, task);
+				}
+			}
+		}
 		return task;
+	}
+
+	private String getGroupSuffix(WfExecutionTasksSerializationScopeType scope, WfContextType wfContext, Task parentTask, Task task) {
+		switch (scope) {
+			case GLOBAL: return "";
+			case OBJECT:
+				String oid = wfContext.getObjectRef() != null ? wfContext.getObjectRef().getOid() : null;
+				if (oid == null) {
+					LOGGER.warn("No object OID present, synchronization with the scope of {} couldn't be set up for task {}", scope, task);
+					return null;
+				}
+				return oid;
+			case TARGET:
+				return wfContext.getTargetRef() != null ? wfContext.getTargetRef().getOid() : null;     // null can occur so let's be silent then
+			case OPERATION:
+				return parentTask != null ? parentTask.getTaskIdentifier() : null;                      // null can occur so let's be silent then
+			default:
+				throw new AssertionError("Unknown scope: " + scope);
+		}
+	}
+
+	// FIXME brutal hack because of objectDelta should be in wfContext when evaluating auto completion expression
+	public void createProcessorContent() {
+		if (processorContent != null) {
+			wfContext.setProcessorSpecificState(null);			// ugly hack, see PrismForJaxbUtil:217
+			wfContext.setProcessorSpecificState(processorContent.createProcessorSpecificState());
+		}
 	}
 
 	public Map<String, Object> getAllProcessVariables() throws SchemaException {

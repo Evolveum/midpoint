@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,8 @@ import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -54,7 +52,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
- * 
+ *
  * @param <T> model/chosen object types
  */
 public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<T>> {
@@ -71,7 +69,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 	private static final String ID_EDIT = "edit";
     private static final String ID_REMOVE = "remove";
     private static final String ID_BUTTON_GROUP = "buttonGroup";
-	
+
 
 	protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
 
@@ -80,11 +78,11 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 	private Class<? extends T> defaultType;
 
 	private Collection<Class<? extends T>> types;
-	
+
 	public MultiValueChoosePanel(String id, IModel<List<T>> value, Collection<Class<? extends T>> types) {
 		this(id, value, null, false, types);
 	}
-	
+
 	public MultiValueChoosePanel(String id, IModel<List<T>> value, Collection<Class<? extends T>> types, boolean multiselect) {
 		this(id, value, null, false, types, multiselect);
 	}
@@ -103,11 +101,11 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 		this.types = types;
 		this.defaultType = userOrFirst(types);
 		// initialize typeQNames in onInitialize
-		
+
 		LOGGER.debug("Init multi value choose panel with model {}", chosenValues);
 		initLayout(chosenValues, filterValues, required, multiselect);
 	}
-	
+
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
@@ -117,7 +115,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 				getPageBase().getPrismContext());
 		typeQNames.sort((t1, t2) -> t1.getLocalPart().compareTo(t2.getLocalPart()));
 	}
-	
+
     private void initLayout(final IModel<List<T>> chosenValues, final List<PrismReferenceValue> filterValues,
 			final boolean required, final boolean multiselect) {
 
@@ -137,13 +135,13 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 			@Override
 			protected void populateItem(ListItem<T> item) {
 				WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
-				
+
 				textWrapper.setOutputMarkupPlaceholderTag(true);
-		
-				TextField<String> text = new TextField<String>(ID_TEXT, createTextModel(item.getModel())); //was value
+
+				TextField<String> text = new TextField<>(ID_TEXT, createTextModel(item.getModel())); //was value
 				text.add(new AjaxFormComponentUpdatingBehavior("blur") {
 					private static final long serialVersionUID = 1L;
-		
+
 					@Override
 					protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
 					}
@@ -152,13 +150,13 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 				text.setEnabled(false);
 				text.setOutputMarkupPlaceholderTag(true);
 				textWrapper.add(text);
-		
+
 				FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
 				feedback.setOutputMarkupPlaceholderTag(true);
 				textWrapper.add(feedback);
-		
+
 		        initButtons(item, item);
-		        
+
 		        item.add(textWrapper);
 			}
 		};
@@ -210,7 +208,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 				null, chosenValues) {
 
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			protected void addPerformed(AjaxRequestTarget target, QName type, List<T> selected) {
 				getPageBase().hideMainPopup(target);
@@ -243,7 +241,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 	protected void addPerformed(AjaxRequestTarget target, List<T> addedValues) {
 		List<T> modelList = getModelObject();
 		if(modelList == null) {
-			modelList = new ArrayList<T>();
+			modelList = new ArrayList<>();
 		}
 		addedValues.removeAll(modelList); // add values not already in
 		modelList.addAll(addedValues);
@@ -260,17 +258,17 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
     protected void initButtons(ListItem<T> item, WebMarkupContainer parent) {
         WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP); {
 	        buttonGroup.setOutputMarkupId(true);
-	
+
 	        AjaxLink remove = new AjaxLink(ID_REMOVE) {
-	
+
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {
 	                removeValuePerformed(target, item.getModelObject());
 	            }
 	        };
-	        
+
 	        remove.add(new VisibleEnableBehaviour() {
-	
+
 	            @Override
 	            public boolean isVisible() {
 	                return isRemoveButtonVisible();
@@ -287,16 +285,16 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
 	}
 
 	private void removeValuePerformed(AjaxRequestTarget target, T value) {
-		
+
 		LOGGER.debug("Removing value {} from selected list", value);
-		
+
 		getModelObject().remove(value);
 		removePerformedHook(target, value);
 		target.add(this);
 	}
 
 	protected void removePerformedHook(AjaxRequestTarget target, T value) {
-		
+
 	}
 
 	/**

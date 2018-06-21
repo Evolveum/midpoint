@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismContextImpl;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.crypto.TestProtector;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -44,18 +43,18 @@ import static org.testng.AssertJUnit.assertEquals;
  *
  */
 public class TestProtectedString {
-	
+
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 	}
-	
+
 	@Test
     public void testParseProtectedStringEncrypted() throws Exception {
 		final String TEST_NAME = "testParseProtectedStringEncrypted";
 		displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
         Protector protector = PrismInternalTestUtil.createProtector(XMLCipher.AES_128);
         ProtectedStringType protectedStringType = protector.encryptString("salalala");
@@ -73,12 +72,12 @@ public class TestProtectedString {
         System.out.println("Unmarshalled value: " + unmarshalled);
         assertEquals("Unmarshalled value differs from the original", protectedStringType, unmarshalled);
     }
-	
+
 	@Test
     public void testParseProtectedStringHashed() throws Exception {
 		final String TEST_NAME = "testParseProtectedStringHashed";
 		displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		ProtectedStringType protectedStringType = new ProtectedStringType();
 		protectedStringType.setClearValue("blabla");

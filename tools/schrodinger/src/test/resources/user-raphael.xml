@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<user oid="2b9886d7-a71a-41cb-9156-cfbda0ffa68d"
+      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>raphael</name>
+    <fullName>Raffaello Sanzio da Urbino</fullName>
+    <givenName>Raffaello</givenName>
+    <familyName>Sanzio da Urbino</familyName>
+    <nickName>Raphael</nickName>
+</user>

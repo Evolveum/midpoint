@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -53,23 +52,23 @@ import javax.xml.namespace.QName;
 /**
  * Dummy audit service that only remembers the audit messages in runtime.
  * Only for use in tests.
- *  
+ *
  * @author semancik
  *
  */
 public class DummyAuditService implements AuditService, DebugDumpable {
 
 	private static DummyAuditService instance = null;
-	
-	private List<AuditEventRecord> records = new ArrayList<AuditEventRecord>();
-	
+
+	private List<AuditEventRecord> records = new ArrayList<>();
+
 	public static DummyAuditService getInstance() {
 		if (instance == null) {
 			instance = new DummyAuditService();
 		}
 		return instance;
 	}
-	
+
 	@Override
 	public void audit(AuditEventRecord record, Task task) {
 		records.add(record.clone());
@@ -107,11 +106,11 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     public List<AuditEventRecord> getRecords() {
 		return records;
 	}
-	
+
 	public void clear() {
 		records.clear();
 	}
-	
+
 	/**
 	 * Asserts that there is a request message followed by execution message.
 	 */
@@ -124,14 +123,14 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 			AuditEventRecord record = iterator.next();
 			num++;
 			assertRecordSanity(""+num+"th record", record);
-			
+
 			if (record.getEventStage() == AuditEventStage.REQUEST) {
 				numRequests++;
 			}
 			if (record.getEventStage() == AuditEventStage.EXECUTION) {
 				assert numRequests > 0 : "Encountered execution stage audit record without any preceding request: "+record;
 				numExecutions++;
-			}			
+			}
 		}
 		assert numRequests <= numExecutions : "Strange number of requests and executions; "+numRequests+" requests, "+numExecutions+" executions";
 	}
@@ -148,8 +147,13 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 				" but was "+records.size();
 	}
 
+	public void assertExecutionRecords(int expectedNumber) {
+		List<AuditEventRecord> executionRecords = getExecutionRecords();
+		assertEquals("Wrong # of execution records", expectedNumber, executionRecords.size());
+	}
+
     public List<AuditEventRecord> getRecordsOfType(AuditEventType type) {
-        List<AuditEventRecord> retval = new ArrayList<AuditEventRecord>();
+        List<AuditEventRecord> retval = new ArrayList<>();
         for (AuditEventRecord record : records) {
             if (record.getEventType() == type) {
                 retval.add(record);
@@ -179,12 +183,12 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		assert executionRecord.getEventStage() == AuditEventStage.EXECUTION : "The "+index+"th audit execution record is not execution, it is "+executionRecord;
 		return executionRecord;
 	}
-	
+
 	public List<AuditEventRecord> getExecutionRecords() {
 		assertSingleBatch();
 		return records.subList(1, records.size());
 	}
-	
+
 	private void assertSingleBatch() {
 		assert records.size() > 1 : "Expected at least two audit records but got "+records.size();
 		Iterator<AuditEventRecord> iterator = records.iterator();
@@ -199,7 +203,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 				break;
 			}
 			assert executionRecord.getEventStage() == AuditEventStage.EXECUTION : "Expected following record to be execution, it was "+executionRecord.getEventStage()+" instead: "+executionRecord;
-		}		
+		}
 	}
 
 	public void assertAnyRequestDeltas() {
@@ -211,7 +215,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutionDeltas() {
 		return getExecutionDeltas(0);
 	}
-	
+
 	public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutionDeltas(int index) {
 		AuditEventRecord executionRecord = getExecutionRecord(index);
 		Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = executionRecord.getDeltas();
@@ -225,7 +229,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		ObjectDeltaOperation<?> delta = deltas.iterator().next();
 		return delta;
 	}
-	
+
 	public <O extends ObjectType> ObjectDeltaOperation<O> getExecutionDelta(int index, ChangeType changeType, Class<O> typeClass) {
 		for (ObjectDeltaOperation<? extends ObjectType> deltaOp: getExecutionDeltas(index)) {
 			ObjectDelta<? extends ObjectType> delta = deltaOp.getObjectDelta();
@@ -235,80 +239,86 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		}
 		return null;
 	}
-	
+
 	public void assertExecutionDeltaAdd() {
 		ObjectDeltaOperation<?> delta = getExecutionDelta(0);
 		assert delta.getObjectDelta().isAdd() : "Execution audit record is not add, it is "+delta;
 	}
-	
+
 	public void assertExecutionSuccess() {
 		assertExecutionOutcome(OperationResultStatus.SUCCESS);
 	}
-	
+
 	public void assertExecutionOutcome(OperationResultStatus expectedStatus) {
 		List<AuditEventRecord> executionRecords = getExecutionRecords();
 		for (AuditEventRecord executionRecord: executionRecords) {
 			assert executionRecord.getOutcome() == expectedStatus : "Expected execution outcome "+expectedStatus+" in audit record but it was "+executionRecord.getOutcome();
 		}
 	}
-	
+
 	public void assertExecutionOutcome(int index, OperationResultStatus expectedStatus) {
 		List<AuditEventRecord> executionRecords = getExecutionRecords();
 		AuditEventRecord executionRecord = executionRecords.get(index);
 		assert executionRecord.getOutcome() == expectedStatus : "Expected execution outcome "+expectedStatus+" in audit execution record ("+index+") but it was "+executionRecord.getOutcome();
 	}
-	
+
 	public void assertExecutionMessage() {
 		List<AuditEventRecord> executionRecords = getExecutionRecords();
 		for (AuditEventRecord executionRecord: executionRecords) {
 			assert !StringUtils.isEmpty(executionRecord.getMessage()) : "Expected execution message in audit record but there was none; in "+executionRecord;
 		}
 	}
-	
+
 	public void assertExecutionMessage(int index) {
 		List<AuditEventRecord> executionRecords = getExecutionRecords();
 		AuditEventRecord executionRecord = executionRecords.get(index);
 		assert !StringUtils.isEmpty(executionRecord.getMessage()) : "Expected execution message in audit record but there was none; in "+executionRecord;
 	}
-	
+
+	public void assertExecutionMessage(int index, String message) {
+		List<AuditEventRecord> executionRecords = getExecutionRecords();
+		AuditEventRecord executionRecord = executionRecords.get(index);
+		assertEquals("Wrong message in execution record " + index, message, executionRecord.getMessage());
+	}
+
 	public void assertNoRecord() {
 		assert records.isEmpty() : "Expected no audit record but some sneaked in: "+records;
 	}
-	
+
 	public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(ChangeType expectedChangeType, Class<O> expectedClass) {
 		return assertHasDelta(null, 0, expectedChangeType, expectedClass);
 	}
-	
+
 	public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expextedResult) {
 		return assertHasDelta(null, 0, expectedChangeType, expectedClass, expextedResult);
 	}
-	
+
 	public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(int index, ChangeType expectedChangeType, Class<O> expectedClass) {
 		return assertHasDelta(null, index, expectedChangeType, expectedClass);
 	}
-	
+
 	public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(int index, ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expextedResult) {
 		return assertHasDelta(null, index, expectedChangeType, expectedClass, expextedResult);
 	}
-	
+
 	public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass) {
 		return assertHasDelta(message, index, expectedChangeType, expectedClass, null);
 	}
-	
+
 	public <O extends ObjectType> ObjectDeltaOperation<O> assertHasDelta(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, OperationResultStatus expextedResult) {
 		ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
 		assert deltaOp != null : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
 		if (expextedResult != null) {
-			assertEquals((message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" has unexpected result", 
+			assertEquals((message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" has unexpected result",
 					deltaOp.getExecutionResult().getStatus(), expextedResult);
 		}
 		return deltaOp;
 	}
-	
+
 	public void assertExecutionDeltas(int expectedNumber) {
 		assertExecutionDeltas(0, expectedNumber);
 	}
-	
+
 	public void assertExecutionDeltas(int index, int expectedNumber) {
 		assertEquals("Wrong number of execution deltas in audit trail (index "+index+")", expectedNumber, getExecutionDeltas(index).size());
 	}
@@ -323,27 +333,56 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 				}
 				if (target != null) {
 					targets.add(target);
-				}				
+				}
 			}
 		}
 		assert false : "Target "+expectedOid+" not found in audit records (stage="+stage+"); found "+targets;
 	}
-	
+
 	public void assertTarget(String expectedOid) {
 		assertTarget(expectedOid, AuditEventStage.REQUEST);
 		assertTarget(expectedOid, AuditEventStage.EXECUTION);
 	}
 	
-	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T expectedValue) {
-		assertOldValue(null, 0, expectedChangeType, expectedClass, new ItemPath(attrName), expectedValue);
+	public <O extends ObjectType,T> void assertPropertyReplace(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T... expectedValues) {
+		assertPropertyReplace(null, 0, expectedChangeType, expectedClass, new ItemPath(attrName), expectedValues);
 	}
 
-	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T expectedValue) {
-		assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValue);
+	public <O extends ObjectType,T> void assertPropertyReplace(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		assertPropertyReplace(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
+	}
+
+	public <O extends ObjectType,T> void assertPropertyReplace(int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		assertPropertyReplace(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
+	}
+
+	public <O extends ObjectType,T> void assertPropertyReplace(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
+		assert deltaOp != null : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
+		PropertyDelta<Object> propDelta = deltaOp.getObjectDelta().findPropertyDelta(propPath);
+		assert propDelta != null : "No property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType;
+		Collection<PrismPropertyValue<Object>> valuesToReplace = propDelta.getValuesToReplace();
+		assert valuesToReplace != null : "No values to replace in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType;
+		if (expectedValues == null || expectedValues.length == 0) {
+			if (valuesToReplace.isEmpty()) {
+				return;
+			} else {
+				assert false : (message==null?"":message+": ") + "Empty values to replace in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType + ", expected " + Arrays.toString(expectedValues);
+			}
+		}
+		PrismAsserts.assertValues((message==null?"":message+": ") +"Wrong values to replace in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType, valuesToReplace, expectedValues);
 	}
 	
-	public <O extends ObjectType,T> void assertOldValue(int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T expectedValue) {
-		assertOldValue(null, index, expectedChangeType, expectedClass, propPath, expectedValue);
+	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, QName attrName, T... expectedValues) {
+		assertOldValue(null, 0, expectedChangeType, expectedClass, new ItemPath(attrName), expectedValues);
+	}
+
+	public <O extends ObjectType,T> void assertOldValue(ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
+	}
+
+	public <O extends ObjectType,T> void assertOldValue(int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+		assertOldValue(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
 	}
 
 	public <O extends ObjectType,T> void assertOldValue(String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
@@ -352,17 +391,24 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		PropertyDelta<Object> propDelta = deltaOp.getObjectDelta().findPropertyDelta(propPath);
 		assert propDelta != null : "No property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType;
 		Collection<PrismPropertyValue<Object>> estimatedOldValues = propDelta.getEstimatedOldValues();
+		if (expectedValues == null || expectedValues.length == 0) {
+			if (estimatedOldValues == null || estimatedOldValues.isEmpty()) {
+				return;
+			} else {
+				assert false : (message==null?"":message+": ") + "Empty old values in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType + ", expected " + Arrays.toString(expectedValues);
+			}
+		}
 		assert estimatedOldValues != null && !estimatedOldValues.isEmpty() : "No old values in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType;
 		PrismAsserts.assertValues((message==null?"":message+": ") +"Wrong old values in property delta for "+propPath+" in Delta for "+expectedClass+" of type "+expectedChangeType, estimatedOldValues, expectedValues);
 	}
-			
+
 	/**
 	 * Checks that the first record is login and the last is logout.
 	 */
 	public void assertLoginLogout() {
 		assertLoginLogout(null);
 	}
-	
+
 	/**
 	 * Checks that the first record is login and the last is logout.
 	 */
@@ -380,7 +426,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 			assertEquals("Wrong channel in last audit record", expectedChannel, lastRecord.getChannel());
 		}
 	}
-	
+
 	public void assertFailedLogin(String expectedChannel) {
 		AuditEventRecord firstRecord = records.get(0);
 		assertEquals("Wrong type of first audit record: "+firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
@@ -389,7 +435,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 			assertEquals("Wrong channel in first audit record", expectedChannel, firstRecord.getChannel());
 		}
 	}
-	
+
 	public void assertFailedProxyLogin(String expectedChannel) {
 		AuditEventRecord firstRecord = records.get(0);
 		assertEquals("Wrong type of first audit record (service authN): "+firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
@@ -444,12 +490,12 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	public void listRecordsIterative(String query, Map<String, Object> params,
 			AuditResultHandler auditResultHandler) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void reindexEntry(AuditEventRecord record) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

@@ -25,13 +25,13 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>midpoint</artifactId>
-        <version>3.6-SNAPSHOT</version>
+        <version>3.9-SNAPSHOT</version>
     </parent>
     <pluginRepositories>
         <pluginRepository>
             <id>evolveum</id>
             <name>Evolveum</name>
-            <url>http://nexus.evolveum.com/nexus/content/groups/public</url>
+            <url>https://nexus.evolveum.com/nexus/content/groups/public</url>
         </pluginRepository>
     </pluginRepositories>
     <properties>
@@ -41,56 +41,77 @@
         <ansi.color>true</ansi.color>
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
-
         <git.describe>${describe}</git.describe>
         <timestamp>${maven.build.timestamp}</timestamp>
         <maven.build.timestamp.format>EEE, d MMM yyyy HH:mm:ss Z</maven.build.timestamp.format>
         <!-- Dependencies global versions -->
-        <commons.io.version>2.0.1</commons.io.version>
+        <commons.io.version>2.6</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
-        <commons.lang3.version>3.1</commons.lang3.version>
+        <commons.lang3.version>3.7</commons.lang3.version>
         <commons.cli>1.2</commons.cli>
-        <cxf.version>3.1.6</cxf.version>
-        <cxf-xjc.version>3.0.5</cxf-xjc.version>
-        <wss4j.version>2.1.5</wss4j.version>
+        <cxf.version>3.2.4</cxf.version>
+        <cxf-xjc.version>3.2.0</cxf-xjc.version>
+        <wss4j.version>2.2.0</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
-        <jaxb-api.version>2.2.9</jaxb-api.version>
-        <jaxb.version>2.2.10-b140310.1920</jaxb.version>
-        <jaxb-xjc.version>2.2.10-b140310.1920</jaxb-xjc.version>
+        <jaxb-api.version>2.2.10</jaxb-api.version>
+        <jaxb.version>2.2.10</jaxb.version>
+        <jaxb-xjc.version>2.2.10</jaxb-xjc.version>
         <junit.version>4.8.2</junit.version>
         <opendj.version>2.6.2</opendj.version>
         <mockito.version>1.10.8</mockito.version>
-        <quartz.version>2.2.3</quartz.version>
+        <quartz.version>2.3.0.e2</quartz.version>
         <selenium.version>1.0.1</selenium.version>
-        <slf4j.version>1.7.12</slf4j.version>
-        <spring.version>4.2.5.RELEASE</spring.version>
-        <spring.security.version>4.1.0.RELEASE</spring.security.version>
-        <cas.client.version>3.4.1</cas.client.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <logback.version>1.2.3</logback.version>
+        <spring.boot.version>2.0.1.RELEASE</spring.boot.version> <!-- can be replaced by a stock version;
+                ideally after https://github.com/spring-projects/spring-boot/issues/11367 is resolved but it should be OK even before that -->
+        <spring.version>5.0.6.RELEASE</spring.version>
+        <spring.security.version>5.0.6.RELEASE</spring.security.version>
+        <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
         <xmlunit.version>2.1.1</xmlunit.version>
         <cron4j.version>2.2.3</cron4j.version>
-        <hibernate.version>4.3.11.Final</hibernate.version>
+        <hibernate.version>5.2.12.Final</hibernate.version>
         <h2.version>1.4.193</h2.version>
-        <jdbc.postgres>9.4.1212.jre7</jdbc.postgres>
+        <jdbc.postgres>42.2.2</jdbc.postgres>
+        <jdbc.sqlserver>6.4.0.jre8</jdbc.sqlserver>
         <jdbc.mariadb>1.5.5</jdbc.mariadb>
-        <jdbc.mysql>6.0.5</jdbc.mysql>
-        <wicket.version>7.6.0</wicket.version>
-        <groovy.version>2.4.0</groovy.version>
+        <jdbc.mysql>6.0.6</jdbc.mysql>
+        <wicket.version>7.10.0</wicket.version>
+        <groovy.version>2.4.14</groovy.version>
         <activiti-engine.version>5.22.0</activiti-engine.version>
         <activiti-spring.version>5.22.0</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
         <xmlsec.version>2.0.6</xmlsec.version>
-        <connid.version>1.4.2.29</connid.version>
-        <jasper.version>6.4.0</jasper.version>
+        <connid.version>1.4.3.11</connid.version>
+        <jasper.version>6.5.0</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.8.0</wro4j.version>
-        <jackson.version>2.8.6</jackson.version>
+        <jackson.version>2.9.5</jackson.version>
         <snakeyaml.version>1.15</snakeyaml.version>
-        <surefire.version>2.19.1</surefire.version>
+        <surefire.version>2.20.1</surefire.version>
+        <reflections.version>0.9.11</reflections.version>
+        <guava.version>20.0</guava.version>
+        <jcommander.version>1.72</jcommander.version>
     </properties>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <!-- Import dependency management from Spring Boot -->
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>${reflections.version}</version>
+            </dependency>
+
             <!-- WICKET -->
             <dependency>
                 <groupId>org.apache.wicket</groupId>
@@ -120,11 +141,6 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.wicket</groupId>
-                <artifactId>wicket-atmosphere</artifactId>
-                <version>0.17</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.wicket</groupId>
                 <artifactId>wicket-devutils</artifactId>
                 <version>${wicket.version}</version>
             </dependency>
@@ -140,7 +156,7 @@
                 <exclusions>
                     <exclusion>
                         <groupId>org.springframework</groupId>
-                        <artifactId>spring</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -226,12 +242,11 @@
                         <groupId>xml-apis</groupId>
                         <artifactId>xml-apis</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>javax.annotation</groupId>
+                        <artifactId>jsr250-api</artifactId>
+                    </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.hibernate</groupId>
-                <artifactId>hibernate-c3p0</artifactId>
-                <version>${hibernate.version}</version>
             </dependency>
             <dependency>
 	            <groupId>org.hibernate.javax.persistence</groupId>
@@ -241,22 +256,27 @@
 	        <dependency>
 	            <groupId>com.mchange</groupId>
 	            <artifactId>c3p0</artifactId>
-	            <version>0.9.2.1</version>
+	            <version>0.9.5.2</version>
 	        </dependency>
+            <dependency>
+                <groupId>com.zaxxer</groupId>
+                <artifactId>HikariCP</artifactId>
+                <version>2.7.8</version>
+            </dependency>
             <dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>jul-to-slf4j</artifactId>
-				<version>1.7.2</version>
+				<version>${slf4j.version}</version>
 			</dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
-                <version>1.1.2</version>
+                <version>${logback.version}</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
-                <version>1.1.2</version>
+                <version>${logback.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.sleepycat</groupId>
@@ -274,6 +294,11 @@
 				<version>1.0-2</version>
 			</dependency>
             <dependency>
+                <groupId>org.codehaus.staxmate</groupId>
+                <artifactId>staxmate</artifactId>
+                <version>2.0.1</version>
+            </dependency>
+            <dependency>
                 <groupId>stax</groupId>
                 <artifactId>stax-api</artifactId>
                 <version>1.0.1</version>
@@ -288,15 +313,15 @@
                 <artifactId>jaxb-impl</artifactId>
                 <version>${jaxb.version}</version>
             </dependency>
+             <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-core</artifactId>
+                <version>${jaxb.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.sun.xml.bind</groupId>
                 <artifactId>jaxb-xjc</artifactId>
                 <version>${jaxb-xjc.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-core</artifactId>
-                <version>${jaxb.version}</version>
             </dependency>
             <dependency>
 	            <groupId>net.sourceforge.ccxjc</groupId>
@@ -307,7 +332,8 @@
                 <groupId>com.sun.xsom</groupId>
                 <artifactId>xsom</artifactId>
                 <!-- <version>20100725</version> -->
-                <version>20110809</version>
+                <!--<version>20110809</version>-->
+                <version>20140925</version>
             </dependency>
             <dependency>
                 <groupId>commons-validator</groupId>
@@ -429,7 +455,7 @@
             <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>javax.ws.rs-api</artifactId>
-                <version>2.0</version>
+                <version>2.1</version>
             </dependency>
             <dependency>
                 <groupId>net.sf.saxon</groupId>
@@ -442,7 +468,7 @@
 	                 Therefore explicitly use the custom version. -->
 	            <groupId>org.apache.httpcomponents</groupId>
 	            <artifactId>httpclient</artifactId>
-	            <version>4.5.3.e1</version>
+	            <version>4.5.3.e3</version>
             </dependency>
             <dependency>
 	            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
@@ -591,15 +617,34 @@
 	            <version>${wss4j.version}</version>
 	            <exclusions>
 	            	<exclusion> <!-- conflict with javax.mail:mail -->
-                        <groupId>org.apache.geronimo.specs</groupId>
-	            		<artifactId>geronimo-javamail_1.4_spec</artifactId>
+                        <groupId>org.apache.geronimo.javamail</groupId>
+	            		<artifactId>geronimo-javamail_1.4_mail</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- conflict with jasper -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>guava</artifactId>
                     </exclusion>
                 </exclusions>
 	        </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
 	        <dependency>
 	            <groupId>org.apache.wss4j</groupId>
 	            <artifactId>wss4j-ws-security-dom</artifactId>
 	            <version>${wss4j.version}</version>
+                <exclusions>
+                    <exclusion> <!-- conflict with jasper -->
+                        <groupId>org.bouncycastle</groupId>
+                        <artifactId>bcprov-jdk15on</artifactId>
+                    </exclusion>
+                </exclusions>
 	        </dependency>
 	        <dependency>
 	            <groupId>org.cryptacular</groupId>
@@ -647,23 +692,18 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-csv</artifactId>
-                <version>2.0-SNAPSHOT</version>
+                <version>2.2</version>
             </dependency>
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>1.4.5-SNAPSHOT</version>
+                <version>1.6</version>
                 <exclusions>
 					<exclusion> <!-- Version in dependency of org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j conflicts with xalan. Can be removed when connector version is bumped beyond 1.4.2.17 -->
                         <groupId>xml-apis</groupId>
                         <artifactId>xml-apis</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.evolveum.polygon</groupId>
-                <artifactId>connector-ldap-legacy</artifactId>
-                <version>1.4.0.50</version>
             </dependency>
             <!-- End connectors -->
             <dependency>
@@ -703,8 +743,16 @@
                 <version>${quartz.version}</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>c3p0</groupId>
+                        <groupId>com.mchange</groupId>
                         <artifactId>c3p0</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.mchange</groupId>
+                        <artifactId>mchange-commons-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.zaxxer</groupId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -716,6 +764,10 @@
                     <exclusion>
                         <groupId>javax.xml.stream</groupId> <!-- Other packages use stax:stax-api -->
                         <artifactId>stax-api</artifactId>
+                    </exclusion>
+                    <exclusion> <!-- Duplicate with woodstox-core -->
+                        <groupId>org.codehaus.woodstox</groupId>
+                        <artifactId>woodstox-core-asl</artifactId>
                     </exclusion>
                 </exclusions>
 			</dependency>
@@ -779,6 +831,11 @@
 				<artifactId>spring-aop</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jcl</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-config</artifactId>
@@ -833,6 +890,11 @@
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
                 <version>${jdbc.postgres}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.sqlserver</groupId>
+                <artifactId>mssql-jdbc</artifactId>
+                <version>${jdbc.sqlserver}</version>
             </dependency>
             <dependency>
                 <groupId>org.mariadb.jdbc</groupId>
@@ -944,7 +1006,7 @@
             <dependency>
 				<groupId>org.apache.poi</groupId>
 				<artifactId>poi</artifactId>
-				<version>3.10.1</version>
+				<version>3.17</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -1076,11 +1138,6 @@
                     </exclusion>
                 </exclusions>
 			</dependency>
-			<dependency>
-	        	<groupId>org.webjars</groupId>
-	    		<artifactId>webjars-locator</artifactId>
-	    		<version>0.15</version>
-	        </dependency>
 	        <dependency>
 	            <groupId>ro.isdc.wro4j</groupId>
 	            <artifactId>wro4j-core</artifactId>
@@ -1124,7 +1181,7 @@
             <dependency>
 				<groupId>org.apache.directory.api</groupId>
 				<artifactId>api-all</artifactId>
-				<version>1.0.0-RC2</version>
+				<version>1.0.0</version>
 				<exclusions>
 	                <exclusion>
 	                    <artifactId>slf4j-api</artifactId>
@@ -1173,6 +1230,12 @@
 	            <artifactId>ionicons</artifactId>
 	            <version>3.0.0</version>
 	        </dependency>
+
+            <dependency>
+                <groupId>com.beust</groupId>
+                <artifactId>jcommander</artifactId>
+                <version>${jcommander.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -1193,12 +1256,12 @@
       <repository>
         <id>evolveum-nexus</id>
         <name>Internal Releases</name>
-        <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+        <url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
       </repository>
       <snapshotRepository>
         <id>evolveum-nexus</id>
         <name>Internal Snapshots</name>
-        <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
       </snapshotRepository>
     </distributionManagement>
 
@@ -1231,7 +1294,8 @@
 					<maxmem>768m</maxmem>
 					<showDeprecation>true</showDeprecation>
 					<showWarnings>true</showWarnings>
-					<!--verbose>true</verbose> <showWarnings>false</showWarnings -->
+					<verbose>true</verbose> 
+					<!--<showWarnings>false</showWarnings -->
 				</configuration>
 			</plugin>
 			<plugin>
@@ -1315,6 +1379,7 @@
 						</manifestEntries>
 					</archive>
 					<attachClasses>true</attachClasses>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
 				</configuration>
 			</plugin>
 			<!--plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-checkstyle-plugin</artifactId> 
@@ -1380,6 +1445,10 @@
 									<name>suitename</name>
 									<value>Integration</value>
 								</property>
+								<property>
+									<name>usedefaultlisteners</name>
+									<value>false</value> <!-- do not generate HTML to make the runs faster -->
+								</property>
 							</properties>
 						</configuration>
 					</execution>
@@ -1405,18 +1474,16 @@
 						<midpoint.home>target/midpoint-home</midpoint.home>
 						<java.util.logging.config.file>${project.build.directory}/test-classes/logging.properties</java.util.logging.config.file>
 					</systemPropertyVariables>
-					<argLine>-Xms1024m -Xmx2048m</argLine>
+					<argLine>-Xms1024m -Xmx4096m</argLine>
 					<!--<argLine>-agentpath:/usr/local/yjp-11.0.10/bin/linux-x86-64/libyjpagent.so=alloceach=10,allocsizelimit=1048576,sampling,walltimespec=/home/lazyman/.yjp/config/.walltime,noj2ee,profileruipath=/usr/local/yjp-11.0.10/bin/yjp.sh,onexit=snapshot 
 						-Xms512m -Xmx1024m -XX:MaxPermSize=192m</argLine> -->
 
 					<!-- it's used for bamboo build to load jdbc libraries which can not 
 						be installed to public maven repository (MS SQL, ORACLE) -->
 					<additionalClasspathElements>
-						<additionalClasspathElement>/opt/Bamboo_db_configs/mssqljdbc4.jar</additionalClasspathElement>
-						<additionalClasspathElement>/opt/Bamboo_db_configs/ojdbc6.jar</additionalClasspathElement>
+						<additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
 						<!-- used running tests on windows machines -->
-						<additionalClasspathElement>c:\Program Files\Microsoft JDBC DRIVER
-							4.0 for SQL Server\sqljdbc_4.0\enu\sqljdbc4.jar</additionalClasspathElement>
+                        <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
 					</additionalClasspathElements>
 				</configuration>
 				<dependencies>
@@ -1477,7 +1544,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>2.10</version>
+				<version>3.0.2</version>
 				<executions>
 					<execution>
 						<id>analyze</id>
@@ -1492,6 +1559,7 @@
 								<!-- There are dependencies in this master POM. So they are projected 
 									everywhere, used or unused. -->
 								<ignoredUnusedDeclaredDependency>org.springframework</ignoredUnusedDeclaredDependency>
+                                <ignoredUnusedDeclaredDependency>org.springframework.boot</ignoredUnusedDeclaredDependency>
 
 								<!-- Common "drill" for all modules. -->
 								<ignoredUnusedDeclaredDependency>com.evolveum.midpoint.tools:test-ng</ignoredUnusedDeclaredDependency>

@@ -15,16 +15,12 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.credentials;
 
-import java.util.List;
-
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -32,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public class NoncePolicyEvaluator extends CredentialPolicyEvaluator<NonceType,NonceCredentialsPolicyType> {
-	
+
 	private static final ItemPath NONCE_CONTAINER_PATH = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_NONCE);
 
 	@Override
@@ -44,7 +40,12 @@ public class NoncePolicyEvaluator extends CredentialPolicyEvaluator<NonceType,No
 	protected String getCredentialHumanReadableName() {
 		return "nonce";
 	}
-	
+
+	@Override
+	protected String getCredentialHumanReadableKey() {
+		return "nonce";
+	}
+
 	@Override
 	protected boolean supportsHistory() {
 		return false;
@@ -54,5 +55,5 @@ public class NoncePolicyEvaluator extends CredentialPolicyEvaluator<NonceType,No
 	protected NonceCredentialsPolicyType determineEffectiveCredentialPolicy() throws SchemaException {
 		return SecurityUtil.getEffectiveNonceCredentialsPolicy(getSecurityPolicy());
 	}
-	
+
 }

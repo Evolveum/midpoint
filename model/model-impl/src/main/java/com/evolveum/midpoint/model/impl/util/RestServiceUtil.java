@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package com.evolveum.midpoint.model.impl.util;
 
+import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.ext.MessageContext;
@@ -33,14 +34,12 @@ import com.evolveum.midpoint.model.impl.security.RestAuthenticationMethod;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConcurrencyException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -65,6 +64,53 @@ public class RestServiceUtil {
 		return createErrorResponseBuilder(result, ex).build();
 	}
 
+	public static <T> Response createResponse(Response.Status statusCode, OperationResult result) {
+
+		return createResponse(statusCode, null, result, false);
+
+	}
+
+	public static <T> Response createResponse(Response.Status statusCode, T body, OperationResult result) {
+
+		return createResponse(statusCode, body, result, false);
+
+	}
+
+	public static <T> Response createResponse(Response.Status statusCode, T body, OperationResult result, boolean sendOriginObjectIfNotSuccess) {
+		result.computeStatusIfUnknown();
+
+		if (result.isPartialError()) {
+			return createBody(Response.status(250), sendOriginObjectIfNotSuccess, body, result).build();
+		} else if (result.isHandledError()) {
+			return createBody(Response.status(240), sendOriginObjectIfNotSuccess, body, result).build();
+		}
+
+		return body == null ? Response.status(statusCode).build() : Response.status(statusCode).entity(body).build();
+	}
+
+	private static <T> ResponseBuilder createBody(ResponseBuilder builder, boolean sendOriginObjectIfNotSuccess, T body, OperationResult result) {
+		if (sendOriginObjectIfNotSuccess) {
+			return builder.entity(body);
+		}
+		return builder.entity(result);
+
+	}
+
+	public static <T> Response createResponse(Response.Status statusCode, URI location, OperationResult result) {
+		result.computeStatusIfUnknown();
+
+		if (result.isPartialError()) {
+			return createBody(Response.status(250), false, null, result).location(location).build();
+		} else if (result.isHandledError()) {
+			return createBody(Response.status(240), false, null, result).location(location).build();
+		}
+
+
+		return location == null ? Response.status(statusCode).build() : Response.status(statusCode).location(location).build();
+	}
+
+
+
 	public static Response.ResponseBuilder createErrorResponseBuilder(OperationResult result, Exception ex) {
 		if (ex instanceof ObjectNotFoundException) {
 			return createErrorResponseBuilder(Response.Status.NOT_FOUND, result);
@@ -77,19 +123,18 @@ public class RestServiceUtil {
 		if (ex instanceof SecurityViolationException || ex instanceof AuthorizationException) {
 			return createErrorResponseBuilder(Response.Status.FORBIDDEN, result);
 		}
-		
+
 		if (ex instanceof ConfigurationException) {
 			return createErrorResponseBuilder(Response.Status.BAD_GATEWAY, result);
 		}
-		
-		if (ex instanceof SchemaException 
-				|| ex instanceof NoFocusNameSchemaException 
+
+		if (ex instanceof SchemaException
+				|| ex instanceof NoFocusNameSchemaException
 				|| ex instanceof ExpressionEvaluationException) {
 			return createErrorResponseBuilder(Response.Status.BAD_REQUEST, result);
 		}
 
 		if (ex instanceof PolicyViolationException
-				|| ex instanceof ConsistencyViolationException
 				|| ex instanceof ObjectAlreadyExistsException
 				|| ex instanceof ConcurrencyException) {
 			return createErrorResponseBuilder(Response.Status.CONFLICT, result);
@@ -119,30 +164,29 @@ public class RestServiceUtil {
 
 	public static void finishRequest(Task task, SecurityHelper securityHelper) {
 		task.getResult().computeStatus();
-		ConnectionEnvironment connEnv = new ConnectionEnvironment();
-		connEnv.setChannel(SchemaConstants.CHANNEL_REST_URI);
-		connEnv.setSessionId(task.getTaskIdentifier());
+		ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_REST_URI);
+		connEnv.setSessionIdOverride(task.getTaskIdentifier());
 		securityHelper.auditLogout(connEnv, task);
 	}
 
 	// slightly experimental
 	public static Response.ResponseBuilder createResultHeaders(Response.ResponseBuilder builder, OperationResult result) {
-		return builder
-				.header(OPERATION_RESULT_STATUS, OperationResultStatus.createStatusType(result.getStatus()).value())
-				.header(OPERATION_RESULT_MESSAGE, result.getMessage());
+		return builder.entity(result);
+//				.header(OPERATION_RESULT_STATUS, OperationResultStatus.createStatusType(result.getStatus()).value())
+//				.header(OPERATION_RESULT_MESSAGE, result.getMessage());
 	}
-	
+
 	public static void createAbortMessage(ContainerRequestContext requestCtx){
 		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
 				.header("WWW-Authenticate", RestAuthenticationMethod.BASIC.getMethod() + " realm=\"midpoint\", " + RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod()).build());
 	}
-	
+
 	public static void createSecurityQuestionAbortMessage(ContainerRequestContext requestCtx, String secQChallenge){
 		String challenge = "";
 		if (StringUtils.isNotBlank(secQChallenge)) {
 			challenge = " " + Base64Utility.encode(secQChallenge.getBytes());
 		}
-		
+
 		requestCtx.abortWith(Response.status(Status.UNAUTHORIZED)
 				.header("WWW-Authenticate",
 						RestAuthenticationMethod.SECURITY_QUESTIONS.getMethod() + challenge)

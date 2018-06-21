@@ -81,27 +81,27 @@ public class CapabilityActivationPanel extends BasePanel {
 		parentPage.addEditingEnabledBehavior(this);
 
         CheckBox validFromEnabled = new CheckBox(ID_CHECK_VALID_FROM_ENABLED,
-                new PropertyModel<Boolean>(getModel(), "capability.validFrom.enabled"));
+            new PropertyModel<>(getModel(), "capability.validFrom.enabled"));
         add(validFromEnabled);
 
         CheckBox validFromReturned = new CheckBox(ID_CHECK_VALID_FROM_RETURNED,
-                new PropertyModel<Boolean>(getModel(), "capability.validFrom.returnedByDefault"));
+            new PropertyModel<>(getModel(), "capability.validFrom.returnedByDefault"));
         add(validFromReturned);
 
         CheckBox validToEnabled = new CheckBox(ID_CHECK_VALID_TO_ENABLED,
-                new PropertyModel<Boolean>(getModel(), "capability.validTo.enabled"));
+            new PropertyModel<>(getModel(), "capability.validTo.enabled"));
         add(validToEnabled);
 
         CheckBox validToReturned = new CheckBox(ID_CHECK_VALID_TO_RETURNED,
-                new PropertyModel<Boolean>(getModel(), "capability.validTo.returnedByDefault"));
+            new PropertyModel<>(getModel(), "capability.validTo.returnedByDefault"));
         add(validToReturned);
 
-        add(new CheckBox(ID_CHECK_STATUS_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.status.enabled")));
-		add(new CheckBox(ID_CHECK_STATUS_RETURNED, new PropertyModel<Boolean>(getModel(), "capability.status.returnedByDefault")));
-        add(new CheckBox(ID_CHECK_STATUS_IGNORE, new PropertyModel<Boolean>(getModel(), "capability.status.ignoreAttribute")));
+        add(new CheckBox(ID_CHECK_STATUS_ENABLED, new PropertyModel<>(getModel(), "capability.status.enabled")));
+		add(new CheckBox(ID_CHECK_STATUS_RETURNED, new PropertyModel<>(getModel(), "capability.status.returnedByDefault")));
+        add(new CheckBox(ID_CHECK_STATUS_IGNORE, new PropertyModel<>(getModel(), "capability.status.ignoreAttribute")));
 
         MultiValueTextPanel statusEnableList = new MultiValueTextPanel<String>(ID_STATUS_ENABLE_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.status.enableValue"), parentPage.getReadOnlyModel(), false) {
+            new PropertyModel<>(getModel(), "capability.status.enableValue"), parentPage.getReadOnlyModel(), false) {
 
             @Override
             protected StringResourceModel createEmptyItemPlaceholder(){
@@ -111,7 +111,7 @@ public class CapabilityActivationPanel extends BasePanel {
         add(statusEnableList);
 
         MultiValueTextPanel statusDisableList = new MultiValueTextPanel<String>(ID_STATUS_DISABLE_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.status.disableValue"), parentPage.getReadOnlyModel(), false) {
+            new PropertyModel<>(getModel(), "capability.status.disableValue"), parentPage.getReadOnlyModel(), false) {
 
             @Override
             protected StringResourceModel createEmptyItemPlaceholder(){
@@ -123,16 +123,16 @@ public class CapabilityActivationPanel extends BasePanel {
         IChoiceRenderer<QName> renderer = new QNameChoiceRenderer(true);
 
         DropDownChoice statusChoice = new DropDownChoice<>(ID_SELECT_STATUS,
-                new PropertyModel<QName>(getModel(), "capability.status.attribute"),
+            new PropertyModel<>(getModel(), "capability.status.attribute"),
                 createAttributeChoiceModel(renderer), renderer);
         add(statusChoice);
 
-        add(new CheckBox(ID_CHECK_LOCKOUT_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.lockoutStatus.enabled")));
-		add(new CheckBox(ID_CHECK_LOCKOUT_RETURNED, new PropertyModel<Boolean>(getModel(), "capability.lockoutStatus.returnedByDefault")));
-        add(new CheckBox(ID_CHECK_LOCKOUT_IGNORE, new PropertyModel<Boolean>(getModel(), "capability.lockoutStatus.ignoreAttribute")));
+        add(new CheckBox(ID_CHECK_LOCKOUT_ENABLED, new PropertyModel<>(getModel(), "capability.lockoutStatus.enabled")));
+		add(new CheckBox(ID_CHECK_LOCKOUT_RETURNED, new PropertyModel<>(getModel(), "capability.lockoutStatus.returnedByDefault")));
+        add(new CheckBox(ID_CHECK_LOCKOUT_IGNORE, new PropertyModel<>(getModel(), "capability.lockoutStatus.ignoreAttribute")));
 
         MultiValueTextPanel lockoutNormalList = new MultiValueTextPanel<String>(ID_LOCKOUT_NORMAL_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.lockoutStatus.normalValue"), parentPage.getReadOnlyModel(), false) {
+            new PropertyModel<>(getModel(), "capability.lockoutStatus.normalValue"), parentPage.getReadOnlyModel(), false) {
 
             @Override
             protected StringResourceModel createEmptyItemPlaceholder() {
@@ -142,7 +142,7 @@ public class CapabilityActivationPanel extends BasePanel {
         add(lockoutNormalList);
 
         MultiValueTextPanel lockoutLockedList = new MultiValueTextPanel<String>(ID_LOCKOUT_LOCKED_LIST,
-                new PropertyModel<List<String>>(getModel(), "capability.lockoutStatus.lockedValue"), parentPage.getReadOnlyModel(), false) {
+            new PropertyModel<>(getModel(), "capability.lockoutStatus.lockedValue"), parentPage.getReadOnlyModel(), false) {
 
             @Override
             protected StringResourceModel createEmptyItemPlaceholder(){
@@ -154,7 +154,7 @@ public class CapabilityActivationPanel extends BasePanel {
         IChoiceRenderer<QName> lockoutRenderer = new QNameChoiceRenderer(true);
 
         DropDownChoice lockoutChoice = new DropDownChoice<>(ID_SELECT_LOCKOUT,
-                new PropertyModel<QName>(getModel(), "capability.lockoutStatus.attribute"),
+            new PropertyModel<>(getModel(), "capability.lockoutStatus.attribute"),
                 createAttributeChoiceModel(lockoutRenderer), lockoutRenderer);
         add(lockoutChoice);
 

@@ -21,8 +21,9 @@ import org.w3c.dom.Element;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface DomElementVisitor {
 
 	public void visit(Element element);
-	
+
 }

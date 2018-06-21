@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 
 	javax.xml.validation.Schema getJavaxSchema();
 
-	PrismSchema getSchema(String namespace);
+	PrismSchema getPrismSchema(String namespace);
 
 	Collection<PrismSchema> getSchemas();
 
@@ -70,7 +70,7 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 	// it's a bit fragile, as adding new references to child CTD in future may break existing code
 	ComplexTypeDefinition determineParentDefinition(@NotNull ComplexTypeDefinition child, @NotNull ItemPath rest);
 
-	PrismObjectDefinition determineReferencedObjectDefinition(QName targetTypeName, ItemPath rest);
+	PrismObjectDefinition determineReferencedObjectDefinition(@NotNull QName targetTypeName, ItemPath rest);
 
 	Class<? extends ObjectType> getCompileTimeClassForObjectType(QName objectType);
 
@@ -169,4 +169,12 @@ public interface SchemaRegistry extends DebugDumpable, GlobalDefinitionsStore {
 			throws SchemaException;
 
 	boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
+
+	/**
+	 * Returns most specific common supertype for these two. If any of input params is null, it means it is ignored
+	 * @return null if unification cannot be done (or if both input types are null)
+	 */
+	QName unifyTypes(QName type1, QName type2);
+
+	ItemDefinition<?> createAdHocDefinition(QName elementName, QName typeName, int minOccurs, int maxOccurs);
 }

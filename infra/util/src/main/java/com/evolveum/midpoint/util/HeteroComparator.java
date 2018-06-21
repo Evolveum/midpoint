@@ -19,8 +19,9 @@ package com.evolveum.midpoint.util;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface HeteroComparator<A,B> {
 
 	boolean isEquivalent(A a, B b);
-	
+
 }

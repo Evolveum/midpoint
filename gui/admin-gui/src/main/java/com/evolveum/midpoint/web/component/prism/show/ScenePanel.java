@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -261,7 +262,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		});
 		itemsTable.add(valueLabel);
 		ListView<SceneItemDto> items = new ListView<SceneItemDto>(ID_ITEMS,
-				new PropertyModel<List<SceneItemDto>>(model, SceneDto.F_ITEMS)) {
+            new PropertyModel<>(model, SceneDto.F_ITEMS)) {
 
 			@Override
 			protected void populateItem(ListItem<SceneItemDto> item) {
@@ -275,7 +276,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 		body.add(itemsTable);
 
         ListView<SceneDto> partialScenes = new ListView<SceneDto>(ID_PARTIAL_SCENES,
-				new PropertyModel<List<SceneDto>>(model, SceneDto.F_PARTIAL_SCENES)) {
+            new PropertyModel<>(model, SceneDto.F_PARTIAL_SCENES)) {
 
             @Override
             protected void populateItem(ListItem<SceneDto> item) {
@@ -326,7 +327,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				return "";
 			}
 			if (def instanceof PrismObjectDefinition) {
-				return PageBase.createStringResourceStatic(ScenePanel.this, "ObjectType." +def.getTypeName().getLocalPart()).getObject();
+				return PageBase.createStringResourceStatic(ScenePanel.this, SchemaConstants.OBJECT_TYPE_KEY_PREFIX +def.getTypeName().getLocalPart()).getObject();
 			} else {
 				return "";
 			}

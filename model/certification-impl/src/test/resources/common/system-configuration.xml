@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -45,5 +45,39 @@
 			<redirectToFile>target/mail-notifications.log</redirectToFile>
 		</mail>
 	</notificationConfiguration>
-
+	<workflowConfiguration>
+		<modelHookEnabled>false</modelHookEnabled>
+	</workflowConfiguration>
+	<accessCertification>
+		<reviewerCommentsFormatting>
+			<value>
+				<script>
+					<code>performer.name + ': ' + output.comment</code>
+				</script>
+			</value>
+			<condition>
+				<script>
+					<code>output.comment != null &amp;&amp; !output.comment.isEmpty()</code>
+				</script>
+			</condition>
+		</reviewerCommentsFormatting>
+	</accessCertification>
+	<globalPolicyRule>
+		<name>sod-approval</name>
+		<policyConstraints>
+			<situation>
+				<situation>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</situation>
+			</situation>
+		</policyConstraints>
+		<policyActions>
+			<record/>
+			<!-- empty; just to test policy rules stored in assignments -->
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>
+		</targetSelector>
+	</globalPolicyRule>
 </systemConfiguration>

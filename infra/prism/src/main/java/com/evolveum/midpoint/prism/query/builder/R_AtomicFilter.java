@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.query.*;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -134,7 +136,8 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry gt(Object value) {
-        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, false, owner.getPrismContext(), value));
+        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, null, value,
+                false, owner.getPrismContext()));
     }
 
     @Override
@@ -144,7 +147,8 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry ge(Object value) {
-        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, true, owner.getPrismContext(), value));
+        return new R_AtomicFilter(this, GreaterFilter.createGreater(itemPath, propertyDefinition, null, value,
+                true, owner.getPrismContext()));
     }
 
     @Override
@@ -154,7 +158,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry lt(Object value) {
-        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, owner.getPrismContext(), value, false));
+        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, null, value, false, owner.getPrismContext()));
     }
 
     @Override
@@ -164,7 +168,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
     @Override
     public S_MatchingRuleEntry le(Object value) {
-        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, owner.getPrismContext(), value, true));
+        return new R_AtomicFilter(this, LessFilter.createLess(itemPath, propertyDefinition, null, value, true, owner.getPrismContext()));
     }
 
     @Override
@@ -218,6 +222,19 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	}
 
 	@Override
+    public S_AtomicFilterExit ref(QName relation) {
+		PrismReferenceValue ref = new PrismReferenceValue();
+		ref.setRelation(relation);
+		List<PrismReferenceValue> values = new ArrayList<>();
+		values.add(ref);
+		RefFilter filter = RefFilter.createReferenceEqual(itemPath, referenceDefinition, values);
+		filter.setOidNullAsAny(true);
+		filter.setTargetTypeNullAsAny(true);
+		return new R_AtomicFilter(this, filter);
+    }
+
+
+	@Override
     public S_AtomicFilterExit ref(PrismReferenceValue... values) {
         if (values.length == 1 && values[0] == null) {
         	return ref(Collections.emptyList());
@@ -228,7 +245,14 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
 	@Override
 	public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values) {
-		return new R_AtomicFilter(this, RefFilter.createReferenceEqual(itemPath, referenceDefinition, values));
+		return ref(values, false);
+	}
+
+	@Override
+	public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny) {
+        RefFilter filter = RefFilter.createReferenceEqual(itemPath, referenceDefinition, values);
+        filter.setTargetTypeNullAsAny(nullTypeAsAny);
+        return new R_AtomicFilter(this, filter);
 	}
 
 	@Override
@@ -236,7 +260,8 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     	if (oids.length == 1 && oids[0] == null) {
     		return ref(Collections.emptyList());
 		} else {
-    		return ref(Arrays.stream(oids).map(oid -> new PrismReferenceValue(oid)).collect(Collectors.toList()));
+    	    // when OIDs are specified, we allow any type
+    		return ref(Arrays.stream(oids).map(oid -> new PrismReferenceValue(oid)).collect(Collectors.toList()), true);
 		}
     }
 
@@ -328,6 +353,16 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
     @Override
     public S_FilterExit desc(ItemPath path) {
         return finish().desc(path);
+    }
+
+    @Override
+    public S_FilterExit group(QName... names) {
+        return finish().group(names);
+    }
+
+    @Override
+    public S_FilterExit group(ItemPath path) {
+        return finish().group(path);
     }
 
     @Override

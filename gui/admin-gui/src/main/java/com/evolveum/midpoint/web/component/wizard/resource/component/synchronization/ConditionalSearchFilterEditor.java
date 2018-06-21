@@ -42,7 +42,7 @@ public class ConditionalSearchFilterEditor extends BasePanel<ConditionalSearchFi
 
     protected void initLayout(PageResourceWizard parentPage) {
         ExpressionEditorPanel expressionEditor = new ExpressionEditorPanel(ID_EXPRESSION_PANEL,
-				new PropertyModel<ExpressionType>(getModel(), ConditionalSearchFilterType.F_CONDITION.getLocalPart()), parentPage) {
+            new PropertyModel<>(getModel(), ConditionalSearchFilterType.F_CONDITION.getLocalPart()), parentPage) {
 
             @Override
             public void performExpressionHook(AjaxRequestTarget target) {

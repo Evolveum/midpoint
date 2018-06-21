@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="coupa-resource"
+          version="2">
+   <name>Coupa resource</name>
+   <metadata>
+      <modifyTimestamp>2017-02-07T13:42:40.856+01:00</modifyTimestamp>
+      <modifierRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                   oid="00000000-0000-0000-0000-000000000002"
+                   type="tns:UserType"/>
+      <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
+   </metadata>
+   <connectorRef oid="coupa-rest-connector" type="c:ConnectorType"><!-- ICF com.evolveum.polygon.rest.CoupaRestConnector v1.4.2.14-SNAPSHOT --></connectorRef>
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+      <icfc:configurationProperties xmlns:gen108="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-rest-coupa/com.evolveum.polygon.rest.CoupaRestConnector">
+         <gen108:trustAllCertificates>true</gen108:trustAllCertificates>
+         <gen108:tokenName>X-COUPA-API-KEY</gen108:tokenName>
+         <gen108:serviceAddress>$(CoupaResource.serviceAddress)</gen108:serviceAddress>
+         <gen108:tokenValue>$(CoupaResource.tokenValue)</gen108:tokenValue>
+         <gen108:testUser>$(CoupaResource.testUser)</gen108:testUser>
+         <gen108:defaultPageSize>10</gen108:defaultPageSize>
+         <gen108:deleteRoleAssignments>true</gen108:deleteRoleAssignments>
+      </icfc:configurationProperties>
+   </connectorConfiguration>
+   <schema>
+      <cachingMetadata>
+         <retrievalTimestamp>2017-02-15T11:03:04.729+01:00</retrievalTimestamp>
+         <serialNumber>8666db2b851f671f-bcfdb14d8bfd224d</serialNumber>
+      </cachingMetadata>
+      <definition>
+         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     elementFormDefault="qualified"
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+            <xsd:complexType name="roleObjectClass">
+               <xsd:annotation>
+                  <xsd:appinfo>
+                     <ra:resourceObject/>
+                     <ra:identifier>icfs:uid</ra:identifier>
+                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     <ra:nativeObjectClass>roleObjectClass</ra:nativeObjectClass>
+                  </xsd:appinfo>
+               </xsd:annotation>
+               <xsd:sequence>
+                  <xsd:element minOccurs="0" name="system-role" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>120</a:displayOrder>
+                           <ra:frameworkAttributeName>system-role</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="description" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>130</a:displayOrder>
+                           <ra:frameworkAttributeName>description</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="omnipotent" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>140</a:displayOrder>
+                           <ra:frameworkAttributeName>omnipotent</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element ref="icfs:name">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId Name</a:displayName>
+                           <a:displayOrder>110</a:displayOrder>
+                           <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" ref="icfs:uid">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId UID</a:displayName>
+                           <a:displayOrder>100</a:displayOrder>
+                           <a:access>read</a:access>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+               </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="userObjectClass">
+               <xsd:annotation>
+                  <xsd:appinfo>
+                     <ra:resourceObject/>
+                     <ra:identifier>icfs:uid</ra:identifier>
+                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     <ra:nativeObjectClass>userObjectClass</ra:nativeObjectClass>
+                  </xsd:appinfo>
+               </xsd:annotation>
+               <xsd:sequence>
+                  <xsd:element minOccurs="0" name="authentication-method" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>120</a:displayOrder>
+                           <ra:frameworkAttributeName>authentication-method</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="default-locale" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>130</a:displayOrder>
+                           <ra:frameworkAttributeName>default-locale</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="purchasing-user" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>140</a:displayOrder>
+                           <ra:frameworkAttributeName>purchasing-user</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="active" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>150</a:displayOrder>
+                           <ra:frameworkAttributeName>active</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="roles"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>160</a:displayOrder>
+                           <ra:frameworkAttributeName>roles</ra:frameworkAttributeName>
+                           <ra:returnedByDefault>false</ra:returnedByDefault>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="lastname" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>170</a:displayOrder>
+                           <ra:frameworkAttributeName>lastname</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0"
+                               name="default-address_location-code"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>180</a:displayOrder>
+                           <ra:frameworkAttributeName>default-address_location-code</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="firstname" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>190</a:displayOrder>
+                           <ra:frameworkAttributeName>firstname</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element ref="icfs:name">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId Name</a:displayName>
+                           <a:displayOrder>110</a:displayOrder>
+                           <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="sso-identifier" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>200</a:displayOrder>
+                           <ra:frameworkAttributeName>sso-identifier</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="email" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>210</a:displayOrder>
+                           <ra:frameworkAttributeName>email</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" ref="icfs:uid">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId UID</a:displayName>
+                           <a:displayOrder>100</a:displayOrder>
+                           <a:access>read</a:access>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+               </xsd:sequence>
+            </xsd:complexType>
+         </xsd:schema>
+      </definition>
+   </schema>
+   <schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<displayName>Coupa Account</displayName>
+			<default>true</default>
+			<objectClass>ri:userObjectClass</objectClass>
+			<attribute>
+				<c:ref>icfs:uid</c:ref>
+				<displayName>ICF UID</displayName>
+				<limitations>
+					<layer>presentation</layer>
+					<ignore>true</ignore>
+				</limitations>
+			</attribute>
+			<attribute>
+				<c:ref>icfs:name</c:ref>
+				<displayName>Login</displayName>
+				<outbound>
+					<strength>normal</strength>
+					<source>
+						<c:path>$user/emailAddress</c:path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<c:ref>ri:default-address_location-code</c:ref>
+				<outbound>
+					<strength>normal</strength>
+					<source>
+						<c:path>$user/locality</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								locationCode = null;
+								if(locality != null &amp;&amp; !basic.stringify(locality).isEmpty()){
+									locationCode = basic.stringify(locality).tokenize('-')[0];
+								}
+								return locationCode;
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+        	<attribute>
+				<c:ref>ri:authentication-method</c:ref>
+				<outbound>
+					<strength>normal</strength>
+					<expression>
+						<script>
+							<code>
+								return 'saml';
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+	        <attribute>
+				<c:ref>ri:default-locale</c:ref>
+				<outbound>
+					<strength>normal</strength>
+					<source>
+						<c:path>$user/locale</c:path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								String coupaLocale = locale;
+								if(coupaLocale != null){
+									coupaLocale = coupaLocale.replaceFirst("_", "-");
+								}
+								return coupaLocale;
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+	        <attribute>
+				<c:ref>ri:email</c:ref>
+				<outbound>
+					<strength>normal</strength>
+					<source>
+						<c:path>$user/emailAddress</c:path>
+					</source>
+				</outbound>
+			</attribute>
+	        <attribute>
+				<c:ref>ri:firstname</c:ref>
+				<outbound>
+					<strength>normal</strength>
+					<source>
+						<c:path>$user/givenName</c:path>
+					</source>
+				</outbound>
+			</attribute>
+	        <attribute>
+				<c:ref>ri:lastname</c:ref>
+				<outbound>
+					<strength>normal</strength>
+					<source>
+						<c:path>$user/familyName</c:path>
+					</source>
+				</outbound>
+			</attribute>
+	        <attribute>
+				<c:ref>ri:purchasing-user</c:ref>
+				<outbound>
+					<strength>normal</strength>
+					<expression>
+						<script>
+							<code>
+								return 'true';
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+	        <attribute>
+				<c:ref>ri:sso-identifier</c:ref>
+				<outbound>
+					<strength>normal</strength>
+					<source>
+						<c:path>$user/emailAddress</c:path>
+					</source>
+				</outbound>
+			</attribute>
+			<association>
+				<c:ref>ri:roleObjectClass</c:ref>
+				<displayName>Coupa Group Membership</displayName>
+				<kind>entitlement</kind>
+				<intent>coupaRole</intent>
+				<direction>subjectToObject</direction>
+				<associationAttribute>ri:roles</associationAttribute>
+				<valueAttribute>icfs:name</valueAttribute>
+				<shortcutAssociationAttribute>ri:roles</shortcutAssociationAttribute>
+				<shortcutValueAttribute>icfs:name</shortcutValueAttribute>
+				<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+			 </association>
+			<activation>
+				<existence>
+                    <outbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <path>$focusExists</path>
+                        </expression>
+                    </outbound>
+                </existence>
+				 <administrativeStatus>
+	                <outbound>
+	                    <asIs/>
+	                </outbound>               
+	            </administrativeStatus>
+            </activation>
+		</objectType>
+		<objectType>
+			<kind>entitlement</kind>
+			<intent>coupaRole</intent>
+			<displayName>Coupa Role</displayName>
+			<default>true</default>
+			<objectClass>ri:roleObjectClass</objectClass>
+			<attribute>
+            <c:ref>icfs:name</c:ref>
+            <inbound>
+               <strength>strong</strength>
+               <target>
+                  <c:path>$focus/name</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref>ri:description</c:ref>
+            <inbound>
+               <strength>strong</strength>
+               <target>
+                  <c:path>description</c:path>
+               </target>
+            </inbound>
+         </attribute>
+		</objectType>
+	</schemaHandling>
+   <capabilities>
+      <cachingMetadata>
+         <retrievalTimestamp>2017-02-14T13:31:47.598+01:00</retrievalTimestamp>
+         <serialNumber>84acf9c4f2a66b40-a9e7e37f5d6c5ea4</serialNumber>
+      </cachingMetadata>
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:type="c:CapabilityCollectionType">
+         <cap:addRemoveAttributeValues/>
+         <cap:testConnection/>
+         <cap:read/>
+         <cap:create/>
+         <cap:update/>
+         <cap:delete/>
+         <cap:script>
+            <cap:host>
+               <cap:type>connector</cap:type>
+            </cap:host>
+         </cap:script>
+      </native>
+      <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+			<cap:create>
+				<cap:enabled>true</cap:enabled>
+			</cap:create>
+			<cap:read>
+				<cap:enabled>true</cap:enabled>
+			</cap:read>
+			<cap:delete>
+				<cap:enabled>false</cap:enabled>
+			</cap:delete>
+			<cap:update>
+				<cap:enabled>true</cap:enabled>
+			</cap:update>
+			<cap:addRemoveAttributeValues>
+				<cap:enabled>false</cap:enabled>
+			</cap:addRemoveAttributeValues>
+			<cap:testConnection>
+				<cap:enabled>true</cap:enabled>
+			</cap:testConnection>
+			<cap:script>
+				<cap:enabled>true</cap:enabled>
+				<cap:host>
+					<cap:type>connector</cap:type>
+				</cap:host>
+			</cap:script>
+			<cap:activation>
+				<cap:status>
+					<cap:attribute>ri:active</cap:attribute>
+					<cap:enableValue>true</cap:enableValue>
+					<cap:disableValue>false</cap:disableValue>
+				</cap:status>
+			</cap:activation>
+		</configured>
+   </capabilities>
+   <consistency>
+      <c:connectorErrorCriticality>
+		<c:network>false</c:network>
+		<c:schema>false</c:schema>
+	</c:connectorErrorCriticality>
+   </consistency>
+   <synchronization>
+		<objectSynchronization>
+			<objectClass>ri:userObjectClass</objectClass>
+			<enabled>true</enabled>
+			<correlation>
+				<q:or>
+					<q:equal>
+		               <q:path>emailAddress</q:path>
+		               <expression>
+		                  <c:path>$shadow/attributes/icfs:name</c:path>
+		               </expression>
+		            </q:equal>
+					<q:equal>
+		               <q:path>name</q:path>
+		               <expression>
+		                  <c:path>$shadow/attributes/icfs:name</c:path>
+		               </expression>
+		            </q:equal>
+	            </q:or>
+			</correlation>
+			<reaction>
+				<situation>linked</situation>
+				<synchronize>true</synchronize>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
+				<synchronize>true</synchronize>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+			</reaction>
+			<reaction>
+				<situation>unlinked</situation>
+				<synchronize>true</synchronize>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+			</reaction>
+			<reaction>
+				<situation>unmatched</situation>
+			</reaction>
+		</objectSynchronization>
+		<objectSynchronization>
+			 <objectClass>ri:roleObjectClass</objectClass>
+			 <kind>entitlement</kind>
+	         <intent>coupaRole</intent>
+	         <focusType>c:RoleType</focusType>
+	         <enabled>true</enabled>
+	         <correlation>
+	         	<q:or>
+		            <q:equal>
+		               <q:matching>stringIgnoreCase</q:matching>
+		               <q:path>name</q:path>
+		               <expression>
+		                  <c:path>$shadow/attributes/icfs:name</c:path>
+		               </expression>
+		            </q:equal>
+	            </q:or>
+	         </correlation>
+			 <objectTemplateRef oid="Coupa-Role-template"/>
+	         <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	         </reaction>
+	         <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
+	            </action>
+	         </reaction>
+	         <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	         </reaction>
+	         <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	         </reaction>
+	      </objectSynchronization>
+	</synchronization>
+</resource>

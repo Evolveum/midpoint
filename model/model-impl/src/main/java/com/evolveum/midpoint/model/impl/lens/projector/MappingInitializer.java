@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -24,8 +24,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface MappingInitializer<V extends PrismValue,D extends ItemDefinition> {
 
-	Mapping.Builder<V,D> initialize(Mapping.Builder<V,D> mapping) throws SchemaException;
-	
+	MappingImpl.Builder<V,D> initialize(MappingImpl.Builder<V,D> mapping) throws SchemaException;
+
 }

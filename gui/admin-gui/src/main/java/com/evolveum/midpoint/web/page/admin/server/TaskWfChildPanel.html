@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,7 +21,15 @@
 <wicket:panel>
     <div class="row">
         <div class="col-md-5">
-            <div wicket:id="changes" />
+            <div wicket:id="changes" ></div>
+            <div wicket:id="triggersContainer" class="box box-solid box-info" style="margin-bottom: 0; margin-top:20px;">
+                <div class="box-header with-border">
+                    <h3 class="box-title" style="margin-right: 35px;"><wicket:message key="workItemPanel.reasons"/></h3>
+                </div>
+                <div class="box-body">
+                    <div wicket:id="triggers"></div>
+                </div>
+            </div>
         </div>
         <div class="col-md-7">
             <div class="box box-info">
@@ -40,6 +48,7 @@
                     <div wicket:id="currentWorkItems" />
                 </div>
             </div>
+            <div wicket:id="previewsPanel" />
         </div>
     </div>
     <div class="box" wicket:id="relatedRequestsContainer">

@@ -19,9 +19,10 @@ package com.evolveum.midpoint.util;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface Handler<T> {
 
     // returns false if the iteration (if any) has to be stopped
 	boolean handle(T t);
-	
+
 }

@@ -1,42 +1,44 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-
-import java.util.Collection;
+import javax.persistence.*;
 
 @Entity
 @ForeignKey(name = "fk_report_output")
 @Persister(impl = MidPointJoinedPersister.class)
+@Table(indexes = {
+        @Index(name = "iReportOutputNameOrig", columnList = "name_orig"),
+        @Index(name = "iReportOutputNameNorm", columnList = "name_norm")})
 public class RReportOutput extends RObject<ReportOutputType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private REmbeddedReference reportRef;
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Embedded
@@ -57,7 +59,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
 
         RReportOutput object = (RReportOutput) o;
 
-        if (name != null ? !name.equals(object.name) : object.name != null)
+        if (nameCopy != null ? !nameCopy.equals(object.nameCopy) : object.nameCopy != null)
             return false;
         if (reportRef != null ? !reportRef.equals(object.reportRef) : object.reportRef != null)
             return false;
@@ -68,7 +70,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         return result;
     }
 
@@ -76,19 +78,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setReportRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getReportRef(), repositoryContext.prismContext));
-    }
-
-    @Override
-    public ReportOutputType toJAXB(PrismContext prismContext,
-                                   Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        ReportOutputType object = new ReportOutputType();
-        RUtil.revive(object, prismContext);
-        RReportOutput.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }

@@ -1,16 +1,36 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.model.FlexibleLabelModel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromContainerableModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiFlexibleLabelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SummaryPanelSpecificationType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -23,8 +43,9 @@ import javax.xml.namespace.QName;
  * @author mederly
  */
 public abstract class AbstractSummaryPanel<C extends Containerable> extends BasePanel<C> {
+	private static final long serialVersionUID = 1L;
 
-    protected static final String ID_BOX = "summaryBox";
+	protected static final String ID_BOX = "summaryBox";
     protected static final String ID_ICON_BOX = "summaryIconBox";
 	protected static final String ID_TAG_BOX = "summaryTagBox";
     protected static final String ID_ICON = "summaryIcon";
@@ -41,67 +62,80 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     protected static final String BOX_CSS_CLASS = "info-box";
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
+    protected SummaryPanelSpecificationType configuration;
+
     protected WebMarkupContainer box;
     protected WebMarkupContainer tagBox;
     protected WebMarkupContainer iconBox;
 
-    public AbstractSummaryPanel(String id, IModel<C> model) {
+    public AbstractSummaryPanel(String id, IModel<C> model, ModelServiceLocator serviceLocator, SummaryPanelSpecificationType configuration) {
         super(id, model);
+        this.configuration = configuration;
         setOutputMarkupId(true);
     }
 
-    protected void initLayoutCommon() {
+    protected void initLayoutCommon(ModelServiceLocator serviceLocator) {
 
         box = new WebMarkupContainer(ID_BOX);
         add(box);
 
         box.add(new AttributeModifier("class", BOX_CSS_CLASS + " " + getBoxAdditionalCssClass()));
 
-        box.add(new Label(ID_DISPLAY_NAME, new PrismPropertyRealValueFromContainerableModel<>(getModel(), getDisplayNamePropertyName())));
+	    if (getDisplayNameModel() != null) {
+		    box.add(new Label(ID_DISPLAY_NAME, getDisplayNameModel()));
+	    } else if (getDisplayNamePropertyName() != null) {
+		    box.add(new Label(ID_DISPLAY_NAME, createLabelModel(getDisplayNamePropertyName(), SummaryPanelSpecificationType.F_DISPLAY_NAME, serviceLocator)));
+	    } else {
+		    box.add(new Label(ID_DISPLAY_NAME, " "));
+	    }
 
         WebMarkupContainer identifierPanel = new WebMarkupContainer(ID_IDENTIFIER_PANEL);
-        identifierPanel.add(new Label(ID_IDENTIFIER, new PrismPropertyRealValueFromContainerableModel<>(getModel(), getIdentifierPropertyName())));
+        identifierPanel.add(new Label(ID_IDENTIFIER, createLabelModel(getIdentifierPropertyName(), SummaryPanelSpecificationType.F_IDENTIFIER, serviceLocator)));
         identifierPanel.add(new VisibleEnableBehaviour() {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isVisible() {
                 return isIdentifierVisible();
             }
         });
         box.add(identifierPanel);
 
-        if (getTitlePropertyName() != null) {
-            box.add(new Label(ID_TITLE, new PrismPropertyRealValueFromContainerableModel<>(getModel(), getTitlePropertyName())));
-        } else if (getTitleModel() != null) {
-            box.add(new Label(ID_TITLE, getTitleModel()));
+	    if (getTitleModel() != null) {
+		    box.add(new Label(ID_TITLE, getTitleModel()));
+	    } else if (getTitlePropertyName() != null) {
+        	box.add(new Label(ID_TITLE, createLabelModel(getTitlePropertyName(), SummaryPanelSpecificationType.F_TITLE_1, serviceLocator)));
         } else {
             box.add(new Label(ID_TITLE, " "));
         }
 
-        if (getTitle2PropertyName() != null) {
-            box.add(new Label(ID_TITLE2, new PrismPropertyRealValueFromContainerableModel<>(getModel(), getTitle2PropertyName())));
-        } else if (getTitle2Model() != null) {
-            box.add(new Label(ID_TITLE2, getTitle2Model()));
+	    if (getTitle2Model() != null) {
+		    box.add(new Label(ID_TITLE2, getTitle2Model()));
+	    } else if (getTitle2PropertyName() != null) {
+        	box.add(new Label(ID_TITLE, createLabelModel(getTitle2PropertyName(), SummaryPanelSpecificationType.F_TITLE_2, serviceLocator)));
         } else {
             Label label = new Label(ID_TITLE2, " ");
             label.setVisible(false);
             box.add(label);
         }
 
-		if (getTitle3PropertyName() != null) {
-			box.add(new Label(ID_TITLE3, new PrismPropertyRealValueFromContainerableModel<>(getModel(), getTitle3PropertyName())));
-		} else if (getTitle3Model() != null) {
-			box.add(new Label(ID_TITLE3, getTitle3Model()));
+	    if (getTitle3Model() != null) {
+		    box.add(new Label(ID_TITLE3, getTitle3Model()));
+	    } else if (getTitle3PropertyName() != null) {
+			box.add(new Label(ID_TITLE, createLabelModel(getTitle3PropertyName(), SummaryPanelSpecificationType.F_TITLE_3, serviceLocator)));
 		} else {
 			Label label = new Label(ID_TITLE3, " ");
 			label.setVisible(false);
 			box.add(label);
 		}
 
-        Label parentOrgLabel = new Label(ID_ORGANIZATION, getParentOrgModel());
+		final IModel<String> parentOrgModel = getParentOrgModel(serviceLocator);
+        Label parentOrgLabel = new Label(ID_ORGANIZATION, parentOrgModel);
         parentOrgLabel.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible() {
-                return getParentOrgModel().getObject() != null;
+                return parentOrgModel.getObject() != null;
             }
         });
         box.add(parentOrgLabel);
@@ -124,7 +158,8 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         iconBox.add(icon);
         NonCachingImage img = new NonCachingImage(ID_PHOTO, getPhotoModel());
         img.add(new VisibleEnableBehaviour(){
-            @Override
+			private static final long serialVersionUID = 1L;
+			@Override
             public boolean isVisible() {
                 return getPhotoModel().getObject() != null;
             }
@@ -137,6 +172,37 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 		}
 		box.add(tagBox);
     }
+
+	private FlexibleLabelModel<C> createLabelModel(QName modelPropertyName, QName configurationPropertyName, ModelServiceLocator serviceLocator) {
+		return createFlexibleLabelModel(modelPropertyName, serviceLocator, getLabelConfiguration(configurationPropertyName));
+	}
+
+	private FlexibleLabelModel<C> createFlexibleLabelModel(QName modelPropertyName, ModelServiceLocator serviceLocator, GuiFlexibleLabelType configuration) {
+		return new FlexibleLabelModel<C>(getModel(), modelPropertyName, serviceLocator, configuration) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
+				super.addAdditionalExpressionVariables(variables);
+				AbstractSummaryPanel.this.addAdditionalExpressionVariables(variables);
+			}
+		};
+	}
+
+    protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
+
+    }
+
+	private GuiFlexibleLabelType getLabelConfiguration(QName configurationPropertyName) {
+		if (configuration == null) {
+			return null;
+		}
+		@SuppressWarnings("unchecked")
+		PrismContainer<GuiFlexibleLabelType> subContainer = configuration.asPrismContainerValue().findContainer(configurationPropertyName);
+		if (subContainer == null) {
+			return null;
+		}
+		return subContainer.getValue().asContainerable();
+	}
 
 	protected String getTagBoxCssClass() {
 		return null;
@@ -160,11 +226,15 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return FocusType.F_NAME;
     }
 
-    protected QName getDisplayNamePropertyName() {
+	protected QName getDisplayNamePropertyName() {
 		return ObjectType.F_NAME;
 	}
 
-    protected QName getTitlePropertyName() {
+	protected IModel<String> getDisplayNameModel() {
+		return null;
+	}
+
+	protected QName getTitlePropertyName() {
         return null;
     }
 
@@ -192,11 +262,20 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return true;
     }
 
-    protected IModel<String> getParentOrgModel() {
-        return new Model<>(null);
+    protected IModel<String> getParentOrgModel(ModelServiceLocator serviceLocator) {
+    	GuiFlexibleLabelType config = getLabelConfiguration(SummaryPanelSpecificationType.F_ORGANIZATION);
+    	if (config != null) {
+    		return createFlexibleLabelModel(ObjectType.F_PARENT_ORG_REF, serviceLocator, config);
+    	} else {
+    		return getDefaltParentOrgModel();
+    	}
     }
 
-    protected IModel<AbstractResource> getPhotoModel() {
+    protected IModel<String> getDefaltParentOrgModel() {
+		return new Model<>(null);
+	}
+
+	protected IModel<AbstractResource> getPhotoModel() {
         return new Model<>(null);
     }
 

@@ -16,18 +16,9 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
@@ -61,42 +52,14 @@ public class AndFilter extends NaryLogicalFilter {
 	
 	@Override
 	public AndFilter cloneEmpty() {
-		return new AndFilter(new ArrayList<ObjectFilter>());
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
+		return new AndFilter(new ArrayList<>());
 	}
 	
 	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("AND:");
-		for (ObjectFilter filter : getConditions()){
-			sb.append("\n");
-			sb.append(filter.debugDump(indent + 1));
-		}
-		return sb.toString();
+	protected String getDebugDumpOperationName() {
+		return "AND";
 	}
 	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("AND");
-		sb.append("(");
-		for (int i = 0; i < getConditions().size(); i++){
-			sb.append(getConditions().get(i));
-			if (i != getConditions().size() - 1) {
-				sb.append(",");
-			}
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-
-
 	@Override
 	public boolean match(PrismContainerValue value, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		for (ObjectFilter filter : getConditions()){

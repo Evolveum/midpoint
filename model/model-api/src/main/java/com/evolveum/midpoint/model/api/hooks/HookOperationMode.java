@@ -20,14 +20,14 @@ package com.evolveum.midpoint.model.api.hooks;
  *
  */
 public enum HookOperationMode {
-	
+
 	/**
 	 * The hook operates in background. If the hook returns then the hook operation is
 	 * completed. The caller reclaims ownership of the task. The thread may be used to
 	 * continue execution of the task and to complete the task.
 	 */
 	FOREGROUND,
-	
+
 	/**
 	 * The hook operates in background. The hook will use its own thread for execution.
 	 * After the hook is done with executing it will "return" control to the next handler

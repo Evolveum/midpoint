@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="00000000-role-meta-0000-000011112222"
+      version="11">
+   <name>Maple Leaf Faculty License</name>
+   <inducement id="4">
+      <construction>
+         <resourceRef oid="10000000-0000-0000-0000-000000000000"
+                      relation="org:default"
+                      type="c:ResourceType"></resourceRef>
+         <association>
+         	<ref>ri:group</ref>
+            	<outbound>
+            		<expression>
+            			<associationTargetSearch>
+            				<filter>
+								<q:equal>
+									<q:path>attributes/ri:cn</q:path>
+									<q:value>mapleLeafFacultyLicense</q:value>
+								</q:equal>
+            				</filter>
+            				<searchStrategy>onResourceIfNeeded</searchStrategy>
+            			</associationTargetSearch>
+            		</expression>
+            	</outbound>
+         </association>
+      </construction>
+      <order>2</order>
+      <focusType>UserType</focusType>
+   </inducement>
+</role>

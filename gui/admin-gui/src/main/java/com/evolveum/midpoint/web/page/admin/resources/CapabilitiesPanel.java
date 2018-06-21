@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ public class CapabilitiesPanel extends BasePanel<CapabilitiesDto> {
 	}
 
 	private void createCapabilityButton(String id) {
-		AjaxLink<Boolean> button = new AjaxLink<Boolean>(id, new PropertyModel<Boolean>(getModel(), id)) {
+		AjaxLink<Boolean> button = new AjaxLink<Boolean>(id, new PropertyModel<>(getModel(), id)) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {

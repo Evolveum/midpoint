@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,11 +56,9 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
     private static final Trace LOGGER = TraceManager.getTrace(WfPrepareRootOperationTaskHandler.class);
 
     //region Spring dependencies and initialization
-    @Autowired
-    private TaskManager taskManager;
-
-    @Autowired
-    private WfTaskController wfTaskController;
+    @Autowired private TaskManager taskManager;
+    @Autowired private WfTaskController wfTaskController;
+    @Autowired private ApprovalMetadataHelper metadataHelper;
 
     @PostConstruct
     public void init() {
@@ -83,6 +82,8 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
 
             LensContext rootContext = (LensContext) rootWfTask.retrieveModelContext(result);
 
+            List<ObjectTreeDeltas> deltasToMerge = new ArrayList<>();
+
             boolean changed = false;
             for (WfTask child : children) {
 
@@ -100,38 +101,48 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
                         LOGGER.trace("Child job {} returned {} deltas", child, deltas != null ? deltas.getDeltaList().size() : 0);
                     }
                     if (deltas != null) {
-                        LensFocusContext focusContext = rootContext.getFocusContext();
-                        ObjectDelta focusDelta = deltas.getFocusChange();
-                        if (focusDelta != null) {
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Adding delta from job {} to root model context; delta = {}", child, focusDelta.debugDump(0));
-                            }
-                            if (focusContext.getPrimaryDelta() != null && !focusContext.getPrimaryDelta().isEmpty()) {
-                                focusContext.addPrimaryDelta(focusDelta);
-                            } else {
-                                focusContext.setPrimaryDelta(focusDelta);
-                            }
-                            changed = true;
+                        ObjectDelta focusChange = deltas.getFocusChange();
+                        if (focusChange != null) {
+                            metadataHelper.addAssignmentApprovalMetadata(focusChange, child.getTask(), result);
                         }
-                        Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = deltas.getProjectionChangeMapEntries();
-                        for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Adding projection delta from job {} to root model context; rsd = {}, delta = {}", child, entry.getKey(),
-                                        entry.getValue().debugDump());
-                            }
-                            ModelProjectionContext projectionContext = rootContext.findProjectionContext(entry.getKey());
-                            if (projectionContext == null) {
-                                // TODO more liberal treatment?
-                                throw new IllegalStateException("No projection context for " + entry.getKey());
-                            }
-                            if (projectionContext.getPrimaryDelta() != null && !projectionContext.getPrimaryDelta().isEmpty()) {
-                                projectionContext.addPrimaryDelta(entry.getValue());
-                            } else {
-                                projectionContext.setPrimaryDelta(entry.getValue());
-                            }
-                            changed = true;
+                        if (focusChange != null && focusChange.isAdd()) {
+                            deltasToMerge.add(0, deltas);   // "add" must go first
+                        } else {
+                            deltasToMerge.add(deltas);
                         }
                     }
+                }
+            }
+
+            for (ObjectTreeDeltas deltaToMerge : deltasToMerge) {
+                LensFocusContext focusContext = rootContext.getFocusContext();
+                ObjectDelta focusDelta = deltaToMerge.getFocusChange();
+                if (focusDelta != null) {
+                    LOGGER.trace("Adding delta to root model context; delta = {}", focusDelta.debugDumpLazily());
+                    if (focusContext.getPrimaryDelta() != null && !focusContext.getPrimaryDelta().isEmpty()) {
+                        focusContext.addPrimaryDelta(focusDelta);
+                    } else {
+                        focusContext.setPrimaryDelta(focusDelta);
+                    }
+                    changed = true;
+                }
+                Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = deltaToMerge.getProjectionChangeMapEntries();
+                for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("Adding projection delta to root model context; rsd = {}, delta = {}", entry.getKey(),
+                                entry.getValue().debugDump());
+                    }
+                    ModelProjectionContext projectionContext = rootContext.findProjectionContext(entry.getKey());
+                    if (projectionContext == null) {
+                        // TODO more liberal treatment?
+                        throw new IllegalStateException("No projection context for " + entry.getKey());
+                    }
+                    if (projectionContext.getPrimaryDelta() != null && !projectionContext.getPrimaryDelta().isEmpty()) {
+                        projectionContext.addPrimaryDelta(entry.getValue());
+                    } else {
+                        projectionContext.setPrimaryDelta(entry.getValue());
+                    }
+                    changed = true;
                 }
             }
 
@@ -142,25 +153,19 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
             }
 
             if (changed) {
-                rootWfTask.storeModelContext(rootContext);
+            	if (rootContext != null) {  // deltas should be deleted before; so this is redundant
+            		rootContext.deleteSecondaryDeltas();
+	            }
+                rootWfTask.storeModelContext(rootContext, true);
                 rootWfTask.commitChanges(result);
             }
 
-        } catch (SchemaException e) {
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | ConfigurationException | ExpressionEvaluationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks due to schema exception", e);
-            status = TaskRunResultStatus.PERMANENT_ERROR;
-        } catch (ObjectNotFoundException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
-            status = TaskRunResultStatus.PERMANENT_ERROR;
-        } catch (ObjectAlreadyExistsException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
             status = TaskRunResultStatus.PERMANENT_ERROR;
         } catch (CommunicationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
             status = TaskRunResultStatus.TEMPORARY_ERROR;
-        } catch (ConfigurationException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't aggregate resulting deltas from child workflow-monitoring tasks", e);
-            status = TaskRunResultStatus.PERMANENT_ERROR;
         }
 
         TaskRunResult runResult = new TaskRunResult();
@@ -182,11 +187,6 @@ public class WfPrepareRootOperationTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.WORKFLOW;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
     //endregion
 

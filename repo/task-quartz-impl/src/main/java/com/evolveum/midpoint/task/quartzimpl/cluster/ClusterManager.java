@@ -17,13 +17,14 @@ package com.evolveum.midpoint.task.quartzimpl.cluster;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.common.ProfilingConfigurationManager;
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import java.util.List;
 
 import org.apache.commons.configuration.Configuration;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Responsible for keeping the cluster consistent.
@@ -60,25 +62,29 @@ public class ClusterManager {
     private NodeRegistrar nodeRegistrar;
 
     private ClusterManagerThread clusterManagerThread;
+
+    private static boolean updateNodeExecutionLimitations = true;           // turned off when testing
     
     public ClusterManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
         this.nodeRegistrar = new NodeRegistrar(taskManager, this);
     }
 
-    /**
-     * Verifies cluster consistency (currently checks whether there is no other node with the same ID, and whether clustered/non-clustered nodes are OK).
+	public static void setUpdateNodeExecutionLimitations(boolean value) {
+		updateNodeExecutionLimitations = value;
+	}
 
-     * @param result
-     * @return
+	/**
+     * Verifies cluster consistency (currently checks whether there is no other node with the same ID,
+	 * and whether clustered/non-clustered nodes are OK).
+	 *
+     * @return Current node record from repository, if everything is OK. Otherwise returns null.
      */
-    public void checkClusterConfiguration(OperationResult result) {
-
-//        LOGGER.trace("taskManager = " + taskManager);
-//        LOGGER.trace("taskManager.getNodeRegistrar() = " + taskManager.getNodeRegistrar());
-
-        nodeRegistrar.verifyNodeObject(result);     // if error, sets the error state and stops the scheduler
-        nodeRegistrar.checkNonClusteredNodes(result); // the same
+    @Nullable
+    public NodeType checkClusterConfiguration(OperationResult result) {
+        NodeType currentNode = nodeRegistrar.verifyNodeObject(result);     // if error, sets the error state and stops the scheduler
+        nodeRegistrar.checkNonClusteredNodes(result);                       // the same
+        return currentNode;
     }
 
     public boolean isClusterManagerThreadActive() {
@@ -87,10 +93,6 @@ public class ClusterManager {
 
     public void recordNodeShutdown(OperationResult result) {
         nodeRegistrar.recordNodeShutdown(result);
-    }
-
-    public String getNodeId() {
-        return nodeRegistrar.getNodeId();
     }
 
     public boolean isCurrentNode(PrismObject<NodeType> node) {
@@ -106,12 +108,16 @@ public class ClusterManager {
         nodeRegistrar.deleteNode(nodeOid, result);
     }
 
-    public void createNodeObject(OperationResult result) throws TaskManagerInitializationException {
-        nodeRegistrar.createNodeObject(result);
+    public NodeType createOrUpdateNodeInRepo(OperationResult result) throws TaskManagerInitializationException {
+        return nodeRegistrar.createOrUpdateNodeInRepo(result);
     }
 
-    public PrismObject<NodeType> getNodePrism() {
-        return nodeRegistrar.getNodePrism();
+    public PrismObject<NodeType> getLocalNodeObject() {
+        return nodeRegistrar.getCachedLocalNodeObject();
+    }
+
+    public NodeType getFreshVerifiedLocalNodeObject(OperationResult result) {
+        return nodeRegistrar.verifyNodeObject(result);
     }
 
     public boolean isUp(NodeType nodeType) {
@@ -132,12 +138,14 @@ public class ClusterManager {
                 OperationResult result = new OperationResult(ClusterManagerThread.class + ".run");
 
                 try {
-
                     checkSystemConfigurationChanged(result);
 
                     // these checks are separate in order to prevent a failure in one method blocking execution of others
                     try {
-                        checkClusterConfiguration(result);                          // if error, the scheduler will be stopped
+                        NodeType node = checkClusterConfiguration(result);         				     // if error, the scheduler will be stopped
+                        if (updateNodeExecutionLimitations) {
+                            taskManager.getExecutionManager().setLocalExecutionLimitations(node);    // we want to set limitations ONLY if the cluster configuration passes (i.e. node object is not inadvertently overwritten)
+                        }
                         nodeRegistrar.updateNodeObject(result);    // however, we want to update repo even in that case
                     } catch (Throwable t) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking cluster configuration; continuing execution.", t);
@@ -155,7 +163,7 @@ public class ClusterManager {
                         LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception while checking stalled tasks; continuing execution.", t);
                     }
 
-                } catch(Throwable t) {
+                } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unexpected exception in ClusterManager thread; continuing execution.", t);
                 }
 
@@ -288,10 +296,10 @@ public class ClusterManager {
                     LoggingConfigurationManager.configure(loggingConfig, versionInRepo, result);
                 }
 
-                SystemConfigurationHolder.setCurrentConfiguration(
-                        config.asObjectable());       // we rely on LoggingConfigurationManager to correctly record the current version
+                SecurityUtil.setRemoteHostAddressHeaders(config.asObjectable());
 
 				getRepositoryService().applyFullTextSearchConfiguration(config.asObjectable().getFullTextSearch());
+                SystemConfigurationTypeUtil.applyOperationResultHandling(config.asObjectable());
             } else {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("System configuration change check: version in repo = version currently applied = {}", versionApplied);

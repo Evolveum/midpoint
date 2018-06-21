@@ -26,7 +26,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.util.Base64Model;
 public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_PARAMETERS_TABLE = "parametersTable";
 	private static final String ID_FIELDS_TABLE = "fieldsTable";
 	private static final String ID_BUTTON_ADD_PARAMETER = "addParameter";
@@ -54,25 +54,25 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 		initLayout();
 	}
 
-	
+
 	protected void initLayout() {
 		AceEditorPanel queryPanel = new AceEditorPanel(ID_QUERY,
 				createStringResource("JasperReportConfigurationPanel.reportQuery"),
-				new PropertyModel<String>(getModel(), "jasperReportDto.query"));
+            new PropertyModel<>(getModel(), "jasperReportDto.query"));
 		add(queryPanel);
 
 		initParametersTable();
 		initFiledsTable();
 
-		IModel<String> data = new Base64Model(new PropertyModel<byte[]>(getModel(), "jasperReportDto.jasperReportXml"));
+		IModel<String> data = new Base64Model(new PropertyModel<>(getModel(), "jasperReportDto.jasperReportXml"));
 		AceEditorPanel templateEditor = new AceEditorPanel(ID_TEMPLATE,
 				createStringResource("PageReport.jasperTemplate"), data, 300);
 		add(templateEditor);
 	}
 
 	private void initParametersTable() {
-		ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<JasperReportParameterDto>(this,
-				new PropertyModel<List<JasperReportParameterDto>>(getModel(), "jasperReportDto.parameters"));
+		ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<>(this,
+            new PropertyModel<>(getModel(), "jasperReportDto.parameters"));
 		BoxedTablePanel<JasperReportParameterDto> table = new BoxedTablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns(), null, 10);
 //		table.setShowPaging(false);
 		table.setOutputMarkupId(true);
@@ -103,9 +103,9 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 	}
 
 	private void initFiledsTable() {
-		ISortableDataProvider<JasperReportFieldDto, String> provider = new ListDataProvider<JasperReportFieldDto>(this,
-				new PropertyModel<List<JasperReportFieldDto>>(getModel(), "jasperReportDto.fields"));
-		BoxedTablePanel<JasperReportFieldDto> table = new BoxedTablePanel<JasperReportFieldDto>(ID_FIELDS_TABLE, provider, initFieldColumns(), null, 10);
+		ISortableDataProvider<JasperReportFieldDto, String> provider = new ListDataProvider<>(this,
+            new PropertyModel<>(getModel(), "jasperReportDto.fields"));
+		BoxedTablePanel<JasperReportFieldDto> table = new BoxedTablePanel<>(ID_FIELDS_TABLE, provider, initFieldColumns(), null, 10);
 //		table.setShowPaging(false);
 		table.setOutputMarkupId(true);
 		add(table);
@@ -216,21 +216,21 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 				buildEditableLinkColumn("JasperReportConfigurationPanel.nestedClass", null, "nestedTypeAsString", true));
 
 		columns.add(new LinkColumn<JasperReportParameterDto>(createStringResource("JasperReportConfigurationPanel.properties")) {
-			
+
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget target,
 					IModel<JasperReportParameterDto> rowModel) {
 				showPropertiesPopup(target, rowModel);
 			}
-			
+
 			@Override
 			protected IModel createLinkModel(IModel<JasperReportParameterDto> rowModel) {
 				return createStringResource("JasperReportConfigurationPanel.configure");
 			}
 
-		}); 
-		
+		});
+
 
 		CheckBoxColumn<JasperReportParameterDto> forPrompting = new CheckBoxColumn<JasperReportParameterDto>(
 				createStringResource("JasperReportConfigurationPanel.forPrompting"), "forPrompting") {
@@ -239,8 +239,8 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 			@Override
 			public void populateItem(Item<ICellPopulator<JasperReportParameterDto>> cellItem, String componentId,
 					IModel<JasperReportParameterDto> rowModel) {
-				CheckBoxPanel checkBox = new CheckBoxPanel(componentId,
-						new PropertyModel<Boolean>(rowModel, getPropertyExpression()), new Model<>(true));
+				IsolatedCheckBoxPanel checkBox = new IsolatedCheckBoxPanel(componentId,
+                    new PropertyModel<>(rowModel, getPropertyExpression()), new Model<>(true));
 				cellItem.add(checkBox);
 			}
 		};
@@ -249,13 +249,13 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 
 		return columns;
 	}
-	
+
 	private void showPropertiesPopup(AjaxRequestTarget target,
 			IModel<JasperReportParameterDto> rowModel) {
-		
+
 		ParameterPropertiesPopupPanel propertiesPopup = new ParameterPropertiesPopupPanel(getPageBase().getMainPopupBodyId(), new PropertyModel<>(rowModel, "properties"));
 		getPageBase().showMainPopup(propertiesPopup, target);
-		
+
 	}
 	private EditableLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(String resource, String resourceParam,
 			String property, final Boolean mandatory) {
@@ -342,7 +342,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private <J> Component createTextPanel(String componentId, final IModel<J> model, String expression,
 			final Boolean mandatory) {
-		TextPanel<String> textPanel = new TextPanel<String>(componentId, new PropertyModel<String>(model, expression));
+		TextPanel<String> textPanel = new TextPanel<>(componentId, new PropertyModel<>(model, expression));
 		FormComponent input = textPanel.getBaseFormComponent();
 		input.add(new AttributeAppender("style", "width: 100%"));
 		input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());

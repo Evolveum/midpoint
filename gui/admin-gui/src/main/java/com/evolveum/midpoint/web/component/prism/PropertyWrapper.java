@@ -23,9 +23,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
@@ -35,18 +32,19 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition> extends PropertyOrReferenceWrapper<I, ID> implements Serializable, DebugDumpable {
+public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> implements Serializable, DebugDumpable {
 
 	private static final long serialVersionUID = -6347026284758253783L;
 
-	public PropertyWrapper(@Nullable ContainerWrapper container, I property, boolean readonly, ValueStatus status) {
-		super(container, property, readonly, status);
+	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly, ValueStatus status) {
+		super(container, property, readonly, status, null);
 
-        if (container != null && SchemaConstants.PATH_PASSWORD.equivalent(container.getPath())
-                && PasswordType.F_VALUE.equals(property.getElementName())) {
-			super.setDisplayName("prismPropertyPanel.name.credentials.password");
-		}
-        
+        values = createValues();
+    }
+	
+	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly, ValueStatus status, ItemPath path) {
+		super(container, property, readonly, status, path);
+
         values = createValues();
     }
 
@@ -55,7 +53,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
         List<ValueWrapper> values = new ArrayList<>();
 
         for (PrismValue prismValue : item.getValues()) {
-            values.add(new ValueWrapper(this, prismValue, ValueStatus.NOT_CHANGED));
+            values.add(new ValueWrapper<T>(this, prismValue, ValueStatus.NOT_CHANGED));
         }
 
         int minOccurs = getItemDefinition().getMinOccurs();
@@ -71,52 +69,52 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
     }
 
 	@Override
-    public ValueWrapper createAddedValue() {
+    public ValueWrapper<T> createAddedValue() {
         ItemDefinition definition = item.getDefinition();
 
         ValueWrapper wrapper;
         if (SchemaConstants.T_POLY_STRING_TYPE.equals(definition.getTypeName())) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(new PolyString("")),
-                    new PrismPropertyValue(new PolyString("")), ValueStatus.ADDED);
-        } else if (isUser() && isThisPropertyActivationEnabled()) {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
-                    new PrismPropertyValue(null), ValueStatus.ADDED);
+            wrapper = new ValueWrapper(this, new PrismPropertyValue<>(new PolyString("")),
+                    new PrismPropertyValue<>(new PolyString("")), ValueStatus.ADDED);
+//        } else if (isUser() && isThisPropertyActivationEnabled()) {
+//            wrapper = new ValueWrapper(this, new PrismPropertyValue(null),
+//                    new PrismPropertyValue(null), ValueStatus.ADDED);
         } else {
-            wrapper = new ValueWrapper(this, new PrismPropertyValue(null), ValueStatus.ADDED);
+            wrapper = new ValueWrapper(this, new PrismPropertyValue<>(null), ValueStatus.ADDED);
         }
 
         return wrapper;
     }
 
-    private boolean isUser() {
-		if (getContainer() == null) {
-			return false;
-		}
-        ObjectWrapper wrapper = getContainer().getObject();
-		if (wrapper == null) {
-			return false;
-		}
-        PrismObject object = wrapper.getObject();
+//    private boolean isUser() {
+//		if (getContainerValue() == null) {
+//			return false;
+//		}
+//        ObjectWrapper wrapper = getContainerValue().getContainer().getObject();
+//		if (wrapper == null) {
+//			return false;
+//		}
+//        PrismObject object = wrapper.getObject();
+//
+//        return UserType.class.isAssignableFrom(object.getCompileTimeClass());
+//    }
 
-        return UserType.class.isAssignableFrom(object.getCompileTimeClass());
-    }
-
-    private boolean isThisPropertyActivationEnabled() {
-        if (!new ItemPath(UserType.F_ACTIVATION).equivalent(container.getPath())) {
-            return false;
-        }
-
-        if (!ActivationType.F_ADMINISTRATIVE_STATUS.equals(item.getElementName())) {
-            return false;
-        }
-
-        if (container.getObject() == null || ContainerStatus.MODIFYING.equals(container.getObject().getStatus())) {
-            //when modifying then we don't want to create "true" value for c:activation/c:enabled, only during add
-            return false;
-        }
-
-        return true;
-    }
+//    private boolean isThisPropertyActivationEnabled() {
+//        if (!new ItemPath(UserType.F_ACTIVATION).equivalent(container.getPath())) {
+//            return false;
+//        }
+//
+//        if (!ActivationType.F_ADMINISTRATIVE_STATUS.equals(item.getElementName())) {
+//            return false;
+//        }
+//
+////        if (container.getContainer().getObject() == null || ContainerStatus.MODIFYING.equals(container.getContainer().getObject().getStatus())) {
+////            //when modifying then we don't want to create "true" value for c:activation/c:enabled, only during add
+////            return false;
+////        }
+//
+//        return true;
+//    }
 
     @Override
     public String toString() {
@@ -149,7 +147,7 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "readonly", readonly, indent+1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", itemDefinition == null?null:itemDefinition.toString(), indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "itemDefinition", getItemDefinition() == null?null:getItemDefinition().toString(), indent+1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "property", item == null?null:item.toString(), indent+1);
 		sb.append("\n");
@@ -162,5 +160,6 @@ public class PropertyWrapper<I extends Item<? extends PrismValue, ID>, ID extend
 	protected String getDebugName() {
 		return "PropertyWrapper";
 	}
-
 }
+
+	

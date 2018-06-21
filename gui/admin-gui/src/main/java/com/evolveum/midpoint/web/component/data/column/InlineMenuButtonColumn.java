@@ -18,11 +18,10 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
-import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -32,7 +31,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -40,11 +38,19 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
+
 /**
  * Created by honchar.
+ *
+ * todo rewrite
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonColumn<T>{
-    protected List<InlineMenuItem> menuItems;
+	private static final long serialVersionUID = 1L;
+	
+	protected static final Trace LOGGER = TraceManager.getTrace(InlineMenuButtonColumn.class);
+
+	protected List<InlineMenuItem> menuItems;
     private PageBase pageBase;
 
     public InlineMenuButtonColumn(List<InlineMenuItem> menuItems, int buttonsNumber, PageBase pageBase){
@@ -69,8 +75,9 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
     private Component getPanel(String componentId, IModel<T> rowModel,
                                int numberOfButtons, List<InlineMenuItem> menuItems){
         panel = new MenuMultiButtonPanel<T>(componentId, numberOfButtons, rowModel, createMenuModel(rowModel, menuItems)) {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             public String getCaption(int id) {
                 return "";
             }
@@ -83,6 +90,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
             @Override
             protected String getButtonCssClass(int id) {
                 return InlineMenuButtonColumn.this.getButtonCssClass(id, menuItems);
+            }
+
+            @Override
+            public String getButtonIconCss(int id) {
+                return InlineMenuButtonColumn.this.getButtonIconCss(id, menuItems);
             }
 
             @Override
@@ -132,7 +144,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
                 }
                 if (rowModel.getObject() == null ||
                         !(rowModel.getObject() instanceof InlineMenuable)) {
-                    return new ArrayList<InlineMenuItem>();
+                    return new ArrayList<>();
                 }
                 for (InlineMenuItem item : ((InlineMenuable)rowModel.getObject()).getMenuItems()) {
                     if (!(item.getAction() instanceof ColumnMenuAction)) {
@@ -168,7 +180,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
 
             @Override
             public StringResourceModel getTitle() {
-                return pageBase.createStringResource("pageUsers.message.confirmActionPopupTitle");
+                return createStringResource("pageUsers.message.confirmActionPopupTitle");
             }
 
             @Override
@@ -225,19 +237,27 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
     protected String getButtonCssClass(int id, List<InlineMenuItem> menuItems) {
         StringBuilder sb = new StringBuilder();
         sb.append(DoubleButtonColumn.BUTTON_BASE_CLASS).append(" ");
-        sb.append(getButtonColorCssClass(id, menuItems)).append(" ");
+        // Do not add color. It attracts too much attention
+//        sb.append(getButtonColorCssClass(id, menuItems)).append(" ");
+        sb.append("btn-default ");
         sb.append(getButtonSizeCssClass(id)).append(" ");
-        for (InlineMenuItem menuItem : menuItems){
-            if (menuItem.getId() == id){
-                sb.append(menuItem.getButtonIconCssClass()).append(" ");
-            }
-        }
+
         return sb.toString();
     }
 
-    public String getButtonTitle(int id, List<InlineMenuItem> menuItems) {
+    protected String getButtonIconCss(int id, List<InlineMenuItem> menuItems) {
         for (InlineMenuItem menuItem : menuItems){
             if (menuItem.getId() == id){
+                return menuItem.getButtonIconCssClass() + " fa-fw"; //temporary size fix, should be moved somewhere...
+            }
+        }
+
+        return null;
+    }
+
+    public String getButtonTitle(int id, List<InlineMenuItem> menuItems) {
+        for (InlineMenuItem menuItem : menuItems) {
+            if (menuItem.getId() == id) {
                 return menuItem.getLabel() != null && menuItem.getLabel().getObject() != null ?
                         menuItem.getLabel().getObject() : "";
             }

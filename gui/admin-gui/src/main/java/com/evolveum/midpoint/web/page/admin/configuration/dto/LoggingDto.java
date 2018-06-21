@@ -18,8 +18,6 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +58,7 @@ public class LoggingDto implements Serializable {
 		componentMap.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
 		componentMap.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
 		componentMap.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
+		componentMap.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
 	}
 
 	private LoggingLevelType rootLevel;
@@ -73,7 +72,9 @@ public class LoggingDto implements Serializable {
 	private String auditAppender;
 
 	private boolean advanced;
-	
+
+	private Boolean debug;
+
 
 	public LoggingDto() {
 		this(null);
@@ -116,20 +117,9 @@ public class LoggingDto implements Serializable {
 			}
 		}
 
-		Collections.sort(loggers, new Comparator<LoggerConfiguration>() {
-
-			@Override
-			public int compare(LoggerConfiguration l1, LoggerConfiguration l2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(l1.getName(), l2.getName());
-			}
-		});
-		Collections.sort(filters, new Comparator<FilterConfiguration>() {
-
-			@Override
-			public int compare(FilterConfiguration f1, FilterConfiguration f2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
-			}
-		});
+		loggers.sort((l1, l2) -> String.CASE_INSENSITIVE_ORDER.compare(l1.getName(), l2.getName()));
+		filters.sort((f1, f2) -> String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName()));
+		debug = config.isDebug();
 	}
 
 	public LoggingConfigurationType getNewObject() {
@@ -185,7 +175,7 @@ public class LoggingDto implements Serializable {
 		for (AppenderConfiguration appender : getAppenders()) {
 			appender.setEditing(false);
 		}
-
+		configuration.setDebug(debug);
 		return configuration;
 	}
 

@@ -20,8 +20,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -36,11 +38,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayContainerablesCollection;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -91,15 +93,78 @@ public class TestSoDCertification extends AbstractCertificationTest {
 		assignRole(USER_JACK_OID, roleATest2cOid);
 		assignRole(USER_JACK_OID, roleATest3aOid);
 		assignRole(USER_JACK_OID, roleATest3bOid);
-		display("jack", getUser(USER_JACK_OID));
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		display("jack", jack);
+
+		AssignmentType a2a = findAssignmentByTargetRequired(jack, roleATest2aOid);
+		display("assignment 2a", a2a);
 
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 
 	@Test
+	public void test001Triggers() throws Exception {
+		final String TEST_NAME = "test001Triggers";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN, WHEN
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		display("jack", jack);
+
+		// THEN
+		AssignmentType a2a = findAssignmentByTargetRequired(jack, roleATest2aOid);
+		display("assignment 2a", a2a);
+		assertTriggers(a2a, 2, 1);
+		AssignmentType a2b = findAssignmentByTargetRequired(jack, roleATest2bOid);
+		display("assignment 2b", a2b);
+		assertTriggers(a2b, 2, 1);
+		AssignmentType a2c = findAssignmentByTargetRequired(jack, roleATest2cOid);
+		display("assignment 2c", a2c);
+		assertTriggers(a2c, 2, 1);
+		AssignmentType a3a = findAssignmentByTargetRequired(jack, roleATest3aOid);
+		display("assignment 3a", a3a);
+		assertTriggers(a3a, 1, 1);
+		AssignmentType a3b = findAssignmentByTargetRequired(jack, roleATest3bOid);
+		display("assignment 3b", a3b);
+		assertTriggers(a3b, 1, 1);
+	}
+
+	private void assertTriggers(AssignmentType assignment, int exclusionExpected, int situationExpected) {
+		int exclusion = 0, situation = 0;
+		for (EvaluatedPolicyRuleType rule : assignment.getTriggeredPolicyRule()) {
+			for (EvaluatedPolicyRuleTriggerType trigger : rule.getTrigger()) {
+				//assertNotNull("Identifier not null in base trigger: " + trigger, trigger.getTriggerId());
+				if (trigger instanceof EvaluatedSituationTriggerType) {
+					EvaluatedSituationTriggerType situationTrigger = (EvaluatedSituationTriggerType) trigger;
+					int sourceTriggers = 0;
+					for (EvaluatedPolicyRuleType sourceRule : situationTrigger.getSourceRule()) {
+						for (EvaluatedPolicyRuleTriggerType sourceTrigger : sourceRule.getTrigger()) {
+							sourceTriggers++;
+							//assertNotNull("Ref not null in situation source trigger: " + sourceTrigger, sourceTrigger.getRef());
+						}
+					}
+					assertEquals("Wrong # of exclusion triggers in situation trigger", exclusionExpected, sourceTriggers);
+					situation++;
+				} else if (trigger instanceof EvaluatedExclusionTriggerType) {
+					exclusion++;
+				} else {
+					fail("Unexpected trigger: " + trigger);
+				}
+			}
+		}
+		assertEquals("Wrong # of exclusion triggers", 0, exclusion);
+		assertEquals("Wrong # of situation triggers", situationExpected, situation);
+
+		List<EvaluatedExclusionTriggerType> exclusionTriggers = PolicyRuleTypeUtil
+				.getAllExclusionTriggers(assignment.getTriggeredPolicyRule());
+		display("Exclusion triggers for " + assignment, exclusionTriggers);
+		assertEquals("Wrong # of extracted exclusion triggers", exclusionExpected, exclusionTriggers.size());
+	}
+
+	@Test
     public void test010CreateCampaign() throws Exception {
         final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -131,7 +196,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test012SearchAllCases() throws Exception {
         final String TEST_NAME = "test012SearchAllCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -153,7 +218,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test014Statistics() throws Exception {
         final String TEST_NAME = "test014Statistics";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -182,7 +247,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStage() throws Exception {
         final String TEST_NAME = "test020OpenFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -216,7 +281,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid)
 			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
         assertEquals("Wrong number of certification cases", 5, caseList.size());
         UserType jack = getUser(USER_JACK_OID).asObjectable();
         checkCase(caseList, USER_JACK_OID, roleATest2aOid, jack, campaignOid);
@@ -229,7 +294,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test030SearchAllCases() throws Exception {
         final String TEST_NAME = "test030SearchCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -254,7 +319,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test100RecordDecisions() throws Exception {
         final String TEST_NAME = "test100RecordDecisions";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -311,7 +376,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test150CloseFirstStage() throws Exception {
         final String TEST_NAME = "test150CloseFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -357,7 +422,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
     @Test
     public void test200StartRemediation() throws Exception {
         final String TEST_NAME = "test200StartRemediation";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestSoDCertification.class.getName() + "." + TEST_NAME);
@@ -406,4 +471,32 @@ public class TestSoDCertification extends AbstractCertificationTest {
 
         assertPercentComplete(campaign, 100, 100, 100);
     }
+
+	@Test
+	public void test210CheckAfterClose() throws Exception {
+		final String TEST_NAME = "test210CheckAfterClose";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator.asPrismObject());
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		// WHEN
+		waitForCampaignTasks(campaignOid, 20000, result);
+
+		// THEN
+		userJack = getUser(USER_JACK_OID).asObjectable();
+		display("jack", userJack);
+		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2bOid).getMetadata(),
+				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
+		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest2cOid).getMetadata(),
+				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), emptySet());
+		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3aOid).getMetadata(),
+				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: OK"));
+		assertCertificationMetadata(findAssignmentByTargetRequired(userJack.asPrismObject(), roleATest3bOid).getMetadata(),
+				SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_JACK_OID), singleton("jack: dunno"));
+	}
+
 }

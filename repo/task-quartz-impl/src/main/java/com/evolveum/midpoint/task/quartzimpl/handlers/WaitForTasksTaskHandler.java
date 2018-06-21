@@ -26,8 +26,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import java.util.List;
-
 /**
  * This is very simple task handler that causes the process to enter WAITING for OTHER_TASKS state.
  *
@@ -43,12 +41,12 @@ public class WaitForTasksTaskHandler implements TaskHandler {
 
 	private WaitForTasksTaskHandler() {}
 	
-	public static void instantiateAndRegister(TaskManager taskManager) {
+	public static void instantiateAndRegister(TaskManagerQuartzImpl taskManager) {
 		if (instance == null) {
 			instance = new WaitForTasksTaskHandler();
         }
 		taskManager.registerHandler(HANDLER_URI, instance);
-		instance.taskManagerImpl = (TaskManagerQuartzImpl) taskManager;
+		instance.taskManagerImpl = taskManager;
 	}
 
 	@Override
@@ -57,23 +55,20 @@ public class WaitForTasksTaskHandler implements TaskHandler {
 		OperationResult result = task.getResult().createSubresult(WaitForTasksTaskHandler.class.getName()+".run");
         result.recordInProgress();
 
-        LOGGER.info("WaitForTasksTaskHandler run starting; in task " + task.getName());
+        LOGGER.debug("WaitForTasksTaskHandler run starting; in task " + task.getName());
         try {
             // todo resolve this brutal hack
             taskManagerImpl.pauseTask(task, TaskWaitingReason.OTHER, result);
             task.startWaitingForTasksImmediate(result);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't mark task as waiting for prerequisite tasks", e);       // should not occur; will be handled by task runner
-        } catch (ObjectNotFoundException e) {
+        } catch (SchemaException | ObjectNotFoundException e) {
             throw new SystemException("Couldn't mark task as waiting for prerequisite tasks", e);       // should not occur; will be handled by task runner
         }
-        LOGGER.info("WaitForTasksTaskHandler run finishing; in task " + task.getName());
+		LOGGER.debug("WaitForTasksTaskHandler run finishing; in task " + task.getName());
 
         result.computeStatus();
 
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(result);
-        runResult.setProgress(task.getProgress());                      // not to overwrite task's progress
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		return runResult;
 	}
@@ -90,10 +85,5 @@ public class WaitForTasksTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return null;        // hopefully we will never need to derive category from this handler! (category is filled-in when persisting tasks)
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

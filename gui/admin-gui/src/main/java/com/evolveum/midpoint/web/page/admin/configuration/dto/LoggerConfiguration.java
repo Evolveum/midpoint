@@ -28,7 +28,7 @@ import java.util.List;
  * @author lazyman
  */
 public abstract class LoggerConfiguration extends Selectable implements Editable {
-	
+
 	private boolean editing;
     private LoggingLevelType level;
     private List<String> appenders = new ArrayList<>();
@@ -59,6 +59,6 @@ public abstract class LoggerConfiguration extends Selectable implements Editable
     public void setEditing(boolean editing) {
         this.editing = editing;
     }
-    
+
     public abstract ClassLoggerConfigurationType toXmlType();
 }

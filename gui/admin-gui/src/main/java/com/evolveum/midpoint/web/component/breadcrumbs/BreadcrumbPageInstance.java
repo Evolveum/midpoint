@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@ package com.evolveum.midpoint.web.component.breadcrumbs;
 
 import com.evolveum.midpoint.web.util.NewWindowNotifyingBehavior;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.IPageFactory;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.Session;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;

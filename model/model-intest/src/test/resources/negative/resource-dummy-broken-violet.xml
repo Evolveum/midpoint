@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Iteration with token expression, pre-iteration condition and post-iteration condition.
+     But those expressions are broken. They have wrong syntax, they fail, etc. 
+     See also: violet resource in TestIteration -->
+
+<resource oid="10000000-0000-0000-0000-0000000ba204"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource Broken Violet</name>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>brokenViolet</icfi:instanceId> <!-- Default instance. -->
+			<icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
+			<icfi:uselessGuardedString>
+				<clearValue>whatever</clearValue>
+			</icfi:uselessGuardedString>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<outbound>
+				    <strength>strong</strength>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<!-- This avoids "kickback" of a name from account to a user. -->
+					<strength>weak</strength>
+					<target>
+						<path>$c:user/c:name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>UID</displayName>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<outbound>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+
+			<iteration>
+				<maxIterations>5</maxIterations>
+				<tokenExpression>
+					<script>
+						<code>
+							if (iteration == 0) {
+								return "";
+							} else {
+								return "."+iteration;
+							}
+						</code>
+					</script>
+				</tokenExpression>
+				<preIterationCondition>
+					<variable>
+						<name>userName</name>
+						<path>$focus/name/t:orig</path>
+					</variable>
+					<script>
+						<code>
+							if (true) {
+								return userName != 'guybrush' || iteration == 3
+							// syntax error: closing bracket is missing (MID-4255)
+						</code>
+					</script>
+				</preIterationCondition>
+				<postIterationCondition>
+					<variable>
+						<name>name</name>
+						<path>$shadow/attributes/icfs:name</path>
+					</variable>
+					<script>
+						<code>name != 'herman'</code>
+					</script>
+				</postIterationCondition>
+			</iteration>
+            
+            <activation>
+            	<administrativeStatus>
+            		<outbound/>
+            	</administrativeStatus>
+            </activation>
+            
+            <credentials>
+                <password>
+                    <outbound>
+                    	<strength>weak</strength>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                    	<strength>weak</strength>
+                        <expression>
+                            <generate/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+            
+		</objectType>
+		
+	</schemaHandling>
+
+</resource>

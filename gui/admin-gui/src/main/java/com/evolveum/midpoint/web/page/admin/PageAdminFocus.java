@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,67 +15,52 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import net.sf.saxon.functions.Abs;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Session;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.protocol.http.WebSession;
-
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Session;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.protocol.http.WebSession;
+
+import javax.xml.namespace.QName;
+import java.util.*;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
 		implements ProgressReportingAwarePage {
@@ -90,8 +75,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
-	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
-    private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
+	private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
 	private static final String OPERATION_RECOMPUTE_ASSIGNMENTS = DOT_CLASS + "recomputeAssignments";
@@ -102,9 +86,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 
 	@Override
-	protected void initializeModel(final PrismObject<F> objectToEdit) {
-		super.initializeModel(objectToEdit);
-		
+	protected void initializeModel(final PrismObject<F> objectToEdit, boolean isNewObject, boolean isReadonly) {
+		super.initializeModel(objectToEdit, isNewObject, isReadonly);
+
 		projectionModel = new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>(false) {
 			private static final long serialVersionUID = 1L;
 
@@ -114,16 +98,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 		};
 
-		assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected List<AssignmentEditorDto> load() {
-				return loadAssignments();
-			}
-		};
-
         delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
+
+        	private static final long serialVersionUID = 1L;
             @Override
             protected List<AssignmentEditorDto> load() {
                 return loadDelegatedToMe();
@@ -136,10 +113,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return projectionModel;
 	}
 
-	public LoadableModel<List<AssignmentEditorDto>> getAssignmentsModel() {
-		return assignmentsModel;
-	}
-
 	public LoadableModel<List<AssignmentEditorDto>> getDelegatedToMeModel() {
 		return delegatedToMeModel;
 	}
@@ -147,20 +120,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	public List<FocusSubwrapperDto<ShadowType>> getFocusShadows() {
 		return projectionModel.getObject();
 	}
-	
-	public List<AssignmentEditorDto> getFocusAssignments() {
-		return assignmentsModel.getObject();
-	}
 
 	protected void reviveModels() throws SchemaException {
 		super.reviveModels();
 		WebComponentUtil.revive(projectionModel, getPrismContext());
-		WebComponentUtil.revive(assignmentsModel, getPrismContext());
-	}
-
-	protected ObjectWrapper<F> loadFocusWrapper(PrismObject<F> userToEdit) {
-		ObjectWrapper<F> objectWrapper = super.loadObjectWrapper(userToEdit);
-		return objectWrapper;
 	}
 
 	@Override
@@ -190,7 +153,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		boolean canExitPage;
 		if (returningFromAsync) {
-			canExitPage = getProgressReporter().isAllSuccess();			// if there's at least a warning in the progress table, we would like to keep the table open
+			canExitPage = getProgressPanel().isAllSuccess();			// if there's at least a warning in the progress table, we would like to keep the table open
 		} else {
 			canExitPage = !canContinueEditing;							// no point in staying on page if we cannot continue editing (in synchronous case i.e. no progress table present)
 		}
@@ -200,38 +163,38 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			redirectBack();
 		} else {
 			if (returningFromAsync) {
-				getProgressReporter().showBackButton(target);
-				getProgressReporter().hideAbortButton(target);
+				getProgressPanel().showBackButton(target);
+				getProgressPanel().hideAbortButton(target);
 			}
             showResult(result);
 			target.add(getFeedbackPanel());
 
 			if (canContinueEditing) {
-				getProgressReporter().hideBackButton(target);
-				getProgressReporter().showContinueEditingButton(target);
+				getProgressPanel().hideBackButton(target);
+				getProgressPanel().showContinueEditingButton(target);
 			}
 		}
 	}
 
 	private void finishPreviewProcessing(AjaxRequestTarget target, OperationResult result) {
 		getMainPanel().setVisible(true);
-		getProgressReporter().getProgressPanel().hide();
-		getProgressReporter().hideAbortButton(target);
-		getProgressReporter().hideBackButton(target);
-		getProgressReporter().hideContinueEditingButton(target);
+		getProgressPanel().hide();
+		getProgressPanel().hideAbortButton(target);
+		getProgressPanel().hideBackButton(target);
+		getProgressPanel().hideContinueEditingButton(target);
 
 		showResult(result);
 		target.add(getFeedbackPanel());
-		navigateToNext(new PagePreviewChanges(getProgressReporter().getPreviewResult(), getModelInteractionService()));
+		navigateToNext(new PagePreviewChanges(getProgressPanel().getPreviewResult(), getModelInteractionService()));
 	}
 
 	@Override
 	public void continueEditing(AjaxRequestTarget target) {
 		getMainPanel().setVisible(true);
-		getProgressReporter().getProgressPanel().hide();
-		getProgressReporter().hideAbortButton(target);
-		getProgressReporter().hideBackButton(target);
-		getProgressReporter().hideContinueEditingButton(target);
+		getProgressPanel().hide();
+		getProgressPanel().hideAbortButton(target);
+		getProgressPanel().hideBackButton(target);
+		getProgressPanel().hideContinueEditingButton(target);
 		target.add(this);
 	}
 
@@ -240,7 +203,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		// The full projection load happens when loadFullShadow() is explicitly invoked.
 		return loadSubwrappers(ShadowType.class, UserType.F_LINK_REF, true);
 	}
-	
+
 	public void loadFullShadow(FocusSubwrapperDto<ShadowType> shadowWrapperDto) {
 		ObjectWrapper<ShadowType> shadowWrapperOld = shadowWrapperDto.getObject();
 		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
@@ -291,30 +254,31 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		OperationResult subResult = task.getResult().createMinorSubresult(OPERATION_LOAD_SHADOW);
 		String resourceName = null;
 		try {
-			Collection<SelectorOptions<GetOperationOptions>> loadOptions = null;
+			Collection<SelectorOptions<GetOperationOptions>> loadOptions;
 			if (ShadowType.class.equals(type)) {
 				GetOperationOptions resourceOption = GetOperationOptions.createResolve();
 				resourceOption.setReadOnly(true);
-				loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
-						resourceOption);
-			} 
-			
+				loadOptions = SelectorOptions.createCollection(ShadowType.F_RESOURCE, resourceOption);
+			} else {
+				loadOptions = new ArrayList<>();
+			}
+
 			if (noFetch) {
 				GetOperationOptions rootOptions = SelectorOptions.findRootOptions(loadOptions);
 				if (rootOptions == null) {
-					loadOptions.add(new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch()));
+					loadOptions.add(new SelectorOptions<>(GetOperationOptions.createNoFetch()));
 				} else {
 					rootOptions.setNoFetch(true);
 				}
 			}
 
-			PrismObject<S> projection = WebModelServiceUtils.loadObject(type, oid, loadOptions, this,
-					task, subResult);
+			PrismObject<S> projection = WebModelServiceUtils.loadObject(type, oid, loadOptions, this, task, subResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Loaded projection {} ({}):\n{}", oid, loadOptions, projection==null?null:projection.debugDump());
 			}
 			if (projection == null) {
 				// No access or error
+				// TODO actually it would be nice to show an error if the shadow repo object does not exist
 				return null;
 			}
 			S projectionType = projection.asObjectable();
@@ -338,28 +302,28 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			description.append(WebComponentUtil.getOrigStringFromPoly(projectionType.getName()));
 
 			ObjectWrapper<S> wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName,
-					description.toString(), projection, ContainerStatus.MODIFYING, true, this);
+					description.toString(), projection, ContainerStatus.MODIFYING, task, this);
 			wrapper.setLoadOptions(loadOptions);
 			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
 			wrapper.setSelectable(true);
 			wrapper.setMinimalized(true);
 
-			wrapper.initializeContainers(this);
+//			wrapper.initializeContainers(this);
 
 			subResult.computeStatus();
-			
-			return new FocusSubwrapperDto<S>(wrapper, UserDtoStatus.MODIFY);
+
+			return new FocusSubwrapperDto<>(wrapper, UserDtoStatus.MODIFY);
 
 		} catch (Exception ex) {
 			subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
 			subResult.computeStatus();
-			return new FocusSubwrapperDto<S>(false, resourceName, subResult);
+			return new FocusSubwrapperDto<>(false, resourceName, subResult);
 		}
 	}
 
     private List<AssignmentEditorDto> loadDelegatedToMe() {
-        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
+        List<AssignmentEditorDto> list = new ArrayList<>();
 
         ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
         PrismObject<F> focus = focusWrapper.getObject();
@@ -379,22 +343,14 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         return list;
     }
 
-    private List<AssignmentEditorDto> loadAssignments() {
-		List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
-
-		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
-		PrismObject<F> focus = focusWrapper.getObject();
-		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+  protected List<AssignmentType> getPolicyRulesList(List<AssignmentType> assignments, UserDtoStatus status){
+		List<AssignmentType> list = new ArrayList<>();
 		for (AssignmentType assignment : assignments) {
-			if (assignment.getTargetRef() == null ||
-					!UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
-				list.add(new AssignmentEditorDto(StringUtils.isEmpty(focusWrapper.getOid()) ?
-						UserDtoStatus.ADD : UserDtoStatus.MODIFY, assignment, this));
+			if (AssignmentsUtil.isPolicyRuleAssignment(assignment)) {
+				//TODO set status
+				list.add(assignment);
 			}
 		}
-
-		Collections.sort(list);
-
 		return list;
 	}
 
@@ -403,7 +359,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		super.prepareObjectForAdd(focus);
 		F focusType = focus.asObjectable();
 		// handle added accounts
-		
+
 		List<ShadowType> shadowsToAdd = prepareSubobject(getFocusShadows());
 		if (!shadowsToAdd.isEmpty()) {
 			shadowsToAdd.forEach(shadowType -> addDefaultKindAndIntent(shadowType.asPrismObject()));
@@ -415,74 +371,36 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			focusType.getParentOrg().addAll(orgsToAdd);
 		}
 
-		handleAssignmentForAdd(focus, UserType.F_ASSIGNMENT, assignmentsModel.getObject());
 	}
-	
-	protected void handleAssignmentForAdd(PrismObject<F> focus, QName containerName,
-			List<AssignmentEditorDto> assignments) throws SchemaException {
-		PrismObjectDefinition<F> userDef = focus.getDefinition();
-		PrismContainerDefinition<AssignmentType> assignmentDef = userDef.findContainerDefinition(containerName);
-
-		// handle added assignments
-		// existing user assignments are not relevant -> delete them
-		PrismContainer<AssignmentType> assignmentContainer = focus.findOrCreateContainer(containerName);
-		if (assignmentContainer != null && !assignmentContainer.isEmpty()){
-			assignmentContainer.clear();
-		}
-		
-//		List<AssignmentEditorDto> assignments = getFocusAssignments();
-		for (AssignmentEditorDto assDto : assignments) {
-			if (UserDtoStatus.DELETE.equals(assDto.getStatus())) {
-				continue;
-			}
-
-			AssignmentType assignment = new AssignmentType();
-			PrismContainerValue<AssignmentType> value = assDto.getNewValue(getPrismContext());
-			assignment.setupContainerValue(value);
-			value.applyDefinition(assignmentDef, false);
-			assignmentContainer.add(assignment.clone().asPrismContainerValue());
-
-			// todo remove this block [lazyman] after model is updated - it has
-			// to remove resource from accountConstruction
-			removeResourceFromAccConstruction(assignment);
-		}
-	}
-
 
 	@Override
 	protected void prepareObjectDeltaForModify(ObjectDelta<F> focusDelta) throws SchemaException {
 		super.prepareObjectDeltaForModify(focusDelta);
 		// handle accounts
-		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-		PrismObjectDefinition<F> objectDefinition = registry
-				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
+		PrismObjectDefinition<F> objectDefinition = getObjectDefinition();
 		PrismReferenceDefinition refDef = objectDefinition.findReferenceDefinition(FocusType.F_LINK_REF);
 		ReferenceDelta refDelta = prepareUserAccountsDeltaForModify(refDef);
 		if (!refDelta.isEmpty()) {
 			focusDelta.addModification(refDelta);
 		}
-		
+
 		refDef = objectDefinition.findReferenceDefinition(FocusType.F_PARENT_ORG_REF);
 		refDelta = prepareUserOrgsDeltaForModify(refDef);
 		if (!refDelta.isEmpty()) {
 			focusDelta.addModification(refDelta);
 		}
-
-		// handle assignments
-		PrismContainerDefinition def = objectDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
-		handleAssignmentDeltas(focusDelta, getFocusAssignments(), def);
 	}
-	
-	
-	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
-			List<AssignmentEditorDto> assignments, PrismContainerDefinition def) throws SchemaException {
-		return handleAssignmentDeltas(focusDelta, assignments, def, false);
+
+	protected PrismObjectDefinition<F> getObjectDefinition() {
+		SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+		return registry
+				.findObjectDefinitionByCompileTimeClass(getCompileTimeClass());
 	}
 
 	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
 			List<AssignmentEditorDto> assignments, PrismContainerDefinition def,
 													boolean isDelegation) throws SchemaException {
-		ContainerDelta assDelta = new ContainerDelta(new ItemPath(), def.getName(), def, getPrismContext());
+		ContainerDelta assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
 
 		for (AssignmentEditorDto assDto : assignments) {
 			PrismContainerValue newValue = assDto.getNewValue(getPrismContext());
@@ -529,7 +447,20 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		return assDelta;
 	}
-	
+
+	protected ContainerDelta<AssignmentType> handleAssignmentExperimentalDeltas(ObjectDelta<F> focusDelta,
+											List<ContainerValueWrapper<AssignmentType>> assignments, PrismContainerDefinition def,
+																				boolean isDelegation) throws SchemaException {
+		ContainerDelta<AssignmentType> assDelta = new ContainerDelta(ItemPath.EMPTY_PATH, def.getName(), def, getPrismContext());
+
+
+		if (!assDelta.isEmpty()) {
+			assDelta = focusDelta.addModification(assDelta);
+		}
+
+		return assDelta;
+	}
+
 	private void handleModifyAssignmentDelta(AssignmentEditorDto assDto,
 			PrismContainerDefinition assignmentDef, PrismContainerValue newValue, ObjectDelta<F> focusDelta)
 					throws SchemaException {
@@ -549,7 +480,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			focusDelta.addModification(delta);
 		}
 	}
-	
+
 	@Override
 	protected boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
 			OperationResult parentResult) {
@@ -576,11 +507,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		}
 		return false;
 	}
-	
+
 	private ObjectDelta getForceDeleteDelta(ObjectWrapper focusWrapper) throws SchemaException {
 
 		List<FocusSubwrapperDto<ShadowType>> accountDtos = getFocusShadows();
-		List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+		List<ReferenceDelta> refDeltas = new ArrayList<>();
 		ObjectDelta<F> forceDeleteDelta = null;
 		for (FocusSubwrapperDto<ShadowType> accDto : accountDtos) {
 			if (!accDto.isLoadedOK()) {
@@ -609,11 +540,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			forceDeleteDelta = ObjectDelta.createEmptyModifyDelta(getCompileTimeClass(),
 					focusWrapper.getObject().getOid(), getPrismContext());
 		}
-
-		handleAssignmentDeltas(forceDeleteDelta, getFocusAssignments(), def);
+//perhaps not needed anymore
+		ContainerWrapper assignmentContainerWrapper = getObjectWrapper().findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+		handleAssignmentExperimentalDeltas(forceDeleteDelta, assignmentContainerWrapper.getValues(), def, false);
 		return forceDeleteDelta;
 	}
-	
+
 	private <P extends ObjectType> List<P> prepareSubobject(List<FocusSubwrapperDto<P>> projections) throws SchemaException{
 		List<P> projectionsToAdd = new ArrayList<>();
 		for (FocusSubwrapperDto<P> projection : projections) {
@@ -642,7 +574,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return projectionsToAdd;
 	}
 
-	
+
 	@Override
 	protected List<ObjectDelta<? extends ObjectType>> getAdditionalModifyDeltas(OperationResult result) {
 		return getShadowModifyDeltas(result);
@@ -699,7 +631,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		return deltas;
 	}
-	
+
 	/**
 	 * remove this method after model is updated - it has to remove resource
 	 * from accountConstruction
@@ -807,99 +739,82 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return refDelta;
 	}
 
-	public List<AssignmentsPreviewDto> recomputeAssignmentsPerformed(AjaxRequestTarget target) {
+	public List<AssignmentInfoDto> showAllAssignmentsPerformed(AjaxRequestTarget ajaxRequestTarget) {
 		LOGGER.debug("Recompute user assignments");
 		Task task = createSimpleTask(OPERATION_RECOMPUTE_ASSIGNMENTS);
 		OperationResult result = new OperationResult(OPERATION_RECOMPUTE_ASSIGNMENTS);
 		ObjectDelta<F> delta;
-		Set<AssignmentsPreviewDto> assignmentDtoSet = new TreeSet<>();
+		Set<AssignmentInfoDto> assignmentInfoDtoSet = new TreeSet<>();
 
 		try {
 			reviveModels();
 
-			ObjectWrapper<F> userWrapper = getObjectWrapper();
-			delta = userWrapper.getObjectDelta();
-			if (userWrapper.getOldDelta() != null) {
-				delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
+			ObjectWrapper<F> focusWrapper = getObjectWrapper();
+			delta = focusWrapper.getObjectDelta();
+			if (focusWrapper.getOldDelta() != null) {
+				delta = ObjectDelta.summarize(focusWrapper.getOldDelta(), delta);
 			}
 
-			switch (userWrapper.getStatus()) {
+			switch (focusWrapper.getStatus()) {
 				case ADDING:
 					PrismObject<F> focus = delta.getObjectToAdd();
 					prepareObjectForAdd(focus);
 					getPrismContext().adopt(focus, getCompileTimeClass());
 
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before add user:\n{}", new Object[] { delta.debugDump(3) });
-					}
-
+					LOGGER.trace("Delta before add focus:\n{}", delta.debugDumpLazily(3));
 					if (!delta.isEmpty()) {
 						delta.revive(getPrismContext());
 					} else {
 						result.recordSuccess();
 					}
-
 					break;
 				case MODIFYING:
 					prepareObjectDeltaForModify(delta);
-
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Delta before modify user:\n{}", new Object[] { delta.debugDump(3) });
-					}
+					LOGGER.trace("Delta before modify user:\n{}", delta.debugDumpLazily(3));
 
 					List<ObjectDelta<? extends ObjectType>> accountDeltas = getShadowModifyDeltas(result);
-					Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-
 					if (!delta.isEmpty()) {
 						delta.revive(getPrismContext());
-						deltas.add(delta);
 					}
-
 					for (ObjectDelta accDelta : accountDeltas) {
 						if (!accDelta.isEmpty()) {
 							accDelta.revive(getPrismContext());
-							deltas.add(accDelta);
 						}
 					}
-
 					break;
 				default:
-					error(getString("pageAdminFocus.message.unsupportedState", userWrapper.getStatus()));
+					error(getString("pageAdminFocus.message.unsupportedState", focusWrapper.getStatus()));
 			}
 
-			ModelContext<UserType> modelContext = null;
+			ModelContext<UserType> modelContext;
 			try {
-				modelContext = getModelInteractionService()
-						.previewChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
+				ModelExecuteOptions options = ModelExecuteOptions.createEvaluateAllAssignmentRelationsOnRecompute();
+				modelContext = getModelInteractionService().previewChanges(Collections.singleton(delta), options, task, result);
 			} catch (NoFocusNameSchemaException e) {
 				info(getString("pageAdminFocus.message.noUserName"));
-				target.add(getFeedbackPanel());
+				ajaxRequestTarget.add(getFeedbackPanel());
 				return null;
 			}
 
-			DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext
-					.getEvaluatedAssignmentTriple();
-			Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple
-					.getNonNegativeValues();
+			DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+			Collection<? extends EvaluatedAssignment<?>> evaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
 
 			if (evaluatedAssignments.isEmpty()) {
 				info(getString("pageAdminFocus.message.noAssignmentsAvailable"));
-				target.add(getFeedbackPanel());
+				ajaxRequestTarget.add(getFeedbackPanel());
 				return null;
 			}
 
-			for (EvaluatedAssignment<UserType> evaluatedAssignment : evaluatedAssignments) {
+			for (EvaluatedAssignment<?> evaluatedAssignment : evaluatedAssignments) {
 				if (!evaluatedAssignment.isValid()) {
 					continue;
 				}
 				// roles and orgs
-				DeltaSetTriple<? extends EvaluatedAssignmentTarget> evaluatedRolesTriple = evaluatedAssignment
-						.getRoles();
-				Collection<? extends EvaluatedAssignmentTarget> evaluatedRoles = evaluatedRolesTriple
-						.getNonNegativeValues();
-				for (EvaluatedAssignmentTarget role : evaluatedRoles) {
-					if (role.isEvaluateConstructions()) {
-						assignmentDtoSet.add(createAssignmentsPreviewDto(role, task, result));
+				DeltaSetTriple<? extends EvaluatedAssignmentTarget> targetsTriple = evaluatedAssignment.getRoles();
+				Collection<? extends EvaluatedAssignmentTarget> targets = targetsTriple.getNonNegativeValues();
+				for (EvaluatedAssignmentTarget target : targets) {
+					if (target.appliesToFocusWithAnyRelation()) {
+						assignmentInfoDtoSet.add(createAssignmentsPreviewDto(target, task, result));
 					}
 				}
 
@@ -909,48 +824,49 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple
 						.getNonNegativeValues();
 				for (EvaluatedConstruction construction : evaluatedConstructions) {
-					assignmentDtoSet.add(createAssignmentsPreviewDto(construction));
+					if (!construction.isWeak()) {
+						assignmentInfoDtoSet.add(createAssignmentsPreviewDto(construction));
+					}
 				}
 			}
 
-			return new ArrayList<>(assignmentDtoSet);
+			return new ArrayList<>(assignmentInfoDtoSet);
 
 		} catch (Exception e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Could not create assignments preview.", e);
 			error("Could not create assignments preview. Reason: " + e);
-			target.add(getFeedbackPanel());
+			ajaxRequestTarget.add(getFeedbackPanel());
 		}
         return null;
 	}
 
-	private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedAssignmentTarget evaluatedAbstractRole,
+	private AssignmentInfoDto createAssignmentsPreviewDto(EvaluatedAssignmentTarget evaluatedAbstractRole,
 			Task task, OperationResult result) {
 		return createAssignmentsPreviewDto(evaluatedAbstractRole.getTarget(), evaluatedAbstractRole.isDirectlyAssigned(),
 				evaluatedAbstractRole.getAssignment(), task, result);
 	}
 
-	protected AssignmentsPreviewDto createAssignmentsPreviewDto(ObjectReferenceType reference,
+	protected AssignmentInfoDto createAssignmentsPreviewDto(ObjectReferenceType reference,
 																Task task, OperationResult result) {
-		PrismObject<? extends FocusType> targetObject = WebModelServiceUtils.resolveReferenceRaw(reference,
+		PrismObject<? extends FocusType> targetObject = WebModelServiceUtils.resolveReferenceNoFetch(reference,
 				PageAdminFocus.this, task, result);
 
 		return createAssignmentsPreviewDto(targetObject, true,
 				null, task, result);
 	}
 
-    protected AssignmentsPreviewDto createDelegableAssignmentsPreviewDto(AssignmentType assignment,
-                                                                         Task task, OperationResult result) {
-        if (assignment.getTargetRef() != null){
+    protected AssignmentInfoDto createDelegableAssignmentsPreviewDto(AssignmentType assignment, Task task, OperationResult result) {
+        if (assignment.getTargetRef() != null) {
             if (RoleType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())
                     || OrgType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())
-                    || ServiceType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())){
-                PrismObject<AbstractRoleType> targetObject = WebModelServiceUtils.resolveReferenceRaw(assignment.getTargetRef(),
+                    || ServiceType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                PrismObject<AbstractRoleType> targetObject = WebModelServiceUtils.resolveReferenceNoFetch(assignment.getTargetRef(),
                         PageAdminFocus.this, task, result);
                 Boolean isDelegable = false;
 				if (targetObject != null) {
 					isDelegable = targetObject.getRealValue().isDelegable();
 				}
-                if (Boolean.TRUE.equals(isDelegable)){
+                if (Boolean.TRUE.equals(isDelegable)) {
                     return createAssignmentsPreviewDto(targetObject, true, assignment, task, result);
                 }
             }
@@ -958,10 +874,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         return null;
     }
 
-	private AssignmentsPreviewDto createAssignmentsPreviewDto(PrismObject<? extends FocusType> targetObject,
-															  boolean isDirectlyAssigned, AssignmentType assignment,
-															  Task task, OperationResult result) {
-		AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+	private AssignmentInfoDto createAssignmentsPreviewDto(PrismObject<? extends FocusType> targetObject,
+			boolean isDirectlyAssigned, AssignmentType assignment,
+			Task task, OperationResult result) {
+		AssignmentInfoDto dto = new AssignmentInfoDto();
 		dto.setTargetOid(targetObject.getOid());
 		dto.setTargetName(getNameToDisplay(targetObject));
 		dto.setTargetDescription(targetObject.asObjectable().getDescription());
@@ -979,6 +895,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 						nameFromReference(assignment.getOrgRef(), task, result));
 				dto.setOrgRef(assignment.getOrgRef());
 			}
+			if (assignment.getTargetRef() != null){
+				dto.setRelation(assignment.getTargetRef().getRelation());
+			}
 		}
 		return dto;
 	}
@@ -993,6 +912,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return PolyString.getOrig(target.asObjectable().getName());
 	}
 
+	//TODO: unify with WebComponentUtil getName vs. getEffectiveName (duplicate)
 	private String nameFromReference(ObjectReferenceType reference, Task task, OperationResult result) {
 		String oid = reference.getOid();
 		QName type = reference.getType();
@@ -1002,7 +922,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			prismObject = getModelService().getObject(clazz, oid,
 					SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
 		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-				| CommunicationException | ConfigurationException | RuntimeException e) {
+				| CommunicationException | ConfigurationException | ExpressionEvaluationException
+				| RuntimeException | Error e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve name for {}: {}", e,
 					clazz.getSimpleName(), oid);
 			return "Couldn't retrieve name for " + oid;
@@ -1015,8 +936,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		}
 	}
 
-	private AssignmentsPreviewDto createAssignmentsPreviewDto(EvaluatedConstruction evaluatedConstruction) {
-		AssignmentsPreviewDto dto = new AssignmentsPreviewDto();
+	private AssignmentInfoDto createAssignmentsPreviewDto(EvaluatedConstruction evaluatedConstruction) {
+		AssignmentInfoDto dto = new AssignmentInfoDto();
 		PrismObject<ResourceType> resource = evaluatedConstruction.getResource();
 		dto.setTargetOid(resource.getOid());
 		dto.setTargetName(PolyString.getOrig(resource.asObjectable().getName()));
@@ -1031,7 +952,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	@Override
 	protected void performAdditionalValidation(PrismObject<F> object,
 			Collection<ObjectDelta<? extends ObjectType>> deltas, Collection<SimpleValidationError> errors) throws SchemaException {
-		
+
 		if (object != null && object.asObjectable() != null) {
 			for (AssignmentType assignment : object.asObjectable().getAssignment()) {
 				for (MidpointFormValidator validator : getFormValidatorRegistry().getValidators()) {
@@ -1043,7 +964,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				}
 			}
 		}
-		
+
 	}
 
 }

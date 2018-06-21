@@ -62,7 +62,7 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
 	}
 
 	public void onRequest() {
-		final File file = initFile();	
+		final File file = initFile();
 		IResourceStream resourceStream = new FileResourceStream(new File(file));
 		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(
 				new ResourceStreamRequestHandler(resourceStream) {
@@ -81,7 +81,7 @@ public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior 
 				}.setFileName(file.getName()).setContentDisposition(ContentDisposition.ATTACHMENT)
 						.setCacheDuration(Duration.ONE_SECOND));
 	}
-	
+
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
 	}

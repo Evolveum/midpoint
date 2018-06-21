@@ -22,12 +22,12 @@ public class JsonValueParser<T> implements ValueParser<T> {
 
 	@NotNull private final JsonParser parser;
 	private JsonNode node;
-		
+
 	public JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
 		this.parser = parser;
 		this.node = node;
 	}
-	
+
 	@NotNull
 	public JsonParser getParser() {
 		return parser;
@@ -46,7 +46,7 @@ public class JsonValueParser<T> implements ValueParser<T> {
 			throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
 		}
 	}
-	
+
 	@Override
 	public boolean isEmpty() {
 		return node == null || StringUtils.isBlank(node.asText());			// to be consistent with PrimitiveXNode.isEmpty for parsed values

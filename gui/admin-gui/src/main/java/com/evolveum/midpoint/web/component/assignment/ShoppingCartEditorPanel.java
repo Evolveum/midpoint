@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,12 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar.
@@ -43,8 +38,8 @@ public class ShoppingCartEditorPanel extends AssignmentEditorPanel {
     protected static final String ICON_BOX_CSS_CLASS = "info-box-icon";
 
 
-    public ShoppingCartEditorPanel(String id, IModel<AssignmentEditorDto> model, PageBase pageBase) {
-        super(id, model, pageBase);
+    public ShoppingCartEditorPanel(String id, IModel<AssignmentEditorDto> model) {
+        super(id, model);
     }
 
     @Override

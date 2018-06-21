@@ -23,10 +23,7 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.SerializationContext;
 import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.report.api.ReportPort;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -61,7 +58,7 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 
 	@Autowired(required = true)
 	private ReportWebService reportService;
-	
+
 	 @Override
 	    public DOMSource invoke(DOMSource request) {
 	        try {
@@ -144,7 +141,7 @@ public class ReportWebServiceRaw implements Provider<DOMSource> {
 
 	        return new DOMSource(response);
 	    }
-		
+
 		private void serializeFaultMessage(Detail detail, FaultMessage faultMessage) {
 			MiscSchemaUtil.serializeFaultMessage(detail, faultMessage, prismContext, LOGGER);
 		}

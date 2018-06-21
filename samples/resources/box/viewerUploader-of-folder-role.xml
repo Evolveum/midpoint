@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+      oid="a4227baa-39f5-4c9b-857d-0622e407f390"
+      version="8">
+   <name>ViewerUploader</name>
+   <metadata>
+      <requestTimestamp>2017-08-07T11:17:28.459+02:00</requestTimestamp>
+      <requestorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                    oid="00000000-0000-0000-0000-000000000002"
+                    relation="org:default"
+                    type="c:UserType"><!-- administrator --></requestorRef>
+      <createTimestamp>2017-08-07T11:17:28.480+02:00</createTimestamp>
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                  oid="00000000-0000-0000-0000-000000000002"
+                  relation="org:default"
+                  type="c:UserType"><!-- administrator --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+   </metadata>
+   <activation>
+      <effectiveStatus>enabled</effectiveStatus>
+      <enableTimestamp>2017-08-07T11:17:28.469+02:00</enableTimestamp>
+   </activation>
+   <iteration>0</iteration>
+   <iterationToken/>
+   <inducement id="1">
+      <construction>
+         <resourceRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                      oid="e8146ed1-5e67-40ba-9e99-45ae01f69642"
+                      relation="org:default"
+                      type="c:ResourceType"><!-- BoxConnector --></resourceRef>
+         <kind>entitlement</kind>
+         <intent>Folders</intent>
+         <association>
+            <c:ref>ri:viewerUploader</c:ref>
+            <outbound>
+               <source>
+                  <name>orgUnit</name>
+                  <c:path>$assignment/c:orgRef</c:path>
+               </source>
+               <expression>
+                  <associationTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                           xsi:type="c:SearchObjectExpressionEvaluatorType">
+                     <filter>
+                        <q:equal>
+                           <q:path>attributes/icfs:name</q:path>
+                           <expression>
+                              <script xsi:type="c:ScriptExpressionEvaluatorType">
+                                 <code>
+                                    org = midpoint.getOrgByOid(orgUnit.getOid());                                   
+                                    return org.getName()
+                                </code>
+                              </script>
+                           </expression>
+                        </q:equal>
+                     </filter>
+                  </associationTargetSearch>
+               </expression>
+            </outbound>
+         </association>
+      </construction>
+   </inducement>
+   <inducement id="2">
+      <targetRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                 relation="org:default"
+                 type="c:OrgType">
+         <filter>
+            <q:inOid>
+               <expression>
+                  <returnMultiplicity>multi</returnMultiplicity>
+                  <script>
+                     <code>
+								return focusAssignment?.getOrgRef()?.getOid()
+						</code>
+                  </script>
+               </expression>
+            </q:inOid>
+         </filter>
+      </targetRef>
+      <order>1</order>
+      <focusType>OrgType</focusType>
+   </inducement>
+</role>
+</objects>

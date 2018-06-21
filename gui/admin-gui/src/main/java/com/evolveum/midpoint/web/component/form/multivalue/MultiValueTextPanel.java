@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
     @Override
     public IModel<List<T>> getModel(){
         if(super.getModel().getObject() == null){
-            super.getModel().setObject(new ArrayList<T>());
+            super.getModel().setObject(new ArrayList<>());
         }
 
         return super.getModel();
@@ -111,7 +111,12 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
                 TextField text = new TextField<>(ID_TEXT, createTextModel(item.getModel()));
                 text.add(new AjaxFormComponentUpdatingBehavior("blur") {
                     @Override
-                    protected void onUpdate(AjaxRequestTarget target) {}
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        T updatedValue = (T)text.getConvertedInput();
+                        List<T> modelObject = MultiValueTextPanel.this.getModelObject();
+                        modelObject.set(item.getIndex(), updatedValue);
+                        modelObjectUpdatePerformed(target, modelObject);
+                    }
                 });
                 text.add(AttributeAppender.replace("placeholder", createEmptyItemPlaceholder()));
 				text.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
@@ -201,6 +206,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
     protected void addValuePerformed(AjaxRequestTarget target){
         List<T> objects = getModelObject();
         objects.add(createNewEmptyItem());
+        modelObjectUpdatePerformed(target, objects);
 
         target.add(this);
     }
@@ -220,17 +226,23 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
         return false;
     }
 
+    protected void modelObjectUpdatePerformed(AjaxRequestTarget target, List<T> modelObject){
+    }
+
     protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item){
         List<T> objects = getModelObject();
         Iterator<T> iterator = objects.iterator();
         while (iterator.hasNext()) {
             T object = iterator.next();
+            if (object == null){
+                continue;
+            }
             if (object.equals(item.getModelObject())) {
                 iterator.remove();
                 break;
             }
         }
-
+        modelObjectUpdatePerformed(target, objects);
         target.add(this);
     }
 }

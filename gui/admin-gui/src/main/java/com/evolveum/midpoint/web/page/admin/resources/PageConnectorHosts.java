@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,8 +103,7 @@ public class PageConnectorHosts extends PageAdminResources {
 
 			@Override
 			protected Search load() {
-				return SearchFactory.createSearch(ConnectorHostType.class, getPrismContext(),
-						getModelInteractionService());
+				return SearchFactory.createSearch(ConnectorHostType.class, PageConnectorHosts.this);
 			}
 		};
 
@@ -112,7 +111,7 @@ public class PageConnectorHosts extends PageAdminResources {
 	}
 
 	private void initLayout() {
-		Form<?> mainForm = new Form<>(ID_MAIN_FORM);
+		Form<?> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
 		add(mainForm);
 
 		BoxedTablePanel<ConnectorHostType> connectorHosts = new BoxedTablePanel<ConnectorHostType>(
@@ -276,7 +275,7 @@ public class PageConnectorHosts extends PageAdminResources {
 		result.recomputeStatus();
 		if (result.isSuccess()) {
 			result.recordStatus(OperationResultStatus.SUCCESS,
-					"The resource(s) have been successfully deleted.");
+					"The resource(s) have been successfully deleted.");     // todo i18n
 		}
 
 		BaseSortableDataProvider provider = (BaseSortableDataProvider) hostTable.getDataTable()

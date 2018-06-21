@@ -35,7 +35,7 @@ public class TraceManager {
         Logger logger = org.slf4j.LoggerFactory.getLogger(clazz);
         return new TraceImpl(logger);
     }
-    
+
     public static Trace getTrace(String loggerName) {
         Logger logger = org.slf4j.LoggerFactory.getLogger(loggerName);
         return new TraceImpl(logger);
@@ -45,7 +45,7 @@ public class TraceManager {
         Logger logger = org.slf4j.LoggerFactory.getLogger(PERFORMANCE_ADVISOR);
         return new TraceImpl(logger);
     }
-    
+
     public static ILoggerFactory getILoggerFactory() {
     	return LoggerFactory.getILoggerFactory();
     }

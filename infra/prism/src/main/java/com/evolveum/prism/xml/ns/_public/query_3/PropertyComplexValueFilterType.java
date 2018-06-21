@@ -54,26 +54,24 @@ import org.w3c.dom.Element;
 
 /**
  * <p>Java class for PropertyComplexValueFilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="PropertyComplexValueFilterType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType">
- *       &lt;sequence>
- *         &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}path" minOccurs="0"/>
- *         &lt;choice>
- *           &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}value"/>
- *           &lt;any namespace='##other'/>
- *         &lt;/choice>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="PropertyComplexValueFilterType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}path" minOccurs="0"/&gt;
+ *         &lt;choice&gt;
+ *           &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}value"/&gt;
+ *           &lt;any namespace='##other'/&gt;
+ *         &lt;/choice&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/extension&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "PropertyComplexValueFilterType", propOrder = {
@@ -97,7 +95,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates a new {@code PropertyComplexValueFilterType} instance.
-     * 
+     *
      */
     public PropertyComplexValueFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -106,8 +104,8 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates a new {@code PropertyComplexValueFilterType} instance by deeply copying a given {@code PropertyComplexValueFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -129,11 +127,11 @@ public class PropertyComplexValueFilterType
 
     /**
      * Gets the value of the path property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Element }
-     *     
+     *
      */
     public Element getPath() {
         return path;
@@ -141,11 +139,11 @@ public class PropertyComplexValueFilterType
 
     /**
      * Sets the value of the path property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Element }
-     *     
+     *
      */
     public void setPath(Element value) {
         this.path = value;
@@ -153,11 +151,11 @@ public class PropertyComplexValueFilterType
 
     /**
      * Gets the value of the value property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link ValueType }
-     *     
+     *
      */
     public ValueType getValue() {
         return value;
@@ -165,11 +163,11 @@ public class PropertyComplexValueFilterType
 
     /**
      * Sets the value of the value property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link ValueType }
-     *     
+     *
      */
     public void setValue(ValueType value) {
         this.value = value;
@@ -177,11 +175,11 @@ public class PropertyComplexValueFilterType
 
     /**
      * Gets the value of the any property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Object }
-     *     
+     *
      */
     public Object getAny() {
         return any;
@@ -189,11 +187,11 @@ public class PropertyComplexValueFilterType
 
     /**
      * Sets the value of the any property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Object }
-     *     
+     *
      */
     public void setAny(Object value) {
         this.any = value;
@@ -202,7 +200,7 @@ public class PropertyComplexValueFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -282,7 +280,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given object.
-     * 
+     *
      * @param o
      *     The instance to copy or {@code null}.
      * @return
@@ -420,7 +418,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -465,7 +463,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -483,7 +481,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -501,7 +499,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -519,7 +517,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -537,7 +535,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -555,7 +553,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -573,7 +571,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -591,7 +589,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -609,7 +607,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given {@code JAXBElement} instance.
-     * 
+     *
      * @param element
      *     The instance to copy or {@code null}.
      * @return
@@ -629,7 +627,7 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of a given {@code Serializable}.
-     * 
+     *
      * @param serializable
      *     The instance to copy or {@code null}.
      * @return
@@ -669,8 +667,8 @@ public class PropertyComplexValueFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

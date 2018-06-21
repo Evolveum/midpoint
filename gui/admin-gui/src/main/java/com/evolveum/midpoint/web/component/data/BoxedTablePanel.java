@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,16 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -46,6 +41,7 @@ import org.apache.wicket.model.IModel;
  * @author Viliam Repan (lazyman)
  */
 public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
+
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_BOX = "box";
@@ -236,7 +232,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
 				@Override
 				public String getObject() {
-					return createCountString(dataTable);
+					return CountToolbar.createCountString(PagingFooter.this, dataTable);
 				}
 			});
 			count.setOutputMarkupId(true);
@@ -257,11 +253,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 				protected void pageSizeChanged(AjaxRequestTarget target) {
 					Table table = findParent(Table.class);
 					UserProfileStorage.TableId tableId = table.getTableId();
-					
+
 					if (tableId != null) {
 						PageBase page = (PageBase) getPage();
 						Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
-	
+
 						table.setItemsPerPage(pageSize);
 					}
 					target.add(findParent(PagingFooter.class));
@@ -283,48 +279,6 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
 		public Component getFooterPaging() {
 			return get(ID_FOOTER_CONTAINER).get(ID_PAGING);
-		}
-
-		private String createCountString(IPageable pageable) {
-			long from = 0;
-			long to = 0;
-			long count = 0;
-
-			if (pageable instanceof DataViewBase) {
-				DataViewBase view = (DataViewBase) pageable;
-
-				from = view.getFirstItemOffset() + 1;
-				to = from + view.getItemsPerPage() - 1;
-				long itemCount = view.getItemCount();
-				if (to > itemCount) {
-					to = itemCount;
-				}
-				count = itemCount;
-			} else if (pageable instanceof DataTable) {
-				DataTable table = (DataTable) pageable;
-
-				from = table.getCurrentPage() * table.getItemsPerPage() + 1;
-				to = from + table.getItemsPerPage() - 1;
-				long itemCount = table.getItemCount();
-                if (to > itemCount) {
-					to = itemCount;
-				}
-				count = itemCount;
-			}
-
-			if (count > 0) {
-				if (count == Integer.MAX_VALUE) {
-					return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.label.unknownCount",
-							new Object[] { from, to }).getString();
-				}
-
-				return PageBase.createStringResourceStatic(PagingFooter.this, "CountToolbar.label",
-						new Object[] { from, to, count }).getString();
-			}
-
-			return PageBase
-					.createStringResourceStatic(PagingFooter.this, "CountToolbar.noFound", new Object[] {})
-					.getString();
 		}
 	}
 }

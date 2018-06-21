@@ -7,7 +7,6 @@ import java.io.Writer;
 
 import com.fasterxml.jackson.core.JsonParser;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 

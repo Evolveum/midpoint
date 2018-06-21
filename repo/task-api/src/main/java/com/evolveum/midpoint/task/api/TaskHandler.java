@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 /**
@@ -22,13 +24,16 @@ import java.util.List;
  *
  */
 public interface TaskHandler {
-	
-	public TaskRunResult run(Task task);
-	
-	public Long heartbeat(Task task);
-	
+
+	TaskRunResult run(Task task);
+
+	default Long heartbeat(Task task) {
+		return null;
+	}
+
 	// TODO: fix signature
-	public void refreshStatus(Task task);
+	default void refreshStatus(Task task) {
+	}
 
     /**
      * Returns a category name for a given task. In most cases, the name would be independent of concrete task.
@@ -37,12 +42,18 @@ public interface TaskHandler {
      *             to all tasks
      * @return a user-understandable name, like "LiveSync" or "Workflow"
      */
-    public String getCategoryName(Task task);
+	String getCategoryName(Task task);
 
     /**
      * Returns names of task categories provided by this handler. Usually it will be one-item list.
      * @return a list of category names; may be null - in that case the category info is given by getCategoryName(null)
      */
-    public List<String> getCategoryNames();
+	default List<String> getCategoryNames() {
+		return null;
+	}
 
+	@NotNull
+	default StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy();
+	}
 }

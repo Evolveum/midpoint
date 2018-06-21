@@ -25,12 +25,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  *
  */
 public class ConnectorSpec {
-	
+
 	private PrismObject<ResourceType> resource;
 	private String connectorName;
 	private String connectorOid;
 	private PrismContainer<ConnectorConfigurationType> connectorConfiguration;
-	
+
 	public ConnectorSpec(PrismObject<ResourceType> resource, String connectorName, String connectorOid,
 			PrismContainer<ConnectorConfigurationType> connectorConfiguration) {
 		super();
@@ -59,7 +59,7 @@ public class ConnectorSpec {
 	public ConfiguredConnectorCacheKey getCacheKey() {
 		return new ConfiguredConnectorCacheKey(resource.getOid(), connectorName);
 	}
-	
+
 	@Override
 	public String toString() {
 		return "ConnectorSpec(" + resource + ", name=" + connectorName + ", oid="

@@ -28,11 +28,14 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.REVOKE;
 
@@ -68,7 +71,13 @@ public class AccCertGeneralHelper {
 
     // TODO move to OutcomeUtils
     public boolean isRevoke(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
-        return OutcomeUtils.fromUri(aCase.getOutcome()) == REVOKE;
+        AccessCertificationResponseType outcome = OutcomeUtils.fromUri(aCase.getOutcome());
+        List<AccessCertificationResponseType> revokes;
+        if (campaign.getRemediationDefinition() != null && !campaign.getRemediationDefinition().getRevokeOn().isEmpty()) {
+            revokes = campaign.getRemediationDefinition().getRevokeOn();
+        } else {
+            revokes = Collections.singletonList(REVOKE);
+        }
+        return revokes.contains(outcome);
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAccounts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -51,13 +49,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 
 public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceContentRepositoryPanel.class);
-	
+
 	private static final String DOT_CLASS = ResourceContentRepositoryPanel.class.getName() + ".";
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
-	
-	
+
+
     private static final String ID_TOTAL = "total";
     private static final String ID_DELETED = "deleted";
     private static final String ID_UNMATCHED = "unmatched";
@@ -65,7 +63,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
     private static final String ID_LINKED = "linked";
     private static final String ID_UNLINKED = "unlinked";
     private static final String ID_NOTHING = "nothing";
-    
+
       private LoadableModel<Integer> totalModel;
 	    private LoadableModel<Integer> deletedModel;
 	    private LoadableModel<Integer> unmatchedModel;
@@ -73,17 +71,17 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	    private LoadableModel<Integer> linkedModel;
 	    private LoadableModel<Integer> unlinkedModel;
 	    private LoadableModel<Integer> nothingModel;
-	    
+
 
 	public ResourceContentRepositoryPanel(String id, IModel<PrismObject<ResourceType>> resourceModel,
 			QName objectClass, ShadowKindType kind, String intent, String searchMode, PageBase pageBase) {
 		super(id, resourceModel, objectClass, kind, intent, searchMode, pageBase);
-		
-		
+
+
 	}
-	
+
 	 protected void initShadowStatistics(WebMarkupContainer totals) {
-	        
+
 		 totals.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -129,7 +127,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 	            }
 	        };
 	    }
-	
+
 	 private LoadableModel<Integer> createTotalsModel(final SynchronizationSituationType situation) {
 	        return new LoadableModel<Integer>(false) {
 	        	private static final long serialVersionUID = 1L;
@@ -168,7 +166,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
 	@Override
 	protected SelectorOptions<GetOperationOptions> addAdditionalOptions() {
-		return new SelectorOptions<GetOperationOptions>(GetOperationOptions.createNoFetch());
+		return new SelectorOptions<>(GetOperationOptions.createNoFetch());
 	}
 
 	@Override
@@ -178,8 +176,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
 	@Override
 	protected Search createSearch() {
-		return SearchFactory.createSearch(ShadowType.class, getPageBase().getPrismContext(),
-				getPageBase().getModelInteractionService());
+		return SearchFactory.createSearch(ShadowType.class, getPageBase());
 	}
 
 	@Override

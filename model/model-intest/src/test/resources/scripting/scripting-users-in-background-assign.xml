@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:pipeline>
+        <s:search>
+            <s:type>c:UserType</s:type>
+            <s:query>
+                <q:filter>
+                    <q:equal>
+                        <q:path>name</q:path>
+                        <q:value>administrator</q:value>
+                    </q:equal>
+                </q:filter>
+            </s:query>
+        </s:search>
+        <s:action>
+            <s:type>execute-script</s:type>
+            <s:parameter>
+                <s:name>script</s:name>
+                <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                    <c:code>
+                        import com.evolveum.midpoint.schema.constants.*
+                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                        import com.evolveum.midpoint.prism.delta.builder.*
+                        import com.evolveum.midpoint.model.api.*
+                        def roleToAssignOid = '12345111-1111-2222-1111-121212111112'            // role-empty
+
+                        log.info('### {} - {}', input.name, input.fullName)
+
+                        assignmentsToAdd = []
+                        newAssignment = new AssignmentType()
+                        targetRef = new ObjectReferenceType()
+                        targetRef.setOid(roleToAssignOid)
+                        targetRef.setType(RoleType.COMPLEX_TYPE)
+                        newAssignment.setTargetRef(targetRef)
+                        assignmentsToAdd.add(newAssignment.asPrismContainerValue())
+
+                        // Suspicious code, see MID-4234. It is working here almost by chance.
+                        // E.g. if executed for user jack, it would fail because of SchemaException.
+                        // More correct is to replace FocusType.class with input.class here.
+                        def delta = DeltaBuilder.deltaFor(FocusType.class, prismContext)
+                                .item(FocusType.F_ASSIGNMENT).add(assignmentsToAdd)
+                                .asObjectDelta(input.oid)
+
+                        log.info('###   Going to execute delta  = {}', delta.debugDump())
+                        midpoint.modifyObject(delta)
+                        log.info('### Finished: {} - {}', input.getName(), input?.getFullName())
+                    </c:code>
+                </c:value>
+            </s:parameter>
+        </s:action>
+    </s:pipeline>
+</s:executeScript>

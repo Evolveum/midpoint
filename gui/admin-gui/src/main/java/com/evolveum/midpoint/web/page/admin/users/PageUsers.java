@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,12 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.*;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
@@ -37,14 +36,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -71,7 +68,6 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -95,6 +91,7 @@ import javax.xml.namespace.QName;
 						description = "PageUsers.auth.users.description")
 		})
 public class PageUsers extends PageAdminUsers {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
 
@@ -131,7 +128,7 @@ public class PageUsers extends PageAdminUsers {
 
 			@Override
 			protected ExecuteChangeOptionsDto load() {
-				return new ExecuteChangeOptionsDto();
+				return ExecuteChangeOptionsDto.createFromSystemConfiguration();
 			}
 		};
 
@@ -150,7 +147,7 @@ public class PageUsers extends PageAdminUsers {
         if (storage == null) {
             storage = getSessionStorage().initPageStorage(SessionStorage.KEY_USERS);
         }
-        Search search = SearchFactory.createSearch(UserType.class, getPrismContext(), getModelInteractionService());
+        Search search = SearchFactory.createSearch(UserType.class, this);
 		if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
 			search.setFullText(text);
 		} else if (search.getItems() != null && search.getItems().size() > 0){
@@ -163,7 +160,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
 	private void initLayout() {
-		Form mainForm = new Form(ID_MAIN_FORM);
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
 
 		initTable(mainForm);
@@ -177,10 +174,16 @@ public class PageUsers extends PageAdminUsers {
 //				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 		MainObjectListPanel<UserType> userListPanel = new MainObjectListPanel<UserType>(ID_TABLE,
 				UserType.class, TableId.TABLE_USERS, options, this) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {
 				return PageUsers.this.initColumns();
+			}
+
+			@Override
+			protected PrismObject<UserType> getNewObjectListObject(){
+				return (new UserType()).asPrismObject();
 			}
 
 			@Override
@@ -207,7 +210,7 @@ public class PageUsers extends PageAdminUsers {
 			protected void objectDetailsPerformed(AjaxRequestTarget target, UserType object) {
 				userDetailsPerformed(target, object.getOid());
 			}
-			
+
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 				navigateToNext(PageUser.class);
@@ -220,7 +223,7 @@ public class PageUsers extends PageAdminUsers {
 	}
 
 	private List<IColumn<SelectableBean<UserType>, String>> initColumns() {
-		List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<IColumn<SelectableBean<UserType>, String>>();
+		List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
 
 		IColumn<SelectableBean<UserType>, String> column = new PropertyColumn(
 				createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
@@ -265,9 +268,16 @@ public class PageUsers extends PageAdminUsers {
 	}
 
 	private List<InlineMenuItem> createRowActions(boolean isHeader) {
-		List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+    	int id = isHeader ?
+				InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId() :
+				InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId();
+
+		List<InlineMenuItem> menu = new ArrayList<>();
+		menu.add(new InlineMenuItem(
+				createStringResource("pageUsers.menu.enable"),
+            new Model<>(false),
+            new Model<>(false),
+				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -280,10 +290,10 @@ public class PageUsers extends PageAdminUsers {
 							updateActivationPerformed(target, true, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
-                : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
+				},
+				id,
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()){
+				null) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -293,18 +303,18 @@ public class PageUsers extends PageAdminUsers {
 			}
 
 			@Override
-			public IModel<String> getConfirmationMessageModel(){
+			public IModel<String> getConfirmationMessageModel() {
 				String actionName = createStringResource("pageUsers.message.enableAction").getString();
 				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
-
 		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
-				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
-				isHeader ? new Model<Boolean>(true) : new Model<Boolean>(false),
+				isHeader ? new Model<>(true) : new Model<>(false),
+				isHeader ? new Model<>(true) : new Model<>(false),
 				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -318,7 +328,7 @@ public class PageUsers extends PageAdminUsers {
                 }, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
                 : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
 				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()){
+				null) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -336,8 +346,9 @@ public class PageUsers extends PageAdminUsers {
 		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -369,6 +380,7 @@ public class PageUsers extends PageAdminUsers {
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -424,8 +436,8 @@ public class PageUsers extends PageAdminUsers {
 		});
 
 		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
 				false,
 				new ColumnMenuAction<SelectableBean<UserType>>() {
 

@@ -25,9 +25,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * 
+ *
  * @author Igor Farinic
- * 
+ *
  */
 public class FilterManagerImpl<T extends Filter> implements FilterManager<T> {
 

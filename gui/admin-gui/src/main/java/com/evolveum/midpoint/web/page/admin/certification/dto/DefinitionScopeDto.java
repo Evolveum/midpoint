@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,7 +58,7 @@ public class DefinitionScopeDto implements Serializable {
     private boolean includeUsers;
     private boolean enabledItemsOnly;
 	private ExpressionType itemSelectionExpression;
-	private List<QName> relationList;
+	private List<QName> relationList = new ArrayList<>();
 
 	public void loadSearchFilter(SearchFilterType searchFilterType, PrismContext prismContext)  {
         if (searchFilterType == null) {
@@ -80,7 +81,7 @@ public class DefinitionScopeDto implements Serializable {
         SearchFilterType rv = new SearchFilterType();
         RootXNode filterClauseNode;
         try {
-            filterClauseNode = (RootXNode) context.parserFor(searchFilterText).xml().parseToXNode();
+            filterClauseNode = context.parserFor(searchFilterText).xml().parseToXNode();
         } catch (SchemaException e) {
             throw new SystemException("Cannot parse search filter " + searchFilterText + ": " + e.getMessage(), e);
         }

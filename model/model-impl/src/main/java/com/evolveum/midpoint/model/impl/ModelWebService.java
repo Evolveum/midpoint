@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,10 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -40,10 +43,11 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineDataType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.PipelineItemType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionEvaluationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.wss4j.common.ext.WSSecurityException;
@@ -59,18 +63,18 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @Service
 public class ModelWebService extends AbstractModelWebService implements ModelPortType, ModelPort {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
-	
+
 	@Autowired(required = true)
 	private ModelCrudService model;
-	
+
     @Autowired
     private ScriptingService scriptingService;
 
@@ -248,7 +252,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 
         try {
             for (JAXBElement<?> script : scriptsToExecute) {
-            	
+
             	Object scriptValue = script.getValue();
             	if (!(scriptValue instanceof ScriptingExpressionType)) {
             		throw new SchemaException("Expected that scripts will be of type ScriptingExpressionType, but it was "+scriptValue.getClass().getName());
@@ -261,15 +265,15 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 
                 output.setTextOutput(executionResult.getConsoleOutput());
                 if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
-                    output.setXmlData(prepareXmlData(executionResult.getDataOutput()));
+                    output.setDataOutput(prepareXmlData(executionResult.getDataOutput(), null));
                 } else {
                     // temporarily we send serialized XML in the case of MSL output
-                    ItemListType jaxbOutput = prepareXmlData(executionResult.getDataOutput());
+                    PipelineDataType jaxbOutput = prepareXmlData(executionResult.getDataOutput(), null);
                     output.setMslData(prismContext.xmlSerializer().serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE));
                 }
             }
             result.computeStatusIfUnknown();
-        } catch (ScriptExecutionException|JAXBException|SchemaException|RuntimeException|SecurityViolationException e) {
+        } catch (ScriptExecutionException | JAXBException | SchemaException | RuntimeException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
             result.recordFatalError(e.getMessage(), e);
             LoggingUtils.logException(LOGGER, "Exception while executing script", e);
         }
@@ -278,17 +282,30 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
         return response;
     }
 
-    private ItemListType prepareXmlData(List<PrismValue> output) throws JAXBException, SchemaException {
-        ItemListType itemListType = new ItemListType();
+    public static PipelineDataType prepareXmlData(List<PipelineItem> output,
+			ScriptingExpressionEvaluationOptionsType options) throws JAXBException, SchemaException {
+		boolean hideResults = options != null && Boolean.TRUE.equals(options.isHideOperationResults());
+        PipelineDataType rv = new PipelineDataType();
         if (output != null) {
-            for (PrismValue value: output) {
-				RawType rawType = new RawType(prismContext.xnodeSerializer().root(SchemaConstants.C_VALUE).serialize(value), prismContext);
-                itemListType.getItem().add(rawType);
+            for (PipelineItem item: output) {
+				PipelineItemType itemType = new PipelineItemType();
+				PrismValue value = item.getValue();
+				if (value instanceof PrismReferenceValue) {
+					// This is a bit of hack: value.getRealValue() would return unserializable object (PRV$1 - does not have type QName)
+					ObjectReferenceType ort = new ObjectReferenceType();
+					ort.setupReferenceValue((PrismReferenceValue) value);
+					itemType.setValue(ort);
+				} else {
+					itemType.setValue(value.getRealValue());                        // TODO - ok?
+				}
+				if (!hideResults) {
+					itemType.setResult(item.getResult().createOperationResultType());
+				}
+				rv.getItem().add(itemType);
             }
         }
-        return itemListType;
+        return rv;
     }
-
 
 	private void handleOperationResult(OperationResult result, Holder<OperationResultType> holder) {
 		result.recordSuccess();
@@ -304,7 +321,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		result.recordSuccess();
 		return result.createOperationResultType();
 	}
-	
+
 	private void notNullResultHolder(Holder<OperationResultType> holder) throws FaultMessage {
 		notNullArgument(holder, "Holder must not be null.");
 		notNullArgument(holder.value, "Result type must not be null.");
@@ -332,7 +349,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 		return new FaultMessage(message, faultType);
 	}
 
-    public void throwFault(Exception ex, OperationResult result) throws FaultMessage {
+    public void throwFault(Throwable ex, OperationResult result) throws FaultMessage {
 		if (result != null) {
 			result.recordFatalError(ex.getMessage(), ex);
 		}
@@ -342,17 +359,17 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			faultType = new ObjectNotFoundFaultType();
 		} else if (ex instanceof IllegalArgumentException) {
 			faultType = new IllegalArgumentFaultType();
-		} else if (ex instanceof ObjectAlreadyExistsException){
+		} else if (ex instanceof ObjectAlreadyExistsException) {
 			faultType = new ObjectAlreadyExistsFaultType();
-		} else if (ex instanceof CommunicationException){
+		} else if (ex instanceof CommunicationException) {
 			faultType = new CommunicationFaultType();
-		} else if (ex instanceof ConfigurationException){
+		} else if (ex instanceof ConfigurationException) {
 			faultType = new ConfigurationFaultType();
-		} else if (ex instanceof ExpressionEvaluationException){
+		} else if (ex instanceof ExpressionEvaluationException) {
 			faultType = new SystemFaultType();
-		} else if (ex instanceof SchemaException){
+		} else if (ex instanceof SchemaException) {
 			faultType = new SchemaViolationFaultType();
-		} else if (ex instanceof PolicyViolationException){
+		} else if (ex instanceof PolicyViolationException) {
 			faultType = new PolicyViolationFaultType();
 		} else if (ex instanceof AuthorizationException) {
 			throw new Fault(new WSSecurityException(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION),
@@ -395,63 +412,39 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 			return null;
 		}
 	}
-	
+
 	@Override
 	public TaskType notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription)
 			throws FaultMessage {
 		// TODO Auto-generated method stub
 		notNullArgument(changeDescription, "Change description must not be null");
 		LOGGER.trace("notify change started");
-		
+
 		Task task = createTaskInstance(NOTIFY_CHANGE);
 		OperationResult parentResult = task.getResult();
-		
+
 		try {
 			model.notifyChange(changeDescription, parentResult, task);
-			} catch (ObjectNotFoundException ex) {
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (SchemaException ex) {
-				 LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (CommunicationException ex) {
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (ConfigurationException ex) {
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (SecurityViolationException ex) {
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (RuntimeException ex){
-				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
-				auditLogout(task);
-				throwFault(ex, parentResult);
-			} catch (ObjectAlreadyExistsException ex){
+			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error ex) {
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
 				throwFault(ex, parentResult);
 			}
-		
-		
+
+
 		LOGGER.info("notify change ended.");
 		LOGGER.info("result of notify change: {}", parentResult.debugDump());
 		return handleTaskResult(task);
 	}
-	
+
 	/**
 	 * return appropriate form of taskType (and result) to
 	 * return back to a web service caller.
-	 * 
+	 *
 	 * @param task
 	 */
 	private TaskType handleTaskResult(Task task) {
 		return task.getTaskPrismObject().asObjectable();
 	}
-		
+
 }

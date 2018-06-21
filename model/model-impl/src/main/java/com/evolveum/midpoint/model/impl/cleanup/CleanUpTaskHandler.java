@@ -17,19 +17,15 @@
 package com.evolveum.midpoint.model.impl.cleanup;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,25 +44,17 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class CleanUpTaskHandler implements TaskHandler{
+public class CleanUpTaskHandler implements TaskHandler {
 
 	public static final String HANDLER_URI = ModelPublicConstants.CLEANUP_TASK_HANDLER_URI;
 
-    @Autowired(required=true)
-	private TaskManager taskManager;
-	
-	@Autowired(required=true)
-	private RepositoryService repositoryService;
-
-    @Autowired(required=true)
-    private AuditService auditService;
+    @Autowired private TaskManager taskManager;
+	@Autowired private RepositoryService repositoryService;
+    @Autowired private AuditService auditService;
+    @Autowired private AccessCertificationService certificationService;
 
     @Autowired(required = false)
     private ReportManager reportManager;
-	
-	@Autowired(required=true)
-	private PrismContext prismContext;
-	
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(CleanUpTaskHandler.class);
 
@@ -74,20 +63,18 @@ public class CleanUpTaskHandler implements TaskHandler{
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
 
+	@NotNull
 	@Override
-	public TaskRunResult run(Task task) {
-		task.startCollectingOperationStatsFromZero(true, false, false);
-		try {
-			return runInternal(task);
-		} finally {
-			task.storeOperationStats();
-		}
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy()
+				.fromZero()
+				.maintainIterationStatistics();
 	}
 
-	private TaskRunResult runInternal(Task task) {
+	@Override
+	public TaskRunResult run(Task task) {
 		LOGGER.trace("CleanUpTaskHandler.run starting");
 		
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(OperationConstants.CLEANUP);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
@@ -104,38 +91,35 @@ public class CleanUpTaskHandler implements TaskHandler{
 				LOGGER.error("Cleanup: Object does not exist: {}", ex.getMessage(), ex);
 				opResult.recordFatalError("Object does not exist: " + ex.getMessage(), ex);
 				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-				runResult.setProgress(progress);
 				return runResult;
 			} catch (SchemaException ex) {
 				LOGGER.error("Cleanup: Error dealing with schema: {}", ex.getMessage(), ex);
 				opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
 				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-				runResult.setProgress(progress);
 				return runResult;
 			}
 			SystemConfigurationType systemConfigType = systemConfig.asObjectable();
 			cleanupPolicies = systemConfigType.getCleanupPolicy();
 		}
 		
-		if (cleanupPolicies == null){
+		if (cleanupPolicies == null) {
 			LOGGER.trace("Cleanup: No clean up polices specified. Finishing clean up task.");
 			opResult.computeStatus();
 			runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-			runResult.setProgress(progress);
 			return runResult;
 		}
 		
 		CleanupPolicyType auditCleanupPolicy = cleanupPolicies.getAuditRecords();
 		if (auditCleanupPolicy != null) {
 			try {
+				// TODO report progress
 				auditService.cleanupAudit(auditCleanupPolicy, opResult);
 			} catch (Exception ex) {
-				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
+				LOGGER.error("Audit cleanup: {}", ex.getMessage(), ex);
 				opResult.recordFatalError(ex.getMessage(), ex);
 				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-				runResult.setProgress(progress);
 			}
-		} else{
+		} else {
 			LOGGER.trace("Cleanup: No clean up policy for audit specified. Finishing clean up task.");
 		}
 		
@@ -144,12 +128,11 @@ public class CleanUpTaskHandler implements TaskHandler{
 			try {
 				taskManager.cleanupTasks(closedTasksPolicy, task, opResult);
 			} catch (Exception ex) {
-				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
+				LOGGER.error("Tasks cleanup: {}", ex.getMessage(), ex);
 				opResult.recordFatalError(ex.getMessage(), ex);
 				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-				runResult.setProgress(progress);
 			}
-		} else{
+		} else {
 			LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
 		}
 		
@@ -160,21 +143,35 @@ public class CleanUpTaskHandler implements TaskHandler{
                     //TODO improve dependencies for report-impl (probably for tests) and set autowire to required
                     LOGGER.error("Report manager was not autowired, reports cleanup will be skipped.");
                 } else {
+	                // TODO report progress
 				    reportManager.cleanupReports(reportCleanupPolicy, opResult);
                 }
 			} catch (Exception ex) {
-				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
+				LOGGER.error("Reports cleanup: {}", ex.getMessage(), ex);
 				opResult.recordFatalError(ex.getMessage(), ex);
 				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-				runResult.setProgress(progress);
 			}
-		} else{
+		} else {
 			LOGGER.trace("Cleanup: No clean up policy for report specified. Finishing clean up task.");
 		}
+
+		CleanupPolicyType closedCampaignsPolicy = cleanupPolicies.getClosedCertificationCampaigns();
+		if (closedCampaignsPolicy != null) {
+			try {
+				certificationService.cleanupCampaigns(closedCampaignsPolicy, task, opResult);
+			} catch (Throwable ex) {
+				LOGGER.error("Campaigns cleanup: {}", ex.getMessage(), ex);
+				opResult.recordFatalError(ex.getMessage(), ex);
+				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			}
+		} else {
+			LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
+		}
+
+
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(progress);
 		LOGGER.trace("CleanUpTaskHandler.run stopping");
 		return runResult;
 	}

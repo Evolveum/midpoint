@@ -32,12 +32,12 @@ import com.sun.xml.xsom.XSType;
 
 /**
  * Class to be used by schema processor but also by SchemaDefinitionFactory subclasses.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class SchemaProcessorUtil {
-	
+
 	public static final String MULTIPLICITY_UNBOUNDED = "unbounded";
 
 	public static boolean hasAnnotation(XSType xsType, QName annotationElementName) {
@@ -53,7 +53,7 @@ public class SchemaProcessorUtil {
 		}
 		return false;
 	}
-	
+
 	public static Element getAnnotationElement(XSAnnotation annotation, QName qname) {
 		if (annotation == null) {
 			return null;
@@ -67,7 +67,7 @@ public class SchemaProcessorUtil {
 
 	@NotNull
 	public static List<Element> getAnnotationElements(XSAnnotation annotation, QName qname) {
-		List<Element> elements = new ArrayList<Element>();
+		List<Element> elements = new ArrayList<>();
 		if (annotation == null) {
 			return elements;
 		}
@@ -90,9 +90,9 @@ public class SchemaProcessorUtil {
 		}
 		return DOMUtil.getQNameValue(element);
 	}
-	
+
 	/**
-	 * Parses "marker" boolean annotation. This means: 
+	 * Parses "marker" boolean annotation. This means:
 	 * no element: false
 	 * empty element: true
 	 * non-empty element: parse element content as boolean
@@ -109,7 +109,7 @@ public class SchemaProcessorUtil {
 		return XmlTypeConverter.toJavaValue(element, Boolean.class);
 	}
 
-	public static Boolean getAnnotationBoolean(XSAnnotation annotation, QName qname) throws SchemaException {
+	public static <T> T getAnnotationConverted(XSAnnotation annotation, QName qname, Class<T> type) throws SchemaException {
 		Element element = getAnnotationElement(annotation, qname);
 		if (element == null) {
 			return null;
@@ -118,7 +118,15 @@ public class SchemaProcessorUtil {
 		if (textContent == null || textContent.isEmpty()) {
 			return null;
 		}
-		return XmlTypeConverter.toJavaValue(element, Boolean.class);
+		return XmlTypeConverter.toJavaValue(element, type);
+	}
+
+	public static Boolean getAnnotationBoolean(XSAnnotation annotation, QName qname) throws SchemaException {
+		return getAnnotationConverted(annotation, qname, Boolean.class);
+	}
+
+	public static Integer getAnnotationInteger(XSAnnotation annotation, QName qname) throws SchemaException {
+		return getAnnotationConverted(annotation, qname, Integer.class);
 	}
 
 	public static Integer parseMultiplicity(String stringMultiplicity) {
@@ -130,5 +138,5 @@ public class SchemaProcessorUtil {
 		}
 		return Integer.parseInt(stringMultiplicity);
 	}
-	
+
 }

@@ -35,15 +35,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public interface AuthenticationEvaluator<T extends AbstractAuthenticationContext> {
-	
-	UsernamePasswordAuthenticationToken authenticate(ConnectionEnvironment connEnv, T authnCtx) 
-			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
+
+	UsernamePasswordAuthenticationToken authenticate(ConnectionEnvironment connEnv, T authnCtx)
+			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
 			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
-	
-	UserType checkCredentials(ConnectionEnvironment connEnv, T authnCtx) 
-			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException, 
+
+	UserType checkCredentials(ConnectionEnvironment connEnv, T authnCtx)
+			throws BadCredentialsException, AuthenticationCredentialsNotFoundException, DisabledException, LockedException,
 			CredentialsExpiredException, AuthenticationServiceException, AccessDeniedException, UsernameNotFoundException;
-	
+
 	PreAuthenticatedAuthenticationToken authenticateUserPreAuthenticated(ConnectionEnvironment connEnv, String enteredUsername);
 
 }

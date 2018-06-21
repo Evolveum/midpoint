@@ -12,12 +12,16 @@ AS
   BEGIN
     SET NOCOUNT ON;
 
+    DELETE FROM m_object_text_info;
+    DELETE FROM m_operation_execution;
     DELETE FROM m_sequence;
     DELETE FROM m_acc_cert_wi_reference;
     DELETE FROM m_acc_cert_wi;
     DELETE FROM m_acc_cert_case;
     DELETE FROM m_acc_cert_campaign;
     DELETE FROM m_acc_cert_definition;
+    DELETE FROM m_audit_ref_value;
+    DELETE FROM m_audit_prop_value;
     DELETE FROM m_audit_delta;
     DELETE FROM m_audit_item;
     DELETE FROM m_audit_event;
@@ -38,7 +42,6 @@ AS
     DELETE FROM m_assignment_reference;
     DELETE FROM m_assignment_policy_situation;
     DELETE FROM m_assignment;
-    DELETE FROM m_exclusion;
     DELETE FROM m_connector_target_system;
     DELETE FROM m_connector;
     DELETE FROM m_connector_host;
@@ -72,9 +75,12 @@ AS
     DELETE FROM m_focus;
     DELETE FROM m_security_policy;
     DELETE FROM m_form;
+    DELETE FROM m_case_wi_reference;
+    DELETE FROM m_case_wi;
     DELETE FROM m_case;
+    DELETE FROM m_function_library;
+    DELETE FROM m_ext_item;
+    DELETE FROM m_object_subtype;
     DELETE FROM m_object;
-
-    UPDATE hibernate_sequence SET next_val = 1;
   END
 GO

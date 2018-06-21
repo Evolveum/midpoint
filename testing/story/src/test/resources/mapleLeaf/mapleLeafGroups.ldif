@@ -1,0 +1,23 @@
+dn: cn=mapleLeafFaculty,ou=groups,dc=example,dc=com
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: mapleLeafFaculty
+ou: groups
+
+dn: cn=mapleLeafFacultyLicense,ou=groups,dc=example,dc=com
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: mapleLeafFacultyLicense
+ou: groups
+
+dn: cn=mapleLeafGraduate,ou=groups,dc=example,dc=com
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: mapleLeafGraduate
+ou: groups
+
+dn: cn=mapleLeafGraduateLicense,ou=groups,dc=example,dc=com
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: mapleLeafGraduateLicense
+ou: groups

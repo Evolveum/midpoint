@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class TasksStorage implements PageStorage{
      *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.server.PageTasks}
      * */
     private ObjectPaging tasksPaging;
-    
+
     private Search search;
 
     public TasksSearchDto getTasksSearch() {
@@ -55,16 +55,16 @@ public class TasksStorage implements PageStorage{
     public void setPaging(ObjectPaging tasksPaging) {
         this.tasksPaging = tasksPaging;
     }
-    
+
     @Override
     public Search getSearch() {
 		return search;
 	}
-    
+
     @Override
     public void setSearch(Search search) {
     	this.search = search;
-    	
+
     }
 
     @Override

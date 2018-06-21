@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,44 @@
 
 package com.evolveum.midpoint.testing.wstest;
 
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.soap.SOAPFault;
+import javax.xml.ws.BindingProvider;
+import javax.xml.ws.Holder;
+import javax.xml.ws.soap.SOAPFaultException;
+
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.cxf.frontend.ClientProxy;
+import org.apache.cxf.interceptor.LoggingInInterceptor;
+import org.apache.cxf.interceptor.LoggingOutInterceptor;
+import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
+import org.apache.wss4j.dom.WSConstants;
+import org.apache.wss4j.dom.handler.WSHandlerConstants;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
@@ -26,62 +61,36 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.cxf.frontend.ClientProxy;
-import org.apache.cxf.interceptor.LoggingInInterceptor;
-import org.apache.cxf.interceptor.LoggingOutInterceptor;
-import org.apache.cxf.service.model.EndpointInfo;
-import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
-import org.apache.wss4j.dom.WSConstants;
-import org.apache.wss4j.dom.handler.WSHandlerConstants;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.w3c.dom.*;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.SOAPFault;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Holder;
-import javax.xml.ws.soap.SOAPFaultException;
 
 /**
 *   Test Framework Util Class
@@ -105,7 +114,8 @@ public abstract class AbstractWebserviceTest {
 
     public static final File COMMON_DIR = new File("src/test/resources/common");
     
-    public static final String ENDPOINT = "http://localhost:8080/midpoint/ws/model-3";
+    public static final String MIDPOINT_URL_PREFIX = "http://localhost:8080/midpoint/";
+    public static final String ENDPOINT = MIDPOINT_URL_PREFIX + "ws/model-3";
     public static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
     public static final String USER_ADMINISTRATOR_USERNAME = "administrator";
     public static final String USER_ADMINISTRATOR_PASSWORD = "5ecr3t";
@@ -144,14 +154,23 @@ public abstract class AbstractWebserviceTest {
  	public static final String USER_NOPASSWORD_USERNAME = "nopassword";
 
  	public static final File ROLE_WS_FILE = new File(COMMON_DIR, "role-ws.xml");
+ 	
 	public static final File ROLE_READER_FILE = new File(COMMON_DIR, "role-reader.xml");
+	public static final String ROLE_READER_OID = "eb243068-d48d-11e4-a83a-001e8c717e5b";
+	
 	public static final File ROLE_ADDER_FILE = new File(COMMON_DIR, "role-adder.xml");
 	
 	public static final File ROLE_MODIFIER_FILE = new File(COMMON_DIR, "role-modifier.xml");
 	public static final String ROLE_MODIFIER_OID = "82005ae4-d90b-11e4-bdcc-001e8c717e5b";
 	
+	public static final File ROLE_WHATEVER_FILE = new File(COMMON_DIR, "role-whatever.xml");
+	public static final String ROLE_WHATEVER_OID = "7385820e-5cb3-11e7-96a3-1ba6f1dc6281";
+	
 	public static final File RESOURCE_OPENDJ_FILE = new File(COMMON_DIR, "resource-opendj.xml");
 	public static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	
+	public static final File NODE_LOCALHOST_FILE = new File(COMMON_DIR, "node-localhost.xml");
+ 	public static final String NODE_LOCALHOST_OID = "9e2b5f9a-6993-11e8-93c1-1fcf99d5cd08";
 	
 	public static final String CONNECTOR_LDAP_TYPE = "com.evolveum.polygon.connector.ldap.LdapConnector";
  	
@@ -176,7 +195,7 @@ public abstract class AbstractWebserviceTest {
     protected static ModelPortType modelPort;
     protected static SystemConfigurationType configurationType;
 
-	private static final File DEFAULT_SERVER_LOG_FILE = new File("/opt/tomcat/logs/idm.log");
+	private static final String SERVER_LOG_FILE_SUFFIX = "log/midpoint.log";
 	private static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
 	
 	private File serverLogFile = null;
@@ -273,8 +292,12 @@ public abstract class AbstractWebserviceTest {
 		if (serverLogFile == null) {
 			if (System.getProperty("midpoint.serverLogFile") != null) {
 				serverLogFile = new File(System.getProperty("midpoint.serverLogFile"));
+	    	} else if (System.getenv("MIDPOINT_HOME") != null) {
+	    		serverLogFile = new File(System.getenv("MIDPOINT_HOME"), SERVER_LOG_FILE_SUFFIX);
+	    	} else if (System.getProperty("midpoint.home") != null) {
+	    		serverLogFile = new File(System.getProperty("midpoint.home"), SERVER_LOG_FILE_SUFFIX);
 	    	} else {
-	    		serverLogFile = DEFAULT_SERVER_LOG_FILE;
+	    		throw new IllegalStateException("Cannot determine server log file");
 	    	}
 		}
 		return serverLogFile;
@@ -366,13 +389,17 @@ public abstract class AbstractWebserviceTest {
     }
 	
 	protected <O extends ObjectType> String addObject(O object) throws FaultMessage {
+		return addObject(object, null);
+	}
+	
+	protected <O extends ObjectType> String addObject(O object, ModelExecuteOptionsType options) throws FaultMessage {
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
     	ObjectDeltaType delta = new ObjectDeltaType();
     	delta.setObjectType(getTypeQName(object.getClass()));
     	delta.setChangeType(ChangeTypeType.ADD);
     	delta.setObjectToAdd(object);
 		deltaList.getDelta().add(delta);
-		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, null);
+		ObjectDeltaOperationListType deltaOpList = modelPort.executeChanges(deltaList, options);
 		assertSuccess(deltaOpList);
 		return deltaOpList.getDeltaOperation().get(0).getObjectDelta().getOid();
     }
@@ -411,6 +438,11 @@ public abstract class AbstractWebserviceTest {
 		assertEquals("Wrong user name", expName, ModelClientUtil.getOrig(user.getName()));
 		assertEquals("Wrong user givenName", expGivenName, ModelClientUtil.getOrig(user.getGivenName()));
 		assertEquals("Wrong user familyName", expFamilyName, ModelClientUtil.getOrig(user.getFamilyName()));
+	}
+	
+	protected void assertTask(TaskType user, String expOid, String expName) {
+		assertEquals("Wrong user oid", expOid, user.getOid());
+		assertEquals("Wrong user name", expName, ModelClientUtil.getOrig(user.getName()));
 	}
 
 	
@@ -470,7 +502,15 @@ public abstract class AbstractWebserviceTest {
 	}
 
 	protected void displayTestTitle(String testName) {		
-		TestUtil.displayTestTile(testName);
+		TestUtil.displayTestTitle(testName);
+	}
+	
+	protected void displayWhen(String testName) {		
+		TestUtil.displayWhen(testName);
+	}
+	
+	protected void displayThen(String testName) {		
+		TestUtil.displayThen(testName);
 	}
 
 	protected void display(String msg) {

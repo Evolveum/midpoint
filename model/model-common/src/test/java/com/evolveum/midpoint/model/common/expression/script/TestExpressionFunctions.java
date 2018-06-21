@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,14 +54,14 @@ import static org.testng.AssertJUnit.*;
  * @author semancik
  */
 public class TestExpressionFunctions {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/expression/functions");
 	public static final File USER_JACK_FILE = new File(TEST_DIR, "user-jack.xml");
 	public static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack.xml");
 	public static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	private static final String ATTR_FULLNAME_LOCAL_PART = "fullname";
 	private static final String ATTR_WEAPON_LOCAL_PART = "weapon";
-    
+
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -71,31 +71,31 @@ public class TestExpressionFunctions {
     @Test
     public void testGetExtensionPropertyValue() throws Exception {
     	final String TEST_NAME = "testGetExtensionPropertyValue";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	PrismObject<UserType> userJack = PrismTestUtil.parseObject(USER_JACK_FILE);
 
         // WHEN
-        String shipExtension = f.getExtensionPropertyValue(userJack.asObjectable(), 
+        String shipExtension = f.getExtensionPropertyValue(userJack.asObjectable(),
         		SchemaTestConstants.EXTENSION_SHIP_ELEMENT);
 
         // THEN
         assertEquals("Wrong value for extension "+SchemaTestConstants.EXTENSION_SHIP_ELEMENT, "Black Pearl", shipExtension);
     }
-    
+
     @Test
     public void testGetExtensionPropertyValueParts() throws Exception {
     	final String TEST_NAME = "testGetExtensionPropertyValueParts";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	PrismObject<UserType> userJack = PrismTestUtil.parseObject(USER_JACK_FILE);
 
         // WHEN
-        String shipExtension = f.getExtensionPropertyValue(userJack.asObjectable(), 
+        String shipExtension = f.getExtensionPropertyValue(userJack.asObjectable(),
         		SchemaTestConstants.EXTENSION_SHIP_ELEMENT.getNamespaceURI(),
         		SchemaTestConstants.EXTENSION_SHIP_ELEMENT.getLocalPart());
 
@@ -106,41 +106,41 @@ public class TestExpressionFunctions {
     @Test
     public void testGetExtensionPropertyValueNotPresent() throws Exception {
     	final String TEST_NAME = "testGetExtensionPropertyValueNotPresent";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	PrismObject<UserType> userJack = PrismTestUtil.parseObject(USER_JACK_FILE);
 
         // WHEN
-        String extensionVal = f.getExtensionPropertyValue(userJack.asObjectable(), 
+        String extensionVal = f.getExtensionPropertyValue(userJack.asObjectable(),
         		new QName(SchemaTestConstants.NS_EXTENSION, "kajdsfhklfdsjh"));
 
         // THEN
         assertNull("Unexpected value for extension "+SchemaTestConstants.EXTENSION_SHIP_ELEMENT+": "+extensionVal, extensionVal);
     }
-    
+
     @Test
     public void testGetExtensionPropertyValueNullObject() throws Exception {
     	final String TEST_NAME = "testGetExtensionPropertyValueNullObject";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
 
         // WHEN
-        String shipExtension = f.getExtensionPropertyValue(null, 
+        String shipExtension = f.getExtensionPropertyValue(null,
         		SchemaTestConstants.EXTENSION_SHIP_ELEMENT);
 
         // THEN
         assertNull("Unexpected value for extension "+SchemaTestConstants.EXTENSION_SHIP_ELEMENT+": "+shipExtension, shipExtension);
     }
-    
+
     @Test
     public void testGetAttributeValueParts() throws Exception {
     	final String TEST_NAME = "testGetAttributeValueParts";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
@@ -157,8 +157,8 @@ public class TestExpressionFunctions {
     @Test
     public void testGetAttributeValueDefaultRi() throws Exception {
     	final String TEST_NAME = "testGetAttributeValueDefaultRi";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
@@ -174,8 +174,8 @@ public class TestExpressionFunctions {
     @Test
     public void testGetAttributeValuesParts() throws Exception {
     	final String TEST_NAME = "testGetAttributeValuesParts";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
@@ -192,8 +192,8 @@ public class TestExpressionFunctions {
     @Test
     public void testGetAttributeValuesDefaultRi() throws Exception {
     	final String TEST_NAME = "testGetAttributeValuesDefaultRi";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	PrismObject<ShadowType> accountJack = PrismTestUtil.parseObject(ACCOUNT_JACK_FILE);
@@ -205,12 +205,12 @@ public class TestExpressionFunctions {
         // THEN
         TestUtil.assertSetEquals("Wrong value for attribute "+ATTR_WEAPON_LOCAL_PART, attrVals, "rum", "smell");
     }
-    
+
     @Test
     public void testgetResourceIcfConfigurationPropertyValueStringHost() throws Exception {
     	final String TEST_NAME = "testgetResourceIcfConfigurationPropertyValueStringHost";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_OPENDJ_FILE);
@@ -221,12 +221,12 @@ public class TestExpressionFunctions {
         // THEN
         assertEquals("Wrong value of ICF configuration property", "localhost", val);
     }
-    
+
     @Test
     public void testgetResourceIcfConfigurationPropertyValueStringPort() throws Exception {
     	final String TEST_NAME = "testgetResourceIcfConfigurationPropertyValueStringPort";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_OPENDJ_FILE);
@@ -241,8 +241,8 @@ public class TestExpressionFunctions {
     @Test
     public void testDetermineLdapSingleAttributeValue01() throws Exception {
     	final String TEST_NAME = "testDetermineLdapSingleAttributeValue01";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	String dn = "uid=foo, ou=People, dc=example,dc=com";
@@ -262,7 +262,7 @@ public class TestExpressionFunctions {
     @Test
     public void testDetermineLdapSingleAttributeValue02() throws Exception {
     	System.out.println("\n===[ testDetermineLdapSingleAttributeValue02 ]===\n");
-    	
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	String dn = "cn=jack+uid=FooBAR, ou=People, dc=example,dc=com";
@@ -285,7 +285,7 @@ public class TestExpressionFunctions {
     @Test
     public void testDetermineLdapSingleAttributeValueSingle() throws Exception {
     	System.out.println("\n===[ testDetermineLdapSingleAttributeValueSingle ]===\n");
-    	
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	String dn = "cn=jack+uid=FooBar, ou=People, dc=example,dc=com";
@@ -305,7 +305,7 @@ public class TestExpressionFunctions {
     @Test
     public void testDetermineLdapSingleAttributeValueNull() throws Exception {
     	System.out.println("\n===[ testDetermineLdapSingleAttributeValueNull ]===\n");
-    	
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	String dn = "cn=jack+uid=FooBar, ou=People, dc=example,dc=com";
@@ -319,11 +319,11 @@ public class TestExpressionFunctions {
         System.out.println("Resulting value: "+resultValue);
         assertNull("Result value is not null", resultValue);
     }
-    
+
     @Test
     public void testDetermineLdapSingleAttributeValueFallback() throws Exception {
     	System.out.println("\n===[ testDetermineLdapSingleAttributeValueFallback ]===\n");
-    	
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	String dn = "cn=jack, ou=People, dc=example,dc=com";
@@ -343,11 +343,11 @@ public class TestExpressionFunctions {
     @Test
     public void testFormatDateTime() throws Exception {
     	System.out.println("\n===[ testFormatDateTime ]===\n");
-    	
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
     	XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 22, 30, 0, 0, DatatypeConstants.FIELD_UNDEFINED); // don't use GMT (offset 0) because serialized value is then in local time
-    	
+
         // WHEN
         String resultValue = f.formatDateTime("yyyy MM dd HH:mm:ss.SSS", xmlCal);		// don't include timezone in the format string, it is hard to check then
 
@@ -361,11 +361,11 @@ public class TestExpressionFunctions {
     @Test
     public void testParseDateTime() throws Exception {
     	final String TEST_NAME = "testParseDateTime";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
         // GIVEN
     	BasicExpressionFunctions f = createBasicFunctions();
-    	
+
         // WHEN
         XMLGregorianCalendar resultValue = f.parseDateTime("yyyy MM dd HH:mm:ss.SSS zzzz",
         		"1975 05 30 22:30:00.000 Central European Time");
@@ -378,17 +378,17 @@ public class TestExpressionFunctions {
         assertEquals("Wrong result value", xmlCal, resultValue);
     }
 
-    
+
 	private BasicExpressionFunctions createBasicFunctions() throws SchemaException, SAXException, IOException {
 		PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
 		Protector protector = new ProtectorImpl();
 		return new BasicExpressionFunctions(prismContext, protector);
 	}
-	
+
 	@Test
 	public void testStringify() throws Exception {
 		final String TEST_NAME = "testStringifyString";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		assertEquals("foo", basic.stringify("foo"));
 		assertEquals("foo", basic.stringify(poly("foo")));
@@ -397,11 +397,11 @@ public class TestExpressionFunctions {
 		assertEquals("", basic.stringify(null));
 		assertEquals("", basic.stringify(""));
 	}
-	
+
 	@Test
 	public void testConcatName() throws Exception {
 		final String TEST_NAME = "testConcatName";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		assertEquals("foo bar", basic.concatName("foo","bar"));
 		assertEquals("foo bar", basic.concatName(poly("foo"),"bar"));
@@ -416,7 +416,7 @@ public class TestExpressionFunctions {
 		assertEquals("foo bar", basic.concatName("   foo   ",null,"  bar        "));
 		assertEquals("foo bar", basic.concatName("   foo   ","    ","  bar        "));
 	}
-	
+
 	private PolyString poly(String s) {
 		return PrismTestUtil.createPolyString(s);
 	}
@@ -424,7 +424,7 @@ public class TestExpressionFunctions {
 	@Test
 	public void testToAscii() throws Exception {
 		final String TEST_NAME = "testToAscii";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
 		assertEquals("foo", basic.toAscii("foo"));
 		assertEquals("foo", basic.toAscii(poly("foo")));
@@ -435,13 +435,13 @@ public class TestExpressionFunctions {
 		assertEquals(null, basic.toAscii(null));
 		assertEquals("", basic.toAscii(""));
 	}
-	
+
 	@Test
 	public void testComposeDn() throws Exception {
 		final String TEST_NAME = "testComposeDn";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
-		
+
 		assertEquals("cn=foo,o=bar", basic.composeDn("cn","foo","o","bar"));
 		assertEquals("cn=foo,o=bar", basic.composeDn("cn",PrismTestUtil.createPolyString("foo"),"o","bar"));
 		assertEquals("cn=foo,o=bar", basic.composeDn("cn",PrismTestUtil.createPolyStringType("foo"),"o","bar"));
@@ -457,13 +457,13 @@ public class TestExpressionFunctions {
 		assertEquals(null, basic.composeDn(""));
 		assertEquals(null, basic.composeDn("   "));
 	}
-	
+
 	@Test
 	public void testComposeDnWithSuffix() throws Exception {
 		final String TEST_NAME = "testComposeDnWithSuffix";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
-		
+
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix(new Rdn("cn","foo"),"ou=baz,o=bar"));
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix(new Rdn("cn","foo"),new LdapName("ou=baz,o=bar")));
 		assertEquals("cn=foo,ou=baz,o=bar", basic.composeDnWithSuffix("cn","foo","ou=baz,o=bar"));
@@ -485,35 +485,35 @@ public class TestExpressionFunctions {
 		assertEquals(null, basic.composeDnWithSuffix(""));
 		assertEquals(null, basic.composeDnWithSuffix("   "));
 	}
-	
+
 	@Test
 	public void testParseFullName() throws Exception {
 		final String TEST_NAME = "testParseFullName";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		BasicExpressionFunctions basic = createBasicFunctions();
-		
+
 		assertEquals(null, basic.parseGivenName(null));
 		assertEquals(null, basic.parseGivenName("   "));
-		
+
 		assertEquals("Jack", basic.parseGivenName("Jack Sparrow"));
 		assertEquals("Jack", basic.parseGivenName(" Jack     Sparrow  "));
 		assertEquals("Jack", basic.parseGivenName(new PolyString("Jack Sparrow")));
 		assertEquals("Sparrow", basic.parseFamilyName("Jack Sparrow"));
 		assertEquals("Sparrow", basic.parseFamilyName("   Jack    Sparrow   "));
-		
+
 		assertEquals("Tim", basic.parseGivenName("Tim Berners-Lee"));
 		assertEquals("Berners-Lee", basic.parseFamilyName("Tim Berners-Lee"));
-		
+
 		assertEquals("Cassius", basic.parseGivenName("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
 		assertEquals("Marcellus", basic.parseAdditionalName("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
 		assertEquals("Clay", basic.parseFamilyName("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
 		assertEquals("Muhammad Ali", basic.parseNickName("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
 		assertEquals("Jr.", basic.parseHonorificSuffix("Cassius Marcellus \"Muhammad Ali\" Clay, Jr."));
-		
+
 		assertEquals("Radovan", basic.parseGivenName("Ing. Radovan Semančík, PhD."));
 		assertEquals("Semančík", basic.parseFamilyName("Ing. Radovan Semančík, PhD."));
 		assertEquals("Ing.", basic.parseHonorificPrefix("Ing. Radovan Semančík, PhD."));
 		assertEquals("PhD.", basic.parseHonorificSuffix("Ing. Radovan Semančík, PhD."));
 	}
-	
+
 }

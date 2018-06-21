@@ -26,7 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
  *
  */
 public interface TriggerHandler {
-	
+
 	<O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result);
 
 }

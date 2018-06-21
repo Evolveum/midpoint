@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,11 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.assignment.RelationTypes;
+import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
@@ -104,7 +107,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final String ID_REQUESTS_PANEL = "requestPanel";
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ASSIGNMENTS = "assignments";
-    
+
     private static final String DOT_CLASS = PageSelfDashboard.class.getName() + ".";
     private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
     private static final String OPERATION_LOAD_REQUESTS = DOT_CLASS + "loadRequests";
@@ -112,11 +115,11 @@ public class PageSelfDashboard extends PageSelf {
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
-    
+
     private static final int MAX_WORK_ITEMS = 1000;
     private static final int MAX_REQUESTS = 1000;
 
-    private final Model<PrismObject<UserType>> principalModel = new Model<PrismObject<UserType>>();
+    private final Model<PrismObject<UserType>> principalModel = new Model<>();
     private AdminGuiConfigurationType adminGuiConfig;
 
     public PageSelfDashboard() {
@@ -137,7 +140,7 @@ public class PageSelfDashboard extends PageSelf {
     }
 
     private void initLayout(){
-        DashboardSearchPanel dashboardSearchPanel = new DashboardSearchPanel(ID_SEARCH_PANEL, null);
+        DashboardSearchPanel dashboardSearchPanel = new DashboardSearchPanel(ID_SEARCH_PANEL);
         List<String> searchPanelActions = Arrays.asList(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
@@ -181,7 +184,7 @@ public class PageSelfDashboard extends PageSelf {
                             Authentication auth, IModel callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>>(
-                                getSecurityEnforcer(), auth) {
+                        		getSecurityContextManager(), auth) {
 
                         	private static final long serialVersionUID = 1L;
 
@@ -223,7 +226,7 @@ public class PageSelfDashboard extends PageSelf {
                             Authentication auth, IModel callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<ProcessInstanceDto>>>(
-                                getSecurityEnforcer(), auth) {
+                        		getSecurityContextManager(), auth) {
                         	private static final long serialVersionUID = 1L;
 
                             @Override
@@ -244,7 +247,7 @@ public class PageSelfDashboard extends PageSelf {
 
         myRequestsPanel.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             public boolean isVisible() {
                 UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.MY_REQUESTS);
@@ -253,7 +256,7 @@ public class PageSelfDashboard extends PageSelf {
             }
         });
         add(myRequestsPanel);
-        
+
         initMyAccounts();
         initAssignments();
     }
@@ -280,8 +283,12 @@ public class PageSelfDashboard extends PageSelf {
         callableResult.setResult(result);
 
         try {
-            ObjectQuery query = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-                    .item(WorkItemType.F_ASSIGNEE_REF).ref(user.getOid())
+            // TODO try to use current state (user) instead of potentially obsolete principal
+            // but this requires some computation (of deputy relation)
+            // (Note that the current code is consistent with the other places where work items are displayed.)
+            S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
+            ObjectQuery query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS)
                     .desc(F_CREATE_TIMESTAMP)
                     .build();
             Collection<SelectorOptions<GetOperationOptions>> options =
@@ -309,7 +316,7 @@ public class PageSelfDashboard extends PageSelf {
         LOGGER.debug("Loading requests.");
 
         AccountCallableResult<List<ProcessInstanceDto>> callableResult = new AccountCallableResult<>();
-        List<ProcessInstanceDto> list = new ArrayList<ProcessInstanceDto>();
+        List<ProcessInstanceDto> list = new ArrayList<>();
         callableResult.setValue(list);
 
         if (!getWorkflowManager().isEnabled()) {
@@ -349,12 +356,12 @@ public class PageSelfDashboard extends PageSelf {
     private List<RichHyperlinkType> loadLinksList() {
         PrismObject<UserType> user = principalModel.getObject();
         if (user == null) {
-            return new ArrayList<RichHyperlinkType>();
+            return new ArrayList<>();
         } else {
-            return ((PageBase)getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
+            return ((PageBase) getPage()).loadAdminGuiConfiguration().getUserDashboardLink();
         }
     }
-    
+
     private void initMyAccounts() {
         AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts = new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS,
                         createStringResource("PageDashboard.accounts"),
@@ -369,7 +376,7 @@ public class PageSelfDashboard extends PageSelf {
                             Authentication auth, IModel<Object> callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>>(
-                                getSecurityEnforcer(), auth) {
+                        		getSecurityContextManager(), auth) {
 
                             @Override
                             public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared()
@@ -382,7 +389,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
                         return new MyAccountsPanel(markupId,
-                                new PropertyModel<List<SimpleAccountDto>>(getModel(), CallableResult.F_VALUE));
+                            new PropertyModel<>(getModel(), CallableResult.F_VALUE));
                     }
 
                     @Override
@@ -420,12 +427,12 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(accounts);
     }
-    
+
     private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
         LOGGER.debug("Loading accounts.");
 
         AccountCallableResult callableResult = new AccountCallableResult();
-        List<SimpleAccountDto> list = new ArrayList<SimpleAccountDto>();
+        List<SimpleAccountDto> list = new ArrayList<>();
         callableResult.setValue(list);
         PrismObject<UserType> user = principalModel.getObject();
         if (user == null) {
@@ -486,7 +493,7 @@ public class PageSelfDashboard extends PageSelf {
                             Authentication auth, IModel callableParameterModel) {
 
                         return new SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>>(
-                                getSecurityEnforcer(), auth) {
+                                getSecurityContextManager(), auth) {
 
                             @Override
                             public CallableResult<List<AssignmentItemDto>> callWithContextPrepared() throws Exception {
@@ -498,7 +505,7 @@ public class PageSelfDashboard extends PageSelf {
                     @Override
                     protected Component getMainComponent(String markupId) {
                         return new MyAssignmentsPanel(markupId,
-                                new PropertyModel<List<AssignmentItemDto>>(getModel(), CallableResult.F_VALUE));
+                            new PropertyModel<>(getModel(), CallableResult.F_VALUE));
                     }
                 };
         assignedOrgUnits.add(new VisibleEnableBehaviour(){
@@ -517,7 +524,7 @@ public class PageSelfDashboard extends PageSelf {
     private CallableResult<List<AssignmentItemDto>> loadAssignments() throws Exception {
         LOGGER.debug("Loading assignments.");
         CallableResult callableResult = new CallableResult();
-        List<AssignmentItemDto> list = new ArrayList<AssignmentItemDto>();
+        List<AssignmentItemDto> list = new ArrayList<>();
         callableResult.setValue(list);
 
         PrismObject<UserType> user = principalModel.getObject();
@@ -560,6 +567,7 @@ public class PageSelfDashboard extends PageSelf {
 			// account construction
 			PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
 			String name = null;
+            String description = "";
 			if (construction.getValue().asContainerable() != null && !construction.isEmpty()) {
 				ConstructionType constr = (ConstructionType) construction.getValue().asContainerable();
 
@@ -569,12 +577,17 @@ public class PageSelfDashboard extends PageSelf {
 					PrismObject resource = WebModelServiceUtils.loadObject(ResourceType.class,
 							resourceRef.getOid(), this, task, result);
 					name = WebComponentUtil.getName(resource);
+                    description = constr.getDescription();
 				}
 			}
 
-			return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, null, null);
+			return new AssignmentItemDto(AssignmentEditorDtoType.CONSTRUCTION, name, description, null);
 		}
 
+		if (RelationTypes.APPROVER.getRelation().equals(assignment.getValue().getTargetRef().getRelation()) ||
+                RelationTypes.OWNER.getRelation().equals(assignment.getValue().getTargetRef().getRelation())){
+		    return null;
+        }
 		PrismReferenceValue refValue = targetRef.getValue();
 		PrismObject value = refValue.getObject();
 		if (value == null) {
@@ -590,13 +603,20 @@ public class PageSelfDashboard extends PageSelf {
 		String name = WebComponentUtil.getDisplayNameOrName(value);
 		AssignmentEditorDtoType type = AssignmentEditorDtoType.getType(value.getCompileTimeClass());
 		String relation = refValue.getRelation() != null ? refValue.getRelation().getLocalPart() : null;
-		String description = null;
-		if (OrgType.class.isAssignableFrom(value.getCompileTimeClass())) {
-			description = (String) value.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
-		}
 
-		return new AssignmentItemDto(type, name, description, relation);
+		return new AssignmentItemDto(type, name, getAssignmentDescription(value), relation);
 	}
+
+	private String getAssignmentDescription(PrismObject value){
+        Object orgIdentifier = null;
+        if (OrgType.class.isAssignableFrom(value.getCompileTimeClass())) {
+            orgIdentifier = value.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
+        }
+        String description = (orgIdentifier != null ? orgIdentifier + " " : "") +
+                (value.asObjectable() instanceof ObjectType && value.asObjectable().getDescription() != null ?
+                        value.asObjectable().getDescription() : "");
+        return description;
+    }
 
 	private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
         if (adminGuiConfig == null || adminGuiConfig.getUserDashboard() == null) {

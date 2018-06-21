@@ -68,6 +68,8 @@ public final class ClassMapper {
         types.put(ObjectTypes.SERVICE, RObjectType.SERVICE);
         types.put(ObjectTypes.FORM, RObjectType.FORM);
         types.put(ObjectTypes.CASE, RObjectType.CASE);
+        types.put(ObjectTypes.FUNCTION_LIBRARY, RObjectType.FUNCTION_LIBRARY);
+        types.put(ObjectTypes.OBJECT_COLLECTION, RObjectType.OBJECT_COLLECTION);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {
@@ -108,6 +110,15 @@ public final class ClassMapper {
         }
 
         throw new IllegalArgumentException("Couldn't find hql type for qname " + qname);
+    }
+
+	@Contract("!null -> !null; null -> null")
+    public static RObjectType getHQLTypeForClass(Class<? extends ObjectType> clazz) {
+    	if (clazz == null) {
+    		return null;
+		} else {
+            return getHQLTypeForQName(ObjectTypes.getObjectType(clazz).getTypeQName());
+        }
     }
 
     public static Class<? extends RObject> getHqlClassForHqlName(String hqlName) {

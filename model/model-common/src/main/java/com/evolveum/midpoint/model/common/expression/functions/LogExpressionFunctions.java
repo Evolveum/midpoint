@@ -24,22 +24,22 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  */
 public class LogExpressionFunctions {
-	
+
 	public static String EXPRESSION_LOGGER_NAME = "com.evolveum.midpoint.expression";
-	
+
 	public static final Trace LOGGER = TraceManager.getTrace(EXPRESSION_LOGGER_NAME);
-	
+
 	private PrismContext prismContext;
 
 	public LogExpressionFunctions(PrismContext prismContext) {
 		super();
 		this.prismContext = prismContext;
 	}
-	
+
 	public void error(String format, Object... args) {
 		LOGGER.error(format, args);
 	}
-	
+
 	public void warn(String format, Object... args) {
 		LOGGER.warn(format, args);
 	}
@@ -47,7 +47,7 @@ public class LogExpressionFunctions {
 	public void info(String format, Object... args) {
 		LOGGER.info(format, args);
 	}
-	
+
 	public void debug(String format, Object... args) {
 		LOGGER.debug(format, args);
 	}

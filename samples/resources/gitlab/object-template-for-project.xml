@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                oid="99cc8d77-dedc-4444-a081-b006821a9c79"
+                version="56">
+   <name>Project Template</name>
+   <metadata>
+      <createTimestamp>2017-06-14T09:14:33.522+02:00</createTimestamp>
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                  oid="00000000-0000-0000-0000-000000000002"
+                  relation="org:default"
+                  type="c:UserType"><!-- administrator --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport</createChannel>
+   </metadata>
+   <mapping>
+      <name>Adding group to top level OrgStructure</name>
+      <strength>strong</strength>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>c:OrgType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>c:name</q:path>
+                  <expression>
+                     <script>
+                        <code>
+                return 'Projects'
+                </code>
+                     </script>
+                  </expression>
+               </q:equal>
+            </filter>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <strength>strong</strength>
+      <expression>
+         <assignmentTargetSearch xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                                 xsi:type="c:SearchObjectRefExpressionEvaluatorType">
+            <targetType>c:RoleType</targetType>
+            <filter>
+               <q:equal>
+                  <q:path>c:name</q:path>
+                  <expression>
+                     <script>
+                        <code>
+                return 'Basic GitLab role for project'
+                </code>
+                     </script>
+                  </expression>
+               </q:equal>
+            </filter>
+         </assignmentTargetSearch>
+      </expression>
+      <target>
+         <c:path>assignment</c:path>
+      </target>
+   </mapping>
+   <mapping>
+      <name>Add user to project as member</name>
+      <strength>strong</strength>
+      <source>
+         <name>members_with_name</name>
+         <c:path>extension/members_with_name</c:path>
+      </source>
+      <expression>
+         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:type="c:ScriptExpressionEvaluatorType">
+            <relativityMode>absolute</relativityMode>
+            <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                    import com.evolveum.midpoint.prism.delta.ObjectDelta;
+                    import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+                    import com.evolveum.midpoint.util.exception.SystemException;
+                    import java.util.*;
+                    
+                    if( members_with_name!=null &amp;&amp; focus.getOid() != null){
+                    
+                     for (member in members_with_name){
+                        userName = member.tokenize(':')[0];
+                        user = midpoint.searchObjectByName(UserType.class, userName);
+                        if(user!=null){
+                            access_level = member.tokenize(':')[1];
+                            roleName = '';
+                            if(access_level.equals('10')){
+                                roleName = 'guest';
+                            }
+                            if(access_level.equals('20')){
+                                roleName = 'reporter';
+                            }
+                            if(access_level.equals('30')){
+                                roleName = 'developer';
+                            }
+                            if(access_level.equals('40')){
+                                roleName = 'master';
+                            }
+                            role = midpoint.searchObjectByName(RoleType.class, roleName);
+                        
+                            if (role==null){
+                                throw new SystemException("Exception while assigning the permision role. Please make sure that all the role (permision role) are already added into Midpoint.");
+                            }
+                    
+                            roleOrt = new ObjectReferenceType();
+                            roleOrt.setOid(role.getOid());
+                            roleOrt.setType(RoleType.COMPLEX_TYPE);
+                        
+                            orgOrt = new ObjectReferenceType();
+                            orgOrt.setOid(focus.getOid());
+                            orgOrt.setType(OrgType.COMPLEX_TYPE);
+                    
+                            AssignmentType assignment = new AssignmentType();
+                            assignment.asPrismContainerValue()
+                            assignment.setTargetRef(roleOrt);
+                            assignment.setOrgRef(orgOrt);
+                    
+                            assignments = user.getAssignment();
+                            containsSameAssignment = false;
+                            
+                            for(userAssignment in assignments){
+                                if(role.getOid().equals(userAssignment.getTargetRef().getOid()) &amp;&amp; userAssignment.getOrgRef() != null &amp;&amp; focus.getOid().equals(userAssignment.getOrgRef().getOid())){
+                                    containsSameAssignment = true;
+                                }
+                            }
+                            
+                            if(!containsSameAssignment){
+                                delta = ObjectDelta.createModificationAddContainer(UserType.class, user.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+
+                                midpoint.executeChanges(delta)
+                            }
+                        }
+                     }
+                    }
+                </code>
+         </script>
+      </expression>
+   </mapping>
+   <mapping>
+      <name>Add project to group as shared project</name>
+      <strength>strong</strength>
+      <source>
+         <name>shared_with_groups</name>
+         <c:path>extension/shared_with_groups</c:path>
+      </source>
+      <expression>
+         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:type="c:ScriptExpressionEvaluatorType">
+            <relativityMode>absolute</relativityMode>
+            <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                    import com.evolveum.midpoint.prism.delta.ObjectDelta;
+                    import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+                    import com.evolveum.midpoint.util.exception.SystemException;
+                    import java.util.*;
+                    
+                    if( shared_with_groups!=null &amp;&amp; focus.getOid() != null){
+                    
+                     for (group in shared_with_groups){
+                        groupName = group.tokenize(':')[0];
+                        orgUnit = midpoint.searchObjectByName(OrgType.class, groupName);
+                        if(orgUnit!=null){
+                            access_level = group.tokenize(':')[1];
+                            roleName = '';
+                            if(access_level.equals('10')){
+                                roleName = 'Max guest';
+                            }
+                            if(access_level.equals('20')){
+                                roleName = 'Max reporter';
+                            }
+                            if(access_level.equals('30')){
+                                roleName = 'Max developer';
+                            }
+                            if(access_level.equals('40')){
+                                roleName = 'Max master';
+                            }
+                            role = midpoint.searchObjectByName(RoleType.class, roleName);
+                        
+                            if (role==null){
+                                throw new SystemException("Exception while assigning the permision role. Please make sure that all the role (permision role) are already added into Midpoint.");
+                            }
+                    
+                            roleOrt = new ObjectReferenceType();
+                            roleOrt.setOid(role.getOid());
+                            roleOrt.setType(RoleType.COMPLEX_TYPE);
+                        
+                            orgOrt = new ObjectReferenceType();
+                            orgOrt.setOid(focus.getOid());
+                            orgOrt.setType(OrgType.COMPLEX_TYPE);
+                    
+                            AssignmentType assignment = new AssignmentType();
+                            assignment.asPrismContainerValue()
+                            assignment.setTargetRef(roleOrt);
+                            assignment.setOrgRef(orgOrt);
+                    
+                    
+                            assignments = orgUnit.getAssignment();
+                            containsSameAssignment = false;
+                            
+                            for(userAssignment in assignments){
+                                if(role.getOid().equals(userAssignment.getTargetRef().getOid()) &amp;&amp; userAssignment.getOrgRef() != null &amp;&amp; focus.getOid().equals(userAssignment.getOrgRef().getOid())){
+                                    containsSameAssignment = true;
+                                }
+                            }
+                            
+                            if(!containsSameAssignment){
+                                delta = ObjectDelta.createModificationAddContainer(OrgType.class, orgUnit.getOid(), UserType.F_ASSIGNMENT, midpoint.getPrismContext(), assignment);
+
+                                midpoint.executeChanges(delta)
+                            }
+                        }
+                     }
+                    }
+                </code>
+         </script>
+      </expression>
+   </mapping>
+</objectTemplate>
+</objects>

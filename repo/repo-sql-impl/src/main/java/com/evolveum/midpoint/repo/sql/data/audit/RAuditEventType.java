@@ -30,7 +30,7 @@ public enum RAuditEventType {
     MODIFY_OBJECT(AuditEventType.MODIFY_OBJECT),
 
     DELETE_OBJECT(AuditEventType.DELETE_OBJECT),
-    
+
     EXECUTE_CHANGES_RAW(AuditEventType.EXECUTE_CHANGES_RAW),
 
     SYNCHRONIZATION(AuditEventType.SYNCHRONIZATION),
@@ -42,7 +42,7 @@ public enum RAuditEventType {
     WORK_ITEM(AuditEventType.WORK_ITEM),
 
     WORKFLOW_PROCESS_INSTANCE(AuditEventType.WORKFLOW_PROCESS_INSTANCE),
-    
+
     RECONCILIATION(AuditEventType.RECONCILIATION);
 
     private AuditEventType type;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,27 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.CheckFormGroup;
-import com.evolveum.midpoint.web.component.input.DatePanel;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.InternalsConfigDto;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -47,200 +48,133 @@ import javax.xml.datatype.XMLGregorianCalendar;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_INTERNALS_URL,
                 label = "PageInternals.auth.configInternals.label", description = "PageInternals.auth.configInternals.description")})
 public class PageInternals extends PageAdminConfiguration {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageInternals.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PageInternals.class);
 
-    private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_OFFSET = "offset";
-    private static final String ID_BUTTON_SAVE = "save";
-    private static final String ID_BUTTON_RESET = "reset";
-    private static final String ID_DEBUG_UTIL_FORM = "debugUtilForm";
-    private static final String ID_SAVE_DEBUG_UTIL = "saveDebugUtil";
-    private static final String ID_INTERNALS_CONFIG_FORM = "internalsConfigForm";
-    private static final String ID_UPDATE_INTERNALS_CONFIG = "updateInternalsConfig";
-    private static final String ID_CONSISTENCY_CHECKS = "consistencyChecks";
-    private static final String ID_ENCRYPTION_CHECKS = "encryptionChecks";
-    private static final String ID_READ_ENCRYPTION_CHECKS = "readEncryptionChecks";
-    private static final String ID_TOLERATE_UNDECLARED_PREFIXES = "tolerateUndeclaredPrefixes";
-    private static final String ID_DETAILED_DEBUG_DUMP = "detailedDebugDump";
-
-    private static final String LABEL_SIZE = "col-md-4";
-    private static final String INPUT_SIZE = "col-md-8";
-
-    @SpringBean(name = "clock")
+	@SpringBean(name = "clock")
     private Clock clock;
+
+    private static final String ID_TAB_PANEL = "tabPanel";
+    
+    
 
     private LoadableModel<XMLGregorianCalendar> model;
     private IModel<InternalsConfigDto> internalsModel;
+    private Map<String,Boolean> tracesMap;
 
     public PageInternals() {
         model = new LoadableModel<XMLGregorianCalendar>() {
+			private static final long serialVersionUID = 1L;
 
-            @Override
+			@Override
             protected XMLGregorianCalendar load() {
                 return clock.currentTimeXMLGregorianCalendar();
             }
         };
 
         internalsModel = new Model<>(new InternalsConfigDto());
+        tracesMap = new HashMap<>();
+        for (InternalOperationClasses op: InternalOperationClasses.values()) {
+        	tracesMap.put(op.getKey(), InternalMonitor.isTrace(op));
+        }
 
         initLayout();
     }
 
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
-        mainForm.setOutputMarkupId(true);
-        add(mainForm);
+       
+        List<ITab> tabs = new ArrayList<>();
+        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.clock")) {
+			
+			private static final long serialVersionUID = 1L;
 
-        DatePanel offset = new DatePanel(ID_OFFSET, model);
-        mainForm.add(offset);
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return createClockPanel(panelId);
+			}
+		});
+        
+        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.debugUtil")) {
+			
+			private static final long serialVersionUID = 1L;
 
-        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_BUTTON_SAVE, createStringResource("PageInternals.button.changeTime")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return initDebugUtilForm(panelId);
+			}
+		});
+        
+        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.internalConfig")) {
+			
+			private static final long serialVersionUID = 1L;
 
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                savePerformed(target);
-            }
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return initInternalsConfigForm(panelId);
+			}
+		});
+        
+        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.traces")) {
+			
+			private static final long serialVersionUID = 1L;
 
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        mainForm.add(saveButton);
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return initTraces(panelId);
+			}
+		});
+        
+        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.counters")) {
+			
+			private static final long serialVersionUID = 1L;
 
-        AjaxSubmitButton resetButton = new AjaxSubmitButton(ID_BUTTON_RESET, createStringResource("PageInternals.button.resetTimeChange")) {
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return initCounters(panelId);
+			}
+		});
+        
+        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.cache")) {
+			
+			private static final long serialVersionUID = 1L;
 
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                resetPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        mainForm.add(resetButton);
-
-        initDebugUtilForm();
-        initInternalsConfigForm();
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return initCachePanel(panelId);
+			}
+		});
+        
+        TabbedPanel<ITab> tabPannel = new TabbedPanel<>(ID_TAB_PANEL, tabs);
+        add(tabPannel);
+       
+    }
+    
+    private WebMarkupContainer createClockPanel(String panelId) {
+    	return new InternalsClockPanel(panelId, model);
     }
 
-    private void initDebugUtilForm() {
-        Form form = new Form(ID_DEBUG_UTIL_FORM);
-        form.setOutputMarkupId(true);
-        add(form);
-
-        CheckFormGroup detailed = new CheckFormGroup(ID_DETAILED_DEBUG_DUMP,
-                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_DETAILED_DEBUG_DUMP),
-                createStringResource("PageInternals.detailedDebugDump"), LABEL_SIZE, INPUT_SIZE);
-        form.add(detailed);
-
-        AjaxSubmitButton update = new AjaxSubmitButton(ID_SAVE_DEBUG_UTIL,
-                createStringResource("PageBase.button.update")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                updateDebugPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        form.add(update);
+	private WebMarkupContainer initDebugUtilForm(String panelId) {
+       return new InternalsDebugUtilPanel(panelId, internalsModel);
     }
 
-    private void initInternalsConfigForm() {
-        Form form = new Form(ID_INTERNALS_CONFIG_FORM);
-        form.setOutputMarkupId(true);
-        add(form);
-
-        CheckFormGroup consistency = new CheckFormGroup(ID_CONSISTENCY_CHECKS,
-                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_CONSISTENCY_CHECKS),
-                createStringResource("PageInternals.checkConsistency"), LABEL_SIZE, INPUT_SIZE);
-        form.add(consistency);
-        CheckFormGroup encryption = new CheckFormGroup(ID_ENCRYPTION_CHECKS,
-                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_ENCRYPTION_CHECKS),
-                createStringResource("PageInternals.checkEncryption"), LABEL_SIZE, INPUT_SIZE);
-        form.add(encryption);
-        CheckFormGroup encryptionRead = new CheckFormGroup(ID_READ_ENCRYPTION_CHECKS,
-                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_READ_ENCRYPTION_CHECKS),
-                createStringResource("PageInternals.checkReadEncrypion"), LABEL_SIZE, INPUT_SIZE);
-        form.add(encryptionRead);
-        CheckFormGroup tolerateUndeclaredPrefixes = new CheckFormGroup(ID_TOLERATE_UNDECLARED_PREFIXES,
-                new PropertyModel<Boolean>(internalsModel, InternalsConfigDto.F_TOLERATE_UNDECLARED_PREFIXES),
-                createStringResource("PageInternals.tolerateUndeclaredPrefixes"), LABEL_SIZE, INPUT_SIZE);
-        form.add(tolerateUndeclaredPrefixes);
-
-        AjaxSubmitButton update = new AjaxSubmitButton(ID_UPDATE_INTERNALS_CONFIG,
-                createStringResource("PageBase.button.update")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                updateInternalConfig(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        form.add(update);
+    private WebMarkupContainer initInternalsConfigForm(String panelId) {
+       return new InternalsConfigPanel(panelId, internalsModel);
     }
 
-    private Form getMainForm(){
-        return (Form) get(ID_MAIN_FORM);
+    private WebMarkupContainer initTraces(String panelId) {
+        return new InternalsTracesPanel(panelId, tracesMap);
     }
+    
+    private WebMarkupContainer initCounters(String panelId) {
+    		return new InternalsCountersPanel(panelId);
+	}
+    
+    private WebMarkupContainer initCachePanel(String panelId) {
+    		return new InternalsCachePanel(panelId);
+	}
 
-    private Form getDebugUtilForm(){
-        return (Form) get(ID_DEBUG_UTIL_FORM);
-    }
 
-    private Form getInternalsConfigForm(){
-        return (Form) get(ID_INTERNALS_CONFIG_FORM);
-    }
-
-    private void updateDebugPerformed(AjaxRequestTarget target){
-        internalsModel.getObject().saveDebugUtil();
-
-        LOGGER.trace("Updated debug util, detailedDebugDump={}", DebugUtil.isDetailedDebugDump());
-        success(getString("PageInternals.message.debugUpdatePerformed", DebugUtil.isDetailedDebugDump()));
-        target.add(getFeedbackPanel(), getDebugUtilForm());
-    }
-
-    private void updateInternalConfig(AjaxRequestTarget target){
-        internalsModel.getObject().saveInternalsConfig();
-
-        LOGGER.trace("Updated internals config, consistencyChecks={},encryptionChecks={},readEncryptionChecks={}, QNameUtil.tolerateUndeclaredPrefixes={}",
-                new Object[]{InternalsConfig.consistencyChecks, InternalsConfig.encryptionChecks,
-                        InternalsConfig.readEncryptionChecks, QNameUtil.isTolerateUndeclaredPrefixes()});
-        success(getString("PageInternals.message.internalsConfigUpdate", InternalsConfig.consistencyChecks,
-                InternalsConfig.encryptionChecks, InternalsConfig.readEncryptionChecks, QNameUtil.isTolerateUndeclaredPrefixes()));
-        target.add(getFeedbackPanel(), getInternalsConfigForm());
-    }
-
-    private void savePerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(PageInternals.class.getName() + ".changeTime");
-        XMLGregorianCalendar offset = model.getObject();
-        if (offset != null) {
-            clock.override(offset);
-        }
-
-        result.recordSuccess();
-        showResult(result);
-        target.add(getFeedbackPanel(), getMainForm());
-    }
-
-    private void resetPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(PageInternals.class.getName() + ".changeTimeReset");
-        clock.resetOverride();
-        model.reset();
-        result.recordSuccess();
-        showResult(result);
-        target.add(getMainForm());
-        target.add(getFeedbackPanel());
-    }
+   
+    
 }

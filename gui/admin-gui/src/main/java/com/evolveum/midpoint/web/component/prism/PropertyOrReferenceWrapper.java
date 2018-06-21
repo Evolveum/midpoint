@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2010-2016 Evolveum
+ *  Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,24 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.lang.StringUtils;
+import java.io.Serializable;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * Extracts common functionality of PropertyWrapper and ReferenceWrapper.
@@ -32,28 +41,32 @@ import java.util.List;
  *
  * @author mederly
  */
-public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition> implements ItemWrapper<I, ID>, Serializable {
+public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismValue, ID>, ID extends ItemDefinition<I>> implements ItemWrapper<I, ID, ValueWrapper>, Serializable {
 
 	private static final long serialVersionUID = -179218652752175177L;
 
-	protected ContainerWrapper container;
+	@Nullable protected ContainerValueWrapper container;
 	protected I item;
-	protected ID itemDefinition;
 	protected ValueStatus status;
 	protected List<ValueWrapper> values;
+	
+	// processed and localized display name
 	protected String displayName;
+	
 	protected boolean readonly;
 	private boolean isStripe;
+	private boolean showEmpty;
+	private ItemPath path;
 
-	public PropertyOrReferenceWrapper(@Nullable ContainerWrapper container, I item, boolean readonly, ValueStatus status) {
+	public PropertyOrReferenceWrapper(@Nullable ContainerValueWrapper containerValue, I item, boolean readonly, ValueStatus status, ItemPath path) {
 		Validate.notNull(item, "Item must not be null.");
 		Validate.notNull(status, "Item status must not be null.");
 
-		this.container = container;
+		this.container = containerValue;
 		this.item = item;
-		this.itemDefinition = getItemDefinition();
 		this.status = status;
 		this.readonly = readonly;
+		this.path = path;
 	}
 
 	@Override
@@ -66,30 +79,68 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 			getItem().revive(prismContext);
 		}
 		if (getItemDefinition() != null) {
-			itemDefinition.revive(prismContext);
+			getItemDefinition().revive(prismContext);
 		}
 	}
 
 	@Override
 	public ID getItemDefinition() {
-		ID definition = null;
-		if (container != null && container.getItemDefinition() != null) {
-			definition = (ID) container.getItemDefinition().findItemDefinition(item.getDefinition().getName());
-		}
-		if (definition == null) {
-			definition = item.getDefinition();
-		}
-		return definition;
+		return item.getDefinition();
+		
+	}
+	
+	@Override
+	@Nullable
+	public ContainerWrapper getParent() {
+		return container != null ? container.getContainer() : null;
 	}
 
 	public boolean isVisible() {
-        if (item.getDefinition().isOperational()) {			// TODO ...or use itemDefinition instead?
+		
+        if (getItemDefinition().isOperational() && !isMetadataContainer()) {			// TODO ...or use itemDefinition instead?
 			return false;
-		} else if (container != null) {
-			return container.isItemVisible(this);
-		} else {
+		} 
+        
+        if (getItemDefinition().isDeprecated() && isEmpty()) {
+        	return false;
+        }
+
+        if (container == null) {
+        	return false;           // TODO: ok ?
+        }
+        switch (container.getObjectStatus()) {
+        	case ADDING : 
+        		return canAddDefault() || canAddAndShowEmpty();
+        	case MODIFYING :
+        		return canReadOrModifyAndNonEmpty() || canReadOrModifyAndShowEmpty();
+        }
+//        if (getItem().isEmpty() && isS)
+//        else if (container != null) {
+//			return container.isItemVisible(this);
+//		} else {
 			return true;
-		}
+//		}
+	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return getItemDefinition().getProcessing();
+	}
+	
+	private boolean canAddAndShowEmpty() {
+		return getItemDefinition().canAdd() && isShowEmpty();
+	}
+	
+	private boolean canAddDefault() {
+		return getItemDefinition().canAdd() && getItemDefinition().isEmphasized();
+	}
+	
+	private boolean canReadOrModifyAndNonEmpty() {
+		return getItemDefinition().canRead() && (!getItem().isEmpty() || getItemDefinition().isEmphasized()); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
+	}
+	
+	private boolean canReadOrModifyAndShowEmpty() {
+		return getItemDefinition().canRead() && isShowEmpty(); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && isShowEmpty();
 	}
 
 	public boolean isStripe() {
@@ -100,21 +151,25 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		this.isStripe = isStripe;
 	}
 
-	public ContainerWrapper getContainer() {
+	public ContainerValueWrapper getContainerValue() {
 	        return container;
 	    }
 
+	// TODO: unify with ContainerWrapper.getDisplayName()
 	@Override
 	public String getDisplayName() {
-		if (StringUtils.isNotEmpty(displayName)) {
-			return displayName;
+		if (displayName == null) {
+			// Lazy loading of a localized name.
+			// We really want to remember a processed name in the wrapper.
+			// getDisplatName() method may be called many times, e.g. during sorting.
+			displayName = ContainerWrapper.getDisplayNameFromItem(item);
 		}
-		return ContainerWrapper.getDisplayNameFromItem(item);
+		return displayName;
 	}
-
+	
 	@Override
 	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
+		this.displayName = ContainerWrapper.localizeName(displayName);
 	}
 
 	public ValueStatus getStatus() {
@@ -128,8 +183,17 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 	public List<ValueWrapper> getValues() {
 		return values;
 	}
+	
+	public boolean isShowEmpty() {
+		return showEmpty;
+	}
+	
+	public void setShowEmpty(boolean showEmpty, boolean recursive) {
+		this.showEmpty = showEmpty;
+	}
 
-	public void addValue() {
+	public void addValue(boolean showEmpty) {
+		this.showEmpty = showEmpty;
 		getValues().add(createAddedValue());
 	}
 
@@ -159,14 +223,38 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 		return false;
 	}
+	private boolean isMetadataContainer() {
+		ContainerWrapper parent = getParent();
+		if (parent == null) {
+			return false;
+		}
+		ItemDefinition<?> definition = parent.getItemDefinition();
+		if (definition == null) {
+			return false;
+		}
+		return definition.getTypeName().equals(MetadataType.COMPLEX_TYPE);
+	}
 
 	@Override
 	public boolean isReadonly() {
+		//TODO this is probably not good idea
+		if (isMetadataContainer()) {
+			return true;
+		}
+		
 		return readonly;
 	}
 
 	public void setReadonly(boolean readonly) {
 		this.readonly = readonly;
+	}
+	
+	@Override
+	public ItemPath getPath() {
+		if (path == null) {
+			path = item.getPath();
+		}
+		return path;
 	}
 
 	@Override
@@ -191,4 +279,32 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return (I) updatedItem;
 	}
 
+	@Override
+	public boolean checkRequired(PageBase pageBase) {
+		if (getItemDefinition() == null || !getItemDefinition().isMandatory()) {
+			return true;
+		}
+		for (ValueWrapper valueWrapper : CollectionUtils.emptyIfNull(getValues())) {
+			if (!valueWrapper.isEmpty()) {
+				return true;
+			}
+		}
+		pageBase.error("Item '" + getDisplayName() + "' must not be empty");
+		return false;
+	}
+	
+	@Override
+	public boolean isDeprecated() {
+		return getItemDefinition().isDeprecated();
+	}
+	
+	@Override
+	public boolean isExperimental() {
+		return getItemDefinition().isExperimental();
+	}
+	
+	@Override
+	public String getDeprecatedSince() {
+		return getItemDefinition().getDeprecatedSince();
+	}
 }

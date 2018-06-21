@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,23 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -47,6 +54,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 	private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
 
     private static final String ID_OBJECT_NAME = "name";
+    private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_LINK_CHOOSE = "choose";
     private static final String ID_LINK_REMOVE = "remove";
 
@@ -55,34 +63,53 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
         initLayout();
     }
 
-    protected void initLayout() {
+    public ChooseTypePanel(String id, ObjectReferenceType ref){
+    	super(id, Model.of(new ObjectViewDto<>(ref != null ? ref.getOid() : null, ref != null ? WebComponentUtil.getOrigStringFromPoly(ref.getTargetName()) : null)));
+        initLayout();
+    }
 
-        final Label name = new Label(ID_OBJECT_NAME, new AbstractReadOnlyModel<String>(){
-        	private static final long serialVersionUID = 1L;
-        	
-            @Override
-            public String getObject() {
-                ObjectViewDto<T> dto = getModel().getObject();
-                if (dto != null) {
-                    if (dto.getName() != null)
-                        return getModel().getObject().getName();
-                    else if (ObjectViewDto.BAD_OID.equals(dto.getOid())) {
-                        return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
-                    } else {
-                        return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
-                    }
-                }
-                return "";
-            }
-        });
+    protected void initLayout() {
+        WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
+        inputContainer.setOutputMarkupId(true);
+        inputContainer.add(getInputStyleClass());
+        add(inputContainer);
+
+        final TextField<String> name = new TextField<>(ID_OBJECT_NAME, new PropertyModel<>(getModel(), ObjectViewDto.F_NAME));
+
+
+//        		new Model<String>(){
+//        	private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public String getObject() {
+//                ObjectViewDto<T> dto = getModel().getObject();
+//                if (dto != null) {
+//                    if (dto.getName() != null)
+//                        return getModel().getObject().getName();
+//                    else if (ObjectViewDto.BAD_OID.equals(dto.getOid())) {
+//                        return createStringResource("chooseTypePanel.ObjectNameValue.badOid").getString();
+//                    } else {
+//                        return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
+//                    }
+//                }
+//                return "";
+//            }
+//        });
         name.setOutputMarkupId(true);
+
 
         AjaxLink<String> choose = new AjaxLink<String>(ID_LINK_CHOOSE) {
         	private static final long serialVersionUID = 1L;
-        	
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                  changeOptionPerformed(target);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
             }
         };
 
@@ -91,14 +118,14 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                setToDefault();
+                setToDefault(target);
                 target.add(name);
             }
         };
 
-        add(choose);
+        inputContainer.add(name);
+        inputContainer.add(choose);
         add(remove);
-        add(name);
 
     }
 
@@ -120,12 +147,18 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
 
         o.setName(WebComponentUtil.getName(object));
         o.setOid(object.getOid());
+        o.setObject((PrismObject) object.asPrismObject().clone());
 
         if(LOGGER.isTraceEnabled()){
             LOGGER.trace("Choose operation performed: {} ({})", o.getName(), o.getOid());
         }
 
-        target.add(get(ID_OBJECT_NAME));
+        target.add(get(ID_INPUT_CONTAINER).get(ID_OBJECT_NAME));
+        executeCustomAction(target, object);
+    }
+
+    protected void executeCustomAction(AjaxRequestTarget target, T object) {
+
     }
 
     private void changeOptionPerformed(AjaxRequestTarget target){
@@ -142,14 +175,23 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     		}
     	};
     	objectBrowserPanel.setOutputMarkupId(true);
-    	
+
     	getPageBase().showMainPopup(objectBrowserPanel, target);
     }
 
-    private void setToDefault(){
-        ObjectViewDto<T> dto = new ObjectViewDto<T>();
+    private void setToDefault(AjaxRequestTarget target){
+        ObjectViewDto<T> dto = new ObjectViewDto<>();
         dto.setType(getObjectTypeClass());
         getModel().setObject(dto);
+        executeCustomRemoveAction(target);
+    }
+
+protected void executeCustomRemoveAction(AjaxRequestTarget target) {
+
+    }
+
+    protected AttributeAppender getInputStyleClass(){
+        return AttributeAppender.append("class", "col-md-4");
     }
 
     public Class<T> getObjectTypeClass(){
@@ -157,7 +199,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
     }
 
     public void setPanelEnabled(boolean isEnabled){
-        get(ID_LINK_CHOOSE).setEnabled(isEnabled);
+        get(ID_INPUT_CONTAINER).get(ID_LINK_CHOOSE).setEnabled(isEnabled);
         get(ID_LINK_REMOVE).setEnabled(isEnabled);
     }
 }

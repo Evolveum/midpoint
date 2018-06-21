@@ -18,7 +18,7 @@
  * Package that contains base page classes. These classes are used as
  * (abstract) superclasses for midPoint GUI pages. They contain the basic
  * components that any fully-interoperable midPoint GUI page must have.
- * 
+ *
  * @author Radovan Semancik
  */
 package com.evolveum.midpoint.gui.api.page;

@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
+import com.evolveum.midpoint.prism.query.*;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
@@ -32,10 +33,6 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdNameMapper;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -94,6 +91,32 @@ public class ValueOperation extends Operation {
                         }
                         return FilterBuilder.contains(AttributeBuilder.build(icfName, convertedValues.iterator().next()));
                     }
+				} else if (objectFilter instanceof ComparativeFilter) {
+					ComparativeFilter comparativeFilter = (ComparativeFilter) objectFilter;
+					Collection<Object> convertedValues = convertValues(propName, comparativeFilter.getValues());
+					if (convertedValues.isEmpty()) {
+						throw new IllegalArgumentException("Comparative filter with null value makes no sense");
+					} else {
+						if (convertedValues.size() != 1) {
+							throw new IllegalArgumentException("Comparative filter with multiple values makes no sense");
+						}
+						Attribute attribute = AttributeBuilder.build(icfName, convertedValues.iterator().next());
+						if (comparativeFilter instanceof GreaterFilter) {
+							if (comparativeFilter.isEquals()) {
+								return FilterBuilder.greaterThanOrEqualTo(attribute);
+							} else {
+								return FilterBuilder.greaterThan(attribute);
+							}
+						} else if (comparativeFilter instanceof LessFilter) {
+							if (comparativeFilter.isEquals()) {
+								return FilterBuilder.lessThanOrEqualTo(attribute);
+							} else {
+								return FilterBuilder.lessThan(attribute);
+							}
+						} else {
+							throw new UnsupportedOperationException("Unsupported filter type: " + objectFilter);
+						}
+					}
 				} else {
 					throw new UnsupportedOperationException("Unsupported filter type: " + objectFilter);
 				}

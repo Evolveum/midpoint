@@ -22,22 +22,25 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPoliciesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
@@ -53,9 +56,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
  */
 public class SystemConfigurationDto implements Serializable {
 
-	public static final String F_AEP_LEVEL = "aepLevel";
-	public static final String F_AUDIT_CLEANUP = "auditCleanupValue";
-	public static final String F_TASK_CLEANUP = "taskCleanupValue";
+	private static final long serialVersionUID = 1L;
+	
+	public static final String F_ASSIGNMENTPOLICYENFORCEMENT_LEVEL = "aepLevel";
+	public static final String F_AUDIT_CLEANUP_AGE = "auditCleanupAge";
+	public static final String F_AUDIT_CLEANUP_RECORDS = "auditCleanupRecords";
+	public static final String F_TASK_CLEANUP_AGE = "taskCleanupAge";
+	public static final String F_TASK_CLEANUP_RECORDS = "taskCleanupRecords";
+	public static final String F_CAMPAIGN_CLEANUP_AGE = "campaignCleanupAge";
+	public static final String F_CAMPAIGN_CLEANUP_RECORDS = "campaignCleanupRecords";
+	public static final String F_REPORT_CLEANUP_AGE = "reportCleanupAge";
+	public static final String F_REPORT_CLEANUP_RECORDS = "reportCleanupRecords";
+	public static final String F_RESULT_CLEANUP_AGE = "resultCleanupAge";
+	public static final String F_RESULT_CLEANUP_RECORDS = "resultCleanupRecords";
 	public static final String F_PASSWORD_POLICY = "passPolicyDto";
 	public static final String F_SECURITY_POLICY = "securityPolicyDto";
 	public static final String F_OBJECT_TEMPLATE = "objectTemplateDto";
@@ -64,18 +77,54 @@ public class SystemConfigurationDto implements Serializable {
 	public static final String F_ENABLE_EXPERIMENTAL_CODE = "enableExperimentalCode";
 	public static final String F_USER_DASHBOARD_LINK = "userDashboardLink";
 	public static final String F_ADDITIONAL_MENU_LINK = "additionalMenuLink";
-
+	public static final String F_DEPLOYMENT_INFORMATION = "deploymentInformation";
+	
+	public static final String F_ADMIN_GUI_CONFIGURATION = "adminGuiConfiguration";
 	private AEPlevel aepLevel;
 
-	private String auditCleanupValue;
-	private String taskCleanupValue;
+	private static class CleanupInfo implements Serializable {
+		
+		private static final long serialVersionUID = 1L;
+		String ageValue;
+		Integer records;
+
+		void initFrom(CleanupPolicyType config) {
+			if (config != null) {
+				ageValue = config.getMaxAge() != null ? config.getMaxAge().toString() : null;
+				records = config.getMaxRecords();
+			} else {
+				ageValue = null;
+				records = null;
+			}
+		}
+
+		CleanupPolicyType toConfig() {
+			if (StringUtils.isEmpty(ageValue) && records == null) {
+				return null;
+			}
+			CleanupPolicyType rv = new CleanupPolicyType();
+			rv.setMaxAge(XmlTypeConverter.createDuration(MiscUtil.nullIfEmpty(ageValue)));
+			rv.setMaxRecords(records);
+			return rv;
+		}
+	}
+
+	private final CleanupInfo auditCleanup = new CleanupInfo();
+	private final CleanupInfo taskCleanup = new CleanupInfo();
+	private final CleanupInfo campaignsCleanup = new CleanupInfo();
+	private final CleanupInfo reportsCleanup = new CleanupInfo();
+	private final CleanupInfo resultsCleanup = new CleanupInfo();
+
+	private DeploymentInformationType deploymentInformation;
 
 	private Boolean enableExperimentalCode;
+	
 
 	private ObjectViewDto<ValuePolicyType> passPolicyDto;
 	private ObjectViewDto<SecurityPolicyType> securityPolicyDto;
-	private List<ObjectPolicyConfigurationTypeDto> objectPolicyList;
+	private List<ObjectPolicyConfigurationType> objectPolicyList;
 	private NotificationConfigurationDto notificationConfig;
+	private AdminGuiConfigurationType adminGuiConfiguration;
 	private List<RichHyperlinkType> userDashboardLink;
 	private List<RichHyperlinkType> additionalMenuLink;
 
@@ -106,24 +155,18 @@ public class SystemConfigurationDto implements Serializable {
 			aepLevel = AEPlevel.fromAEPLevelType(globalAEP);
 		}
 
-		CleanupPolicyType auditCleanup = config.getCleanupPolicy().getAuditRecords();
-		CleanupPolicyType taskCleanup = config.getCleanupPolicy().getClosedTasks();
+		deploymentInformation = config.getDeploymentInformation();
 
-		auditCleanupValue = auditCleanup.getMaxAge().toString();
-		taskCleanupValue = taskCleanup.getMaxAge().toString();
+		auditCleanup.initFrom(config.getCleanupPolicy() != null ? config.getCleanupPolicy().getAuditRecords() : null);
+		taskCleanup.initFrom(config.getCleanupPolicy() != null ? config.getCleanupPolicy().getClosedTasks() : null);
+		campaignsCleanup.initFrom(config.getCleanupPolicy() != null ? config.getCleanupPolicy().getClosedCertificationCampaigns() : null);
+		reportsCleanup.initFrom(config.getCleanupPolicy() != null ? config.getCleanupPolicy().getOutputReports() : null);
+		resultsCleanup.initFrom(config.getCleanupPolicy() != null ? config.getCleanupPolicy().getObjectResults() : null);
 
 		passPolicyDto = loadPasswordPolicy(config);
 		securityPolicyDto = loadSecurityPolicy(config);
 
-		objectPolicyList = new ArrayList<>();
-		List<ObjectPolicyConfigurationType> objectPolicies = config.getDefaultObjectPolicyConfiguration();
-		if (objectPolicies != null && !objectPolicies.isEmpty()) {
-			for (ObjectPolicyConfigurationType policy : objectPolicies) {
-				objectPolicyList.add(new ObjectPolicyConfigurationTypeDto(policy));
-			}
-		} else {
-			objectPolicyList.add(new ObjectPolicyConfigurationTypeDto());
-		}
+		objectPolicyList = config.getDefaultObjectPolicyConfiguration();
 
 		// NOTIFICATIONS
 		if (config.getNotificationConfiguration() != null) {
@@ -162,8 +205,7 @@ public class SystemConfigurationDto implements Serializable {
 
 		enableExperimentalCode = SystemConfigurationTypeUtil.isExperimentalCodeEnabled(config);
 
-		userDashboardLink = loadUserDashboardLink(config);
-        additionalMenuLink = loadAdditionalMenuItem(config);
+		adminGuiConfiguration = config.getAdminGuiConfiguration();
 	}
 
 	public SystemConfigurationType getOldObject() {
@@ -196,15 +238,15 @@ public class SystemConfigurationDto implements Serializable {
 			projectionPolicy.setAssignmentPolicyEnforcement(globalAEP);
 			newObject.setGlobalAccountSynchronizationSettings(projectionPolicy);
 		}
-		Duration auditCleanupDuration = DatatypeFactory.newInstance().newDuration(getAuditCleanupValue());
-		Duration cleanupTaskDuration = DatatypeFactory.newInstance().newDuration(getTaskCleanupValue());
-		CleanupPolicyType auditCleanup = new CleanupPolicyType();
-		CleanupPolicyType taskCleanup = new CleanupPolicyType();
-		auditCleanup.setMaxAge(auditCleanupDuration);
-		taskCleanup.setMaxAge(cleanupTaskDuration);
 		CleanupPoliciesType cleanupPolicies = new CleanupPoliciesType();
-		cleanupPolicies.setAuditRecords(auditCleanup);
-		cleanupPolicies.setClosedTasks(taskCleanup);
+		cleanupPolicies.setAuditRecords(auditCleanup.toConfig());
+		cleanupPolicies.setClosedTasks(taskCleanup.toConfig());
+		cleanupPolicies.setClosedCertificationCampaigns(campaignsCleanup.toConfig());
+		cleanupPolicies.setOutputReports(reportsCleanup.toConfig());
+		cleanupPolicies.setObjectResults(resultsCleanup.toConfig());
+
+		DeploymentInformationType deploymentInformation = getDeploymentInformation();
+		newObject.setDeploymentInformation(deploymentInformation);
 
 		newObject.setCleanupPolicy(cleanupPolicies);
 		SystemConfigurationTypeUtil.setEnableExperimentalCode(newObject, getEnableExperimentalCode());
@@ -215,14 +257,25 @@ public class SystemConfigurationDto implements Serializable {
 
 		newObject.setProfilingConfiguration(profilingDto.getNewObject());
 		ClassLoggerConfigurationType profilingClassLogger = profilingDto.getProfilingClassLogerConfig();
-		if (newObject.getLogging() != null) {
-			newObject.getLogging().getClassLogger().add(profilingClassLogger);
-		} else {
-			LoggingConfigurationType profLogging = new LoggingConfigurationType();
-			profLogging.getClassLogger().add(profilingClassLogger);
-			newObject.setLogging(profLogging);
+		if (profilingClassLogger != null) {
+			if (newObject.getLogging() != null) {
+				newObject.getLogging().getClassLogger().add(profilingClassLogger);
+			} else {
+				LoggingConfigurationType profLogging = new LoggingConfigurationType();
+				profLogging.getClassLogger().add(profilingClassLogger);
+				newObject.setLogging(profLogging);
+			}
 		}
-
+		
+		newObject.setAdminGuiConfiguration(adminGuiConfiguration);
+		newObject.getDefaultObjectPolicyConfiguration().clear();
+		for (ObjectPolicyConfigurationType objPolicyType : objectPolicyList) {
+			PrismContainerValue<ObjectPolicyConfigurationType> objPolicy = objPolicyType.asPrismContainerValue();
+			if (!objPolicy.isEmpty()) {
+				newObject.getDefaultObjectPolicyConfiguration().add(objPolicy.clone().asContainerable());
+			}
+			
+		}
 		return newObject;
 	}
 
@@ -267,30 +320,102 @@ public class SystemConfigurationDto implements Serializable {
 		ObjectReferenceType securityPolicy = config.getGlobalSecurityPolicyRef();
 
 		if (securityPolicy != null) {
-			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>(securityPolicy.getOid(),
-					WebComponentUtil.getName(securityPolicy));
+			securityPolicyDto = new ObjectViewDto<>(securityPolicy.getOid(),
+                WebComponentUtil.getName(securityPolicy));
 		} else {
-			securityPolicyDto = new ObjectViewDto<SecurityPolicyType>();
+			securityPolicyDto = new ObjectViewDto<>();
 		}
 
 		securityPolicyDto.setType(SecurityPolicyType.class);
 		return securityPolicyDto;
 	}
 
-	public String getAuditCleanupValue() {
-		return auditCleanupValue;
+	public DeploymentInformationType getDeploymentInformation() {
+		return deploymentInformation;
 	}
 
-	public void setAuditCleanupValue(String auditCleanupValue) {
-		this.auditCleanupValue = auditCleanupValue;
+	public void setDeploymentInformation(DeploymentInformationType deploymentInformation) {
+		this.deploymentInformation = deploymentInformation;
 	}
 
-	public String getTaskCleanupValue() {
-		return taskCleanupValue;
+	public String getAuditCleanupAge() {
+		return auditCleanup.ageValue;
 	}
 
-	public void setTaskCleanupValue(String taskCleanupValue) {
-		this.taskCleanupValue = taskCleanupValue;
+	public void setAuditCleanupAge(String value) {
+		auditCleanup.ageValue = value;
+	}
+
+	public Integer getAuditCleanupRecords() {
+		return auditCleanup.records;
+	}
+
+	public void setAuditCleanupRecords(Integer value) {
+		auditCleanup.records = value;
+	}
+
+	public String getTaskCleanupAge() {
+		return taskCleanup.ageValue;
+	}
+
+	public void setTaskCleanupAge(String value) {
+		taskCleanup.ageValue = value;
+	}
+
+	public Integer getTaskCleanupRecords() {
+		return taskCleanup.records;
+	}
+
+	public void setTaskCleanupRecords(Integer value) {
+		taskCleanup.records = value;
+	}
+	
+	public String getCampaignCleanupAge() {
+		return campaignsCleanup.ageValue;
+	}
+
+	public void setCampaignCleanupAge(String value) {
+		campaignsCleanup.ageValue = value;
+	}
+
+	public Integer getCampaignCleanupRecords() {
+		return campaignsCleanup.records;
+	}
+
+	public void setCampaignCleanupRecords(Integer value) {
+		campaignsCleanup.records = value;
+	}
+
+	public String getReportCleanupAge() {
+		return reportsCleanup.ageValue;
+	}
+
+	public void setReportCleanupAge(String value) {
+		reportsCleanup.ageValue = value;
+	}
+
+	public Integer getReportCleanupRecords() {
+		return reportsCleanup.records;
+	}
+
+	public void setReportCleanupRecords(Integer value) {
+		reportsCleanup.records = value;
+	}
+
+	public String getResultCleanupAge() {
+		return resultsCleanup.ageValue;
+	}
+
+	public void setResultCleanupAge(String value) {
+		resultsCleanup.ageValue = value;
+	}
+
+	public Integer getResultCleanupRecords() {
+		return resultsCleanup.records;
+	}
+
+	public void setResultCleanupRecords(Integer value) {
+		resultsCleanup.records = value;
 	}
 
 	public AEPlevel getAepLevel() {
@@ -341,11 +466,11 @@ public class SystemConfigurationDto implements Serializable {
 		this.profilingDto = profilingDto;
 	}
 
-	public List<ObjectPolicyConfigurationTypeDto> getObjectPolicyList() {
+	public List<ObjectPolicyConfigurationType> getObjectPolicyList() {
 		return objectPolicyList;
 	}
 
-	public void setObjectPolicyList(List<ObjectPolicyConfigurationTypeDto> objectPolicyList) {
+	public void setObjectPolicyList(List<ObjectPolicyConfigurationType> objectPolicyList) {
 		this.objectPolicyList = objectPolicyList;
 	}
 

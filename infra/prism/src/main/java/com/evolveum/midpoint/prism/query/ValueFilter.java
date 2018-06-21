@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.query;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.IdentifierPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -32,10 +33,11 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition> extends ObjectFilter implements Itemable {
+public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition> extends ObjectFilter implements Itemable, ItemFilter {
 	private static final long serialVersionUID = 1L;
 
 	@NotNull private final ItemPath fullPath;
@@ -80,6 +82,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	}
 
 	@NotNull
+	@Override
 	public ItemPath getFullPath() {
 		return fullPath;
 	}
@@ -176,7 +179,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	}
 
 	/**
-	 * @pre value has to be parent-less
+	 * @param value value, has to be parent-less
 	 */
 	public void setValue(V value) {
 		this.values = new ArrayList<>();
@@ -248,10 +251,10 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 	@Override
 	public boolean match(PrismContainerValue cvalue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 
-		Item objectItem = getObjectItem(cvalue);
+		Collection<PrismValue> objectItemValues = getObjectItemValues(cvalue);
 
 		boolean filterItemIsEmpty = getValues() == null || getValues().isEmpty();
-		boolean objectItemIsEmpty = objectItem == null || objectItem.isEmpty();
+		boolean objectItemIsEmpty = objectItemValues.isEmpty();
 
 		if (filterItemIsEmpty && !objectItemIsEmpty) {
 			return false;
@@ -264,10 +267,9 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		return true;
 	}
 
-	// TODO revise
-	Item getObjectItem(PrismContainerValue value) {
-		ItemPath path = getFullPath();
-		return value.findItem(path);
+	@NotNull
+	Collection<PrismValue> getObjectItemValues(PrismContainerValue value) {
+		return value.getAllValues(getFullPath());
 	}
 
 	// TODO revise
@@ -330,7 +332,8 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(getFilterName()).append(":");
-		return debugDump(indent, sb);
+		debugDump(indent, sb);
+		return sb.toString();
 	}
 
 	@Override
@@ -342,7 +345,7 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 
 	protected abstract String getFilterName();
 
-	protected String debugDump(int indent, StringBuilder sb) {
+	protected void debugDump(int indent, StringBuilder sb) {
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("PATH: ");
@@ -399,8 +402,6 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 			sb.append("MATCHING: ");
 			sb.append(matchingRule);
 		}
-
-		return sb.toString();
 	}
 
 	protected String toString(StringBuilder sb){
@@ -433,9 +434,9 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 		if (fullPath.isEmpty()) {
 			throw new IllegalArgumentException("Empty path in "+this);
 		}
-		if (!(fullPath.last() instanceof NameItemPathSegment)) {
+		if (!(fullPath.last() instanceof NameItemPathSegment) && !(fullPath.last() instanceof IdentifierPathSegment)) {
 			//noinspection ConstantConditions
-			throw new IllegalArgumentException("Last segment of item path is not a name segment: " + fullPath + " (it is " +
+			throw new IllegalArgumentException("Last segment of item path is not a name or identifier segment: " + fullPath + " (it is " +
 				fullPath.last().getClass().getName() + ")");
 		}
 		if (rightHandSidePath != null && rightHandSidePath.isEmpty()) {
@@ -468,12 +469,13 @@ public abstract class ValueFilter<V extends PrismValue, D extends ItemDefinition
 				}
 			}
 		}
-		if (definition != null) {
+		if (definition != null && fullPath.last() instanceof NameItemPathSegment) {
 			if (!QNameUtil.match(definition.getName(), fullPath.lastNamed().getName())) {
 				throw new IllegalArgumentException("Last segment of item path (" + fullPath.lastNamed().getName() + ") "
 						+ "does not match item name from the definition: " + definition);
 			}
+			// todo check consistence for ID-based filters
 		}
 	}
-
+	
 }

@@ -34,7 +34,7 @@ public class DiffUtil {
 			if (newObject == null) {
 				return null;
 			}
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(newObject.getCompileTimeClass(), ChangeType.ADD, getPrismContext(oldObject, newObject));
+			ObjectDelta<T> objectDelta = new ObjectDelta<>(newObject.getCompileTimeClass(), ChangeType.ADD, getPrismContext(oldObject, newObject));
 			objectDelta.setOid(newObject.getOid());
 			objectDelta.setObjectToAdd(newObject);
 			return objectDelta;
@@ -42,7 +42,7 @@ public class DiffUtil {
 			return oldObject.diff(newObject);
 		}
 	}
-	
+
 	private static <T extends Objectable> PrismContext getPrismContext(PrismObject<T>... objects) {
 		for (PrismObject<T> object: objects) {
 			if (object != null) {
@@ -64,7 +64,7 @@ public class DiffUtil {
 		return diff(oldObject, newObject);
 	}
 
-	
+
 	public static <T extends Objectable> ObjectDelta<T> diff(String oldXml, String newXml, Class<T> type, PrismContext prismContext) throws SchemaException {
 		PrismObject<T> oldObject = null;
 		if (oldXml != null) {

@@ -31,7 +31,7 @@ public interface QueryFilter {
      * @return prism container qname type
      */
     QName getType();
-    
+
     void setType(QName type);
 
     /**

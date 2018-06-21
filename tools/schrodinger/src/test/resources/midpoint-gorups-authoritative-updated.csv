@@ -1,0 +1,4 @@
+"login","firstname","lastname","disabled","password","groups"
+"admin","admin","admin",false,"",""
+"raphael","Raffaello","Sanzio da Urbino","false","",""
+"donatello","Donato","di Niccolo di Betto Bardi","false","",""

@@ -1,0 +1,151 @@
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="e2c88fea-db21-11e5-80ba-d7b2f1155264"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Manager Full Control</name>    
+    <description>
+    	Role that gives access to the organizational units and objects stored
+    	there for organizational unit managers. A manager can read everything in
+    	the units that he is managing. And it can change all the contained objects.
+    </description>
+    <authorization>
+    	<name>gui</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#selfAll</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgAll</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#user</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#workItem</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#certificationDecisions</action>
+    </authorization>
+    
+    <authorization>
+    	<name>approve-reject</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#completeAllWorkItems</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateAllWorkItems</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delegateOwnWorkItems</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readAllWorkItems</action>
+    </authorization>
+    <authorization>
+    	<name>campaing management</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#openCertificationCampaignReviewStage</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#closeCertificationCampaignReviewStage</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#startCertificationRemediation</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#readOwnCertificationDecisions</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#recordCertificationDecision</action>
+    </authorization>
+    <authorization>
+    	<name>autz-read</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<orgRelation>
+    			<subjectRelation>org:manager</subjectRelation>
+    			<scope>allDescendants</scope>
+    			<includeReferenceOrg>true</includeReferenceOrg>
+    		</orgRelation>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>autz-read</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<orgRelation>
+    			<subjectRelation>org:manager</subjectRelation>
+    			<scope>allAncestors</scope>
+    			<includeReferenceOrg>true</includeReferenceOrg>
+    		</orgRelation>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>autz-write</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action>
+    	<object>
+    		<orgRelation>
+    			<subjectRelation>org:manager</subjectRelation>
+    		</orgRelation>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>autz-shadow</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+    	<object>
+    		<type>ShadowType</type>
+    		<owner>
+    			<orgRelation>
+	    			<subjectRelation>org:manager</subjectRelation>
+	    		</orgRelation>
+    		</owner>
+    	</object>
+    </authorization>
+<!--     <authorization> -->
+<!--     	<name>autz-create-user</name> -->
+<!--     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action> -->
+<!--     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action> -->
+<!--     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action> -->
+<!--     	<object> -->
+<!--     		<type>UserType</type> -->
+<!--     	</object> -->
+<!--     	<phase>request</phase> -->
+<!--     	<item>name</item> -->
+<!--     	<item>givenName</item> -->
+<!--     	<item>familyName</item> -->
+<!--     	<item>assignment</item> -->
+<!--     	<item>parentOrgRef</item> -->
+<!--     </authorization> -->
+<!--     <authorization> -->
+<!--     	<name>autz-create-user</name> -->
+<!--     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action> -->
+<!--     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action> -->
+<!--     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action> -->
+<!--     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#assign</action> -->
+<!--     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#unassign</action> -->
+<!--     	<object> -->
+<!--     		<type>UserType</type> -->
+<!--     	</object> -->
+<!--     	<phase>execution</phase> -->
+<!--     	<item>name</item> -->
+<!--     	<item>givenName</item> -->
+<!--     	<item>familyName</item> -->
+<!--     	<item>assignment</item> -->
+<!--     	<item>parentOrgRef</item> -->
+<!--     	<item>roleMembershipRef</item> -->
+<!--     	<item>activation</item> -->
+<!--     </authorization> -->
+
+
+<requestable>true</requestable>
+     <assignment>
+        <policyRule>
+            <name>excluded-role</name>
+            <policyConstraints>
+                <exclusion>
+                    <targetRef oid="e2c88fea-db21-11e5-80ba-d7b2f1155288" type="RoleType"/>
+                </exclusion>
+            </policyConstraints>
+            <policyActions>
+                <enforcement/>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

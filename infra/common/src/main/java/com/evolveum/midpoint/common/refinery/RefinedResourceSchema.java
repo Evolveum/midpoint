@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package com.evolveum.midpoint.common.refinery;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -97,6 +96,6 @@ public interface RefinedResourceSchema extends ResourceSchema, DebugDumpable {
 
 	static ResourceSchema getResourceSchema(PrismObject<ResourceType> resource, PrismContext prismContext)
 			throws SchemaException {
-		return RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
+		return RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
 	}
 }

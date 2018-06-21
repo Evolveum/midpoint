@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ public class SearchFormPanel extends BasePanel<Search> {
     }
 
     protected void initLayout() {
-        final Form searchForm = new Form(ID_SEARCH_FORM);
+        final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,16 +32,17 @@ import javax.xml.namespace.QName;
 
 /**
  * Model that returns property real values. This implementation works on containerable models (not wrappers).
- * 
+ *
  * Simple implementation, now it can't handle multivalue properties.
- * 
+ *
  * @author lazyman
  * @author semancik
  * @author mederly
  */
 public class PrismPropertyRealValueFromContainerableModel<T, C extends Containerable> implements IModel<T> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyRealValueFromContainerableModel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyRealValueFromContainerableModel.class);
 
     private IModel<C> model;
     private ItemPath path;
@@ -85,7 +86,7 @@ public class PrismPropertyRealValueFromContainerableModel<T, C extends Container
                     object = (T) new PolyString((String) object);
                 }
 
-                property.setValue(new PrismPropertyValue<T>(object, OriginType.USER_ACTION, null));
+                property.setValue(new PrismPropertyValue<>(object, OriginType.USER_ACTION, null));
             } else {
                 PrismContainerValue parent = (PrismContainerValue) property.getParent();
                 parent.remove(property);

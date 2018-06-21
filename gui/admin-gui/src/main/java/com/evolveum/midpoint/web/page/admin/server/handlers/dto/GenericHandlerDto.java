@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -62,7 +63,7 @@ public class GenericHandlerDto extends HandlerDto {
 		for (Item item : items) {
 			PrismProperty<?> property = taskDto.getExtensionProperty(item.name);
 			if (property != null) {
-				PropertyWrapper<?, ?> propertyWrapper = new PropertyWrapper<>(null, property, true, ValueStatus.NOT_CHANGED);
+				PropertyWrapper propertyWrapper = new PropertyWrapper<>(null, property, true, ValueStatus.NOT_CHANGED);
 				propertyWrappers.add(propertyWrapper);
 			} else {
 				// TODO create empty property?
@@ -93,7 +94,7 @@ public class GenericHandlerDto extends HandlerDto {
 				clonedDefinition = CloneUtil.clone((PrismPropertyDefinitionImpl) prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(item.name));
 			}
 			if (clonedDefinition == null) {
-				System.out.println("Definition-less property " + item.name);
+				System.out.println("Definition-less property " + item.name);        // TODO
 			} else {
 				clonedDefinition.setCanAdd(false);
 				clonedDefinition.setCanModify(false);
@@ -104,7 +105,8 @@ public class GenericHandlerDto extends HandlerDto {
 		}
 		PrismContainerDefinition<?> containerDefinition = new PrismContainerDefinitionImpl<>(new QName("Handler data"), ctd, prismContext);
 		container.setDefinition(containerDefinition);
-		containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true);
+		Task task = pageBase.createSimpleTask("Adding new container wrapper");
+		containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true, task);
 	}
 
 	public ContainerWrapper getContainer() {

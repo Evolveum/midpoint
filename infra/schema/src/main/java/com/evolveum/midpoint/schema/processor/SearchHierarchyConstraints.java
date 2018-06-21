@@ -23,7 +23,7 @@ public class SearchHierarchyConstraints {
 
 	ResourceObjectIdentification baseContext;
 	SearchHierarchyScope scope;
-	
+
 	public SearchHierarchyConstraints(ResourceObjectIdentification baseContext, SearchHierarchyScope scope) {
 		super();
 		this.baseContext = baseContext;
@@ -37,6 +37,6 @@ public class SearchHierarchyConstraints {
 	public SearchHierarchyScope getScope() {
 		return scope;
 	}
-	
-	
+
+
 }

@@ -27,9 +27,9 @@ import com.evolveum.midpoint.model.impl.sync.Action;
 import com.evolveum.midpoint.model.impl.sync.ActionManager;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ActionManagerImplTest extends AbstractTestNGSpringContextTests  {

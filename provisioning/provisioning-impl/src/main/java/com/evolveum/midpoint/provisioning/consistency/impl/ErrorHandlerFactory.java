@@ -63,7 +63,7 @@ public class ErrorHandlerFactory {
 	
 	
 	
-	public ErrorHandler createErrorHandler(Exception ex){
+	public ErrorHandler createErrorHandler(Throwable ex) {
 		if (ex instanceof CommunicationException){
 			return communicationExceptionHandler;
 		}
@@ -84,6 +84,12 @@ public class ErrorHandlerFactory {
 		}
 		if (ex instanceof SecurityViolationException){
 			return securityViolationHandler;
+		}
+		if (ex instanceof RuntimeException) {
+			throw (RuntimeException)ex;
+		}
+		if (ex instanceof Error) {
+			throw (Error)ex;
 		}
 		
 		throw new SystemException(ex != null ? ex.getClass().getName() +": "+ ex.getMessage() : "Unexpected error:", ex);

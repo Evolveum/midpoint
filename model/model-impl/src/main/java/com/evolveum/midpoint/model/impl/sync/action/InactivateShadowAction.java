@@ -45,7 +45,7 @@ public class InactivateShadowAction extends BaseAction {
 	public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
 			Map<QName, Object> parameters, Task task, OperationResult parentResult) {
 		ActivationStatusType desiredStatus = ActivationStatusType.DISABLED;
-		
+
 		LensProjectionContext projectionContext = context.getProjectionContextsIterator().next();
 		PrismObject<ShadowType> objectCurrent = projectionContext.getObjectCurrent();
 		if (objectCurrent != null) {
@@ -58,7 +58,7 @@ public class InactivateShadowAction extends BaseAction {
 			}
 		}
 		ObjectDelta<ShadowType> activationDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-				projectionContext.getOid(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getPrismContext(), 
+				projectionContext.getOid(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getPrismContext(),
 				desiredStatus);
 		projectionContext.setPrimaryDelta(activationDelta);
 	}

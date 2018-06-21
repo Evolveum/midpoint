@@ -26,16 +26,16 @@ import org.apache.wicket.model.Model;
  */
 public class ProgressbarPanel extends Panel{
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_PROGRESS_BAR = "progressBar";
 
 	public ProgressbarPanel(String id, IModel<Integer> model) {
 		super(id, model);
 		initLayout(model);
 	}
-	
+
 	private void initLayout(final IModel<Integer> model){
-		
+
         WebMarkupContainer progressBar = new WebMarkupContainer(ID_PROGRESS_BAR);
         IModel<String> styleAttributeModel = new Model<String>(){
 			private static final long serialVersionUID = 1L;
@@ -48,6 +48,6 @@ public class ProgressbarPanel extends Panel{
 		progressBar.add(new AttributeModifier("style", styleAttributeModel));
         add(progressBar);
 	}
-	
-	
+
+
 }

@@ -17,7 +17,6 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -50,34 +49,34 @@ import java.util.Map;
 public class ProvisioningContext extends StateReporter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningContext.class);
-	
+
 	private ResourceManager resourceManager;
 	private OperationResult parentResult;
 	private Collection<SelectorOptions<GetOperationOptions>> getOperationOptions;
-	
+
 	private PrismObject<ShadowType> originalShadow;
 	private ResourceShadowDiscriminator shadowCoordinates;
 	private Collection<QName> additionalAuxiliaryObjectClassQNames;
 	private boolean useRefinedDefinition = true;
-	
+
 	private RefinedObjectClassDefinition objectClassDefinition;
 
 	private ResourceType resource;
 	private Map<Class<? extends CapabilityType>,ConnectorInstance> connectorMap;
 	private RefinedResourceSchema refinedSchema;
-	
+
 	public ProvisioningContext(ResourceManager resourceManager, OperationResult parentResult) {
 		this.resourceManager = resourceManager;
 		this.parentResult = parentResult;
 	}
-	
+
 	public void setResourceOid(String resourceOid) {
 		super.setResourceOid(resourceOid);
 		this.resource = null;
 		this.connectorMap = null;
 		this.refinedSchema = null;
 	}
-	
+
 	public Collection<SelectorOptions<GetOperationOptions>> getGetOperationOptions() {
 		return getOperationOptions;
 	}
@@ -89,7 +88,7 @@ public class ProvisioningContext extends StateReporter {
 	public ResourceShadowDiscriminator getShadowCoordinates() {
 		return shadowCoordinates;
 	}
-	
+
 	public void setShadowCoordinates(ResourceShadowDiscriminator shadowCoordinates) {
 		this.shadowCoordinates = shadowCoordinates;
 	}
@@ -101,7 +100,7 @@ public class ProvisioningContext extends StateReporter {
 	public void setOriginalShadow(PrismObject<ShadowType> originalShadow) {
 		this.originalShadow = originalShadow;
 	}
-	
+
 	public Collection<QName> getAdditionalAuxiliaryObjectClassQNames() {
 		return additionalAuxiliaryObjectClassQNames;
 	}
@@ -118,13 +117,21 @@ public class ProvisioningContext extends StateReporter {
 		this.useRefinedDefinition = useRefinedDefinition;
 	}
 
-	public ResourceType getResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	public void setObjectClassDefinition(RefinedObjectClassDefinition objectClassDefinition) {
+		this.objectClassDefinition = objectClassDefinition;
+	}
+
+	public void setResource(ResourceType resource) {
+		this.resource = resource;
+	}
+
+	public ResourceType getResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (resource == null) {
 			if (getResourceOid() == null) {
 				throw new SchemaException("Null resource OID "+getDesc());
 			}
 			GetOperationOptions options = GetOperationOptions.createReadOnly();
-			resource = resourceManager.getResource(getResourceOid(), options, parentResult).asObjectable();
+			resource = resourceManager.getResource(getResourceOid(), options, getTask(), parentResult).asObjectable();
 			updateResourceName();
 		}
 		return resource;
@@ -136,14 +143,14 @@ public class ProvisioningContext extends StateReporter {
 		}
 	}
 
-	public RefinedResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+	public RefinedResourceSchema getRefinedSchema() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		if (refinedSchema == null) {
 			refinedSchema = ProvisioningUtil.getRefinedSchema(getResource());
 		}
 		return refinedSchema;
 	}
-	
-	public RefinedObjectClassDefinition getObjectClassDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+
+	public RefinedObjectClassDefinition getObjectClassDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		if (objectClassDefinition == null) {
 			if (useRefinedDefinition) {
 				if (originalShadow != null) {
@@ -169,7 +176,7 @@ public class ProvisioningContext extends StateReporter {
 
 	// we don't use additionalAuxiliaryObjectClassQNames as we don't know if they are initialized correctly [med] TODO: reconsider this
 	public CompositeRefinedObjectClassDefinition computeCompositeObjectClassDefinition(@NotNull Collection<QName> auxObjectClassQNames)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		RefinedObjectClassDefinition structuralObjectClassDefinition = getObjectClassDefinition();
 		if (structuralObjectClassDefinition == null) {
 			return null;
@@ -186,15 +193,15 @@ public class ProvisioningContext extends StateReporter {
 	}
 
 	public RefinedObjectClassDefinition computeCompositeObjectClassDefinition(PrismObject<ShadowType> shadow)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return computeCompositeObjectClassDefinition(shadow.asObjectable().getAuxiliaryObjectClass());
 	}
 
 	public String getChannel() {
 		return getTask()==null?null:getTask().getChannel();
 	}
-	
-	public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+
+	public <T extends CapabilityType> ConnectorInstance getConnector(Class<T> operationCapabilityClass, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (connectorMap == null) {
 			connectorMap = new HashMap<>();
 		}
@@ -205,11 +212,11 @@ public class ProvisioningContext extends StateReporter {
 		}
 		return connector;
 	}
-	
+
 	public boolean isWildcard() {
 		return (shadowCoordinates == null && originalShadow == null) || (shadowCoordinates != null && shadowCoordinates.isWildcard());
 	}
-	
+
 	/**
 	 * Creates a context for a different object class on the same resource.
 	 */
@@ -218,7 +225,7 @@ public class ProvisioningContext extends StateReporter {
 		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), kind, intent);
 		return ctx;
 	}
-		
+
 	/**
 	 * Creates a context for a different object class on the same resource.
 	 */
@@ -228,7 +235,7 @@ public class ProvisioningContext extends StateReporter {
 		ctx.shadowCoordinates.setObjectClass(objectClassQName);
 		return ctx;
 	}
-	
+
 	/**
 	 * Creates a context for a different object class on the same resource.
 	 */
@@ -237,7 +244,7 @@ public class ProvisioningContext extends StateReporter {
 		ctx.setOriginalShadow(shadow);
 		return ctx;
 	}
-		
+
 //	/**
 //	 * Creates a context for a different object class on the same resource.
 //	 */
@@ -246,7 +253,7 @@ public class ProvisioningContext extends StateReporter {
 //		ctx.setObjectClassDefinition(objectClassDefinition);
 //		return ctx;
 //	}
-	
+
 	private ProvisioningContext spawnSameResource() {
 		ProvisioningContext ctx = new ProvisioningContext(resourceManager, parentResult);
 		ctx.setTask(this.getTask());
@@ -258,16 +265,16 @@ public class ProvisioningContext extends StateReporter {
 		return ctx;
 	}
 
-	public void assertDefinition(String message) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+	public void assertDefinition(String message) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		if (getObjectClassDefinition() == null) {
 			throw new SchemaException(message + " " + getDesc());
 		}
 	}
-	
-	public void assertDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+
+	public void assertDefinition() throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		assertDefinition("Cannot locate object class definition");
 	}
-		
+
 	public String getDesc() {
 		if (originalShadow != null) {
 			return "for " + originalShadow + " in " + (resource==null?("resource "+getResourceOid()):resource);
@@ -279,7 +286,7 @@ public class ProvisioningContext extends StateReporter {
 	}
 
 	private <T extends CapabilityType> ConnectorInstance getConnectorInstance(Class<T> operationCapabilityClass, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		OperationResult connectorResult = parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
 		try {
 			ConnectorInstance connector = resourceManager.getConfiguredConnectorInstance(getResource().asPrismObject(), operationCapabilityClass, false, parentResult);
@@ -297,11 +304,11 @@ public class ProvisioningContext extends StateReporter {
 			throw e;
 		}
 	}
-	
+
 	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
 		return resourceManager.getConnectorCapabilities(resource.asPrismObject(), operationCapabilityClass);
 	}
-	
+
 	@Override
 	public String toString() {
 		return "ProvisioningContext("+getDesc()+")";

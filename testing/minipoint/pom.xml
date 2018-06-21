@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2013-2016 Evolveum
+  ~ Copyright (c) 2013-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
   </parent>
   <artifactId>minipoint</artifactId>
   <groupId>com.evolveum.midpoint.testing</groupId>
-  <version>3.6-SNAPSHOT</version>
+  <version>3.9-SNAPSHOT</version>
   <name>midPoint Testing - MiniPoint</name>
   <issueManagement>
   	<system>Atlassian JIRA</system>
@@ -38,7 +38,7 @@
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
 	<properties>
-        <midpoint.version>3.6-SNAPSHOT</midpoint.version>
+        <midpoint.version>3.9-SNAPSHOT</midpoint.version>
         <testng.version>6.8.8</testng.version>
         <connid.version>1.4.0.49</connid.version>
     </properties>
@@ -51,13 +51,13 @@
     </repository>
     <repository>
       <id>evolveum-nexus-relases</id>
-      <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+      <url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
       <releases><enabled>true</enabled></releases>
       <snapshots><enabled>false</enabled></snapshots>
     </repository>
     <repository>
       <id>evolveum-nexus-snapshots</id>
-      <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+      <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
       <releases><enabled>false</enabled></releases>
       <snapshots><enabled>true</enabled></snapshots>
     </repository>
@@ -66,19 +66,19 @@
       <repository>
         <id>evolveum-nexus</id>
         <name>Internal Releases</name>
-        <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+        <url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
       </repository>
       <snapshotRepository>
         <id>evolveum-nexus</id>
         <name>Internal Snapshots</name>
-        <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
       </snapshotRepository>
     </distributionManagement>
   <dependencies>
     <dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>${midpoint.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
@@ -137,7 +137,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>${midpoint.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.polygon</groupId>
@@ -152,12 +152,12 @@
 		<dependency>
 		<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>${midpoint.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>${midpoint.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

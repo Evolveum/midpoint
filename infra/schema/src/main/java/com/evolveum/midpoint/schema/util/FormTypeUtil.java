@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemsType;
 
 public class FormTypeUtil {
-	
+
 	public static List<AbstractFormItemType> getFormItems(FormItemsType formItemsProperty) {
 		List<AbstractFormItemType> items = new ArrayList<>();
 		if (formItemsProperty != null) {

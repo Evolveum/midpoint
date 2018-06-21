@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class PolicyRuleApplication {
 
-	class Cause {
+	static class Cause {
 		private final ResourceShadowDiscriminator shadowDiscriminator;		// non-null for projection context
 		@NotNull private final ItemPath itemPath;							// should be non-empty
 		@NotNull private final PrismValue itemValue;

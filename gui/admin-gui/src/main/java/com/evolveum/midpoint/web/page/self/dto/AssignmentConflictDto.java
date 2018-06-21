@@ -16,9 +16,7 @@
 package com.evolveum.midpoint.web.page.self.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import java.io.Serializable;
 
@@ -26,62 +24,32 @@ import java.io.Serializable;
  * Created by honchar.
  */
 public class AssignmentConflictDto<F extends FocusType> implements Serializable {
-    PrismObject<F>  existingAssignmentTargetObj;
-    PrismObject<F>  addedAssignmentTargetObj;
-    boolean isRemovedOld = false;
-    boolean isUnassignedNew = false;
-    boolean isError = true;
+    PrismObject<F>  assignmentTargetObject;
+    boolean resolved = false;
+    boolean oldAssignment = false;
 
     public AssignmentConflictDto(){
     }
 
-    public AssignmentConflictDto(PrismObject<F>  existingAssignmentTargetObj, PrismObject<F>  addedAssignmentTargetObj){
-        this.existingAssignmentTargetObj = existingAssignmentTargetObj;
-        this.addedAssignmentTargetObj = addedAssignmentTargetObj;
+    public AssignmentConflictDto(PrismObject<F>  assignmentTargetObject, boolean oldAssignment){
+        this.assignmentTargetObject = assignmentTargetObject;
+        this.oldAssignment = oldAssignment;
     }
 
-
-    public boolean isSolved() {
-        return isRemovedOld || isUnassignedNew;
+    public void setResolved(boolean resolved) {
+        this.resolved = resolved;
     }
 
-    public PrismObject<F> getExistingAssignmentTargetObj() {
-        return existingAssignmentTargetObj;
+    public boolean isResolved() {
+        return resolved;
     }
 
-    public void setExistingAssignmentTargetObj(PrismObject<F> existingAssignmentTargetObj) {
-        this.existingAssignmentTargetObj = existingAssignmentTargetObj;
+    public boolean isOldAssignment() {
+        return oldAssignment;
     }
 
-    public PrismObject<F> getAddedAssignmentTargetObj() {
-        return addedAssignmentTargetObj;
+    public PrismObject<F> getAssignmentTargetObject() {
+        return assignmentTargetObject;
     }
 
-    public void setAddedAssignmentTargetObj(PrismObject<F> addedAssignmentTargetObj) {
-        this.addedAssignmentTargetObj = addedAssignmentTargetObj;
-    }
-
-    public boolean isRemovedOld() {
-        return isRemovedOld;
-    }
-
-    public void setRemovedOld(boolean removedOld) {
-        isRemovedOld = removedOld;
-    }
-
-    public boolean isUnassignedNew() {
-        return isUnassignedNew;
-    }
-
-    public void setUnassignedNew(boolean unassignedNew) {
-        isUnassignedNew = unassignedNew;
-    }
-
-    public boolean isError() {
-        return isError;
-    }
-
-    public void setError(boolean error) {
-        isError = error;
-    }
-}
+  }

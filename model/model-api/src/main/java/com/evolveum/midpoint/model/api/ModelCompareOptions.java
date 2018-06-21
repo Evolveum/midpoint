@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import java.util.List;
  *
  */
 public class ModelCompareOptions implements Serializable, Cloneable {
-	
+
 	/**
 	 * Computes current-to-provided delta. ("Current" means the object that is currently available in the midPoint.)
 	 */
@@ -137,12 +137,12 @@ public class ModelCompareOptions implements Serializable, Cloneable {
 		retval.setIgnoreOperationalItems(type.isIgnoreOperationalItems());
         return retval;
     }
-    
+
     public static ModelCompareOptions fromRestOptions(List<String> options){
     	if (options == null || options.isEmpty()){
     		return null;
     	}
-    	
+
     	ModelCompareOptions rv = new ModelCompareOptions();
     	for (String option : options){
     		if (ModelCompareOptionsType.F_COMPUTE_CURRENT_TO_PROVIDED.getLocalPart().equals(option)){
@@ -178,7 +178,7 @@ public class ModelCompareOptions implements Serializable, Cloneable {
 		sb.append(")");
 		return sb.toString();
     }
-    
+
     private void appendFlag(StringBuilder sb, String name, Boolean val) {
 		if (val == null) {
 			return;
@@ -190,7 +190,7 @@ public class ModelCompareOptions implements Serializable, Cloneable {
 			sb.append("=false,");
 		}
 	}
-	
+
     public ModelCompareOptions clone() {
         // not much efficient, but...
         ModelCompareOptions clone = fromModelCompareOptionsType(toModelCompareOptionsType());

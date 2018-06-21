@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.emptySet;
 
 /**
  * Analogous to PrismUnmarshaller, this class unmarshals atomic values from XNode tree structures.
@@ -131,6 +133,9 @@ public class BeanUnmarshaller {
 	}
 
 	private <T> T unmarshalInternal(@NotNull XNode xnode, @NotNull Class<T> beanClass, @NotNull ParsingContext pc) throws SchemaException {
+		if (beanClass == null) {
+			throw new IllegalStateException("No bean class for node: " + xnode.debugDump());
+		}
 		if (xnode instanceof RootXNode) {
 			XNode subnode = ((RootXNode) xnode).getSubnode();
 			if (subnode == null) {
@@ -157,12 +162,23 @@ public class BeanUnmarshaller {
 			PrimitiveUnmarshaller<T> unmarshaller = specialPrimitiveUnmarshallers.get(beanClass);
 			if (unmarshaller != null) {
 				return unmarshaller.unmarshal(prim, beanClass, pc);
-			} else if (prim.isEmpty()) {
-				return instantiate(beanClass);		// Special case. Just return empty object
 			} else {
-				throw new SchemaException("Cannot convert primitive value to bean of type " + beanClass);
+				return unmarshallPrimitive(prim, beanClass, pc);
 			}
 		} else {
+
+			if (beanClass.getPackage() == null || beanClass.getPackage().getName().equals("java.lang")) {
+				// We obviously have primitive data type, but we are asked to unmarshall from map xnode
+				// NOTE: this may happen in XML when we have "empty" element, but it has some whitespace in it
+				//       such as those troublesome newlines. This also happens if there is "empty" element
+				//       but it contains an expression (so it is not PrimitiveXNode but MapXNode).
+				// TODO: more robust implementation
+				// TODO: look for "value" subnode with primitive value and try that.
+				// This is most likely attempt to parse primitive value with dynamic expression.
+				// Therefore just ignore entire map content.
+				return null;
+			}
+
 			@SuppressWarnings("unchecked")
 			MapUnmarshaller<T> unmarshaller = specialMapUnmarshallers.get(beanClass);
 			if (xnode instanceof MapXNode && unmarshaller != null) {		// TODO: what about special unmarshaller + hetero list?
@@ -170,6 +186,51 @@ public class BeanUnmarshaller {
 			}
 			return unmarshalFromMapOrHeteroList(xnode, beanClass, pc);
 		}
+	}
+
+	/**
+	 * For cases when XSD complex type has a simple content. In that case the resulting class has @XmlValue annotation.
+	 */
+	private <T> T unmarshallPrimitive(PrimitiveXNode<T> prim, Class<T> beanClass, ParsingContext pc) throws SchemaException {
+		if (prim.isEmpty()) {
+			return instantiateWithSubtypeGuess(beanClass, emptySet());		// Special case. Just return empty object
+		}
+
+		Field valueField = XNodeProcessorUtil.findXmlValueField(beanClass);
+
+		if (valueField == null) {
+			ParsingMigrator parsingMigrator = prismContext.getParsingMigrator();
+			if (parsingMigrator != null) {
+				T bean = parsingMigrator.tryParsingPrimitiveAsBean(prim, beanClass, pc);
+				if (bean != null) {
+					return bean;
+				}
+			}
+			throw new SchemaException("Cannot convert primitive value to bean of type " + beanClass);
+		}
+
+		T instance = instantiate(beanClass);
+
+		if (!valueField.isAccessible()) {
+			valueField.setAccessible(true);
+		}
+
+		T value;
+		if (prim.isParsed()) {
+			value = prim.getValue();
+		} else {
+			Class<?> fieldType = valueField.getType();
+			QName xsdType = XsdTypeMapper.toXsdType(fieldType);
+			value = prim.getParsedValue(xsdType, (Class<T>) fieldType);
+		}
+
+		try {
+			valueField.set(instance, value);
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new SchemaException("Cannot set primitive value to field " + valueField.getName() + " of bean " + beanClass + ": "+e.getMessage(), e);
+		}
+
+		return instance;
 	}
 
 	boolean canProcess(QName typeName) {
@@ -201,9 +262,24 @@ public class BeanUnmarshaller {
 				throw new SchemaException("SearchFilterType is not supported in combination of heterogeneous list.");
 			}
 		} else {
-			T bean = instantiate(beanClass);
+			T bean = instantiateWithSubtypeGuess(beanClass, mapOrList);
 			return unmarshalFromMapOrHeteroListToBean(bean, mapOrList, null, pc);
 		}
+	}
+
+	private <T> T instantiateWithSubtypeGuess(@NotNull Class<T> beanClass, XNode mapOrList) throws SchemaException {
+		if (!(mapOrList instanceof MapXNode)) {
+			return instantiate(beanClass);          // guessing is supported only for traditional maps now
+		}
+		return instantiateWithSubtypeGuess(beanClass, ((MapXNode) mapOrList).keySet());
+	}
+
+	private <T> T instantiateWithSubtypeGuess(@NotNull Class<T> beanClass, Collection<QName> fields) throws SchemaException {
+		if (!Modifier.isAbstract(beanClass.getModifiers())) {
+			return instantiate(beanClass);          // non-abstract classes are currently instantiated directly (could be changed)
+		}
+		Class<? extends T> subclass = inspector.findMatchingSubclass(beanClass, fields);
+		return instantiate(subclass);
 	}
 
 	private <T> T instantiate(@NotNull Class<T> beanClass) {
@@ -880,7 +956,10 @@ public class BeanUnmarshaller {
 		if (pc.isStrict()) {
             throw e;
         } else {
-            LoggingUtils.logException(LOGGER, "Couldn't parse part of the document. It will be ignored. Document part:\n{}", e, xsubnode);
+            LoggingUtils.logException(LOGGER, "Couldn't parse part of the document. It will be ignored. Document part: {}", e, xsubnode);
+            if (LOGGER.isDebugEnabled()) {
+            	LOGGER.debug("Part that couldn't be parsed:\n{}", xsubnode.debugDump());
+            }
 			pc.warn("Couldn't parse part of the document. It will be ignored. Document part:\n" + xsubnode);
             return true;
         }
@@ -957,7 +1036,7 @@ public class BeanUnmarshaller {
 			if (xsubnode.getTypeQName() != null) {
 				PrismValue value = prismContext.parserFor(xsubnode.toRootXNode()).parseItemValue();	// TODO what about objects? oid/version will be lost here
 				if (value != null && !value.isRaw()) {
-					raw = new RawType(value, prismContext);
+					raw = new RawType(value, xsubnode.getTypeQName(), prismContext);
 				}
 			}
 			propValue = raw;
@@ -1048,7 +1127,7 @@ public class BeanUnmarshaller {
 			return null;
 		}
 		T filterType = instantiate(beanClass);
-		filterType.parseFromXNode(xmap, prismContext);
+		filterType.parseFromXNode(xmap, pc, prismContext);
 		return filterType;
 	}
 
@@ -1165,6 +1244,10 @@ public class BeanUnmarshaller {
 	private ProtectedStringType unmarshalProtectedString(MapXNode map, Class beanClass, ParsingContext pc) throws SchemaException {
 		ProtectedStringType protectedType = new ProtectedStringType();
 		XNodeProcessorUtil.parseProtectedType(protectedType, map, prismContext, pc);
+		if (protectedType.isEmpty()) {
+			// E.g. in case when the xmap is empty or if there are is just an expression
+			return null;
+		}
 		return protectedType;
 	}
 
@@ -1195,4 +1278,3 @@ public class BeanUnmarshaller {
 	}
 	//endregion
 }
- 

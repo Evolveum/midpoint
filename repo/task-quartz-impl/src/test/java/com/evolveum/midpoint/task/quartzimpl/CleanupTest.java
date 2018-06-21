@@ -50,20 +50,13 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"classpath:ctx-task.xml",
-        "classpath:ctx-task-test.xml",
-        "classpath:ctx-repo-cache.xml",
-        "classpath*:ctx-repository-test.xml",
-        "classpath:ctx-audit.xml",
-        "classpath:ctx-security.xml",
-        "classpath:ctx-common.xml",
-        "classpath:ctx-configuration-test.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-task-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CleanupTest extends AbstractTestNGSpringContextTests {
 
     private static final Trace LOGGER = TraceManager.getTrace(CleanupTest.class);
 
-    public static final File FOLDER_REPO = new File("./src/test/resources/repo");
+    public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
     @Autowired
     private TaskManagerQuartzImpl taskManager;
@@ -76,7 +69,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
     public void testTasksCleanup() throws Exception {
 
         // GIVEN
-        final File file = new File(FOLDER_REPO, "tasks-for-cleanup.xml");
+        final File file = new File(FOLDER_BASIC, "tasks-for-cleanup.xml");
         List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
 
         OperationResult result = new OperationResult("tasks cleanup");
@@ -89,7 +82,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
         // because now we can't move system time (we're not using DI for it) we create policy
         // which should always point to 2013-05-07T12:00:00.000+02:00
         final long NOW = System.currentTimeMillis();
-        Calendar when = create_2013_07_12_12_00_Calendar();
+        Calendar when = create_2013_05_07_12_00_00_Calendar();
         CleanupPolicyType policy = createPolicy(when, NOW);
 
         taskManager.cleanupTasks(policy, taskManager.createTaskInstance(), result);
@@ -112,7 +105,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
     }
 
-    private Calendar create_2013_07_12_12_00_Calendar() {
+    private Calendar create_2013_05_07_12_00_00_Calendar() {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+2"));
         calendar.set(Calendar.YEAR, 2013);
         calendar.set(Calendar.MONTH, Calendar.MAY);

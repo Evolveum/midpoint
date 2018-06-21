@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 package com.evolveum.midpoint.web.component.form;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -67,33 +68,21 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	private static final String ID_TEXT = "text";
 	private static final String ID_FEEDBACK = "feedback";
 	private static final String ID_EDIT = "edit";
-
-	protected static final String MODAL_ID_OBJECT_SELECTION_POPUP = "objectSelectionPopup";
-
-	private Collection<Class<? extends O>> types;
-
-	public ValueChoosePanel(String id, IModel<T> value, Collection<Class<? extends O>> types) {
-		this(id, value, null, false, types);
-	}
-
-	public ValueChoosePanel(String id, IModel<T> value, List<PrismReferenceValue> values, boolean required,
-			Collection<Class<? extends O>> types) {
+	
+	public ValueChoosePanel(String id, IModel<T> value) {
 		super(id, value);
-		setOutputMarkupId(true);
-
-		this.types = types;
-
-		initLayout(value, values, required, types);
+		setOutputMarkupId(true);		
 	}
-
-    private void initLayout(final IModel<T> value, final List<PrismReferenceValue> values,
-			final boolean required, Collection<Class<? extends O>> types) {
-
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		
 		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
 
 		textWrapper.setOutputMarkupId(true);
 
-		TextField<String> text = new TextField<String>(ID_TEXT, createTextModel(value));
+		TextField<String> text = new TextField<>(ID_TEXT, createTextModel());
 		text.add(new AjaxFormComponentUpdatingBehavior("blur") {
 			private static final long serialVersionUID = 1L;
 
@@ -101,7 +90,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 			protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
 			}
 		});
-		text.setRequired(required);
+		text.setRequired(isRequired());
 		text.setEnabled(false);
 		textWrapper.add(text);
 
@@ -113,47 +102,68 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				editValuePerformed(values, target);
+				editValuePerformed(target);
 			}
 		};
+		
+		edit.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isEnabled() {
+				return isEditButtonEnabled();
+			}
+		});
 		textWrapper.add(edit);
 		add(textWrapper);
 
         initButtons();
     }
+    
+    protected boolean isEditButtonEnabled() {
+    	return true;
+    }
 
 	protected void replaceIfEmpty(ObjectType object) {
 		ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
-		ort.setTargetName(object.getName());
 		getModel().setObject((T) ort.asReferenceValue());
 
 	}
 
-	protected ObjectQuery createChooseQuery(List<PrismReferenceValue> values) {
+	protected ObjectQuery createChooseQuery() {
 		ArrayList<String> oidList = new ArrayList<>();
 		ObjectQuery query = new ObjectQuery();
 		// TODO we should add to filter currently displayed value
 		// not to be displayed on ObjectSelectionPanel instead of saved value
-		// for (PrismReferenceValue ref : values) {
-		// if (ref != null) {
-		// if (ref.getOid() != null && !ref.getOid().isEmpty()) {
-		// oidList.add(ref.getOid());
-		// }
-		// }
-		// }
-
-		// if (isediting) {
-		// oidList.add(orgModel.getObject().getObject().asObjectable().getOid());
-		// }
-
+		
 		if (oidList.isEmpty()) {
+			ObjectFilter customFilter = createCustomFilter();
+			if (customFilter != null) {
+				query.addFilter(customFilter);
+				return query;
+			}
+			
 			return null;
+			
 		}
 
 		ObjectFilter oidFilter = InOidFilter.createInOid(oidList);
 		query.setFilter(NotFilter.createNot(oidFilter));
 
+		ObjectFilter customFilter = createCustomFilter();
+		if (customFilter != null) {
+			query.addFilter(customFilter);
+		}
+		
 		return query;
+	}
+	
+	protected boolean isRequired() {
+		return false;
+	}
+	
+	protected ObjectFilter createCustomFilter() {
+		return null;
 	}
 
 	/**
@@ -164,7 +174,8 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		return "col-md-offset-4";
 	}
 
-	protected IModel<String> createTextModel(final IModel<T> model) {
+	protected IModel<String> createTextModel() {
+		final IModel<T> model = getModel();
 		return new AbstractReadOnlyModel<String>() {
 			private static final long serialVersionUID = 1L;
 
@@ -194,12 +205,14 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		};
 	}
 
-	protected void editValuePerformed(List<PrismReferenceValue> values, AjaxRequestTarget target) {
-		List<QName> supportedTypes = WebComponentUtil.resolveObjectTypesToQNames(types,
-				getPageBase().getPrismContext());
-		ObjectFilter filter = createChooseQuery(values) == null ? null
-				: createChooseQuery(values).getFilter();
-		Class<O> defaultType = (Class<O>) types.iterator().next();
+	protected void editValuePerformed(AjaxRequestTarget target) {
+		List<QName> supportedTypes = getSupportedTypes();
+		ObjectFilter filter = createChooseQuery() == null ? null
+				: createChooseQuery().getFilter();
+		if (CollectionUtils.isEmpty(supportedTypes)){
+			supportedTypes = WebComponentUtil.createObjectTypeList();
+		}
+		Class<O> defaultType = getDefaultType(supportedTypes);
 		ObjectBrowserPanel<O> objectBrowserPanel = new ObjectBrowserPanel<O>(
 				getPageBase().getMainPopupBodyId(), defaultType, supportedTypes, false, getPageBase(),
 				filter) {
@@ -216,7 +229,16 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		getPageBase().showMainPopup(objectBrowserPanel, target);
 
 	}
+	
+	public List<QName> getSupportedTypes() {
+		return WebComponentUtil.createObjectTypeList();
+	}
 
+	protected Class<O> getDefaultType(List<QName> supportedTypes){
+		return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.iterator().next());
+	}
+
+	
 	/*
 	 * TODO - this method contains check, if chosen object already is not in
 	 * selected values array This is a temporary solution until we well be able

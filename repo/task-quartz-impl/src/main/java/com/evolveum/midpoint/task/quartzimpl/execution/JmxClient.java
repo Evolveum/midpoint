@@ -36,7 +36,7 @@ public class JmxClient {
             final JMXServiceURL url, final Map<String,Object> env, long timeout, TimeUnit unit)
             throws IOException {
 
-        final BlockingQueue<Object> mailbox = new ArrayBlockingQueue <Object>(1);
+        final BlockingQueue<Object> mailbox = new ArrayBlockingQueue<>(1);
         ExecutorService executor =
                 Executors.newSingleThreadExecutor(daemonThreadFactory);
         executor.submit(new Runnable() {

@@ -45,9 +45,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
  * Simple UCF tests. No real resource, just basic setup and sanity.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  * This is an UCF test. It shold not need repository or other things from the midPoint spring context
  * except from the provisioning beans. But due to a general issue with spring context initialization
  * this is a lesser evil for now (MID-392)
@@ -70,22 +70,22 @@ public abstract class AbstractUcfDummyTest extends AbstractTestNGSpringContextTe
 
 	@Autowired(required = true)
 	protected ConnectorFactory connectorFactoryIcfImpl;
-	
+
 	@Autowired(required = true)
 	protected PrismContext prismContext;
-	
+
 	private static Trace LOGGER = TraceManager.getTrace(AbstractUcfDummyTest.class);
-	
+
 	@BeforeClass
 	public void setup() throws Exception {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-		
+
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.setResource(resource);
 		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
-				
+
 		connectorFactory = connectorFactoryIcfImpl;
 
 		resource = PrismTestUtil.parseObject(RESOURCE_DUMMY_FILE);
@@ -94,19 +94,19 @@ public abstract class AbstractUcfDummyTest extends AbstractTestNGSpringContextTe
 		PrismObject<ConnectorType> connector = PrismTestUtil.parseObject(CONNECTOR_DUMMY_FILE);
 		connectorType = connector.asObjectable();
 	}
-		
+
 
 	protected void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
-	
+
 	protected static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);
 	}
-	
+
 	protected void assertContainerDefinition(PrismContainer<?> container, String contName, QName xsdType, int minOccurs,
 			int maxOccurs) {
 		QName qName = new QName(SchemaConstantsGenerated.NS_COMMON, contName);

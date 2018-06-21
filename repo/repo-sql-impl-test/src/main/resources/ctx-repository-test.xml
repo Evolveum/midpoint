@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,16 +21,24 @@
         http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
        default-lazy-init="true" default-autowire="byName">
 
+    <bean id="queryCountInterceptor" class="com.evolveum.midpoint.repo.sql.testing.QueryCountInterceptor"/>
+
+    <bean id="entityStateInterceptor" class="com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor"/>
+
+    <bean id="testInterceptor" class="com.evolveum.midpoint.repo.sql.testing.TestInterceptor"/>
+
     <bean id="testSqlRepositoryBeanPostProcessor" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanPostProcessor"/>
 
-    <bean id="testSqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory"
+    <bean id="testSqlRepositoryFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory" primary="true"
           depends-on="repositoryFactory"/>
 
-    <bean id="testSqlAuditFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlAuditServiceFactory">
+    <bean id="testSqlAuditFactory" class="com.evolveum.midpoint.repo.sql.testing.TestSqlAuditServiceFactory" primary="true">
         <property name="repositoryFactory" ref="testSqlRepositoryFactory" />
     </bean>
 
     <import resource="ctx-repository-session-test.xml"/>
 
     <alias name="testSessionFactory" alias="sessionFactory"/>
+
+    <bean id="extItemDictionary" class="com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary"/>
 </beans>

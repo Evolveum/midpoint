@@ -20,7 +20,9 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,13 +41,13 @@ import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_ACTIVATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_ADMINISTRATIVE_STATUS;
+import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -84,7 +86,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test001CreateForeignCampaign() throws Exception {
         final String TEST_NAME = "test001CreateForeignCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -110,12 +112,13 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         campaign = getCampaignWithCases(roleInducementCampaignOid);
         display("campaign", campaign);
         assertAfterCampaignCreate(campaign, roleInducementCertDefinition);
+        assertCases(campaign.getOid(), 0);
     }
 
     @Test
     public void test002OpenFirstForeignStage() throws Exception {
         final String TEST_NAME = "test002OpenFirstForeignStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestRoleInducementCertification.class.getName() + "." + TEST_NAME);
@@ -139,7 +142,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test005CreateCampaignDenied() throws Exception {
         final String TEST_NAME = "test005CreateCampaignDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -159,7 +162,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test006CreateCampaignDeniedBobWrongDeputy() throws Exception {
         final String TEST_NAME = "test006CreateCampaignDeniedBobWrongDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -176,10 +179,10 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         }
     }
 
-    @Test(enabled = false)      // https://jira.evolveum.com/browse/MID-3878
+    @Test
     public void test010CreateCampaignAllowedForDeputy() throws Exception {
         final String TEST_NAME = "test010CreateCampaignAllowedForDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -204,12 +207,16 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         display("campaign", campaign);
         assertAfterCampaignCreate(campaign, certificationDefinition);
         assertPercentComplete(campaign, 100, 100, 100);      // no cases, no problems
+
+        // delete the campaign to keep other tests working
+        login(userAdministrator.asPrismObject());
+        deleteObject(AccessCertificationCampaignType.class, campaignOid);
     }
 
     @Test
-    public void test010CreateCampaignAllowed() throws Exception {
+    public void test011CreateCampaignAllowed() throws Exception {
         final String TEST_NAME = "test010CreateCampaignAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -239,7 +246,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test012SearchAllCasesDenied() throws Exception {
         final String TEST_NAME = "test012SearchAllCasesDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
@@ -248,7 +255,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test013SearchAllCasesAllowed() throws Exception {
         final String TEST_NAME = "test013SearchAllCasesAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
@@ -278,7 +285,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test020OpenFirstStageDenied() throws Exception {
         final String TEST_NAME = "test020OpenFirstStageDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -300,7 +307,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
         final String TEST_NAME = "test021OpenFirstStageAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -337,7 +344,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test030SearchAllCasesDenied() throws Exception {
         final String TEST_NAME = "test030SearchCasesDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
@@ -346,8 +353,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test031SearchAllCasesDeniedLimitedDeputy() throws Exception {
         final String TEST_NAME = "test031SearchAllCasesDeniedLimitedDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        login(getUserFromRepo(USER_BOB_DEPUTY_NO_PRIVILEGES_OID));
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_BOB_DEPUTY_NO_ASSIGNMENTS_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
     }
@@ -355,7 +362,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test032SearchAllCasesAllowed() throws Exception {
         final String TEST_NAME = "test032SearchAllCasesAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
@@ -379,7 +386,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test(enabled = false)
     public void test034SearchAllCasesAllowedDeputy() throws Exception {
         final String TEST_NAME = "test034SearchAllCasesAllowedDeputy";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_DEPUTY_FULL_OID));
 
         // GIVEN
@@ -403,7 +410,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test040SearchCasesFilteredSortedPaged() throws Exception {
         final String TEST_NAME = "test040SearchCasesFilteredSortedPaged";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
@@ -444,7 +451,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test050SearchWorkItemsAdministrator() throws Exception {
         final String TEST_NAME = "test050SearchWorkItemsAdministrator";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -471,7 +478,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test052SearchWorkItemsByTenantRef() throws Exception {
         final String TEST_NAME = "test052SearchWorkItemsByTenantRef";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -504,7 +511,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test054SearchDecisionsByOrgRef() throws Exception {
         final String TEST_NAME = "test054SearchDecisionsByOrgRef";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -536,7 +543,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test056SearchDecisionsByAdminStatus() throws Exception {
         final String TEST_NAME = "test056SearchDecisionsByAdminStatus";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -568,7 +575,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test060SearchOpenWorkItemsDeputyDenied() throws Exception {
         final String TEST_NAME = "test060SearchOpenWorkItemsDeputyDenied";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_DEPUTY_NONE_OID));
 
         // GIVEN
@@ -593,7 +600,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test062SearchOpenWorkItemsDeputyAllowed() throws Exception {
         final String TEST_NAME = "test062SearchOpenWorkItemsDeputyAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_OID));
 
         // GIVEN
@@ -619,7 +626,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test100RecordDecision() throws Exception {
         final String TEST_NAME = "test100RecordDecision";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -655,7 +662,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test105RecordAcceptJackCeo() throws Exception {
         final String TEST_NAME = "test105RecordAcceptJackCeo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -692,7 +699,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test110RecordRevokeJackCeo() throws Exception {
         final String TEST_NAME = "test110RecordRevokeJackCeo";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -750,7 +757,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test150CloseFirstStageDeny() throws Exception {
         final String TEST_NAME = "test150CloseFirstStageDeny";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
@@ -770,7 +777,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test151CloseCampaignDeny() throws Exception {
         final String TEST_NAME = "test151CloseCampaignDeny";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
@@ -790,7 +797,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test152CloseFirstStageAllow() throws Exception {
         final String TEST_NAME = "test152CloseFirstStageAllow";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
@@ -825,7 +832,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test200StartRemediationDeny() throws Exception {
         final String TEST_NAME = "test200StartRemediationDeny";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ELAINE_OID));
 
         // GIVEN
@@ -845,7 +852,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     @Test
     public void test205StartRemediationAllow() throws Exception {
         final String TEST_NAME = "test205StartRemediationAllow";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
@@ -893,5 +900,128 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
+    @Test
+    public void test210CheckAfterClose() throws Exception {
+        final String TEST_NAME = "test210CheckAfterClose";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator.asPrismObject());
 
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN
+        waitForCampaignTasks(campaignOid, 20000, result);
+
+        // THEN
+        userAdministrator = getUser(USER_ADMINISTRATOR_OID).asObjectable();
+        display("administrator", userAdministrator);
+        AssignmentType assignment = findAssignmentByTargetRequired(userAdministrator.asPrismObject(), ROLE_SUPERUSER_OID);
+        assertCertificationMetadata(assignment.getMetadata(), SchemaConstants.MODEL_CERTIFICATION_OUTCOME_ACCEPT, singleton(USER_ADMINISTRATOR_OID), singleton("administrator: no comment"));
+    }
+
+    @Test
+    public void test900CleanupCampaignsDeny() throws Exception {
+        final String TEST_NAME = "test900CleanupCampaignsDeny";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_ELAINE_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN+THEN
+        TestUtil.displayWhen(TEST_NAME);
+        CleanupPolicyType policy = new CleanupPolicyType().maxRecords(0);
+        certificationService.cleanupCampaigns(policy, task, result);
+        display("result", result);
+
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = getAllCampaigns(result);
+        display("campaigns", campaigns);
+    }
+
+    @Test
+    public void test910CleanupCampaignsAllow() throws Exception {
+        final String TEST_NAME = "test910CleanupCampaignsAllow";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        // WHEN+THEN
+        TestUtil.displayWhen(TEST_NAME);
+        CleanupPolicyType policy = new CleanupPolicyType().maxRecords(0);
+        certificationService.cleanupCampaigns(policy, task, result);
+        result.computeStatus();
+        display("result", result);
+        assertSuccess(result);
+
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns = getAllCampaigns(result);
+        display("campaigns", campaigns);
+        assertEquals("Wrong # of remaining campaigns", 1, campaigns.size());
+        PrismObject<AccessCertificationCampaignType> remainingCampaign = campaigns.get(0);
+        assertEquals("Wrong OID of the remaining campaign", roleInducementCampaignOid, remainingCampaign.getOid());
+
+        certificationManager.closeCampaign(roleInducementCampaignOid, true, task, result);
+
+        certificationService.cleanupCampaigns(policy, task, result);
+        result.computeStatus();
+        assertSuccess(result);
+
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaigns2 = getAllCampaigns(result);
+        display("campaigns after 2nd cleanup", campaigns2);
+        assertEquals("Wrong # of remaining campaigns", 0, campaigns2.size());
+    }
+
+    @Test
+    public void test920CleanupCampaignsByAge() throws Exception {
+        final String TEST_NAME = "test920CleanupCampaignsByAge";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
+        task.setOwner(userAdministrator.asPrismObject());
+        OperationResult result = task.getResult();
+
+        AccessCertificationCampaignType c1 = new AccessCertificationCampaignType(prismContext)
+                .name("c1")
+                .state(CLOSED)
+                .stageNumber(0)
+                .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-PT10M")));
+        AccessCertificationCampaignType c2 = new AccessCertificationCampaignType(prismContext)
+                .name("c2")
+                .state(CLOSED)
+                .stageNumber(0)
+                .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-P2D")));
+        AccessCertificationCampaignType c3 = new AccessCertificationCampaignType(prismContext)
+                .name("c3")
+                .state(CLOSED)
+                .stageNumber(0)
+                .endTimestamp(XmlTypeConverter.fromNow(XmlTypeConverter.createDuration("-P2M")));
+        repositoryService.addObject(c1.asPrismObject(), null, result);
+        repositoryService.addObject(c2.asPrismObject(), null, result);
+        repositoryService.addObject(c3.asPrismObject(), null, result);
+        display("campaigns", getAllCampaigns(result));
+
+        // WHEN+THEN
+        TestUtil.displayWhen(TEST_NAME);
+        CleanupPolicyType policy = new CleanupPolicyType().maxAge(XmlTypeConverter.createDuration("P1D"));
+        certificationService.cleanupCampaigns(policy, task, result);
+        result.computeStatus();
+        assertSuccess(result);
+        display("cleanup result", result);
+
+        SearchResultList<PrismObject<AccessCertificationCampaignType>> campaignsAfter = getAllCampaigns(result);
+        display("campaigns after cleanup", campaignsAfter);
+
+        assertEquals("Wrong # of remaining campaigns", 1, campaignsAfter.size());
+        PrismObject<AccessCertificationCampaignType> remainingCampaign = campaignsAfter.get(0);
+        assertEquals("Wrong name of the remaining campaign", "c1", remainingCampaign.getName().getOrig());
+    }
 }

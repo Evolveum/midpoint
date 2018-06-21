@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,21 +58,50 @@ public abstract class HibernateQuery {
      */
     private List<Condition> conditions = new ArrayList<>();
 
-    class Ordering {
-        String byProperty;
-        OrderDirection direction;
+    public static class Ordering {
+        @NotNull private final String byProperty;
+        private final OrderDirection direction;
 
-        public Ordering(String byProperty, OrderDirection direction) {
+        Ordering(@NotNull String byProperty, OrderDirection direction) {
             this.byProperty = byProperty;
             this.direction = direction;
+        }
+
+        @NotNull
+        public String getByProperty() {
+            return byProperty;
+        }
+
+        public OrderDirection getDirection() {
+            return direction;
         }
     }
 
     private List<Ordering> orderingList = new ArrayList<>();
 
-    public HibernateQuery(JpaEntityDefinition primaryEntityDef) {
-        Validate.notNull(primaryEntityDef, "primaryEntityDef");
+
+    public static class Grouping {
+        @NotNull private final String byProperty;
+
+        Grouping(@NotNull String byProperty) {
+            this.byProperty = byProperty;
+        }
+
+        @NotNull
+        public String getByProperty() {
+            return byProperty;
+        }
+    }
+
+    private List<Grouping> groupingList = new ArrayList<>();
+
+
+    public HibernateQuery(@NotNull JpaEntityDefinition primaryEntityDef) {
         primaryEntity = createItemSpecification(primaryEntityDef);
+    }
+
+    protected HibernateQuery(EntityReference primaryEntity) {
+        this.primaryEntity = primaryEntity;
     }
 
     public List<ProjectionElement> getProjectionElements() {
@@ -80,6 +110,12 @@ public abstract class HibernateQuery {
 
     public void addProjectionElement(ProjectionElement element) {
         projectionElements.add(element);
+    }
+
+    public void addProjectionElementsFor(List<String> items) {
+        for (String item : items) {
+            addProjectionElement(new GenericProjectionElement(item));
+        }
     }
 
     public EntityReference getPrimaryEntity() {
@@ -98,6 +134,7 @@ public abstract class HibernateQuery {
         conditions.add(condition);
     }
 
+    // Seems to have some side effects. Do not call twice!
     public String getAsHqlText(int indent, boolean distinct) {
         StringBuilder sb = new StringBuilder();
 
@@ -141,6 +178,22 @@ public abstract class HibernateQuery {
                 }
             }
         }
+
+        if (!groupingList.isEmpty()) {
+            sb.append("\n");
+            indent(sb, indent);
+            sb.append("group by ");
+            boolean first = true;
+            for (Grouping grouping : groupingList) {
+                if (first) {
+                    first = false;
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(grouping.byProperty);
+            }
+        }
+
         return sb.toString();
     }
 
@@ -199,9 +252,27 @@ public abstract class HibernateQuery {
         return getPrimaryEntity().getAlias();
     }
 
+    // use with care!
+    public void setPrimaryEntityAlias(String alias) {
+        getPrimaryEntity().setAlias(alias);
+    }
+
     public void addOrdering(String propertyPath, OrderDirection direction) {
         orderingList.add(new Ordering(propertyPath, direction));
     }
+
+    public List<Ordering> getOrderingList() {
+        return orderingList;
+    }
+
+    public void addGrouping(String propertyPath) {
+        groupingList.add(new Grouping(propertyPath));
+    }
+
+    public List<Grouping> getGroupingList() {
+        return groupingList;
+    }
+
 
     public abstract RootHibernateQuery getRootQuery();
 

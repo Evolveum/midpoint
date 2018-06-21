@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -45,6 +42,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -66,7 +64,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -78,6 +76,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -86,6 +85,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -107,6 +107,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -122,7 +123,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Implementation classes : ResourceContentResourcePanel,
  * ResourceContentRepositoryPanel
- * 
+ *
  * @author katkav
  * @author semancik
  */
@@ -248,7 +249,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	private void initLayout() {
-		
+
 		WebMarkupContainer totals = new WebMarkupContainer(ID_TOTALS);
         totals.setOutputMarkupId(true);
         add(totals);
@@ -266,6 +267,11 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			protected List<IColumn<SelectableBean<ShadowType>, String>> createColumns() {
 				return ResourceContentPanel.this.initColumns();
+			}
+
+			@Override
+			protected PrismObject<ShadowType> getNewObjectListObject(){
+				return (new ShadowType()).asPrismObject();
 			}
 
 			@Override
@@ -386,7 +392,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	protected abstract void initShadowStatistics(WebMarkupContainer totals);
-	
+
 	private void initButton(String id, String label, String icon, final String category,
 			final List<TaskType> tasks) {
 
@@ -463,6 +469,40 @@ public abstract class ResourceContentPanel extends Panel {
 			PrismProperty<ShadowKindType> taskKind = task
 					.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_KIND));
 			ShadowKindType taskKindValue = null;
+			
+			if (taskKind == null) {
+				PrismProperty<QName> taskObjectClass = task
+						.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
+				
+				if (taskObjectClass == null) {
+					LOGGER.warn("Bad task definition. Task {} doesn't contain definition either of objectClass or kind/intent", task.getOid());
+					continue;
+				}
+				
+				QName objectClass = getObjectClass();
+				if (objectClass == null) {
+					LOGGER.trace("Trying to determine objectClass for kind: {}, intent: {}", getKind(), getIntent());
+					RefinedObjectClassDefinition objectClassDef = null;
+					try {
+						objectClassDef = getDefinitionByKind();
+					} catch (SchemaException e) {
+						LOGGER.error("Failed to search for objectClass definition. Reason: {}", e.getMessage(), e);
+					}
+					if (objectClassDef == null) {
+						LOGGER.warn("Cannot find any definition for kind: {}, intent: {}", getKind(), getIntent());
+						continue;
+					}
+					
+					objectClass = objectClassDef.getTypeName();
+				}
+				
+				if (QNameUtil.match(objectClass, taskObjectClass.getRealValue())) {
+					tasksForKind.add(task.asObjectable());
+				}
+				
+				continue;
+			}
+			
 			if (taskKind != null) {
 				taskKindValue = taskKind.getRealValue();
 
@@ -529,10 +569,10 @@ public abstract class ResourceContentPanel extends Panel {
 		if (addAdditionalOptions() != null) {
 			opts.add(addAdditionalOptions());
 		}
-	
+
 		provider.setUseObjectCounting(isUseObjectCounting());
 		provider.setOptions(opts);
-		
+
 	}
 
 	private StringResourceModel createStringResource(String key) {
@@ -623,20 +663,29 @@ public abstract class ResourceContentPanel extends Panel {
 				};
 			}
 
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<ShadowType>> rowModel) {
+                return Model.of(getResultLabel(rowModel));
+            }
+
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
 				OperationResultType resultType = getResult(rowModel);
-				OperationResult result = OperationResult.createOperationResult(resultType);
+				OperationResult result;
+				try {
+					result = OperationResult.createOperationResult(resultType);
+				} catch (SchemaException e) {
+					throw new SystemException(e.getMessage(), e);
+				}
 
 				OperationResultPanel body = new OperationResultPanel(
 						ResourceContentPanel.this.getPageBase().getMainPopupBodyId(),
-						new Model<OpResult>(OpResult.getOpResult(pageBase, result)), getPage());
+                    new Model<>(OpResult.getOpResult(pageBase, result)), getPage());
 				body.setOutputMarkupId(true);
 				ResourceContentPanel.this.getPageBase().showMainPopup(body, target);
 
 			}
 		});
-
 		return columns;
 	}
 
@@ -739,7 +788,7 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	private List<InlineMenuItem> createHeaderMenuItems() {
-		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+		List<InlineMenuItem> items = new ArrayList<>();
 
 		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccounts"), true,
 				new HeaderMenuAction(this) {
@@ -801,7 +850,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 	@SuppressWarnings("serial")
 	private List<InlineMenuItem> createRowMenuItems() {
-		List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+		List<InlineMenuItem> items = new ArrayList<>();
 
 		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"), true,
 				new ColumnMenuAction<SelectableBean<ShadowType>>() {
@@ -883,32 +932,31 @@ public abstract class ResourceContentPanel extends Panel {
 	}
 
 	protected void importResourceObject(ShadowType selected, AjaxRequestTarget target) {
-		List<ShadowType> selectedShadow = null;
+		List<ShadowType> selectedShadows;
 		if (selected != null) {
-			selectedShadow = new ArrayList<>();
-			selectedShadow.add(selected);
+			selectedShadows = new ArrayList<>();
+			selectedShadows.add(selected);
 		} else {
-			selectedShadow = getTable().getSelectedObjects();
+			selectedShadows = getTable().getSelectedObjects();
 		}
 
 		OperationResult result = new OperationResult(OPERATION_IMPORT_OBJECT);
 		Task task = pageBase.createSimpleTask(OPERATION_IMPORT_OBJECT);
 
-		if (selectedShadow == null || selectedShadow.isEmpty()) {
+		if (selectedShadows == null || selectedShadows.isEmpty()) {
 			result.recordWarning("Nothing select to import");
 			getPageBase().showResult(result);
 			target.add(getPageBase().getFeedbackPanel());
 			return;
 		}
 
-		for (ShadowType shadow : selectedShadow) {
+		for (ShadowType shadow : selectedShadows) {
 			try {
 				getPageBase().getModelService().importFromResource(shadow.getOid(), task, result);
 			} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-					| CommunicationException | ConfigurationException e) {
+					| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 				result.recordPartialError("Could not import account " + shadow, e);
 				LOGGER.error("Could not import account {} ", shadow, e);
-				continue;
 			}
 		}
 

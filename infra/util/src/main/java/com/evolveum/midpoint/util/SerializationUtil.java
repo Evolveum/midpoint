@@ -25,10 +25,10 @@ import org.apache.commons.codec.binary.Base64;
 
 /**
  * Collection of java.io serialization utilities.
- * 
+ *
  * WARNING: these utilities are not supposed to be used in a production code. They are intended to be used
  * in tests, prototyping and maybe some run-time diagnostics tools (but think twice before using them anyway).
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -50,5 +50,5 @@ public class SerializationUtil {
         return new String(Base64.encodeBase64(byteArrayOutputStream.toByteArray()));
     }
 
-	
+
 }

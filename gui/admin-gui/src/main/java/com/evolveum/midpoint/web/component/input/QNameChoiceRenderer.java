@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,18 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
+/**
+ * This renderer shouldn't be used unless absolutely necessary. Think twice whether you need {@link QName}
+ * in your dropdown, because it's hard to translate {@link QName} values.
+ *
+ * Most of the time {@link com.evolveum.midpoint.schema.constants.ObjectTypes} and such should be used.
+ */
+@Deprecated
 public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static Map<String, String> prefixMap;
-	
+
 	static {
 		prefixMap = new HashMap<>();
 		prefixMap.put(SchemaConstantsGenerated.NS_ICF_SCHEMA, "icfs:");
@@ -43,7 +50,7 @@ public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 	}
 
 	private boolean usePrefix = false;
-	
+
 	public QNameChoiceRenderer() {
 		this(false);
 	}
@@ -70,7 +77,7 @@ public class QNameChoiceRenderer implements IChoiceRenderer<QName> {
 				sb.append(prefix);
 			}
 		}
-	
+
 		sb.append(object.getLocalPart());
 		return sb.toString();
 	}

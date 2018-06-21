@@ -33,9 +33,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 public abstract class AbstractSchemaTest {
-	
+
 	protected static final File COMMON_DIR = new File("src/test/resources/common");
-	
+
 	public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	public static final String USER_JACK_OID = "2f9b9299-6f45-498f-bc8e-8d17c6b93b20";
 	public static final String USER_JACK_NAME = "jack";
@@ -53,11 +53,11 @@ public abstract class AbstractSchemaTest {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
-	
+
 	protected PrismObjectDefinition<UserType> getUserDefinition() {
 		return PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
-	
+
 	protected void displayTestTile(String TEST_NAME) {
 		System.out.println("===[ "+TEST_NAME+" ]====");
 	}

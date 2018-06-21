@@ -17,8 +17,11 @@ package com.evolveum.midpoint.model.api.context;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,34 +35,58 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	@NotNull
 	Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();
 
+	default boolean isTriggered() {
+		return !getTriggers().isEmpty();
+	}
+
 	/**
-	 * Returns all triggers, even those that were indirectly "collected" via situation policy rules.
+	 * Returns all triggers, even those that were indirectly collected via situation policy rules.
 	 */
 	@NotNull
 	Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
 
 	String getName();
-	
+
 	PolicyRuleType getPolicyRule();
+
+	PolicyConstraintsType getPolicyConstraints();
+
+	// returns statically defined actions; consider using getEnabledActions() instead
+	PolicyActionsType getActions();
 
 	AssignmentPath getAssignmentPath();
 
 	/**
 	 * Object that "directly owns" the rule. TODO. [consider if really needed]
-	 * @return
 	 */
 	@Nullable
 	ObjectType getDirectOwner();
 
-	PolicyConstraintsType getPolicyConstraints();
-	
+	// TODO consider removing
 	String getPolicySituation();
-	
-	PolicyActionsType getActions();
-	
+
 	Collection<PolicyExceptionType> getPolicyExceptions();
 
-	EvaluatedPolicyRuleType toEvaluatedPolicyRuleType();
+	void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options);
 
 	boolean isGlobal();
+
+	String toShortString();
+
+	List<TreeNode<LocalizableMessage>> extractMessages();
+
+	List<TreeNode<LocalizableMessage>> extractShortMessages();
+
+	// BEWARE: enabled actions can be queried only after computeEnabledActions has been called
+	// todo think again about this
+
+	boolean containsEnabledAction();
+
+	boolean containsEnabledAction(Class<? extends PolicyActionType> clazz);
+
+	Collection<PolicyActionType> getEnabledActions();
+
+	<T extends PolicyActionType> List<T> getEnabledActions(Class<T> clazz);
+
+	<T extends PolicyActionType> T getEnabledAction(Class<T> clazz);
 }

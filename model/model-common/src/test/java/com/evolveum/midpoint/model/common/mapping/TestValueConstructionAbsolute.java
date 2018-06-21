@@ -27,7 +27,7 @@ import java.io.IOException;
 public class TestValueConstructionAbsolute {
 
 	private MappingTestEvaluator evaluator;
-	    
+
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {
     	evaluator = new MappingTestEvaluator();
@@ -38,14 +38,14 @@ public class TestValueConstructionAbsolute {
 //    @Test
 //    public void testConstructionExpressionInputMulti() throws JAXBException, ExpressionEvaluationException, ObjectNotFoundException, SchemaException, FileNotFoundException {
 //    	// WHEN
-//    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(String.class, 
+//    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(String.class,
 //    			"absolute/construction-expression-input-multi.xml", "employeeType", "rock", null, "testConstructionExpressionSimple",
 //    			"apple", "orange");
-//    	
+//
 //        // THEN
 //    	PrismAsserts.assertTripleZero(outputTriple, "apple", "orange", "rock" );
 //    	PrismAsserts.assertTripleNoPlus(outputTriple);
 //    	PrismAsserts.assertTripleNoMinus(outputTriple);
 //    }
-    
+
 }

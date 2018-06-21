@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,6 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -88,7 +87,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
      */
 	@Test
     public void test010AddJackToTesters() throws Exception {
-        TestUtil.displayTestTile(this, "test010AddJackToTesters");
+        TestUtil.displayTestTitle(this, "test010AddJackToTesters");
         executeTest("test010AddJackToTesters", USER_JACK_OID, new TestDetails() {
             @Override
             int subtaskCount() {
@@ -111,15 +110,15 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
 
                 UserType jack = context.getFocusContext().getObjectCurrent().asObjectable();
                 AssertJUnit.assertEquals("Jack has wrong number of accounts", 1, jack.getLinkRef().size());
                 jackAccountShadowOid = jack.getLinkRef().get(0).getOid();
 
-                LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, result);
+                LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, task, result);
 
                 ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_SHADOW_MODIFY_ADD_ENTITLEMENT_TESTERS, ObjectModificationType.COMPLEX_TYPE);
                 ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
@@ -164,7 +163,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
      */
     @Test
     public void test020AddElisabethToTestersRejected() throws Exception {
-        TestUtil.displayTestTile(this, "test020AddElisabethToTestersRejected");
+        TestUtil.displayTestTitle(this, "test020AddElisabethToTestersRejected");
         executeTest("test020AddElisabethToTestersRejected", USER_ELISABETH_OID, new TestDetails() {
             @Override
             int subtaskCount() {
@@ -187,15 +186,15 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_ELISABETH_OID, result);
 
                 UserType elisabeth = context.getFocusContext().getObjectCurrent().asObjectable();
                 AssertJUnit.assertEquals("Elisabeth has wrong number of accounts", 1, elisabeth.getLinkRef().size());
                 elisabethAccountShadowOid = elisabeth.getLinkRef().get(0).getOid();
 
-                LensProjectionContext accountContext = fillContextWithAccount(context, elisabethAccountShadowOid, result);
+                LensProjectionContext accountContext = fillContextWithAccount(context, elisabethAccountShadowOid, task, result);
 
                 ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_SHADOW_MODIFY_ADD_ENTITLEMENT_TESTERS, ObjectModificationType.COMPLEX_TYPE);
                 ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);
@@ -241,13 +240,13 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
     @Test
     public void test100AddJackToGuests() throws Exception {
         final String TEST_NAME = "test100AddJackToGuests";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         Task modelTask = taskManager.createTaskInstance(TEST_NAME);
         OperationResult result = new OperationResult(TEST_NAME);
         modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
-        LensContext<UserType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
 
         UserType jack = context.getFocusContext().getObjectCurrent().asObjectable();
@@ -258,7 +257,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
         assertEquals("Wrong # of jack's account associations", 1, accountBefore.getAssociation().size());
         assertHasAssociation(accountBefore, new QName("group"), GROUP_TESTERS_OID);
 
-        LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, jackAccountShadowOid, modelTask, result);
 
         ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(REQ_SHADOW_MODIFY_ADD_ENTITLEMENT_GUESTS, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta shadowDelta = DeltaConvertor.createObjectDelta(modElement, ShadowType.class, prismContext);

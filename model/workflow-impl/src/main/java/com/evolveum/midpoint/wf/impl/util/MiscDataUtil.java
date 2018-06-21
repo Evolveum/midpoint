@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -36,7 +37,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
@@ -82,27 +85,14 @@ public class MiscDataUtil {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(MiscDataUtil.class);
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private TaskManager taskManager;
-    
-    @Autowired
-    private SecurityEnforcer securityEnforcer;
-
-    @Autowired
-    private WfConfiguration wfConfiguration;
-
-    @Autowired
-    private ActivitiEngine activitiEngine;
-
-	@Autowired
-	private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private PrismContext prismContext;
+	@Autowired private TaskManager taskManager;
+	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private SecurityContextManager securityContextManager;
+	@Autowired private WfConfiguration wfConfiguration;
+	@Autowired private ActivitiEngine activitiEngine;
+	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
 
     public static ObjectReferenceType toObjectReferenceType(LightweightObjectRef ref) {
 		if (ref != null) {
@@ -306,10 +296,10 @@ public class MiscDataUtil {
 		}
 	}
 
-    public boolean isAuthorized(WorkItemType workItem, RequestedOperation operation) {
+    public boolean isAuthorized(WorkItemType workItem, RequestedOperation operation, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         MidPointPrincipal principal;
 		try {
-			principal = securityEnforcer.getPrincipal();
+			principal = securityContextManager.getPrincipal();
 		} catch (SecurityViolationException e) {
 			return false;
 		}
@@ -317,10 +307,10 @@ public class MiscDataUtil {
             return false;
         }
 		try {
-			if (securityEnforcer.isAuthorized(operation.actionAll.getUrl(), null, null, null, null, null)) {
+			if (securityEnforcer.isAuthorized(operation.actionAll.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result)) {
 				return true;
 			}
-			if (operation.actionOwn != null && !securityEnforcer.isAuthorized(operation.actionOwn.getUrl(), null, null, null, null, null)) {
+			if (operation.actionOwn != null && !securityEnforcer.isAuthorized(operation.actionOwn.getUrl(), null, AuthorizationParameters.EMPTY, null, task, result)) {
 				return false;
 			}
 		} catch (SchemaException e) {
@@ -353,7 +343,14 @@ public class MiscDataUtil {
         List<IdentityLink> identityLinks;
         try {
             TaskService taskService = activitiEngine.getTaskService();
-            identityLinks = taskService.getIdentityLinksForTask(taskId);
+            // working around activiti bug, see MID-3799.6 (the NPE when task does not exist)
+			org.activiti.engine.task.Task task = taskService.createTaskQuery()
+					.taskId(taskId)
+					.singleResult();
+			if (task == null) {
+				return false;
+			}
+			identityLinks = taskService.getIdentityLinksForTask(taskId);
         } catch (ActivitiException e) {
             throw new SystemException("Couldn't determine user authorization, because the task candidate users and groups couldn't be retrieved: " + e.getMessage(), e);
         }
@@ -377,7 +374,7 @@ public class MiscDataUtil {
     public boolean isAuthorizedToClaim(String taskId) {
         MidPointPrincipal principal;
         try {
-            principal = securityEnforcer.getPrincipal();
+            principal = securityContextManager.getPrincipal();
         } catch (SecurityViolationException e) {
             return false;
         }
@@ -392,7 +389,7 @@ public class MiscDataUtil {
     // todo move to something activiti-related
 
     public static Map<String,FormProperty> formPropertiesAsMap(List<FormProperty> properties) {
-        Map<String,FormProperty> retval = new HashMap<String,FormProperty>();
+        Map<String,FormProperty> retval = new HashMap<>();
         for (FormProperty property : properties) {
             retval.put(property.getId(), property);
         }
@@ -524,7 +521,7 @@ public class MiscDataUtil {
 					}
 				} else {
 					// "execute immediately"
-					if (childTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
+					if (childTask.getModelOperationContext() == null || childTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
 						recordResultingChanges(rv.getApplied(), wfc, prismContext);
 					} else if (!containsHandler(childTask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
 						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
@@ -540,12 +537,12 @@ public class MiscDataUtil {
 	}
 
 	// TODO move somewhere else?
-	public ChangesByState getChangesByStateForRoot(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
+	public ChangesByState getChangesByStateForRoot(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		ChangesByState rv = new ChangesByState(prismContext);
-		recordChanges(rv, rootTask.getModelOperationContext(), modelInteractionService, result);
+		recordChanges(rv, rootTask.getModelOperationContext(), modelInteractionService, task, result);
 		for (TaskType subtask : rootTask.getSubtask()) {
-			recordChanges(rv, subtask.getModelOperationContext(), modelInteractionService, result);
+			recordChanges(rv, subtask.getModelOperationContext(), modelInteractionService, task, result);
 			final WfContextType wfc = subtask.getWorkflowContext();
 			if (wfc != null && wfc.getProcessInstanceId() != null) {
 				Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
@@ -591,14 +588,14 @@ public class MiscDataUtil {
 		return false;
 	}
 
-	private <F extends FocusType> void recordChanges(ChangesByState rv, LensContextType modelOperationContext, ModelInteractionService modelInteractionService,
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
+	private <O extends ObjectType> void recordChanges(ChangesByState rv, LensContextType modelOperationContext, ModelInteractionService modelInteractionService,
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (modelOperationContext == null) {
 			return;
 		}
-		ModelContext<F> modelContext = unwrapModelContext(modelOperationContext, modelInteractionService, result);
-		ObjectTreeDeltas<F> deltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(modelContext);
-		ObjectTreeDeltas<F> target;
+		ModelContext<O> modelContext = ModelContextUtil.unwrapModelContext(modelOperationContext, modelInteractionService, task, result);
+		ObjectTreeDeltas<O> deltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(modelContext);
+		ObjectTreeDeltas<O> target;
 		switch (modelContext.getState()) {
 			case INITIAL:
 			case PRIMARY: target = rv.getWaitingToBeApplied(); break;
@@ -643,19 +640,6 @@ public class MiscDataUtil {
 		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
 			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
 			target.merge(fromObjectTreeDeltasType(ps.getResultingDeltas(), prismContext));
-		}
-	}
-
-	private ModelContext unwrapModelContext(LensContextType lensContextType, ModelInteractionService modelInteractionService, OperationResult result) throws
-			ObjectNotFoundException {
-		if (lensContextType != null) {
-			try {
-				return modelInteractionService.unwrapModelContext(lensContextType, result);
-			} catch (SchemaException | CommunicationException | ConfigurationException e) {   // todo treat appropriately
-				throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
-			}
-		} else {
-			return null;
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
-  * Copyright (c) 2010-2016 Evolveum
+  * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,27 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.ModificationPrecondition;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.api.VersionPrecondition;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -40,6 +46,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,8 +55,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -63,10 +72,13 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
@@ -76,10 +88,14 @@ import static org.testng.AssertJUnit.assertEquals;
 public class ModifyTest extends BaseSQLRepoTest {
 
     private static final File TEST_DIR = new File("src/test/resources/modify");
+    private static final File ACCOUNT_ATTRIBUTE_FILE = new File(TEST_DIR, "account-attribute.xml");
     private static final File ACCOUNT_FILE = new File(TEST_DIR, "account.xml");
     private static final File MODIFY_USER_ADD_LINK = new File(TEST_DIR, "change-add.xml");
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);
+
+    private static final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
+    private static final QName QNAME_WEAPON = new QName("http://example.com/p", "weapon");
 
 	@BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
@@ -99,7 +115,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(expectedExceptions = SystemException.class, enabled = false)
     public void test010ModifyWithExistingName() throws Exception {
     	final String TEST_NAME = "test010ModifyWithExistingName";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult("MODIFY");
 
@@ -130,7 +146,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(expectedExceptions = ObjectNotFoundException.class, enabled = false)
     public void test020ModifyNotExistingUser() throws Exception {
     	final String TEST_NAME = "test020ModifyNotExistingUser";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, "change-add.xml"),
@@ -146,7 +162,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(enabled = false) // MID-3483
     public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
     	final String TEST_NAME = "test030ModifyUserOnNonExistingAccountTest";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult("MODIFY");
 
@@ -182,7 +198,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(enabled=false) // MID-3483
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
     	final String TEST_NAME = "test031ModifyUserOnExistingAccountTest";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
         OperationResult result = new OperationResult(TEST_NAME);
@@ -221,7 +237,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test032ModifyTaskObjectRef() throws Exception {
     	final String TEST_NAME = "test032ModifyTaskObjectRef";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TEST_NAME);
         File taskFile = new File(TEST_DIR, "task.xml");
@@ -314,7 +330,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test100ModifyUserAddRole() throws Exception {
     	final String TEST_NAME = "test100ModifyUserAddRole";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult parentResult = new OperationResult("Modify user -> add roles");
         String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
@@ -356,7 +372,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test110ModifyDeleteObjectChangeFromAccount() throws Exception {
     	final String TEST_NAME = "test110ModifyDeleteObjectChangeFromAccount";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
         PrismObject<ShadowType> accShadow = prismContext.parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
@@ -389,7 +405,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test(enabled = false) // MID-3484
     public void test120ModifyAccountMetadata() throws Exception {
     	final String TEST_NAME = "test120ModifyAccountMetadata";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
         OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -438,7 +454,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObjectDefinition<ShadowType> accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
 
-        Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+        Collection<ItemDelta> modifications = new ArrayList<>();
         PropertyDelta pdelta = PropertyDelta.createModificationReplaceProperty(
         		(new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
         modifications.add(pdelta);
@@ -493,9 +509,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 	@Test
     public void test130ExtensionModify() throws Exception {
     	final String TEST_NAME = "test130ExtensionModify";
-    	TestUtil.displayTestTile(TEST_NAME);
-
-        final QName QNAME_LOOT = new QName("http://example.com/p", "loot");
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         File userFile = new File(TEST_DIR, "user-with-extension.xml");
         //add first user
@@ -509,7 +523,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue("User was not saved correctly", user.diff(readUser).isEmpty());
         String lastVersion = readUser.getVersion();
 
-        Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+        Collection<ItemDelta> modifications = new ArrayList<>();
         ItemPath path = new ItemPath(UserType.F_EXTENSION, QNAME_LOOT);
         PrismProperty loot = user.findProperty(path);
         PropertyDelta lootDelta = new PropertyDelta(path, loot.getDefinition(), prismContext);
@@ -532,7 +546,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void test140ModifyAccountSynchronizationSituation() throws Exception {
     	final String TEST_NAME = "test140ModifyAccountSynchronizationSituation";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult("testModifyAccountSynchronizationSituation");
 
@@ -591,10 +605,89 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("shadow: " + shadows.get(0).debugDump());
     }
 
+    private String accountOid;
+
+    @Test
+    public void test142ModifyAccountAttributeSameValue() throws Exception {
+        final String TEST_NAME = "test142ModifyAccountAttributeSameValue";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
+        repositoryService.addObject(account, null, result);
+        accountOid = account.getOid();
+
+        PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
+                .replace("account123")
+                .asItemDeltas();
+
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        AssertJUnit.assertNotNull(afterModify);
+        ShadowType afterFirstModifyType = afterModify.asObjectable();
+        System.out.println("shadow: " + afterModify.debugDump());
+    }
+
+    @Test
+    public void test144ModifyAccountAttributeDifferent() throws Exception {
+        final String TEST_NAME = "test144ModifyAccountAttributeDifferent";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        assertNotNull("account-attribute was not imported in previous tests", accountOid);
+
+        PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), definition)
+                .replace("account-new")
+                .asItemDeltas();
+
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        AssertJUnit.assertNotNull(afterModify);
+        ShadowType afterFirstModifyType = afterModify.asObjectable();
+        System.out.println("shadow: " + afterModify.debugDump());
+    }
+
+    @Test
+    public void test148ModifyAssignmentExtension() throws Exception {
+        final String TEST_NAME = "test148ModifyAssignmentExtension";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR, "user-with-assignment-extension.xml"));
+        repositoryService.addObject(user, null, result);
+
+        PrismPropertyDefinition<String> definition = new PrismPropertyDefinitionImpl<>(QNAME_WEAPON, DOMUtil.XSD_STRING, prismContext);
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+                .item(new ItemPath(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, QNAME_WEAPON), definition)
+                .replace("knife")
+                .asItemDeltas();
+
+        repositoryService.modifyObject(UserType.class, user.getOid(), itemDeltas, getModifyOptions(), result);
+
+        PrismObject<UserType> afterModify = repositoryService.getObject(UserType.class, user.getOid(), null, result);
+        AssertJUnit.assertNotNull(afterModify);
+        UserType afterFirstModifyType = afterModify.asObjectable();
+        System.out.println("user: " + afterModify.debugDump());
+    }
+
+    private String roleOid;
+
     @Test
     public void test150ModifyRoleAddInducements() throws Exception {
     	final String TEST_NAME = "test150ModifyRoleAddInducements";
-    	TestUtil.displayTestTile(TEST_NAME);
+    	TestUtil.displayTestTitle(TEST_NAME);
 
         OperationResult result = new OperationResult(TEST_NAME);
 
@@ -602,6 +695,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         //add first user
         PrismObject<RoleType> role = prismContext.parseObject(roleFile);
         String oid = repositoryService.addObject(role, null, result);
+        roleOid = oid;
 
         //modify second user name to "existingName"
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
@@ -628,7 +722,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
 		// modify role once more to check version progress
 		String version = role.getVersion();
-		repositoryService.modifyObject(RoleType.class, oid, new ArrayList<ItemDelta>(), getModifyOptions(), result);
+		repositoryService.modifyObject(RoleType.class, oid, new ArrayList<>(), getModifyOptions(), result);
 		result.recomputeStatus();
 		AssertJUnit.assertTrue(result.isSuccess());
 		role = repositoryService.getObject(RoleType.class, oid, null, result);
@@ -640,6 +734,192 @@ public class ModifyTest extends BaseSQLRepoTest {
 			assertEquals("Version has changed", version, role.getVersion());
 		}
 	}
+
+    @Test
+    public void test160ModifyWithPrecondition() throws Exception {
+        final String TEST_NAME = "test160ModifyWithPrecondition";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        // GIVEN
+        String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
+        ModificationPrecondition<RoleType> precondition = o -> { throw new PreconditionViolationException("hello"); };
+
+        // WHEN
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+                .item(RoleType.F_DESCRIPTION).replace("123456")
+                .asItemDeltas();
+        try {
+            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+            // THEN
+            fail("unexpected success");
+        } catch (PreconditionViolationException e) {
+            assertEquals("Wrong exception message", "hello", e.getMessage());
+        }
+
+        String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
+        assertEquals("unexpected version change", versionBefore, versionAfter);
+    }
+
+    @Test
+    public void test162ModifyWithPrecondition2() throws Exception {
+        final String TEST_NAME = "test162ModifyWithPrecondition2";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        // GIVEN
+        String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
+        ModificationPrecondition<RoleType> precondition = o -> false;
+
+        // WHEN
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+                .item(RoleType.F_DESCRIPTION).replace("123456")
+                .asItemDeltas();
+        try {
+            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+            // THEN
+            fail("unexpected success");
+        } catch (PreconditionViolationException e) {
+            // ok
+            System.out.println("got expected exception: " + e.getMessage());
+        }
+
+        String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
+        assertEquals("unexpected version change", versionBefore, versionAfter);
+    }
+
+    @Test
+    public void test164ModifyWithVersionPreconditionFalse() throws Exception {
+        final String TEST_NAME = "test164ModifyWithVersionPreconditionFalse";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        // GIVEN
+        String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
+        ModificationPrecondition<RoleType> precondition = new VersionPrecondition<>("9999");
+
+        // WHEN
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+                .item(RoleType.F_DESCRIPTION).replace("123456")
+                .asItemDeltas();
+        try {
+            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+            // THEN
+            fail("unexpected success");
+        } catch (PreconditionViolationException e) {
+            // ok
+            System.out.println("got expected exception: " + e.getMessage());
+        }
+
+        String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
+        assertEquals("unexpected version change", versionBefore, versionAfter);
+    }
+
+    @Test
+    public void test166ModifyWithVersionPreconditionTrue() throws Exception {
+        final String TEST_NAME = "test166ModifyWithVersionPreconditionTrue";
+        TestUtil.displayTestTitle(TEST_NAME);
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        // GIVEN
+        String versionBefore = repositoryService.getVersion(RoleType.class, roleOid, result);
+        ModificationPrecondition<RoleType> precondition = new VersionPrecondition<>(versionBefore);
+
+        // WHEN
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+                .item(RoleType.F_DESCRIPTION).replace("123456")
+                .asItemDeltas();
+        repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+
+        String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
+        assertEquals("unexpected version change", Integer.parseInt(versionBefore)+1, Integer.parseInt(versionAfter));
+        String description = repositoryService.getObject(RoleType.class, roleOid, null, result).asObjectable().getDescription();
+        assertEquals("description was not set", "123456", description);
+    }
+
+    @Test
+    public void test200ReplaceAttributes() throws Exception {
+        final String TEST_NAME = "test200ReplaceAttributes";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ATTRIBUTE_FILE);
+        account.setOid(null);
+        repositoryService.addObject(account, null, result);
+        accountOid = account.getOid();
+
+        QName ATTR1_QNAME = new QName(MidPointConstants.NS_RI, "attr1");
+        PrismPropertyDefinition<String> def1 = new PrismPropertyDefinitionImpl<>(ATTR1_QNAME, DOMUtil.XSD_STRING, prismContext);
+        ShadowAttributesType attributes = new ShadowAttributesType(prismContext);
+        PrismProperty<String> attr1 = def1.instantiate();
+        attr1.setRealValue("value1");
+        attributes.asPrismContainerValue().add(attr1);
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ATTRIBUTES)
+                .replace(attributes)
+                .asItemDeltas();
+
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        Session session = open();
+        List shadows = session.createQuery("from RShadow").list();
+        LOGGER.info("shadows:\n{}", shadows);
+        //noinspection unchecked
+        List<Object[]> extStrings = session.createQuery("select e.owner.oid, e.itemId, e.value from ROExtString e").list();
+        for (Object[] extString : extStrings) {
+            LOGGER.info("-> {}", Arrays.asList(extString));
+        }
+        close(session);
+
+        ObjectQuery query1 = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                .item(new ItemPath(ShadowType.F_ATTRIBUTES, ATTR1_QNAME), def1).eq("value1")
+                .build();
+        List list1 = repositoryService.searchObjects(ShadowType.class, query1, null, result);
+        LOGGER.info("*** query1 result:\n{}", DebugUtil.debugDump(list1));
+        assertEquals("Wrong # of query1 results", 1, list1.size());
+
+        session = open();
+        RObject obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        assertEquals(1, obj.getStrings().size());
+        close(session);
+
+        // delete
+        itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ATTRIBUTES)
+                .delete(attributes.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        session = open();
+        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        assertEquals(0, obj.getStrings().size());
+        close(session);
+
+        // add
+        itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_ATTRIBUTES)
+                .add(attributes.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, accountOid, itemDeltas, getModifyOptions(), result);
+
+        session = open();
+        obj = (RObject) session.createQuery("from RObject where oid = :o").setParameter("o", account.getOid()).getSingleResult();
+        assertEquals(1, obj.getStrings().size());
+        close(session);
+
+        // now test the "export" serialization option
+
+        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, accountOid, createRawCollection(), result);
+        String xml = prismContext.xmlSerializer().options(createSerializeForExport()).serialize(shadow);
+        System.out.println("Serialized for export:\n" + xml);
+        PrismObject<Objectable> shadowReparsed = prismContext.parseObject(xml);
+        System.out.println("Reparsed:\n" + shadowReparsed.debugDump());
+        Item<PrismValue, ItemDefinition> attr1Reparsed = shadowReparsed.findItem(new ItemPath(ShadowType.F_ATTRIBUTES, ATTR1_QNAME));
+        assertNotNull(attr1Reparsed);
+        assertFalse("Reparsed attribute is raw", attr1Reparsed.getValue(0).isRaw());
+    }
 
     private <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
     	assertAttribute(shadow, new QName(MidPointConstants.NS_RI, attrName), expectedValues);
@@ -654,4 +934,57 @@ public class ModifyTest extends BaseSQLRepoTest {
     		PrismAsserts.assertPropertyValue(attr, expectedValues);
     	}
 	}
+
+    @Test
+    public void test210ModifyObjectCollection() throws Exception {
+        final String TEST_NAME = "test210ModifyObjectCollection";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult("test210ModifyObjectCollection");
+
+        ObjectCollectionType collection = prismContext.createObjectable(ObjectCollectionType.class)
+                .name("collection")
+                .type(UserType.COMPLEX_TYPE);
+        repositoryService.addObject(collection.asPrismObject(), null, result);
+
+        List<ItemDelta<?, ?>> deltas1 = DeltaBuilder.deltaFor(ObjectCollectionType.class, prismContext)
+                .item(ObjectCollectionType.F_NAME).replace(PolyString.fromOrig("collection2"))
+                .asItemDeltas();
+        repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas1, result);
+
+        ItemDelta.applyTo(deltas1, collection.asPrismObject());
+        PrismObject<ObjectCollectionType> afterChange1 = repositoryService
+                .getObject(ObjectCollectionType.class, collection.getOid(), null, result);
+        assertEquals("Objects differ after change 1", collection.asPrismObject(), afterChange1);
+
+        ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_COST_CENTER).eq("100")
+                .buildFilter();
+        SearchFilterType filterBean = QueryJaxbConvertor.createSearchFilterType(filter, prismContext);
+
+        List<ItemDelta<?, ?>> deltas2 = DeltaBuilder.deltaFor(ObjectCollectionType.class, prismContext)
+                .item(ObjectCollectionType.F_DESCRIPTION).replace("description")
+                .item(ObjectCollectionType.F_FILTER).replace(filterBean)
+                .asItemDeltas();
+        repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas2, result);
+
+        ItemDelta.applyTo(deltas2, collection.asPrismObject());
+        PrismObject<ObjectCollectionType> afterChange2 = repositoryService
+                .getObject(ObjectCollectionType.class, collection.getOid(), null, result);
+
+        // it's hard to compare filters, so we have to do the test in a special way
+        PrismObject<ObjectCollectionType> fromRepoWithoutFilter = afterChange2.clone();
+        fromRepoWithoutFilter.asObjectable().setFilter(null);
+        PrismObject<ObjectCollectionType> expectedWithoutFilter = collection.asPrismObject().clone();
+        expectedWithoutFilter.asObjectable().setFilter(null);
+        assertEquals("Objects (without filter) differ after change 2", expectedWithoutFilter, fromRepoWithoutFilter);
+
+        SearchFilterType filterFromRepo = afterChange2.asObjectable().getFilter();
+        SearchFilterType filterExpected = collection.getFilter();
+        ObjectFilter filterFromRepoParsed = QueryJaxbConvertor.createObjectFilter(UserType.class, filterFromRepo, prismContext);
+        ObjectFilter filterExpectedParsed = QueryJaxbConvertor.createObjectFilter(UserType.class, filterExpected, prismContext);
+        //noinspection ConstantConditions
+        assertTrue("Filters differ", filterExpectedParsed.equals(filterFromRepoParsed, false));
+    }
+
 }

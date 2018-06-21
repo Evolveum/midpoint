@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,15 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
+import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -49,6 +52,8 @@ public interface PrismContext {
 	 * Initializes the prism context, e.g. loads and parses all the schemas.
 	 */
 	void initialize() throws SchemaException, SAXException, IOException;
+	
+	void configurePolyStringNormalizer(PolyStringNormalizerConfigurationType configuration) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 	/**
 	 * Returns the schema registry.
@@ -68,6 +73,7 @@ public interface PrismContext {
 	Protector getDefaultProtector();
 
 	//region Parsing
+
 	/**
 	 * Creates a parser ready to process the given file.
 	 * @param file File to be parsed.
@@ -109,6 +115,9 @@ public interface PrismContext {
 	@NotNull
 	PrismParserNoIO parserFor(@NotNull Element element);
 
+	@NotNull
+	String detectLanguage(@NotNull File file) throws IOException;
+
 	default <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
 		return parserFor(file).parse();
 	}
@@ -116,6 +125,11 @@ public interface PrismContext {
 	default <T extends Objectable> PrismObject<T> parseObject(String dataString) throws SchemaException {
 		return parserFor(dataString).parse();
 	}
+
+	ParsingMigrator getParsingMigrator();
+
+	void setParsingMigrator(ParsingMigrator migrator);
+
 	//endregion
 
 	//region Adopt methods
@@ -197,7 +211,7 @@ public interface PrismContext {
 	//endregion
 
 	/**
-	 * Creates a new PrismObject of a given static type.
+	 * Creates a new PrismObject of a given type.
 	 * @param clazz Static type of the object to be created.
 	 * @return New PrismObject.
 	 * @throws SchemaException If a definition for the given class couldn't be found.
@@ -206,13 +220,31 @@ public interface PrismContext {
 	<O extends Objectable> PrismObject<O> createObject(@NotNull Class<O> clazz) throws SchemaException;
 
 	/**
-	 * Creates a new Objectable of a given static type.
+	 * Creates a new Objectable of a given type.
 	 * @param clazz Static type of the object to be created.
 	 * @return New PrismObject's objectable content.
 	 * @throws SchemaException If a definition for the given class couldn't be found.
 	 */
 	@NotNull
 	<O extends Objectable> O createObjectable(@NotNull Class<O> clazz) throws SchemaException;
+
+	/**
+	 * Creates a new PrismObject of a given static type. It is expected that the type exists, so any SchemaExceptions
+	 * will be thrown as run-time exception.
+	 * @param clazz Static type of the object to be created.
+	 * @return New PrismObject.
+	 */
+	@NotNull
+	<O extends Objectable> PrismObject<O> createKnownObject(@NotNull Class<O> clazz);
+
+	/**
+	 * Creates a new Objectable of a given static type. It is expected that the type exists, so any SchemaExceptions
+	 * will be thrown as run-time exception.
+	 * @param clazz Static type of the object to be created.
+	 * @return New PrismObject's objectable content.
+	 */
+	@NotNull
+	<O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz);
 
 	/**
 	 * TODO hide this from PrismContext interface?
@@ -234,4 +266,9 @@ public interface PrismContext {
 	 * If defined, it is considered to be the same as the relation of 'null'. Currently in midPoint, it is the value of org:default.
 	 */
 	QName getDefaultRelation();
+
+	/**
+	 * If defined, marks the 'multiple objects' element.
+	 */
+	QName getObjectsElementName();
 }

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
@@ -33,6 +34,7 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -101,17 +103,13 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	Collection<RefinedAssociationDefinition> getAssociationDefinitions(ShadowKindType kind);
 
-	default Collection<RefinedAssociationDefinition> getEntitlementAssociationDefinitions() {
-		return getAssociationDefinitions(ShadowKindType.ENTITLEMENT);
-	}
-
 	RefinedAssociationDefinition findAssociationDefinition(QName name);
-
-	RefinedAssociationDefinition findEntitlementAssociationDefinition(QName name);
 
 	Collection<QName> getNamesOfAssociations();
 
 	Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions();
+	
+	Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions();
 	//endregion
 
 	//region General information ========================================================
@@ -120,16 +118,14 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	ObjectClassComplexTypeDefinition getObjectClassDefinition();
 
-	ResourceType getResourceType();
-
-	String getResourceNamespace();
+	String getResourceOid();
 
 	boolean isDefault();
 
 	ResourceObjectReferenceType getBaseContext();
 
 	String getHumanReadableName();
-	
+
 	ResourceObjectVolatilityType getVolatility();
 	//endregion
 
@@ -145,6 +141,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	ResourceShadowDiscriminator getShadowDiscriminator();
 
+	@Override
 	boolean matches(ShadowType shadowType);
 	//endregion
 
@@ -154,6 +151,8 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	Collection<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions();
 
 	boolean hasAuxiliaryObjectClass(QName expectedObjectClassName);
+
+	ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings();
 
 	Collection<ResourceObjectPattern> getProtectedObjectPatterns();
 
@@ -176,13 +175,13 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	//region Capabilities ========================================================
 
-	<T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass);
+	<T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType);
 
-	PagedSearchCapabilityType getPagedSearches();
+	PagedSearchCapabilityType getPagedSearches(ResourceType resourceType);
 
-	boolean isPagedSearchEnabled();
+	boolean isPagedSearchEnabled(ResourceType resourceType);
 
-	boolean isObjectCountingEnabled();
+	boolean isObjectCountingEnabled(ResourceType resourceType);
 
 	//endregion
 
@@ -193,7 +192,7 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	@NotNull
 	@Override
-	RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
+	RefinedObjectClassDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 	//endregion
 
 	LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType);

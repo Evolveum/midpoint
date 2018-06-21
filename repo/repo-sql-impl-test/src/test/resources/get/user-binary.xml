@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:p="http://example.com/p">
+    <user oid="f00d-011">
+        <name>user binary</name>
+        <extension>
+            <p:sshPubKey>
+                c3NoLXJzYSBBQUFBQjNOemFDMXljMkVBQUFBQkpRQUFBUUVBMDVGVzM5ZUFseHZ5VitEWHJHUHcw
+                RktJa1hmV0Z5WVVicWViWUxNUStBZDdBRUUxWjR6V3hKNFo1US8reUt4Vk0rRDNpQ29JakdoREN3
+                VmNRY29IZE90UFpDL09sR2pyV0RPWFd4NEJqZ1NROTllb0FoUllnelEySDlpWTdVTTlEMnRqbEtp
+                QmxuTlFhK0FSb0kvSDcwaFIwc1BvQTIrNUVubGRRK3lFMCtMWDJGbFZKaTVVWlMwN21JODlnaG81
+                bnZlYjJ2YTlOTmFFU2JBWUsrQVlQQjJWTUYxbjA5ai9KNlhnalkzYUN3Wm5jbmpUK3pyWm9YZ3Q3
+                YnBkLzFCMDZtOUI0Nk9oL1dqYXNXZjVPejFnMis1SDdqOXNIdmlHRnZLUG5BMHJNcTI1cEtXdXE4
+                ekhrVHdrTW4vbnVGejZkWCtXL2JCVHZnUWh3ODhhY2pOZ0FRPT0=
+            </p:sshPubKey>
+        </extension>
+    </user>
+</objects>

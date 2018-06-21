@@ -29,7 +29,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 public class PolyStringOrigMatchingRule implements MatchingRule<PolyString> {
-	
+
 	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "polyStringOrig");
 
 	/* (non-Javadoc)
@@ -59,7 +59,7 @@ public class PolyStringOrigMatchingRule implements MatchingRule<PolyString> {
 		if (a == null || b == null) {
 			return false;
 		}
-		return MiscUtil.equals(a.getOrig(), b.getOrig());  
+		return MiscUtil.equals(a.getOrig(), b.getOrig());
 	}
 
 	/* (non-Javadoc)
@@ -75,7 +75,7 @@ public class PolyStringOrigMatchingRule implements MatchingRule<PolyString> {
 		if (a == null){
 			return false;
 		}
-		
+
 		return Pattern.matches(regex, a.getOrig());
 	}
 

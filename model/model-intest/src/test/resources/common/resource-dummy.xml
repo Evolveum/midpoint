@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -161,7 +161,12 @@
 					<expression>
 						<script>
 							<allowEmptyValues>false</allowEmptyValues>
-							<code>'The crew of ' + input</code>
+							<code>
+								def evaluateNew = midpoint.isEvaluateNew()
+								log.debug("Ship inbound evaluateNew: {} : {}", evaluateNew, input)
+								assert evaluateNew != null : "null evaluateNew"
+								'The crew of ' + input
+							</code>
 						</script>
 					</expression>
 					<target>
@@ -222,6 +227,11 @@
 					</expression>
 				</outbound>
 			</attribute>
+            <attribute>
+                <ref>ri:wealth</ref>
+                <displayName>Wealth</displayName>
+                <tolerant>false</tolerant>
+            </attribute>
             <attribute>
                 <ref>ri:gossip</ref>
                 <displayName>Gossip</displayName>
@@ -510,6 +520,15 @@
 				<ref>ri:members</ref>
 				<fetchStrategy>minimal</fetchStrategy>
 			</attribute>
+			
+			<association> <!-- Nested group -->
+            	<ref>ri:group</ref>
+            	<kind>entitlement</kind>
+            	<intent>group</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:members</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
         </objectType>
         
         <objectType>

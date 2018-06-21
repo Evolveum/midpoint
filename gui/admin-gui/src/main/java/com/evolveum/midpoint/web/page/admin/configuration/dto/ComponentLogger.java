@@ -32,7 +32,7 @@ public class ComponentLogger extends LoggerConfiguration {
 
 	public ComponentLogger(ClassLoggerConfigurationType config) {
 		Validate.notNull(config, "Component logger configuration must not be null.");
-	
+
 		component = LoggingDto.componentMap.get(config.getPackage());
 
 		setLevel(config.getLevel());

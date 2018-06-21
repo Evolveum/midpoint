@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.formatters;
 
+import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -38,19 +40,20 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.*;
+
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 
 /**
  * @author mederly
@@ -58,15 +61,15 @@ import java.util.*;
 @Component
 public class TextFormatter {
 
-    @Autowired(required = true)
-    @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired protected NotificationFunctionsImpl functions;
 
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(
 			SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH);
 
     private static final Trace LOGGER = TraceManager.getTrace(TextFormatter.class);
 
+    @SuppressWarnings("unused")
     public String formatObjectModificationDelta(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         return formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, null, null);
     }
@@ -98,7 +101,7 @@ public class TextFormatter {
             retval.append(" - ");
             retval.append(getItemDeltaLabel(itemDelta, objectDefinition));
             retval.append(":\n");
-            formatItemDeltaContent(retval, itemDelta, hiddenPaths, showOperationalAttributes);
+            formatItemDeltaContent(retval, itemDelta, objectOld, hiddenPaths, showOperationalAttributes);
         }
 
         explainPaths(retval, toBeDisplayed, objectDefinition, objectOld, objectNew, hiddenPaths, showOperationalAttributes);
@@ -128,7 +131,7 @@ public class TextFormatter {
                 source = objectOld;
             }
             if (item == null) {
-                LOGGER.warn("Couldn't find {} in {} nor {}, no explanation could be created.", new Object[] {pathToExplain, objectNew, objectOld});
+                LOGGER.warn("Couldn't find {} in {} nor {}, no explanation could be created.", pathToExplain, objectNew, objectOld);
                 continue;
             }
             if (first) {
@@ -141,7 +144,7 @@ public class TextFormatter {
                 sb.append(" - ").append(label).append(":\n");
                 formatContainerValue(sb, "   ", (PrismContainerValue) item, false, hiddenPaths, showOperationalAttributes);
             } else {
-                LOGGER.warn("{} in {} was expected to be a PrismContainerValue; it is {} instead", new Object[]{pathToExplain, source, item.getClass()});
+                LOGGER.warn("{} in {} was expected to be a PrismContainerValue; it is {} instead", pathToExplain, source, item.getClass());
                 if (item instanceof PrismContainer) {
                     formatPrismContainer(sb, "   ", (PrismContainer) item, false, hiddenPaths, showOperationalAttributes);
                 } else if (item instanceof PrismReference) {
@@ -156,23 +159,41 @@ public class TextFormatter {
         }
     }
 
-    private void formatItemDeltaContent(StringBuilder sb, ItemDelta itemDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
-        formatItemDeltaValues(sb, "ADD", itemDelta.getValuesToAdd(), false, hiddenPaths, showOperationalAttributes);
-        formatItemDeltaValues(sb, "DELETE", itemDelta.getValuesToDelete(), true, hiddenPaths, showOperationalAttributes);
-        formatItemDeltaValues(sb, "REPLACE", itemDelta.getValuesToReplace(), false, hiddenPaths, showOperationalAttributes);
+    private void formatItemDeltaContent(StringBuilder sb, ItemDelta itemDelta, PrismObject objectOld,
+            List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+        formatItemDeltaValues(sb, "ADD", itemDelta.getValuesToAdd(), false, itemDelta.getPath(), objectOld, hiddenPaths, showOperationalAttributes);
+        formatItemDeltaValues(sb, "DELETE", itemDelta.getValuesToDelete(), true, itemDelta.getPath(), objectOld, hiddenPaths, showOperationalAttributes);
+        formatItemDeltaValues(sb, "REPLACE", itemDelta.getValuesToReplace(), false, itemDelta.getPath(), objectOld, hiddenPaths, showOperationalAttributes);
     }
 
-    private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+    private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values,
+            boolean isDelete, ItemPath path, PrismObject objectOld,
+            List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (values != null) {
             for (PrismValue prismValue : values) {
-                sb.append("   - " + type + ": ");
+                sb.append("   - ").append(type).append(": ");
                 String prefix = "     ";
-                formatPrismValue(sb, prefix, prismValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
+                if (isDelete && prismValue instanceof PrismContainerValue) {
+                    prismValue = fixEmptyContainerValue((PrismContainerValue) prismValue, path, objectOld);
+                }
+                formatPrismValue(sb, prefix, prismValue, isDelete, hiddenPaths, showOperationalAttributes);
                 if (!(prismValue instanceof PrismContainerValue)) {         // container values already end with newline
                     sb.append("\n");
                 }
             }
         }
+    }
+
+    private PrismValue fixEmptyContainerValue(PrismContainerValue pcv, ItemPath path, PrismObject objectOld) {
+        if (pcv.getId() == null || CollectionUtils.isNotEmpty(pcv.getItems())) {
+            return pcv;
+        }
+        PrismContainer oldContainer = objectOld.findContainer(path);
+        if (oldContainer == null) {
+            return pcv;
+        }
+        PrismContainerValue oldValue = oldContainer.getValue(pcv.getId());
+        return oldValue != null ? oldValue : pcv;
     }
 
     // todo - should each hiddenAttribute be prefixed with something like F_ATTRIBUTE? Currently it should not be.
@@ -253,15 +274,19 @@ public class TextFormatter {
 
     private void formatPrismContainer(StringBuilder sb, String prefix, Item item, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         for (PrismContainerValue subContainerValue : ((PrismContainer<? extends Containerable>) item).getValues()) {
-            sb.append(prefix);
-            sb.append(" - ");
-            sb.append(getItemLabel(item));
-            if (subContainerValue.getId() != null) {
-                sb.append(" #").append(subContainerValue.getId());
-            }
-            sb.append(":\n");
             String prefixSubContainer = prefix + "   ";
-            formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
+            StringBuilder valueSb = new StringBuilder();
+            formatContainerValue(valueSb, prefixSubContainer, subContainerValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
+            if (valueSb.length() > 0) {
+                sb.append(prefix);
+                sb.append(" - ");
+                sb.append(getItemLabel(item));
+                if (subContainerValue.getId() != null) {
+                    sb.append(" #").append(subContainerValue.getId());
+                }
+                sb.append(":\n");
+                sb.append(valueSb.toString());
+            }
         }
     }
 
@@ -273,7 +298,7 @@ public class TextFormatter {
         if (item.size() > 1) {
             for (PrismReferenceValue referenceValue : ((PrismReference) item).getValues()) {
                 sb.append("\n");
-                sb.append(prefix + "   - ");
+                sb.append(prefix).append("   - ");
                 sb.append(formatReferenceValue(referenceValue, mightBeRemoved));
             }
         } else if (item.size() == 1) {
@@ -288,13 +313,13 @@ public class TextFormatter {
         sb.append(getItemLabel(item));
         sb.append(": ");
         if (item.size() > 1) {
-            for (PrismPropertyValue propertyValue : ((PrismProperty<? extends Object>) item).getValues()) {
+            for (PrismPropertyValue propertyValue : ((PrismProperty<?>) item).getValues()) {
                 sb.append("\n");
-                sb.append(prefix + "   - ");
+                sb.append(prefix).append("   - ");
                 sb.append(ValueDisplayUtil.toStringValue(propertyValue));
             }
         } else if (item.size() == 1) {
-            sb.append(ValueDisplayUtil.toStringValue(((PrismProperty<? extends Object>) item).getValue(0)));
+            sb.append(ValueDisplayUtil.toStringValue(((PrismProperty<?>) item).getValue(0)));
         }
         sb.append("\n");
     }
@@ -353,19 +378,12 @@ public class TextFormatter {
             if (!mightBeRemoved) {
                 LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification (it might be already removed)", e);
             } else {
+                // ok, accepted
             }
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't resolve reference when displaying object name within a notification", e);
         }
         return null;
-    }
-
-    private String localPartOfType(Item item) {
-        if (item.getDefinition() != null) {
-            return localPart(item.getDefinition().getTypeName());
-        } else {
-            return null;
-        }
     }
 
     private String localPart(QName qname) {
@@ -440,7 +458,7 @@ public class TextFormatter {
     }
 
     private List<ItemDelta> filterAndOrderItemDeltas(ObjectDelta<? extends Objectable> objectDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
-        List<ItemDelta> toBeDisplayed = new ArrayList<ItemDelta>(objectDelta.getModifications().size());
+        List<ItemDelta> toBeDisplayed = new ArrayList<>(objectDelta.getModifications().size());
         List<QName> noDefinition = new ArrayList<>();
         for (ItemDelta itemDelta: objectDelta.getModifications()) {
             if (itemDelta.getDefinition() != null) {
@@ -456,20 +474,17 @@ public class TextFormatter {
 			LOGGER.error("ItemDeltas for {} without definition - WILL NOT BE INCLUDED IN NOTIFICATION. Containing object delta:\n{}",
 					noDefinition, objectDelta.debugDump());
 		}
-        Collections.sort(toBeDisplayed, new Comparator<ItemDelta>() {
-            @Override
-            public int compare(ItemDelta delta1, ItemDelta delta2) {
-                Integer order1 = delta1.getDefinition().getDisplayOrder();
-                Integer order2 = delta2.getDefinition().getDisplayOrder();
-                if (order1 != null && order2 != null) {
-                    return order1 - order2;
-                } else if (order1 == null && order2 == null) {
-                    return 0;
-                } else if (order1 == null) {
-                    return 1;
-                } else {
-                    return -1;
-                }
+        toBeDisplayed.sort((delta1, delta2) -> {
+            Integer order1 = delta1.getDefinition().getDisplayOrder();
+            Integer order2 = delta2.getDefinition().getDisplayOrder();
+            if (order1 != null && order2 != null) {
+                return order1 - order2;
+            } else if (order1 == null && order2 == null) {
+                return 0;
+            } else if (order1 == null) {
+                return 1;
+            } else {
+                return -1;
             }
         });
         return toBeDisplayed;
@@ -485,12 +500,12 @@ public class TextFormatter {
         if (items == null) {
             return new ArrayList<>();
         }
-        List<Item> toBeDisplayed = new ArrayList<Item>(items.size());
+        List<Item> toBeDisplayed = new ArrayList<>(items.size());
         List<QName> noDefinition = new ArrayList<>();
         for (Item item : items) {
             if (item.getDefinition() != null) {
                 boolean isHidden = NotificationFunctionsImpl.isAmongHiddenPaths(item.getPath(), hiddenPaths);
-                if (!isHidden && (showOperationalAttributes || !item.getDefinition().isOperational())) {
+                if (!isHidden && (showOperationalAttributes || !item.getDefinition().isOperational()) && !item.isEmpty()) {
                     toBeDisplayed.add(item);
                 }
             } else {
@@ -501,24 +516,46 @@ public class TextFormatter {
 			LOGGER.error("Items {} without definition - THEY WILL NOT BE INCLUDED IN NOTIFICATION.\nAll items:\n{}",
 					noDefinition, DebugUtil.debugDump(items));
 		}
-        Collections.sort(toBeDisplayed, new Comparator<Item>() {
-            @Override
-            public int compare(Item item1, Item item2) {
-                Integer order1 = item1.getDefinition().getDisplayOrder();
-                Integer order2 = item2.getDefinition().getDisplayOrder();
-                if (order1 != null && order2 != null) {
-                    return order1 - order2;
-                } else if (order1 == null && order2 == null) {
-                    return 0;
-                } else if (order1 == null) {
-                    return 1;
-                } else {
-                    return -1;
-                }
+        toBeDisplayed.sort((item1, item2) -> {
+            Integer order1 = item1.getDefinition().getDisplayOrder();
+            Integer order2 = item2.getDefinition().getDisplayOrder();
+            if (order1 != null && order2 != null) {
+                return order1 - order2;
+            } else if (order1 == null && order2 == null) {
+                return 0;
+            } else if (order1 == null) {
+                return 1;
+            } else {
+                return -1;
             }
         });
         return toBeDisplayed;
     }
 
+    public String formatUserName(SimpleObjectRef ref, OperationResult result) {
+        return formatUserName((UserType) ref.resolveObjectType(result, true), ref.getOid());
+    }
+
+    public String formatUserName(ObjectReferenceType ref, OperationResult result) {
+        UserType user = (UserType) functions.getObjectType(ref, true, result);
+        return formatUserName(user, ref.getOid());
+    }
+
+    public String formatUserName(UserType user, String oid) {
+        if (user == null || (user.getName() == null && user.getFullName() == null)) {
+            return oid;
+        }
+        if (user.getFullName() != null) {
+            return getOrig(user.getFullName()) + " (" + getOrig(user.getName()) + ")";
+        } else {
+            return getOrig(user.getName());
+        }
+    }
+
+    // TODO implement seriously
+    public String formatDateTime(XMLGregorianCalendar timestamp) {
+		//DateFormatUtils.format(timestamp.toGregorianCalendar(), DateFormatUtils.SMTP_DATETIME_FORMAT.getPattern());
+		return String.valueOf(XmlTypeConverter.toDate(timestamp));
+	}
 
 }

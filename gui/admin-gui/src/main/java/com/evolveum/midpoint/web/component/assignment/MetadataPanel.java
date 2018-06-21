@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -53,19 +52,22 @@ public class MetadataPanel extends BasePanel<MetadataType>{
     private static final String ID_HEADER_CONTAINER = "headerContainer";
     private static final String ID_METADATA_PROPERTY_KEY = "metadataPropertyKey";
     private static final String ID_METADATA_FILED = "metadataField";
+    private static final String ID_METADATA_LABEL = "metadataLabel";
     private static final String DOT_CLASS = MetadataPanel.class.getSimpleName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadObject";
 
     private String additionalHeaderStyle = "";
+    private String header = "";
 
     public MetadataPanel(String id, IModel<MetadataType> model) {
         super(id, model);
         initLayout();
     }
 
-    public MetadataPanel(String id, IModel<MetadataType> model, String additionalHeaderStyle){
+    public MetadataPanel(String id, IModel<MetadataType> model, String header, String additionalHeaderStyle){
         super(id, model);
         this.additionalHeaderStyle = additionalHeaderStyle;
+        this.header = header;
         initLayout();
     }
 
@@ -78,6 +80,11 @@ public class MetadataPanel extends BasePanel<MetadataType>{
         headerContainer.setOutputMarkupId(true);
         headerContainer.add(new AttributeAppender("class", "prism-header " + additionalHeaderStyle));
         metadataBlock.add(headerContainer);
+
+        Label metadataHeader = new Label(ID_METADATA_LABEL,
+                createStringResource("AssignmentEditorPanel.metadataBlock", header != null ? header : ""));
+        metadataHeader.setOutputMarkupId(true);
+        headerContainer.add(metadataHeader);
 
         RepeatingView metadataRowRepeater = new RepeatingView(ID_METADATA_ROW);
         metadataBlock.add(metadataRowRepeater);
@@ -94,8 +101,8 @@ public class MetadataPanel extends BasePanel<MetadataType>{
             AbstractReadOnlyModel<String> metadataFieldModel = new AbstractReadOnlyModel<String>() {
                 @Override
                 public String getObject() {
-                    PropertyModel<Object> tempModel = new PropertyModel<Object>(getModel(),
-                            qname.getLocalPart());
+                    PropertyModel<Object> tempModel = new PropertyModel<>(getModel(),
+                        qname.getLocalPart());
                     if (tempModel.getObject() instanceof XMLGregorianCalendar){
                         return WebComponentUtil.getLocalizedDate((XMLGregorianCalendar)tempModel.getObject(),
                                 DateLabelComponent.MEDIUM_MEDIUM_STYLE);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
  */
 public enum RelationTypes {
 
-    MEMBER(null, ""),
+	MEMBER(SchemaConstants.ORG_DEFAULT, ""),
     MANAGER(SchemaConstants.ORG_MANAGER, "Manager"),
     OWNER(SchemaConstants.ORG_OWNER, "Owner"),
     APPROVER(SchemaConstants.ORG_APPROVER, "Approver");

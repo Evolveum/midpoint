@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Almost the same as TestDummy but uses READ+REPLACE mode for all account+group attributes.
- * 
+ *
  * @author Radovan Semancik
  * @author Pavol Mederly
  *
@@ -33,8 +33,8 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyReadReplaceForAll extends TestDummy {
-	
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-priorities-read-replace/");
+
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-priorities-read-replace");
 	public static final File RESOURCE_DUMMY_FILENAME = new File(TEST_DIR, "resource-dummy-all-read-replace.xml");
 
 	@Override
@@ -46,5 +46,5 @@ public class TestDummyReadReplaceForAll extends TestDummy {
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
 	}
-	
+
 }

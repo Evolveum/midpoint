@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,51 +19,57 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
-import com.evolveum.midpoint.model.common.expression.*;
+import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.mutable.MutableBoolean;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
-import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -71,37 +77,27 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
+import static java.util.Collections.emptySet;
 
 /**
  * @author semancik
  *
  */
 public class LensUtil {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(LensUtil.class);
-	
-	public static <F extends ObjectType> void traceContext(Trace logger, String activity, String phase, 
-			boolean important,  LensContext<F> context, boolean showTriples) throws SchemaException {
-        if (logger.isTraceEnabled()) {
-        	logger.trace("Lens context:\n"+
-            		"---[ {} context {} ]--------------------------------\n"+
-            		"{}\n",
-					activity, phase, context.dump(showTriples));
-        }
-    }
 
 	public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context,
 																  String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ResourceType resourceType = context.getResource(resourceOid);
 		if (resourceType == null) {
 			// Fetching from provisioning to take advantage of caching and
@@ -128,7 +124,7 @@ public class LensUtil {
 		}
 		return resourceType;
 	}
-	
+
 	public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
 		RefinedObjectClassDefinition rObjClassDef = refinedSchema.getRefinedDefinition(kind, intent);
@@ -137,29 +133,29 @@ public class LensUtil {
 		}
 		return rObjClassDef.getIntent();
 	}
-	
+
 	public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context, PrismObject<ShadowType> equivalentAccount,
 																				   ProvisioningService provisioningService, PrismContext prismContext,
 																				   Task task, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ShadowType equivalentAccountType = equivalentAccount.asObjectable();
 		ShadowKindType kind = ShadowUtil.getKind(equivalentAccountType);
 		return getProjectionContext(context, ShadowUtil.getResourceOid(equivalentAccountType),
 				kind, equivalentAccountType.getIntent(), provisioningService,
 				prismContext, task, result);
 	}
-	
+
 	public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context, String resourceOid,
 																				   ShadowKindType kind, String intent,
 																				   ProvisioningService provisioningService, PrismContext prismContext,
 																				   Task task, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ResourceType resource = getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 		String refinedIntent = refineProjectionIntent(kind, intent, resource, prismContext);
 		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent);
 		return context.findProjectionContext(rsd);
 	}
-	
+
 	public static <F extends ObjectType> LensProjectionContext getOrCreateProjectionContext(LensContext<F> context,
 			ResourceShadowDiscriminator rsd) {
 		LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
@@ -171,359 +167,61 @@ public class LensUtil {
 		accountSyncContext.setDoReconciliation(context.isDoReconciliationForAllProjections());
 		return accountSyncContext;
 	}
-	
+
 	public static <F extends ObjectType> LensProjectionContext createAccountContext(LensContext<F> context, ResourceShadowDiscriminator rsd){
 		return new LensProjectionContext(context, rsd);
 	}
-	
-	
-	/**
-	 * Consolidate the mappings of a single item to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
-	 * It produces the delta considering the mapping exclusion, authoritativeness and strength.
-     *
-     * filterExistingValues: if true, then values that already exist in the item are not added (and those that don't exist are not removed)
-	 */
-	@NotNull
-	public static <V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> 
-		ItemDelta<V,D> consolidateTripleToDelta(
-			ItemPath itemPath, DeltaSetTriple<I> triple, D itemDefinition, 
-    		ItemDelta<V,D> aprioriItemDelta, PrismContainer<?> itemContainer, ValueMatcher<?> valueMatcher, Comparator<V> comparator,
-    		boolean addUnchangedValues, boolean filterExistingValues, boolean isExclusiveStrong, 
-    		String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
-    			
-		ItemDelta<V,D> itemDelta = itemDefinition.createEmptyDelta(itemPath);
-		
-		Item<V,D> itemExisting = null;
-		if (itemContainer != null) {
-            itemExisting = itemContainer.findItem(itemPath);
-		}
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Consolidating {} triple:\n{}\nApriori Delta:\n{}\nExisting item:\n{}",
-					itemPath, triple.debugDump(1),
-					DebugUtil.debugDump(aprioriItemDelta, 1),
-					DebugUtil.debugDump(itemExisting, 1));
-		}
-		
-        Collection<V> allValues = collectAllValues(triple, valueMatcher);
-        
-        final MutableBoolean itemHasStrongMutable = new MutableBoolean(false);
-        SimpleVisitor<I> visitor = pvwo -> {
-			if (pvwo.getMapping().getStrength() == MappingStrengthType.STRONG) {
-				itemHasStrongMutable.setValue(true);
-			}
-		};
-		triple.accept(visitor);
-        boolean ignoreNormalMappings = itemHasStrongMutable.booleanValue() && isExclusiveStrong;
-        
-        // We will process each value individually. I really mean each value. This whole method deals with
-        // a single item (e.g. attribute). But this loop iterates over every potential value of that item.
-        for (V value : allValues) {
-        	
-        	LOGGER.trace("  consolidating value: {}", value);
-        	// Check what to do with the value using the usual "triple routine". It means that if a value is
-        	// in zero set than we need no delta, plus set means add delta and minus set means delete delta.
-        	// The first set that the value is present determines the result.
-            Collection<ItemValueWithOrigin<V,D>> zeroPvwos =
-                    collectPvwosFromSet(value, triple.getZeroSet(), valueMatcher);
-            Collection<ItemValueWithOrigin<V,D>> plusPvwos =
-                    collectPvwosFromSet(value, triple.getPlusSet(), valueMatcher);
-            Collection<ItemValueWithOrigin<V,D>> minusPvwos =
-                    collectPvwosFromSet(value, triple.getMinusSet(), valueMatcher);
-            
-            if (LOGGER.isTraceEnabled()) {
-            	LOGGER.trace("PVWOs for value {}:\nzero = {}\nplus = {}\nminus = {}",
-						value, zeroPvwos, plusPvwos, minusPvwos);
-            }
-            
-            boolean zeroHasStrong = false;
-            if (!zeroPvwos.isEmpty()) {
-            	for (ItemValueWithOrigin<V,D> pvwo : zeroPvwos) {
-            		PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
-                    if (mapping.getStrength() == MappingStrengthType.STRONG) {
-                    	zeroHasStrong = true;
-                    }
-            	}
-            }
-            
-            if (zeroHasStrong && aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
-            	throw new PolicyViolationException("Attempt to delete value "+value+" from item "+itemPath
-            			+" but that value is mandated by a strong mapping (in "+contextDescription+")");
-            }
-            if (!zeroPvwos.isEmpty() && !addUnchangedValues) {
-                // Value unchanged, nothing to do
-                LOGGER.trace("Value {} unchanged, doing nothing", value);
-                continue;
-            }
 
-            PrismValueDeltaSetTripleProducer<V, D> exclusiveMapping = null;
-            Collection<ItemValueWithOrigin<V,D>> pvwosToAdd = null;
-            if (addUnchangedValues) {
-                pvwosToAdd = MiscUtil.union(zeroPvwos, plusPvwos);
-            } else {
-                pvwosToAdd = plusPvwos;
-            }
-
-            if (!pvwosToAdd.isEmpty()) {
-            	boolean weakOnly = true;
-            	boolean hasStrong = false;
-            	// There may be several mappings that imply that value. So check them all for
-                // exclusions and strength
-                for (ItemValueWithOrigin<V,D> pvwoToAdd : pvwosToAdd) {
-                	PrismValueDeltaSetTripleProducer<V,D> mapping = pvwoToAdd.getMapping();
-                    if (mapping.getStrength() != MappingStrengthType.WEAK) {
-                        weakOnly = false;
-                    }
-                    if (mapping.getStrength() == MappingStrengthType.STRONG) {
-                    	hasStrong = true;
-                    }
-                    if (mapping.isExclusive()) {
-                        if (exclusiveMapping == null) {
-                            exclusiveMapping = mapping;
-                        } else {
-                            String message = "Exclusion conflict in " + contextDescription + ", item " + itemPath +
-                                    ", conflicting constructions: " + exclusiveMapping + " and " + mapping;
-                            LOGGER.error(message);
-                            throw new ExpressionEvaluationException(message);
-                        }
-                    }
-                }
-                if (weakOnly) {
-                    // Postpone processing of weak values until we process all other values
-                    LOGGER.trace("Value {} mapping is weak in item {}, postponing processing in {}",
-							value, itemPath, contextDescription);
-                    continue;
-                }
-                if (!hasStrong && ignoreNormalMappings) {
-                	LOGGER.trace("Value {} mapping is normal in item {} and we have exclusiveStrong, skipping processing in {}",
-							value, itemPath, contextDescription);
-                    continue;
-                }
-                if (hasStrong && aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
-                	throw new PolicyViolationException("Attempt to delete value "+value+" from item "+itemPath
-                			+" but that value is mandated by a strong mapping (in "+contextDescription+")");
-                }
-                if (!hasStrong && (aprioriItemDelta != null && !aprioriItemDelta.isEmpty())) {
-                    // There is already a delta, skip this
-                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, " +
-                    		"skipping adding in {}", value, itemPath, contextDescription);
-                    continue;
-                }
-                if (filterExistingValues && hasValue(itemExisting, value, valueMatcher, comparator)) {
-                	LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}",
-							value, itemPath, contextDescription);
-                	continue;
-                }
-                LOGGER.trace("Value {} added to delta as ADD for item {} in {}", value, itemPath, contextDescription);
-                itemDelta.addValueToAdd((V)value.clone());
-                continue;
-            }
-
-            // We need to check for empty plus set. Values that are both in plus and minus are considered to be added.
-            // So check for that special case here to avoid removing them.
-            if (!minusPvwos.isEmpty() && plusPvwos.isEmpty()) {
-            	boolean weakOnly = true;
-            	boolean hasStrong = false;
-            	boolean hasAuthoritative = false;
-            	// There may be several mappings that imply that value. So check them all for
-                // exclusions and strength
-                for (ItemValueWithOrigin<V,D> pvwo : minusPvwos) {
-                	PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
-                    if (mapping.getStrength() != MappingStrengthType.WEAK) {
-                        weakOnly = false;
-                    }
-                    if (mapping.getStrength() == MappingStrengthType.STRONG) {
-                    	hasStrong = true;
-                    }
-                    if (mapping.isAuthoritative()) {
-                        hasAuthoritative = true;
-                    }
-                }
-                if (!hasAuthoritative) {
-                	LOGGER.trace("Value {} has no authoritative mapping for item {}, skipping deletion in {}",
-							value, itemPath, contextDescription);
-                	continue;
-                }
-                if (!hasStrong && (aprioriItemDelta != null && !aprioriItemDelta.isEmpty())) {
-                    // There is already a delta, skip this
-                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping deletion in {}",
-							value, itemPath, contextDescription);
-                    continue;
-                }
-                if (weakOnly && (itemExisting != null && !itemExisting.isEmpty())) {
-                    // There is already a value, skip this
-                    LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping deletion in {}",
-							value, itemPath, contextDescription);
-                    continue;
-                }
-                
-                if (weakOnly && !applyWeak && (itemExisting == null || itemExisting.isEmpty())){
-                	 // There is a weak mapping on a property, but we do not have full account available, so skipping deletion of the value is better way
-                    LOGGER.trace("Value {} mapping is weak and the full account could not be fetched, skipping deletion in {}",
-							value, itemPath, contextDescription);
-                    continue;
-                }
-                if (filterExistingValues && !hasValue(itemExisting, value, valueMatcher, comparator)) {
-                	LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {} (matcher: {})",
-							value, itemPath, contextDescription, valueMatcher);
-                	continue;
-                }
-                LOGGER.trace("Value {} added to delta as DELETE for item {} in {}",
-						value, itemPath, contextDescription);
-                itemDelta.addValueToDelete((V)value.clone());
-            }
-            
-            if (!zeroPvwos.isEmpty()) {
-            	boolean weakOnly = true;
-            	boolean hasStrong = false;
-            	boolean hasAuthoritative = false;
-            	// There may be several mappings that imply that value. So check them all for
-                // exclusions and strength
-                for (ItemValueWithOrigin<V,D> pvwo : zeroPvwos) {
-                	PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
-                    if (mapping.getStrength() != MappingStrengthType.WEAK) {
-                        weakOnly = false;
-                    }
-                    if (mapping.getStrength() == MappingStrengthType.STRONG) {
-                    	hasStrong = true;
-                    }
-                    if (mapping.isAuthoritative()) {
-                        hasAuthoritative = true;
-                    }
-                }
-            
-	            if (aprioriItemDelta != null && aprioriItemDelta.isReplace()) {
-	            	// Any strong mappings in the zero set needs to be re-applied as otherwise the replace will destroy it
-	                if (hasStrong) {
-	                	LOGGER.trace("Value {} added to delta for item {} in {} because there is strong mapping in the zero set",
-								value, itemPath, contextDescription);
-	                    itemDelta.addValueToAdd((V)value.clone());
-	                    continue;
-	                }
-	            }
-            }
-        }
-        
-        Item<V,D> itemNew = null;
-        if (itemContainer != null) {
-        	itemNew = itemContainer.findItem(itemPath);
-        }
-		if (!hasValue(itemNew, itemDelta)) {
-			// The application of computed delta results in no value, apply weak mappings
-			Collection<? extends ItemValueWithOrigin<V,D>> nonNegativePvwos = triple.getNonNegativeValues();
-			Collection<V> valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.ASSIGNMENTS, applyWeak);
-			if (valuesToAdd.isEmpty()) {
-				valuesToAdd = addWeakValues(nonNegativePvwos, OriginType.OUTBOUND, applyWeak);
-			}
-			if (valuesToAdd.isEmpty()) {
-				valuesToAdd = addWeakValues(nonNegativePvwos, null, applyWeak);
-			}
-			LOGGER.trace("No value for item {} in {}, weak mapping processing yielded values: {}",
-					itemPath, contextDescription, valuesToAdd);
-			itemDelta.addValuesToAdd(valuesToAdd);
-		} else {
-			LOGGER.trace("Existing values for item {} in {}, weak mapping processing skipped",
-					new Object[]{itemPath, contextDescription});
-		}
-		
-		if (itemExisting != null) {
-			List<V> existingValues = itemExisting.getValues();
-			if (existingValues != null) {
-				itemDelta.setEstimatedOldValues(PrismValue.cloneCollection(existingValues));
-			}
-		}
-        
-        return itemDelta;
-        
-    }
-	
-	private static <V extends PrismValue, D extends ItemDefinition> boolean hasValue(Item<V,D> item, ItemDelta<V,D> itemDelta) throws SchemaException {
-		if (item == null || item.isEmpty()) {
-			if (itemDelta != null && itemDelta.addsAnyValue()) {
-				return true;
-			} else {
-				return false;
-			}
-		} else {
-			if (itemDelta == null || itemDelta.isEmpty()) {
-				return true;
-			} else {
-				Item<V,D> clonedItem = item.clone();
-				itemDelta.applyToMatchingPath(clonedItem);
-				return !clonedItem.isEmpty();
-			}
-		}
+	public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyMetadata(V value, boolean isAssignment,
+			Collection<ItemValueWithOrigin<V, D>> origins) throws SchemaException {
+		return cloneAndApplyMetadata(value, isAssignment, () -> getAutoCreationIdentifier(origins));
 	}
-	
-	private static <V extends PrismValue, D extends ItemDefinition> Collection<V> addWeakValues(Collection<? extends ItemValueWithOrigin<V,D>> pvwos, OriginType origin, boolean applyWeak) {
-		Collection<V> values = new ArrayList<V>();
-		for (ItemValueWithOrigin<V,D> pvwo: pvwos) {
-			if (pvwo.getMapping().getStrength() == MappingStrengthType.WEAK && applyWeak) {
-				if (origin == null || origin == pvwo.getItemValue().getOriginType()) {
-					values.add((V)pvwo.getItemValue().clone());
-				}
+
+//	public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
+//			MappingType mapping) throws SchemaException {
+//		List<V> rv = new ArrayList<>();
+//		for (V value : values) {
+//			rv.add(cloneAndApplyMetadata(value, isAssignment, mapping::getName));
+//		}
+//		return rv;
+//	}
+
+	public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+			PrismValueDeltaSetTripleProducer<?, ?> mapping) throws SchemaException {
+		return cloneAndApplyMetadata(value, isAssignment, mapping::getIdentifier);
+	}
+
+	public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+			MappingType mapping) throws SchemaException {
+		return cloneAndApplyMetadata(value, isAssignment, mapping::getName);
+	}
+
+	private static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+			Supplier<String> originMappingNameSupplier) throws SchemaException {
+		//noinspection unchecked
+		V cloned = (V) value.clone();
+		if (isAssignment && cloned instanceof PrismContainerValue) {
+			((PrismContainerValue) cloned).setId(null);
+			String originMappingName = originMappingNameSupplier.get();
+			LOGGER.trace("cloneAndApplyMetadata: originMappingName = {}", originMappingName);
+			if (originMappingName != null) {
+				//noinspection unchecked
+				PrismContainer<MetadataType> metadataContainer = ((PrismContainerValue) cloned).findOrCreateContainer(AssignmentType.F_METADATA);
+				metadataContainer.getOrCreateValue().asContainerable().setOriginMappingName(originMappingName);
 			}
 		}
-		return values;
+		return cloned;
 	}
-	
-	private static <V extends PrismValue, D extends ItemDefinition> boolean hasValue(Item<V,D> existingUserItem, V newValue, ValueMatcher<?> valueMatcher, Comparator<V> comparator) {
-		if (existingUserItem == null) {
-			return false;
-		}
-		if (valueMatcher != null && newValue instanceof PrismPropertyValue) {
-			return valueMatcher.hasRealValue((PrismProperty)existingUserItem, (PrismPropertyValue)newValue);
-		} else {
-			return existingUserItem.contains(newValue, true, comparator);
-		}
-	}
-	
-	private static <V extends PrismValue, D extends ItemDefinition> Collection<V> collectAllValues
-			(DeltaSetTriple<? extends ItemValueWithOrigin<V,D>> triple, ValueMatcher<?> valueMatcher) throws SchemaException {
-        Collection<V> allValues = new HashSet<>();
-        collectAllValuesFromSet(allValues, triple.getZeroSet(), valueMatcher);
-        collectAllValuesFromSet(allValues, triple.getPlusSet(), valueMatcher);
-        collectAllValuesFromSet(allValues, triple.getMinusSet(), valueMatcher);
-        return allValues;
-    }
 
-    private static <V extends PrismValue, D extends ItemDefinition, T> void collectAllValuesFromSet(Collection<V> allValues,
-            Collection<? extends ItemValueWithOrigin<V,D>> collection, ValueMatcher<T> valueMatcher) throws SchemaException {
-        if (collection == null) {
-            return;
-        }
-        for (ItemValueWithOrigin<V,D> pvwo : collection) {
-        	V pval = pvwo.getItemValue();
-        	if (valueMatcher == null) {
-	        	if (!PrismValue.containsRealValue(allValues, pval)) {
-	        		allValues.add(pval);
-	        	}
-        	} else {
-        		boolean found = false;
-        		for (V valueFromAllvalues: allValues) {
-        			if (valueMatcher.match(((PrismPropertyValue<T>)valueFromAllvalues).getValue(), 
-        					((PrismPropertyValue<T>)pval).getValue())) {
-        				found = true;
-        				break;
-        			}
-        		}
-        		if (!found) {
-        			allValues.add(pval);
-        		}
-        	}
-        }
-    }
-    
-    private static <V extends PrismValue, D extends ItemDefinition> Collection<ItemValueWithOrigin<V,D>> collectPvwosFromSet(V pvalue,
-            Collection<? extends ItemValueWithOrigin<V,D>> deltaSet, ValueMatcher<?> valueMatcher) throws SchemaException {
-    	Collection<ItemValueWithOrigin<V,D>> pvwos = new ArrayList<>();
-        for (ItemValueWithOrigin<V,D> setPvwo : deltaSet) {
-        	if (setPvwo.equalsRealValue(pvalue, valueMatcher)) {
-        		pvwos.add(setPvwo);
-        	}
-        }
-        return pvwos;
-    }
+	private static <V extends PrismValue, D extends ItemDefinition> String getAutoCreationIdentifier(Collection<ItemValueWithOrigin<V, D>> origins) {
+		// let's ignore conflicts (name1 vs name2, named vs unnamed) for now
+		for (ItemValueWithOrigin<V, D> origin : origins) {
+			if (origin.getMapping() != null && origin.getMapping().getIdentifier() != null) {
+				return origin.getMapping().getIdentifier();
+			}
+		}
+		return null;
+	}
 
     public static PropertyDelta<XMLGregorianCalendar> createActivationTimestampDelta(ActivationStatusType status, XMLGregorianCalendar now,
     		PrismContainerDefinition<ActivationType> activationDefinition, OriginType origin) {
@@ -537,11 +235,11 @@ public class LensUtil {
 		} else {
 			throw new IllegalArgumentException("Unknown activation status "+status);
 		}
-		
+
 		PrismPropertyDefinition<XMLGregorianCalendar> timestampDef = activationDefinition.findPropertyDefinition(timestampPropertyName);
-		PropertyDelta<XMLGregorianCalendar> timestampDelta 
+		PropertyDelta<XMLGregorianCalendar> timestampDelta
 				= timestampDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, timestampPropertyName));
-		timestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(now, origin, null));
+		timestampDelta.setValueToReplace(new PrismPropertyValue<>(now, origin, null));
 		return timestampDelta;
     }
 
@@ -576,7 +274,7 @@ public class LensUtil {
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
 		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION));
-		propDelta.setValueToReplace(new PrismPropertyValue<Integer>(accCtx.getIteration()));
+		propDelta.setValueToReplace(new PrismPropertyValue<>(accCtx.getIteration()));
 		PrismProperty<Integer> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIteration());
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
@@ -597,15 +295,15 @@ public class LensUtil {
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
 		PropertyDelta<String> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION_TOKEN));
-		propDelta.setValueToReplace(new PrismPropertyValue<String>(accCtx.getIterationToken()));
+		propDelta.setValueToReplace(new PrismPropertyValue<>(accCtx.getIterationToken()));
 		PrismProperty<String> propNew = propDef.instantiate();
 		propNew.setRealValue(accCtx.getIterationToken());
 		ItemDeltaItem<PrismPropertyValue<String>,PrismPropertyDefinition<String>> idi = new ItemDeltaItem<>(propOld, propDelta, propNew);
 		return idi;
 	}
-	
+
 	/**
-	 * Extracts the delta from this projection context and also from all other projection contexts that have 
+	 * Extracts the delta from this projection context and also from all other projection contexts that have
 	 * equivalent discriminator.
 	 */
 	public static <F extends ObjectType, T> PropertyDelta<T> findAPrioriDelta(LensContext<F> context,
@@ -626,9 +324,9 @@ public class LensUtil {
 		}
 		return aPrioriDelta;
 	}
-	
+
 	/**
-	 * Extracts the delta from this projection context and also from all other projection contexts that have 
+	 * Extracts the delta from this projection context and also from all other projection contexts that have
 	 * equivalent discriminator.
 	 */
 	public static <F extends ObjectType, T> ObjectDelta<ShadowType> findAPrioriDelta(LensContext<F> context,
@@ -646,14 +344,14 @@ public class LensUtil {
 		}
 		return aPrioriDelta;
 	}
-	
+
 	/**
 	 * Returns a list of context that have equivalent discriminator with the reference context. Ordered by "order" in the
 	 * discriminator.
 	 */
 	public static <F extends ObjectType> List<LensProjectionContext> findRelatedContexts(
 			LensContext<F> context, LensProjectionContext refProjCtx) {
-		List<LensProjectionContext> projCtxs = new ArrayList<LensProjectionContext>();
+		List<LensProjectionContext> projCtxs = new ArrayList<>();
 		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
 		if (refDiscr == null) {
 			return projCtxs;
@@ -687,8 +385,8 @@ public class LensUtil {
 		}
 		return false;
 	}
-	
-	public static <F extends ObjectType> boolean hasDependentContext(LensContext<F> context, 
+
+	public static <F extends ObjectType> boolean hasDependentContext(LensContext<F> context,
 			LensProjectionContext targetProjectionContext) {
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			for (ResourceObjectTypeDependencyType dependency: projectionContext.getDependencies()) {
@@ -699,13 +397,13 @@ public class LensUtil {
 		}
 		return false;
 	}
-	
+
 	public static <F extends ObjectType> boolean isDependencyTargetContext(LensProjectionContext sourceProjContext, LensProjectionContext targetProjectionContext, ResourceObjectTypeDependencyType dependency) {
-		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency, 
+		ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(dependency,
 				sourceProjContext.getResource().getOid(), sourceProjContext.getKind());
 		return targetProjectionContext.compareResourceShadowDiscriminator(refDiscr, false);
 	}
-	
+
 	public static <F extends ObjectType> LensProjectionContext findLowerOrderContext(LensContext<F> context,
 			LensProjectionContext refProjCtx) {
 		int minOrder = -1;
@@ -722,7 +420,7 @@ public class LensUtil {
 		}
 		return foundCtx;
 	}
-	
+
 	public static <T extends ObjectType, F extends ObjectType> void setContextOid(LensContext<F> context,
 			LensElementContext<T> objectContext, String oid) {
 		objectContext.setOid(oid);
@@ -751,7 +449,7 @@ public class LensUtil {
         Class<F> typeClass = focusContext.getObjectTypeClass();
         return context.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(typeClass);
     }
-    
+
     public static int determineMaxIterations(IterationSpecificationType iterationSpecType) {
     	if (iterationSpecType != null) {
 			return iterationSpecType.getMaxIterations();
@@ -759,12 +457,12 @@ public class LensUtil {
 			return 0;
 		}
     }
-    
-    public static <F extends ObjectType> String formatIterationToken(LensContext<F> context, 
-			LensElementContext<?> accountContext, IterationSpecificationType iterationType, 
-			int iteration, ExpressionFactory expressionFactory, ExpressionVariables variables, 
-			Task task, OperationResult result) 
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+
+    public static <F extends ObjectType> String formatIterationToken(LensContext<F> context,
+			LensElementContext<?> accountContext, IterationSpecificationType iterationType,
+			int iteration, ExpressionFactory expressionFactory, ExpressionVariables variables,
+			Task task, OperationResult result)
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (iterationType == null) {
 			return formatIterationTokenDefault(iteration);
 		}
@@ -775,18 +473,18 @@ public class LensUtil {
 		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.VAR_ITERATION_TOKEN,
 				DOMUtil.XSD_STRING, context.getPrismContext());
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), task, result);
-		
+
 		Collection<Source<?,?>> sources = new ArrayList<>();
 		PrismPropertyDefinitionImpl<Integer> inputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.VAR_ITERATION,
 				DOMUtil.XSD_INT, context.getPrismContext());
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
-		input.add(new PrismPropertyValue<Integer>(iteration));
+		input.add(new PrismPropertyValue<>(iteration));
 		ItemDeltaItem<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> idi = new ItemDeltaItem<>(input);
 		Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION);
 		sources.add(iterationSource);
-		
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, 
+
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables,
 				"iteration token expression in "+accountContext.getHumanReadableName(), task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, task, result);
 		Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
@@ -802,19 +500,19 @@ public class LensUtil {
 		}
 		return realValue;
 	}
-    
+
     public static String formatIterationTokenDefault(int iteration) {
 		if (iteration == 0) {
 			return "";
 		}
 		return Integer.toString(iteration);
 	}
-    
-    public static <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context, 
-    		LensElementContext<?> accountContext, IterationSpecificationType iterationType, 
-    		int iteration, String iterationToken, boolean beforeIteration, 
-			ExpressionFactory expressionFactory, ExpressionVariables variables, Task task, OperationResult result) 
-					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+
+    public static <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,
+    		LensElementContext<?> accountContext, IterationSpecificationType iterationType,
+    		int iteration, String iterationToken, boolean beforeIteration,
+			ExpressionFactory expressionFactory, ExpressionVariables variables, Task task, OperationResult result)
+					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (iterationType == null) {
 			return true;
 		}
@@ -830,16 +528,15 @@ public class LensUtil {
 		if (expressionType == null) {
 			return true;
 		}
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, context.getPrismContext());
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, task, result);
-		
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
+				expressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()) , desc, task, result);
+
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
 		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
-		
+
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, task, result);
+		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, null, task, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env);
 		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {
 			return false;
@@ -854,7 +551,7 @@ public class LensUtil {
 		return realValue;
 
 	}
-    
+
     /**
      * Used for assignments and similar objects that do not have separate lifecycle.
      */
@@ -882,7 +579,7 @@ public class LensUtil {
     	}
     	AssignmentPathVariables vars = new AssignmentPathVariables();
     	vars.setAssignmentPath(assignmentPath.clone());
-    	
+
     	Iterator<AssignmentPathSegmentImpl> iterator = assignmentPath.getSegments().iterator();
 		while (iterator.hasNext()) {
 			AssignmentPathSegmentImpl segment = iterator.next();
@@ -898,40 +595,63 @@ public class LensUtil {
 				magicAssignmentIdi = vars.getMagicAssignment();
 				mergeExtension(magicAssignmentIdi, segmentAssignmentIdi);
 			}
-			
+
 			// Collect extension values from the source object extension
 			ObjectType segmentSource = segment.getSource();
 			if (segmentSource != null) {
 				mergeExtension(magicAssignmentIdi, segmentSource.asPrismObject());
 			}
-			
+
 			// immediate assignment (use assignment from previous iteration)
 			vars.setImmediateAssignment(vars.getThisAssignment());
-			
+
 			// this assignment
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> thisAssignment = segmentAssignmentIdi.clone();
 			vars.setThisAssignment(thisAssignment);
-			
+
 			if (iterator.hasNext() && segmentSource instanceof AbstractRoleType) {
 				vars.setImmediateRole((PrismObject<? extends AbstractRoleType>) segmentSource.asPrismObject());
 			}
 		}
-		
+
 		AssignmentPathSegmentImpl focusAssignmentSegment = assignmentPath.first();
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> focusAssignment = focusAssignmentSegment.getAssignmentIdi().clone();
-		vars.setFocusAssignment(focusAssignment);
-		
+		vars.setFocusAssignment(focusAssignmentSegment.getAssignmentIdi().clone());
+
+		// a bit of hack -- TODO reconsider in 3.7
+		// objects are already cloned
+		convertToLegacy(vars.getMagicAssignment());
+		convertToLegacy(vars.getThisAssignment());
+		convertToLegacy(vars.getFocusAssignment());
+		convertToLegacy(vars.getImmediateAssignment());
+
 		return vars;
     }
-    
-    private static void mergeExtension(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi, ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> srcIdi) throws SchemaException {
+
+	private static void convertToLegacy(
+			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi) {
+		if (idi == null || idi.getDelta() == null || idi.getSubItemDeltas() != null) {
+			return;
+		}
+		// Legacy approach (when adding/removing assignments) was: itemOld+itemNew = value, delta = null
+		// This was recently changed, to provide precise information (add = null->itemNew, delete = itemOld->null).
+		// However, to not break scripts before 3.6 release we provide imitation of old behavior here.
+		// (Moreover, for magic assignment the delta is not correct anyway.)
+		if (idi.getDelta().isAdd() || idi.getDelta().isReplace()) {
+			idi.setItemOld(idi.getItemNew().clone());
+		} else {
+			idi.setItemNew(idi.getItemOld().clone());
+		}
+		idi.setDelta(null);
+	}
+
+	private static void mergeExtension(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi, ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> srcIdi) throws SchemaException {
 		mergeExtension(destIdi.getItemOld(), srcIdi.getItemOld());
 		mergeExtension(destIdi.getItemNew(), srcIdi.getItemNew());
     	if (srcIdi.getDelta() != null || srcIdi.getSubItemDeltas() != null) {
     		throw new UnsupportedOperationException("Merge of IDI with deltas not supported");
     	}
 	}
-    
+
     private static void mergeExtension(Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> dstItem,
 			Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> srcItem) throws SchemaException {
     	if (srcItem == null || dstItem == null) {
@@ -940,53 +660,39 @@ public class LensUtil {
     	PrismContainer<Containerable> srcExtension = ((PrismContainer<AssignmentType>)srcItem).findContainer(AssignmentType.F_EXTENSION);
     	mergeExtensionContainers(dstItem, srcExtension);
 	}
-    
+
     private static <O extends ObjectType> void mergeExtension(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> destIdi,
 			PrismObject<O> srcObject) throws SchemaException {
     	if (srcObject == null) {
     		return;
     	}
-    	
+
     	PrismContainer<Containerable> srcExtension = srcObject.findContainer(ObjectType.F_EXTENSION);
-    	
+
     	mergeExtensionContainers(destIdi.getItemNew(), srcExtension);
     	mergeExtensionContainers(destIdi.getItemOld(), srcExtension);
     }
-    
+
     private static void  mergeExtensionContainers(Item<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> dstItem, PrismContainer<Containerable> srcExtension) throws SchemaException {
     	if (dstItem == null) {
     		return;
     	}
     	PrismContainer<AssignmentType> dstContainer = (PrismContainer<AssignmentType>) dstItem;
-    	if (srcExtension != null && !srcExtension.getValue().isEmpty()) {
-    		PrismContainer<Containerable> dstExtension = dstContainer.findOrCreateContainer(AssignmentType.F_EXTENSION);
-			for (Item<?,?> srcExtensionItem: srcExtension.getValue().getItems()) {
-				Item<?,?> magicItem = dstExtension.findItem(srcExtensionItem.getElementName());
-				if (magicItem == null) {
-					dstExtension.add(srcExtensionItem.clone());
-				}
-			}
-		}
+    	if (srcExtension != null && !srcExtension.isEmpty()) {
+		    PrismContainer<?> dstExtensionContainer = dstContainer.findOrCreateContainer(AssignmentType.F_EXTENSION);
+		    PrismContainerValue<?> dstExtensionContainerValue = dstExtensionContainer.getValues().isEmpty()
+				    ? dstExtensionContainer.createNewValue() : dstExtensionContainer.getValue();
+		    ObjectTypeUtil.mergeExtension(dstExtensionContainerValue, srcExtension.getValue());
+	    }
 	}
 
-	private static void mergeExtension(PrismContainer<Containerable> magicExtension, PrismContainer<Containerable> segmentExtension) throws SchemaException {
-		if (segmentExtension != null && !segmentExtension.getValue().isEmpty()) {
-			for (Item<?,?> segmentItem: segmentExtension.getValue().getItems()) {
-				Item<?,?> magicItem = magicExtension.findItem(segmentItem.getElementName());
-				if (magicItem == null) {
-					magicExtension.add(segmentItem.clone());
-				}
-			}
-		}
-	}
-    
-    public static <V extends PrismValue,D extends ItemDefinition> Mapping.Builder<V,D> addAssignmentPathVariables(Mapping.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
+	public static <V extends PrismValue,D extends ItemDefinition> MappingImpl.Builder<V,D> addAssignmentPathVariables(MappingImpl.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
 		Utils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
 		return builder.addVariableDefinitions(expressionVariables.getMap());
     }
-    
-    public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription, 
+
+    public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription,
 			OperationResult result) throws SchemaException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null) {
@@ -1008,7 +714,7 @@ public class LensUtil {
 		}
 		PrismObject<F> focusObjectNew = focusContext.getObjectNew();
 		ObjectDelta<F> focusDelta = focusContext.getDelta();
-		
+
 		for (PropertyConstraintType propertyConstraintType: objectPolicyConfigurationType.getPropertyConstraint()) {
 			ItemPath itemPath = propertyConstraintType.getPath().getItemPath();
 			if (BooleanUtils.isTrue(propertyConstraintType.isOidBound())) {
@@ -1042,7 +748,7 @@ public class LensUtil {
 				}
 			}
 		}
-		
+
 		// Deprecated
 		if (BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
 			if (focusDelta != null) {
@@ -1070,16 +776,12 @@ public class LensUtil {
 		// Make it appear to be single-value. Therefore paths without segment IDs will work.
 		return assignmentType.asPrismContainerValue().asSingleValuedContainer(SchemaConstantsGenerated.C_ASSIGNMENT);
 	}
-	
+
 	public static AssignmentType getAssignmentType(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi, boolean old) {
-		if (old) {
-			return assignmentIdi.getItemOld().getValue(0).asContainerable();
-		} else {
-			return assignmentIdi.getItemNew().getValue(0).asContainerable();
-		}
+		return PrismContainerValue.asContainerable(assignmentIdi.getSingleValue(old));
 	}
-	
-	
+
+
 	public static <F extends ObjectType> String getChannel(LensContext<F> context, Task task) {
     	if (context != null && context.getChannel() != null){
     		return context.getChannel();
@@ -1088,27 +790,44 @@ public class LensUtil {
     	}
     	return null;
     }
-	
+
 	public static <O extends ObjectType> void setDeltaOldValue(LensElementContext<O> ctx, ItemDelta<?,?> itemDelta) {
 		if (itemDelta.getEstimatedOldValues() != null) {
 			return;
 		}
-		if (ctx.getObjectOld() != null) {
-			Item<PrismValue, ItemDefinition> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
+		if (ctx.getObjectOld() == null) {
+			return;
+		}
+		Item<PrismValue, ItemDefinition> itemOld = ctx.getObjectOld().findItem(itemDelta.getPath());
+		if (itemOld != null) {
+			//noinspection unchecked
+			itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
+			return;
+		}
+		// Here we need to distinguish whether the item is missing because it is not filled in (e.g. familyName in MID-4237)
+		// or because it was not loaded (as for attributes or associations).
+		if (!isItemLoadable(ctx.getObjectOld(), itemDelta.getPath())) {
+			itemDelta.setEstimatedOldValues(emptySet());
+			return;
+		}
+		// get the old data from current object. Still better estimate than nothing
+		if (ctx.getObjectCurrent() != null) {
+			itemOld = ctx.getObjectCurrent().findItem(itemDelta.getPath());
 			if (itemOld != null) {
+				//noinspection unchecked
 				itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
-			} else {
-				// get the old data from current object. Still better estimate than nothing
-				if (ctx.getObjectCurrent() != null) {
-					 itemOld = ctx.getObjectCurrent().findItem(itemDelta.getPath());
-					 if (itemOld != null) {
-						 itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
-					 }
-				}
 			}
 		}
 	}
-	
+
+	// a heuristic by now
+	private static <O extends ObjectType> boolean isItemLoadable(PrismObject<O> object, ItemPath path) {
+		if (!(object.asObjectable() instanceof ShadowType)) {
+			return false;
+		}
+		return path.startsWithName(ShadowType.F_ATTRIBUTES) || path.startsWithName(ShadowType.F_ASSOCIATION);
+	}
+
 	public static <O extends ObjectType> void setDeltaOldValue(LensElementContext<O> ctx, ObjectDelta<O> objectDelta) {
 		if (objectDelta == null) {
 			return;
@@ -1131,7 +850,7 @@ public class LensUtil {
 																								LensElementContext<T> objectContext,
 																								LensProjectionContext projCtx,
 																								ResourceType resource) {
-		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<T>(objectDelta.clone());
+		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<>(objectDelta.clone());
 		objectDeltaOp.setExecutionResult(result);
 		PrismObject<T> object = objectContext.getObjectAny();
 		if (object != null) {
@@ -1142,7 +861,7 @@ public class LensUtil {
 					if (name == null) {
 						LOGGER.debug("No name for shadow:\n{}", object.debugDump());
 					} else if (name.getNorm() == null) {
-						name.recompute(new PrismDefaultPolyStringNormalizer());
+						name.recompute(new AlphanumericPolyStringNormalizer());
 					}
 				} catch (SchemaException e) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine name for shadow -- continuing with no name; shadow:\n{}", e, object.debugDump());
@@ -1167,78 +886,44 @@ public class LensUtil {
 		return ObjectTypeUtil.isDelegationRelation(relation);
 	}
 
-	public static void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger,
-			Collection<String> policySituations) throws PolicyViolationException {
+	public static void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers,
+			Collection<String> policySituations) {
 
-		LOGGER.debug("Policy rule {} triggered: {}", rule==null?null:rule.getName(), trigger);
+		LOGGER.debug("Policy rule {} triggered: {}", rule.getName(), triggers);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Policy rule {} triggered:\n{}", rule==null?null:rule.getName(), trigger.debugDump(1));
+			LOGGER.trace("Policy rule {} triggered:\n{}", rule.getName(), DebugUtil.debugDump(triggers, 1));
 		}
 
-		if (rule == null) {
-			// legacy functionality
-			if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-				throw new PolicyViolationException(trigger.getMessage());
-			}
-
-		} else {
-
-			((EvaluatedPolicyRuleImpl)rule).addTrigger(trigger);
-			String policySituation = rule.getPolicySituation();
-			if (policySituation != null) {
-				policySituations.add(policySituation);
-			}
-		}
-
+		((EvaluatedPolicyRuleImpl) rule).addTriggers(triggers);
+		CollectionUtils.addIgnoreNull(policySituations, rule.getPolicySituation());
 	}
-	
-	public static void processRuleWithException(EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger,
-			Collection<String> policySituations, PolicyExceptionType policyException) {
 
-		LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not trigerring", rule==null?null:rule.getName());
-		
+	public static void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations,
+			LocalizationService localizationService) throws PolicyViolationException {
+
+		LOGGER.debug("Legacy policy rule triggered: {}", trigger);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Policy rule {} would be triggered, but there is an exception for it:\nTrigger:\n{}\nException:\n{}", 
-					rule==null?null:rule.getName(), trigger.debugDump(1), policyException);
+			LOGGER.trace("Legacy Policy rule triggered:\n{}", trigger.debugDump(1));
 		}
 
-		if (rule == null) {
-			return;
+		if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
+			throw localizationService.translate(new PolicyViolationException(trigger.getMessage()));
+		}
+	}
+
+
+
+	public static void processRuleWithException(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger <?>> triggers,
+			 PolicyExceptionType policyException) {
+
+		LOGGER.debug("Policy rule {} would be triggered, but there is an exception for it. Not triggering", rule.getName());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Policy rule {} would be triggered, but there is an exception for it:\nTriggers:\n{}\nException:\n{}",
+					rule.getName(), DebugUtil.debugDump(triggers, 1), policyException);
 		}
 		((EvaluatedPolicyRuleImpl)rule).addPolicyException(policyException);
-
-	}
-
-	
-	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable, Supplier<PartialProcessingTypeType> optionSupplier)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
-		partialExecute(componentName, runnable, optionSupplier, null);
 	}
 	
-	public static void partialExecute(String componentName, ProjectorComponentRunnable runnable, 
-			Supplier<PartialProcessingTypeType> optionSupplier, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
-			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
-		PartialProcessingTypeType option = optionSupplier.get();
-		if (option == PartialProcessingTypeType.SKIP) {
-			LOGGER.debug("Skipping projector component {} because partial execution option is set to {}", componentName, option);
-		} else {
-			LOGGER.trace("Projector component started: {}", componentName);
-			try {
-				runnable.run();
-				LOGGER.trace("Projector component finished: {}", componentName);
-			} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-					| PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | RuntimeException | Error e) {
-				LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
-				if (result != null) {
-					result.recordFatalError(e);
-				}
-				throw e;
-			}
-			
-		}
-	}
 
 	public static void checkMaxIterations(int iteration, int maxIterations, String conflictMessage, String humanReadableName)
 			throws ObjectAlreadyExistsException {
@@ -1261,7 +946,7 @@ public class LensUtil {
 			throw new ObjectAlreadyExistsException(sb.toString());
 		}
 	}
-	
+
 	public static boolean needsFullShadowForCredentialProcessing(LensProjectionContext projCtx) throws SchemaException {
 		RefinedObjectClassDefinition refinedProjDef = projCtx.getStructuralObjectClassDefinition();
 		if (refinedProjDef == null) {
@@ -1279,10 +964,96 @@ public class LensUtil {
 		}
 		return false;
 	}
-	
+
 	public static boolean isPasswordReturnedByDefault(LensProjectionContext projCtx) {
 		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(projCtx.getResource(), CredentialsCapabilityType.class);
 		return CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType);
 	}
-	
+
+	public static boolean evaluateBoolean(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
+			OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result,
+				DOMUtil.XSD_BOOLEAN, false, null);
+	}
+
+	public static String evaluateString(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
+			OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result,
+				DOMUtil.XSD_STRING, null, null);
+	}
+
+	public static LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
+			OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Function<Object, Object> additionalConvertor = (o) -> {
+			if (o == null || o instanceof LocalizableMessageType) {
+				return o;
+			} else if (o instanceof LocalizableMessage) {
+				return LocalizationUtil.createLocalizableMessageType((LocalizableMessage) o);
+			} else {
+				return new SingleLocalizableMessageType().fallbackMessage(String.valueOf(o));
+			}
+		};
+		return evaluateExpressionSingle(expressionBean, expressionVariables, contextDescription, expressionFactory, prismContext,
+				task, result, LocalizableMessageType.COMPLEX_TYPE, null, additionalConvertor);
+	}
+
+	public static <T> T evaluateExpressionSingle(ExpressionType expressionBean, ExpressionVariables expressionVariables,
+			String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
+			OperationResult result, QName typeName,
+			T defaultValue, Function<Object, Object> additionalConvertor)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		PrismPropertyDefinition<T> resultDef = new PrismPropertyDefinitionImpl<>(
+				new QName(SchemaConstants.NS_C, "result"), typeName, prismContext);
+		Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
+				expressionFactory.makeExpression(expressionBean, resultDef, contextDescription, task, result);
+		ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, expressionVariables, contextDescription, task, result);
+		eeContext.setAdditionalConvertor(additionalConvertor);
+		PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple = ModelExpressionThreadLocalHolder
+				.evaluateExpressionInContext(expression, eeContext, task, result);
+		List<T> results = exprResultTriple.getZeroSet().stream()
+				.map(ppv -> (T) ppv.getRealValue())
+				.collect(Collectors.toList());
+		return getSingleValue(results, defaultValue, contextDescription);
+	}
+
+	@NotNull
+	public static SingleLocalizableMessageType interpretLocalizableMessageTemplate(LocalizableMessageTemplateType template,
+			ExpressionVariables var, ExpressionFactory expressionFactory, PrismContext prismContext,
+			Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		SingleLocalizableMessageType rv = new SingleLocalizableMessageType();
+		if (template.getKey() != null) {
+			rv.setKey(template.getKey());
+		} else if (template.getKeyExpression() != null) {
+			rv.setKey(evaluateString(template.getKeyExpression(), var, "localizable message key expression", expressionFactory, prismContext, task, result));
+		}
+		if (!template.getArgument().isEmpty() && !template.getArgumentExpression().isEmpty()) {
+			throw new IllegalArgumentException("Both argument and argumentExpression items are non empty");
+		} else if (!template.getArgumentExpression().isEmpty()) {
+			for (ExpressionType argumentExpression : template.getArgumentExpression()) {
+				LocalizableMessageType argument = evaluateLocalizableMessageType(argumentExpression, var,
+						"localizable message argument expression", expressionFactory, prismContext, task, result);
+				rv.getArgument().add(new LocalizableMessageArgumentType().localizable(argument));
+			}
+		} else {
+			// TODO allow localizable messages templates here
+			rv.getArgument().addAll(template.getArgument());
+		}
+		if (template.getFallbackMessage() != null) {
+			rv.setFallbackMessage(template.getFallbackMessage());
+		} else if (template.getFallbackMessageExpression() != null) {
+			rv.setFallbackMessage(evaluateString(template.getFallbackMessageExpression(), var,
+					"localizable message fallback expression", expressionFactory, prismContext, task, result));
+		}
+		return rv;
+	}
 }

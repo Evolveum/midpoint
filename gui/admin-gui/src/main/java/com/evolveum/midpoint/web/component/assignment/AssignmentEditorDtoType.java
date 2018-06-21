@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,16 @@ public enum AssignmentEditorDtoType {
     ORG_UNIT(OrgType.class, OrgType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ORG_ICON),
 
     ROLE(RoleType.class, RoleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_ROLE_ICON),
-    
+
     SERVICE(ServiceType.class, ServiceType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON),
 
     USER(UserType.class, UserType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_USER_ICON),
 
-    CONSTRUCTION(null, null, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON);
+    CONSTRUCTION(null, ConstructionType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON),
+
+    POLICY_RULE(null, PolicyRuleType.COMPLEX_TYPE, GuiStyleConstants.CLASS_FILE_TEXT),
+
+	PERSONA_CONSTRUCTION(null, PersonaConstructionType.COMPLEX_TYPE, GuiStyleConstants.CLASS_OBJECT_USER_ICON);
 
     private Class<? extends ObjectType> type;
     private QName qname;
@@ -67,7 +71,7 @@ public enum AssignmentEditorDtoType {
 
         throw new IllegalArgumentException("Unknown assignment type '" + type.getName() + "'.");
     }
-    
+
     public static AssignmentEditorDtoType getType(QName type) {
         if (type == null) {
             return CONSTRUCTION;

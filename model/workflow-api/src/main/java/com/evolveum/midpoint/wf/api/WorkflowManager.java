@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -27,9 +28,8 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -72,14 +72,14 @@ public interface WorkflowManager {
 	 * @param parentResult
 	 */
 	void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
-			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult) throws SecurityViolationException, SchemaException;
+			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
 
 	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
 
 	void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException;
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
@@ -99,11 +99,13 @@ public interface WorkflowManager {
 
 	Collection<ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
-	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
+	Collection<String> getApproverComments(Task task, OperationResult result) throws SchemaException;
+
+	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
 
-	boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem);
+	boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	// doesn't throw any exceptions - these are logged and stored into the operation result
 	<T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -113,7 +115,7 @@ public interface WorkflowManager {
 	<T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
 
-	ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
+	ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException;
 
 	ChangesByState getChangesByState(TaskType childTask, TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
@@ -122,4 +124,34 @@ public interface WorkflowManager {
 	void synchronizeWorkflowRequests(OperationResult parentResult);
 
 	void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException;
+
+	/**
+	 * Retrieves information about actual or expected execution of an approval schema.
+	 * (So, this is restricted to approvals using this mechanism.)
+	 *
+	 * Does not need authorization checks before execution; it uses model calls in order to gather any information needed.
+	 *
+	 * @param taskOid OID of an approval task that should be analyzed
+	 * @param opTask task under which this operation is carried out
+	 * @param parentResult operation result
+	 */
+	ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException;
+
+	/**
+	 * Retrieves information about expected approval schema and its execution.
+	 * (So, this is restricted to approvals using this mechanism.)
+	 *
+	 * Does not need authorization checks before execution; it uses model calls in order to gather any information needed.
+	 *
+	 * @param modelContext model context with the projector run already carried out (so the policy rules are evaluated)
+	 * @param opTask task under which this operation is carried out
+	 * @param parentResult operation result
+	 */
+	List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException;
+
+	PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting);
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@
 	<logger name="com.evolveum.midpoint.common.expression.MidPointFunctions" level="TRACE" />
 	
 	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
+	<logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
 	<logger name="com.evolveum.polygon.connector.ldap" level="TRACE" />
 	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
 	<!-- <logger name="com.evolveum.midpoint.repo" level="TRACE" />  -->

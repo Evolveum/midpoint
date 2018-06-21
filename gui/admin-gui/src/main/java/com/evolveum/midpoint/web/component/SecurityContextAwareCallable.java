@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Session;
@@ -30,36 +31,46 @@ import java.util.concurrent.Callable;
  */
 public abstract class SecurityContextAwareCallable<V> implements Callable<V> {
 
-    private SecurityEnforcer enforcer;
+    private SecurityContextManager securityContextManager;
     private Authentication authentication;
+    private HttpConnectionInformation connInfo;
 
-    protected SecurityContextAwareCallable(SecurityEnforcer enforcer, Authentication authentication) {
-        Validate.notNull(enforcer, "Security enforcer must not be null.");
+    protected SecurityContextAwareCallable(SecurityContextManager manager, Authentication auth) {
+        this(manager, auth, null);
+    }
 
-        this.enforcer = enforcer;
-        this.authentication = authentication;
+    protected SecurityContextAwareCallable(SecurityContextManager manager, Authentication auth, HttpConnectionInformation connInfo) {
+        Validate.notNull(manager, "Security enforcer must not be null.");
+
+        this.securityContextManager = manager;
+        this.authentication = auth;
+        this.connInfo = connInfo;
     }
 
     @Override
     public final V call() throws Exception {
-        enforcer.setupPreAuthenticatedSecurityContext(authentication);
+        if (connInfo != null) {
+            securityContextManager.storeConnectionInformation(connInfo);
+        }
+
+        securityContextManager.setupPreAuthenticatedSecurityContext(authentication);
 
         try {
             return callWithContextPrepared();
         } finally {
-            enforcer.setupPreAuthenticatedSecurityContext((Authentication) null);
-            //todo cleanup security context
+            securityContextManager.setupPreAuthenticatedSecurityContext((Authentication) null);
+            securityContextManager.storeConnectionInformation(null);
         }
     }
 
-	protected void setupContext(Application application, Session session) {
-		if (!Application.exists() && application != null) {
-			ThreadContext.setApplication(application);
-		}
-		if (!Session.exists() && session != null) {
-			ThreadContext.setSession(session);
-		}
-	}
+    protected void setupContext(Application application, Session session) {
+        if (!Application.exists() && application != null) {
+            ThreadContext.setApplication(application);
+        }
+        if (!Session.exists() && session != null) {
+            ThreadContext.setSession(session);
+        }
+    }
 
     public abstract V callWithContextPrepared() throws Exception;
 }

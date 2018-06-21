@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.util;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -31,9 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Node;
 
 /**
+ * QName &lt;-&gt; URI conversion.
  *
- * QName <-> URI conversion.
- * 
  * Very simplistic but better than nothing.
  *
  * @author semancik
@@ -65,7 +65,7 @@ public class QNameUtil {
 		return qNameToUri(qname, unqualifiedStartsWithHash, DEFAULT_QNAME_URI_SEPARATOR_CHAR);
 	}
 
-    public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash, char separatorChar) {
+	public static String qNameToUri(QName qname, boolean unqualifiedStartsWithHash, char separatorChar) {
         String qUri = qname.getNamespaceURI();
         StringBuilder sb = new StringBuilder(qUri);
 
@@ -163,7 +163,8 @@ public class QNameUtil {
 		}
 	}
 
-    public static QName uriToQName(String uri, boolean allowUnqualified) {
+	@NotNull
+    public static QName uriToQName(@NotNull String uri, boolean allowUnqualified) {
 		return uriToQNameInfo(uri, allowUnqualified).name;
 	}
 
@@ -179,7 +180,7 @@ public class QNameUtil {
 
 	@NotNull
     public static QNameInfo uriToQNameInfo(@NotNull String uri, boolean allowUnqualified) {
-		Validate.notNull(uri);
+		Validate.notNull(uri, "null URI");
         int index = uri.lastIndexOf("#");
         if (index != -1) {
             String ns = uri.substring(0, index);
@@ -201,11 +202,11 @@ public class QNameUtil {
 			throw new IllegalArgumentException("The URI (" + uri + ") does not contain slash character");
 		}
     }
-	
+
 	public static QName getNodeQName(Node node) {
 		return new QName(node.getNamespaceURI(),node.getLocalName());
 	}
-	
+
 	public static boolean compareQName(QName qname, Node node) {
 		return (qname.getNamespaceURI().equals(node.getNamespaceURI()) && qname.getLocalPart().equals(node.getLocalName()));
 	}
@@ -254,7 +255,7 @@ public class QNameUtil {
 		return match(qname, uriToQName(uri, true));
 	}
 
-	
+
 	public static QName resolveNs(QName a, Collection<QName> col){
 		if (col == null) {
 			return null;
@@ -270,7 +271,7 @@ public class QNameUtil {
 		}
 		return found;
 	}
-	
+
 	public static boolean matchAny(QName a, Collection<QName> col) {
 		if (resolveNs(a, col) == null){
 			return false;
@@ -286,7 +287,7 @@ public class QNameUtil {
 //		}
 //		return false;
 	}
-	
+
 	public static Collection<QName> createCollection(QName... qnames) {
 		return Arrays.asList(qnames);
 	}
@@ -333,11 +334,14 @@ public class QNameUtil {
         return namespacePrefix != null && namespacePrefix.startsWith(UNDECLARED_PREFIX_MARK);
     }
 
+	private static final String WORDS_COLON_REGEX = "^\\w+:.*";
+	private static final Pattern WORDS_COLON_PATTERN = Pattern.compile(WORDS_COLON_REGEX);
+
 	public static boolean isUri(String string) {
 		if (string == null) {
 			return false;
 		}
-		return string.matches("^\\w+:.*");
+		return WORDS_COLON_PATTERN.matcher(string).matches();
 	}
 
 	public static String getLocalPart(QName name) {

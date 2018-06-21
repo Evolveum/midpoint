@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="414e3766-775e-11e7-b8cb-c7ca37c1dc9e"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Two: Manual</name>
+    <inducement>
+    	<construction>
+    		<resourceRef oid="0ef80ab8-2906-11e7-b81a-3f343e28c264" type="ResourceType"/> <!-- Manual -->
+    		<kind>account</kind>
+    		<attribute>
+                <ref>ri:interests</ref>
+                <outbound>
+                	<strength>strong</strength>
+                	<expression>
+						<value>two</value>
+					</expression>
+				</outbound>
+            </attribute>
+    	</construction>
+    </inducement>
+</role>

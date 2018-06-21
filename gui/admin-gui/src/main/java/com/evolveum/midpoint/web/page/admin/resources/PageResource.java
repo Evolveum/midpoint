@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionResultPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -100,7 +101,7 @@ public class PageResource extends PageAdminResources {
 		resourceOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
 		initialize();
 	}
-	
+
 	public PageResource() {
 		initialize();
 	}
@@ -176,6 +177,13 @@ public class PageResource extends PageAdminResources {
 				refreshSchemaPerformed(target);
 			}
 		};
+		refreshSchema.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isVisible() {
+				return canEdit(resourceModel);
+			}
+		});
 		add(refreshSchema);
 		AjaxButton editXml = new AjaxButton(BUTTON_EDIT_XML_ID,
 				createStringResource("pageResource.button.editXml")) {
@@ -198,6 +206,13 @@ public class PageResource extends PageAdminResources {
 				startWizard(true, false);
 			}
 		};
+		configurationEdit.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isVisible() {
+				return canEdit(resourceModel);
+			}
+		});
 		add(configurationEdit);
 		AjaxButton wizardShow = new AjaxButton(BUTTON_WIZARD_SHOW_ID,
 				createStringResource("pageResource.button.wizardShow")) {
@@ -207,6 +222,13 @@ public class PageResource extends PageAdminResources {
 				startWizard(false, true);
 			}
 		};
+		wizardShow.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isVisible() {
+				return canEdit(resourceModel);
+			}
+		});
 		add(wizardShow);
 		AjaxButton wizardEdit = new AjaxButton(BUTTON_WIZARD_EDIT_ID,
 				createStringResource("pageResource.button.wizardEdit")) {
@@ -216,6 +238,13 @@ public class PageResource extends PageAdminResources {
 				startWizard(false, false);
 			}
 		};
+		wizardEdit.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public boolean isVisible() {
+				return canEdit(resourceModel);
+			}
+		});
 		add(wizardEdit);
 
 		AjaxButton back = new AjaxButton(ID_BUTTON_BACK, createStringResource("pageResource.button.back")) {
@@ -230,23 +259,31 @@ public class PageResource extends PageAdminResources {
 
 	}
 
+	private boolean canEdit(LoadableModel<PrismObject<ResourceType>> resourceModel) {
+		ResourceType resource = resourceModel.getObject().asObjectable();
+		if (!resource.getAdditionalConnector().isEmpty()) {
+			return false;
+		}
+		return true;
+	}
+
 	private void startWizard(boolean configOnly, boolean readOnly) {
 		PageParameters parameters = new PageParameters();
 		parameters.add(OnePageParameterEncoder.PARAMETER, resourceModel.getObject().getOid());		// compatibility with PageAdminResources
 		parameters.add(PageResourceWizard.PARAM_CONFIG_ONLY, configOnly);
 		parameters.add(PageResourceWizard.PARAM_READ_ONLY, readOnly);
-		setResponsePage(new PageResourceWizard(parameters));
+		navigateToNext(new PageResourceWizard(parameters));
 	}
 
 	private ResourceSummaryPanel createResourceSummaryPanel(){
 		 ResourceSummaryPanel resourceSummaryPanel = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY,
-					resourceModel);
+					resourceModel, this);
 		 resourceSummaryPanel.setOutputMarkupId(true);
 			return resourceSummaryPanel;
 	}
-	
+
 	private AjaxTabbedPanel<ITab> createTabsPanel(){
-		List<ITab> tabs = new ArrayList<ITab>();
+		List<ITab> tabs = new ArrayList<>();
 
 		tabs.add(new PanelTab(createStringResource("PageResource.tab.details")) {
 			private static final long serialVersionUID = 1L;
@@ -304,7 +341,7 @@ public class PageResource extends PageAdminResources {
 				return new ResourceContentTabPanel(panelId, null, resourceModel, PageResource.this);
 			}
 		});
-		
+
 		tabs.add(new PanelTab(createStringResource("PageResource.tab.connector")) {
 			private static final long serialVersionUID = 1L;
 
@@ -325,8 +362,8 @@ public class PageResource extends PageAdminResources {
 		resourceTabs.setOutputMarkupId(true);
 		return resourceTabs;
 	}
-	
-	
+
+
 
 	private void refreshSchemaPerformed(AjaxRequestTarget target) {
 
@@ -367,38 +404,7 @@ public class PageResource extends PageAdminResources {
                         refreshStatus(target);
                     }
 
-//                    @Override
-//                    protected void initOnFocusBehavior() {
-//                        setOnFocusBehavior(new AjaxEventBehavior("focus") {
-//
-//                        	private static final long serialVersionUID = 1L;
-//
-//                            @Override
-//                            protected void onEvent(AjaxRequestTarget target) {
-//                                removeOnFocusBehavior(getOkButton());
-//                                OperationResult result = new OperationResult(OPERATION_TEST_CONNECTION);
-//                                List<OpResult>  resultsDto = new ArrayList<>();
-//                                try {
-//                                    Task task = createSimpleTask(OPERATION_TEST_CONNECTION);
-//                                    result = getModelService().testResource(dto.getOid(), task);
-//                                    resultsDto = WebComponentUtil.getTestConnectionResults(result,(PageBase) getPage());
-//
-//                                    getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
-//                                } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-//                                        | CommunicationException | ConfigurationException e) {
-//                                    result.recordFatalError("Failed to test resource connection", e);
-//                                }
-//
-//                                if (result.isSuccess()) {
-//                                    result.recomputeStatus();
-//                                }
-//                                setModelObject(resultsDto);
-//                                initResultsPanel((RepeatingView) getResultsComponent(), getPage());
-//                                setWaitForResults(false);
-//                                target.add(getContentPanel());
-//                            }
-//                        });
-//                    }
+
                 };
         testConnectionPanel.setOutputMarkupId(true);
 
@@ -407,18 +413,15 @@ public class PageResource extends PageAdminResources {
 
             @Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-                return false;
+            	refreshStatus(target);
+                return true;
             }
         });
 
         showMainPopup(testConnectionPanel, target);
-//        if (!testConnectionPanel.isFocusSet()) {
-//            testConnectionPanel.setFocusSet(true);
-//            testConnectionPanel.setFocusOnComponent(testConnectionPanel.getOkButton(), target);
-//        }
 
 	}
-	
+
 	private void refreshStatus(AjaxRequestTarget target) {
 		target.add(addOrReplace(createResourceSummaryPanel()));
 		target.add(addOrReplace(createTabsPanel()));

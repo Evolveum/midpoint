@@ -23,20 +23,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKind
  *
  */
 public enum PredefinedPolicySituation {
-	
+
 	EXCLUSION_VIOLATION(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION, PolicyConstraintKindType.EXCLUSION),
-	
-	UNDERASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_UNDERASSIGNED, PolicyConstraintKindType.MIN_ASSIGNEES),
-	
-	OVERASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_OVERASSIGNED, PolicyConstraintKindType.MAX_ASSIGNEES),
-	
-	MODIFIED(SchemaConstants.MODEL_POLICY_SITUATION_MODIFIED, PolicyConstraintKindType.MODIFICATION),
-	
-	ASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNED, PolicyConstraintKindType.ASSIGNMENT);
+
+	UNDERASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_UNDERASSIGNED, PolicyConstraintKindType.MIN_ASSIGNEES_VIOLATION),
+
+	OVERASSIGNED(SchemaConstants.MODEL_POLICY_SITUATION_OVERASSIGNED, PolicyConstraintKindType.MAX_ASSIGNEES_VIOLATION),
+
+	MODIFIED(SchemaConstants.MODEL_POLICY_SITUATION_MODIFIED, PolicyConstraintKindType.OBJECT_MODIFICATION),
+
+	ASSIGNMENT_MODIFIED(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNMENT_MODIFIED, PolicyConstraintKindType.ASSIGNMENT_MODIFICATION),
+
+	HAS_ASSIGNMENT(SchemaConstants.MODEL_POLICY_SITUATION_HAS_ASSIGNMENT, PolicyConstraintKindType.HAS_ASSIGNMENT),
+
+	HAS_NO_ASSIGNMENT(SchemaConstants.MODEL_POLICY_SITUATION_HAS_NO_ASSIGNMENT, PolicyConstraintKindType.HAS_NO_ASSIGNMENT),
+
+	OBJECT_STATE(SchemaConstants.MODEL_POLICY_SITUATION_OBJECT_STATE, PolicyConstraintKindType.OBJECT_STATE),
+
+	ASSIGNMENT_STATE(SchemaConstants.MODEL_POLICY_SITUATION_ASSIGNMENT_STATE, PolicyConstraintKindType.ASSIGNMENT_STATE),
+
+	OBJECT_TIME_VALIDITY(SchemaConstants.MODEL_POLICY_SITUATION_TIME_VALIDITY, PolicyConstraintKindType.OBJECT_TIME_VALIDITY),
+
+	ASSIGNMENT_TIME_VALIDITY(SchemaConstants.MODEL_POLICY_SITUATION_TIME_VALIDITY, PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY);
 
 	private String url;
 	private PolicyConstraintKindType constraintKind;
-	
+
 	PredefinedPolicySituation(String url, PolicyConstraintKindType constraintKind) {
 		this.url = url;
 		this.constraintKind = constraintKind;

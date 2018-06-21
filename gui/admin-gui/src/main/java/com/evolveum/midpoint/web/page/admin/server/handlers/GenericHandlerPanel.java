@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.page.admin.server.handlers;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.GenericHandlerDto;
@@ -36,11 +35,11 @@ public class GenericHandlerPanel extends BasePanel<GenericHandlerDto> {
 		initLayout(parentPage);
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout(final PageTaskEdit parentPage) {
 		PrismContainerPanel containerPanel = new PrismContainerPanel(
 				ID_CONTAINER, new PropertyModel<>(getModel(), GenericHandlerDto.F_CONTAINER),
-				false, parentPage.getForm(), parentPage);
+				false, parentPage.getForm(), null, parentPage);
 		add(containerPanel);
 
 	}

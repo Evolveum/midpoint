@@ -91,7 +91,8 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     public void onWorkItemCreation(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
 			Task wfTask, OperationResult result) {
 	    WorkItemEvent event = new WorkItemLifecycleEvent(identifierGenerator, ChangeType.ADD, workItem,
-				SimpleObjectRefImpl.create(functions, assignee), null, null, null, wfTask.getWorkflowContext());
+				SimpleObjectRefImpl.create(functions, assignee), null, null, null,
+			    wfTask.getWorkflowContext(), wfTask.getTaskType());
 		initializeWorkflowEvent(event, wfTask);
         processEvent(event, result);
     }
@@ -102,7 +103,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 			Task wfTask, OperationResult result) {
 	    WorkItemEvent event = new WorkItemLifecycleEvent(identifierGenerator, ChangeType.DELETE, workItem,
 				SimpleObjectRefImpl.create(functions, assignee),
-				getInitiator(sourceInfo), operationInfo, sourceInfo, wfTask.getWorkflowContext());
+				getInitiator(sourceInfo), operationInfo, sourceInfo, wfTask.getWorkflowContext(), wfTask.getTaskType());
 		initializeWorkflowEvent(event, wfTask);
 		processEvent(event, result);
     }
@@ -114,7 +115,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 	    WorkItemEvent event = new WorkItemCustomEvent(identifierGenerator, ChangeType.ADD, workItem,
 				SimpleObjectRefImpl.create(functions, assignee),
 				new WorkItemOperationSourceInfo(null, cause, notificationAction),
-				wfTask.getWorkflowContext(), notificationAction.getHandler());
+				wfTask.getWorkflowContext(), wfTask.getTaskType(), notificationAction.getHandler());
 		initializeWorkflowEvent(event, wfTask);
 		processEvent(event, result);
     }
@@ -154,7 +155,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     	WorkItemAllocationEvent event = new WorkItemAllocationEvent(identifierGenerator, ChangeType.ADD, workItem,
 				SimpleObjectRefImpl.create(functions, newActor),
 				getInitiator(sourceInfo), operationInfo, sourceInfo,
-				task.getWorkflowContext(), null);
+				task.getWorkflowContext(), task.getTaskType(), null);
     	initializeWorkflowEvent(event, task);
     	processEvent(event, result);
 	}
@@ -171,7 +172,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 				timeBefore != null ? ChangeType.MODIFY : ChangeType.DELETE, workItem,
 				SimpleObjectRefImpl.create(functions, currentActor),
 				getInitiator(sourceInfo), operationInfo, sourceInfo,
-				task.getWorkflowContext(), timeBefore);
+				task.getWorkflowContext(), task.getTaskType(), timeBefore);
 		initializeWorkflowEvent(event, task);
 		processEvent(event, result);
 	}

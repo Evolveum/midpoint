@@ -30,12 +30,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Matching rule for LDAP distinguished name (DN).
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class DistinguishedNameMatchingRule implements MatchingRule<String> {
-	
+
 	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "distinguishedName");
 
 	@Override
@@ -93,14 +93,14 @@ public class DistinguishedNameMatchingRule implements MatchingRule<String> {
 
 	@Override
 	public boolean matchRegex(String a, String regex) throws SchemaException {
-		
+
 		a = normalize(a);
-		
+
 		if (a == null){
 			return false;
 		}
-		
-		// Simple case-insensitive match		
+
+		// Simple case-insensitive match
 		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 		Matcher matcher = pattern.matcher(a);
 		return matcher.matches();

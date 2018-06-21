@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,58 +16,37 @@
 
 package com.evolveum.midpoint.web.component;
 
+import org.apache.wicket.util.resource.AbstractResourceStream;
+import org.apache.wicket.util.resource.IResourceStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AbstractAjaxBehavior;
-import org.apache.wicket.request.IRequestCycle;
-import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
-import org.apache.wicket.request.resource.ContentDisposition;
-import org.apache.wicket.util.resource.AbstractResourceStream;
-import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.resource.ResourceStreamNotFoundException;
-import org.apache.wicket.util.time.Duration;
+public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxDownloadBehavior {
 
-public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavior {
-
+	private static final long serialVersionUID = 1L;
 	private boolean addAntiCache;
 	private String contentType = "text";
 	private String fileName = null;
 
 	public AjaxDownloadBehaviorFromStream() {
-		this(true);
+		super();
 	}
 
 	public AjaxDownloadBehaviorFromStream(boolean addAntiCache) {
-		super();
-		this.addAntiCache = addAntiCache;
+		super(addAntiCache);
 	}
 
-	/**
-	 * Call this method to initiate the download.
-	 */
-	public void initiate(AjaxRequestTarget target) {
-		String url = getCallbackUrl().toString();
-
-		if (addAntiCache) {
-			url = url + (url.contains("?") ? "&" : "?");
-			url = url + "antiCache=" + System.currentTimeMillis();
-		}
-
-		// the timeout is needed to let Wicket release the channel
-		target.appendJavaScript("setTimeout(\"window.location.href='" + url + "'\", 100);");
-	}
-
-	public void onRequest() {
+	@Override
+	public IResourceStream getResourceStream() {
 		final InputStream byteStream = initStream();
 
-        if(byteStream == null){
-            return;
-        }
+		if (byteStream == null) {
+			return null;
+		}
 
-		IResourceStream resourceStream = new AbstractResourceStream(){
+		return new AbstractResourceStream() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getContentType() {
@@ -75,7 +54,7 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 			}
 
 			@Override
-			public InputStream getInputStream() throws ResourceStreamNotFoundException {
+			public InputStream getInputStream() {
 			    return byteStream;
             }
 
@@ -83,23 +62,7 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 			public void close() throws IOException {
 				byteStream.close();
 			}
-			
 		};
-        ResourceStreamRequestHandler reqHandler = new ResourceStreamRequestHandler(resourceStream) {
-            @Override
-            public void respond(IRequestCycle requestCycle) {
-                super.respond(requestCycle);
-            }
-        }.setContentDisposition(ContentDisposition.ATTACHMENT)
-                .setCacheDuration(Duration.ONE_SECOND);
-        if (StringUtils.isNotEmpty(getFileName())){
-            reqHandler.setFileName(getFileName());
-        }
-		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(reqHandler);
-	}
-	
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
 	}
 
     protected abstract InputStream initStream();
@@ -108,7 +71,11 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
         return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
 }

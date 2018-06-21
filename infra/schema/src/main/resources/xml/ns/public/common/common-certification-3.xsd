@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@
                     <xsd:element name="scopeDefinition" type="tns:AccessCertificationScopeType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specifies the standard scope of certifications of this type. (In the future it can be overriden
+                                Specifies the standard scope of certifications of this type. (In the future it can be overridden
                                 in specific certification campaign.)
                             </xsd:documentation>
                         </xsd:annotation>
@@ -98,6 +98,16 @@
                                 Strategy used to compute review outcome for a given case, based on results of individual stages,
                                 along with instructions when a case review advances from a stage to next one.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="adHoc" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Denotes "ad hoc" certification campaign, i.e. one that is started by policy rules, not explicitly by a user.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.6</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastCampaignIdUsed" type="xsd:int" minOccurs="0">
@@ -1130,6 +1140,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="revokeOn" type="tns:AccessCertificationResponseType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What (final) outcomes cause actual remediation (e.g. deletion of an assignment) if automated remediation is configured?
+                        The default is "revoke". But more can be specified here, e.g. noResponse.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1335,6 +1353,18 @@
                         What response types are available to reviewers? Empty list means all responses.
                         TODO should we configure also names of the responses? (probably no)
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reviewerCommentsFormatting" minOccurs="0" type="tns:PerformerCommentsFormattingType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Instructions how to format reviewers comments before storing them into metadata.
+                        EXPERIMENTAL
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

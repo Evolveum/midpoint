@@ -18,15 +18,12 @@ package com.evolveum.midpoint.web.util.validation;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.springframework.stereotype.Component;
-
 /**
  * @author semancik
  *
  */
-@Component
 public class MidpointFormValidatorRegistry {
-	
+
 	private Collection<MidpointFormValidator> validators = new ArrayList<>();
 
 	public void registerValidator(MidpointFormValidator validator) {
@@ -36,5 +33,5 @@ public class MidpointFormValidatorRegistry {
 	public Collection<MidpointFormValidator> getValidators() {
 		return validators;
 	}
-	
+
 }

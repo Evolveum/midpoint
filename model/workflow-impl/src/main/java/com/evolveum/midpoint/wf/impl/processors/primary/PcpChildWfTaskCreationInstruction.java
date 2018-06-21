@@ -44,7 +44,10 @@ import java.util.Date;
  */
 public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent> extends WfTaskCreationInstruction<PrimaryChangeProcessorSpecificContent, PI> {
 
+	@SuppressWarnings("unused")
 	private static final Trace LOGGER = TraceManager.getTrace(PcpChildWfTaskCreationInstruction.class);
+
+	private ObjectTreeDeltas<?> deltasToProcess;
 
 	protected PcpChildWfTaskCreationInstruction(ChangeProcessor changeProcessor, PI processInstruction) {
         super(changeProcessor, new PrimaryChangeProcessorSpecificContent(changeProcessor.getPrismContext()), processInstruction);
@@ -68,13 +71,13 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
 			setRequesterRef(requester);
 		}
 
-		processorContent.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
+		processorContent.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(modelContext.getOptions()));
 
 		processorContent.createProcessorSpecificState().setChangeAspect(aspect.getClass().getName());
 
         if (isExecuteApprovedChangeImmediately()) {
             // actually, context should be emptied anyway; but to be sure, let's do it here as well
-            setTaskModelContext(((PrimaryChangeProcessor) getChangeProcessor()).contextCopyWithNoDelta((LensContext) modelContext));
+            setTaskModelContext(((PrimaryChangeProcessor) getChangeProcessor()).contextCopyWithNoDelta(modelContext));
             setExecuteModelOperationHandler(true);
         }
 
@@ -82,16 +85,18 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
         event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         if (requester != null) {
 			event.setInitiatorRef(ObjectTypeUtil.createObjectRef(requester));
+			// attorney does not need to be set here (for now)
 		}
 		event.setBusinessContext(((LensContext) modelContext).getRequestBusinessContext());
         wfContext.getEvent().add(event);
     }
 
-    public <F extends FocusType> void setDeltasToProcess(ObjectDelta<F> delta) {
+    public void setDeltasToProcess(ObjectDelta<? extends ObjectType> delta) {
         setDeltasToProcesses(new ObjectTreeDeltas<>(delta, getChangeProcessor().getPrismContext()));
     }
 
     public void setDeltasToProcesses(ObjectTreeDeltas objectTreeDeltas) {
+		deltasToProcess = objectTreeDeltas;
         try {
             processorContent.createProcessorSpecificState().setDeltasToProcess(ObjectTreeDeltas.toObjectTreeDeltasType(objectTreeDeltas));
         } catch (SchemaException e) {
@@ -110,4 +115,8 @@ public class PcpChildWfTaskCreationInstruction<PI extends ProcessSpecificContent
         sb.append(super.debugDump(indent+1));
         return sb.toString();
     }
+
+	public boolean isObjectCreationInstruction() {
+		return deltasToProcess != null && deltasToProcess.getFocusChange() != null && deltasToProcess.getFocusChange().isAdd();
+	}
 }

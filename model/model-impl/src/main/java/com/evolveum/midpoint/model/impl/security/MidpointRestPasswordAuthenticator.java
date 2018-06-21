@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.model.impl.security;
 
-import java.io.IOException;
-
 import javax.ws.rs.container.ContainerRequestContext;
 
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
@@ -14,10 +12,10 @@ import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
 @Component
 public class MidpointRestPasswordAuthenticator extends MidpointRestAuthenticator<PasswordAuthenticationContext>{
 
-	
+
 	@Autowired(required = true)
 	private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
-	
+
 	@Override
 	protected AuthenticationEvaluator<PasswordAuthenticationContext> getAuthenticationEvaluator() {
 		return passwordAuthenticationEvaluator;

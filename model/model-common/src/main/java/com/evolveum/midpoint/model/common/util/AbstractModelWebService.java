@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,43 +25,36 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Abstract superclass that provides methods common to all web service implementations that
  * use ModelService.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public abstract class AbstractModelWebService {
-	
-	@Autowired(required = true)
-	protected ModelService modelService;
-	
-	@Autowired(required = true)
-	protected TaskManager taskManager;
-	
-	@Autowired(required = true)
-	protected AuditService auditService;
-	
-	@Autowired(required = true)
-	protected PrismContext prismContext;
-	
+
+	@Autowired protected ModelService modelService;
+	@Autowired protected TaskManager taskManager;
+	@Autowired protected AuditService auditService;
+	@Autowired protected PrismContext prismContext;
+	@Autowired protected SecurityContextManager securityContextManager;
+
 	protected void setTaskOwner(Task task) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             throw new SystemException("Failed to get authentication object");
         }
-        UserType userType = (UserType) ((MidPointPrincipal)(SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getUser();
+        UserType userType = ((MidPointPrincipal)(SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getUser();
         if (userType == null) {
             throw new SystemException("Failed to get user from authentication object");
         }
@@ -75,44 +68,22 @@ public abstract class AbstractModelWebService {
 		task.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 		return task;
 	}
-	
+
 	protected void auditLogin(Task task) {
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
-        PrismObject<UserType> owner = task.getOwner();
-        if (owner != null) {
-	        record.setInitiator(owner);
-	        PolyStringType name = owner.asObjectable().getName();
-	        if (name != null) {
-	        	record.setParameter(name.getOrig());
-	        }
-        }
-
+        record.setInitiatorAndLoginParameter(task.getOwner());
         record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         record.setTimestamp(System.currentTimeMillis());
-        record.setSessionIdentifier(task.getTaskIdentifier());
-        
         record.setOutcome(OperationResultStatus.SUCCESS);
-
         auditService.audit(record, task);
 	}
-	
+
 	protected void auditLogout(Task task) {
 		AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-		PrismObject<UserType> owner = task.getOwner();
-        if (owner != null) {
-	        record.setInitiator(owner);
-	        PolyStringType name = owner.asObjectable().getName();
-	        if (name != null) {
-	        	record.setParameter(name.getOrig());
-	        }
-        }
-
+		record.setInitiatorAndLoginParameter(task.getOwner());
         record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         record.setTimestamp(System.currentTimeMillis());
-        record.setSessionIdentifier(task.getTaskIdentifier());
-        
         record.setOutcome(OperationResultStatus.SUCCESS);
-
         auditService.audit(record, task);
 	}
 

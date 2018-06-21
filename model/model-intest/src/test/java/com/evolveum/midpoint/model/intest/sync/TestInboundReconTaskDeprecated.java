@@ -38,7 +38,7 @@ public class TestInboundReconTaskDeprecated extends TestInboundReconTask {
 	protected File getResourceDummyEmeraldFile() {
 		return RESOURCE_DUMMY_EMERALD_DEPRECATED_FILE;
 	}
-	
+
 	@Override
 	protected File getResourceDummyBlueFile() {
 		return RESOURCE_DUMMY_BLUE_DEPRECATED_FILE;

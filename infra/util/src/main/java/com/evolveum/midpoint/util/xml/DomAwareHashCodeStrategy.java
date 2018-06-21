@@ -26,13 +26,13 @@ import org.w3c.dom.Element;
  * a constant. This makes the hashing somehow less efficient if the JAXB objects differ just in
  * the DOM parts. This this is quite unlikely under usual circumstances. However the main reason
  * for this is to avoid namespace-related problems.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 
 public class DomAwareHashCodeStrategy extends JAXBHashCodeStrategy {
-	
+
 	public static HashCodeStrategy INSTANCE = new DomAwareHashCodeStrategy();
 
 	@Override

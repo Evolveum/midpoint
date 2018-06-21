@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -37,9 +37,9 @@
 	<globalPolicyRule>
 		<name>global-assignment-notification-for-judge</name>
 		<policyConstraints>
-			<assignment>
-				<operation>add</operation>
-			</assignment>
+			<ref>
+				<name>assignment-added</name>
+			</ref>
 		</policyConstraints>
 		<policyActions>
 			<notification/>
@@ -61,6 +61,7 @@
 		<name>global-assignment-disabled</name>
 		<policyConstraints>
 			<assignment>
+				<name>assignment-added</name>
 				<operation>add</operation>
 			</assignment>
 		</policyConstraints>
@@ -78,6 +79,99 @@
 				<value>false</value>
 			</expression>
 		</condition>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>global-focus-modification</name>
+		<policyConstraints>
+			<modification>
+				<item>employeeType</item>
+			</modification>
+		</policyConstraints>
+		<policyActions>
+			<notification/>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<condition>
+			<source>
+				<path>employeeType</path>
+			</source>
+			<expression>
+				<script>
+					<code>
+						employeeType != "T"
+					</code>
+				</script>
+			</expression>
+		</condition>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>Immutable inducements</name>
+		<policyConstraints>
+			<modification>
+				<item>inducement</item>
+			</modification>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+			<subtype>immutable-inducements</subtype>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>No addition/deletion of inducements</name>
+		<policyConstraints>
+			<modification>
+				<operation>modify</operation>
+				<item>inducement</item>
+				<exactPathMatch>true</exactPathMatch>
+			</modification>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+			<subtype>no-inducements-add-delete</subtype>
+		</focusSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<name>No addition/deletion of inducements (via expression)</name>
+		<policyConstraints>
+			<modification>
+				<item>inducement</item>
+				<expression>
+					<script>
+						<code>
+							import com.evolveum.midpoint.prism.delta.*
+							import com.evolveum.midpoint.prism.path.*
+
+							def delta = ruleEvaluationContext.focusContext?.primaryDelta
+							def inducementPath = new ItemPath("inducement")
+							if (delta.isModify()) {
+								for (ItemDelta itemDelta : delta.modifications) {
+									if (inducementPath.equivalent(itemDelta.path)) {
+										// itemDelta is either add, delete or replace (for inducement as a whole)
+										return true
+									}
+								}
+							}
+							false
+						</code>
+					</script>
+				</expression>
+			</modification>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>RoleType</type>
+			<subtype>no-inducements-add-delete-via-expression</subtype>
+		</focusSelector>
 	</globalPolicyRule>
     <adminGuiConfiguration>
 	    <userDashboardLink>

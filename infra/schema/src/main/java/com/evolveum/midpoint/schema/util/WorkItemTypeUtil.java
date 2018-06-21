@@ -40,6 +40,30 @@ public class WorkItemTypeUtil {
 		return output != null ? output.getComment() : null;
 	}
 
+	public static byte[] getEvidence(AbstractWorkItemType workItem) {
+		return getEvidence(getOutput(workItem));
+	}
+
+	public static byte[] getEvidence(AbstractWorkItemOutputType output) {
+		return output != null ? output.getEvidence() : null;
+	}
+
+	public static String getEvidenceFilename(AbstractWorkItemType workItem) {
+		return getEvidenceFilename(getOutput(workItem));
+	}
+
+	public static String getEvidenceFilename(AbstractWorkItemOutputType output) {
+		return output != null ? output.getEvidenceFilename() : null;
+	}
+
+	public static String getEvidenceContentType(AbstractWorkItemType workItem) {
+		return getEvidenceContentType(getOutput(workItem));
+	}
+
+	public static String getEvidenceContentType(AbstractWorkItemOutputType output) {
+		return output != null ? output.getEvidenceContentType() : null;
+	}
+
 	public static String getOutcome(AbstractWorkItemOutputType output) {
 		return output != null ? output.getOutcome() : null;
 	}

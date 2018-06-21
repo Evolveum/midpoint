@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.test.util;
 
@@ -38,12 +38,12 @@ public class DerbyControllerTest {
 	@Test
 	public void testStartStopDerby() throws Exception {
 		DerbyController controller = new DerbyController();
-		
+
 		// Start Derby
 		controller.startCleanServer();
-		
+
 		Connection conn = controller.getConnection();
-		
+
 		// Check if it is empty
 		Statement stmt = conn.createStatement();
 		stmt.execute("select * from users");
@@ -51,12 +51,12 @@ public class DerbyControllerTest {
 		assertFalse("The \"users\" table is not empty",rs.next());
 		rs.close();
 		stmt.close();
-				
+
 		// Try insert
 		stmt = conn.createStatement();
         stmt.execute("insert into users values ('jack','d3adm3nt3lln0t4l3s','cpt. Jack Sparrow',1)");
         conn.commit();
-        
+
 		// Try to connect over the "network" (localhost)
         Class.forName("org.apache.derby.jdbc.ClientDriver").newInstance();
 		String networkJdbcUrl = "jdbc:derby://"+controller.getListenHostname()+":"+controller.getListentPort()+"/"+controller.getDbName();
@@ -73,7 +73,7 @@ public class DerbyControllerTest {
 		assertTrue("The \"users\" empty after insert",rs.next());
 		rs.close();
 		stmt.close();
-        
+
 		// stop derby
 		controller.stop();
 	}

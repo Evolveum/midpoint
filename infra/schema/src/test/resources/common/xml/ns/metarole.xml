@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -38,6 +38,13 @@
         <policyRule>
             <policyConstraints>
                 <!-- applies to all assignment operations of this metarole-bearer as the target -->
+                <objectState>
+                    <executeScript>
+                        <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                            <s:type>UserType</s:type>
+                        </s:search>
+                    </executeScript>
+                </objectState>
                 <assignment>
                     <!-- intentionally empty -->
                 </assignment>

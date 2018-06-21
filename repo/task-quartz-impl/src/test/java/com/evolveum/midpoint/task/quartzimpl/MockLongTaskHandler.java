@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,14 +46,13 @@ public class MockLongTaskHandler implements TaskHandler {
 
 	@Override
 	public TaskRunResult run(Task task) {
-		long progress = task.getProgress();
-		LOGGER.info("MockLong.run starting (id = {}, progress = {})", id, progress);
+		LOGGER.info("MockLong.run starting (id = {}, progress = {})", id, task.getProgress());
 
 		OperationResult opResult = new OperationResult(MockLongTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 
 		while (task.canRun()) {
-			progress++;
+			task.incrementProgressAndStoreStatsIfNeeded();
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
@@ -61,17 +60,17 @@ public class MockLongTaskHandler implements TaskHandler {
 				break;
 			}
 		}
-		
+
 		opResult.recordSuccess();
-		
+
 		runResult.setOperationResult(opResult);
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(progress);
-		
-		LOGGER.info("MockLong.run stopping; progress = {}", progress);
+		runResult.setProgress(task.getProgress());
+
+		LOGGER.info("MockLong.run stopping; progress = {}", task.getProgress());
 		return runResult;
 	}
-	
+
 	@Override
 	public Long heartbeat(Task task) {
 		return 0L;
@@ -80,15 +79,10 @@ public class MockLongTaskHandler implements TaskHandler {
 	@Override
 	public void refreshStatus(Task task) {
 	}
-	
+
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.MOCK;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 
     public TaskManagerQuartzImpl getTaskManager() {

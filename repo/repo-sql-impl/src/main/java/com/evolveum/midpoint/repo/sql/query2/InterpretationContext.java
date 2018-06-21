@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.query2;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
@@ -39,6 +40,7 @@ public class InterpretationContext {
     private QueryInterpreter2 interpreter;
     private PrismContext prismContext;
     private Session session;
+    private ExtItemDictionary extItemDictionary;
 
     private ItemPathResolver itemPathResolver = new ItemPathResolver(this);
 
@@ -54,16 +56,18 @@ public class InterpretationContext {
     private JpaEntityDefinition rootEntityDefinition;
 
     public InterpretationContext(QueryInterpreter2 interpreter, Class<? extends Containerable> type,
-                                 PrismContext prismContext, Session session) throws QueryException {
+                                 PrismContext prismContext, ExtItemDictionary extItemDictionary, Session session) throws QueryException {
 
         Validate.notNull(interpreter, "interpreter");
         Validate.notNull(type, "type");
         Validate.notNull(prismContext, "prismContext");
+        Validate.notNull(extItemDictionary, "extItemDictionary");
         Validate.notNull(session, "session");
 
         this.interpreter = interpreter;
         this.type = type;
         this.prismContext = prismContext;
+        this.extItemDictionary = extItemDictionary;
         this.session = session;
 
         QueryDefinitionRegistry2 registry = QueryDefinitionRegistry2.getInstance();
@@ -111,5 +115,9 @@ public class InterpretationContext {
 
     public String getPrimaryEntityAlias() {
         return hibernateQuery.getPrimaryEntityAlias();
+    }
+
+    public ExtItemDictionary getExtItemDictionary() {
+        return extItemDictionary;
     }
 }

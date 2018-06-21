@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,14 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -32,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * Task handler for "reindex" task.
@@ -43,7 +47,7 @@ import java.util.List;
  * @author Pavol Mederly
  */
 @Component
-public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<ObjectType, ReindexResultHandler> {
+public class ReindexTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, ReindexResultHandler> {
 
     public static final String HANDLER_URI = ModelPublicConstants.REINDEX_TASK_HANDLER_URI;
 
@@ -67,29 +71,16 @@ public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<Objec
 
 	@Override
 	protected ReindexResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask, OperationResult opResult)
-			throws SchemaException, SecurityViolationException {
-		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, opResult);
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, coordinatorTask, opResult);
         return new ReindexResultHandler(coordinatorTask, ReindexTaskHandler.class.getName(),
 				"reindex", "reindex", taskManager, repositoryService);
-	}
-
-	@Override
-	protected boolean initializeRun(ReindexResultHandler handler,
-			TaskRunResult runResult, Task task, OperationResult opResult) {
-		return super.initializeRun(handler, runResult, task, opResult);
 	}
 
     @Override
     protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, ObjectType.class);
     }
-
-    @Override
-	protected ObjectQuery createQuery(ReindexResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-        ObjectQuery query = createQueryFromTask(handler, runResult, task, opResult);
-        LOGGER.info("Using query:\n{}", query.debugDump());
-        return query;
-	}
 
     @Override
     protected boolean useRepositoryDirectly(ReindexResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
@@ -99,10 +90,5 @@ public class ReindexTaskHandler extends AbstractSearchIterativeTaskHandler<Objec
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.UTIL;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 }

@@ -24,7 +24,7 @@
 	<resourceRef oid="10000000-0000-0000-0000-000000000001" type="ResourceType"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
 	<attributes>
-		<icfs:name>chappie</icfs:name>
+		<ri:identifier>chappie</ri:identifier>
 		<ri:First_Name>Chappie</ri:First_Name>
 		<ri:Last_Name>von Tetravaal</ri:Last_Name>
 		<ri:Display_Name>Chappie von Tetravaal</ri:Display_Name>

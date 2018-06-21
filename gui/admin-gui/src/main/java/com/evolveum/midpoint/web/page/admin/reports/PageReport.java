@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -28,23 +27,15 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.RawValidationError;
 
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -56,7 +47,6 @@ import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.JasperReportConfigurationPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReportConfigurationPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.Base64Model;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -98,16 +88,16 @@ public class PageReport extends PageAdminReports {
 
         initLayout();
     }
-    
+
     public PageReport(final ReportDto reportDto) {
     	model = new LoadableModel<ReportDto>(reportDto, false) {
-    		
+
     		@Override
     		protected ReportDto load() {
     			// never called
     			return reportDto;
     		}
-    		
+
 		};
 		initLayout();
     }
@@ -117,21 +107,21 @@ public class PageReport extends PageAdminReports {
 
         Task task = createSimpleTask(OPERATION_LOAD_REPORT);
         OperationResult result = task.getResult();
-        PrismObject<ReportType> prismReport = WebModelServiceUtils.loadObject(ReportType.class, reportOid.toString(), 
+        PrismObject<ReportType> prismReport = WebModelServiceUtils.loadObject(ReportType.class, reportOid.toString(),
         		this, task, result);
-        
+
         if (prismReport == null) {
             LOGGER.error("Couldn't load report.");
             throw new RestartResponseException(PageReports.class);
         }
-        
+
         return new ReportDto(prismReport.asObjectable());
 
 //        return prismReport;
     }
 
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
         List<ITab> tabs = new ArrayList<>();
@@ -185,77 +175,73 @@ public class PageReport extends PageAdminReports {
         initButtons(mainForm);
     }
 
-    private IValidator<String> createFullXmlValidator() {
-        return new IValidator<String>() {
+//    private IValidator<String> createFullXmlValidator() {
+//        return (IValidator<String>) validatable -> {
+//            String value = validatable.getValue();
+//
+//            OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
+//            Holder<ReportType> reportHolder = new Holder<>(null);
+//
+//            OpResult opResult;
+//            try {
+//                validateObject(value, reportHolder, PrismContext.LANG_XML, true, ReportType.class, result);
+//
+//                if (!result.isAcceptable()) {
+//                    result.recordFatalError("Could not validate object", result.getCause());
+//                    opResult = OpResult.getOpResult((PageBase)getPage(),result);
+//                    validatable.error(new RawValidationError(opResult));
+//                }
+//            } catch (Exception e) {
+//                LOGGER.error("Validation problem occurred." + e.getMessage());
+//                result.recordFatalError("Could not validate object.", e);
+//                try {
+//                    opResult = OpResult.getOpResult((PageBase) getPage(), result);
+//                    validatable.error(new RawValidationError(opResult));
+//                } catch (Exception ex) {
+//                    error(ex);
+//                }
+//            }
+//        };
+//    }
 
-            @Override
-            public void validate(IValidatable<String> validatable) {
-                String value = validatable.getValue();
-
-                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
-                Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
-
-                OpResult opResult = null;
-                try {
-                    validateObject(value, reportHolder, PrismContext.LANG_XML, true, result);
-
-                    if(!result.isAcceptable()){
-                        result.recordFatalError("Could not validate object", result.getCause());
-                        opResult = OpResult.getOpResult((PageBase)getPage(),result);
-                        validatable.error(new RawValidationError(opResult));
-                    }
-                } catch (Exception e){
-                    LOGGER.error("Validation problem occured." + e.getMessage());
-                    result.recordFatalError("Could not validate object.", e);
-                    try {
-                        opResult = OpResult.getOpResult((PageBase) getPage(), result);
-                        validatable.error(new RawValidationError(opResult));
-                    } catch (Exception ex){
-                        error(ex);
-                    }
-                }
-            }
-        };
-    }
-
-    private IModel<String> createFullXmlModel() {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                PrismObject report = model.getObject().getObject();
-                if (report == null) {
-                    return null;
-                }
-
-                try {
-                    return getPrismContext().serializeObjectToString(report, PrismContext.LANG_XML);
-                } catch (SchemaException ex) {
-                    getSession().error(getString("PageReport.message.cantSerializeFromObjectToString") + ex);
-                    throw new RestartResponseException(PageError.class);
-                }
-            }
-
-            @Override
-            public void setObject(String object) {
-                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
-                Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
-
-                try {
-                    validateObject(object, reportHolder, PrismContext.LANG_XML, true, result);
-                    model.getObject().setObject(reportHolder.getValue());
-                } catch (Exception e){
-                    LOGGER.error("Could not set object. Validation problem occured." + result.getMessage());
-                    result.recordFatalError("Could not set object. Validation problem occured,", e);
-                    showResult(result, "Could not set object. Validation problem occured.");
-                }
-            }
-
-            @Override
-            public void detach() {
-            }
-        };
-    }
+//    private IModel<String> createFullXmlModel() {
+//        return new IModel<String>() {
+//
+//            @Override
+//            public String getObject() {
+//                PrismObject report = model.getObject().getObject();
+//                if (report == null) {
+//                    return null;
+//                }
+//
+//                try {
+//                    return getPrismContext().serializeObjectToString(report, PrismContext.LANG_XML);
+//                } catch (SchemaException ex) {
+//                    getSession().error(getString("PageReport.message.cantSerializeFromObjectToString") + ex);
+//                    throw new RestartResponseException(PageError.class);
+//                }
+//            }
+//
+//            @Override
+//            public void setObject(String object) {
+//                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
+//                Holder<ReportType> reportHolder = new Holder<>(null);
+//
+//                try {
+//                    validateObject(object, reportHolder, PrismContext.LANG_XML, true, ReportType.class, result);
+//                    model.getObject().setObject(reportHolder.getValue().asPrismObject());
+//                } catch (Exception e){
+//                    LOGGER.error("Could not set object. Validation problem occurred." + result.getMessage());
+//                    result.recordFatalError("Could not set object. Validation problem occurred,", e);
+//                    showResult(result, "Could not set object. Validation problem occurred.");
+//                }
+//            }
+//
+//            @Override
+//            public void detach() {
+//            }
+//        };
+//    }
 
     private void initButtons(Form mainForm) {
         AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {
@@ -311,10 +297,10 @@ public class PageReport extends PageAdminReports {
                             getPrismContext().adopt(delta);
                             getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 			}
-			
+
         } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);
-           
+
         } finally {
             result.computeStatusIfUnknown();
         }

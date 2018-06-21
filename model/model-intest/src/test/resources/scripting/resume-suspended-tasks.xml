@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<s:executeScript
+		xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	<s:search>
+		<s:type>TaskType</s:type>
+		<s:query>
+			<q:filter>
+				<q:and>
+					<q:equal>
+						<q:path>category</q:path>
+						<q:value>Workflow</q:value>
+					</q:equal>
+					<q:equal>
+						<q:path>handlerUri</q:path>
+						<!-- use http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3 for real wf tasks -->
+						<q:value>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</q:value>
+					</q:equal>
+					<q:equal>
+						<q:path>executionStatus</q:path>
+						<q:value>suspended</q:value>
+					</q:equal>
+					<!-- Beware: this condition is applicable only when the model operation carrying task is the same
+					     as the task wrapping the approvals. This is the case only when "execute after all approvals" is turned
+					     off, i.e. if all changes are executed immediately after being approved. If "execute after all approvals"
+					     is turned on then the filtering has to be done in a more elaborate way. -->
+					<q:greaterOrEqual>
+						<q:path>workflowContext/endTimestamp</q:path>
+						<c:expression>
+							<c:script>
+								<c:code>
+									basic.fromNow("-P14D")
+								</c:code>
+							</c:script>
+						</c:expression>
+					</q:greaterOrEqual>
+				</q:and>
+			</q:filter>
+		</s:query>
+		<s:action>
+			<s:type>resume</s:type>
+		</s:action>
+	</s:search>
+</s:executeScript>

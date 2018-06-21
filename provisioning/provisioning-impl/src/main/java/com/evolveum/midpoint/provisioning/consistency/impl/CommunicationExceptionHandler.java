@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		
 		OperationResult operationResult = parentResult.createSubresult("com.evolveum.midpoint.provisioning.consistency.impl.CommunicationExceptionHandler.handleError." + op.name());
 		operationResult.addParam("shadow", shadow);
-		operationResult.addParam("currentOperation", op);
+		operationResult.addArbitraryObjectAsParam("currentOperation", op);
 		operationResult.addParam("exception", ex.getMessage());
 
 		// first modify last availability status in the resource, so by others
@@ -114,7 +114,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		resourceManager.modifyResourceAvailabilityStatus(shadow.getResource().asPrismObject(), 
 				AvailabilityStatusType.DOWN, operationResult);
 		
-		if ((!isPostpone(shadow.getResource()) || !compensate) && !FailedOperation.GET.equals(op)){
+		if ((!isPostpone(shadow.getResource()) || !compensate) && !FailedOperation.GET.equals(op)) {
 			LOGGER.trace("Postponing operation turned off.");
 			operationResult.recordFatalError(ex.getMessage(), ex);
 			throw new CommunicationException(ex.getMessage(), ex);
@@ -263,7 +263,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 	
 	private <T extends ShadowType> Collection<ItemDelta> createShadowModification(T shadow) throws ObjectNotFoundException, SchemaException {
-		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+		Collection<ItemDelta> modifications = new ArrayList<>();
 
 		PropertyDelta propertyDelta = PropertyDelta.createReplaceDelta(shadow.asPrismObject()
 				.getDefinition(), ShadowType.F_RESULT, shadow.getResult());

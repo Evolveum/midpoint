@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,21 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SummaryTagSimple;
+import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author mederly
@@ -38,11 +43,11 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 
 	private final IModel<WorkItemDto> dtoModel;
 
-	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel) {
-		super(id, model);
+	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel, ModelServiceLocator serviceLocator) {
+		super(id, model, serviceLocator, null);
 		this.dtoModel = dtoModel;
 
-		initLayoutCommon();
+		initLayoutCommon(serviceLocator);
 
 		SummaryTagSimple<WorkItemType> isAssignedTag = new SummaryTagSimple<WorkItemType>(ID_ASSIGNED_TAG, model) {
 			@Override
@@ -57,6 +62,16 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 			}
 		};
 		addTag(isAssignedTag);
+	}
+
+	@Override
+	protected IModel<String> getDisplayNameModel() {
+		return new ReadOnlyModel<>(() -> {
+			WorkItemDto workItemDto = dtoModel.getObject();
+			return defaultIfNull(
+					WfGuiUtil.getLocalizedProcessName(workItemDto.getWorkflowContext(), WorkItemSummaryPanel.this),
+					workItemDto.getName());
+		});
 	}
 
 	@Override
@@ -90,6 +105,11 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 			@Override
 			public String getObject() {
 				UserType requester = dtoModel.getObject().getRequester();
+				if (requester == null) {
+					// MID-4539 if we don't have authorization to see requester
+					return getString("TaskSummaryPanel.requestedBy", getString("TaskSummaryPanel.unknown"));
+				}
+
 				String displayName = WebComponentUtil.getDisplayName(requester.asPrismObject());
 				String name = WebComponentUtil.getName(requester.asPrismObject());
 				if (displayName != null) {

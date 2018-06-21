@@ -35,7 +35,7 @@ import java.util.*;
 public class StepSchemaConstants implements Processor {
 
     public static final String CLASS_NAME = "com.evolveum.midpoint.schema.SchemaConstantsGenerated";
-    private Map<String, JFieldVar> namespaceFields = new HashMap<String, JFieldVar>();
+    private Map<String, JFieldVar> namespaceFields = new HashMap<>();
 
     public Map<String, JFieldVar> getNamespaceFields() {
         return namespaceFields;
@@ -47,7 +47,7 @@ public class StepSchemaConstants implements Processor {
         JDefinedClass schemaConstants = model.codeModel._class(CLASS_NAME);
 
         //creating namespaces
-        List<FieldBox<String>> namespaces = new ArrayList<FieldBox<String>>();
+        List<FieldBox<String>> namespaces = new ArrayList<>();
         for (PrefixMapper prefix : PrefixMapper.values()) {
             namespaces.add(new FieldBox("NS_" + prefix.getNamespaceName(), prefix.getNamespace()));
         }
@@ -59,7 +59,7 @@ public class StepSchemaConstants implements Processor {
         }
 
         //creating qnames
-        List<FieldBox<QName>> fields = new ArrayList<FieldBox<QName>>();
+        List<FieldBox<QName>> fields = new ArrayList<>();
         Map<QName, CElementInfo> map = model.getElementMappings(null);
         Set<Map.Entry<QName, CElementInfo>> set = map.entrySet();
         for (Map.Entry<QName, CElementInfo> entry : set) {

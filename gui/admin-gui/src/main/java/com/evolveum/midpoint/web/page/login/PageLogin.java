@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -46,7 +48,7 @@ import javax.servlet.http.HttpSession;
 /**
  * @author mserbak
  */
-@PageDescriptor(url = "/login")
+@PageDescriptor(url = "/login", permitAll = true)
 public class PageLogin extends PageBase {
 	private static final long serialVersionUID = 1L;
 
@@ -54,6 +56,7 @@ public class PageLogin extends PageBase {
 
     private static final String ID_FORGET_PASSWORD = "forgetpassword";
     private static final String ID_SELF_REGISTRATION = "selfRegistration";
+    private static final String ID_CSRF_FIELD = "csrfField";
 
     private static final String DOT_CLASS = PageLogin.class.getName() + ".";
     protected static final String OPERATION_LOAD_RESET_PASSWORD_POLICY = DOT_CLASS + "loadPasswordResetPolicy";
@@ -75,26 +78,26 @@ public class PageLogin extends PageBase {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
 
-                boolean linkIsVisible = false;
-                
                 if (securityPolicy == null) {
-                	return linkIsVisible;
+                	return false;
                 }
                 
                 CredentialsPolicyType creds = securityPolicy.getCredentials();
                 
+                // TODO: Not entirely correct. This means we have reset somehow configured, but not necessarily enabled. 
                 if (creds != null
                         && ((creds.getSecurityQuestions() != null
                         && creds.getSecurityQuestions().getQuestionNumber() != null) || (securityPolicy.getCredentialsReset() != null))) {
-                    linkIsVisible = true;
+                    return true;
                 }
 
-                return linkIsVisible;
+                return false;
             }
         });
         add(link);
         
         AjaxLink<String> registration = new AjaxLink<String>(ID_SELF_REGISTRATION) {
+        	private static final long serialVersionUID = 1L;
         	
         	@Override
         	public void onClick(AjaxRequestTarget target) {
@@ -126,6 +129,9 @@ public class PageLogin extends PageBase {
             }
         });
         add(registration);
+
+        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
+        add(csrfField);
     }
 
     @Override
@@ -141,8 +147,13 @@ public class PageLogin extends PageBase {
             return;
         }
 
-        String key = ex.getMessage() != null ? ex.getMessage() : "web.security.provider.unavailable";
-        error(getString(key));
+        String msg = ex.getMessage();
+        if (StringUtils.isEmpty(msg)) {
+            msg = "web.security.provider.unavailable";
+        }
+
+        msg = getLocalizationService().translate(msg, null, getLocale(), msg);
+        error(msg);
 
         httpSession.removeAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 

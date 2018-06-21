@@ -17,34 +17,38 @@ package com.evolveum.midpoint.model.api;
 
 
 import com.evolveum.midpoint.schema.AbstractOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationBusinessContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
 
 import java.io.Serializable;
 import java.util.List;
 
+import static org.apache.commons.lang3.BooleanUtils.isTrue;
+
 /**
  * Options for execution of Model operations. These options influence the way how the operations are executed.
  * The options are not mandatory. All options have reasonable default values. They may not be specified at all.
- * 
+ *
  * @author semancik
  */
 public class ModelExecuteOptions extends AbstractOptions implements Serializable, Cloneable {
-	
+
 	/**
 	 * Force the operation even if it would otherwise fail due to external failure. E.g. attempt to delete an account
 	 * that no longer exists on resource may fail without a FORCE option. If FORCE option is used then the operation is
 	 * finished even if the account does not exist (e.g. at least shadow is removed from midPoint repository).
 	 */
 	private Boolean force;
-	
+
 	/**
 	 * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
 	 * any expressions, etc.
 	 */
 	private Boolean raw;
-	
+
 	/**
 	 * Encrypt any cleartext data on write, decrypt any encrypted data on read. Applies only to the encrypted
 	 * data formats (ProtectedString, ProtectedByteArray).
@@ -52,13 +56,13 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 * purposes to be used in development environments.
 	 */
 	private Boolean noCrypt;
-	
+
 	/**
 	 * Option to reconcile focus and all projections while executing changes.
 	 * (implies reconcileFocus)
 	 */
 	private Boolean reconcile;
-	
+
 	/**
 	 * Option to reconcile focus while executing changes.
 	 * If this option is set and the reconcile option is not set then the projections
@@ -91,7 +95,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
      * Option to user overwrite flag. It can be used from web service, if we want to re-import some object
      */
 	private Boolean overwrite;
-    
+
 	/**
 	 * Option to simulate import operation. E.g. search filters will be resolved.
 	 */
@@ -101,7 +105,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 * Causes reevaluation of search filters (producing partial errors on failure).
 	 */
 	private Boolean reevaluateSearchFilters;
-    
+
     /**
      * Option to limit propagation only for the source resource
      */
@@ -112,17 +116,46 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 * EXPERIMENTAL. Currently supported only for raw executions.
 	 */
 	private Boolean preAuthorized;
-	
+
 	/**
 	 * Business context that describes this request.
 	 */
 	private OperationBusinessContextType requestBusinessContext;
-	
+
 	/**
 	 * Options that control selective execution of model logic.
      * Use with extreme care. Some combinations may be dangerous.
 	 */
 	private PartialProcessingOptionsType partialProcessing;
+
+	/**
+	 * Partial processing for initial clockwork stage. Used primarily for eliminating overhead when starting
+	 * operations that are expected to result in (background) approval processing.
+	 *
+	 * Note that if this option is used and if the clockwork proceeds to PRIMARY phase (e.g. because there are
+	 * no approvals), the context will be rotten after INITIAL phase. This presents some overhead. So please use
+	 * this option only if there is reasonable assumption that the request will stop after INITIAL phase.
+	 */
+	private PartialProcessingOptionsType initialPartialProcessing;
+	
+	/**
+	 * A method to resolve conflicts on focus objects. This specifies how will the processors handle
+	 * optimistic locking conflicts - and whether they even try to detect them. The default value is
+	 * null, which means that there is no reaction to conflicts and that the conflicts are not even
+	 * detected.
+	 * 
+	 * Note that different default conflict resolution may be specified in system configuration.
+	 * 
+	 * EXPERIMENTAL
+	 */
+	private ConflictResolutionType focusConflictResolution;
+
+	/**
+	 * Processes all assignment relations on recompute. Used for computing all assignments.
+	 * TEMPORARY. EXPERIMENTAL. Should be replaced by something more generic (e.g. setting optimization level).
+	 * Therefore we do not currently put this to XML version of the options.
+	 */
+	private Boolean evaluateAllAssignmentRelationsOnRecompute;
 
     public Boolean getForce() {
 		return force;
@@ -131,7 +164,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setForce(Boolean force) {
 		this.force = force;
 	}
-	
+
 	public static boolean isForce(ModelExecuteOptions options) {
 		if (options == null) {
 			return false;
@@ -141,7 +174,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.force;
 	}
-	
+
 	public static ModelExecuteOptions createForce() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setForce(true);
@@ -160,7 +193,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setRaw(Boolean raw) {
 		this.raw = raw;
 	}
-	
+
 	public static boolean isRaw(ModelExecuteOptions options) {
 		if (options == null) {
 			return false;
@@ -170,7 +203,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.raw;
 	}
-	
+
 	public static ModelExecuteOptions createRaw() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setRaw(true);
@@ -189,7 +222,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setNoCrypt(Boolean noCrypt) {
 		this.noCrypt = noCrypt;
 	}
-	
+
 	public static boolean isNoCrypt(ModelExecuteOptions options) {
 		if (options == null) {
 			return false;
@@ -214,11 +247,11 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public Boolean getReconcile() {
 		return reconcile;
 	}
-	
+
 	public void setReconcile(Boolean reconcile) {
 		this.reconcile = reconcile;
 	}
-	
+
 	public static boolean isReconcile(ModelExecuteOptions options) {
 		if (options == null){
 			return false;
@@ -228,9 +261,15 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.reconcile;
 	}
-	
+
 	public static ModelExecuteOptions createReconcile() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setReconcile(true);
+		return opts;
+	}
+
+	public static ModelExecuteOptions createReconcile(ModelExecuteOptions defaultOptions) {
+		ModelExecuteOptions opts = defaultOptions != null ? defaultOptions.clone() : new ModelExecuteOptions();
 		opts.setReconcile(true);
 		return opts;
 	}
@@ -239,7 +278,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		setReconcile(true);
 		return this;
 	}
-	
+
 	public Boolean getReconcileFocus() {
 		return reconcileFocus;
 	}
@@ -253,7 +292,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		opts.setReconcileFocus(true);
 		return opts;
 	}
-	
+
 	public static boolean isReconcileFocus(ModelExecuteOptions options) {
 		if (options == null){
 			return false;
@@ -296,11 +335,11 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     public Boolean getOverwrite() {
 		return overwrite;
 	}
-	
+
 	public void setOverwrite(Boolean overwrite) {
 		this.overwrite = overwrite;
 	}
-	
+
 	public static boolean isOverwrite(ModelExecuteOptions options){
 		if (options == null){
 			return false;
@@ -310,7 +349,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.overwrite;
 	}
-	
+
 	public static ModelExecuteOptions createOverwrite(){
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setOverwrite(true);
@@ -325,11 +364,11 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public Boolean getIsImport() {
 		return isImport;
 	}
-	
+
 	public void setIsImport(Boolean isImport) {
 		this.isImport = isImport;
 	}
-	
+
 	public static boolean isIsImport(ModelExecuteOptions options){
 		if (options == null){
 			return false;
@@ -339,7 +378,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		}
 		return options.isImport;
 	}
-	
+
 	public static ModelExecuteOptions createIsImport(){
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setIsImport(true);
@@ -350,7 +389,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		setIsImport(true);
 		return this;
 	}
-	
+
     public void setExecuteImmediatelyAfterApproval(Boolean executeImmediatelyAfterApproval) {
         this.executeImmediatelyAfterApproval = executeImmediatelyAfterApproval;
     }
@@ -365,7 +404,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return options.executeImmediatelyAfterApproval;
     }
 
-	public static ModelExecuteOptions createExecuteImmediatelyAfterApproval(){
+	public static ModelExecuteOptions createExecuteImmediatelyAfterApproval() {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setExecuteImmediatelyAfterApproval(true);
 		return opts;
@@ -374,7 +413,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setLimitPropagation(Boolean limitPropagation) {
 		this.limitPropagation = limitPropagation;
 	}
-    
+
     public static boolean isLimitPropagation(ModelExecuteOptions options){
     	if (options == null){
     		return false;
@@ -462,14 +501,14 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setRequestBusinessContext(OperationBusinessContextType requestBusinessContext) {
 		this.requestBusinessContext = requestBusinessContext;
 	}
-	
+
 	public static OperationBusinessContextType getRequestBusinessContext(ModelExecuteOptions options) {
 		if (options == null) {
 			return null;
 		}
 		return options.getRequestBusinessContext();
 	}
-	
+
 	public static ModelExecuteOptions createRequestBusinessContext(OperationBusinessContextType requestBusinessContext) {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setRequestBusinessContext(requestBusinessContext);
@@ -483,17 +522,78 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setPartialProcessing(PartialProcessingOptionsType partialProcessing) {
 		this.partialProcessing = partialProcessing;
 	}
-	
+
 	public static PartialProcessingOptionsType getPartialProcessing(ModelExecuteOptions options) {
 		if (options == null) {
 			return null;
 		}
 		return options.getPartialProcessing();
 	}
-	
+
 	public static ModelExecuteOptions createPartialProcessing(PartialProcessingOptionsType partialProcessing) {
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setPartialProcessing(partialProcessing);
+		return opts;
+	}
+
+	public PartialProcessingOptionsType getInitialPartialProcessing() {
+		return initialPartialProcessing;
+	}
+
+	public void setInitialPartialProcessing(
+			PartialProcessingOptionsType initialPartialProcessing) {
+		this.initialPartialProcessing = initialPartialProcessing;
+	}
+
+	public static PartialProcessingOptionsType getInitialPartialProcessing(ModelExecuteOptions options) {
+		if (options == null) {
+			return null;
+		}
+		return options.getInitialPartialProcessing();
+	}
+
+	public static ModelExecuteOptions createInitialPartialProcessing(PartialProcessingOptionsType partialProcessing) {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setInitialPartialProcessing(partialProcessing);
+		return opts;
+	}
+
+	public ConflictResolutionType getFocusConflictResolution() {
+		return focusConflictResolution;
+	}
+
+	public void setFocusConflictResolution(ConflictResolutionType focusConflictResolution) {
+		this.focusConflictResolution = focusConflictResolution;
+	}
+	
+	public static ConflictResolutionType getFocusConflictResolution(ModelExecuteOptions options) {
+		if (options == null) {
+			return null;
+		}
+		return options.getFocusConflictResolution();
+	}
+
+	public static ModelExecuteOptions createFocusConflictResolution(ConflictResolutionType focusConflictResolution) {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setFocusConflictResolution(focusConflictResolution);
+		return opts;
+	}
+
+	public Boolean getEvaluateAllAssignmentRelationsOnRecompute() {
+		return evaluateAllAssignmentRelationsOnRecompute;
+	}
+
+	public void setEvaluateAllAssignmentRelationsOnRecompute(Boolean evaluateAllAssignmentRelationsOnRecompute) {
+		this.evaluateAllAssignmentRelationsOnRecompute = evaluateAllAssignmentRelationsOnRecompute;
+	}
+
+	public static boolean isEvaluateAllAssignmentRelationsOnRecompute(ModelExecuteOptions options) {
+		return options != null && isTrue(options.evaluateAllAssignmentRelationsOnRecompute);
+	}
+
+	public static ModelExecuteOptions createEvaluateAllAssignmentRelationsOnRecompute() {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setEvaluateAllAssignmentRelationsOnRecompute(true);
 		return opts;
 	}
 
@@ -512,6 +612,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		// preAuthorized is purposefully omitted (security reasons)
 		retval.setRequestBusinessContext(requestBusinessContext);
 		retval.setPartialProcessing(partialProcessing);
+		retval.setFocusConflictResolution(focusConflictResolution);
         return retval;
     }
 
@@ -533,14 +634,15 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		// preAuthorized is purposefully omitted (security reasons)
 		retval.setRequestBusinessContext(type.getRequestBusinessContext());
 		retval.setPartialProcessing(type.getPartialProcessing());
+		retval.setFocusConflictResolution(type.getFocusConflictResolution());
         return retval;
     }
-    
+
     public static ModelExecuteOptions fromRestOptions(List<String> options){
     	if (options == null || options.isEmpty()){
     		return null;
     	}
-    	
+
     	ModelExecuteOptions retVal = new ModelExecuteOptions();
     	for (String option : options){
     		if (ModelExecuteOptionsType.F_RAW.getLocalPart().equals(option)){
@@ -572,10 +674,10 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 			}
 			// preAuthorized is purposefully omitted (security reasons)
     	}
-    	
+
     	return retVal;
     }
-    
+
     @Override
     public String toString() {
     	StringBuilder sb = new StringBuilder("ModelExecuteOptions(");
@@ -592,17 +694,76 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     	appendFlag(sb, "reevaluateSearchFilters", reevaluateSearchFilters);
     	appendFlag(sb, "reconcileAffected", reconcileAffected);
     	appendFlag(sb, "requestBusinessContext", requestBusinessContext == null ? null : true);
-    	appendFlag(sb, "partialProcessing", partialProcessing == null ? null : true);
+    	appendVal(sb, "partialProcessing", format(partialProcessing));
+    	appendVal(sb, "initialPartialProcessing", format(initialPartialProcessing));
+    	appendVal(sb, "focusConflictResolution", focusConflictResolution);
     	removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();
     }
 
-    public ModelExecuteOptions clone() {
+	private Object format(PartialProcessingOptionsType pp) {
+		if (pp == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("(");
+		appendPpFlag(sb, pp.getLoad(), "L");
+		appendPpFlag(sb, pp.getFocus(), "F");
+		appendPpFlag(sb, pp.getInbound(), "I");
+		appendPpFlag(sb, pp.getFocusActivation(), "FA");
+		appendPpFlag(sb, pp.getObjectTemplateBeforeAssignments(), "OTBA");
+		appendPpFlag(sb, pp.getAssignments(), "A");
+		appendPpFlag(sb, pp.getAssignmentsOrg(), "AORG");
+		appendPpFlag(sb, pp.getAssignmentsMembershipAndDelegate(), "AM&D");
+		appendPpFlag(sb, pp.getAssignmentsConflicts(), "AC");
+		appendPpFlag(sb, pp.getObjectTemplateAfterAssignments(), "OTAA");
+		appendPpFlag(sb, pp.getFocusCredentials(), "FC");
+		appendPpFlag(sb, pp.getFocusPolicyRules(), "FPR");
+		appendPpFlag(sb, pp.getProjection(), "P");
+		appendPpFlag(sb, pp.getOutbound(), "O");
+		appendPpFlag(sb, pp.getProjectionValues(), "PV");
+		appendPpFlag(sb, pp.getProjectionCredentials(), "PC");
+		appendPpFlag(sb, pp.getProjectionReconciliation(), "PR");
+		appendPpFlag(sb, pp.getProjectionLifecycle(), "PL");
+		appendPpFlag(sb, pp.getApprovals(), "APP");
+		appendPpFlag(sb, pp.getExecution(), "E");
+		appendPpFlag(sb, pp.getNotification(), "N");
+		removeLastComma(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+
+	private void appendPpFlag(StringBuilder sb, PartialProcessingTypeType option, String label) {
+		if (option == null) {
+			return;
+		}
+		String value;
+		switch (option) {
+			case AUTOMATIC: return;
+			case PROCESS: value = "+"; break;
+			case SKIP: value = "-"; break;
+			default: throw new AssertionError();
+		}
+		sb.append(label).append(value).append(",");
+	}
+
+	public ModelExecuteOptions clone() {
         // not much efficient, but...
         ModelExecuteOptions clone = fromModelExecutionOptionsType(toModelExecutionOptionsType());
 		clone.setPreAuthorized(this.preAuthorized);
 		return clone;
     }
 
+	public boolean notEmpty() {
+    	// hack but quite effective
+		return !toString().equals(new ModelExecuteOptions().toString());
+	}
+
+	public PartialProcessingOptionsType getOrCreatePartialProcessing() {
+		if (partialProcessing == null) {
+			partialProcessing = new PartialProcessingOptionsType();
+		}
+		return partialProcessing;
+	}
 }

@@ -26,9 +26,9 @@ import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class FilterManagerImplTest extends AbstractTestNGSpringContextTests  {

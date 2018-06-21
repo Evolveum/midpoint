@@ -17,12 +17,12 @@ package com.evolveum.midpoint.task.api;
 
 /**
  * Task persistence status.
- * 
+ *
  * Persistence status tells whether the task is in-memory or persisted in the
  * repository.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public enum TaskPersistenceStatus {
 

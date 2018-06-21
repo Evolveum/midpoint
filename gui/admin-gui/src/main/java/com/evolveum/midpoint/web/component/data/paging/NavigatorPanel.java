@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component.data.paging;
 
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.wicket.AttributeModifier;

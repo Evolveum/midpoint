@@ -21,14 +21,9 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.IOException;
 
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
-
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -39,14 +34,13 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.DOMUtil;
 
 /**
  * @author semancik
  *
  */
 public class TestDomParser extends AbstractLexicalProcessorTest {
-	
+
 	@Override
 	protected String getSubdirName() {
 		return "xml";
@@ -66,31 +60,31 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
     public void testParseUserToXNode() throws Exception {
 		final String TEST_NAME = "testParseUserToXNode";
 		displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		DomLexicalProcessor parser = createParser();
-		
+
 		// WHEN
 		XNode xnode = parser.read(getFile(USER_JACK_FILE_BASENAME), ParsingContext.createDefault());
-		
+
 		// THEN
 		System.out.println("Parsed XNode:");
 		System.out.println(xnode.debugDump());
 
 		RootXNode root = getAssertXNode("root node", xnode, RootXNode.class);
-		
+
 		MapXNode rootMap = getAssertXNode("root subnode", root.getSubnode(), MapXNode.class);
 		PrimitiveXNode<String> xname = getAssertXMapSubnode("root map", rootMap, UserType.F_NAME, PrimitiveXNode.class);
 		// TODO: assert value
-		
+
 		ListXNode xass = getAssertXMapSubnode("root map", rootMap, UserType.F_ASSIGNMENT, ListXNode.class);
 		assertEquals("assignment size", 2, xass.size());
 		// TODO: asserts
-		
+
 		MapXNode xextension = getAssertXMapSubnode("root map", rootMap, UserType.F_EXTENSION, MapXNode.class);
-		
+
 	}
-	
+
 	private void validateSchemaCompliance(String xmlString, PrismContext prismContext)  throws SAXException, IOException {
 //		Document xmlDocument = DOMUtil.parseDocument(xmlString);
 //		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
@@ -98,7 +92,7 @@ public class TestDomParser extends AbstractLexicalProcessorTest {
 //		validator.setResourceResolver(prismContext.getEntityResolver());
 //		validator.validate(new DOMSource(xmlDocument));
 	}
-	
+
 	@Override
 	protected void validateUserSchema(String xmlString, PrismContext prismContext) throws SAXException, IOException {
 		validateSchemaCompliance(xmlString, prismContext);

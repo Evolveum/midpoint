@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

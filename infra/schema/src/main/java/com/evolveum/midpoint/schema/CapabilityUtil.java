@@ -63,7 +63,7 @@ public class CapabilityUtil {
 		if (capability instanceof JAXBElement<?>) {
 			capability = ((JAXBElement<?>)capability).getValue();
 		}
-		
+
 		if (capability instanceof CapabilityType) {
 			return CapabilityUtil.isCapabilityEnabled((CapabilityType)capability);
 		} else if (capability instanceof Element) {
@@ -127,7 +127,7 @@ public class CapabilityUtil {
 		}
 		return className;
 	}
-	
+
 	public static boolean isPasswordReturnedByDefault(CredentialsCapabilityType capability) {
 		if (capability == null) {
 			return false;
@@ -141,7 +141,7 @@ public class CapabilityUtil {
 		}
 		return password.isReturnedByDefault();
 	}
-	
+
 	public static boolean isActivationStatusReturnedByDefault(ActivationCapabilityType capability) {
 		if (capability == null) {
 			return false;
@@ -155,7 +155,7 @@ public class CapabilityUtil {
 		}
 		return statusCap.isReturnedByDefault();
 	}
-	
+
 	public static boolean isActivationLockoutStatusReturnedByDefault(ActivationCapabilityType capability) {
 		if (capability == null) {
 			return false;
@@ -169,7 +169,7 @@ public class CapabilityUtil {
 		}
 		return statusCap.isReturnedByDefault();
 	}
-	
+
 	public static boolean isActivationValidFromReturnedByDefault(ActivationCapabilityType capability) {
 		if (capability == null) {
 			return false;
@@ -183,7 +183,7 @@ public class CapabilityUtil {
 		}
 		return valCap.isReturnedByDefault();
 	}
-	
+
 	public static boolean isActivationValidToReturnedByDefault(ActivationCapabilityType capability) {
 		if (capability == null) {
 			return false;
@@ -273,7 +273,7 @@ public class CapabilityUtil {
 	private static Boolean def(Boolean originalValue, boolean defaultValue) {
 		return originalValue != null ? originalValue : defaultValue;
 	}
-	
+
 	public static <T extends CapabilityType> T getEffectiveCapability(CapabilitiesType capabilitiesType, Class<T> capabilityClass) {
 		if (capabilitiesType == null) {
 			return null;

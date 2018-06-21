@@ -39,11 +39,11 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  *
  */
 public abstract class DummyObject implements DebugDumpable {
-	
+
 	private String id;
 //	private int internalId = -1;
 	private String name;
-	private Map<String,Set<Object>> attributes = new HashMap<String, Set<Object>>();
+	private Map<String,Set<Object>> attributes = new HashMap<>();
 	private Boolean enabled = true;
 	private Date validFrom = null;
 	private Date validTo = null;
@@ -55,7 +55,7 @@ public abstract class DummyObject implements DebugDumpable {
 
 	public DummyObject() {
 	}
-	
+
 	public String getId() {
 		return id;
 	}
@@ -63,11 +63,11 @@ public abstract class DummyObject implements DebugDumpable {
 	public void setId(String id) {
 		this.id = id;
 	}
-	
+
 	public DummyObject(String name) {
 		this.name = name;
 	}
-	
+
 	public DummyResource getResource() {
 		return resource;
 	}
@@ -83,14 +83,16 @@ public abstract class DummyObject implements DebugDumpable {
 	public void setName(String username) {
 		this.name = username;
 	}
-	
+
 	public Boolean isEnabled() {
 		return enabled;
 	}
 
 	public void setEnabled(Boolean enabled) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		this.enabled = enabled;
+		recordModify();
 	}
 
 	public Date getValidFrom() {
@@ -99,7 +101,9 @@ public abstract class DummyObject implements DebugDumpable {
 
 	public void setValidFrom(Date validFrom) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		this.validFrom = validFrom;
+		recordModify();
 	}
 
 	public Date getValidTo() {
@@ -108,7 +112,9 @@ public abstract class DummyObject implements DebugDumpable {
 
 	public void setValidTo(Date validTo) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		this.validTo = validTo;
+		recordModify();
 	}
 
 	public BreakMode getModifyBreakMode() {
@@ -122,12 +128,12 @@ public abstract class DummyObject implements DebugDumpable {
 	public Set<String> getAttributeNames() {
 		return attributes.keySet();
 	}
-	
+
 	public <T> Set<T> getAttributeValues(String attrName, Class<T> type) {
 		Set<Object> values = attributes.get(attrName);
 		return (Set)values;
 	}
-	
+
 	public <T> T getAttributeValue(String attrName, Class<T> type) {
 		Set<T> values = getAttributeValues(attrName, type);
 		if (values == null || values.isEmpty()) {
@@ -138,22 +144,23 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 		return values.iterator().next();
 	}
-	
+
 	public String getAttributeValue(String attrName) {
 		return getAttributeValue(attrName,String.class);
 	}
 
 	public void replaceAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		Collection<Object> values = new ArrayList<Object>(1);
+		Collection<Object> values = new ArrayList<>(1);
 		values.add(value);
 		replaceAttributeValues(name, values);
 	}
-	
+
 	public void replaceAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		} else {
 			currentValues.clear();
@@ -162,12 +169,13 @@ public abstract class DummyObject implements DebugDumpable {
 		checkSchema(name, values, "replace");
 		recordModify();
 	}
-	
+
 	public void replaceAttributeValues(String name, Object... values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		} else {
 			currentValues.clear();
@@ -180,18 +188,19 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 		recordModify();
 	}
-	
+
 	public void addAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		Collection<Object> values = new ArrayList<Object>(1);
+		Collection<Object> values = new ArrayList<>(1);
 		values.add(value);
 		addAttributeValues(name, values);
 	}
 
 	public void addAttributeValues(String name, Collection<Object> valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		}
 		for(Object valueToAdd: valuesToAdd) {
@@ -199,12 +208,13 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 		recordModify();
 	}
-	
+
 	public void addAttributeValues(String name, String... valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		}
 		for (Object valueToAdd: valuesToAdd) {
@@ -212,9 +222,10 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 		recordModify();
 	}
-	
+
 	private void addAttributeValue(String attrName, Set<Object> currentValues, Object valueToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		if (resource != null && !resource.isTolerateDuplicateValues()) {
 			for (Object currentValue: currentValues) {
 				if (currentValue.equals(valueToAdd)) {
@@ -227,7 +238,7 @@ public abstract class DummyObject implements DebugDumpable {
 				}
 			}
 		}
-		
+
 		if (resource != null && resource.isMonsterization() && DummyResource.VALUE_MONSTER.equals(valueToAdd)) {
 			Iterator<Object> iterator = currentValues.iterator();
 			while (iterator.hasNext()) {
@@ -236,41 +247,42 @@ public abstract class DummyObject implements DebugDumpable {
 				}
 			}
 		}
-		
-		Set<Object> valuesToCheck = new HashSet<Object>();
+
+		Set<Object> valuesToCheck = new HashSet<>();
 		valuesToCheck.addAll(currentValues);
 		valuesToCheck.add(valueToAdd);
 		checkSchema(attrName, valuesToCheck, "add");
-		
+
 		currentValues.add(valueToAdd);
 	}
-	
+
 	public void removeAttributeValue(String name, Object value) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-		Collection<Object> values = new ArrayList<Object>();
+		Collection<Object> values = new ArrayList<>();
 		values.add(value);
 		removeAttributeValues(name, values);
 	}
 
 	public void removeAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
+		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
 		if (currentValues == null) {
-			currentValues = new HashSet<Object>();
+			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		}
-		
-		Set<Object> valuesToCheck = new HashSet<Object>();
+
+		Set<Object> valuesToCheck = new HashSet<>();
 		valuesToCheck.addAll(currentValues);
 		valuesToCheck.removeAll(values);
 		checkSchema(name, valuesToCheck, "remove");
-		
+
 		Iterator<Object> iterator = currentValues.iterator();
 		boolean foundMember = false;
-		
+
 		if (name.equals(DummyGroup.ATTR_MEMBERS_NAME) && !resource.isTolerateDuplicateValues()){
 			checkIfExist(values, currentValues);
 		}
-		
+
 		while(iterator.hasNext()) {
 			Object currentValue = iterator.next();
 			boolean found = false;
@@ -290,9 +302,9 @@ public abstract class DummyObject implements DebugDumpable {
 			if (found) {
 				iterator.remove();
 			}
-				
+
 		}
-		
+
 		recordModify();
 	}
 
@@ -337,7 +349,7 @@ public abstract class DummyObject implements DebugDumpable {
 					}
 				}
 			}
-			
+
 			if (!found){
 				throw new SchemaViolationException("no such member: " + valueToDelete + " in " + currentValues);
 			}
@@ -379,6 +391,12 @@ public abstract class DummyObject implements DebugDumpable {
 	private void recordModify() {
 		if (resource != null) {
 			resource.recordModify(this);
+		}
+	}
+
+	private void delayOperation() {
+		if (resource != null) {
+			resource.delayOperation();
 		}
 	}
 
@@ -432,12 +450,12 @@ public abstract class DummyObject implements DebugDumpable {
 	abstract protected DummyObjectClass getObjectClassNoExceptions();
 
 	public abstract String getShortTypeName();
-	
+
 	@Override
 	public String toString() {
 		return getClass().getSimpleName()+"(" + toStringContent() + ")";
 	}
-	
+
 	protected String toStringContent() {
 		return "name=" + name + ", attributes=" + attributes + ", enabled=" + enabled;
 	}

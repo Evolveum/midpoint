@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<functionLibrary oid="bc5d74e6-4317-11e8-9dec-8fd64e20fbe0"
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+    <name>mailTemplates</name>
+    <description>Velocity mail templates for various languages</description>
+    <function>
+    	<name>en</name>
+    	<parameter>
+    		<name>username</name>
+    		<type>xsd:string</type>
+    	</parameter>
+    	<script>
+    		<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+            <code>Hello $username</code>
+    	</script>
+    	<returnType>xsd:string</returnType>
+    </function>
+    <function>
+    	<name>sk</name>
+    	<parameter>
+    		<name>username</name>
+    		<type>xsd:string</type>
+    	</parameter>
+    	<script>
+    		<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+            <code>Ahoj $username</code>
+    	</script>
+    	<returnType>xsd:string</returnType>
+    </function>
+    <function>
+    	<name>default</name>
+    	<parameter>
+    		<name>username</name>
+    		<type>xsd:string</type>
+    	</parameter>
+    	<script>
+    		<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+            <code>Ugh $username !!!</code>
+    	</script>
+    	<returnType>xsd:string</returnType>
+    </function>
+</functionLibrary>

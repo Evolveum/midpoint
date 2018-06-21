@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.lex.json.yaml.MidpointYAMLGenerator;
 import com.evolveum.midpoint.prism.lex.json.yaml.MidpointYAMLParser;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -50,10 +51,13 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	private static final String TAG_INT = YAML + "int";
 	private static final String TAG_BOOL = YAML + "bool";
 	private static final String TAG_FLOAT = YAML + "float";
+	private static final String TAG_BINARY = YAML + "binary";       // base64-encoded string
 	private static final String TAG_NULL = YAML + "null";
 
-	//------------------------END OF METHODS FOR SERIALIZATION -------------------------------
-	
+	public YamlLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
+		super(schemaRegistry);
+	}
+
 	@Override
 	public boolean canRead(@NotNull File file) throws IOException {
 		return file.getName().endsWith(".yaml");
@@ -63,7 +67,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	public boolean canRead(@NotNull String dataString) {
 		return dataString.startsWith("---");
 	}
-	
+
 	public YAMLGenerator createJacksonGenerator(StringWriter out) throws SchemaException{
 		try {
 			MidpointYAMLFactory factory = new MidpointYAMLFactory();
@@ -75,7 +79,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 			throw new SchemaException("Schema error during serializing to JSON.", ex);
 		}
 	}
-	
+
 	private ObjectMapper configureMapperForSerialization(){
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
@@ -90,12 +94,12 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 //		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXISTING_PROPERTY);
 //		//mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXTERNAL_PROPERTY);
 //		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
-		
+
 		return mapper;
 	}
-	
+
 	private Module createSerializerModule(){
-		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa")); 
+		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa"));
 		module.addSerializer(QName.class, new QNameSerializer());
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
 		module.addSerializer(ItemPath.class, new ItemPathSerializer());
@@ -105,7 +109,7 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 		module.addSerializer(Element.class, new DomElementSerializer());
 		return module;
 	}
-	
+
     @Override
     protected MidpointYAMLParser createJacksonParser(InputStream stream) throws SchemaException, IOException {
         MidpointYAMLFactory factory = new MidpointYAMLFactory();
@@ -123,6 +127,8 @@ public class YamlLexicalProcessor extends AbstractJsonLexicalProcessor {
 	protected QName tagToTypeName(Object tag, AbstractJsonLexicalProcessor.JsonParsingContext ctx) throws IOException, SchemaException {
 		if (tag == null) {
 			return null;
+		} if (TAG_BINARY.equals(tag)) {
+			return DOMUtil.XSD_STRING;          // base64-encoded string: we store it as string, leaving interpretation to upper layers
 		} if (TAG_STRING.equals(tag)) {
 			return DOMUtil.XSD_STRING;
 		} else if (TAG_BOOL.equals(tag)) {

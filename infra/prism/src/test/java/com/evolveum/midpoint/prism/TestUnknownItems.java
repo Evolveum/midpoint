@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.testng.annotations.BeforeSuite;
@@ -44,14 +43,14 @@ public class TestUnknownItems {
 	public void setupDebug() {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 	}
-	
+
 	@Test(expectedExceptions = SchemaException.class)
 	public void test010ParseWrongItemStrict() throws Exception {
 		final String TEST_NAME = "testParseWrongItemStrict";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
-		
+
 		// WHEN+THEN
 		try {
 			prismContext.parseObject(WRONG_ITEM_FILE);
@@ -60,7 +59,7 @@ public class TestUnknownItems {
 			throw e;
 		}
 	}
-	
+
 	@Test
 	public void test020ParseWrongItemCompat() throws Exception {
 		final String TEST_NAME = "testParseWrongItemCompat";

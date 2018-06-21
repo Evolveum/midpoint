@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,26 @@
  */
 package com.evolveum.midpoint.util.exception;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 /**
  * Exception indicating violation of authorization policies.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class AuthorizationException extends SecurityViolationException {
+	private static final long serialVersionUID = 1L;
 
 	public AuthorizationException() {
 	}
 
 	public AuthorizationException(String message) {
 		super(message);
+	}
+
+	public AuthorizationException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
 	}
 
 	public AuthorizationException(Throwable cause) {
@@ -38,8 +45,12 @@ public class AuthorizationException extends SecurityViolationException {
 		super(message, cause);
 	}
 
+	public AuthorizationException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
+	}
+
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Not authorized";
 	}
 

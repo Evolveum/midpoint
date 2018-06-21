@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,10 +65,10 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
     @Autowired(required = true)
     private ChangeNotificationDispatcher changeNotificationDispatcher;
-    
+
     @Autowired(required = true)
     private PrismContext prismContext;
-    
+
     //private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
     private PrismPropertyDefinition filenamePropertyDefinition;
 
@@ -99,7 +99,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         LOGGER.debug("Launching import accounts from file {}", input);
 
         OperationResult result = parentResult.createSubresult(ImportObjectsFromFileTaskHandler.class.getName() + ".launch");
-        result.addParam("input", input);
+        result.addParam("input", input.getPath());
         // TODO
 
         // Set handler URI so we will be called back
@@ -117,7 +117,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 //        		new PropertyPath(TaskType.F_EXTENSION, filenamePropertyDefinition.getName()),
 //        		filenamePropertyDefinition);
 //        objectClassDelta.setValueToReplace(new PrismPropertyValue<Object>(input.getAbsolutePath()));
-//        ((Collection)modifications).add(objectClassDelta);        
+//        ((Collection)modifications).add(objectClassDelta);
         try {
         	PrismProperty filenameProp = filenamePropertyDefinition.instantiate();
         	filenameProp.setRealValue(input.getAbsolutePath());
@@ -160,7 +160,6 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         OperationResult opResult = task.getResult().createSubresult(OperationConstants.IMPORT_OBJECTS_FROM_FILE);
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
-        runResult.setProgress(0);
 
         // Determine the input file from task extension
 
@@ -211,10 +210,5 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.IMPORT_FROM_FILE;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }

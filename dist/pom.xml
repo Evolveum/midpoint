@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.6-SNAPSHOT</version>
+        <version>3.9-SNAPSHOT</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
     <organization>
@@ -51,22 +51,15 @@
    		<dependency>
             <groupId>com.evolveum.midpoint.gui</groupId>
             <artifactId>admin-gui</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.9-SNAPSHOT</version>
             <type>war</type>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>repo-ninja</artifactId>
-            <version>3.6-SNAPSHOT</version>
-            <type>zip</type>
-            <classifier>bin</classifier>
+            <artifactId>ninja</artifactId>
+            <version>3.9-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>repo-ninja</artifactId>
-            <version>3.6-SNAPSHOT</version>
-        </dependency> 
-    	<dependency><!-- Not used, but required for surefire plugin not to complain -->
+        <dependency><!-- Not used, but required for surefire plugin not to complain -->
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -78,7 +71,7 @@
                 <!-- Used to pull XSD files from the JAR -->
                 <groupId>com.evolveum.midpoint.tools</groupId>
                 <artifactId>schema-dist-maven-plugin</artifactId>
-                <version>3.6-SNAPSHOT</version>
+                <version>3.9-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <id>schemadist-prism</id>
@@ -111,13 +104,38 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-model</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.evolveum.midpoint.tools</groupId>
+                                    <artifactId>ninja</artifactId>
+                                    <version>3.7.2</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>target/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
 		        <artifactId>maven-assembly-plugin</artifactId>
 		        <version>2.4</version>
 		        <configuration>
 		          <descriptors>
 		            <descriptor>src/main/assembly/dist.xml</descriptor>
 		          </descriptors>
-		          <finalName>midpoint-${version}</finalName>
+		          <finalName>midpoint-${project.version}</finalName>
 		        </configuration>
 		        <executions>
 		          <execution>

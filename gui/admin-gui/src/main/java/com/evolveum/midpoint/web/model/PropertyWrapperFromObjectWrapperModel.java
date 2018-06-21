@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -31,15 +30,16 @@ import javax.xml.namespace.QName;
 
 /**
  * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
- * 
+ *
  * Simple implementation, now it can't handle multivalue properties.
  *
  * @author lazyman
  * @author semancik
  */
-public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<PropertyWrapper<PrismProperty<T>,PrismPropertyDefinition<T>>,O> {
+public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> extends AbstractWrapperModel<PropertyWrapper<T>,O> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(PropertyWrapperFromObjectWrapperModel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PropertyWrapperFromObjectWrapperModel.class);
 
     private ItemPath path;
 
@@ -54,12 +54,12 @@ public class PropertyWrapperFromObjectWrapperModel<T,O extends ObjectType> exten
     }
 
     @Override
-    public PropertyWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> getObject() {
-    	PropertyWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> propertyWrapper = getWrapper().findPropertyWrapper(path);
+    public PropertyWrapper<T> getObject() {
+    	PropertyWrapper<T> propertyWrapper = getWrapper().findPropertyWrapper(path);
         return propertyWrapper;
     }
 
-    @Override public void setObject(PropertyWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> prismPropertyPropertyWrapper) {
+    @Override public void setObject(PropertyWrapper<T> prismPropertyPropertyWrapper) {
         throw new UnsupportedOperationException("PropertyWrapperFromObjectWrapperModel.setObject called");
     }
 

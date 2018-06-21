@@ -20,12 +20,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -33,7 +31,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 
@@ -56,7 +53,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
     private static final String ID_CONNECTOR_NAME = "connectorName";
     private static final String ID_CONNECTOR_MESSAGES = "connectorMessages";
     private static final String ID_RESOURCE_MESSAGES = "resourceMessages";
-    
+
     private PageBase parentPage;
     private ListModel<OpResult> modelResourceResults;
     private ListModel<ConnectorStruct> connectorResourceResults;
@@ -83,7 +80,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
             for (OperationResult subresult: result.getSubresults()) {
             	if (isConnectorResult(subresult)) {
             		ConnectorStruct connectorStruct = new ConnectorStruct();
-            		connectorStruct.connectorName = (String) subresult.getParams().get(OperationResult.PARAM_NAME);
+            		connectorStruct.connectorName = subresult.getParamSingle(OperationResult.PARAM_NAME);
             		if (connectorStruct.connectorName == null) {
             			connectorStruct.connectorName = "";
             		}
@@ -98,7 +95,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
             		// resource operation
             		resourceResultsDto.add(OpResult.getOpResult(parentPage, subresult));
             	}
-                	
+
             }
 
             if (result.isSuccess()) {
@@ -112,7 +109,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
 	private boolean isConnectorResult(OperationResult subresult) {
 		return subresult.getOperation().equals(ConnectorTestOperation.CONNECTOR_TEST.getOperation());
 	}
-	
+
     private boolean isKnownResult(OperationResult subresult) {
     	for (ConnectorTestOperation connectorOperation : ConnectorTestOperation.values()) {
     		if (connectorOperation.getOperation().equals(subresult.getOperation())) {
@@ -129,7 +126,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
         WebMarkupContainer messagesPanel = new WebMarkupContainer(ID_MESSAGES_PANEL);
         messagesPanel.setOutputMarkupId(true);
         add(messagesPanel);
-        
+
         ListView<ConnectorStruct> connectorView = new ListView<ConnectorStruct>(ID_CONNECTOR_MESSAGES_PANEL, connectorResourceResults) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -143,7 +140,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
 	            }
 	        	item.add(connectorResultView);
 			}
-        	
+
         };
         messagesPanel.add(connectorView);
 
@@ -163,7 +160,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
         }
     }
 
-	private class ConnectorStruct implements Serializable {
+	private static class ConnectorStruct implements Serializable {
 		private String connectorName;
 		private List<OpResult> connectorResultsDto;
 	}

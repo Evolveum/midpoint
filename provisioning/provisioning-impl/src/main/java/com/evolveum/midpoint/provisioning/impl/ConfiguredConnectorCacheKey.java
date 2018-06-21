@@ -20,10 +20,10 @@ package com.evolveum.midpoint.provisioning.impl;
  *
  */
 public class ConfiguredConnectorCacheKey {
-	
+
 	private String resourceOid;
 	private String connectorName;
-	
+
 	public ConfiguredConnectorCacheKey(String resourceOid, String connectorName) {
 		super();
 		this.resourceOid = resourceOid;
@@ -73,6 +73,6 @@ public class ConfiguredConnectorCacheKey {
 	public String toString() {
 		return "ConfiguredConnectorCacheKey(" + resourceOid + ":" + connectorName + ")";
 	}
-	
-	
+
+
 }

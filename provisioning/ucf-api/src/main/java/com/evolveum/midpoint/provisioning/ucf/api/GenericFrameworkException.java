@@ -18,7 +18,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 /**
  * This exception should be thrown if there is no other practical way how to
  * determine the problem.
- * 
+ *
  * @author Radovan Semancik
  */
 public class GenericFrameworkException extends UcfException {

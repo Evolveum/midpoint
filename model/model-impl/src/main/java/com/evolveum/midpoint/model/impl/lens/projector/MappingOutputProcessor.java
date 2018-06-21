@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -25,14 +24,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface MappingOutputProcessor<V extends PrismValue> {
 
 	/**
-	 * 
+	 *
 	 * @return if true is returned then the detaul processing will take place
 	 *         after the processor is finished. If false then the defaul processing
 	 *         will be skipped.
 	 */
 	boolean process(ItemPath mappingOutputPath, MappingOutputStruct<V> outputStruct) throws SchemaException, ExpressionEvaluationException;
-	
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -46,13 +49,14 @@ import org.jvnet.jaxb2_commons.lang.Equals;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
 public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, Serializable {
+	
+	final static Trace LOGGER = TraceManager.getTrace(PrismPropertyValue.class);
 
     private T value;
 
@@ -61,25 +65,28 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     // elements here and process them later (e.g. during applyDefinition or getting a value with explicit type).
     private XNode rawElement;
 
+    @Nullable private ExpressionWrapper expression;
+
     public PrismPropertyValue(T value) {
         this(value, null, null);
     }
 
     public PrismPropertyValue(T value, PrismContext prismContext) {
-        this(value, prismContext, null, null);
+        this(value, prismContext, null, null, null);
     }
 
     public PrismPropertyValue(T value, OriginType type, Objectable source) {
-		this(value, null, type, source);
+		this(value, null, type, source, null);
 	}
 
-    public PrismPropertyValue(T value, PrismContext prismContext, OriginType type, Objectable source) {
+    public PrismPropertyValue(T value, PrismContext prismContext, OriginType type, Objectable source, ExpressionWrapper expression) {
     	super(type, source);
         if (value instanceof PrismPropertyValue) {
             throw new IllegalArgumentException("Probably problem somewhere, encapsulating property " +
                     "value object to another property value.");
         }
         this.value = value;
+        this.expression = expression;
         checkValue();
     }
 
@@ -94,7 +101,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     }
 
 	public static <T> PrismPropertyValue<T> createRaw(XNode rawElement) {
-		PrismPropertyValue<T> pval = new PrismPropertyValue<T>();
+		PrismPropertyValue<T> pval = new PrismPropertyValue<>();
 		pval.setRawElement(rawElement);
 		return pval;
 	}
@@ -103,6 +110,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     public void setValue(T value) {
 		checkMutability();
         this.value = value;
+        this.rawElement = null;
         checkValue();
     }
 
@@ -150,7 +158,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     }
 
     public static <T> Collection<T> getValues(Collection<PrismPropertyValue<T>> pvals) {
-    	Collection<T> realValues = new ArrayList<T>(pvals.size());
+    	Collection<T> realValues = new ArrayList<>(pvals.size());
 		for (PrismPropertyValue<T> pval: pvals) {
 			realValues.add(pval.getValue());
 		}
@@ -170,11 +178,25 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		return rawElement != null;
 	}
 
+	@Nullable
+	public ExpressionWrapper getExpression() {
+		return expression;
+	}
+
+	public void setExpression(@Nullable ExpressionWrapper expression) {
+		this.expression = expression;
+	}
+
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) definition;
 		if (propertyDefinition != null && !propertyDefinition.isAnyType() && rawElement != null) {
 			value = (T) parseRawElementToNewRealValue(this, propertyDefinition);
+			if (value ==  null) {
+				// Be careful here. Expression element can be legal sub-element of complex properties.
+            	// Therefore parse expression only if there is no legal value.
+				expression = PrismUtil.parseExpression(rawElement, prismContext);
+			}
 			rawElement = null;
 		}
 	}
@@ -235,6 +257,9 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 			// Cannot really check raw values
 			return;
 		}
+		if (expression != null) {
+			return;
+		}
 		if (value == null) {
             // can be used not because of prism forms in gui (will be fixed later [lazyman]
             // throw new IllegalArgumentException("Null value in "+this);
@@ -260,7 +285,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         if (value instanceof RawType) {
 			return;
 		}
-		
+
 		throw new IllegalArgumentException("Unsupported value "+value+" ("+valueClass+") in "+this);
 	}
 
@@ -274,8 +299,8 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     	if (prohibitRaw && rawElement != null) {
     		throw new IllegalStateException("Raw element in property value "+this+" ("+myPath+" in "+rootItem+")");
     	}
-    	if (value == null && rawElement == null) {
-			throw new IllegalStateException("Neither value nor raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
+    	if (value == null && rawElement == null && expression == null) {
+			throw new IllegalStateException("Neither value, expression nor raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
 		}
     	if (value != null && rawElement != null) {
 			throw new IllegalStateException("Both value and raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
@@ -317,14 +342,22 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 
 	@Override
     public PrismPropertyValue<T> clone() {
-        PrismPropertyValue clone = new PrismPropertyValue(getOriginType(), getOriginObject());
-        copyValues(clone);
+        return cloneComplex(CloneStrategy.LITERAL);
+    }
+	
+	@Override
+    public PrismPropertyValue<T> cloneComplex(CloneStrategy strategy) {
+        PrismPropertyValue<T> clone = new PrismPropertyValue<>(getOriginType(), getOriginObject());
+        copyValues(strategy, clone);
         return clone;
     }
 
-	protected void copyValues(PrismPropertyValue clone) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, PrismPropertyValue<T> clone) {
+		super.copyValues(strategy, clone);
 		clone.value = CloneUtil.clone(this.value);
+		if (this.expression != null) {
+			clone.expression = this.expression.clone();
+		}
 		clone.rawElement = this.rawElement;
 	}
 
@@ -347,18 +380,18 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
 	public static <T> Collection<PrismPropertyValue<T>> createCollection(Collection<T> realValueCollection) {
-		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<PrismPropertyValue<T>>(realValueCollection.size());
+		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueCollection.size());
 		for (T realValue: realValueCollection) {
-			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(realValue);
+			PrismPropertyValue<T> pval = new PrismPropertyValue<>(realValue);
 			pvalCol.add(pval);
 		}
 		return pvalCol;
 	}
 
 	public static <T> Collection<PrismPropertyValue<T>> createCollection(T[] realValueArray) {
-		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<PrismPropertyValue<T>>(realValueArray.length);
+		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<>(realValueArray.length);
 		for (T realValue: realValueArray) {
-			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(realValue);
+			PrismPropertyValue<T> pval = new PrismPropertyValue<>(realValue);
 			pvalCol.add(pval);
 		}
 		return pvalCol;
@@ -372,15 +405,19 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (definitionSource.getParent() != null && definitionSource.getParent().getDefinition() != null) {
 			T parsedRealValue = (T) parseRawElementToNewRealValue(origValue,
 					(PrismPropertyDefinition) definitionSource.getParent().getDefinition());
-			PrismPropertyValue<T> newPVal = new PrismPropertyValue<T>(parsedRealValue);
+			PrismPropertyValue<T> newPVal = new PrismPropertyValue<>(parsedRealValue);
+			return newPVal;
+		} else if (definitionSource.getRealClass() != null && definitionSource.getPrismContext() != null) {
+			T parsedRealValue = parseRawElementToNewRealValue(origValue, (Class<T>) definitionSource.getRealClass(), definitionSource.getPrismContext());
+			PrismPropertyValue<T> newPVal = new PrismPropertyValue<>(parsedRealValue);
 			return newPVal;
 		} else {
 			throw new IllegalArgumentException("Attempt to use property " + origValue.getParent() +
-					" values in a raw parsing state (raw elements) with parsed value that has no definition");
+					" values in a raw parsing state (raw elements) with parsed value that has no definition nor class with prism context");
 		}
 	}
-	
-	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition<T> definition) 
+
+	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition<T> definition)
 				throws SchemaException {
 		PrismContext prismContext = definition.getPrismContext();
 		//noinspection UnnecessaryLocalVariable
@@ -388,6 +425,10 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		return value;
 	}
 
+	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, Class<T> clazz, PrismContext prismContext)
+				throws SchemaException {
+		return prismContext.parserFor(prismPropertyValue.rawElement.toRootXNode()).parseRealValue(clazz);
+	}
 
 	@Override
 	public boolean equalsComplex(PrismValue other, boolean ignoreMetadata, boolean isLiteral) {
@@ -441,19 +482,19 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 				return thisRealValue.equals(otherRealValue);
 			}
         } else {
-        
+
 			if (thisRealValue instanceof Element &&
 					otherRealValue instanceof Element) {
 				return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 			}
-			
+
 			if (thisRealValue instanceof SchemaDefinitionType &&
 					otherRealValue instanceof SchemaDefinitionType) {
 				SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
 				return thisSchema.equals(otherRealValue, isLiteral);
 	//			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 			}
-	
+
 	        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {
 	            return Arrays.equals((byte[]) thisRealValue, (byte[]) otherRealValue);
 	        }
@@ -566,11 +607,17 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         return toString();
     }
 
-    @Override
+
+	@Override
     public String debugDump(int indent) {
+		return debugDump(indent, false);
+	}
+
+	public String debugDump(int indent, boolean detailedDump) {
+		detailedDump = detailedDump || DebugUtil.isDetailedDebugDump();
         StringBuilder sb = new StringBuilder();
         boolean wasIndent = false;
-        if (DebugUtil.isDetailedDebugDump()) {
+        if (detailedDump) {
         	DebugUtil.indentDebugDump(sb, indent);
         	wasIndent = true;
         	sb.append("PPV(");
@@ -578,7 +625,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	        sb.append("):");
         }
         if (value != null) {
-            if (DebugUtil.isDetailedDebugDump()) {
+            if (detailedDump) {
             	sb.append(" ").append(value.getClass().getSimpleName()).append(":");
             }
         	if (value instanceof DebugDumpable) {
@@ -590,8 +637,15 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 				if (!wasIndent) {
 					DebugUtil.indentDebugDump(sb, indent);
 				}
-				debugDumpValue(sb, indent, value, prismContext);
+				PrismPrettyPrinter.debugDumpValue(sb, indent, value, prismContext, null, null);
         	}
+        } else if (expression != null) {
+        	if (!wasIndent) {
+            	DebugUtil.indentDebugDump(sb, indent);
+			}
+        	sb.append("expression: ");
+        	// TODO: nicer output
+        	sb.append(expression);
         } else {
         	if (!wasIndent) {
             	DebugUtil.indentDebugDump(sb, indent);
@@ -602,21 +656,6 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         return sb.toString();
     }
 
-	public static void debugDumpValue(StringBuilder sb, int indent, Object value, PrismContext prismContext) {
-		String formatted;
-		if (DebugUtil.getPrettyPrintBeansAs() != null && value != null && !(value instanceof Enum) && prismContext != null
-				&& value.getClass().getAnnotation(XmlType.class) != null) {
-			try {
-				formatted = prismContext.serializerFor(DebugUtil.getPrettyPrintBeansAs()).serializeRealValue(value, new QName("value"));
-			} catch (SchemaException e) {
-				formatted = PrettyPrinter.prettyPrint(value);
-			}
-		} else {
-			formatted = PrettyPrinter.prettyPrint(value);
-		}
-		sb.append(DebugUtil.fixIndentInMultiline(indent, DebugDumpable.INDENT_STRING, formatted));
-	}
-
 	@Override
 	public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -625,6 +664,10 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         if (value != null) {
         	builder.append(value.getClass().getSimpleName()).append(":");
         	builder.append(PrettyPrinter.prettyPrint(value));
+        } else if (isRaw()) {
+        	builder.append("[raw]");
+        } else if (expression != null) {
+        	builder.append("[expression]");
         } else {
             builder.append("null");
         }
@@ -640,10 +683,17 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	        builder.append(", raw element: ");
 	        builder.append(PrettyPrinter.prettyPrint(getRawElement()));
         }
+        if (getExpression() != null) {
+        	builder.append(", expression: ");
+	        builder.append(getExpression());
+        }
 	}
 
 	@Override
 	public String toHumanReadableString() {
+		if (value == null && expression != null) {
+			return ("expression("+expression+")");
+		}
 		return PrettyPrinter.prettyPrint(value);
 	}
 

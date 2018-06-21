@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
@@ -72,7 +71,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
     @Test
     public void test010CreateCampaign() throws Exception {
         final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestManualEscalation.class.getName() + "." + TEST_NAME);
@@ -102,7 +101,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
     @Test
     public void test013SearchAllCasesAllowed() throws Exception {
         final String TEST_NAME = "test013SearchAllCasesAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         searchWithNoCasesExpected(TEST_NAME);
@@ -131,7 +130,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStageAllowed() throws Exception {
         final String TEST_NAME = "test021OpenFirstStageAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestManualEscalation.class.getName() + "." + TEST_NAME);
@@ -167,7 +166,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
     @Test
     public void test032SearchAllCasesAllowed() throws Exception {
         final String TEST_NAME = "test032SearchAllCasesAllowed";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_BOB_OID));
 
         // GIVEN
@@ -191,7 +190,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
     @Test
     public void test050SearchWorkItemsAsAdministrator() throws Exception {
         final String TEST_NAME = "test050SearchWorkItemsAsAdministrator";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -218,7 +217,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
     @Test
     public void test100RecordDecision() throws Exception {
         final String TEST_NAME = "test100RecordDecision";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -254,7 +253,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
     @Test
     public void test110Escalate() throws Exception {
         final String TEST_NAME = "test110Escalate";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -303,7 +302,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
 	@Test
 	public void test120EscalateAgain() throws Exception {
 		final String TEST_NAME = "test120EscalateAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
 		// GIVEN
@@ -353,7 +352,7 @@ public class TestManualEscalation extends AbstractCertificationTest {
 	@Test
 	public void test130Delegate() throws Exception {
 		final String TEST_NAME = "test130Delegate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
 		// GIVEN

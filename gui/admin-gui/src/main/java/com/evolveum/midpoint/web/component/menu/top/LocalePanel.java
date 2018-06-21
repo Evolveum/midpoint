@@ -77,7 +77,7 @@ public class LocalePanel extends Panel {
                 }) {
 
 
-        	
+
             @Override
             protected SelectOption<LocaleDescriptor> newOption(String text, IModel<LocaleDescriptor> model) {
                 SelectOption option = super.newOption("&nbsp;" + text, model);

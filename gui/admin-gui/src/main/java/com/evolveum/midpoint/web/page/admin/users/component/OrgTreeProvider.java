@@ -16,31 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableTreeProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,6 +35,13 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableTreeProvider;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import java.util.*;
 
 /**
  * @author lazyman
@@ -67,7 +59,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     private Component component;
     private IModel<String> rootOid;
     private SelectableBean<OrgType> root;
-    
+
     private List<SelectableBean<OrgType>> availableData;
 
     public OrgTreeProvider(Component component, IModel<String> rootOid) {
@@ -81,7 +73,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
 		}
     	return availableData;
 	}
-    
+
     private PageBase getPageBase() {
         return WebComponentUtil.getPageBase(component);
     }
@@ -89,61 +81,61 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     private ModelService getModelService() {
         return getPageBase().getModelService();
     }
-    
-    
+
+    /*
+     *  Wicket calls getChildren twice: in order to get actual children data, but also to know their number.
+     *  We'll cache the children to avoid duplicate processing.
+     */
+    private static final long EXPIRATION_AFTER_LAST_FETCH_OPERATION = 500L;
+    private long lastFetchOperation = 0;
+    private Map<String, List<SelectableBean<OrgType>>> childrenCache = new HashMap<>();        // key is the node OID
 
     @Override
     public Iterator<? extends SelectableBean<OrgType>> getChildren(SelectableBean<OrgType> node) {
-//    	getAvailableData().clear();
-        LOGGER.debug("Loading children for {}", new Object[]{node});
-        Iterator<SelectableBean<OrgType>> iterator = null;
+        LOGGER.debug("Getting children for {}", node.getValue());
+        String nodeOid = node.getValue().getOid();
+        List<SelectableBean<OrgType>> children;
 
-        ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
-                .isDirectChildOf(node.getValue().getOid())      // TODO what if getValue==null
-                .asc(ObjectType.F_NAME)
-                .build();
-        OperationResult result = new OperationResult(LOAD_ORG_UNITS);
-        try {
-//            Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createOptionsForParentOrgRefs();
-        	Collection<SelectorOptions<GetOperationOptions>> options = null;
-            Task task = getPageBase().createSimpleTask(LOAD_ORG_UNITS);
+        long currentTime = System.currentTimeMillis();
+        if (currentTime > lastFetchOperation + EXPIRATION_AFTER_LAST_FETCH_OPERATION) {
+            childrenCache.clear();
+        }
 
-            List<PrismObject<OrgType>> units = getModelService().searchObjects(OrgType.class, query, options,
-                    task, result);
-            LOGGER.debug("Found {} units.", units.size());
-
-            List<SelectableBean<OrgType>> list = new ArrayList<SelectableBean<OrgType>>();
-            for (PrismObject<OrgType> unit : units) {
-                SelectableBean<OrgType> selectable =createObjectWrapper(node, unit);
-            	list.add(selectable);
-//                if (getAvailableData().contains(selectable)){
-//                	getAvailableData().remove(selectable);
-//                } 
-//                getAvailableData().add(selectable);
+        if (childrenCache.containsKey(nodeOid)) {
+            LOGGER.debug("Using cached children for {}", node.getValue());
+            children = childrenCache.get(nodeOid);
+        } else {
+            LOGGER.debug("Loading fresh children for {}", node.getValue());
+            OperationResult result = new OperationResult(LOAD_ORG_UNITS);
+            try {
+                ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
+                        .isDirectChildOf(nodeOid)
+                        .asc(ObjectType.F_NAME)
+                        .build();
+                Task task = getPageBase().createSimpleTask(LOAD_ORG_UNITS);
+                List<PrismObject<OrgType>> orgs = getModelService().searchObjects(OrgType.class, query, null, task, result);
+                LOGGER.debug("Found {} sub-orgs.", orgs.size());
+                children = new ArrayList<>();
+                for (PrismObject<OrgType> org : orgs) {
+                    children.add(createObjectWrapper(node, org));
+                }
+                childrenCache.put(nodeOid, children);
+            } catch (CommonException|RuntimeException ex) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load children", ex);
+                result.recordFatalError("Unable to load children for unit", ex);
+                children = new ArrayList<>();
+            } finally {
+                result.computeStatus();
             }
-            
-            getAvailableData().addAll(list);
-
-//            Collections.sort(list);
-            iterator = list.iterator();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load children", ex);
-            result.recordFatalError("Unable to load org unit", ex);
-        } finally {
-            result.computeStatus();
+            if (WebComponentUtil.showResultInPage(result)) {
+                getPageBase().showResult(result);
+                throw new RestartResponseException(PageOrgTree.class);
+            }
+            getAvailableData().addAll(children);
         }
-
-        if (WebComponentUtil.showResultInPage(result)) {
-            getPageBase().showResult(result);
-            throw new RestartResponseException(PageOrgTree.class);
-        }
-
-        if (iterator == null) {
-            iterator = new ArrayList<SelectableBean<OrgType>>().iterator();
-        }
-
-        LOGGER.debug("Finished loading children.");
-        return iterator;
+        LOGGER.debug("Finished getting children.");
+        lastFetchOperation = System.currentTimeMillis();
+        return children.iterator();
     }
 
     private SelectableBean<OrgType> createObjectWrapper(SelectableBean<OrgType> parent, PrismObject<OrgType> unit) {
@@ -152,21 +144,20 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
         }
 
         //todo relation [lazyman]
-//        OrgTreeDto orgDto = new OrgTreeDto(parent, unit);
         OrgType org = unit.asObjectable();
-        if (parent != null){
+        if (parent != null) {
         	org.getParentOrg().clear();
-        org.getParentOrg().add(parent.getValue());
+            org.getParentOrg().add(parent.getValue());
         }
-        SelectableBean<OrgType> orgDto = new SelectableBean<OrgType>(org);
-        orgDto.getMenuItems().addAll(createInlineMenuItems());
+        SelectableBean<OrgType> orgDto = new SelectableBean<>(org);
+        orgDto.getMenuItems().addAll(createInlineMenuItems(orgDto.getValue()));
         return orgDto;
     }
 
-    protected List<InlineMenuItem> createInlineMenuItems(){
+    protected List<InlineMenuItem> createInlineMenuItems(OrgType org){
     	return null;
     }
-    
+
     @Override
     public Iterator<SelectableBean<OrgType>> getRoots() {
         OperationResult result = null;
@@ -191,16 +182,14 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
             throw new RestartResponseException(PageUsers.class);
         }
 
-        List<SelectableBean<OrgType>> list = new ArrayList<SelectableBean<OrgType>>();
+        List<SelectableBean<OrgType>> list = new ArrayList<>();
         if (root != null) {
             list.add(root);
             if (!getAvailableData().contains(root)){
             	getAvailableData().add(root);
-            } 
-            
-        }
-//        getAvailableData().addAll(list);
+            }
 
+        }
         return list.iterator();
     }
 
@@ -213,7 +202,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     public IModel<SelectableBean<OrgType>> model(SelectableBean<OrgType> object) {
         return new Model<>(object);
     }
-    
+
     public List<OrgType> getSelectedObjects(){
     	List<OrgType> selectedOrgs = new ArrayList<>();
     	for (SelectableBean<OrgType> selected : getAvailableData()){
@@ -221,7 +210,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     			selectedOrgs.add(selected.getValue());
     		}
     	}
-    	
+
     	return selectedOrgs;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.services;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -26,19 +28,14 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.FocusListComponent;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.form.Form;
@@ -91,7 +88,7 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 	};
 
 	private void initLayout() {
-		Form mainForm = new Form(ID_MAIN_FORM);
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
 
 		MainObjectListPanel<ServiceType> servicePanel = new MainObjectListPanel<ServiceType>(ID_TABLE, ServiceType.class, TableId.TABLE_SERVICES, null, this){
@@ -100,6 +97,11 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 			@Override
 			public void objectDetailsPerformed(AjaxRequestTarget target, ServiceType service) {
 				PageServices.this.serviceDetailsPerformed(target, service);
+			}
+
+			@Override
+			protected PrismObject<ServiceType> getNewObjectListObject(){
+				return (new ServiceType()).asPrismObject();
 			}
 
 			@Override
@@ -150,13 +152,14 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 	}
 
 	private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
-		if (action.getRowModel() == null) {
-			return createStringResource("PageServices.message.confirmationMessageForMultipleObject",
-					actionName, getObjectListPanel().getSelectedObjectsCount() );
-		} else {
-			return createStringResource("PageServices.message.confirmationMessageForSingleObject",
-					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
-		}
+		return WebComponentUtil.createAbstractRoleConfirmationMessage(actionName, action, getObjectListPanel(), this);
+//		if (action.getRowModel() == null) {
+//			return createStringResource("PageServices.message.confirmationMessageForMultipleObject",
+//					actionName, getObjectListPanel().getSelectedObjectsCount() );
+//		} else {
+//			return createStringResource("PageServices.message.confirmationMessageForSingleObject",
+//					actionName, ((ObjectType)((SelectableBean)action.getRowModel().getObject()).getValue()).getName());
+//		}
 
 	}
 

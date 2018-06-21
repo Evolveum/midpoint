@@ -59,7 +59,7 @@ public class UsersDto implements Serializable {
 
     public Collection<SearchType> getType() {
         if (type == null) {
-            type = new ArrayList<SearchType>();
+            type = new ArrayList<>();
             type.add(SearchType.NAME);
         }
         return type;

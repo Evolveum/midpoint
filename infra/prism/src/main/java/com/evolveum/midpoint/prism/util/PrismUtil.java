@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,14 @@ package com.evolveum.midpoint.prism.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
+import com.evolveum.midpoint.prism.marshaller.BeanMarshaller;
 import com.evolveum.midpoint.prism.marshaller.PrismUnmarshaller;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -35,6 +38,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
 import javax.xml.namespace.QName;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,20 +60,17 @@ public class PrismUtil {
 		if (realValue instanceof PolyString && prismContext != null) {
 			PolyString polyStringVal = (PolyString)realValue;
 			// Always recompute. Recompute is cheap operation and this avoids a lot of bugs
-			PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
-			if (polyStringNormalizer != null) {
-				polyStringVal.recompute(polyStringNormalizer);
-			}
+			polyStringVal.recompute(prismContext.getDefaultPolyStringNormalizer());
 		}
 	}
-	
+
 	public static <T> void recomputePrismPropertyValue(PrismPropertyValue<T> pValue, PrismContext prismContext) {
 		if (pValue == null) {
 			return;
 		}
 		recomputeRealValue(pValue.getValue(), prismContext);
 	}
-	
+
 	/**
 	 * Super-mega-giga-ultra hack. This is used to "fortify" XML namespace declaration in a non-standard way.
 	 * It is useful in case that someone will try some stupid kind of schema-less XML normalization that removes
@@ -97,9 +99,9 @@ public class PrismUtil {
 			}
 		}
 	}
-	
+
 	public static void unfortifyNamespaceDeclarations(Element definitionElement) {
-		Map<String,String> namespaces = new HashMap<String,String>();
+		Map<String,String> namespaces = new HashMap<>();
 		for(Element childElement: DOMUtil.listChildElements(definitionElement)) {
 			if (PrismConstants.A_NAMESPACE.equals(DOMUtil.getQName(childElement))) {
 				String prefix = childElement.getAttribute(PrismConstants.A_NAMESPACE_PREFIX);
@@ -108,8 +110,8 @@ public class PrismUtil {
 				definitionElement.removeChild(childElement);
 			} else {
 				unfortifyNamespaceDeclarations(definitionElement, childElement, namespaces);
-				namespaces = new HashMap<String,String>();
-			}	
+				namespaces = new HashMap<>();
+			}
 		}
 	}
 
@@ -155,7 +157,7 @@ public class PrismUtil {
 		} else {
 			Class<X> expectedJavaType = XsdTypeMapper.toJavaType(targetDef.getTypeName());
 			X convertedRealValue = JavaTypeConverter.convert(expectedJavaType, srcVal.getValue());
-			return new PrismPropertyValue<X>(convertedRealValue);
+			return new PrismPropertyValue<>(convertedRealValue);
 		}
 	}
 
@@ -167,12 +169,12 @@ public class PrismUtil {
 			Class<X> expectedJavaType = XsdTypeMapper.toJavaType(targetDef.getTypeName());
 			for (PrismPropertyValue<T> srcPVal: srcProp.getValues()) {
 				X convertedRealValue = JavaTypeConverter.convert(expectedJavaType, srcPVal.getValue());
-				targetProp.add(new PrismPropertyValue<X>(convertedRealValue));
+				targetProp.add(new PrismPropertyValue<>(convertedRealValue));
 			}
 			return targetProp;
 		}
 	}
-	
+
 	public static <O extends Objectable> void setDeltaOldValue(PrismObject<O> oldObject, ItemDelta<?,?> itemDelta) {
 		if (oldObject == null) {
 			return;
@@ -182,13 +184,13 @@ public class PrismUtil {
 			itemDelta.setEstimatedOldValues((Collection) PrismValue.cloneCollection(itemOld.getValues()));
 		}
 	}
-	
+
 	public static <O extends Objectable> void setDeltaOldValue(PrismObject<O> oldObject, Collection<? extends ItemDelta> itemDeltas) {
 		for(ItemDelta itemDelta: itemDeltas) {
 			setDeltaOldValue(oldObject, itemDelta);
 		}
 	}
-	
+
 	public static <T> boolean equals(T a, T b, MatchingRule<T> matchingRule) throws SchemaException {
 		if (a == null && b == null) {
 			return true;
@@ -197,7 +199,15 @@ public class PrismUtil {
 			return false;
 		}
 		if (matchingRule == null) {
-			return a.equals(b);
+			if (a instanceof byte[]) {
+				if (b instanceof byte[]) {
+					return Arrays.equals((byte[])a, (byte[])b);
+				} else {
+					return false;
+				}
+			} else {
+				return a.equals(b);
+			}
 		} else {
 			return matchingRule.match(a, b);
 		}
@@ -236,5 +246,60 @@ public class PrismUtil {
 				return serializeQuietly(prismContext, object);
 			}
 		};
+	}
+
+	public static ExpressionWrapper parseExpression(XNode node, PrismContext prismContext) throws SchemaException {
+		if (!(node instanceof MapXNode)) {
+			return null;
+		}
+		if (((MapXNode)node).isEmpty()) {
+			return null;
+		}
+		for (Entry<QName, XNode> entry: ((MapXNode)node).entrySet()) {
+			if (PrismConstants.EXPRESSION_LOCAL_PART.equals(entry.getKey().getLocalPart())) {
+				return parseExpression(entry, prismContext);
+			}
+		}
+		return null;
+	}
+
+	public static ExpressionWrapper parseExpression(Entry<QName, XNode> expressionEntry, PrismContext prismContext) throws SchemaException {
+		if (expressionEntry == null) {
+			return null;
+		}
+		RootXNode expressionRoot = new RootXNode(expressionEntry);
+		PrismPropertyValue expressionPropertyValue = prismContext.parserFor(expressionRoot).parseItemValue();
+		ExpressionWrapper expressionWrapper = new ExpressionWrapper(expressionEntry.getKey(), expressionPropertyValue.getValue());
+		return expressionWrapper;
+	}
+
+	@NotNull
+	public static MapXNode serializeExpression(@NotNull ExpressionWrapper expressionWrapper, BeanMarshaller beanMarshaller) throws SchemaException {
+		MapXNode xmap = new MapXNode();
+		Object expressionObject = expressionWrapper.getExpression();
+		if (expressionObject == null) {
+			return xmap;
+		}
+		XNode expressionXnode = beanMarshaller.marshall(expressionObject);
+		if (expressionXnode == null) {
+			return xmap;
+		}
+		xmap.put(expressionWrapper.getElementName(), expressionXnode);
+		return xmap;
+	}
+
+	// TODO: Unify the two serializeExpression() methods
+	public static MapXNode serializeExpression(ExpressionWrapper expressionWrapper, PrismSerializer<RootXNode> xnodeSerializer) throws SchemaException {
+		MapXNode xmap = new MapXNode();
+		Object expressionObject = expressionWrapper.getExpression();
+		if (expressionObject == null) {
+			return xmap;
+		}
+		RootXNode xroot = xnodeSerializer.serializeAnyData(expressionObject, expressionWrapper.getElementName());
+		if (xroot == null) {
+			return xmap;
+		}
+		xmap.merge(expressionWrapper.getElementName(), xroot.getSubnode());
+		return xmap;
 	}
 }

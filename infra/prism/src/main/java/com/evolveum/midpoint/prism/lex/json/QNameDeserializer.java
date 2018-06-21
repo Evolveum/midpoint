@@ -20,12 +20,12 @@ public class QNameDeserializer extends JsonDeserializer<QName>{
 			JsonProcessingException {
 		//System.out.println("tralalaaaaa   QName deserializer");
 //		Object ob = jp.getEmbeddedObject();
-		
+
 //		JsonNode node = jp.getCodec().readTree(jp);
 //		JsonNode node = (JsonNode) ob;
 //		TreeTraversingParser treeParser = (TreeTraversingParser) jp;
 //		if (jp.getCurrentToken() == JsonToken.START_OBJECT){
-			
+
 //		}
 //		jp.
 		ObjectMapper m = new ObjectMapper();
@@ -43,30 +43,30 @@ public class QNameDeserializer extends JsonDeserializer<QName>{
 				throw new IllegalStateException();
 //				break;
 		}
-		
+
 	}
-	
+
 	private QName deserializeFromObject(JsonNode node){
 		JsonNode qnameNode = node.get("@namespace");
 		String namespace = null;
 		if (qnameNode != null){
 			namespace = qnameNode.asText();
 		}
-		
+
 		qnameNode = node.get("@localPart");
 		String localPart = null;
 		if (qnameNode != null){
 			localPart = qnameNode.asText();
-		} 
+		}
 		return new QName(namespace, localPart);
 	}
-	
+
 	private QName deserializeFromString(JsonNode node){
 		String qnameUri = node.asText();
 		return QNameUtil.uriToQName(qnameUri, true);
 //		return new QName(node.asText());
 	}
-	
+
 	@Override
 	public Object deserializeWithType(JsonParser jp, DeserializationContext ctxt,
 			TypeDeserializer typeDeserializer) throws IOException, JsonProcessingException {

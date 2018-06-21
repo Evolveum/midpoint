@@ -5,18 +5,18 @@ import java.io.Serializable;
 public class SecurityQuestionAnswerDTO implements Serializable {
 
 	public static final String F_PASSWORD_QUESTION_IDENTIFIER = "passwQuestionIdentifier";
-	
-    public static final String F_PASSWORD_QUESTION_ANSWER = "passwAnswer";	
-    
-    
-    public static final String F_PASSWORD_QUESTION_ITSELF = "questionItself";	
-    
-	
-    
+
+    public static final String F_PASSWORD_QUESTION_ANSWER = "passwAnswer";
+
+
+    public static final String F_PASSWORD_QUESTION_ITSELF = "questionItself";
+
+
+
     private String passwQuestionIdentifier;
 	private String passwAnswer;
 	private String questionItself;
-	
+
 	public SecurityQuestionAnswerDTO(String passwQuestion, String passAnswer){
 		this.passwQuestionIdentifier = passwQuestion;
 		this.passwAnswer = passAnswer;
@@ -26,7 +26,7 @@ public class SecurityQuestionAnswerDTO implements Serializable {
 		this.passwAnswer = passAnswer;
 		this.questionItself=questionitself;
 	}
-	
+
 	public String getPwdQuestion() {
 		return passwQuestionIdentifier;
 	}
@@ -39,12 +39,12 @@ public class SecurityQuestionAnswerDTO implements Serializable {
 	public void setPwdAnswer(String pwdAnswer) {
 		this.passwAnswer = pwdAnswer;
 	}
-	
+
 	public String getQuestionItself() {
 		return questionItself;
 	}
 	public void setQuestionItself(String questionItself) {
 		this.questionItself = questionItself;
 	}
-	
+
 }

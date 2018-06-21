@@ -20,7 +20,7 @@ import java.io.File;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -28,30 +28,30 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Test for provisioning service implementation using embedded OpenDj instance.
  * This is the same test as TestOpenDj, but the OpenDJ resource configuration is
  * somehow dumber: no shortcut in associations, expclicit duplicity checks, etc.
- * 
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestOpenDjDumber extends TestOpenDj {
 
-	protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj-dumber.xml");
-	
+	protected static final File RESOURCE_OPENDJ_DUMBER_FILE = new File(TEST_DIR, "resource-opendj-dumber.xml");
+
 	private static Trace LOGGER = TraceManager.getTrace(TestOpenDjDumber.class);
-		
+
 	@Override
 	protected File getResourceOpenDjFile() {
 		return RESOURCE_OPENDJ_DUMBER_FILE;
 	}
-	
+
 	@Override
 	protected int getNumberOfBaseContextShadows() {
 		return 1;
 	}
-	
+
 	@Override
 	protected void assertConnectorOperationIncrement(int expectedIncrementSmart, int expectedIncrementDumb) {
-		super.assertConnectorOperationIncrement(expectedIncrementDumb);
+		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, expectedIncrementDumb);
 	}
 
 }

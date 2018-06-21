@@ -31,7 +31,7 @@ import java.io.File;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAssignmentEvaluator extends TestAbstractAssignmentEvaluator {
 
-	
+
 	 protected static final File[] ROLE_CORP_FILES = {
 	 			ROLE_METAROLE_SOD_NOTIFICATION_FILE,
 	            ROLE_CORP_AUTH_FILE,
@@ -44,14 +44,14 @@ public class TestAssignmentEvaluator extends TestAbstractAssignmentEvaluator {
 	            ROLE_CORP_ENGINEER_FILE,
 	            ROLE_CORP_MANAGER_FILE
 	    };
-	
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         addObjects(getRoleCorpFiles());
     }
-	
+
     @Override
     public File[] getRoleCorpFiles() {
     	return ROLE_CORP_FILES;

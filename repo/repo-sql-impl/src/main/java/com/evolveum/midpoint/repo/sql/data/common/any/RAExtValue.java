@@ -5,7 +5,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 /**
  * @author lazyman
  */
-public interface RAExtValue extends RAnyValue {
+public interface RAExtValue<T> extends RAnyValue<T> {
 
     String ANY_CONTAINER = "anyContainer";
 

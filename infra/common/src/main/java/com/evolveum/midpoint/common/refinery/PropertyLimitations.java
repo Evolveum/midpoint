@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
@@ -26,40 +27,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
  *
  */
 public class PropertyLimitations implements DebugDumpable, Serializable {
+	private static final long serialVersionUID = 1L;
 	
-	private boolean ignore;
+	private ItemProcessing processing;
 	private int minOccurs;
 	private int maxOccurs;
 	private PropertyAccessType access = new PropertyAccessType();
-	
-	public boolean isIgnore() {
-		return ignore;
+
+	public ItemProcessing getProcessing() {
+		return processing;
 	}
-	
-	public void setIgnore(boolean ignore) {
-		this.ignore = ignore;
+
+	public void setProcessing(ItemProcessing processing) {
+		this.processing = processing;
 	}
-	
+
 	public int getMinOccurs() {
 		return minOccurs;
 	}
-	
+
 	public void setMinOccurs(int minOccurs) {
 		this.minOccurs = minOccurs;
 	}
-	
+
 	public int getMaxOccurs() {
 		return maxOccurs;
 	}
-	
+
 	public void setMaxOccurs(int maxOccurs) {
 		this.maxOccurs = maxOccurs;
 	}
-	
+
 	public PropertyAccessType getAccess() {
 		return access;
 	}
-	
+
 	public void setAccess(PropertyAccessType access) {
 		this.access = access;
 	}
@@ -76,7 +78,7 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
 		sb.append(toString());
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -97,8 +99,8 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
 		} else {
 			sb.append("-");
 		}
-		if (ignore) {
-			sb.append(",ignored");
+		if (processing != null) {
+			sb.append(",").append(processing);
 		}
 		return sb.toString();
 	}

@@ -17,18 +17,24 @@
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.*;
 
@@ -88,7 +94,7 @@ public class ExecutionManager {
     public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long timeToWait, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".stopSchedulersAndTasks");
-        result.addCollectionOfSerializablesAsParam("nodeList", nodeIdentifiers);
+        result.addArbitraryObjectCollectionAsParam("nodeList", nodeIdentifiers);
         result.addParam("timeToWait", timeToWait);
 
         LOGGER.info("Stopping schedulers and tasks on nodes: {}, waiting {} ms for task(s) shutdown.", nodeIdentifiers, timeToWait);
@@ -153,7 +159,7 @@ public class ExecutionManager {
                 addNodeAndTaskInformation(retval, node, result);
             }
         } else {
-            addNodeAndTaskInformation(retval, taskManager.getClusterManager().getNodePrism(), result);
+            addNodeAndTaskInformation(retval, taskManager.getClusterManager().getLocalNodeObject(), result);
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("cluster state information = {}", retval.dump());
@@ -237,7 +243,7 @@ public class ExecutionManager {
     public boolean stopTasksRunAndWait(Collection<Task> tasks, ClusterStatusInformation csi, long waitTime, boolean clusterwide, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "stopTasksRunAndWait");
-        result.addArbitraryCollectionAsParam("tasks", tasks);
+        result.addArbitraryObjectCollectionAsParam("tasks", tasks);
         result.addParam("waitTime", waitTime);
         result.addParam("clusterwide", clusterwide);
 
@@ -252,8 +258,9 @@ public class ExecutionManager {
             csi = getClusterStatusInformation(true, false, result);
         }
 
-        for (Task task : tasks)
+        for (Task task : tasks) {
             stopTaskRun(task, csi, clusterwide, result);
+        }
 
         boolean stopped = false;
         if (waitTime >= 0) {
@@ -273,18 +280,20 @@ public class ExecutionManager {
     private boolean waitForTaskRunCompletion(Collection<Task> tasks, long maxWaitTime, boolean clusterwide, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ExecutionManager.class.getName() + ".waitForTaskRunCompletion");
-        result.addArbitraryCollectionAsParam("tasks", tasks);
+        result.addArbitraryObjectCollectionAsParam("tasks", tasks);
         result.addParam("maxWaitTime", maxWaitTime);
         result.addParam("clusterwide", clusterwide);
 
         boolean interruptExecuted = false;
 
-        LOGGER.trace("Waiting for task(s) " + tasks + " to complete, at most for " + maxWaitTime + " ms.");
+        LOGGER.trace("Waiting for task(s) {} to complete, at most for {} ms.", tasks, maxWaitTime);
 
         Set<String> oids = new HashSet<>();
-        for (Task t : tasks)
-            if (t.getOid() != null)
+        for (Task t : tasks) {
+            if (t.getOid() != null) {
                 oids.add(t.getOid());
+            }
+        }
 
         long singleWait = WAIT_FOR_COMPLETION_INITIAL;
         long started = System.currentTimeMillis();
@@ -331,8 +340,9 @@ public class ExecutionManager {
                 LOGGER.trace("Waiting interrupted" + e);
             }
 
-            if (singleWait < WAIT_FOR_COMPLETION_MAX)
+            if (singleWait < WAIT_FOR_COMPLETION_MAX) {
                 singleWait *= 2;
+            }
         }
     }
 
@@ -576,19 +586,47 @@ public class ExecutionManager {
             unscheduleTask(task, result);
             ((TaskQuartzImpl) task).setRecreateQuartzTrigger(true);
             synchronizeTask((TaskQuartzImpl) task, result);
-            result.computeStatus();
+        } else {
+            // otherwise, we simply add another trigger to this task
+            addTriggerNowForTask(task, result);
+        }
+	    result.recordSuccessIfUnknown();
+    }
+
+    // experimental
+    public void scheduleWaitingTaskNow(Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleWaitingTaskNow");
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
+            String message = "Task " + task + " cannot be scheduled as waiting task, because it is not in WAITING state.";
+            result.recordFatalError(message);
+            LOGGER.error(message);
             return;
         }
 
-        // otherwise, we simply add another trigger to this task
+        try {
+            if (!quartzScheduler.checkExists(TaskQuartzImplUtil.createJobKeyForTask(task))) {
+                quartzScheduler.addJob(TaskQuartzImplUtil.createJobDetailForTask(task), false);
+            }
+	        ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, TaskExecutionStatusType.WAITING, parentResult);
+        } catch (SchedulerException | ObjectNotFoundException | SchemaException | PreconditionViolationException e) {
+            String message = "Waiting task " + task + " cannot be scheduled: " + e.getMessage();
+            result.recordFatalError(message, e);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
+            return;
+        }
+	    addTriggerNowForTask(task, result);
+        result.recordSuccessIfUnknown();
+    }
+
+    private void addTriggerNowForTask(Task task, OperationResult result) {
         Trigger now = TaskQuartzImplUtil.createTriggerNowForTask(task);
         try {
             quartzScheduler.scheduleJob(now);
-            result.recordSuccess();
         } catch (SchedulerException e) {
             String message = "Task " + task + " cannot be scheduled: " + e.getMessage();
             result.recordFatalError(message, e);
-            LOGGER.error(message);
+            LoggingUtils.logUnexpectedException(LOGGER, message, e);
         }
     }
 
@@ -615,6 +653,35 @@ public class ExecutionManager {
         } catch (SchedulerException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot pause job for task {}", e, task);
             result.recordFatalError("Cannot pause job for task " + task, e);
+        }
+    }
+
+    public void setLocalExecutionLimitations(NodeType node) {
+        setLocalExecutionLimitations(quartzScheduler, node.getTaskExecutionLimitations());
+    }
+
+    public void setLocalExecutionLimitations(TaskExecutionLimitationsType limitations) {
+        setLocalExecutionLimitations(quartzScheduler, limitations);
+    }
+
+    void setLocalExecutionLimitations(Scheduler scheduler, TaskExecutionLimitationsType limitations) {
+        try {
+            Map<String, Integer> newLimits = new HashMap<>();
+            if (limitations != null) {
+	            for (TaskGroupExecutionLimitationType limit : limitations.getGroupLimitation()) {
+		            newLimits.put(MiscUtil.nullIfEmpty(limit.getGroupName()), limit.getLimit());
+	            }
+            } else {
+            	// no limits -> everything is allowed
+            }
+            Map<String, Integer> oldLimits = scheduler.getExecutionLimits();    // just for the logging purposes
+            scheduler.setExecutionLimits(newLimits);
+            if (oldLimits == null || !new HashMap<>(oldLimits).equals(newLimits)) {
+                LOGGER.info("Quartz scheduler execution limits set to: {} (were: {})", newLimits, oldLimits);
+            }
+        } catch (SchedulerException e) {
+            // should never occur, as local scheduler shouldn't throw such exceptions
+            throw new SystemException("Couldn't set local Quartz scheduler execution capabilities: " + e.getMessage(), e);
         }
     }
 }

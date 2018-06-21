@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -30,21 +34,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 /**
  * @author lazyman
  */
-public class SelectableBean<T extends Serializable> extends Selectable implements InlineMenuable, DebugDumpable {
+public class SelectableBean<T extends Serializable> extends Selectable<T> implements InlineMenuable, DebugDumpable {
 	private static final long serialVersionUID = 1L;
 
 	public static final String F_VALUE = "value";
+
+	private static final Trace LOGGER = TraceManager.getTrace(SelectableBean.class);
 
     /**
      * Value of object that this bean represents. It may be null in case that non-success result is set.
      */
     private T value;
-    
+
     /**
      * Result of object retrieval (or attempt of object retrieval). It case that it is not error the result is optional.
      */
     private OperationResult result;
-    
+
     private List<InlineMenuItem> menuItems;
 
     public SelectableBean() {
@@ -61,7 +67,7 @@ public class SelectableBean<T extends Serializable> extends Selectable implement
     public void setValue(T value) {
         this.value = value;
     }
-    
+
     public OperationResult getResult() {
 		return result;
 	}
@@ -69,14 +75,14 @@ public class SelectableBean<T extends Serializable> extends Selectable implement
 	public void setResult(OperationResult result) {
 		this.result = result;
 	}
-	
-	public void setResult(OperationResultType resultType) {
+
+	public void setResult(OperationResultType resultType) throws SchemaException {
 		this.result = OperationResult.createOperationResult(resultType);
 	}
 
 	public List<InlineMenuItem> getMenuItems() {
     	if (menuItems == null) {
-    		menuItems = new ArrayList<InlineMenuItem>();
+    		menuItems = new ArrayList<>();
     	}
 		return menuItems;
 	}
@@ -90,6 +96,7 @@ public class SelectableBean<T extends Serializable> extends Selectable implement
 		return result;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -113,7 +120,11 @@ public class SelectableBean<T extends Serializable> extends Selectable implement
 			if (other.value != null) {
 				return false;
 			}
-		} else if (!value.equals(other.value)) {
+		// In case both values are objects then compare only OIDs.
+		// that should be enough. Comparing complete objects may be slow
+		// (e.g. if the objects have many assignments) and Wicket
+		// invokes compare a lot ...
+		} else if (!MiscSchemaUtil.quickEquals(value, other.value)) {
 			return false;
 		}
 		return true;

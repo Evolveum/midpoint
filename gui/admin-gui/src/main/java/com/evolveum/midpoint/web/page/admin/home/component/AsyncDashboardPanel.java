@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,10 +37,11 @@ import org.apache.wicket.util.time.Duration;
  * @author lazyman
  */
 public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, CallableResult<T>> {
+
 	private static final long serialVersionUID = 1L;
 
-	protected static final String ID_DASHBOARD_PARENT = "dashboardParent";
-    protected static final String ID_DASHBOARD_TITLE = "dashboardTitle";
+	private static final String ID_DASHBOARD_PARENT = "dashboardParent";
+    private static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
     private static final String ID_PRELOADER_CONTAINER = "preloaderContainer";
     private static final String ID_PRELOADER = "preloader";
@@ -69,7 +70,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
     public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
                                Duration durationSecs, String boxCssClasses, boolean noPadding) {
         super(id, callableParameterModel, durationSecs);
-        
+
         initLayout(noPadding);
 
         WebMarkupContainer dashboardTitle = (WebMarkupContainer) get(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,6 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 /**
  * User template with "mapping range" features.
  *
@@ -46,7 +44,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/object-template-ranges");
 
 	public static final QName MANAGER_ID_QNAME = new QName("http://sample.evolveum.com/xml/ns/sample-idm/extension", "managerId");
@@ -67,7 +65,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
 		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_LOCAL_FILE, OrgType.class, initResult);
-        
+
         repoAddObjectFromFile(USER_TEMPLATE_RANGES_FILE, initResult);
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_RANGES_OID, initResult);
 
@@ -80,7 +78,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
     public void test100RecomputeElaine() throws Exception {
 		final String TEST_NAME = "test100RecomputeElaine";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -92,7 +90,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 		// THEN
 		result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
 		PrismObject<UserType> userElaine = getUser(USER_ELAINE_OID);
 		display("elaine after recompute", userElaine);
 		assertAssignedOrg(userElaine, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER);
@@ -106,7 +104,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test110ChangeManagerAndRecomputeElaine() throws Exception {
 		final String TEST_NAME = "test110ChangeManagerAndRecomputeElaine";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -134,7 +132,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test120RestoreManagerAndRecomputeElaineAgain() throws Exception {
 		final String TEST_NAME = "test120RestoreManagerAndRecomputeElaineAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -166,7 +164,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test140ChangeManagerAndRecomputeElaineAgain() throws Exception {
 		final String TEST_NAME = "test140ChangeManagerAndRecomputeElaineAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -200,7 +198,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test200SimpleOrgUnitAddition() throws Exception {
 		final String TEST_NAME = "test200SimpleOrgUnitAddition";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -244,7 +242,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test210RemoveUnit1() throws Exception {
 		final String TEST_NAME = "test210RemoveUnit1";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -285,7 +283,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test220RemoveUnit2AndNumber() throws Exception {
 		final String TEST_NAME = "test220RemoveUnit2AndNumber";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);
@@ -326,7 +324,7 @@ public class TestUserTemplateWithRanges extends AbstractInitializedModelIntegrat
 	@Test
 	public void test230RestoreNumber() throws Exception {
 		final String TEST_NAME = "test230RestoreNumber";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestUserTemplateWithRanges.class.getName() + "." + TEST_NAME);

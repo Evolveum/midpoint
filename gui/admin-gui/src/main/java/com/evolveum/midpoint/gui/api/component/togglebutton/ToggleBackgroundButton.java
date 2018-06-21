@@ -25,7 +25,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 /**
  * Simple button that toggles two states (on-off).
  * The button changes the background when pressed.
- * 
+ *
  * @author semancik
  */
 public abstract class ToggleBackgroundButton<T> extends AjaxLink<T> {
@@ -33,12 +33,12 @@ public abstract class ToggleBackgroundButton<T> extends AjaxLink<T> {
 
 	private String cssClassOff = GuiStyleConstants.CLASS_BUTTON_TOGGLE_OFF;
 	private String cssClassOn = GuiStyleConstants.CLASS_BUTTON_TOGGLE_ON;
-	
+
 	public ToggleBackgroundButton(String id) {
 		super(id);
 		initLayout();
 	}
-	
+
 	public ToggleBackgroundButton(String id, String cssClassOff, String cssClassOn) {
 		super(id);
 		this.cssClassOff = cssClassOff;
@@ -74,5 +74,5 @@ public abstract class ToggleBackgroundButton<T> extends AjaxLink<T> {
 	}
 
 	public abstract boolean isOn();
-	
+
 }

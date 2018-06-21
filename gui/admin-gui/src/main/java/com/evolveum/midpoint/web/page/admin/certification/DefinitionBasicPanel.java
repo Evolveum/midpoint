@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 	}
 
 	private void initBasicInfoLayout() {
-		
+
 		final TextField nameField = new TextField(ID_NAME, new PropertyModel<>(getModel(), CertDefinitionDto.F_NAME));
 		nameField.add(new VisibleEnableBehaviour() {
 			@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,20 +40,20 @@ import static org.testng.AssertJUnit.assertTrue;
  *
  */
 public class TestFilterSimplifier {
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
+
 	@Test
 	public void test010All() throws Exception {
 		System.out.println("===[ test010All ]===");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		// WHEN
 		ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
 				.all().buildFilter();

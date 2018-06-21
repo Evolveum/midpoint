@@ -15,13 +15,14 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processIcfException;
+import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.security.Key;
 import java.util.Arrays;
@@ -40,8 +41,8 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.Version;
 import org.identityconnectors.common.security.Encryptor;
 import org.identityconnectors.common.security.EncryptorFactory;
@@ -71,7 +72,6 @@ import org.identityconnectors.framework.api.operations.ValidateApiOp;
 import org.identityconnectors.framework.common.FrameworkUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -100,12 +100,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Implementation of the UCF Connector Manager API interface for ConnId framework.
- * 
+ *
  * @author Radovan Semancik
  */
 
@@ -119,7 +117,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public static final QName ICFS_ACCOUNT = new QName(SchemaConstants.NS_ICF_SCHEMA, "account");
 
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
-	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(SchemaConstants.NS_ICF_CONFIGURATION, 
+	public static final QName CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_QNAME = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 
 	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
@@ -137,7 +135,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME);
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INT;
-	
+
 	public static final String CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME = "legacySchema";
 	public static final QName CONNECTOR_SCHEMA_LEGACY_SCHEMA_ELEMENT = new QName(SchemaConstants.NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_LEGACY_SCHEMA_XML_ELEMENT_NAME);
@@ -159,34 +157,29 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_CASE_INSENSITIVE_HANDLER = "enableCaseInsensitiveFilter";
     public static final String CONNECTOR_SCHEMA_RESULTS_HANDLER_CONFIGURATION_ENABLE_ATTRIBUTES_TO_GET_SEARCH_RESULTS_HANDLER = "enableAttributesToGetSearchResultsHandler";
 
-    static final Map<String, Class<? extends APIOperation>> apiOpMap = new HashMap<String, Class<? extends APIOperation>>();
+    static final Map<String, Class<? extends APIOperation>> apiOpMap = new HashMap<>();
 
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = SchemaConstants.ICF_FRAMEWORK_URI + "/bundle/";
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
-	
+
 	public static final int ATTR_DISPLAY_ORDER_START = 120;
 	public static final int ATTR_DISPLAY_ORDER_INCREMENT = 10;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryConnIdImpl.class);
-	
+
 	// This is not really used in the code. It is here just to make sure that the JUL logger is loaded
 	// by the parent classloader so we can correctly adjust the log levels from the main code
 	static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
-	
+
 
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
-	private Set<URL> bundleURLs;
+	private Set<URI> bundleURIs;
 	private Set<ConnectorType> localConnectorTypes = null;
-	
-	@Autowired(required = true)
-	private MidpointConfiguration midpointConfiguration;
 
-	@Autowired(required = true)
-	private Protector protector;
-	
-	@Autowired(required = true)
-	private PrismContext prismContext;
+	@Autowired private MidpointConfiguration midpointConfiguration;
+	@Autowired private Protector protector;
+	@Autowired private PrismContext prismContext;
 
 	public ConnectorFactoryConnIdImpl() {
 	}
@@ -199,26 +192,26 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public void initialize() {
 
 		// OLD
-		// bundleURLs = listBundleJars();
-		bundleURLs = new HashSet<URL>();
+		// bundleURIs = listBundleJars();
+		bundleURIs = new HashSet<>();
 
 		Configuration config = midpointConfiguration.getConfiguration("midpoint.icf");
 
 		// Is classpath scan enabled
 		if (config.getBoolean("scanClasspath")) {
 			// Scan class path
-			bundleURLs.addAll(scanClassPathForBundles());
+			bundleURIs.addAll(scanClassPathForBundles());
 		}
 
 		// Scan all provided directories
 		@SuppressWarnings("unchecked")
 		List<String> dirs = config.getList("scanDirectory");
 		for (String dir : dirs) {
-			bundleURLs.addAll(scanDirectory(dir));
+			bundleURIs.addAll(scanDirectory(dir));
 		}
 
-		for (URL u : bundleURLs) {
-			LOGGER.debug("ICF bundle URL : {}", u);
+		for (URI u : bundleURIs) {
+			LOGGER.debug("ICF bundle URI : {}", u);
 		}
 
 		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
@@ -227,14 +220,14 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Creates new connector instance.
-	 * 
+	 *
 	 * It will initialize the connector by taking the XML Resource definition,
 	 * transforming it to the ICF configuration and applying that to the new
 	 * connector instance.
-	 * 
+	 *
 	 * @throws ObjectNotFoundException
-	 * @throws SchemaException 
-	 * 
+	 * @throws SchemaException
+	 *
 	 */
 	@Override
 	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String desc)
@@ -251,7 +244,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
 					+ " were not found by the ICF framework; bundle="+connectorType.getConnectorBundle()+" connector type=" + connectorType.getConnectorType() + ", version="+connectorType.getConnectorVersion());
 		}
-		
+
 		PrismSchema connectorSchema = UcfUtil.getConnectorSchema(connectorType, prismContext);
 		if (connectorSchema == null) {
 			connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
@@ -260,15 +253,15 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		ConnectorInstanceConnIdImpl connectorImpl = new ConnectorInstanceConnIdImpl(cinfo, connectorType, namespace,
 				connectorSchema, protector, prismContext);
 		connectorImpl.setDescription(desc);
-		
+
 		return connectorImpl;
 	}
 
-	
+
 
 	/**
 	 * Returns a list XML representation of the ICF connectors.
-	 * 
+	 *
 	 * @throws CommunicationException
 	 */
 	@Override
@@ -295,7 +288,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 				return connectors;
 			}
 		} catch (Throwable icfException) {
-			Throwable ex = processIcfException(icfException, "list connectors", result);
+			Throwable ex = processConnIdException(icfException, "list connectors", result);
 			result.recordFatalError(ex.getMessage(), ex);
 			if (ex instanceof CommunicationException) {
 				throw (CommunicationException) ex;
@@ -312,9 +305,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	private Set<ConnectorType> listLocalConnectors() {
 		if (localConnectorTypes == null) {
 			// Lazy initialize connector list
-			localConnectorTypes = new HashSet<ConnectorType>();
+			localConnectorTypes = new HashSet<>();
 
-			
+
 			// Fetch list of local connectors from ICF
 			List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 
@@ -334,7 +327,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	private Set<ConnectorType> listRemoteConnectors(ConnectorHostType host) {
 		ConnectorInfoManager remoteConnectorInfoManager = getRemoteConnectorInfoManager(host);
-		Set<ConnectorType> connectorTypes = new HashSet<ConnectorType>();
+		Set<ConnectorType> connectorTypes = new HashSet<>();
 		List<ConnectorInfo> connectorInfos = remoteConnectorInfoManager.getConnectorInfos();
 		for (ConnectorInfo connectorInfo : connectorInfos) {
 			try {
@@ -353,16 +346,16 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Converts ICF ConnectorInfo into a midPoint XML connector representation.
-	 * 
+	 *
 	 * TODO: schema transformation
-	 * 
+	 *
 	 * @param hostType
 	 *            host that this connector runs on or null for local connectors
 	 */
 	private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) throws SchemaException {
 		ConnectorType connectorType = new ConnectorType();
 		ConnectorKey key = cinfo.getConnectorKey();
-		UcfUtil.addConnectorNames(connectorType, "ConnId", key.getBundleName(), key.getConnectorName(), key.getBundleVersion(), hostType);		
+		UcfUtil.addConnectorNames(connectorType, "ConnId", key.getBundleName(), key.getConnectorName(), key.getBundleVersion(), hostType);
 		String stringID = keyToNamespaceSuffix(key);
 		connectorType.setFramework(SchemaConstants.ICF_FRAMEWORK_URI);
 		connectorType.setConnectorType(key.getConnectorName());
@@ -381,18 +374,18 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 				connectorType.setConnectorHost(hostType);
 			}
 		}
-		
+
 		PrismSchema connectorSchema = generateConnectorConfigurationSchema(cinfo, connectorType);
 		LOGGER.trace("Generated connector schema for {}: {} definitions",
 				connectorType, connectorSchema.getDefinitions().size());
 		UcfUtil.setConnectorSchema(connectorType, connectorSchema);
-		
+
 		return connectorType;
 	}
 
 	/**
 	 * Converts ICF connector key to a simple string.
-	 * 
+	 *
 	 * The string may be used as an OID.
 	 */
 	private String keyToNamespaceSuffix(ConnectorKey key) {
@@ -411,7 +404,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		ConnectorInfo cinfo = getConnectorInfo(connectorType);
 		return generateConnectorConfigurationSchema(cinfo, connectorType);
 	}
-	
+
 	private PrismSchema generateConnectorConfigurationSchema(ConnectorInfo cinfo, ConnectorType connectorType) {
 
 		LOGGER.trace("Generating configuration schema for {}", this);
@@ -498,16 +491,18 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		return connectorSchema;
 	}
 
-	
+
 	/**
 	 * Returns ICF connector info manager that manages local connectors. The
 	 * manager will be created if it does not exist yet.
-	 * 
+	 *
 	 * @return ICF connector info manager that manages local connectors
 	 */
+
 	private ConnectorInfoManager getLocalConnectorInfoManager() {
 		if (null == localConnectorInfoManager) {
-			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(bundleURLs.toArray(new URL[0]));
+			URL[] urls = bundleURIs.stream().map(MiscUtil::toUrlUnchecked).toArray(URL[]::new);
+			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(urls);
 		}
 		return localConnectorInfoManager;
 	}
@@ -515,7 +510,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	/**
 	 * Returns ICF connector info manager that manages local connectors. The
 	 * manager will be created if it does not exist yet.
-	 * 
+	 *
 	 * @return ICF connector info manager that manages local connectors
 	 */
 	private ConnectorInfoManager getRemoteConnectorInfoManager(ConnectorHostType hostType) {
@@ -544,11 +539,11 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Scan class path for connector bundles
-	 * 
+	 *
 	 * @return Set of all bundle URL
 	 */
-	private Set<URL> scanClassPathForBundles() {
-		Set<URL> bundle = new HashSet<URL>();
+	private Set<URI> scanClassPathForBundles() {
+		Set<URI> bundle = new HashSet<>();
 
 		// scan class path for bundles
 		Enumeration<URL> en = null;
@@ -577,6 +572,13 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			} catch (IOException ex) {
 				LOGGER.trace("Unable load: " + u + " [" + ex.getMessage() + "]");
 			}
+// tomcat
+// toString >>> jar:file:/<ABSOLUTE_PATH_TO_TOMCAT_WEBAPPS>/midpoint/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
+// getPath  >>>     file:/<ABSOLUTE_PATH_TO_TOMCAT_WEBAPPS>/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
+
+// boot
+// toString >>> jar:file:/<ABSOLUTE_PATH_TO_WAR_FOLDER>/midpoint.war!/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
+// getPath  >>>     file:/<ABSOLUTE_PATH_TO_WAR_FOLDER>/midpoint.war!/WEB-INF/lib/connector-csv-2.1-SNAPSHOT.jar!/META-INF/MANIFEST.MF
 
 			if (null != prop.get("ConnectorBundle-Name")) {
 				LOGGER.info("Discovered ICF bundle on CLASSPATH: " + prop.get("ConnectorBundle-Name") + " version: "
@@ -584,10 +586,19 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 				// hack to split MANIFEST from name
 				try {
-                                        String upath = u.getPath();
+                    String upath = u.toString();
+                    if (upath.split("!/").length != 3) {
+                    	// we're running standard war in application server
+                    	upath = u.getPath();
+					}
+
 					URL tmp = new URL(toUrl(upath.substring(0, upath.lastIndexOf("!"))));
 					if (isThisBundleCompatible(tmp)) {
-						bundle.add(tmp);
+						try {
+							bundle.add(tmp.toURI());
+						} catch (Exception e) {
+							LOGGER.error(e.getMessage(), e);
+						}
 					} else {
 						LOGGER.warn("Skip loading ICF bundle {} due error occured", tmp);
 					}
@@ -611,27 +622,28 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Scan directory for bundles only on first lval we do the scan
-	 * 
+	 *
 	 * @param path
 	 * @return
 	 */
-	private Set<URL> scanDirectory(String path) {
+	private Set<URI> scanDirectory(String path) {
 
 		// Prepare return object
-		Set<URL> bundle = new HashSet<URL>();
-		// COnvert path to object File
+		Set<URI> bundle = new HashSet<>();
+		// Convert path to object File
 		File dir = new File(path);
 
 		// Test if this path is single jar or need to do deep examination
 		if (isThisJarFileBundle(dir)) {
 			try {
-				if (isThisBundleCompatible(dir.toURI().toURL())) {
-					bundle.add(dir.toURI().toURL());
+				final URI uri = dir.toURI();
+				if (isThisBundleCompatible(uri.toURL())) {
+					bundle.add(uri);
 				} else {
-					LOGGER.warn("Skip loading budle {} due error occured", dir.toURI().toURL());
+					LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
 				}
 			} catch (MalformedURLException e) {
-				LOGGER.error("This never happend we hope.", e);
+				LOGGER.error("This never happened we hope.", e);
 				throw new SystemException(e);
 			}
 			return bundle;
@@ -649,17 +661,18 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			return bundle;
 		}
 
-		// test all entires for bundle
+		// test all entries for bundle
 		for (int i = 0; i < dirEntries.length; i++) {
 			if (isThisJarFileBundle(dirEntries[i])) {
 				try {
-					if (isThisBundleCompatible(dirEntries[i].toURI().toURL())) {
-						bundle.add(dirEntries[i].toURI().toURL());
+					final URI uri = dirEntries[i].toURI();
+					if (isThisBundleCompatible(uri.toURL())) {
+						bundle.add(uri);
 					} else {
-						LOGGER.warn("Skip loading budle {} due error occured", dirEntries[i].toURI().toURL());
+						LOGGER.warn("Skip loading bundle {} due error occurred", uri.toURL());
 					}
 				} catch (MalformedURLException e) {
-					LOGGER.error("This never happend we hope.", e);
+					LOGGER.error("This never happened we hope.", e);
 					throw new SystemException(e);
 				}
 			}
@@ -688,7 +701,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			}
 		} catch (Exception ex) {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage(), ex});
+				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}-{}", new Object[] { bundleUrl, ex.getMessage(), ex});
 			} else {
 				LOGGER.error("Error instantiating ICF bundle using URL '{}': {}", new Object[] { bundleUrl, ex.getMessage()});
 			}
@@ -698,7 +711,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Test if provided file is connector bundle
-	 * 
+	 *
 	 * @param file
 	 *            tested file
 	 * @return boolean
@@ -760,7 +773,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
 	/**
 	 * Get contect informations
-	 * 
+	 *
 	 * @param connectorType
 	 * @return
 	 * @throws ObjectNotFoundException
@@ -787,7 +800,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
 				connectorType.getConnectorType());
 	}
-	
+
 	@Override
 	public void selfTest(OperationResult parentTestResult) {
 		selfTestGuardedString(parentTestResult);
@@ -797,7 +810,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	public boolean supportsFramework(String frameworkIdentifier) {
 		return SchemaConstants.ICF_FRAMEWORK_URI.equals(frameworkIdentifier);
 	}
-	
+
     @Override
     public String getFrameworkVersion() {
         Version version = FrameworkUtil.getFrameworkVersion();
@@ -809,7 +822,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 
     private void selfTestGuardedString(OperationResult parentTestResult) {
 		OperationResult result = parentTestResult.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString");
-		
+
 		OperationResult subresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptorReflection");
 		EncryptorFactory encryptorFactory = EncryptorFactory.getInstance();
 		subresult.addReturn("encryptorFactoryImpl", encryptorFactory.getClass());
@@ -838,7 +851,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 				subresult.recordPartialError("Reflection introspection failed", e);
 			}
 		}
-		
+
 		OperationResult encryptorSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.encryptor");
 		try {
 			String plainString = "Scurvy seadog";
@@ -854,8 +867,8 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			LOGGER.error("Encryptor operation error: {}", e.getMessage(), e);
 			encryptorSubresult.recordFatalError("Encryptor opeation error: " + e.getMessage(), e);
 		}
-		
-		
+
+
 		final OperationResult guardedStringSubresult = result.createSubresult(ConnectorFactoryConnIdImpl.class + ".selfTestGuardedString.guardedString");
 		// try to encrypt and decrypt GuardedString
 		try {
@@ -867,7 +880,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 				@Override
 				public void access(char[] decryptedChars) {
 					if (!(new String(decryptedChars)).equals(origString)) {
-						guardedStringSubresult.recordFatalError("GuardeString roundtrip failed; encrypted="+origString+", decrypted="+(new String(decryptedChars))); 
+						guardedStringSubresult.recordFatalError("GuardeString roundtrip failed; encrypted="+origString+", decrypted="+(new String(decryptedChars)));
 					}
 				}
 			});
@@ -876,7 +889,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 			LOGGER.error("GuardedString operation error: {}", e.getMessage(), e);
 			guardedStringSubresult.recordFatalError("GuardedString opeation error: " + e.getMessage(), e);
 		}
-		
+
 		result.computeStatus();
 	}
 
@@ -904,5 +917,4 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		LOGGER.info("Shutting down ConnId framework");
 		ConnectorFacadeFactory.getInstance().dispose();
 	}
-
 }

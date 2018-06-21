@@ -25,30 +25,30 @@ import com.evolveum.midpoint.prism.PrismContainer;
 
 
 public class PasswordQuestionsDto implements Serializable{
-	
+
 	public static final String F_MY_QUESTIONS_ANSWERS="questionAnswers";
 	public static final String F_MY_QUESTIONS_ANSWER="passwAnswer";
     public static final String F_MY_QUESTIONS__QUESTIONITSELF="passwQuestion";
-    
+
 	private String passwQuestion;
 	private String passwAnswer;
-	
+
 	private List<SecurityQuestionAnswerDTO> questionAnswers;
-	
+
 	private PrismContainer credentials;
-	
+
 	/*public PasswordQuestionsDto(String passwQuestion){
 		this.passwQuestion = passwQuestion;
 	}*/
 	public PasswordQuestionsDto(){
-		
+
 	};
-	
+
 	public PasswordQuestionsDto(String passwQuestion, String passAnswer){
 		this.passwQuestion = passwQuestion;
 		this.passwAnswer = passAnswer;
 	}
-	
+
 	public String getPwdQuestion() {
 		return passwQuestion;
 	}
@@ -61,7 +61,7 @@ public class PasswordQuestionsDto implements Serializable{
 	public void setPwdAnswer(String pwdAnswer) {
 		this.passwAnswer = pwdAnswer;
 	}
-	
+
 	   public PrismContainer getCredentials() {
 	        return credentials;
 	    }
@@ -78,6 +78,6 @@ public class PasswordQuestionsDto implements Serializable{
 			this.questionAnswers = securityAnswers;
 		}
 
-	
+
 
 }

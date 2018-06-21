@@ -152,7 +152,7 @@ public final class ProcessorUtils {
     }
 
     public static void copyAnnotations(JAnnotatable to, JAnnotatable... froms) {
-        List<JAnnotationUse> annotations = new ArrayList<JAnnotationUse>();
+        List<JAnnotationUse> annotations = new ArrayList<>();
         for (JAnnotatable from : froms) {
             List<JAnnotationUse> existingAnnotations = (List<JAnnotationUse>) getAnnotations(from);
             if (existingAnnotations != null && !existingAnnotations.isEmpty()) {
@@ -186,7 +186,7 @@ public final class ProcessorUtils {
     }
 
     public static List<JAnnotationUse> getAnnotations(JAnnotatable from, boolean returnNewList) {
-        List<JAnnotationUse> annotations = new ArrayList<JAnnotationUse>();
+        List<JAnnotationUse> annotations = new ArrayList<>();
 
         try {
             Class clazz = from.getClass();
@@ -229,7 +229,7 @@ public final class ProcessorUtils {
 
         return null;
     }
-    
+
     private static BIDeclaration hasAnnotation(XSAnnotation annotation, QName qname) {
         if (annotation == null) {
             return null;
@@ -254,7 +254,7 @@ public final class ProcessorUtils {
 
         return null;
     }
-    
+
     public static BIDeclaration hasAnnotation(ClassOutline classOutline, JFieldVar field, QName qname) {
         CPropertyInfo propertyInfo = classOutline.target.getProperty(field.name());
         if (propertyInfo == null || !(propertyInfo.getSchemaComponent() instanceof XSParticle)) {
@@ -265,7 +265,7 @@ public final class ProcessorUtils {
             return null;
         }
         XSAnnotation annotation = particle.getTerm().getAnnotation(false);
-        
+
         return hasAnnotation(annotation, qname);
     }
 
@@ -310,7 +310,7 @@ public final class ProcessorUtils {
 
         return classOutline;
     }
-    
+
     public static String normalizeFieldName(String fieldName) {
 		if (fieldName.startsWith("_")) {
 			return fieldName.substring(1);

@@ -29,13 +29,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ProvisioningOperation;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
-import com.evolveum.midpoint.task.api.LightweightTaskHandler;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.api.TaskRecurrence;
-import com.evolveum.midpoint.task.api.TaskWaitingReason;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,10 +39,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 
 /**
  * @author lazyman
@@ -184,7 +178,7 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public String getChannel() {
-        throw new UnsupportedOperationException("not implemented yet.");
+        return null;
     }
 
     @Override
@@ -400,6 +394,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public TaskType getTaskType() {
+        return null;
+    }
+
+    @Override
     public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
@@ -448,6 +447,11 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public String getNode() {
         throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public String getNodeAsObserved() {
+        return null;
     }
 
     @Override
@@ -557,8 +561,9 @@ public class SimpleTaskAdapter implements Task {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
+    @NotNull
     @Override
-    public List<Task> listSubtasks(OperationResult parentResult) throws SchemaException {
+    public List<Task> listSubtasks(boolean persistentOnly, OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -613,6 +618,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void makeWaiting(TaskWaitingReason reason, TaskUnpauseActionType unpauseAction) {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
     public void pushWaitForTasksHandlerUri() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
@@ -639,13 +649,18 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public List<Task> listSubtasksDeeply(OperationResult result) throws SchemaException {
+    public List<Task> listSubtasksDeeply(boolean persistentOnly, OperationResult result) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
     @Override
     public Collection<ItemDelta<?,?>> getPendingModifications() {
         throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public PolicyRuleType getPolicyRule() {
+    	throw new UnsupportedOperationException("not implemented yet.");
     }
 
 
@@ -676,6 +691,16 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void startLightweightHandler() {
+    }
+
+    @Override
+    public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy) {
+
+    }
+
+    @Override
+    public void storeOperationStatsDeferred() {
+
     }
 
     @Override
@@ -777,18 +802,28 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
-
-    }
-
-    @Override
-    public void startCollectingOperationStatsFromStoredValues(boolean enableIterationStatistics, boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
-
-    }
-
-    @Override
     public void storeOperationStats() {
 
+    }
+
+    @Override
+    public void storeOperationStatsIfNeeded() {
+
+    }
+
+    @Override
+    public Long getLastOperationStatsUpdateTimestamp() {
+        return null;
+    }
+
+    @Override
+    public void setOperationStatsUpdateInterval(long interval) {
+
+    }
+
+    @Override
+    public long getOperationStatsUpdateInterval() {
+        return 0;
     }
 
     @Override
@@ -814,6 +849,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void incrementProgressAndStoreStatsIfNeeded() {
+
+    }
+
+    @Override
     public TaskExecutionConstraintsType getExecutionConstraints() {
         return null;
     }
@@ -825,7 +865,58 @@ public class SimpleTaskAdapter implements Task {
 
     @NotNull
     @Override
+    public Collection<String> getGroups() {
+        return emptySet();
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Integer> getGroupsWithLimits() {
+        return emptyMap();
+    }
+
+    @NotNull
+    @Override
     public List<String> getLastFailures() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) {
+    }
+
+    @Override
+    public TaskWorkManagementType getWorkManagement() {
+        return null;
+    }
+
+    @Override
+    public TaskWorkStateType getWorkState() {
+        return null;
+    }
+
+    @Override
+    public TaskUnpauseActionType getUnpauseAction() {
+        return null;
+    }
+
+    @Override
+    public TaskExecutionStatusType getStateBeforeSuspend() {
+        return null;
+    }
+
+    @Override
+    public boolean isPartitionedMaster() {
+        return false;
+    }
+
+    @Override
+    public TaskKindType getKind() {
+        return null;
+    }
+
+    @Override
+    public String getExecutionGroup() {
+        return null;
     }
 }

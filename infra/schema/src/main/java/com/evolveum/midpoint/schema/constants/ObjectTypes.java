@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@ package com.evolveum.midpoint.schema.constants;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  * @author lazyman
@@ -76,7 +78,7 @@ public enum ObjectTypes {
 
     REPORT_OUTPUT(ReportOutputType.COMPLEX_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
                   ObjectManager.MODEL, "reportOutputs"),
-                  
+
     SECURITY_POLICY(SecurityPolicyType.COMPLEX_TYPE, SchemaConstants.C_SECURITY_POLICY, SecurityPolicyType.class,
     			ObjectManager.MODEL, "securityPolicies"),
 
@@ -98,7 +100,13 @@ public enum ObjectTypes {
             "services"),
 
     CASE(CaseType.COMPLEX_TYPE, SchemaConstantsGenerated.C_CASE, CaseType.class, ObjectManager.MODEL,
-            "cases"),
+    		"cases"),
+    
+    FUNCTION_LIBRARY(FunctionLibraryType.COMPLEX_TYPE, SchemaConstantsGenerated.C_FUNCTION_LIBRARY, FunctionLibraryType.class, ObjectManager.MODEL,
+            "functionLibraries"),
+    
+    OBJECT_COLLECTION(ObjectCollectionType.COMPLEX_TYPE, SchemaConstantsGenerated.C_OBJECT_COLLECTION, ObjectCollectionType.class, ObjectManager.MODEL,
+            "objectCollections"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
@@ -118,17 +126,17 @@ public enum ObjectTypes {
 	}
 
 	public enum ObjectManager {
-        PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY
+        PROVISIONING, TASK_MANAGER, MODEL, WORKFLOW, REPOSITORY, EMULATED
     }
 
-    private QName type;
-    private QName name;
-    private Class<? extends ObjectType> classDefinition;
-    private ObjectManager objectManager;
-    private String restType;
+	@NotNull private final QName type;
+	@NotNull private final QName name;
+    @NotNull private final Class<? extends ObjectType> classDefinition;
+	@NotNull private final ObjectManager objectManager;
+	@NotNull private final String restType;
 
-    ObjectTypes(QName type, QName name, Class<? extends ObjectType> classDefinition,
-			ObjectManager objectManager, String restType) {
+    ObjectTypes(@NotNull QName type, @NotNull QName name, @NotNull Class<? extends ObjectType> classDefinition,
+		    @NotNull ObjectManager objectManager, @NotNull String restType) {
         this.type = type;
         this.name = name;
         this.classDefinition = classDefinition;
@@ -148,35 +156,38 @@ public enum ObjectTypes {
         return type.getLocalPart();
     }
 
-    public QName getQName() {
+	@NotNull
+	public QName getQName() {
         return name;
     }
 
-    public QName getTypeQName() {
+	@NotNull
+	public QName getTypeQName() {
         return type;
     }
 
+    @NotNull
     public Class<? extends ObjectType> getClassDefinition() {
         return classDefinition;
     }
 
-    public String getRestType() {
+	@NotNull
+	public String getRestType() {
         return restType;
     }
 
-    public void setRestType(String restType) {
-        this.restType = restType;
-    }
-
-    public String getObjectTypeUri() {
+	@NotNull
+	public String getObjectTypeUri() {
         return QNameUtil.qNameToUri(getTypeQName());
     }
 
-    public ObjectManager getObjectManager() {
+	@NotNull
+	public ObjectManager getObjectManager() {
         return objectManager;
     }
 
-    public static ObjectTypes getObjectType(String objectType) {
+	@NotNull
+	public static ObjectTypes getObjectType(String objectType) {
         for (ObjectTypes type : values()) {
             if (type.getValue().equals(objectType)) {
                 return type;
@@ -208,7 +219,8 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Unsupported object type qname " + typeQName);
     }
 
-    public static ObjectTypes getObjectTypeFromUri(String objectTypeUri) {
+	@NotNull
+	public static ObjectTypes getObjectTypeFromUri(String objectTypeUri) {
         for (ObjectTypes type : values()) {
             if (type.getObjectTypeUri().equals(objectTypeUri)) {
                 return type;
@@ -217,23 +229,33 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Unsupported object type uri " + objectTypeUri);
     }
 
-    public static String getObjectTypeUri(String objectType) {
+	@NotNull
+	public static String getObjectTypeUri(String objectType) {
         return getObjectType(objectType).getObjectTypeUri();
     }
 
-    public static Class<? extends ObjectType> getObjectTypeClass(String objectType) {
+    public static Class<? extends ObjectType> getObjectTypeClass(String typeNameLocal) {
         for (ObjectTypes type : values()) {
-            if (type.getValue().equals(objectType)) {
+            if (type.getValue().equals(typeNameLocal)) {
                 return type.getClassDefinition();
             }
         }
+        throw new IllegalArgumentException("Unsupported object type " + typeNameLocal);
+    }
 
-        throw new IllegalArgumentException("Unsupported object type " + objectType);
+    @NotNull
+    public static Class<? extends ObjectType> getObjectTypeClass(QName typeName) {
+        for (ObjectTypes type : values()) {
+            if (QNameUtil.match(type.getTypeQName(), typeName)) {
+                return type.getClassDefinition();
+            }
+        }
+        throw new IllegalArgumentException("Unsupported object type " + typeName);
     }
 
     @SuppressWarnings("unchecked")
     @NotNull
-    public static ObjectTypes getObjectType(Class<? extends ObjectType> objectType) {
+    public static ObjectTypes getObjectType(@NotNull Class<? extends ObjectType> objectType) {
 		ObjectTypes rv = getObjectTypeIfKnown(objectType);
 		if (rv == null) {
 			throw new IllegalArgumentException("Unsupported object type " + objectType);
@@ -241,7 +263,7 @@ public enum ObjectTypes {
 		return rv;
 	}
 
-    public static ObjectTypes getObjectTypeIfKnown(Class<?> objectType) {
+    public static ObjectTypes getObjectTypeIfKnown(@NotNull Class<?> objectType) {
         for (ObjectTypes type : values()) {
             if (type.getClassDefinition().equals(objectType)) {
                 return type;
@@ -320,6 +342,18 @@ public enum ObjectTypes {
 
         throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
     }
+    
+    public static String getRestTypeFromClass(Class<?> clazz) {
+        Validate.notNull(clazz, "Class must not be null.");
+
+        for (ObjectTypes type : ObjectTypes.values()) {
+            if (type.getClassDefinition().equals(clazz)) {
+                return type.getRestType();
+            }
+        }
+
+        throw new IllegalArgumentException("Not suitable rest type found for class: " + clazz);
+    }
 
     public static List<Class<? extends ObjectType>> getAllObjectTypes() {
         List<Class<? extends ObjectType>> list = new ArrayList<>();
@@ -338,7 +372,7 @@ public enum ObjectTypes {
 		ResourceBundle bundle = ResourceBundle.getBundle(
 				SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH,
 				locale != null ? locale : Locale.getDefault());
-		String key = "ObjectType." + name.getLocalPart();
+		String key = SchemaConstants.OBJECT_TYPE_KEY_PREFIX + name.getLocalPart();
 		if (bundle.containsKey(key)) {
 			return bundle.getString(key);
 		} else {

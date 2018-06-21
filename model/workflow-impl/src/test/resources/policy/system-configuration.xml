@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -51,10 +51,39 @@
 				<transport>dummy:simpleWorkflowNotifier-WorkItems</transport>
 			</simpleWorkflowNotifier>
 		</handler>
+		<handler>
+			<simpleTaskNotifier>
+				<expressionFilter>
+					<script>
+						<!-- MID-4121 -->
+						<code>
+							try {
+								return event.isSuccess()
+							} catch (Exception e) {
+								com.evolveum.midpoint.wf.impl.policy.assignments.metarole.TestAssignmentsWithDifferentMetaroles.exception = e
+								throw e
+							}
+						</code>
+					</script>
+				</expressionFilter>
+			</simpleTaskNotifier>
+		</handler>
 	</notificationConfiguration>
 	<workflowConfiguration>
         <allowCompleteOthersItems>true</allowCompleteOthersItems>
-        <primaryChangeProcessor>
+		<approverCommentsFormatting>
+			<value>
+				<script>
+					<code>performer.name + ' :: ' + output.comment</code>
+				</script>
+			</value>
+			<condition>
+				<script>
+					<code>output.comment != null &amp;&amp; !output.comment.isEmpty()</code>
+				</script>
+			</condition>
+		</approverCommentsFormatting>
+		<primaryChangeProcessor>
         </primaryChangeProcessor>
     </workflowConfiguration>
 </systemConfiguration>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,6 +71,23 @@ public class SceneItemLineDto implements Serializable {
 	public boolean isDeltaScene() {
 		return sceneItemDto.isDeltaScene();
 	}
+
+	public boolean isNullEstimatedOldValues(){
+		return sceneItemDto.isNullEstimatedOldValues();
+	}
+
+	public boolean isAdd(){
+		return sceneItemDto.isAdd();
+	}
+
+	public boolean isDelete(){
+		return sceneItemDto.isDelete();
+	}
+
+	public boolean isReplace(){
+		return sceneItemDto.isReplace();
+	}
+
 
 	@Override
 	public boolean equals(Object o) {

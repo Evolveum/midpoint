@@ -44,7 +44,7 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T>  implem
         this.reference = reference;
         this.parent = parent;
     }
-    
+
     protected PrismReference getReference() {
         return reference;
     }
@@ -128,7 +128,7 @@ public abstract class PrismReferenceArrayList<T> extends AbstractList<T>  implem
         }
         return changed;
     }
-    
+
     /**
      * JAXB unmarshaller is calling clear() on lists even though they were just
      * created. As the references should be visible as two JAXB fields, clearing one

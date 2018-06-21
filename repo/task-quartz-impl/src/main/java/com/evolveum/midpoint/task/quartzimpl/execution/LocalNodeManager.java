@@ -29,8 +29,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.listeners.SchedulerListenerSupport;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -84,6 +86,7 @@ public class LocalNodeManager {
             if (configuration.getDataSource() != null) {
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".jndiURL", configuration.getDataSource());
             } else {
+                quartzProperties.put("org.quartz.dataSource."+MY_DS+".provider", "hikaricp");
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".driver", configuration.getJdbcDriver());
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".URL", configuration.getJdbcUrl());
                 quartzProperties.put("org.quartz.dataSource."+MY_DS+".user", configuration.getJdbcUser());
@@ -121,19 +124,48 @@ public class LocalNodeManager {
         quartzProperties.put("org.quartz.scheduler.jmx.export", "true");
 
         if (configuration.isTestMode()) {
-            LOGGER.info("ReusableQuartzScheduler is set: the task manager threads will NOT be stopped on shutdown. Also, scheduler threads will run as daemon ones.");
+            LOGGER.info("QuartzScheduler is set to be reusable: the task manager threads will NOT be stopped on shutdown. Also, scheduler threads will run as daemon ones.");
             quartzProperties.put("org.quartz.scheduler.makeSchedulerThreadDaemon", "true");
             quartzProperties.put("org.quartz.threadPool.makeThreadsDaemons", "true");
         }
 
+        LOGGER.info("Initializing Quartz scheduler (but not starting it yet).");
         // initialize the scheduler (without starting it)
         try {
             LOGGER.trace("Quartz scheduler properties: {}", quartzProperties);
             StdSchedulerFactory sf = new StdSchedulerFactory();
             sf.initialize(quartzProperties);
-            getGlobalExecutionManager().setQuartzScheduler(sf.getScheduler());
+            Scheduler scheduler = sf.getScheduler();
+            setMySchedulerListener(scheduler);
+            getGlobalExecutionManager().setQuartzScheduler(scheduler);
+            LOGGER.info("... Quartz scheduler initialized.");
         } catch (SchedulerException e) {
             throw new TaskManagerInitializationException("Cannot initialize the Quartz scheduler", e);
+        }
+    }
+
+    private void setMySchedulerListener(Scheduler scheduler) throws SchedulerException {
+        for (SchedulerListener listener : scheduler.getListenerManager().getSchedulerListeners()) {
+            if (listener instanceof MySchedulerListener) {
+                scheduler.getListenerManager().removeSchedulerListener(listener);
+            }
+        }
+        scheduler.getListenerManager().addSchedulerListener(new MySchedulerListener());
+    }
+
+    private class MySchedulerListener extends SchedulerListenerSupport {
+        @Override
+        public void schedulerStarting() {
+            OperationResult result = new OperationResult(LocalNodeManager.class.getName() + ".schedulerStarting");
+            NodeType node = taskManager.getClusterManager().getFreshVerifiedLocalNodeObject(result);
+            if (node != null) {
+                Scheduler quartzScheduler = taskManager.getExecutionManager().getQuartzScheduler();
+                if (quartzScheduler != null) {
+                    getGlobalExecutionManager().setLocalExecutionLimitations(quartzScheduler, node.getTaskExecutionLimitations());
+                }
+            } else {
+                LOGGER.warn("Couldn't set Quartz scheduler execution capabilities, because local node object couldn't be correctly read.");
+            }
         }
     }
 
@@ -420,7 +452,7 @@ public class LocalNodeManager {
 
         OperationResult result = parentResult.createSubresult(LocalNodeManager.class.getName() + ".getLocallyRunningTasks");
 
-        Set<Task> retval = new HashSet<Task>();
+        Set<Task> retval = new HashSet<>();
 
         List<JobExecutionContext> jecs;
         try {

@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlType;
 /**
  * JAXB representation of DigestMethodType.
  * Manually created (not generated)
- * 
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "DigestMethodType", propOrder = {
@@ -41,20 +41,20 @@ public class DigestMethodType  implements Serializable, Cloneable {
     @XmlElement(required = true)
     @XmlSchemaType(name = "anyURI")
     protected String algorithm;
-    
+
     @XmlElement(required = false)
     protected byte[] salt;
-    
+
     @XmlElement(required = false)
     protected Integer workFactor;
 
     /**
      * Gets the value of the algorithm property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getAlgorithm() {
         return algorithm;
@@ -62,11 +62,11 @@ public class DigestMethodType  implements Serializable, Cloneable {
 
     /**
      * Sets the value of the algorithm property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setAlgorithm(String value) {
         this.algorithm = value;

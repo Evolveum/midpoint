@@ -43,7 +43,7 @@ import static org.testng.AssertJUnit.*;
  * @author semancik
  */
 public class TestStaticValues {
-    
+
     private static final QName PROP_NAME = new QName("http://whatever.com/", "foo");
 
 	@BeforeSuite
@@ -55,8 +55,8 @@ public class TestStaticValues {
     @Test
     public void testValueElementsRoundtripString() throws Exception {
     	final String TEST_NAME = "testValueElementsRoundtripString";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(PROP_NAME, DOMUtil.XSD_STRING, prismContext);
@@ -64,15 +64,15 @@ public class TestStaticValues {
     	PrismProperty<String> origProperty = propDef.instantiate();
     	origProperty.addRealValue("FOO");
     	origProperty.addRealValue("BAR");
-    
+
     	doRoundtrip(origProperty, propDef, prismContext);
     }
-    
+
     @Test
     public void testValueElementsRoundtripInt() throws Exception {
     	final String TEST_NAME = "testValueElementsRoundtripInt";
-    	TestUtil.displayTestTile(TEST_NAME);
-    	
+    	TestUtil.displayTestTitle(TEST_NAME);
+
     	// GIVEN
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	PrismPropertyDefinitionImpl propDef = new PrismPropertyDefinitionImpl(PROP_NAME, DOMUtil.XSD_INT, prismContext);
@@ -81,14 +81,14 @@ public class TestStaticValues {
     	origProperty.addRealValue(42);
     	origProperty.addRealValue(123);
     	origProperty.addRealValue(321);
-    
+
     	doRoundtrip(origProperty, propDef, prismContext);
     }
 
     private void doRoundtrip(PrismProperty<?> origProperty, ItemDefinition propDef, PrismContext prismContext) throws SchemaException, JAXBException {
     	// WHEN
     	List<JAXBElement<RawType>> valueElements = StaticExpressionUtil.serializeValueElements(origProperty, "here somewhere");
-    	
+
     	for (Object element: valueElements) {
     		if (element instanceof JAXBElement) {
     			System.out.println(PrismTestUtil.serializeJaxbElementToString((JAXBElement) element));
@@ -97,10 +97,10 @@ public class TestStaticValues {
     		}
     	}
 
-    	PrismProperty<String> parsedPropery = (PrismProperty<String>)(Item) StaticExpressionUtil.parseValueElements(valueElements, propDef, "here again", prismContext);
+    	PrismProperty<String> parsedProperty = (PrismProperty<String>)(Item) StaticExpressionUtil.parseValueElements(valueElements, propDef, "here again");
 
         // THEN
-    	assertEquals("Roundtrip failed", origProperty, parsedPropery);
+    	assertEquals("Roundtrip failed", origProperty, parsedProperty);
     }
 
 }

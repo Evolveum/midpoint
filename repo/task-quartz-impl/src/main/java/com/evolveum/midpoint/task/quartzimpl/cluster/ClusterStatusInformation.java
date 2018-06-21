@@ -75,7 +75,7 @@ public class ClusterStatusInformation implements Serializable {
     }
 
     public Set<TaskInfo> getTasksOnNodes(Collection<String> nodeIdList) {
-        Set<TaskInfo> retval = new HashSet<TaskInfo>();
+        Set<TaskInfo> retval = new HashSet<>();
         for (String nodeId : nodeIdList) {
             retval.addAll(getTasksOnNode(nodeId));
         }

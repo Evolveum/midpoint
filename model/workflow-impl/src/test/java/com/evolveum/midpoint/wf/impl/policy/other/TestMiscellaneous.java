@@ -21,8 +21,11 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -37,7 +40,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -56,7 +58,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test100RequesterComment() throws Exception {
 		final String TEST_NAME = "test100RequesterComment";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -108,15 +110,87 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		}
 
 		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
-		waitForTaskFinish(parent.getOid(), true);
+		waitForTaskFinish(parent.getOid(), false);
 
-		assertAssignedRole(userJackOid, roleRole2Oid, task, result);
+		AssignmentType assignment = assertAssignedRole(userJackOid, roleRole2Oid, task, result);
+		display("assignment after creation", assignment);
+		MetadataType metadata = assignment.getMetadata();
+		assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
+		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
+		assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
+	}
+
+	@Test
+	public void test105RequesterCommentImmediate() throws Exception {
+		final String TEST_NAME = "test105RequesterCommentImmediate";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+
+		dummyAuditService.clear();
+
+		OperationBusinessContextType businessContext = new OperationBusinessContextType();
+		final String REQUESTER_COMMENT = "req.comment";
+		businessContext.setComment(REQUESTER_COMMENT);
+
+		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userJackOid, roleRole3Oid, RoleType.COMPLEX_TYPE, null, null, null, true);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		ModelExecuteOptions options = ModelExecuteOptions.createRequestBusinessContext(businessContext);
+		options.setExecuteImmediatelyAfterApproval(true);
+		modelService.executeChanges(deltas, options, task, result);
+
+		assertNotAssignedRole(userJackOid, roleRole3Oid, task, result);
+
+		WorkItemType workItem = getWorkItem(task, result);
+		display("Work item", workItem);
+
+		// WHEN
+		workflowManager.completeWorkItem(workItem.getExternalId(), true, "OK", null, null, result);
+
+		// THEN
+		TaskType wfTask = getTask(WfContextUtil.getTask(workItem).getOid()).asObjectable();
+		display("workflow context", wfTask.getWorkflowContext());
+		List<? extends CaseEventType> events = wfTask.getWorkflowContext().getEvent();
+		assertEquals("Wrong # of events", 2, events.size());
+
+		CaseCreationEventType event1 = (CaseCreationEventType) events.get(0);
+		display("Event 1", event1);
+		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(wfTask.getWorkflowContext()).getComment());
+
+		WorkItemEventType event2 = (WorkItemEventType) events.get(1);
+		display("Event 2", event2);
+
+		assertNotNull("Original assignee is null", event2.getOriginalAssigneeRef());
+		assertEquals("Wrong original assignee OID", userLead3Oid, event2.getOriginalAssigneeRef().getOid());
+
+		display("audit", dummyAuditService);
+		List<AuditEventRecord> records = dummyAuditService.getRecordsOfType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
+		assertEquals("Wrong # of process instance audit records", 2, records.size());
+		for (int i = 0; i < records.size(); i++) {
+			AuditEventRecord record = records.get(i);
+			assertEquals("Wrong requester comment in audit record #" + i, Collections.singleton(REQUESTER_COMMENT),
+					record.getPropertyValues(WorkflowConstants.AUDIT_REQUESTER_COMMENT));
+		}
+
+		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
+		waitForTaskFinish(parent.getOid(), false);
+
+		AssignmentType assignment = assertAssignedRole(userJackOid, roleRole3Oid, task, result);
+		display("assignment after creation", assignment);
+		MetadataType metadata = assignment.getMetadata();
+		assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
+		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
+		assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
 	}
 
 	@Test
 	public void test110RequestPrunedRole() throws Exception {
 		final String TEST_NAME = "test110RequestPrunedRole";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -148,7 +222,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		workflowManager.completeWorkItem(workItem.getExternalId(), true, null, null, null, result);
 		TaskType wfTask = getTask(WfContextUtil.getTask(workItem).getOid()).asObjectable();
 		Task parent = taskManager.createTaskInstance(wfTask.asPrismObject(), result).getParentTask(result);
-		waitForTaskFinish(parent.getOid(), true);
+		waitForTaskFinish(parent.getOid(), false);
 
 		assertNotAssignedRole(userJackOid, roleRole2Oid, task, result);			// should be pruned without approval
 	}
@@ -156,7 +230,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test200GetRoleByTemplate() throws Exception {
 		final String TEST_NAME = "test200GetRoleByTemplate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -164,6 +238,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		// GIVEN
 		setDefaultUserTemplate(userTemplateAssigningRole1aOid);
+		unassignAllRoles(userJackOid);
 
 		// WHEN
 		// some innocent change
@@ -179,7 +254,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test210GetRoleByTemplateAfterAssignments() throws Exception {
 		final String TEST_NAME = "test210GetRoleByTemplateAfterAssignments";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -187,6 +262,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		// GIVEN
 		setDefaultUserTemplate(userTemplateAssigningRole1aOidAfter);
+		unassignAllRoles(userJackOid);
 
 		// WHEN
 		// some innocent change
@@ -203,7 +279,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 	@Test
 	public void test220GetRoleByFocusMappings() throws Exception {
 		final String TEST_NAME = "test220GetRoleByFocusMappings";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -211,9 +287,41 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		// GIVEN
 		setDefaultUserTemplate(null);
+		unassignAllRoles(userJackOid);
 
 		// WHEN
 		assignRole(userJackOid, roleFocusAssignmentMapping, task, result);
+
+		// THEN
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		assertAssignedRole(userJackOid, roleRole1aOid, task, result);
+	}
+
+	@Test
+	public void test250SkippingApprovals() throws Exception {
+		final String TEST_NAME = "test250SkippingApprovals";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+		setDefaultUserTemplate(null);
+		unassignAllRoles(userJackOid);
+
+		// WHEN
+		@SuppressWarnings({"raw", "unchecked"})
+		ObjectDelta<? extends ObjectType> delta =
+				(ObjectDelta<? extends ObjectType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT)
+						.add(ObjectTypeUtil.createAssignmentTo(roleRole1aOid, ObjectTypes.ROLE, prismContext))
+				.asObjectDelta(userJackOid);
+		ModelExecuteOptions options = ModelExecuteOptions.createPartialProcessing(
+				new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
+		modelService.executeChanges(Collections.singletonList(delta), options, task, result);
 
 		// THEN
 		result.computeStatus();

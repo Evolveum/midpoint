@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,9 +97,14 @@ public class PrismObjectValue<O extends Objectable> extends PrismContainerValue<
 
 	@Override
 	public PrismObjectValue<O> clone() {
-		PrismObjectValue<O> clone = new PrismObjectValue<O>(
-				getOriginType(), getOriginObject(), getParent(), getId(), null, this.prismContext, oid, version);
-		copyValues(clone);
+		return cloneComplex(CloneStrategy.LITERAL);
+	}
+	
+	@Override
+	public PrismObjectValue<O> cloneComplex(CloneStrategy strategy) {
+		PrismObjectValue<O> clone = new PrismObjectValue<>(
+				getOriginType(), getOriginObject(), getParent(), getId(), complexTypeDefinition, this.prismContext, oid, version);
+		copyValues(strategy, clone);
 		return clone;
 	}
 
@@ -165,5 +170,9 @@ public class PrismObjectValue<O extends Objectable> extends PrismContainerValue<
 	@Override
 	public PrismContainer<O> asSingleValuedContainer(@NotNull QName itemName) throws SchemaException {
 		throw new UnsupportedOperationException("Not supported for PrismObjectValue yet.");
+	}
+
+	public static <T extends Objectable> T asObjectable(PrismObject<T> object) {
+		return object != null ? object.asObjectable() : null;
 	}
 }

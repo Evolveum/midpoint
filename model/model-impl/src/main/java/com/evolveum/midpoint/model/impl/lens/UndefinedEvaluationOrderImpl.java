@@ -38,7 +38,7 @@ public class UndefinedEvaluationOrderImpl implements EvaluationOrder {
 	public int getSummaryOrder() {
 		return -1; // TODO
 	}
-	
+
 	@Override
 	public EvaluationOrder advance(QName relation) {
 		return this;
@@ -101,14 +101,19 @@ public class UndefinedEvaluationOrderImpl implements EvaluationOrder {
 	public String toString() {
 		return "EvaluationOrder(" + shortDump() + ")";
 	}
-	
+
 	@Override
-	public String shortDump() {
-		return "UNDEFINED";
+	public void shortDump(StringBuilder sb) {
+		sb.append("UNDEFINED");
 	}
 
 	@Override
 	public Collection<QName> getExtraRelations() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public boolean isOrderOne() {
+		return false; // TODO
 	}
 }

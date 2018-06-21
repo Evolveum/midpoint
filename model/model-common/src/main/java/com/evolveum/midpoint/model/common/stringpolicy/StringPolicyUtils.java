@@ -50,7 +50,7 @@ public class StringPolicyUtils {
 			LimitationsType sl = new LimitationsType();
 			sl.setCheckAgainstDictionary(false);
 			sl.setCheckPattern("");
-			sl.setMaxLength(-1);
+			sl.setMaxLength(Integer.MAX_VALUE);
 			sl.setMinLength(0);
 			sl.setMinUniqueChars(0);
 			sp.setLimitations(sl);
@@ -92,7 +92,7 @@ public class StringPolicyUtils {
 			}
 		}
 		// Remove duplicity in return;
-		HashSet<String> h = new HashSet<String>();
+		HashSet<String> h = new HashSet<>();
 		for (String s : l.toString().split("")) {
 			h.add(s);
 		}
@@ -105,11 +105,9 @@ public class StringPolicyUtils {
 	 * @return ArrayList
 	 */
 	public static List<String> stringTokenizer(String in) {
-		List<String> l = new ArrayList<String>();
-		for (String a: in.split("")) {
-			if (!a.isEmpty()) {
-				l.add(a);
-			}
+		List<String> l = new ArrayList<>();
+		for (int i = 0; i < in.length(); i++) {
+			l.add(in.substring(i, i+1));
 		}
 		return l;
 	}

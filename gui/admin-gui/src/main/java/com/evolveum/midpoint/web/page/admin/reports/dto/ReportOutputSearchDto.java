@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ public class ReportOutputSearchDto extends Selectable implements DebugDumpable {
 
         return list;
     }
-    
+
     @Override
 	public String debugDump() {
 		return debugDump(0);

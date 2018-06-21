@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author Radovan Semancik
  */
-public class PrismReferenceValue extends PrismValue implements DebugDumpable, Serializable {
+public class PrismReferenceValue extends PrismValue implements DebugDumpable, Serializable, ShortDumpable {
 	private static final long serialVersionUID = 1L;
 
 	private static final QName F_OID = new QName(PrismConstants.NS_TYPES, "oid");
@@ -60,9 +60,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     private SearchFilterType filter = null;
     private EvaluationTimeType resolutionTime;
     private PolyString targetName = null;
-    
+
     private Referencable referencable;
-    
+
     public PrismReferenceValue() {
         this(null,null,null);
     }
@@ -70,7 +70,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     public PrismReferenceValue(String oid) {
         this(oid, null, null);
     }
-    
+
     public PrismReferenceValue(String oid, QName targetType) {
         this(oid, null, null);
         this.targetType = targetType;
@@ -83,10 +83,10 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
 	/**
 	 * OID of the object that this reference refers to (reference target).
-	 * 
+	 *
 	 * May return null, but the reference is in that case incomplete and
 	 * unusable.
-	 * 
+	 *
 	 * @return the target oid
 	 */
     public String getOid() {
@@ -103,7 +103,16 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		checkMutability();
 		this.oid = oid;
 	}
-	
+
+	/**
+	 * Returns object that this reference points to. The object is supposed to be used
+	 * for caching and optimizations. Only oid and type of the object really matters for
+	 * the reference.
+	 *
+	 * The object is transient. It will NOT be serialized. Therefore the client must
+	 * expect that the object can disappear when serialization boundary is crossed.
+	 * The client must expect that the object is null.
+	 */
 	public PrismObject getObject() {
 		return object;
 	}
@@ -116,9 +125,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	/**
 	 * Returns XSD type of the object that this reference refers to. It may be
 	 * used in XPath expressions and similar filters.
-	 * 
+	 *
 	 * May return null if the type name is not set.
-	 * 
+	 *
 	 * @return the target type name
 	 */
 	public QName getTargetType() {
@@ -168,7 +177,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 		return null;
 	}
-	
+
 	public void setTargetName(PolyString name) {
 		checkMutability();
 		this.targetName = name;
@@ -198,7 +207,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			return objDef != null ? objDef.getCompileTimeClass() : null;
         }
     }
-	
+
     public QName getRelation() {
 		return relation;
 	}
@@ -206,6 +215,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	public void setRelation(QName relation) {
 		checkMutability();
 		this.relation = relation;
+	}
+
+	public PrismReferenceValue relation(QName relation) {
+		setRelation(relation);
+		return this;
 	}
 
 	public String getDescription() {
@@ -239,7 +253,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	public PrismReferenceDefinition getDefinition() {
 		return (PrismReferenceDefinition) super.getDefinition();
 	}
-	
+
 	@Override
 	public boolean isRaw() {
 		// Reference value cannot be raw
@@ -270,9 +284,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	@Override
 	public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
 		if (path == null || path.isEmpty()) {
-			return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)getParent(), null);
+			return new PartiallyResolvedItem<>((Item<IV, ID>) getParent(), null);
 		}
-		return new PartiallyResolvedItem<IV,ID>((Item<IV,ID>)getParent(), path);
+		return new PartiallyResolvedItem<>((Item<IV, ID>) getParent(), path);
 	}
 
 	private boolean compareLocalPart(QName a, QName b) {
@@ -360,9 +374,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
 	@Override
 	public boolean isEmpty() {
-		return oid == null && object == null && filter == null;
+		return oid == null && object == null && filter == null && relation == null && targetType == null;
 	}
-	
+
 	/**
 	 * Returns a version of this value that is canonical, that means it has the minimal form.
 	 * E.g. it will have only OID and no object.
@@ -395,7 +409,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		} else if (!this.getOid().equals(other.getOid()))
 			return false;
 		// Special handling: if both oids are null we need to compare embedded objects
-		if (this.oid == null && other.oid == null) {
+		boolean bothOidsNull = this.oid == null && other.oid == null;
+		if (bothOidsNull) {
 			if (this.object != null || other.object != null) {
 				if (this.object == null || other.object == null) {
 					// one is null the other is not
@@ -409,19 +424,35 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		if (!equalsTargetType(other)) {
 			return false;
 		}
-		if (!relationsEquivalent(relation, other.relation)) {
+		if (!relationsEquivalent(relation, other.relation, isLiteral)) {
+			return false;
+		}
+		if ((isLiteral || bothOidsNull) && !filtersEquivalent(filter, other.filter)) {
 			return false;
 		}
 		return true;
 	}
 
-	private boolean relationsEquivalent(QName r1, QName r2) {
-		return QNameUtil.match(normalizedRelation(r1), normalizedRelation(r2));
+	private boolean filtersEquivalent(SearchFilterType filter1, SearchFilterType filter2) {
+		if (filter1 == null && filter2 == null) {
+			return true;
+		} else if (filter1 == null || filter2 == null) {
+			return false;
+		} else {
+			return filter1.equals(filter2);
+		}
 	}
 
-	private QName normalizedRelation(QName r) {
+	private boolean relationsEquivalent(QName r1, QName r2, boolean isLiteral) {
+		return QNameUtil.match(normalizedRelation(r1, isLiteral), normalizedRelation(r2, isLiteral));
+	}
+
+	private QName normalizedRelation(QName r, boolean isLiteral) {
 		if (r != null) {
 			return r;
+		}
+		if (isLiteral) {
+			return null;
 		}
 		PrismContext prismContext = getPrismContext();
 		return prismContext != null ? prismContext.getDefaultRelation() : null;
@@ -450,17 +481,23 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		PrismReferenceValue other = (PrismReferenceValue) obj;
 		return equalsComplex(other, false, false);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
-		result = prime * result + ((targetType == null) ? 0 : targetType.hashCode());
-		result = prime * result + ((relation == null) ? 0 : relation.hashCode());
+		QName normalizedRelation = normalizedRelation(relation, false);
+		if (normalizedRelation != null) {
+			// Take just the local part to avoid problems with incomplete namespaces
+			String relationLocal = normalizedRelation.getLocalPart();
+			if (relationLocal != null) {
+				result = prime * result + relationLocal.hashCode();
+			}
+		}
 		return result;
 	}
-		
+
 	@Override
 	public boolean representsSameValue(PrismValue other, boolean lax) {
 		if (other instanceof PrismReferenceValue) {
@@ -469,14 +506,14 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 			return false;
 		}
 	}
-	
+
 	public boolean representsSameValue(PrismReferenceValue other) {
 		if (this.getOid() != null && other.getOid() != null) {
-			return this.getOid().equals(other.getOid()) && relationsEquivalent(this.getRelation(), other.getRelation());
+			return this.getOid().equals(other.getOid()) && relationsEquivalent(this.getRelation(), other.getRelation(), false);
 		}
 		return false;
 	}
-	
+
 	public static PrismReferenceValue createFromTarget(PrismObject<?> refTarget) {
 		PrismReferenceValue refVal = new PrismReferenceValue(refTarget.getOid());
 		refVal.setObject(refTarget);
@@ -485,7 +522,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 		return refVal;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -539,47 +576,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 
 		// A hack, just to avoid crashes. TODO think about this!
-		return new Referencable() {
-			PrismReferenceValue referenceValue = PrismReferenceValue.this;
-			@Override
-			public PrismReferenceValue asReferenceValue() {
-				return referenceValue;
-			}
-			@Override
-			public void setupReferenceValue(PrismReferenceValue value) {
-				referenceValue = value;
-			}
-			@Override
-			public String getOid() {
-				return referenceValue.getOid();
-			}
-			@Override
-			public QName getType() {
-				return referenceValue.getTargetType();
-			}
-			@Override
-			public PolyStringType getTargetName() {
-				return PrismForJAXBUtil.getReferenceTargetName(referenceValue);
-			}
-			@Override
-			public QName getRelation() {
-				return referenceValue.getRelation();
-			}
-			@Override
-			public String getDescription() {
-				return referenceValue.getDescription();
-			}
-			@Override
-			public EvaluationTimeType getResolutionTime() {
-				return referenceValue.getResolutionTime();
-			}
-			@Override
-			public SearchFilterType getFilter() {
-				SearchFilterType filter = new SearchFilterType();
-				filter.setFilterClauseXNode(PrismForJAXBUtil.getReferenceFilterClauseXNode(referenceValue));
-				return filter;
-			}
-		};
+		return new DefaultReferencableImpl(this);
 	}
 
 	@NotNull
@@ -591,7 +588,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	public static List<PrismReferenceValue> asReferenceValues(@NotNull Collection<? extends Referencable> referencables) {
 		return referencables.stream().map(ref -> ref.asReferenceValue()).collect(Collectors.toList());
 	}
-	
+
 	@Override
     public String debugDump() {
         return toString();
@@ -601,7 +598,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     public String debugDump(int indent) {
         return debugDump(indent, false);
     }
-    
+
     public String debugDump(int indent, boolean expandObject) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
@@ -616,19 +613,20 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
     @Override
     public PrismReferenceValue clone() {
-		return clone(true);
+    	return cloneComplex(CloneStrategy.LITERAL);
 	}
-
-    public PrismReferenceValue clone(boolean copyFullObject) {
+    
+    @Override
+    public PrismReferenceValue cloneComplex(CloneStrategy strategy) {
         PrismReferenceValue clone = new PrismReferenceValue(getOid(), getOriginType(), getOriginObject());
-        copyValues(clone, copyFullObject);
+        copyValues(strategy, clone);
         return clone;
     }
 
-	protected void copyValues(PrismReferenceValue clone, boolean copyFullObject) {
-		super.copyValues(clone);
+	protected void copyValues(CloneStrategy strategy, PrismReferenceValue clone) {
+		super.copyValues(strategy, clone);
 		clone.targetType = this.targetType;
-		if (this.object != null && copyFullObject) {
+		if (this.object != null && strategy == CloneStrategy.LITERAL) {
 			clone.object = this.object.clone();
 		}
 		clone.description = this.description;
@@ -649,23 +647,8 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	@Override
 	public String toHumanReadableString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("oid=").append(oid);
-		if (getTargetType() != null) {
-			sb.append("(");
-			sb.append(DebugUtil.formatElementName(getTargetType()));
-			sb.append(")");
-		}
-		if (targetName != null) {
-			sb.append("('").append(targetName).append("')");
-		}
-        if (getRelation() != null) {
-            sb.append("[");
-            sb.append(getRelation().getLocalPart());
-            sb.append("]");
-        }
-		if (getObject() != null) {
-			sb.append('*');
-		}
+		sb.append("oid=");
+		shortDump(sb);
 		return sb.toString();
 	}
 
@@ -684,4 +667,34 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	public static boolean containsOid(Collection<PrismReferenceValue> values, @NotNull String oid) {
 		return values.stream().anyMatch(v -> oid.equals(v.getOid()));
 	}
+
+	@Override
+	public void revive(PrismContext prismContext) throws SchemaException {
+		super.revive(prismContext);
+		if (object != null) {
+			object.revive(prismContext);
+		}
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(oid);
+		if (getTargetType() != null) {
+			sb.append("(");
+			sb.append(DebugUtil.formatElementName(getTargetType()));
+			sb.append(")");
+		}
+		if (targetName != null) {
+			sb.append("('").append(targetName).append("')");
+		}
+        if (getRelation() != null) {
+            sb.append("[");
+            sb.append(getRelation().getLocalPart());
+            sb.append("]");
+        }
+		if (getObject() != null) {
+			sb.append('*');
+		}
+	}
+
 }

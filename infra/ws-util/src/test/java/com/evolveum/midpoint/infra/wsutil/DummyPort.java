@@ -23,7 +23,7 @@ import javax.jws.WebService;
  */
 @WebService(targetNamespace = "http://midpoint.evolveum.com/xml/ns/test/dummy-1", name = "dummyPort")
 public interface DummyPort {
-	
+
 	// Nothing here, really
 
 }

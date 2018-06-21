@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-
 /**
  * @author mederly
  *
@@ -37,7 +35,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestModelVisualization extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/modelVisualization");
 
 	@Override
@@ -49,7 +47,7 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
     public void test100VisualizeOneResource() throws Exception {
 		final String TEST_NAME = "test100VisualizeOneResource";
 
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestModelVisualization.class.getName() + "." + TEST_NAME);
@@ -69,7 +67,7 @@ public class TestModelVisualization extends AbstractInitializedModelIntegrationT
 	public void test110VisualizeTwoResources() throws Exception {
 		final String TEST_NAME = "test110VisualizeTwoResources";
 
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestModelVisualization.class.getName() + "." + TEST_NAME);

@@ -40,11 +40,11 @@ import org.jetbrains.annotations.Nullable;
  * of a number to int, PolyString to string, etc. This is supposed to work in a fashion similar to
  * many scripting languages (e.g. perl) where the programmer does not really care about the type
  * and the type conversion is done automatically.
- * 
+ *
  * @author Radovan Semancik
  */
 public class JavaTypeConverter {
-	
+
     final static String[] DATE_FORMATS = {
     	"yyyy-MM-dd'T'HH:mm:ss.SSSX",
     	"yyyy-MM-dd'T'HH:mm:ssz",
@@ -76,9 +76,9 @@ public class JavaTypeConverter {
 		if (rawValue == null || expectedType.isInstance(rawValue)) {
 			return rawValue;
 		}
-		
+
 		// Primitive types
-		
+
 		// boolean
 		if (expectedType == boolean.class && rawValue instanceof Boolean) {
 			return ((Boolean)rawValue);
@@ -98,7 +98,7 @@ public class JavaTypeConverter {
 		if (expectedType == String.class && rawValue instanceof Boolean) {
 			return rawValue.toString();
 		}
-		
+
 		// int
 		if (expectedType == int.class && rawValue instanceof Integer) {
 			return ((Integer)rawValue);
@@ -115,7 +115,7 @@ public class JavaTypeConverter {
 		if (expectedType == int.class && rawValue instanceof Long) {
 			return (Integer)((Long)rawValue).intValue();
 		}
-		
+
 		if (expectedType == long.class && rawValue instanceof Long) {
 			return (rawValue);
 		}
@@ -128,7 +128,7 @@ public class JavaTypeConverter {
 		if (expectedType == String.class && rawValue instanceof Long) {
 			return rawValue.toString();
 		}
-				
+
 		if (expectedType == float.class && rawValue instanceof Float) {
 			return ((Float)rawValue);
 		}
@@ -141,7 +141,7 @@ public class JavaTypeConverter {
 		if (expectedType == String.class && rawValue instanceof Float) {
 			return rawValue.toString();
 		}
-		
+
 		if (expectedType == double.class && rawValue instanceof Double) {
 			return ((Double)rawValue);
 		}
@@ -154,7 +154,7 @@ public class JavaTypeConverter {
 		if (expectedType == String.class && rawValue instanceof Float) {
 			return rawValue.toString();
 		}
-		
+
 		if (expectedType == byte.class && rawValue instanceof Byte) {
 			return ((Byte)rawValue);
 		}
@@ -174,14 +174,14 @@ public class JavaTypeConverter {
 		if (expectedType == String.class && rawValue instanceof BigInteger) {
 			return rawValue.toString().trim();
 		}
-		
+
 		if (expectedType == BigDecimal.class && rawValue instanceof String) {
 			return new BigDecimal(((String)rawValue).trim());
 		}
 		if (expectedType == String.class && rawValue instanceof BigDecimal) {
 			return ((BigDecimal)rawValue).toString().trim();
 		}
-		
+
 		if (expectedType == PolyString.class && rawValue instanceof String) {
 			return new PolyString((String)rawValue);
 		}
@@ -210,7 +210,7 @@ public class JavaTypeConverter {
 			PolyStringType polyStringType = new PolyStringType(((Integer)rawValue).toString());
 			return polyStringType;
 		}
-		
+
 		// Date and time
 		if (expectedType == XMLGregorianCalendar.class && rawValue instanceof Long) {
 			XMLGregorianCalendar xmlCalType = XmlTypeConverter.createXMLGregorianCalendar((Long)rawValue);
@@ -226,7 +226,7 @@ public class JavaTypeConverter {
 		if (expectedType == Long.class && rawValue instanceof XMLGregorianCalendar) {
 			return (Long) XmlTypeConverter.toMillis((XMLGregorianCalendar)rawValue);
 		}
-		
+
 		// XML Enums (JAXB)
 		if (expectedType.isEnum() && expectedType.getAnnotation(XmlEnum.class) != null && rawValue instanceof String) {
 			return XmlTypeConverter.toXmlEnum(expectedType, ((String)rawValue).trim());
@@ -234,7 +234,7 @@ public class JavaTypeConverter {
 		if (expectedType == String.class && rawValue.getClass().isEnum() && rawValue.getClass().getAnnotation(XmlEnum.class) != null) {
 			return XmlTypeConverter.fromXmlEnum(rawValue);
 		}
-		
+
 		// Java Enums
 		if (expectedType.isEnum() && rawValue instanceof String) {
 			return Enum.valueOf((Class<Enum>)expectedType, ((String)rawValue).trim());
@@ -242,7 +242,7 @@ public class JavaTypeConverter {
 		if (expectedType == String.class && rawValue.getClass().isEnum()) {
 			return rawValue.toString();
 		}
-		
+
 		//QName
 		if (expectedType == QName.class && rawValue instanceof QName){
 			return rawValue;

@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.csv;
 
@@ -40,9 +40,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * The test of Provisioning service on the API level. The test is using CSV resource.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -50,17 +50,17 @@ public class TestCsvGuid extends AbstractCsvTest {
 
 	private static final File RESOURCE_CSV_GUID_FILE = new File(TEST_DIR, "resource-csv-guid.xml");
 	private static final String RESOURCE_CSV_GUID_OID = "b39e0b10-2449-11e7-b0c1-73f52bb2a496";
-	
+
 	private static final File ACCOUNT_JACK_FILE = new File(TEST_DIR, "account-jack-guid.xml");;
 	private static final String ACCOUNT_JACK_OID = "2db718b6-243a-11e7-a9e5-bbb2545f80ed";
 	private static final String ACCOUNT_JACK_GUID = "007";
 	private static final String ACCOUNT_JACK_UNAME = "jack";
-	
+
 	private static final File CSV_SOURCE_FILE = new File(TEST_DIR, "midpoint-guid.csv");
-	
+
 	protected static final String ATTR_GUID = "guid";
 	protected static final QName ATTR_GUID_QNAME = new QName(RESOURCE_NS, ATTR_GUID);
-	
+
 	protected static final String ATTR_UNAME = "uname";
 	protected static final QName ATTR_UNAME_QNAME = new QName(RESOURCE_NS, ATTR_UNAME);
 
@@ -80,7 +80,7 @@ public class TestCsvGuid extends AbstractCsvTest {
 	protected File getSourceCsvFile() {
 		return CSV_SOURCE_FILE;
 	}
-	
+
 	@Override
 	protected File getAccountJackFile() {
 		return ACCOUNT_JACK_FILE;
@@ -89,13 +89,13 @@ public class TestCsvGuid extends AbstractCsvTest {
 	@Override
 	protected String getAccountJackOid() {
 		return ACCOUNT_JACK_OID;
-	}	
+	}
 
 	@Override
 	protected void assertAccountDefinition(ObjectClassComplexTypeDefinition accountDef) {
-		
+
 		assertEquals("Unexpected number of definitions", 5, accountDef.getDefinitions().size());
-				
+
 		ResourceAttributeDefinition<String> guidDef = accountDef.findAttributeDefinition(ATTR_GUID);
 		assertNotNull("No definition for guid", guidDef);
 		assertEquals(1, guidDef.getMaxOccurs());
@@ -103,7 +103,7 @@ public class TestCsvGuid extends AbstractCsvTest {
 		assertTrue("No guid create", guidDef.canAdd());
 		assertTrue("No guid update", guidDef.canModify());
 		assertTrue("No guid read", guidDef.canRead());
-		
+
 		ResourceAttributeDefinition<String> unameDef = accountDef.findAttributeDefinition(ATTR_UNAME);
 		assertNotNull("No definition for uname", unameDef);
 		assertEquals(1, unameDef.getMaxOccurs());
@@ -111,7 +111,7 @@ public class TestCsvGuid extends AbstractCsvTest {
 		assertTrue("No uname create", unameDef.canAdd());
 		assertTrue("No uname update", unameDef.canModify());
 		assertTrue("No uname read", unameDef.canRead());
-		
+
 		assertNotNull("Null secondary identifiers in account", accountDef.getSecondaryIdentifiers());
 		assertFalse("Empty secondary identifiers in account", accountDef.getSecondaryIdentifiers().isEmpty());
 	}

@@ -24,7 +24,7 @@
 	<parent>
 		<artifactId>provisioning</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>3.6-SNAPSHOT</version>
+		<version>3.9-SNAPSHOT</version>
 	</parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,66 +35,71 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
  		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>prism</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
  		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>schema</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
  		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>ucf-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-cache</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>system-init</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>ucf-impl-connid</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>ucf-impl-builtin</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-common</artifactId>
+			<version>3.9-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
@@ -121,19 +126,19 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-impl</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.9-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl-test</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -144,19 +149,19 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-sql-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-quartz-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>security-impl</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -167,13 +172,13 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.tools</groupId>
 			<artifactId>test-ng</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-test-util</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -216,13 +221,13 @@
 		<dependency>
 			<groupId>com.evolveum.icf</groupId>
 			<artifactId>dummy-connector</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.icf</groupId>
 			<artifactId>dummy-resource</artifactId>
-			<version>3.6-SNAPSHOT</version>
+			<version>3.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -241,12 +246,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>system-init</artifactId>
-			<version>3.6-SNAPSHOT</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derbyclient</artifactId>
 			<type>jar</type>
@@ -262,5 +261,13 @@
 			<artifactId>spring-aop</artifactId>
 			<scope>test</scope> 
 		</dependency>
+		
+		<!-- NOT needed at all. But dependency:analyze plugin complains if it is not here. -->
+		<dependency>
+            <groupId>net.tirasa.connid</groupId>
+            <artifactId>connector-framework</artifactId>
+            <scope>test</scope>
+        </dependency>
+		
 	</dependencies>
 </project>

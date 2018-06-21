@@ -29,7 +29,7 @@ import org.apache.wss4j.common.ext.WSSecurityException;
 public class WsFaultListener implements FaultListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(WsFaultListener.class);
-	
+
 	private SecurityHelper securityHelper;
 
     public WsFaultListener(SecurityHelper securityHelper) {
@@ -39,7 +39,7 @@ public class WsFaultListener implements FaultListener {
 
     @Override
 	public boolean faultOccurred(Exception exception, String description, Message message) {
-    	LOGGER.trace("Handling fault: {}: {} - {}", new Object[]{exception, description, message, exception});
+    	LOGGER.trace("Handling fault: {}: {} - {}-{}", new Object[]{exception, description, message, exception});
     	Object audited = message.getContextualProperty(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME);
     	if (audited != null && ((Boolean)audited)) {
     		return true;
@@ -61,8 +61,7 @@ public class WsFaultListener implements FaultListener {
 			}
 			SOAPMessage saajSoapMessage = message.getContent(SOAPMessage.class);
 	    	String username = securityHelper.getUsernameFromMessage(saajSoapMessage);
-	    	ConnectionEnvironment connEnv = new ConnectionEnvironment();
-        	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+	    	ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
 			securityHelper.auditLoginFailure(username, null, connEnv, auditMessage);
 		} catch (WSSecurityException e) {
 			// Ignore
@@ -74,5 +73,5 @@ public class WsFaultListener implements FaultListener {
     	return true;
 	}
 
-    
+
 }

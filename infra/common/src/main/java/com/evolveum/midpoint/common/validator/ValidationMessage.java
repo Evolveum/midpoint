@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.common.validator;
 
 /**
- * 
+ *
  * @author semancik
  */
 public class ValidationMessage {
@@ -53,7 +53,7 @@ public class ValidationMessage {
 
 	/**
 	 * Get the value of type
-	 * 
+	 *
 	 * @return the value of type
 	 */
 	public Type getType() {
@@ -62,7 +62,7 @@ public class ValidationMessage {
 
 	/**
 	 * Set the value of type
-	 * 
+	 *
 	 * @param type
 	 *            new value of type
 	 */
@@ -72,7 +72,7 @@ public class ValidationMessage {
 
 	/**
 	 * Get the value of message
-	 * 
+	 *
 	 * @return the value of message
 	 */
 	public String getMessage() {
@@ -81,7 +81,7 @@ public class ValidationMessage {
 
 	/**
 	 * Set the value of message
-	 * 
+	 *
 	 * @param message
 	 *            new value of message
 	 */
@@ -99,7 +99,7 @@ public class ValidationMessage {
 
 	/**
 	 * Get the value of oid
-	 * 
+	 *
 	 * @return the value of oid
 	 */
 	public String getOid() {
@@ -108,7 +108,7 @@ public class ValidationMessage {
 
 	/**
 	 * Set the value of oid
-	 * 
+	 *
 	 * @param oid
 	 *            new value of oid
 	 */
@@ -118,7 +118,7 @@ public class ValidationMessage {
 
 	/**
 	 * Get the value of property
-	 * 
+	 *
 	 * @return the value of property
 	 */
 	public String getProperty() {
@@ -127,7 +127,7 @@ public class ValidationMessage {
 
 	/**
 	 * Set the value of property
-	 * 
+	 *
 	 * @param property
 	 *            new value of property
 	 */

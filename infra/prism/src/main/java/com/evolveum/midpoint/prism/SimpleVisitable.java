@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@ package com.evolveum.midpoint.prism;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface SimpleVisitable<T> {
-	
-	void accept(SimpleVisitor<T> visitor);
+
+	void simpleAccept(SimpleVisitor<T> visitor);
 
 }

@@ -20,9 +20,9 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 /**
- * 
+ *
  * @author Igor Farinic
- * 
+ *
  */
 public interface Filter {
 

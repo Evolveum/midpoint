@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
-import com.evolveum.midpoint.model.api.context.EvaluationOrder;
+import com.evolveum.midpoint.model.api.util.AssignmentPathUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,21 +38,33 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class AssignmentPathImpl implements AssignmentPath {
-	
-	private final List<AssignmentPathSegmentImpl> segments = new ArrayList<>();
 
-	public AssignmentPathImpl() {
+	@NotNull private final List<AssignmentPathSegmentImpl> segments = new ArrayList<>();
+	@NotNull private final PrismContext prismContext;
+
+	public AssignmentPathImpl(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
-	
+
+	@NotNull
 	@Override
 	public List<AssignmentPathSegmentImpl> getSegments() {
 		return segments;
 	}
 	
+	@Override
+	public AssignmentPathSegment getSegment(int index) {
+		if (index >= 0) {
+			return segments.get(index);
+		} else {
+			return segments.get(segments.size() - index);
+		}
+	}
+
 	public void add(AssignmentPathSegmentImpl segment) {
 		segments.add(segment);
 	}
-	
+
 	public void removeLast(AssignmentPathSegmentImpl segment) {
 		AssignmentPathSegmentImpl last = last();
 		if (last == null) {
@@ -62,7 +80,7 @@ public class AssignmentPathImpl implements AssignmentPath {
 	public AssignmentPathSegmentImpl first() {
 		return segments.get(0);
 	}
-	
+
 	@Override
 	public boolean isEmpty() {
 		return segments.isEmpty();
@@ -93,26 +111,23 @@ public class AssignmentPathImpl implements AssignmentPath {
 			return segments.get(segments.size()-1-n);
 		}
 	}
-	
+
 	@Override
-	public boolean containsTarget(ObjectType target) {
+	public int countTargetOccurrences(ObjectType target) {
 		if (target == null) {
-			return false;
+			return 0;
 		}
+		int count = 0;
 		for (AssignmentPathSegment segment: segments) {
 			ObjectType segmentTarget = segment.getTarget();
 			if (segmentTarget != null) {
-				if (segmentTarget.getOid() != null && target.getOid() != null && 
-						segmentTarget.getOid().equals(target.getOid())) {
-					return true;
-				}
-				if (segmentTarget.getOid() == null && target.getOid() == null &&
-						segmentTarget.equals(target)) {
-					return true;
+				if (segmentTarget.getOid() != null && target.getOid() != null && segmentTarget.getOid().equals(target.getOid())
+						|| segmentTarget.getOid() == null && target.getOid() == null && segmentTarget.equals(target)) {
+					count++;
 				}
 			}
 		}
-		return false;
+		return count;
 	}
 
 	@NotNull
@@ -124,12 +139,26 @@ public class AssignmentPathImpl implements AssignmentPath {
 				.collect(Collectors.toList());
 	}
 
-	/**
-	 * Shallow clone.
-	 */
+	@Override
+	public ObjectType getProtoRole() {
+		ObjectType protoRole = null;
+		for (AssignmentPathSegmentImpl segment: segments) {
+			if (segment.isMatchingOrder() && segment.getTarget() != null) {
+				protoRole = segment.getTarget();
+			}
+		}
+		return protoRole;
+	}
+
+	@Override
 	public AssignmentPathImpl clone() {
-		AssignmentPathImpl clone = new AssignmentPathImpl();
-		clone.segments.addAll(this.segments);
+		return cloneFirst(size());
+	}
+
+	@Override
+	public AssignmentPathImpl cloneFirst(int n) {
+		AssignmentPathImpl clone = new AssignmentPathImpl(prismContext);
+		clone.segments.addAll(this.segments.subList(0, n));
 		return clone;
 	}
 
@@ -155,10 +184,10 @@ public class AssignmentPathImpl implements AssignmentPath {
 				sb.append("\n");
 				DebugUtil.debugDump(sb, segments, indent + 1, false);
 			} else {
-				for (AssignmentPathSegment segment: segments) {
+				for (AssignmentPathSegmentImpl segment: segments) {
 					sb.append("\n");
 					DebugUtil.indentDebugDump(sb, indent + 1);
-					sb.append(segment.toString());
+					segment.shortDump(sb);
 				}
 			}
 		}
@@ -166,9 +195,83 @@ public class AssignmentPathImpl implements AssignmentPath {
 	}
 
 	@Override
-	public AssignmentPathType toAssignmentPathType() {
+	public void shortDump(StringBuilder sb) {
+		ObjectType previousTarget = null;
+		for (AssignmentPathSegmentImpl segment: segments) {
+			if (previousTarget == null) {
+				sb.append(segment.getSource()).append(" ");
+			}
+//			sb.append("(");
+//			segment.getEvaluationOrder().shortDump(sb);
+//			sb.append("): ");
+			ObjectType target = segment.getTarget();
+			QName relation = segment.getRelation();
+			if (target != null) {
+				sb.append("--");
+				if (segment.isAssignment()) {
+					sb.append("a");
+				} else {
+					sb.append("i");
+				}
+				sb.append("[");
+				if (relation != null) {
+					sb.append(relation.getLocalPart());
+				}
+				sb.append("]--> ");
+				if (target != null) {
+					sb.append(target);
+				}
+			} else {
+				if (segment.isAssignment()) {
+					sb.append("a");
+				} else {
+					sb.append("i");
+				}
+				sb.append("(no target)");
+			}
+			previousTarget = target;
+			sb.append(" ");
+		}
+	}
+
+	@Override
+	public AssignmentPathType toAssignmentPathType(boolean includeAssignmentsContent) {
 		AssignmentPathType rv = new AssignmentPathType();
-		segments.forEach(seg -> rv.getSegment().add(seg.toAssignmentPathSegmentType()));
+		segments.forEach(seg -> rv.getSegment().add(seg.toAssignmentPathSegmentType(includeAssignmentsContent)));
 		return rv;
+	}
+
+	@NotNull
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	@Override
+	public ExtensionType collectExtensions(int startAt) throws SchemaException {
+		return AssignmentPathUtil.collectExtensions(this, startAt, prismContext);
+	}
+
+	@Override
+	public boolean matches(@NotNull List<OrderConstraintsType> orderConstraints) {
+		if (isEmpty()) {
+			throw new UnsupportedOperationException("Checking order constraints on empty assignment path is not currently supported.");
+		} else {
+			return last().matches(orderConstraints);
+		}
+	}
+
+	@Override
+	public boolean equivalent(AssignmentPath other) {
+		if (size() != other.size()) {
+			return false;
+		}
+		for (int i = 0; i < segments.size(); i++) {
+			AssignmentPathSegment segment = segments.get(i);
+			AssignmentPathSegment otherSegment = other.getSegments().get(i);
+			if (!segment.equivalent(otherSegment)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

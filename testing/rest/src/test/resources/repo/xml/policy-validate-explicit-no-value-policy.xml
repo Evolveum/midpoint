@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policyItemsDefinition xmlns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+	<policyItemDefinition>
+		<value>Ad123456</value>
+	</policyItemDefinition>
+	
+</policyItemsDefinition>

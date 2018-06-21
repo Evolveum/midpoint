@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -78,7 +77,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
     protected AccCertExpressionHelper expressionHelper;
 
     // default implementation, depending only on the expressions provided
-    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> object, AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         throw new UnsupportedOperationException("Not implemented yet.");
 //        if (CollectionUtils.isEmpty(caseExpressionList)) {
 //            throw new IllegalStateException("Unspecified case expression (and no default one provided) for campaign " + ObjectTypeUtil.toShortString(campaign));
@@ -121,15 +120,9 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 			ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
 		String objectOid = assignmentCase.getObjectRef().getOid();
-		Long assignmentId = assignmentCase.getAssignment().getId();
-		if (assignmentId == null) {
-			throw new IllegalStateException("No ID for an assignment to remove: " + assignmentCase.getAssignment());
-		}
 		Class<? extends Objectable> clazz = ObjectTypes.getObjectTypeFromTypeQName(assignmentCase.getObjectRef().getType()).getClassDefinition();
-		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<>(prismContext);
-		cval.setId(assignmentId);
+		PrismContainerValue<AssignmentType> cval = assignmentCase.getAssignment().asPrismContainerValue().clone();
 
-		// quick "solution" - deleting without checking the assignment ID
 		ContainerDelta assignmentDelta;
 		if (Boolean.TRUE.equals(assignmentCase.isIsInducement())) {
 			assignmentDelta = ContainerDelta.createModificationDelete(AbstractRoleType.F_INDUCEMENT, clazz, prismContext, cval);
@@ -144,6 +137,6 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 		LOGGER.info("Case {} in {} ({} {} of {}) was successfully revoked",
 				assignmentCase.asPrismContainerValue().getId(), ObjectTypeUtil.toShortString(campaign),
 				Boolean.TRUE.equals(assignmentCase.isIsInducement()) ? "inducement":"assignment",
-				assignmentId, objectOid);
+				cval.getId(), objectOid);
 	}
 }

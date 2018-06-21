@@ -33,7 +33,7 @@
         <xsd:documentation>
             Schema that defines data types used in XML version of midPoint APIs.
             
-            Version: 3.6-SNAPSHOT
+            Version: 3.7
             Recommended namespace prefix: apit
         </xsd:documentation>
     </xsd:annotation>
@@ -115,7 +115,7 @@
             <xsd:element name="summarizeSucceses" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the successfuly imported items will be summarized in the result.
+                        If set to true the successfully imported items will be summarized in the result.
                         WARNING: setting this to false may result in a very large result structure and may cause
                         overflow of
                         the system memory.
@@ -125,42 +125,42 @@
             <xsd:element name="summarizeErrors" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        If set to true the import errors will be summarized in the result.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="referentialIntegrity" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="validateStaticSchema" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="validateDynamicSchema" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="encryptProtectedValues" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="fetchResourceSchema" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
-                        If set to true the importe errors will be summarized in the result.
+                        TODO
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -169,6 +169,16 @@
                     <xsd:documentation>
                         If set to true then the importer will keep the metadata from the source file.
                         If set to false then the imported will re-generate metadata on each object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modelExecutionOptions" type="c:ModelExecuteOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If present, these options are used for adding objects into the repository.
+                        Null option values might be overridden by import-related options. In particular, the missing
+                        "raw" option is overridden to "true". So, if you want the operation run in non-raw mode,
+                        set "raw" option to "false".
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -220,6 +230,7 @@
         </xsd:sequence>
         <xsd:attribute name="count" type="xsd:int"/>
     </xsd:complexType>
+    <xsd:element name="objectList" type="tns:ObjectListType"/>
     
     <xsd:complexType name="ResourceObjectShadowListType">
         <xsd:sequence>
@@ -280,82 +291,14 @@
         </xsd:sequence>
     </xsd:complexType>
     
-    <xsd:complexType name="SelectorQualifiedGetOptionsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Selector-qualified options for a get-like operation.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="option" type="tns:SelectorQualifiedGetOptionType" minOccurs="0" maxOccurs="unbounded"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="SelectorQualifiedGetOptionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="selector" type="tns:ObjectSelectorType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="options" type="tns:GetOperationOptionsType" minOccurs="0" maxOccurs="1"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="ObjectSelectorType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:simpleType name="RetrieveOptionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="default">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="DEFAULT"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="include">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="INCLUDE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="exclude">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="EXCLUDE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
     <!-- the following types are related to script execution; these are experimental for now -->
     <xsd:complexType name="XmlScriptsType">
         <xsd:sequence>
-            <xsd:any minOccurs="0" maxOccurs="unbounded" />         <!-- objects substituable with s:expression should be put here -->
+            <xsd:any minOccurs="0" maxOccurs="unbounded" />         <!-- objects substitutable with s:expression should be put here -->
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ScriptExecutionResultType">
+    <xsd:complexType name="ExecuteScriptResponseType">
         <xsd:annotation>
             <xsd:documentation>
                 Result of a single script execution.
@@ -365,20 +308,13 @@
 			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-			<xsd:element name="dataOutput" type="s:ItemListType" minOccurs="0">
+			<xsd:element name="output" type="s:ExecuteScriptOutputType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Data output of the execution of the script.
+                        Data and console output of the execution of the script.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-			<xsd:element name="consoleOutput" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Text ("console") output of the execution of the script.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
             <xsd:element name="result" type="c:OperationResultType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -388,7 +324,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="scriptExecutionResult" type="tns:ScriptExecutionResultType"/>
+    <xsd:element name="executeScriptResponse" type="tns:ExecuteScriptResponseType"/>
 
     <xsd:complexType name="ScriptOutputsType">
         <xsd:sequence>
@@ -399,7 +335,7 @@
     <xsd:complexType name="SingleScriptOutputType">
         <xsd:sequence>
             <xsd:choice>
-                <xsd:element name="xmlData" type="s:ItemListType" />
+                <xsd:element name="dataOutput" type="s:PipelineDataType" />
                 <xsd:element name="mslData" type="xsd:string" />
             </xsd:choice>
             <xsd:element name="textOutput" type="xsd:string" minOccurs="0" />
@@ -437,23 +373,6 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-
-
-    <xsd:complexType name="GetOperationOptionsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                See GetOperationOptions for a description.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="retrieve" type="tns:RetrieveOptionType" minOccurs="0"/>
-            <xsd:element name="resolve" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="resolveNames" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="noFetch" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="raw" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="noDiscovery" type="xsd:boolean" minOccurs="0"/>
-        </xsd:sequence>
-    </xsd:complexType>
 
     <xsd:complexType name="ObjectDeltaListType">
         <xsd:annotation>
@@ -516,7 +435,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="PolicyItemsDefinitionType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -581,6 +500,16 @@
 	                </xsd:documentation>	                
 	            </xsd:annotation>
         	</xsd:element>
+        	
+        	<xsd:element name="result" type="c:OperationResultType" minOccurs="0">
+        		<xsd:annotation>
+	                <xsd:documentation>
+	                    Specifies if the generated value should be set immediately to the object. 
+	                    Relevant only for generate operation.
+	                </xsd:documentation>	                
+	            </xsd:annotation>
+        	</xsd:element>
+        	
         </xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="policyItemDefinition" type="tns:PolicyItemDefinitionType"/>
@@ -602,6 +531,40 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="policyItemTarget" type="tns:PolicyItemTargetType"/>
+
+	
+	<xsd:complexType name="ExecuteCredentialResetRequestType">
+		<xsd:annotation>
+			<xsd:documentation>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="resetMethod" type="xsd:string" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="userEntry" type="xsd:string" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="executeCredentialResetRequest" type="tns:ExecuteCredentialResetRequestType"/>
+	
+	<xsd:complexType name="ExecuteCredentialResetResponseType">
+		<xsd:annotation>
+			<xsd:documentation>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="message" type="c:LocalizableMessageType" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="executeCredentialResetResponse" type="tns:ExecuteCredentialResetResponseType"/>
+	
 
 </xsd:schema>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -79,7 +82,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
     }
 
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
 		ISortableDataProvider<ProcessInstanceDto, String> provider = new ProcessInstanceDtoProvider(PageProcessInstances.this, requestedBy, requestedFor);
@@ -168,14 +171,15 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 			return;
 		}
 
-        OperationResult result = new OperationResult(OPERATION_STOP_PROCESS_INSTANCES);
+		Task task = createSimpleTask(OPERATION_STOP_PROCESS_INSTANCES);
+        OperationResult result = task.getResult();
 
         WorkflowService workflowService = getWorkflowService();
         for (ProcessInstanceDto instance : selectedStoppableInstances) {
             try {
                 workflowService.stopProcessInstance(instance.getProcessInstanceId(),
-                        WebComponentUtil.getOrigStringFromPoly(user.getName()), result);
-            } catch (SchemaException|ObjectNotFoundException|SecurityViolationException|RuntimeException ex) {
+                        WebComponentUtil.getOrigStringFromPoly(user.getName()), task, result);
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException ex) {
                 result.createSubresult(OPERATION_STOP_PROCESS_INSTANCE).recordPartialError("Couldn't stop process instance " + instance.getName(), ex);
             }
         }
@@ -185,7 +189,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         }
 
         if (result.isSuccess()) {
-            result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully stopped.");
+            result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully stopped."); // todo i18n
         }
 
         showResult(result);
@@ -225,7 +229,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 		}
 
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully deleted.");
+			result.recordStatus(OperationResultStatus.SUCCESS, "Selected process instance(s) have been successfully deleted."); // todo i18n
 		}
 
 		showResult(result);

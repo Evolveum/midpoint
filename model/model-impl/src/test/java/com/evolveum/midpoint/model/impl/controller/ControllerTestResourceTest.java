@@ -29,9 +29,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ControllerTestResourceTest extends AbstractTestNGSpringContextTests {

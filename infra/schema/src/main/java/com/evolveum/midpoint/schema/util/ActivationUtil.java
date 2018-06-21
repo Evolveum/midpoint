@@ -25,12 +25,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ActivationUtil {
-	
+
 	public static boolean hasAdministrativeActivation(ShadowType objectType) {
 		ActivationType activation = objectType.getActivation();
 		return activation != null && activation.getAdministrativeStatus() != null;
 	}
-	
+
 	public static boolean isAdministrativeEnabled(ShadowType objectType) {
 		return isAdministrativeEnabled(objectType.getActivation());
 	}
@@ -58,12 +58,12 @@ public class ActivationUtil {
 		ActivationType activation = objectType.getActivation();
 		return activation != null && activation.getValidTo() != null;
 	}
-	
+
 	public static boolean hasLockoutStatus(ShadowType objectType) {
 		ActivationType activation = objectType.getActivation();
 		return activation != null && activation.getLockoutStatus() != null;
 	}
-	
+
 	public static boolean isLockedOut(ShadowType objectType) {
 		return isLockedOut(objectType.getActivation());
 	}

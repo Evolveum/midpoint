@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,9 +36,10 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -107,15 +110,19 @@ public class PageAccount extends PageAdminResources {
             throw new RestartResponseException(PageResources.class);
         }
 
-        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, this);
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, task, this);
         OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETCH_RESULT, OperationResultType.class);
-        wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
+        try {
+			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
+		} catch (SchemaException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
         wrapper.setShowEmpty(false);
         return wrapper;
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
         mainForm.setMultiPart(true);
         add(mainForm);
 
@@ -130,13 +137,15 @@ public class PageAccount extends PageAdminResources {
         });
         mainForm.add(protectedMessage);
 
-        PrismObjectPanel<ShadowType> userForm = new PrismObjectPanel<ShadowType>("account", accountModel, new PackageResourceReference(
-                ImgResources.class, ImgResources.HDD_PRISM), mainForm, this);
+        PrismPanel<ShadowType> userForm = new PrismPanel<>("account", new ContainerWrapperListFromObjectWrapperModel<>(accountModel, WebComponentUtil.getShadowItemsToShow()), new PackageResourceReference(
+            ImgResources.class, ImgResources.HDD_PRISM), mainForm,
+            itemWrapper -> WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, accountModel), this);
         mainForm.add(userForm);
-
+        
         initButtons(mainForm);
     }
-
+    
+       
     private void initButtons(Form mainForm) {
         AjaxSubmitButton save = new AjaxSubmitButton("save", createStringResource("pageAccount.button.save")) {
 
@@ -211,7 +220,7 @@ public class PageAccount extends PageAdminResources {
             WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
 
             Task task = createSimpleTask(OPERATION_SAVE_ACCOUNT);
-            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
             deltas.add(delta);
 
             getModelService().executeChanges(deltas, null, task, result);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,32 @@ package com.evolveum.midpoint.util;
  * @author Radovan Semancik
  *
  */
+@FunctionalInterface
 public interface DebugDumpable {
-	
+
 	String INDENT_STRING = "  ";
-	
+
 	/**
 	 * Show the content of the object intended for diagnostics by system administrator. The out
 	 * put should be suitable to use in system logs at "debug" level. It may be multi-line, but in
 	 * that case it should be well indented and quite terse.
-	 * 
+	 *
 	 * As it is intended to be used by system administrator, it should not use any developer terms
 	 * such as class names, exceptions or stack traces.
-	 * 
+	 *
 	 * @return content of the object intended for diagnostics by system administrator.
 	 */
 	default String debugDump() {
 		return debugDump(0);
 	}
-	
+
 	String debugDump(int indent);
 
 	default Object debugDumpLazily() {
 		return DebugUtil.debugDumpLazily(this);
+	}
+
+	default Object debugDumpLazily(int index) {
+		return DebugUtil.debugDumpLazily(this, index);
 	}
 }

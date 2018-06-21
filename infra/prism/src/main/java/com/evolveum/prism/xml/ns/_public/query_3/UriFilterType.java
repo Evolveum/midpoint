@@ -25,20 +25,18 @@ import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 
 /**
  * <p>Java class for UriFilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="UriFilterType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType">
- *       &lt;attribute name="uri" type="{http://www.w3.org/2001/XMLSchema}anyURI" />
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="UriFilterType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType"&gt;
+ *       &lt;attribute name="uri" type="{http://www.w3.org/2001/XMLSchema}anyURI" /&gt;
+ *     &lt;/extension&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "UriFilterType")
@@ -56,7 +54,7 @@ public class UriFilterType
 
     /**
      * Creates a new {@code UriFilterType} instance.
-     * 
+     *
      */
     public UriFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -65,8 +63,8 @@ public class UriFilterType
 
     /**
      * Creates a new {@code UriFilterType} instance by deeply copying a given {@code UriFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -84,11 +82,11 @@ public class UriFilterType
 
     /**
      * Gets the value of the uri property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getUri() {
         return uri;
@@ -96,11 +94,11 @@ public class UriFilterType
 
     /**
      * Sets the value of the uri property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setUri(String value) {
         this.uri = value;
@@ -109,7 +107,7 @@ public class UriFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -161,8 +159,8 @@ public class UriFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

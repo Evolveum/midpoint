@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,18 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
+import com.evolveum.midpoint.web.component.assignment.AbstractRoleAssignmentPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.users.component.*;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,47 +36,36 @@ import java.util.List;
  */
 public class FocusAssignmentsTabPanel<F extends FocusType> extends AbstractObjectTabPanel {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_ASSIGNMENTS = "assignmentsContainer";
 	private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
-	
+	private static final String DOT_CLASS = FocusAssignmentsTabPanel.class.getName() + ".";
+	private static final String OPERATION_GET_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "getAdminGuiConfiguration";
+
 	private static final String MODAL_ID_ASSIGNMENTS_PREVIEW = "assignmentsPreviewPopup";
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusAssignmentsTabPanel.class);
-	
-	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 
-	public FocusAssignmentsTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel, 
-			LoadableModel<List<AssignmentEditorDto>> assignmentsModel, PageBase page) {
+	private LoadableModel<List<AssignmentType>> assignmentsModel;
+
+	public FocusAssignmentsTabPanel(String id, Form<?> mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel, PageBase page) {
 		super(id, mainForm, focusWrapperModel, page);
-		this.assignmentsModel = assignmentsModel;
 		initLayout();
 	}
-	
-	private void initLayout() {
 
+	private void initLayout() {
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
-		AssignmentTablePanel panel = new AssignmentTablePanel(ID_ASSIGNMENTS_PANEL,
-				createStringResource("FocusType.assignment"), assignmentsModel) {
+		ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), new ItemPath(FocusType.F_ASSIGNMENT));
+		AssignmentPanel panel = createPanel(ID_ASSIGNMENTS_PANEL, model);
 
-            @Override
-            protected boolean getAssignmentMenuVisibility() {
-                return  !getObjectWrapper().isReadonly();
-            }
-
-            @Override
-			protected void showAllAssignments(AjaxRequestTarget target) {
-                List<AssignmentsPreviewDto> assignmentsPreviewDtos = ((PageAdminFocus) getPageBase()).recomputeAssignmentsPerformed(target);
-				AssignmentPreviewDialog dialog = new AssignmentPreviewDialog(getPageBase().getMainPopupBodyId(),
-                        assignmentsPreviewDtos, new ArrayList<String>(), getPageBase());
-				getPageBase().showMainPopup(dialog, target);
-			}
-
-		};
 		assignments.add(panel);
 	}
-
+	
+	protected AssignmentPanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
+		AbstractRoleAssignmentPanel panel = new AbstractRoleAssignmentPanel(panelId, model);
+		return panel;
+	}
 
 }

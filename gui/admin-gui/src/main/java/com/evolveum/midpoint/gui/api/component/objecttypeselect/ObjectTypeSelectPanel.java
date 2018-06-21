@@ -37,11 +37,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public class ObjectTypeSelectPanel<O extends ObjectType> extends BasePanel<QName> {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final String ID_SELECT = "select";
-	
+
 	private DropDownChoice<QName> select;
-	
+
 	public ObjectTypeSelectPanel(String id, IModel<QName> model, Class<O> superclass) {
 		super(id, model);
 		initLayout(model, superclass);
@@ -67,10 +67,10 @@ public class ObjectTypeSelectPanel<O extends ObjectType> extends BasePanel<QName
 		            }
 			}, new QNameChoiceRenderer());
 		select.setNullValid(true);
-		
+
 		add(select);
 	}
-	
+
 	public void addInput(Behavior behavior) {
 		select.add(behavior);
 	}

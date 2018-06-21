@@ -35,7 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class Main {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Main.class);
-	
+
 	/**
 	 * @param args
 	 */
@@ -44,7 +44,7 @@ public class Main {
 //		LOGGER.info("Spring context initialized.");
 		System.out.println("##* STARTING *##");
 		ApplicationContext ctx = SpringApplication.run(Main.class, args);
-		
+
 		System.out.println("Let's inspect the beans provided by Spring Boot:");
 
         String[] beanNames = ctx.getBeanDefinitionNames();

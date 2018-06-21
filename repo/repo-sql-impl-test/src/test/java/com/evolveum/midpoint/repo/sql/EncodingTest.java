@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -617,7 +614,7 @@ public class EncodingTest extends BaseSQLRepoTest {
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
         PrismProperty<T> prop = object.findProperty(propQName);
         Collection<T> actualValues = prop.getRealValues();
-        result.addArbitraryCollectionAsParam("actualValues", actualValues);
+        result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
         assertMultivalue("User, property '" + propName + "'", expectedValues, actualValues, result);
         result.recordSuccessIfUnknown();
     }
@@ -692,7 +689,7 @@ public class EncodingTest extends BaseSQLRepoTest {
         OperationResult result = parentResult.createSubresult(parentResult.getOperation() + "." + propName);
         PrismProperty<PolyString> prop = object.findProperty(propQName);
         Collection<PolyString> actualValues = prop.getRealValues();
-        result.addArbitraryCollectionAsParam("actualValues", actualValues);
+        result.addArbitraryObjectCollectionAsParam("actualValues", actualValues);
         assertMultivaluePolyString("User, property '" + propName + "'", expectedValues, actualValues, result);
         result.recordSuccessIfUnknown();
     }

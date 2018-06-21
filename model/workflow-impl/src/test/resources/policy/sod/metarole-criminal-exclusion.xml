@@ -23,15 +23,17 @@
 			<name>criminal exclusion</name>
 			<policyConstraints>
 				<!-- For the time being let's assume that pirate and thief are also mutually exclusive. -->
-				<exclusion>
-					<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
-				</exclusion>
-				<exclusion>
-					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
-				</exclusion>
-				<exclusion>
-					<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
-				</exclusion>
+				<or>
+					<exclusion>
+						<targetRef oid="12345111-1111-2222-1111-121212111111" type="RoleType"/> <!-- Judge -->
+					</exclusion>
+					<exclusion>
+						<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- Pirate -->
+					</exclusion>
+					<exclusion>
+						<targetRef oid="b189fcb8-1ff9-11e5-8912-001e8c717e5b" type="RoleType"/> <!-- Thief -->
+					</exclusion>
+				</or>
 			</policyConstraints>
 			<policyActions>
 				<approval>

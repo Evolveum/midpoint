@@ -53,7 +53,7 @@ public class CapabilityValuePanel extends BasePanel<CapabilityDto<CapabilityType
         Label label = new Label(ID_LABEL, createStringResource(getCapabilityLabelKey()));
         add(label);
 
-        CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.enabled"));
+        CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<>(getModel(), "capability.enabled"));
 		enabled.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {

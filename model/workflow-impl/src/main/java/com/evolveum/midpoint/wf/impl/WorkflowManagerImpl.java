@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@
 package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -30,9 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskDeletionListener;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ProcessListener;
@@ -42,9 +41,12 @@ import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceProvider;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
+import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.util.PerformerCommentsFormatterImpl;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -74,8 +76,10 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 	@Autowired private WorkItemManager workItemManager;
 	@Autowired private WfTaskUtil wfTaskUtil;
 	@Autowired private MiscDataUtil miscDataUtil;
-	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private ApprovalSchemaExecutionInformationHelper approvalSchemaExecutionInformationHelper;
 	@Autowired private TaskManager taskManager;
+	@Autowired private RepositoryService repositoryService;
+	@Autowired private WfExpressionEvaluationHelper expressionEvaluationHelper;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
@@ -94,8 +98,9 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".countContainers");
-        result.addParams(new String[] { "type", "query" }, type, query);
-        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addParam(OperationResult.PARAM_TYPE, type);
+        result.addParam(OperationResult.PARAM_QUERY, query);
+        result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
 		try {
 			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("countContainers is available only for work items");
@@ -114,8 +119,9 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
 		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".searchContainers");
-		result.addParams(new String[] { "type", "query" }, type, query);
-		result.addCollectionOfSerializablesAsParam("options", options);
+		result.addParam(OperationResult.PARAM_TYPE, type);
+        result.addParam(OperationResult.PARAM_QUERY, query);
+        result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
 		try {
 			if (!WorkItemType.class.equals(type)) {
 				throw new UnsupportedOperationException("searchContainers is available only for work items");
@@ -132,7 +138,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     @Override
     public void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
 			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
-			throws SecurityViolationException, SchemaException {
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         workItemManager.completeWorkItem(taskId, ApprovalUtils.toUri(decision), comment, additionalDelta,
 				causeInformation, parentResult);
     }
@@ -149,7 +155,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 
     @Override
     public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         workItemManager.delegateWorkItem(workItemId, delegates, method, null, null, null, parentResult);
     }
 
@@ -228,9 +234,14 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
         return wfTaskUtil.getApprovedByFromTaskTree(task, result);
     }
 
-    @Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
-        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE);
+	@Override
+	public Collection<String> getApproverComments(Task task, OperationResult result) throws SchemaException {
+		return wfTaskUtil.getApproverCommentsFromTaskTree(task, result);
+	}
+
+	@Override
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE, task, result);
     }
 
     @Override
@@ -239,16 +250,16 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem) {
-        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE);
+    public boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE, task, result);
     }
 
 	@Override
 	public ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext,
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		// TODO op subresult
-		return miscDataUtil.getChangesByStateForRoot(rootTask, modelInteractionService, prismContext, result);
+		return miscDataUtil.getChangesByStateForRoot(rootTask, modelInteractionService, prismContext, task, result);
 	}
 
 	@Override
@@ -270,5 +281,42 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
 		} finally {
 			result.recordSuccessIfUnknown();
 		}
+	}
+
+	@Override
+	public ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String taskOid, Task opTask,
+			OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getApprovalSchemaExecutionInformation");
+		try {
+			return approvalSchemaExecutionInformationHelper.getApprovalSchemaExecutionInformation(taskOid, opTask, result);
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't determine schema execution information: " + t.getMessage(), t);
+			throw t;
+		} finally {
+			result.recordSuccessIfUnknown();
+		}
+	}
+
+	@Override
+	public List<ApprovalSchemaExecutionInformationType> getApprovalSchemaPreview(ModelContext<?> modelContext, Task opTask,
+			OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getApprovalSchemaPreview");
+		try {
+			return approvalSchemaExecutionInformationHelper.getApprovalSchemaPreview(modelContext, opTask, result);
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't compute approval schema preview: " + t.getMessage(), t);
+			throw t;
+		} finally {
+			result.recordSuccessIfUnknown();
+		}
+	}
+
+	@Override
+	public PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting) {
+		return new PerformerCommentsFormatterImpl(formatting, repositoryService, expressionEvaluationHelper);
 	}
 }

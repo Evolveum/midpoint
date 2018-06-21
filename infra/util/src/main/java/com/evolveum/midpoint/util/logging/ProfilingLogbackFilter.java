@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import ch.qos.logback.core.spi.FilterReply;
 /**
  *
  *  This filter provides functionality to profiling loggers to act as they don't inherit
- *  rootAppender, thus forwarding profiling and performance logs only into IDM-PROFILE_LOG.
- *  (we don't want them in IDM_LOG)
+ *  rootAppender, thus forwarding profiling and performance logs only into MIDPOINT_PROFILE_LOG.
+ *  (we don't want them in MIDPOINT_LOG)
  *
  *  @author shood
  * */

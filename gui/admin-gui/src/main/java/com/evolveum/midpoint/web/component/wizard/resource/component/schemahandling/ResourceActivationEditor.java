@@ -276,15 +276,15 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
     private void prepareActivationPanelBody(String containerValue, String fetchStrategyId, String outboundId, String inboundId,
 			NonEmptyModel<Boolean> readOnlyModel){
         DropDownChoice fetchStrategy = new DropDownChoice<>(fetchStrategyId,
-                new PropertyModel<AttributeFetchStrategyType>(getModel(), containerValue + ".fetchStrategy"),
+            new PropertyModel<>(getModel(), containerValue + ".fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
-                new EnumChoiceRenderer<AttributeFetchStrategyType>(this));
+            new EnumChoiceRenderer<>(this));
         fetchStrategy.setNullValid(true);
 		fetchStrategy.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(fetchStrategy);
 
 		MultiValueTextEditPanel outbound = new MultiValueTextEditPanel<MappingType>(outboundId,
-                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".outbound"), null, false, true,
+            new PropertyModel<>(getModel(), containerValue + ".outbound"), null, false, true,
 				readOnlyModel) {
 
             @Override
@@ -312,7 +312,7 @@ public class ResourceActivationEditor extends BasePanel<ResourceActivationDefini
         add(outbound);
 
         MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(inboundId,
-                new PropertyModel<List<MappingType>>(getModel(), containerValue + ".inbound"), null, false, true, readOnlyModel) {
+            new PropertyModel<>(getModel(), containerValue + ".inbound"), null, false, true, readOnlyModel) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {

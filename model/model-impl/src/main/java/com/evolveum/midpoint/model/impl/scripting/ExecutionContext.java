@@ -16,9 +16,11 @@
 
 package com.evolveum.midpoint.model.impl.scripting;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,18 +39,28 @@ import java.util.Map;
 public class ExecutionContext {
     private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
 
-    private final Task task;
+    private final boolean privileged;
     private final ScriptingExpressionEvaluationOptionsType options;
+    private final Task task;
+    private final ScriptingExpressionEvaluator scriptingExpressionEvaluator;
     private final StringBuilder consoleOutput = new StringBuilder();
-    private final Map<String, Data> variables = new HashMap<>();
-    private Data finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
+    private final Map<String, PipelineData> globalVariables = new HashMap<>();      // will probably remain unused
+    private final Map<String, Object> initialVariables;                             // used e.g. when there are no data in a pipeline; these are frozen - i.e. made immutable if possible; to be cloned-on-use
+    private PipelineData finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
+    private final boolean recordProgressAndIterationStatistics;
 
-    public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task) {
-        this.task = task;
+    public ExecutionContext(ScriptingExpressionEvaluationOptionsType options, Task task,
+            ScriptingExpressionEvaluator scriptingExpressionEvaluator,
+            boolean privileged, boolean recordProgressAndIterationStatistics, Map<String, Object> initialVariables) {
         this.options = options;
+        this.task = task;
+        this.scriptingExpressionEvaluator = scriptingExpressionEvaluator;
+        this.privileged = privileged;
+        this.initialVariables = initialVariables;
+        this.recordProgressAndIterationStatistics = recordProgressAndIterationStatistics;
     }
 
-    public Task getTask() {
+	public Task getTask() {
         return task;
     }
 
@@ -60,16 +72,20 @@ public class ExecutionContext {
     	return options != null && Boolean.TRUE.equals(options.isContinueOnAnyError());
 	}
 
-	public Data getVariable(String variableName) {
-        return variables.get(variableName);
+	public boolean isHideOperationResults() {
+        return options != null && Boolean.TRUE.equals(options.isHideOperationResults());
     }
 
-    public void setVariable(String variableName, Item item) {
-        variables.put(variableName, Data.create(item));
+	public PipelineData getGlobalVariable(String name) {
+        return globalVariables.get(name);
     }
 
-    public void setVariable(String variableName, Data value) {
-        variables.put(variableName, value);
+    public void setGlobalVariable(String name, PipelineData value) {
+        globalVariables.put(name, value);
+    }
+
+    public Map<String, Object> getInitialVariables() {
+        return initialVariables;
     }
 
     public String getConsoleOutput() {
@@ -83,21 +99,24 @@ public class ExecutionContext {
         }
     }
 
-    public Data getFinalOutput() {
+    public PipelineData getFinalOutput() {
         return finalOutput;
     }
 
-    public void setFinalOutput(Data finalOutput) {
+    public void setFinalOutput(PipelineData finalOutput) {
         this.finalOutput = finalOutput;
     }
 
+    public boolean isRecordProgressAndIterationStatistics() {
+        return recordProgressAndIterationStatistics;
+    }
+
     public ScriptExecutionResult toExecutionResult() {
-        List<PrismValue> items = null;
+        List<PipelineItem> items = null;
         if (getFinalOutput() != null) {
             items = getFinalOutput().getData();
         }
-        ScriptExecutionResult result = new ScriptExecutionResult(getConsoleOutput(), items);
-        return result;
+        return new ScriptExecutionResult(getConsoleOutput(), items);
     }
 
     public String getChannel() {
@@ -113,5 +132,23 @@ public class ExecutionContext {
             // TODO do this is a nicer way
             throw new SystemException("Stopping execution of a script because the task is stopping: " + task);
         }
+    }
+
+    public void computeResults() {
+        if (finalOutput != null) {
+            finalOutput.getData().forEach(i -> i.computeResult());
+        }
+    }
+
+    public ModelService getModelService() {
+        return scriptingExpressionEvaluator.getModelService();
+    }
+
+	public PrismContext getPrismContext() {
+		return scriptingExpressionEvaluator.getPrismContext();
+	}
+
+    public boolean isPrivileged() {
+        return privileged;
     }
 }

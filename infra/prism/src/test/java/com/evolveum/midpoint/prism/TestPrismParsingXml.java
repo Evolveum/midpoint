@@ -29,51 +29,51 @@ public class TestPrismParsingXml extends TestPrismParsing {
 	protected String getOutputFormat() {
 		return PrismContext.LANG_XML;
 	}
-	
+
 	@Test
 	public void testPrismParseDom() throws Exception {
 		final String TEST_NAME = "testPrismParseDom";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		Document document = DOMUtil.parseFile(getFile(USER_JACK_FILE_BASENAME));
 		Element userElement = DOMUtil.getFirstChildElement(document);
-		
+
 		PrismContext prismContext = constructInitializedPrismContext();
-		
+
 		// WHEN
 		PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
-		
+
 		// THEN
 		System.out.println("User:");
 		System.out.println(user.debugDump());
 		assertNotNull(user);
-		
+
 		assertUserJack(user, true);
 	}
-	
+
 	@Test
 	public void testPrismParseDomAdhoc() throws Exception {
 		final String TEST_NAME = "testPrismParseDomAdhoc";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-		
+
 		// GIVEN
 		Document document = DOMUtil.parseFile(getFile(USER_JACK_ADHOC_BASENAME));
 		Element userElement = DOMUtil.getFirstChildElement(document);
-		
+
 		PrismContext prismContext = constructInitializedPrismContext();
-		
+
 		// WHEN
 		PrismObject<UserType> user = prismContext.parserFor(userElement).parse();
-		
+
 		// THEN
 		System.out.println("User:");
 		System.out.println(user.debugDump());
 		assertNotNull(user);
-		
+
 		assertUserAdhoc(user, true);
 	}
-	
+
 	@Override
 	protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
 //		Document xmlDocument = DOMUtil.parseDocument(xmlString);

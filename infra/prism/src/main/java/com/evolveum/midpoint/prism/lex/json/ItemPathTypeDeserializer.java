@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -23,7 +23,7 @@ public class ItemPathTypeDeserializer extends JsonDeserializer<ItemPathType>{
 		//System.out.println("current t: " +jp.getCurrentToken());
 		//System.out.println("cuuretn nmae " + jp.getCurrentName());
 		//System.out.println("item path type: " + jp.getText());
-		
+
 		if (jp.getCurrentToken() != JsonToken.VALUE_STRING){
 			throw new JsonParseException("Cannot parse path value. Expected that the value will be string but it is: " + jp.getCurrentTokenId(), jp.getCurrentLocation());
 		}
@@ -33,13 +33,13 @@ public class ItemPathTypeDeserializer extends JsonDeserializer<ItemPathType>{
 		}
 		//System.out.println("path: " + path);
 //		if (path.startsWith("declare.*")){
-			XPathHolder holder = new XPathHolder(path);
+			ItemPathHolder holder = new ItemPathHolder(path);
 			ItemPath itemPath = holder.toItemPath();
 			ItemPathType itemPathType = new ItemPathType(itemPath);
 			return itemPathType;
 //		ItemPathType itemPathType = new ItemPathType();
 //		itemPathType.getContent().add(jp.getText());
-//		
+//
 //		return itemPathType;
 	}
 

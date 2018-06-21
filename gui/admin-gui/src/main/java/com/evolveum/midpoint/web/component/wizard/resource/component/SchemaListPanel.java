@@ -237,7 +237,7 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
         Label nativeObjectClass = new Label(ID_DETAILS_NATIVE_OBJECT_CLASS, new PropertyModel<String>(detailsModel, ObjectClassDetailsDto.F_NATIVE_OBJECT_CLASS));
         detailsContainer.add(nativeObjectClass);
 
-        CheckBox isDefault = new CheckBox(ID_DETAILS_DEFAULT, new PropertyModel<Boolean>(detailsModel, ObjectClassDetailsDto.F_IS_DEFAULT));
+        CheckBox isDefault = new CheckBox(ID_DETAILS_DEFAULT, new PropertyModel<>(detailsModel, ObjectClassDetailsDto.F_IS_DEFAULT));
         isDefault.setEnabled(false);
         detailsContainer.add(isDefault);
 
@@ -261,11 +261,11 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
     private List<IColumn<AttributeDto, String>> initColumns() {
         List<IColumn<AttributeDto, String>> columns = new ArrayList<>();
 
-        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.name"), AttributeDto.F_NAME, AttributeDto.F_NAME));
-        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.displayName"), AttributeDto.F_DISPLAY_NAME));
-        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.nativeAttributeName"), AttributeDto.F_NATIVE_ATTRIBUTE_NAME, AttributeDto.F_NATIVE_ATTRIBUTE_NAME));
-        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.minMax"), AttributeDto.F_MIN_MAX_OCCURS));
-        columns.add(new PropertyColumn<AttributeDto, String>(createStringResource("SchemaListPanel.displayOrder"), AttributeDto.F_DISPLAY_ORDER, AttributeDto.F_DISPLAY_ORDER));
+        columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.name"), AttributeDto.F_NAME, AttributeDto.F_NAME));
+        columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.displayName"), AttributeDto.F_DISPLAY_NAME));
+        columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.nativeAttributeName"), AttributeDto.F_NATIVE_ATTRIBUTE_NAME, AttributeDto.F_NATIVE_ATTRIBUTE_NAME));
+        columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.minMax"), AttributeDto.F_MIN_MAX_OCCURS));
+        columns.add(new PropertyColumn<>(createStringResource("SchemaListPanel.displayOrder"), AttributeDto.F_DISPLAY_ORDER, AttributeDto.F_DISPLAY_ORDER));
 
         CheckBoxColumn<AttributeDto> check = new CheckBoxColumn<>(createStringResource("SchemaListPanel.returnedByDefault"), AttributeDto.F_RETURNED_BY_DEFAULT);
         check.setEnabled(false);

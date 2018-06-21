@@ -21,21 +21,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -50,6 +43,11 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -57,7 +55,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -71,7 +69,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
@@ -86,11 +83,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 /**
  * @author Radovan Semancik
  */
-public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D extends ItemDefinition> 
+public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D extends ItemDefinition>
 			extends AbstractValueTransformationExpressionEvaluator<V,D,SearchObjectExpressionEvaluatorType> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluator.class);
-	
+
 	private PrismContext prismContext;
 	private D outputDefinition;
 	private Protector protector;
@@ -98,16 +95,17 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	private ModelService modelService;
 
 	protected AbstractSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType,
-												D outputDefinition, Protector protector, ObjectResolver objectResolver,
-												ModelService modelService, PrismContext prismContext, SecurityEnforcer securityEnforcer) {
-		super(expressionEvaluatorType, securityEnforcer);
+			D outputDefinition, Protector protector, ObjectResolver objectResolver,
+			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
+			LocalizationService localizationService) {
+		super(expressionEvaluatorType, securityContextManager, localizationService);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.objectResolver = objectResolver;
 		this.modelService = modelService;
 	}
-	
+
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -130,14 +128,14 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 	@Override
 	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
-			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		
+			ExpressionEvaluationContext context, String contextDescription, Task task, OperationResult result)
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+
 //		if (LOGGER.isTraceEnabled()) {
 //			LOGGER.trace("transformSingleValue in {}\nvariables:\n{}\nvalueDestination: {}\nuseNew: {}",
 //					new Object[]{contextDescription, variables.debugDump(1), valueDestination, useNew});
 //		}
-		
+
 		QName targetTypeQName = getExpressionEvaluatorType().getTargetType();
 		if (targetTypeQName == null) {
 			targetTypeQName = getDefaultTargetType();
@@ -151,21 +149,22 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			throw new SchemaException("Unknown target type "+targetTypeQName+" in "+shortDebugDump());
 		}
 		Class<? extends ObjectType> targetTypeClass = targetType.getClassDefinition();
-		
+
 		List<V> resultValues = null;
 		ObjectQuery query = null;
-		
+
 		List<ItemDelta<V, D>> additionalAttributeDeltas = null;
 		PopulateType populateAssignmentType = getExpressionEvaluatorType().getPopulate();
 		if (populateAssignmentType != null) {
-			additionalAttributeDeltas = collectAdditionalAttributes(populateAssignmentType, outputDefinition, variables, params, contextDescription, task, result);
+			additionalAttributeDeltas = collectAdditionalAttributes(populateAssignmentType, outputDefinition, variables, context, contextDescription, task, result);
 		}
-		
+
 		if (getExpressionEvaluatorType().getOid() != null) {
 			resultValues = new ArrayList<>(1);
-			resultValues.add(createPrismValue(getExpressionEvaluatorType().getOid(), targetTypeQName, additionalAttributeDeltas, params));
+			resultValues.add(createPrismValue(getExpressionEvaluatorType().getOid(), targetTypeQName, additionalAttributeDeltas,
+					context));
 		} else {
-		
+
 			SearchFilterType filterType = getExpressionEvaluatorType().getFilter();
 			if (filterType == null) {
 				throw new SchemaException("No filter in "+shortDebugDump());
@@ -174,35 +173,38 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("XML query converted to: {}", query.debugDump());
 			}
-			query = ExpressionUtil.evaluateQueryExpressions(query, variables, params.getExpressionFactory(), 
-					prismContext, params.getContextDescription(), task, result);
+			query = ExpressionUtil.evaluateQueryExpressions(query, variables, context.getExpressionFactory(),
+					prismContext, context.getContextDescription(), task, result);
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("Expression in query evaluated to: {}", query.debugDump());
 			}
-			query = extendQuery(query, params);
-			
+			query = extendQuery(query, context);
+
 			if (LOGGER.isTraceEnabled()){
 				LOGGER.trace("Query after extension: {}", query.debugDump());
 			}
-			
-			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, additionalAttributeDeltas, params, contextDescription, task, params.getResult());
-			
+
+			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, additionalAttributeDeltas, context, contextDescription, task, context
+					.getResult());
+
 			if (resultValues.isEmpty()) {
 				ObjectReferenceType defaultTargetRef = getExpressionEvaluatorType().getDefaultTargetRef();
 				if (defaultTargetRef != null) {
-					resultValues.add(createPrismValue(defaultTargetRef.getOid(), targetTypeQName, additionalAttributeDeltas, params));
+					resultValues.add(createPrismValue(defaultTargetRef.getOid(), targetTypeQName, additionalAttributeDeltas,
+							context));
 				}
 			}
 		}
-			
+
 		if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
 				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
-			String createdObjectOid = createOnDemand(targetTypeClass, variables, params, params.getContextDescription(), task, params.getResult());
-			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, params));
+			String createdObjectOid = createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, context
+					.getResult());
+			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
 		}
-		
+
 		LOGGER.trace("Search expression got {} results for query {}", resultValues==null?"null":resultValues.size(), query);
-		
+
 		return (List<V>) resultValues;
 	}
 
@@ -219,7 +221,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		return null;
 	}
 
-	private <O extends ObjectType> List<V> executeSearchUsingCache(Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query, List<ItemDelta<V, D>> additionalAttributeDeltas, 
+	private <O extends ObjectType> List<V> executeSearchUsingCache(Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query, List<ItemDelta<V, D>> additionalAttributeDeltas,
 																   final ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		ObjectSearchStrategyType searchStrategy = getSearchStrategy();
@@ -258,7 +260,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	private <O extends ObjectType> List<V> executeSearch(List<PrismObject> rawResult,
 														 Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query,
 														 ObjectSearchStrategyType searchStrategy,
-														 List<ItemDelta<V, D>> additionalAttributeDeltas, 
+														 List<ItemDelta<V, D>> additionalAttributeDeltas,
 														 ExpressionEvaluationContext params, String contextDescription,
 														 Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
@@ -294,19 +296,19 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	private <O extends ObjectType> List<V> executeSearchAttempt(final List<PrismObject> rawResult,
 																Class<O> targetTypeClass, final QName targetTypeQName,
 																ObjectQuery query, boolean searchOnResource, boolean tryAlsoRepository,
-																final List<ItemDelta<V, D>> additionalAttributeDeltas, 
+																final List<ItemDelta<V, D>> additionalAttributeDeltas,
 																final ExpressionEvaluationContext params, String contextDescription,
 																Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		final List<V> list = new ArrayList<V>();
-		
+		final List<V> list = new ArrayList<>();
+
 		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
 		if (!searchOnResource) {
 			options.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
 		}
 		extendOptions(options, searchOnResource);
-		
+
 		ResultHandler<O> handler = new ResultHandler<O>() {
 			@Override
 			public boolean handle(PrismObject<O> object, OperationResult parentResult) {
@@ -316,11 +318,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 				list.add(createPrismValue(object.getOid(), targetTypeQName, additionalAttributeDeltas, params));
 
 				// TODO: we should count results and stop after some reasonably high number?
-				
+
 				return true;
 			}
 		};
-		
+
 		try {
 			objectResolver.searchIterative(targetTypeClass, query, options, handler, task, result);
 		} catch (IllegalStateException e) { // this comes from checkConsistence methods
@@ -329,7 +331,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			throw new SchemaException(e.getMessage()+" in "+contextDescription, e);
 		} catch (SystemException e) {
 			throw new SystemException(e.getMessage()+" in "+contextDescription, e);
-		} catch (CommunicationException | ConfigurationException 
+		} catch (CommunicationException | ConfigurationException
 				| SecurityViolationException e) {
 			if (searchOnResource && tryAlsoRepository) {
 				options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -343,82 +345,82 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 					// stop whole projection computation, but what to do if the
 					// shadow for group doesn't exist? (MID-2107)
 					throw new ExpressionEvaluationException("Unexpected expression exception "+e+": "+e.getMessage(), e);
-				} 
+				}
 			} else {
 				throw new ExpressionEvaluationException("Unexpected expression exception "+e+": "+e.getMessage(), e);
 			}
 		} catch (ObjectNotFoundException e) {
 			throw e;
 		}
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Assignment expression resulted in {} objects, using query:\n{}",
 					list.size(), query.debugDump());
 		}
-		
+
 		return list;
 	}
-	
+
 	protected void extendOptions(Collection<SelectorOptions<GetOperationOptions>> options, boolean searchOnResource) {
 		// Nothing to do. To be overridden by subclasses
 	}
-	
+
 	// e.g parameters, activation for assignment etc.
 	protected <C extends Containerable> List<ItemDelta<V,D>> collectAdditionalAttributes(PopulateType fromPopulate,
 			D outputDefinition, ExpressionVariables variables, ExpressionEvaluationContext params,
-			String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		
+			String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+
 		if (!(outputDefinition instanceof PrismContainerDefinition)) {
 			return null;
 		}
-		
+
 		List<ItemDelta<V,D>> deltas = new ArrayList<>();
-		
+
 		for (PopulateItemType populateItem: fromPopulate.getPopulateItem()) {
-			
-			ItemDelta<V,D> itemDelta = evaluatePopulateExpression(populateItem, variables, params, 
+
+			ItemDelta<V,D> itemDelta = evaluatePopulateExpression(populateItem, variables, params,
 					(PrismContainerDefinition<C>) outputDefinition, contextDescription, false, task, result);
 			if (itemDelta != null) {
 				deltas.add(itemDelta);
 			}
-			
+
 		}
-		
+
 		return deltas;
 	}
 
 	protected abstract V createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<V, D>> additionalAttributeDeltas, ExpressionEvaluationContext params);
-	
-	private <O extends ObjectType> String createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables, 
-			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
+	private <O extends ObjectType> String createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables,
+			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Going to create assignment targets on demand, variables:\n{}", variables.formatVariables());
 		}
 		PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(targetTypeClass);
 		PrismObject<O> newObject = objectDefinition.instantiate();
-		
+
 		PopulateType populateObject = getExpressionEvaluatorType().getPopulateObject();
-		
+
 		if (populateObject == null) {
 			LOGGER.warn("No populateObject in assignment expression in {}, "
 					+ "object created on demand will be empty. Subsequent operations will most likely fail", contextDescription);
-		} else {			
+		} else {
 			for (PopulateItemType populateItem: populateObject.getPopulateItem()) {
-				ItemDelta<?,?> itemDelta = evaluatePopulateExpression(populateItem, variables, params, 
+				ItemDelta<?,?> itemDelta = evaluatePopulateExpression(populateItem, variables, params,
 						objectDefinition, contextDescription, true, task, result);
 				if (itemDelta != null) {
 					itemDelta.applyTo(newObject);
 				}
 			}
 		}
-		
+
 		LOGGER.debug("Creating object on demand from {}: {}", contextDescription, newObject);
-		
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Creating object on demand:\n{}", newObject.debugDump());
 		}
-		
+
 		ObjectDelta<O> addDelta = newObject.createAddDelta();
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
 		try {
@@ -427,20 +429,20 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 				| PolicyViolationException | SecurityViolationException e) {
 			throw new ExpressionEvaluationException(e.getMessage(), e);
 		}
-		
+
 		return addDelta.getOid();
 	}
 
 	private <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
 			ExpressionVariables variables, ExpressionEvaluationContext params, PrismContainerDefinition<C> objectDefinition,
-			String contextDescription, boolean evaluateMinus, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			String contextDescription, boolean evaluateMinus, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionType expressionType = populateItem.getExpression();
 		if (expressionType == null) {
 			LOGGER.warn("No expression in populateObject in assignment expression in {}, "
 					+ "skipping. Subsequent operations will most likely fail", contextDescription);
 			return null;
 		}
-		
+
 		VariableBindingDefinitionType targetType = populateItem.getTarget();
 		if (targetType == null) {
 			LOGGER.warn("No target in populateObject in assignment expression in {}, "
@@ -452,41 +454,42 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			throw new SchemaException("No path in target definition in "+contextDescription);
 		}
 		ItemPath targetPath = itemPathType.getItemPath();
-		ID propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables, 
+		ID propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables,
 				objectDefinition, "target definition in "+contextDescription);
 		if (propOutputDefinition == null) {
 			throw new SchemaException("No target item that would conform to the path "+targetPath+" in "+contextDescription);
 		}
-		
+
 		String expressionDesc = "expression in assignment expression in "+contextDescription;
 		ExpressionFactory expressionFactory = params.getExpressionFactory();
-		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, 
+		Expression<IV,ID> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition,
 				expressionDesc, task, result);
-		ExpressionEvaluationContext expressionParams = new ExpressionEvaluationContext(null, variables, 
+		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables,
 				expressionDesc, task, result);
-		expressionParams.setExpressionFactory(expressionFactory);
-		expressionParams.setStringPolicyResolver(params.getStringPolicyResolver());
-		expressionParams.setDefaultTargetContext(params.getDefaultTargetContext());
-		expressionParams.setSkipEvaluationMinus(true);
-		expressionParams.setSkipEvaluationPlus(false);
-		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(expressionParams);
+		context.setExpressionFactory(expressionFactory);
+		context.setValuePolicyResolver(params.getValuePolicyResolver());
+		context.setDefaultTargetContext(params.getDefaultTargetContext());
+		context.setSkipEvaluationMinus(true);
+		context.setSkipEvaluationPlus(false);
+		context.setVariableProducer(params.getVariableProducer());
+		PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(context);
 		LOGGER.trace("output triple: {}", outputTriple.debugDump());
 		Collection<IV> pvalues = outputTriple.getNonNegativeValues();
-		
+
 		// Maybe not really clean but it works. TODO: refactor later
 		NameItemPathSegment first = (NameItemPathSegment)targetPath.first();
 		if (first.isVariable()) {
 			targetPath = targetPath.rest();
 		}
-		
+
 		ItemDelta<IV,ID> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
 		itemDelta.addValuesToAdd(PrismValue.cloneCollection(pvalues));
-		
+
 		LOGGER.trace("Item delta:\n{}", itemDelta.debugDump());
-		
+
 		return itemDelta;
 	}
-	
+
 	// Override the default in this case. It makes more sense like this.
 	@Override
 	protected Boolean isIncludeNullInputs() {

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~    Licensed under the Apache License, Version 2.0 (the "License");
   ~    you may not use this file except in compliance with the License.
@@ -24,6 +24,11 @@
             </h3>
             <div class="form-group" wicket:id="dashboardLinkEditor"></div>
             <div class="form-group" wicket:id="additionalMenuItemEditor"></div>
+            
+            <div class="form-group">
+            		<div class="col-md-4 control-label"><wicket:message key="AdminGuiConfigurationType.enableExperimentalFeature"/></div>
+            		<span class="col-md-6" wicket:id="enableExperimentalFeature"/>
+            </div>
         </div>
     </div>
 </wicket:panel>

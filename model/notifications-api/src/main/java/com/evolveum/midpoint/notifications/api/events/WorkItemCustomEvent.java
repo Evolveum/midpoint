@@ -32,12 +32,14 @@ import java.util.Map;
  */
 public class WorkItemCustomEvent extends WorkItemEvent {
 
-	public WorkItemCustomEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
+	public WorkItemCustomEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator,
+			@NotNull ChangeType changeType,
 			@NotNull WorkItemType workItem,
 			@Nullable SimpleObjectRef assignee, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@NotNull WfContextType workflowContext, @Nullable EventHandlerType handler) {
+			@NotNull WfContextType workflowContext, TaskType workflowTask,
+			@Nullable EventHandlerType handler) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null,
-				sourceInfo, workflowContext, handler, null);
+				sourceInfo, workflowContext, workflowTask, handler, null);
 	}
 
 	@Override

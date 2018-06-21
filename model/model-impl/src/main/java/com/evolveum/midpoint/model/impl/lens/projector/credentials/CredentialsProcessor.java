@@ -19,20 +19,19 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.security.SecurityHelper;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -42,22 +41,15 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -71,77 +63,44 @@ public class CredentialsProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(CredentialsProcessor.class);
 
-	@Autowired(required=true)
-	private PrismContext prismContext;
-
-	@Autowired(required=true)
-	private MappingFactory mappingFactory;
-
-	@Autowired(required=true)
-	private MappingEvaluator mappingEvaluator;
-
-	@Autowired(required=true)
-	private OperationalDataManager metadataManager;
-	
-	@Autowired(required=true)
-	private ModelObjectResolver resolver;
-	
-	@Autowired(required=true)
-	private ValuePolicyProcessor valuePolicyProcessor;
-	
-	@Autowired(required = true)
-	private SecurityHelper securityHelper;
-	
-	@Autowired(required = true)
-	Protector protector;
+	@Autowired private PrismContext prismContext;
+	@Autowired private OperationalDataManager metadataManager;
+	@Autowired private ModelObjectResolver resolver;
+	@Autowired private ValuePolicyProcessor valuePolicyProcessor;
+	@Autowired private Protector protector;
+	@Autowired private LocalizationService localizationService;
+	@Autowired private ContextLoader contextLoader;
 
 	public <F extends FocusType> void processFocusCredentials(LensContext<F> context,
 			XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
-					ObjectNotFoundException, SchemaException, PolicyViolationException {
-		
+					ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			LOGGER.trace("Skipping processing credentials because focus is not user");
 			return;
 		}
 		
-		processSecurityPolicy(context, now, task, result);
+		contextLoader.reloadSecurityPolicyIfNeeded(context, task, result);
+
 		processFocusPassword((LensContext<UserType>) context, now, task, result);
 		processFocusNonce((LensContext<UserType>) context, now, task, result);
 		processFocusSecurityQuestions((LensContext<UserType>) context, now, task, result);
 	}
 	
-	private <F extends FocusType> void processSecurityPolicy(LensContext<F> context, XMLGregorianCalendar now,
-			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
-		if (securityPolicy == null) {
-			securityPolicy = securityHelper.locateSecurityPolicy(focusContext.getObjectAny(), 
-					context.getSystemConfiguration(), task, result);
-			if (securityPolicy == null) {
-				// store empty policy to avoid repeated lookups
-				securityPolicy = new SecurityPolicyType();
-			}
-			focusContext.setSecurityPolicy(securityPolicy);
-		}
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Security policy:\n{}", securityPolicy==null?null:securityPolicy.asPrismObject().debugDump(1));
-		} else {
-			LOGGER.debug("Security policy: {}", securityPolicy);
-		}
-	}
-		
+
+
 	private <F extends FocusType> void processFocusPassword(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
-		
+					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+
 		PasswordPolicyEvaluator evaluator = new PasswordPolicyEvaluator();
 		evaluator.setContext(context);
 		evaluator.setMetadataManager(metadataManager);
 		evaluator.setNow(now);
 		evaluator.setPrismContext(prismContext);
 		evaluator.setProtector(protector);
+		evaluator.setLocalizationService(localizationService);
 		evaluator.setResolver(resolver);
 		evaluator.setResult(result);
 		evaluator.setTask(task);
@@ -149,18 +108,19 @@ public class CredentialsProcessor {
 
 		evaluator.process();
 	}
-	
+
 	//for now just saving metadata
 	private void processFocusNonce(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
-		
+					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+
 		NoncePolicyEvaluator evaluator = new NoncePolicyEvaluator();
 		evaluator.setContext(context);
 		evaluator.setMetadataManager(metadataManager);
 		evaluator.setNow(now);
 		evaluator.setPrismContext(prismContext);
 		evaluator.setProtector(protector);
+		evaluator.setLocalizationService(localizationService);
 		evaluator.setResolver(resolver);
 		evaluator.setResult(result);
 		evaluator.setTask(task);
@@ -169,17 +129,18 @@ public class CredentialsProcessor {
 		evaluator.process();
 
 	}
-	
+
 	private void processFocusSecurityQuestions(LensContext<UserType> context, XMLGregorianCalendar now,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
-		
+					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+
 		SecurityQuestionsPolicyEvaluator evaluator = new SecurityQuestionsPolicyEvaluator();
 		evaluator.setContext(context);
 		evaluator.setMetadataManager(metadataManager);
 		evaluator.setNow(now);
 		evaluator.setPrismContext(prismContext);
 		evaluator.setProtector(protector);
+		evaluator.setLocalizationService(localizationService);
 		evaluator.setResolver(resolver);
 		evaluator.setResult(result);
 		evaluator.setTask(task);
@@ -189,11 +150,11 @@ public class CredentialsProcessor {
 
 	}
 
-	
+
 	/**
 	 * Called from ChangeExecutor. Will modify the execution deltas to hash or remove credentials if needed.
 	 */
-	public <O extends ObjectType> ObjectDelta<O> transformFocusExectionDelta(LensContext<O> context, ObjectDelta<O> focusDelta) throws SchemaException, EncryptionException {
+	public <O extends ObjectType> ObjectDelta<O> transformFocusExecutionDelta(LensContext<O> context, ObjectDelta<O> focusDelta) throws SchemaException, EncryptionException {
 		LensFocusContext<O> focusContext = context.getFocusContext();
 		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
 		if (securityPolicy == null) {
@@ -204,41 +165,69 @@ public class CredentialsProcessor {
 			return focusDelta;
 		}
 		ObjectDelta<O> transformedDelta = focusDelta.clone();
-		transformFocusExectionDeltaCredential(context, credsType, credsType.getPassword(), SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta);
+		transformFocusExecutionDeltaForPasswords(context, credsType, credsType.getPassword(), SchemaConstants.PATH_PASSWORD_VALUE, transformedDelta, "password");
 		// TODO: nonce and others
-		
+
 		return transformedDelta;
 	}
 
-	private <O extends ObjectType> void transformFocusExectionDeltaCredential(LensContext<O> context,
+	// TODO generalize for nonce and others
+	private <O extends ObjectType> void transformFocusExecutionDeltaForPasswords(LensContext<O> context,
 			CredentialsPolicyType credsType, CredentialPolicyType credPolicyType,
-			ItemPath valuePropertyPath, ObjectDelta<O> delta) throws SchemaException, EncryptionException {
+			ItemPath valuePropertyPath, ObjectDelta<O> delta, String credentialName) throws SchemaException, EncryptionException {
 		if (delta.isDelete()) {
 			return;
 		}
 		CredentialPolicyType defaltCredPolicyType = credsType.getDefault();
-		CredentialsStorageMethodType storageMethod = 
+		CredentialsStorageMethodType storageMethod =
 				SecurityUtil.getCredPolicyItem(defaltCredPolicyType, credPolicyType, pol -> pol.getStorageMethod());
+		LOGGER.trace("Credential {}, processing storage method: {}", credentialName, storageMethod);
 		if (storageMethod == null) {
 			return;
 		}
 		CredentialsStorageTypeType storageType = storageMethod.getStorageType();
 		if (storageType == null || storageType == CredentialsStorageTypeType.ENCRYPTION) {
+			LOGGER.trace("Credential {} should be encrypted, nothing to do", credentialName);
 			return;
 		} else if (storageType == CredentialsStorageTypeType.HASHING) {
-			PrismPropertyValue<ProtectedStringType> pval = null;
+			LOGGER.trace("Hashing credential", credentialName);
 			if (delta.isAdd()) {
 				PrismProperty<ProtectedStringType> prop = delta.getObjectToAdd().findProperty(valuePropertyPath);
-				hashValues(prop.getValues(), storageMethod);
+				if (prop != null) {
+					hashValues(prop.getValues(), storageMethod);
+				}
 			} else {
-				PropertyDelta<ProtectedStringType> propDelta = delta.findPropertyDelta(valuePropertyPath);
-				if (propDelta != null) {
-					hashValues(propDelta.getValuesToAdd(), storageMethod);
-					hashValues(propDelta.getValuesToReplace(), storageMethod);
-					hashValues(propDelta.getValuesToDelete(), storageMethod);
+				//noinspection unchecked
+				PropertyDelta<ProtectedStringType> valueDelta = delta.findItemDelta(valuePropertyPath, PropertyDelta.class, PrismProperty.class, true);
+				if (valueDelta != null) {
+					hashValues(valueDelta.getValuesToAdd(), storageMethod);
+					hashValues(valueDelta.getValuesToReplace(), storageMethod);
+					hashValues(valueDelta.getValuesToDelete(), storageMethod);  // TODO sure?
+					return;
+				}
+				ItemPath abstractCredentialPath = valuePropertyPath.allExceptLast();
+				//noinspection unchecked
+				ContainerDelta<PasswordType> abstractCredentialDelta = delta.findItemDelta(abstractCredentialPath,
+						ContainerDelta.class, PrismContainer.class, true);
+				if (abstractCredentialDelta != null) {
+					hashPasswordPcvs(abstractCredentialDelta.getValuesToAdd(), storageMethod);
+					hashPasswordPcvs(abstractCredentialDelta.getValuesToReplace(), storageMethod);
+					// TODO what about delete? probably nothing
+					return;
+				}
+				ItemPath credentialsPath = abstractCredentialPath.allExceptLast();
+				//noinspection unchecked
+				ContainerDelta<CredentialsType> credentialsDelta = delta.findItemDelta(credentialsPath, ContainerDelta.class,
+						PrismContainer.class, true);
+				if (credentialsDelta != null) {
+					hashCredentialsPcvs(credentialsDelta.getValuesToAdd(), storageMethod);
+					hashCredentialsPcvs(credentialsDelta.getValuesToReplace(), storageMethod);
+					// TODO what about delete? probably nothing
+					return;
 				}
 			}
 		} else if (storageType == CredentialsStorageTypeType.NONE) {
+			LOGGER.trace("Removing credential", credentialName);
 			if (delta.isAdd()) {
 				delta.getObjectToAdd().removeProperty(valuePropertyPath);
 			} else {
@@ -248,10 +237,10 @@ public class CredentialsProcessor {
 					propDelta.setValueToReplace();
 				}
 			}
+			// TODO remove password also when the whole credentials or credentials/password container is added/replaced
 		} else {
-			throw new SchemaException("Unkwnon storage type "+storageType);
+			throw new SchemaException("Unknown storage type "+storageType);
 		}
-		
 	}
 
 	private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> values,
@@ -267,8 +256,39 @@ public class CredentialsProcessor {
 		}
 	}
 
+	private void hashPasswordPcvs(Collection<PrismContainerValue<PasswordType>> values,
+			CredentialsStorageMethodType storageMethod) throws SchemaException, EncryptionException {
+		if (values == null) {
+			return;
+		}
+		for (PrismContainerValue<PasswordType> pval: values) {
+			PasswordType password = pval.getValue();
+			if (password != null && password.getValue() != null) {
+				if (!password.getValue().isHashed()) {
+					protector.hash(password.getValue());
+				}
+			}
+		}
+	}
+
+	private void hashCredentialsPcvs(Collection<PrismContainerValue<CredentialsType>> values,
+			CredentialsStorageMethodType storageMethod) throws SchemaException, EncryptionException {
+		if (values == null) {
+			return;
+		}
+		for (PrismContainerValue<CredentialsType> pval: values) {
+			CredentialsType credentials = pval.getValue();
+			if (credentials != null && credentials.getPassword() != null) {
+				ProtectedStringType passwordValue = credentials.getPassword().getValue();
+				if (passwordValue != null && !passwordValue.isHashed()) {
+					protector.hash(passwordValue);
+				}
+			}
+		}
+	}
+
 	/**
-	 * Legacy. Invoked from mappings. TODO: fix 
+	 * Legacy. Invoked from mappings. TODO: fix
 	 */
 	public <F extends ObjectType> ValuePolicyType determinePasswordPolicy(LensFocusContext<F> focusContext, Task task, OperationResult result) {
 		if (focusContext == null) {

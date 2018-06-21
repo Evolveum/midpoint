@@ -30,7 +30,7 @@ import java.util.*;
 /**
  * This class is used to wrap {@link PrismProperty} values for JAXB objects with
  * {@link java.util.List} properties.
- * <p/>
+ * <p>
  * This list implementation is based on {@link java.util.Set} so indexes are
  * not guaranteed. Objects positions can change in time :)
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@ package com.evolveum.midpoint.repo.sql.query2.restriction;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtReference;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.InterpretationContext;
+import com.evolveum.midpoint.repo.sql.query2.definition.JpaAnyReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaReferenceDefinition;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaLinkDefinition;
@@ -119,40 +121,57 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
 			Collection<String> oids, QName relation, QName targetType) {
 		String hqlPath = hqlDataInstance.getHqlPath();
 
-        AndCondition conjunction = hibernateQuery.createAnd();
-        conjunction.add(hibernateQuery.createEqOrInOrNull(getTargetOidPropertyName(), oids));
-
-		if (ObjectTypeUtil.isDefaultRelation(relation)) {
-			// Return references without relation or with "member" relation
-			conjunction.add(hibernateQuery.createIn(hqlPath + "." + ObjectReference.F_RELATION,
-					Arrays.asList(RUtil.QNAME_DELIMITER, qnameToString(SchemaConstants.ORG_DEFAULT))));
-		} else if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
-			// Return all relations => no restriction
+		final String TARGET_OID_HQL_PROPERTY, RELATION_HQL_PROPERTY, TARGET_TYPE_HQL_PROPERTY;
+		if (linkDefinition.getTargetDefinition() instanceof JpaAnyReferenceDefinition) {
+			TARGET_OID_HQL_PROPERTY = ROExtReference.F_TARGET_OID;
+			RELATION_HQL_PROPERTY = ROExtReference.F_RELATION;
+			TARGET_TYPE_HQL_PROPERTY = ROExtReference.F_TARGET_TYPE;
 		} else {
-			// return references with specific relation
-			List<String> relationsToTest = new ArrayList<>();
-			relationsToTest.add(qnameToString(relation));
-			if (QNameUtil.noNamespace(relation)) {
-				relationsToTest.add(qnameToString(QNameUtil.setNamespaceIfMissing(relation, SchemaConstants.NS_ORG, null)));
-			} else if (SchemaConstants.NS_ORG.equals(relation.getNamespaceURI())) {
-				relationsToTest.add(qnameToString(new QName(relation.getLocalPart())));
-			} else {
-				// non-empty non-standard NS => nothing to add
-			}
-			conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + ObjectReference.F_RELATION, relationsToTest));
+			TARGET_OID_HQL_PROPERTY = RObjectReference.F_TARGET_OID;
+			RELATION_HQL_PROPERTY = RObjectReference.F_RELATION;
+			TARGET_TYPE_HQL_PROPERTY = RObjectReference.F_TARGET_TYPE;
 		}
 
+        AndCondition conjunction = hibernateQuery.createAnd();
+        conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + TARGET_OID_HQL_PROPERTY, oids));
+
+        List<String> relationsToTest = getRelationsToTest(relation);
+        if (!relationsToTest.isEmpty()) {
+	        conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + RELATION_HQL_PROPERTY, relationsToTest));
+        }
 		if (targetType != null) {
-			conjunction.add(handleEqInOrNull(hibernateQuery, hqlPath + "." + ObjectReference.F_TYPE,
+			conjunction.add(handleEqInOrNull(hibernateQuery, hqlPath + "." + TARGET_TYPE_HQL_PROPERTY,
 					ClassMapper.getHQLTypeForQName(targetType)));
 		}
         return conjunction;
     }
 
+    // Beware: the value of relation = null is interpreted as "default" (because of 'ref' clause semantics).
+	// If the caller want to interpret it as "any", it has to cater for this itself.
+	//
+    // Return: empty list means "nothing to test".
 	@NotNull
-	private String getTargetOidPropertyName() {
-		return hqlDataInstance.getHqlPath() + "." + ObjectReference.F_TARGET_OID;
-	}
+    static List<String> getRelationsToTest(QName relation) {
+	    if (ObjectTypeUtil.isDefaultRelation(relation)) {
+		    // Return references without relation or with "default" relation
+		    return Arrays.asList(RUtil.QNAME_DELIMITER, qnameToString(SchemaConstants.ORG_DEFAULT));
+	    } else if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
+		    // Return all relations => no restriction
+		    return Collections.emptyList();
+	    } else {
+		    // return references with specific relation
+		    List<String> rv = new ArrayList<>();
+		    rv.add(qnameToString(relation));
+		    if (QNameUtil.noNamespace(relation)) {
+			    rv.add(qnameToString(QNameUtil.setNamespaceIfMissing(relation, SchemaConstants.NS_ORG, null)));
+		    } else if (SchemaConstants.NS_ORG.equals(relation.getNamespaceURI())) {
+			    rv.add(qnameToString(new QName(relation.getLocalPart())));
+		    } else {
+			    // non-empty non-standard NS => nothing to add
+		    }
+		    return rv;
+	    }
+    }
 
 	private Condition handleEqInOrNull(RootHibernateQuery hibernateQuery, String propertyName, Object value) {
         if (value == null) {

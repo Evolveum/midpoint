@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  *
  */
 public class DeleteFocusAction implements Action {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(DeleteFocusAction.class);
 
 	/* (non-Javadoc)
@@ -45,7 +45,7 @@ public class DeleteFocusAction implements Action {
 	@Override
 	public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
 			Map<QName, Object> parameters, Task task, OperationResult parentResult) {
-		
+
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null) {
 			PrismObject<F> objectOld = focusContext.getObjectOld();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,9 +201,9 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 	}
 
 
-	private class NoOffsetPrismReferencePanel extends PrismPropertyPanel<ReferenceWrapper> {
+	private static class NoOffsetPrismReferencePanel extends PrismPropertyPanel<ReferenceWrapper> {
 		public NoOffsetPrismReferencePanel(String id, IModel<ReferenceWrapper> propertyModel, Form form, PageBase pageBase) {
-			super(id, propertyModel, form, pageBase);
+			super(id, propertyModel, form, null, pageBase);
 		}
 		// quite a hack, to get rid of col-md-offset-2 style
 		@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssociationFromLinkExpressionEvaluatorType;
@@ -41,18 +41,17 @@ import org.apache.commons.lang.Validate;
  * @author semancik
  *
  */
-public class AssociationFromLinkExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
-	
-	private PrismContext prismContext;
-	private Protector protector;
-	private ObjectResolver objectResolver;
-	private ModelService modelService;
+public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
 
-	public AssociationFromLinkExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver, ModelService modelService) {
-		super();
+	private final PrismContext prismContext;
+	private final Protector protector;
+	private final ModelService modelService;
+
+	public AssociationFromLinkExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext,
+			Protector protector, ModelService modelService) {
+		super(expressionFactory);
 		this.prismContext = prismContext;
 		this.protector = protector;
-		this.objectResolver = objectResolver;
 		this.modelService = modelService;
 	}
 
@@ -69,10 +68,10 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
 	 */
 	@Override
 	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-																									D outputDefinition, String contextDescription, Task task, OperationResult result) throws SchemaException {
+																									D outputDefinition, ExpressionFactory factory, String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for associationFromLink expression evaluator");
-		
+
 		JAXBElement<?> evaluatorElement = null;
 		if (evaluatorElements != null) {
 			if (evaluatorElements.size() > 1) {
@@ -80,7 +79,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
 			}
 			evaluatorElement = evaluatorElements.iterator().next();
 		}
-		
+
 		Object evaluatorTypeObject = null;
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
@@ -89,8 +88,8 @@ public class AssociationFromLinkExpressionEvaluatorFactory implements Expression
             throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         AssociationFromLinkExpressionEvaluator evaluator = new AssociationFromLinkExpressionEvaluator(
-        		(AssociationFromLinkExpressionEvaluatorType)evaluatorTypeObject, 
-        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, objectResolver, prismContext);
+        		(AssociationFromLinkExpressionEvaluatorType)evaluatorTypeObject,
+        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, getObjectResolver(), prismContext);
         return (ExpressionEvaluator<V,D>) evaluator;
 	}
 

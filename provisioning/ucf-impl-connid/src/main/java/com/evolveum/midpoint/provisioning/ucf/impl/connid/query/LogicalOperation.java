@@ -65,7 +65,7 @@ public class LogicalOperation extends Operation{
 				return getInterpreter().interpret(conditions.get(0), icfNameMapper);
 			}
 			
-			List<Filter> filters = new ArrayList<Filter>();
+			List<Filter> filters = new ArrayList<>();
 			for (ObjectFilter objFilter : nAry.getConditions()){
 				Filter f = getInterpreter().interpret(objFilter, icfNameMapper);
 				filters.add(f);

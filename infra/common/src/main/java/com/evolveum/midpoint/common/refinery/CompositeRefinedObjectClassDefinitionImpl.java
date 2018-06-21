@@ -31,16 +31,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptySet;
+
 /**
  * Used to represent combined definition of structural and auxiliary object classes.
- * 
+ *
  * @author semancik
  *
  */
@@ -102,6 +108,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public boolean isIgnored() {
 		return structuralObjectClassDefinition.isIgnored();
 	}
+	
+	@Override
+	public ItemProcessing getProcessing() {
+		return structuralObjectClassDefinition.getProcessing();
+	}
 
 	@Override
 	public boolean isEmphasized() {
@@ -126,6 +137,21 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public boolean isDeprecated() {
 		return structuralObjectClassDefinition.isDeprecated();
+	}
+	
+	@Override
+	public String getDeprecatedSince() {
+		return structuralObjectClassDefinition.getDeprecatedSince();
+	}
+	
+	@Override
+	public boolean isExperimental() {
+		return structuralObjectClassDefinition.isExperimental();
+	}
+	
+	@Override
+	public boolean isElaborate() {
+		return structuralObjectClassDefinition.isElaborate();
 	}
 
 	@Override
@@ -205,7 +231,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public Collection<? extends RefinedAttributeDefinition<?>> getSecondaryIdentifiers() {
 		return structuralObjectClassDefinition.getSecondaryIdentifiers();
 	}
-	
+
 	@Override
 	public Collection<? extends RefinedAttributeDefinition<?>> getAllIdentifiers() {
 		return structuralObjectClassDefinition.getAllIdentifiers();
@@ -262,8 +288,8 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public ResourceType getResourceType() {
-		return structuralObjectClassDefinition.getResourceType();
+	public String getResourceOid() {
+		return structuralObjectClassDefinition.getResourceOid();
 	}
 
 	@Override
@@ -275,7 +301,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public ResourceObjectReferenceType getBaseContext() {
 		return structuralObjectClassDefinition.getBaseContext();
 	}
-	
+
 	@Override
 	public ResourceObjectVolatilityType getVolatility() {
 		return structuralObjectClassDefinition.getVolatility();
@@ -321,23 +347,23 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return structuralObjectClassDefinition.matches(shadowType);
 	}
 
-	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
-		return structuralObjectClassDefinition.getEffectiveCapability(capabilityClass);
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
+		return structuralObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
 	}
 
 	@Override
-	public PagedSearchCapabilityType getPagedSearches() {
-		return structuralObjectClassDefinition.getPagedSearches();
+	public PagedSearchCapabilityType getPagedSearches(ResourceType resourceType) {
+		return structuralObjectClassDefinition.getPagedSearches(resourceType);
 	}
 
 	@Override
-	public boolean isPagedSearchEnabled() {
-		return structuralObjectClassDefinition.isPagedSearchEnabled();
+	public boolean isPagedSearchEnabled(ResourceType resourceType) {
+		return structuralObjectClassDefinition.isPagedSearchEnabled(resourceType);
 	}
 
 	@Override
-	public boolean isObjectCountingEnabled() {
-		return structuralObjectClassDefinition.isObjectCountingEnabled();
+	public boolean isObjectCountingEnabled(ResourceType resourceType) {
+		return structuralObjectClassDefinition.isObjectCountingEnabled(resourceType);
 	}
 
 	@Override
@@ -384,7 +410,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		}
 		return defs;
 	}
-	
+
 	@Override
 	public PrismContext getPrismContext() {
 		return structuralObjectClassDefinition.getPrismContext();
@@ -454,21 +480,25 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return getAssociationDefinitions(ShadowKindType.ENTITLEMENT);
 	}
 
-	public RefinedAssociationDefinition findEntitlementAssociationDefinition(QName name) {
-		for (RefinedAssociationDefinition assocType: getEntitlementAssociationDefinitions()) {
-			if (QNameUtil.match(assocType.getName(), name)) {
-				return assocType;
-			}
-		}
-		return null;
-	}
-
 	@Override
 	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
 		return getAssociationDefinitions().stream()
 				.filter(assocDef -> assocDef.getOutboundMappingType() != null)
 				.map(a -> a.getName())
 				.collect(Collectors.toCollection(HashSet::new));
+	}
+	
+	@Override
+	public Collection<? extends QName> getNamesOfAssociationsWithInboundExpressions() {
+		return getAssociationDefinitions().stream()
+				.filter(assocDef -> CollectionUtils.isNotEmpty(assocDef.getInboundMappingTypes()))
+				.map(a -> a.getName())
+				.collect(Collectors.toCollection(HashSet::new));
+	}
+
+	@Override
+	public ResourceBidirectionalMappingAndDefinitionType getAuxiliaryObjectClassMappings() {
+		return structuralObjectClassDefinition.getAuxiliaryObjectClassMappings();
 	}
 
 	@Override
@@ -493,11 +523,6 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
 		throw new UnsupportedOperationException("TODO implement if needed");
-	}
-
-	@Override
-	public String getResourceNamespace() {
-		return structuralObjectClassDefinition.getResourceNamespace();
 	}
 
 	// TODO
@@ -566,11 +591,36 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
-	public ResourcePasswordDefinitionType getPasswordDefinition() {		// TODO what if there is a conflict?
-		return getRefinedObjectClassDefinitionsStream()
-				.map(def -> def.getPasswordDefinition())
-				.findFirst().orElse(null);
+	public ResourcePasswordDefinitionType getPasswordDefinition() {
+		return findInDefinitions(def -> def.getPasswordDefinition());
 	}
+	
+	private <T> T findInDefinitions(Function<RefinedObjectClassDefinition,T> transform) {
+		if (structuralObjectClassDefinition != null) {
+			T val = transform.apply(structuralObjectClassDefinition);
+			if (val != null) {
+				return val;
+			}
+		}
+		// TODO what if there is a conflict?
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+			T val = transform.apply(auxiliaryObjectClassDefinition);
+			if (val != null) {
+				return val;
+			}
+		}
+		return null;
+	}
+	
+    @Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		structuralObjectClassDefinition.accept(visitor);
+		for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+			auxiliaryObjectClassDefinition.accept(visitor);
+		}
+	}
+
 
 	@NotNull
 	@Override
@@ -620,10 +670,10 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     public String debugDump() {
         return debugDump(0);
     }
-    
+
     @Override
     public String debugDump(int indent) {
-    	return debugDump(indent, null);
+    	return debugDump(indent, (LayerType) null);
     }
 
     protected String debugDump(int indent, LayerType layer) {
@@ -639,7 +689,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         DebugUtil.debugDumpWithLabel(sb, "auxiliary", auxiliaryObjectClassDefinitions, indent + 1);
         return sb.toString();
     }
-    
+
     /**
      * Return a human readable name of this class suitable for logs.
      */
@@ -655,7 +705,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 			return getKind()+":"+getIntent();
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		if (auxiliaryObjectClassDefinitions.isEmpty()) {
@@ -673,10 +723,10 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 
 	@NotNull
 	@Override
-	public CompositeRefinedObjectClassDefinitionImpl deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
-		RefinedObjectClassDefinition structuralClone = structuralObjectClassDefinition.deepClone(ctdMap);
+	public CompositeRefinedObjectClassDefinitionImpl deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+		RefinedObjectClassDefinition structuralClone = structuralObjectClassDefinition.deepClone(ctdMap, onThisPath, postCloneAction);
 		List<RefinedObjectClassDefinition> auxiliaryClones = auxiliaryObjectClassDefinitions.stream()
-				.map(def -> def.deepClone(ctdMap))
+				.map(def -> def.deepClone(ctdMap, onThisPath, postCloneAction))
 				.collect(Collectors.toCollection(ArrayList::new));
 		return new CompositeRefinedObjectClassDefinitionImpl(structuralClone, auxiliaryClones);
 	}
@@ -684,5 +734,33 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public boolean isListMarker() {
 		return structuralObjectClassDefinition.isListMarker();
+	}
+
+	@Override
+	public void trimTo(@NotNull Collection<ItemPath> paths) {
+		structuralObjectClassDefinition.trimTo(paths);
+		auxiliaryObjectClassDefinitions.forEach(def -> def.trimTo(paths));
+	}
+
+	// TODO
+	@Override
+	public boolean isShared() {
+		return false;
+	}
+
+	@Override
+	public boolean isReferenceMarker() {
+		return structuralObjectClassDefinition.isReferenceMarker();
+	}
+
+	@NotNull
+	@Override
+	public Collection<TypeDefinition> getStaticSubTypes() {
+		return emptySet();
+	}
+
+	@Override
+	public Integer getInstantiationOrder() {
+		return null;
 	}
 }

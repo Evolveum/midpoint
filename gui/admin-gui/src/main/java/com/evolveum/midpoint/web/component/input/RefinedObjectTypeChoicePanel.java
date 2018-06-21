@@ -38,11 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class RefinedObjectTypeChoicePanel extends DropDownChoicePanel<RefinedObjectClassDefinition> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(RefinedObjectTypeChoicePanel.class);
-	
+
 	public RefinedObjectTypeChoicePanel(String id, IModel<RefinedObjectClassDefinition> model, IModel<PrismObject<ResourceType>> resourceModel) {
 		super(id, model, createChoiceModel(resourceModel), createRenderer(), false);
 	}
-	
+
 	private static IModel<? extends List<? extends RefinedObjectClassDefinition>> createChoiceModel(final IModel<PrismObject<ResourceType>> resourceModel) {
 		return new IModel<List<? extends RefinedObjectClassDefinition>>() {
 			@Override

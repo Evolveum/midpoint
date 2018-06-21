@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -27,7 +26,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -37,13 +35,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -53,6 +45,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -62,17 +55,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Almost the same as TestDummy but this is using a UUID as ICF UID.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyUuidNonUniqueName extends TestDummyUuid {
-	
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-uuid-nonunique-name/");
+
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-uuid-nonunique-name");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
-	
+
 	public static final String ACCOUNT_FETTUCINI_NAME = "fettucini";
 	public static final File ACCOUNT_FETTUCINI_ALFREDO_FILE = new File(TEST_DIR, "account-alfredo-fettucini.xml");
 	public static final String ACCOUNT_FETTUCINI_ALFREDO_OID = "c0c010c0-d34d-b44f-f11d-444400009ffa";
@@ -86,51 +79,49 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 	protected File getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILE;
 	}
-	
+
 	@Override
 	protected boolean isNameUnique() {
 		return false;
 	}
-	
+
 	@Test
 	public void test770AddAccountFettuciniAlfredo() throws Exception {
 		final String TEST_NAME = "test770AddAccountFettuciniAlfredo";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_ALFREDO_FILE, ACCOUNT_FETTUCINI_ALFREDO_OID, ACCOUNT_FETTUCINI_ALFREDO_FULLNAME);
 		searchFettucini(1);
 	}
-	
+
 	@Test
 	public void test772AddAccountFettuciniBill() throws Exception {
 		final String TEST_NAME = "test772AddAccountFettuciniBill";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		addFettucini(TEST_NAME, ACCOUNT_FETTUCINI_BILL_FILE, ACCOUNT_FETTUCINI_BILL_OID, ACCOUNT_FETTUCINI_BILL_FULLNAME);
 		searchFettucini(2);
 	}
-	
+
 	/**
 	 * Add directly on resource. Therefore provisioning must create the shadow during search.
 	 */
 	@Test
 	public void test774AddAccountFettuciniCarlo() throws Exception {
 		final String TEST_NAME = "test774AddAccountFettuciniCarlo";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		dummyResourceCtl.addAccount(ACCOUNT_FETTUCINI_NAME, ACCOUNT_FETTUCINI_CARLO_FULLNAME);
 		searchFettucini(3);
 	}
-	
+
 	@Override
 	@Test
 	public void test600AddAccountAlreadyExist() throws Exception {
 		// DO nothing. This test is meaningless in non-unique environment
 	}
 
-	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, SchemaViolationException, ConflictException {
+	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException, SchemaViolationException, ConflictException, ExpressionEvaluationException {
 		// GIVEN
-		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ "." + TEST_NAME);
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ "." + TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		PrismObject<ShadowType> account = prismContext.parseObject(file);
@@ -156,7 +147,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
 		assertAttribute(accountRepo, SchemaConstants.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
 		String icfUid = getIcfUid(accountRepo);
-		
+
 		syncServiceMock.assertNotifySuccessOnly();
 
 		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
@@ -184,13 +175,13 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 
 		checkConsistency(accountProvisioning);
 		assertSteadyResource();
-		
+
 		return icfUid;
 	}
-	
-	private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".searchFettucini");
+
+	private void searchFettucini(int expectedNumberOfFettucinis) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask(TestDummy.class.getName() + ".searchFettucini");
+		OperationResult result = task.getResult();
 		ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
 				.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass"))
@@ -198,7 +189,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 				.build();
 
 		// WHEN
-		List<PrismObject<ShadowType>> shadows = provisioningService.searchObjects(ShadowType.class, query, null, null, result);
+		List<PrismObject<ShadowType>> shadows = provisioningService.searchObjects(ShadowType.class, query, null, task, result);
 		assertEquals("Wrong number of Fettucinis found", expectedNumberOfFettucinis, shadows.size());
 	}
 
@@ -206,5 +197,5 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		return new PrismPropertyDefinitionImpl<>(SchemaConstants.ICFS_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 	}
-		
+
 }

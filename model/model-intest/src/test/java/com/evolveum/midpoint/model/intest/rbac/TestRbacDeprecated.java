@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ import java.io.File;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRbacDeprecated extends TestRbac {
-	
+
 	protected static final File ROLE_GOVERNOR_DEPRECATED_FILE = new File(TEST_DIR, "role-governor-deprecated.xml");
 	protected static final File ROLE_CANNIBAL_DEPRECATED_FILE = new File(TEST_DIR, "role-cannibal-deprecated.xml");
-		
+
 	@Override
 	protected File getRoleGovernorFile() {
 		return ROLE_GOVERNOR_DEPRECATED_FILE;

@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.model.impl.security;
 
 import java.io.IOException;
@@ -14,8 +29,6 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -27,7 +40,6 @@ import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,6 +48,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -55,20 +68,20 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 	protected static final String USER_CHALLENGE = "\"user\" : \"username\"";
 	protected static final String USER_QUESTION_ANSWER_CHALLENGE = ", \"answer\" :";
 	protected static final String QUESTION = "{\"qid\" : \"$QID\", \"qtxt\" : \"$QTXT\"}";
-	
+
 	private static final String Q_ID = "$QID";
 	private static final String Q_TXT = "$QTXT";
-	
-	
+
+
 	@Autowired
 	private PrismContext prismContext;
-	
+
 	@Autowired
 	private ModelInteractionService modelInteractionService;
-	
+
 	@Autowired(required = true)
 	private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> securityQuestionsAuthenticationEvaluator;
-	
+
 	@Override
 	protected AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> getAuthenticationEvaluator() {
 		return securityQuestionsAuthenticationEvaluator;
@@ -93,7 +106,7 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 			String userName = userNameNode.asText();
 			policy.setUserName(userName);
 			JsonNode answerNode = node.findPath("answer");
-			
+
 			if (answerNode instanceof MissingNode) {
 				SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken("restapi", "REST", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
 				SearchResultList<PrismObject<UserType>> users = null;
@@ -102,19 +115,19 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 				} finally {
 					SecurityContextHolder.getContext().setAuthentication(null);
 				}
-				
+
 				if (users.size() != 1) {
 					requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Security question authentication failed. Incorrect username and/or password").build());
 					return null;
 				}
-				
+
 				PrismObject<UserType> user = users.get(0);
 				PrismContainer<SecurityQuestionAnswerType> questionAnswerContainer = user.findContainer(SchemaConstants.PATH_SECURITY_QUESTIONS_QUESTION_ANSWER);
 				if (questionAnswerContainer == null || questionAnswerContainer.isEmpty()){
 					requestCtx.abortWith(Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Security question authentication failed. Incorrect username and/or password").build());
 					return null;
 				}
-				
+
 				String questionChallenge = "";
 				List<SecurityQuestionDefinitionType> questions = null;
 				try {
@@ -134,12 +147,12 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 						questionChallenge += ",";
 					}
 				}
-				
+
 				String userChallenge = USER_CHALLENGE.replace("username", userName);
 				String challenge = "{" + userChallenge + ", \"answer\" : [" + questionChallenge + "]}";
 				RestServiceUtil.createSecurityQuestionAbortMessage(requestCtx, challenge);
 				return null;
-				
+
 			}
 			ArrayNode answers = (ArrayNode) answerNode;
 			Iterator<JsonNode> answersList = answers.elements();
@@ -151,35 +164,35 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 				questionAnswers.put(questionId, questionAnswer);
 			}
 			return new SecurityQuestionsAuthenticationContext(userName, questionAnswers);
-		
+
 	}
-	
+
 	private SearchResultList<PrismObject<UserType>> searchUser(String userName) {
-		return getSecurityEnforcer().runPrivileged(new Producer<SearchResultList<PrismObject<UserType>>>() {
+		return getSecurityContextManager().runPrivileged(new Producer<SearchResultList<PrismObject<UserType>>>() {
 			@Override
 			public SearchResultList<PrismObject<UserType>> run() {
 				Task task = getTaskManager().createTaskInstance("Search user by name");
 				OperationResult result = task.getResult();
-				
+
 				SearchResultList<PrismObject<UserType>> users;
 				try {
 					users = getModel().searchObjects(UserType.class, ObjectQueryUtil.createNameQuery(userName, prismContext), null, task, result);
 				} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-						| CommunicationException | ConfigurationException e) {
+						| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 					return null;
 				} finally {
 					SecurityContextHolder.getContext().setAuthentication(null);
 				}
 				return users;
-				
+
 			}
 		});
-	 
+
 	}
-	
+
 	private List<SecurityQuestionDefinitionType> getQuestions(PrismObject<UserType> user) {
-		return getSecurityEnforcer().runPrivileged(new Producer<List<SecurityQuestionDefinitionType>>() {
-			
+		return getSecurityContextManager().runPrivileged(new Producer<List<SecurityQuestionDefinitionType>>() {
+
 			@Override
 			public List<SecurityQuestionDefinitionType> run() {
 				Task task = getTaskManager().createTaskInstance("Search user by name");
@@ -199,7 +212,7 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 				return null;
 			}
 		});
-		
+
 	}
 
 }

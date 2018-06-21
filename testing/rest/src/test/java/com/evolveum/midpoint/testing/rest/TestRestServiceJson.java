@@ -38,12 +38,12 @@ public class TestRestServiceJson extends TestAbstractRestService {
 		return MediaType.APPLICATION_JSON;
 	}
 
-	
+
 	@Override
 	protected File getRepoFile(String fileBaseName) {
 		return new File(BASE_REPO_DIR + "/json", fileBaseName + ".json");
 	}
-	
+
 	@Override
 	protected File getRequestFile(String fileBaseName) {
 		return new File(BASE_REQ_DIR + "/json", fileBaseName + ".json");
@@ -53,5 +53,5 @@ public class TestRestServiceJson extends TestAbstractRestService {
 	protected MidpointAbstractProvider getProvider() {
 		return jsonProvider;
 	}
-	
+
 }

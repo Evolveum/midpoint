@@ -13,11 +13,8 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -25,10 +22,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @JaxbType(type = TriggerType.class)
 @Entity
 @IdClass(RContainerId.class)
-//@Table(indexes = {@Index(name = "iTriggerTimestamp", columnList = RTrigger.C_TIMESTAMP)})
-@ForeignKey(name = "fk_trigger")
-@org.hibernate.annotations.Table(appliesTo = "m_trigger",
-        indexes = {@Index(name = "iTriggerTimestamp", columnNames = RTrigger.C_TIMESTAMP)})
+@Table(indexes = {@Index(name = "iTriggerTimestamp", columnList = RTrigger.C_TIMESTAMP)})
 public class RTrigger implements Container {
 
     public static final String F_OWNER = "owner";
@@ -53,9 +47,9 @@ public class RTrigger implements Container {
     }
 
     @Id
-    @ForeignKey(name = "fk_trigger_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(foreignKey = @ForeignKey(name = "fk_trigger_owner"))
     @NotQueryable
     public RObject getOwner() {
         return owner;
@@ -153,14 +147,31 @@ public class RTrigger implements Container {
 
     }
 
+    public static void copyFromJAXB(TriggerType jaxb, RTrigger repo, RObject parent,
+                                    RepositoryContext repositoryContext) throws DtoTranslationException {
+
+        repo.setOwner(parent);
+        copyFromJAXB(jaxb, repo, repositoryContext, null);
+    }
+
     public static void copyFromJAXB(TriggerType jaxb, RTrigger repo, ObjectType parent,
-            RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
+                                    RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
+
+        repo.setOwnerOid(parent.getOid());
+        copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+    }
+
+    private static void copyFromJAXB(TriggerType jaxb, RTrigger repo, RepositoryContext repositoryContext,
+                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
+
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
-        repo.setOwnerOid(parent.getOid());
+        if (generatorResult != null) {
+            repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
+        }
+
         repo.setId(RUtil.toInteger(jaxb.getId()));
 
         repo.setHandlerUri(jaxb.getHandlerUri());

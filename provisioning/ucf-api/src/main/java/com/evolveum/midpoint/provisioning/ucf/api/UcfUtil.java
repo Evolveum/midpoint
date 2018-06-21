@@ -19,15 +19,12 @@ import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import javax.xml.namespace.QName;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
@@ -37,7 +34,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -46,7 +42,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 public class UcfUtil {
-	
+
 	public static void addConnectorNames(ConnectorType connectorType, String frameworkPrefix, String bundle, String type, String version, ConnectorHostType hostType) {
 		StringBuilder connectorName = new StringBuilder();
 		connectorName.append(frameworkPrefix).append(" ");
@@ -76,18 +72,18 @@ public class UcfUtil {
 		PrismSchema connectorSchema = PrismSchemaImpl.parse(xsdElement, true, connectorType.toString(), prismContext);
 		return connectorSchema;
 	}
-	
+
 	public static void setConnectorSchema(ConnectorType connectorType, PrismSchema connectorSchema) throws SchemaException {
 		Document xsdDoc = connectorSchema.serializeToXsd();
 		Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
 		ConnectorTypeUtil.setConnectorXsdSchema(connectorType, xsdElement);
 	}
-	
+
 	public static PropertyDescriptor findAnnotatedProperty(Class<?> connectorClass, Class<? extends Annotation> annotationClass) {
 		BeanWrapper connectorBean = new BeanWrapperImpl(connectorClass);
 		return findAnnotatedProperty(connectorBean, annotationClass);
 	}
-	
+
 	public static PropertyDescriptor findAnnotatedProperty(BeanWrapper connectorBean, Class<? extends Annotation> annotationClass) {
 		for (PropertyDescriptor prop: connectorBean.getPropertyDescriptors()) {
 			if (hasAnnotation(prop, annotationClass)) {
@@ -112,5 +108,5 @@ public class UcfUtil {
 		}
 		return false;
 	}
-	
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -121,28 +121,28 @@ public class RichHyperlinkConfigDialog extends ModalWindow {
     }
 
     private void initLayout(WebMarkupContainer content){
-        Form form = new Form(ID_MAIN_FORM);
+        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         form.setOutputMarkupId(true);
         content.add(form);
 
         TextFormGroup name = new TextFormGroup(ID_LABEL,
-                new PropertyModel<String>(model, RichHyperlinkType.F_LABEL.getLocalPart()),
+            new PropertyModel<>(model, RichHyperlinkType.F_LABEL.getLocalPart()),
                 createStringResource("RichHyperlinkConfigDialog.label"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         form.add(name);
 
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
-                new PropertyModel<String>(model, RichHyperlinkType.F_DESCRIPTION.getLocalPart()),
+            new PropertyModel<>(model, RichHyperlinkType.F_DESCRIPTION.getLocalPart()),
                 createStringResource("RichHyperlinkConfigDialog.description"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         description.setVisible(!isMenuItem);
         form.add(description);
 
         TextFormGroup targetUrl = new TextFormGroup(ID_TARGET_URL,
-                new PropertyModel<String>(model, RichHyperlinkType.F_TARGET_URL.getLocalPart()),
+            new PropertyModel<>(model, RichHyperlinkType.F_TARGET_URL.getLocalPart()),
                 createStringResource("RichHyperlinkConfigDialog.targetUrl"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(targetUrl);
 
         TextFormGroup color = new TextFormGroup(ID_COLOR,
-                new PropertyModel<String>(model, RichHyperlinkType.F_COLOR.getLocalPart()),
+            new PropertyModel<>(model, RichHyperlinkType.F_COLOR.getLocalPart()),
                 createStringResource("RichHyperlinkConfigDialog.color"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         color.setVisible(!isMenuItem);
         form.add(color);
@@ -154,7 +154,7 @@ public class RichHyperlinkConfigDialog extends ModalWindow {
         form.add(authorizations);
 
         TextFormGroup icon = new TextFormGroup(ID_ICON,
-                new PropertyModel<String>(model, RichHyperlinkType.F_ICON.getLocalPart() + "." + IconType.F_CSS_CLASS.getLocalPart()),
+            new PropertyModel<>(model, RichHyperlinkType.F_ICON.getLocalPart() + "." + IconType.F_CSS_CLASS.getLocalPart()),
                 createStringResource("RichHyperlinkConfigDialog.icon"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(icon);
 

@@ -23,9 +23,9 @@ import ch.qos.logback.classic.Level;
 import org.apache.commons.lang.Validate;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public class LoggingUtils {
 
@@ -99,7 +99,7 @@ public class LoggingUtils {
 			}
 		}
 	}
-		
+
 	public static String dumpStackTrace(Class... classesToSkip) {
 		StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
 		String immediateClass = null;

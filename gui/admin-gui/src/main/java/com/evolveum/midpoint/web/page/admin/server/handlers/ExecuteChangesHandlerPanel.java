@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,19 +29,27 @@ public class ExecuteChangesHandlerPanel extends QueryBasedHandlerPanel<ExecuteCh
 
 	private static final String ID_CHANGE_CONTAINER = "changeContainer";
 	private static final String ID_CHANGE = "change";
+	private static final String ID_OPTIONS_CONTAINER = "optionsContainer";
+	private static final String ID_OPTIONS = "options";
 
 	public ExecuteChangesHandlerPanel(String id, IModel<ExecuteChangesHandlerDto> model) {
 		super(id, model);
 		initLayout();
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout() {
 		WebMarkupContainer changeContainer = new WebMarkupContainer(ID_CHANGE_CONTAINER);
 		TextArea change = new TextArea<>(ID_CHANGE, new PropertyModel<>(getModel(), ExecuteChangesHandlerDto.F_OBJECT_DELTA_XML));
 		change.setEnabled(false);
 		changeContainer.add(change);
 		add(changeContainer);
+
+		WebMarkupContainer optionsContainer = new WebMarkupContainer(ID_OPTIONS_CONTAINER);
+		TextArea options = new TextArea<>(ID_OPTIONS, new PropertyModel<>(getModel(), ExecuteChangesHandlerDto.F_OPTIONS));
+		options.setEnabled(false);
+		optionsContainer.add(options);
+		add(optionsContainer);
 	}
 
 }

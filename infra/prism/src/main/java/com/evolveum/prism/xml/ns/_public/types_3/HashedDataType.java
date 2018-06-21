@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlType;
 /**
  * JAXB representation of HashedDataType.
  * Manually created (not generated)
- * 
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "HashedDataType", propOrder = {
@@ -38,7 +38,7 @@ public class HashedDataType implements Serializable, Cloneable {
 
 	@XmlElement(required = true)
     protected DigestMethodType digestMethod;
-    
+
     @XmlElement(required = true)
     protected byte[] digestValue;
 

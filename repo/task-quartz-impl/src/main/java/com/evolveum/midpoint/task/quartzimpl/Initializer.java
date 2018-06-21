@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,11 +26,11 @@ import com.evolveum.midpoint.task.quartzimpl.execution.JobStarter;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
@@ -73,13 +72,11 @@ public class Initializer {
                 SqlRepositoryFactory sqlRepositoryFactory = (SqlRepositoryFactory) taskManager.getBeanFactory().getBean("sqlRepositoryFactory");
                 sqlConfig = sqlRepositoryFactory.getSqlConfiguration();
                 if (sqlConfig.isEmbedded()) {
-                    defaultJdbcUrlPrefix = sqlRepositoryFactory.prepareJdbcUrlPrefix(sqlConfig);
+                    defaultJdbcUrlPrefix = sqlConfig.getDefaultEmbeddedJdbcUrlPrefix();
                 }
-            } catch(NoSuchBeanDefinitionException e) {
+            } catch (NoSuchBeanDefinitionException e) {
                 LOGGER.info("SqlRepositoryFactory is not available, JDBC Job Store configuration will be taken from taskManager section only.");
                 LOGGER.trace("Reason is", e);
-            } catch (RepositoryServiceFactoryException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot determine default JDBC URL for embedded database", e);
             }
 
             configuration.setJdbcJobStoreInformation(midpointConfiguration, sqlConfig, defaultJdbcUrlPrefix);
@@ -87,9 +84,9 @@ public class Initializer {
         }
 
         // register node
-        taskManager.getClusterManager().createNodeObject(result);     // may throw initialization exception
+        NodeType node = taskManager.getClusterManager().createOrUpdateNodeInRepo(result);     // may throw initialization exception
         if (!taskManager.getConfiguration().isTestMode()) {  // in test mode do not start cluster manager thread nor verify cluster config
-            taskManager.getClusterManager().checkClusterConfiguration(result);      // does not throw exceptions, sets the ERROR state if necessary, however
+            taskManager.getClusterManager().checkClusterConfiguration(result);      // Does not throw exceptions. Sets the ERROR state if necessary, however.
         }
 
         NoOpTaskHandler.instantiateAndRegister(taskManager);
@@ -99,12 +96,14 @@ public class Initializer {
         JobStarter.setTaskManagerQuartzImpl(taskManager);        // the same here
 
         taskManager.getExecutionManager().initializeLocalScheduler();
-        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatusType.OK) {
+        if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
+            taskManager.getExecutionManager().setLocalExecutionLimitations(node);
+        } else {
             taskManager.getExecutionManager().shutdownLocalSchedulerChecked();
         }
 
         // populate the scheduler with jobs (if RAM-based), or synchronize with midPoint repo
-        if (taskManager.getExecutionManager().synchronizeJobStores(result) == false) {
+        if (!taskManager.getExecutionManager().synchronizeJobStores(result)) {
             if (!configuration.isJdbcJobStore()) {
                 LOGGER.error("Some or all tasks could not be imported from midPoint repository to Quartz job store. They will therefore not be executed.");
             } else {

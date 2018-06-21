@@ -21,6 +21,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.marshaller.PrismBeanInspector;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
@@ -51,14 +52,14 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
      */
 	private T value;
 	private ValueParser<T> valueParser;
-	
+
 	/**
 	 * If set to true then this primitive value either came from an attribute
 	 * or we prefer this to be represented as an attribute (if the target format
 	 * is capable of representing attributes)
 	 */
 	private boolean isAttribute = false;
-		
+
 	public PrimitiveXNode() {
 		super();
 	}
@@ -100,7 +101,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 			throw new SchemaException("Expected " + expectedClass + " but got " + value.getClass() + " instead. Value is " + value);
 		}
 	}
-	
+
 	public ValueParser<T> getValueParser() {
 		return valueParser;
 	}
@@ -117,6 +118,9 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
                 // last desperate attempt to determine type name from the value type
                 typeQName = XsdTypeMapper.getJavaToXsdMapping(value.getClass());
                 if (typeQName == null) {
+	                typeQName = PrismBeanInspector.determineTypeForClassUncached(value.getClass());     // little hack
+                }
+                if (typeQName == null) {
                     throw new IllegalStateException("Cannot determine type QName for a value of '" + value + "'");            // todo show only class? (security/size reasons)
                 }
             }
@@ -125,7 +129,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 		this.value = value;
         this.valueParser = null;
 	}
-	
+
 	public boolean isParsed() {
 		return valueParser == null;
 	}
@@ -137,7 +141,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 	public void setAttribute(boolean isAttribute) {
 		this.isAttribute = isAttribute;
 	}
-	
+
 	public boolean isEmpty() {
 		if (!isParsed()) {
 			return valueParser.isEmpty();
@@ -217,11 +221,11 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
         if (value instanceof DisplayableValue) {
         	return ((DisplayableValue) value).getValue().toString();
         }
-        
+
         if (value != null && value.getClass().isEnum()){
         	return value.toString();
         }
-        
+
         return XmlTypeConverter.toXmlTextContent(value, null);
     }
 
@@ -229,7 +233,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -241,12 +245,12 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 		}
 		return sb.toString();
 	}
-	
+
 	@Override
 	public String getDesc() {
 		return "primitive";
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("XNode(primitive:");
@@ -334,7 +338,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
 		if (!(obj instanceof PrimitiveXNode)) {
 			return false;
 		}
-		
+
 		PrimitiveXNode other = (PrimitiveXNode) obj;
 		if (other.isParsed() && isParsed()){
 			return value.equals(other.value);
@@ -352,7 +356,7 @@ public class PrimitiveXNode<T> extends XNode implements Serializable {
             String otherStringValue = other.getStringValue();
 			return thisStringValue.equals(otherStringValue);
 		}
-		
+
 		return false;
 	}
 

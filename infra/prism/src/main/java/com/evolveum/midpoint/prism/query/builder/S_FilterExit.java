@@ -30,6 +30,8 @@ public interface S_FilterExit extends S_QueryExit {
     S_FilterExit asc(ItemPath path);
     S_FilterExit desc(QName... names);
     S_FilterExit desc(ItemPath path);
+    S_FilterExit group(QName... names);
+    S_FilterExit group(ItemPath path);
     S_FilterExit offset(Integer n);
     S_FilterExit maxSize(Integer n);
 }

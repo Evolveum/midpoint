@@ -10,6 +10,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF;
@@ -69,6 +70,7 @@ public class AccessCertificationReviewerDto implements Serializable {
 					PrismReferenceDefinition.class,
 					AccessCertificationDefinitionType.F_STAGE_DEFINITION, AccessCertificationStageDefinitionType.F_REVIEWER_SPECIFICATION, F_ADDITIONAL_REVIEWER_REF);
 			additionalReviewersReference = additionalReviewerDef.instantiate();
+			reviewerExpressionList = new ArrayList<>();
 		}
 		setDefaultReviewers(new ReferenceWrapper(null, defaultReviewersReference, false, ValueStatus.NOT_CHANGED));
 		setAdditionalReviewers(new ReferenceWrapper(null, additionalReviewersReference, false, ValueStatus.NOT_CHANGED));

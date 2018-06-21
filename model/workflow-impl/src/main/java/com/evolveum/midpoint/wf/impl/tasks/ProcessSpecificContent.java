@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,16 @@
 package com.evolveum.midpoint.wf.impl.tasks;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
+import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificStateType;
 
 import java.util.Map;
@@ -31,4 +41,8 @@ public interface ProcessSpecificContent {
 	void createProcessVariables(Map<String, Object> map, PrismContext prismContext);
 
 	WfProcessSpecificStateType createProcessSpecificState();
+
+	boolean checkEmpty(PcpChildWfTaskCreationInstruction instruction,
+			WfStageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 }

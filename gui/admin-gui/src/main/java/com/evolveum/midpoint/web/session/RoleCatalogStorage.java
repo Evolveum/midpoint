@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  */
 package com.evolveum.midpoint.web.session;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
-import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
+import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
+import com.evolveum.midpoint.web.page.self.dto.ShoppingCartConfigurationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -50,11 +50,13 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private SelectableBean<OrgType> collapsedItem = null;                 //collapsed tree item
     private List<AssignmentEditorDto> assignmentShoppingCart;   //  a list of assignments in the shopping cart
     private AssignmentViewType viewType = null;      //the current view type
-    private List<PrismObject<UserType>> targetUserList = new ArrayList<>();
-    private PrismObject<UserType> assignmentsUserOwner = null;
-    private List<AssignmentConflictDto> conflictsList;
+    private List<UserType> targetUserList = new ArrayList<>();
+    private UserType assignmentsUserOwner = null;
+    private List<ConflictDto> conflictsList;
     private String requestDescription = "";
     private ObjectPaging roleCatalogPaging;
+
+    private ShoppingCartConfigurationDto shoppingCartConfigurationDto = null;
 
     public Search getSearch() {
         return roleCatalogSearch;
@@ -137,11 +139,11 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         this.collapsedItem = collapsedItem;
     }
 
-    public List<AssignmentConflictDto> getConflictsList() {
+    public List<ConflictDto> getConflictsList() {
         return conflictsList == null ? new ArrayList<>() : conflictsList;
     }
 
-    public void setConflictsList(List<AssignmentConflictDto> conflictsList) {
+    public void setConflictsList(List<ConflictDto> conflictsList) {
         this.conflictsList = conflictsList;
     }
 
@@ -172,24 +174,35 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
         this.selectedOid = selectedOid;
     }
 
-    public List<PrismObject<UserType>> getTargetUserList() {
+    public List<UserType> getTargetUserList() {
         return targetUserList;
     }
 
-    public void setTargetUserList(List<PrismObject<UserType>> targetUserList) {
+    public void setTargetUserList(List<UserType> targetUserList) {
         this.targetUserList = targetUserList;
     }
 
-    public PrismObject<UserType> getAssignmentsUserOwner() {
+    public UserType getAssignmentsUserOwner() {
         return assignmentsUserOwner;
     }
 
-    public void setAssignmentsUserOwner(PrismObject<UserType> assignmentsUserOwner) {
+    public void setAssignmentsUserOwner(UserType assignmentsUserOwner) {
         this.assignmentsUserOwner = assignmentsUserOwner;
+    }
+
+    public boolean isSelfRequest(){
+        return getTargetUserList() == null || getTargetUserList().size() == 0;
     }
 
     public boolean isMultiUserRequest(){
         return getTargetUserList() != null && getTargetUserList().size() > 1;
     }
 
+    public ShoppingCartConfigurationDto getShoppingCartConfigurationDto() {
+        return shoppingCartConfigurationDto;
+    }
+
+    public void setShoppingCartConfigurationDto(ShoppingCartConfigurationDto shoppingCartConfigurationDto) {
+        this.shoppingCartConfigurationDto = shoppingCartConfigurationDto;
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
@@ -82,7 +83,7 @@ public class ModelOperationStatusDto implements Serializable {
 				}
 				primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, opTask, result);
 //				secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, opTask, result);
-			} catch (SchemaException e) {
+			} catch (SchemaException | ExpressionEvaluationException e) {
 				throw new SystemException(e);		// TODO
 			}
 			final WrapperScene primaryWrapperScene = new WrapperScene(primaryScenes, primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());

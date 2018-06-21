@@ -35,8 +35,8 @@ import java.util.*;
  *
  */
 public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<O>>, DebugDumpable, Serializable {
-	
-	private List<ObjectDelta<O>> waves = new ArrayList<ObjectDelta<O>>();
+
+	private List<ObjectDelta<O>> waves = new ArrayList<>();
 
 	/**
 	 * Get merged deltas from all the waves.
@@ -93,9 +93,9 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 			} catch (IllegalStateException e) {
 				throw new IllegalStateException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
 			}
-		}		
+		}
 	}
-	
+
 	public void normalize() {
 		if (waves != null) {
 			for (ObjectDelta<O> wave: waves) {
@@ -105,11 +105,11 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 			}
 		}
 	}
-	
+
 	public ObjectDeltaWaves<O> clone() {
-		ObjectDeltaWaves<O> clone = new ObjectDeltaWaves<O>();
+		ObjectDeltaWaves<O> clone = new ObjectDeltaWaves<>();
 		copyValues(clone);
-		return clone;		
+		return clone;
 	}
 
 	protected void copyValues(ObjectDeltaWaves<O> clone) {
@@ -121,7 +121,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 			}
 		}
 	}
-	
+
 	public void adopt(PrismContext prismContext) throws SchemaException {
 		for (ObjectDelta<O> thisWave: this.waves) {
 			if (thisWave != null) {
@@ -132,7 +132,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 
 
 	// DELEGATED METHODS (with small tweaks)
-	
+
 	/* (non-Javadoc)
 	 * @see java.util.List#size()
 	 */
@@ -326,9 +326,9 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 	public List<ObjectDelta<O>> subList(int fromIndex, int toIndex) {
 		return waves.subList(fromIndex, toIndex);
 	}
-	
+
 	// DUMP
-	
+
 	@Override
     public String debugDump() {
         return debugDump(0);
@@ -342,17 +342,17 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
     public String debugDump(int indent) {
     	return debugDump(indent, true);
     }
-    
+
     public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("ObjectDeltaWaves:");
-        
+
         if (waves.isEmpty()) {
         	sb.append(" empty");
         	return sb.toString();
         }
-        
+
         if (waves.size() == 1) {
         	sb.append(" single wave\n");
             if (waves.get(0) != null) {
@@ -376,7 +376,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 				}
 	        }
         }
-        
+
         return sb.toString();
     }
 
@@ -394,7 +394,6 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
                 ObjectDeltaWaveType objectDeltaWaveType = new ObjectDeltaWaveType();
                 objectDeltaWaveType.setNumber(i);
                 objectDeltaWaveType.setDelta(DeltaConvertor.toObjectDeltaType(wave));
-
                 objectDeltaWavesType.getWave().add(objectDeltaWaveType);
             }
         }
@@ -440,6 +439,10 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 			} catch (IllegalStateException e) {
 				throw new IllegalStateException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
 			}
-		}		
+		}
+	}
+
+	public void deleteDeltas() {
+		waves.clear();
 	}
 }

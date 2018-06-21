@@ -39,6 +39,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
@@ -81,13 +82,13 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     // this one is not exposed via JAXB
     protected MapXNode filterClauseXNode;           // single-subnode map node (key = filter element qname, value = contents)
-    
+
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
 	public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
 
     /**
      * Creates a new {@code QueryType} instance.
-     * 
+     *
      */
     public SearchFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -96,8 +97,8 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates a new {@code QueryType} instance by deeply copying a given {@code QueryType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -172,13 +173,20 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         return domParser.serializeSingleElementMapToElement(filterClauseXNode);
     }
 
-    public static SearchFilterType createFromXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
+    // xnode should be correct (expecting it was just created by serializing something)
+    public static SearchFilterType createFromSerializedXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
         SearchFilterType filter = new SearchFilterType();
-        filter.parseFromXNode(xnode, prismContext);
+        filter.parseFromXNode(xnode, null, prismContext);
         return filter;
     }
 
-    public void parseFromXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
+    public static SearchFilterType createFromParsedXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
+        SearchFilterType filter = new SearchFilterType();
+        filter.parseFromXNode(xnode, pc, prismContext);
+        return filter;
+    }
+
+    public void parseFromXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
     	if (xnode == null || xnode.isEmpty()) {
     		this.filterClauseXNode = null;
     		this.description = null;
@@ -206,7 +214,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
                 throw new SchemaException("Filter clause has more than one item: " + xfilter);
             }
     		this.filterClauseXNode = xfilter;
-            QueryConvertor.parseFilterPreliminarily(xfilter, prismContext);
+            QueryConvertor.parseFilterPreliminarily(xfilter, pc, prismContext);
     	}
     }
 
@@ -228,7 +236,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -264,7 +272,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 				return false;
 		} else if (!filterClauseXNode.equals(that.filterClauseXNode))
 			return false;
-      
+
         return true;
     }
 
@@ -275,7 +283,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given object.
-     * 
+     *
      * @param o
      *     The instance to copy or {@code null}.
      * @return
@@ -413,7 +421,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -458,7 +466,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -476,7 +484,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -494,7 +502,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -512,7 +520,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -530,7 +538,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -548,7 +556,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -566,7 +574,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -584,7 +592,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given array.
-     * 
+     *
      * @param array
      *     The array to copy or {@code null}.
      * @return
@@ -602,7 +610,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given {@code JAXBElement} instance.
-     * 
+     *
      * @param element
      *     The instance to copy or {@code null}.
      * @return
@@ -622,7 +630,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of a given {@code Serializable}.
-     * 
+     *
      * @param serializable
      *     The instance to copy or {@code null}.
      * @return
@@ -662,8 +670,8 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

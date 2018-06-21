@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class Resolver {
 	@Autowired
 	private Visualizer visualizer;
 
-	public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException {
+	public <O extends ObjectType> void resolve(PrismObject<O> object, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		/*if (object.getDefinition() == null) */{
 			if (object == null) {
 				return;
@@ -80,7 +80,7 @@ public class Resolver {
 				if (def != null) {
 					if (ResourceType.class.isAssignableFrom(clazz) || ShadowType.class.isAssignableFrom(clazz)) {
 						try {
-							provisioningService.applyDefinition(object, result);
+							provisioningService.applyDefinition(object, task, result);
 						} catch (ObjectNotFoundException|CommunicationException|ConfigurationException e) {
 							LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e,
 									ObjectTypeUtil.toShortString(object));
@@ -95,7 +95,7 @@ public class Resolver {
 		}
 	}
 
-	public <O extends ObjectType> void resolve(ObjectDelta<O> objectDelta, Task task, OperationResult result) throws SchemaException {
+	public <O extends ObjectType> void resolve(ObjectDelta<O> objectDelta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		if (objectDelta.isAdd()) {
 			resolve(objectDelta.getObjectToAdd(), task, result);
 		} else if (objectDelta.isDelete()) {
@@ -111,8 +111,8 @@ public class Resolver {
 			} else {
 				if (managedByProvisioning) {
 					try {
-						provisioningService.applyDefinition(objectDelta, result);
-					} catch (ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+						provisioningService.applyDefinition(objectDelta, task, result);
+					} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply definition on {} -- continuing with no definition", e, objectDelta);
 					}
 				}
@@ -158,7 +158,7 @@ public class Resolver {
 	}
 
 	// TODO caching retrieved objects
-	public void resolve(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException {
+	public void resolve(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		for (ObjectDelta<? extends ObjectType> delta : deltas) {
 			resolve(delta, task, result);
 		}

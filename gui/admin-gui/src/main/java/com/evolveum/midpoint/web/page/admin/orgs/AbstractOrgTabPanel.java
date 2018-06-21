@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
 import java.util.ArrayList;
@@ -32,15 +47,16 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
-public abstract class AbstractOrgTabPanel extends BasePanel{
-	
+public abstract class AbstractOrgTabPanel extends BasePanel {
+	private static final long serialVersionUID = 1L;
+
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractOrgTabPanel.class);
-	
+
 	public static final String PARAM_ORG_RETURN = "org";
 
     private static final String DOT_CLASS = OrgTreeAssignablePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
-    
+
     private String ID_TABS = "tabs";
     private List<PrismObject<OrgType>> roots;
 
@@ -49,9 +65,10 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
 		setParent(pageBase);
 		initLayout();
 	}
-	
+
 	private void initLayout() {
         final IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected List<ITab> load() {
@@ -62,11 +79,14 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
                 for (PrismObject<OrgType> root : roots) {
                     final String oid = root.getOid();
                     tabs.add(new AbstractTab(createTabTitle(root)) {
+                    	private static final long serialVersionUID = 1L;
                         private int tabId = tabs.size();
 
                         @Override
                         public WebMarkupContainer getPanel(String panelId) {
                             add(new AjaxEventBehavior("load") {
+                            		private static final long serialVersionUID = 1L;
+
                                     protected void onEvent(final AjaxRequestTarget target) {
                                         SessionStorage storage = getPageBase().getSessionStorage();
                                         storage.getUsers().setSelectedTabId(tabId);
@@ -77,8 +97,8 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
                             panel.setOutputMarkupId(true);
                             return panel;
                         }
-                        
-                        
+
+
                     });
                 }
 
@@ -91,14 +111,14 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
         final SessionStorage storage = getPageBase().getSessionStorage();
         int selectedTab = storage.getUsers().getSelectedTabId() == -1 ? 0 : storage.getUsers().getSelectedTabId();
         List<ITab> tabsList = tabModel.getObject();
-        if (tabsList == null || (selectedTab > tabsList.size() - 1)){
+        if (tabsList == null || (selectedTab > tabsList.size() - 1)) {
             storage.getUsers().setSelectedTabId(0);
             selectedTab = 0;
         }
         AjaxTabbedPanel<ITab> tabbedPanel = new AjaxTabbedPanel<ITab>(ID_TABS, tabModel.getObject(), new Model<>(selectedTab), null){
 
 			private static final long serialVersionUID = 1L;
-			
+
 			@Override
 			public TabbedPanel<ITab> setSelectedTab(int index) {
 				changeTabPerformed(index);
@@ -106,17 +126,20 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
 			}
         };
         tabbedPanel.setOutputMarkupId(true);
-        
+
         if (tabsList == null || tabsList.size() == 0){
             tabbedPanel.setVisible(false);
         }
         add(tabbedPanel);
     }
-	
+
 	protected Panel getPanel(){
-		return (Panel) get(ID_TABS).get("panel");
+        if (get(ID_TABS).get("panel") instanceof Panel) {
+            return (Panel) get(ID_TABS).get("panel");
+        }
+        return null;
 	}
-	
+
 	public AjaxTabbedPanel<ITab> getTabbedPanel(){
 		return (AjaxTabbedPanel) get(ID_TABS);
 	}
@@ -125,6 +148,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
 
     private IModel<String> createTabTitle(final PrismObject<OrgType> org) {
         return new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -146,8 +170,11 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
         try {
             ObjectQuery query = ObjectQueryUtil.createRootOrgQuery(getPageBase().getPrismContext());
             list = getPageBase().getModelService().searchObjects(OrgType.class, query, null, task, result);
+            // Sort org roots by displayOrder, if not set push the org to the end
+            list.sort((o1, o2) -> (o1.getRealValue().getDisplayOrder() == null ? Integer.MAX_VALUE : o1.getRealValue().getDisplayOrder())
+                    - (o2.getRealValue().getDisplayOrder() == null ? Integer.MAX_VALUE : o2.getRealValue().getDisplayOrder()));
 
-            if (list.isEmpty()) {
+            if (list.isEmpty() && isWarnMessageVisible()) {
                 warn(getString("PageOrgTree.message.noOrgStructDefined"));
             }
         } catch (Exception ex) {
@@ -160,14 +187,17 @@ public abstract class AbstractOrgTabPanel extends BasePanel{
         if (WebComponentUtil.showResultInPage(result)) {
         	getPageBase().showResult(result);
         }
-
         return list;
+    }
+
+    protected boolean isWarnMessageVisible(){
+        return true;
     }
 
     protected void changeTabPerformed(int index){
         if (roots != null && index >= 0 && index <= roots.size()){
             SessionStorage storage = getPageBase().getSessionStorage();
-            SelectableBean<OrgType> selected = new SelectableBean<OrgType>();
+            SelectableBean<OrgType> selected = new SelectableBean<>();
             selected.setValue(roots.get(index).asObjectable());
             storage.getUsers().setSelectedItem(selected);
             storage.getUsers().setSelectedTabId(index);

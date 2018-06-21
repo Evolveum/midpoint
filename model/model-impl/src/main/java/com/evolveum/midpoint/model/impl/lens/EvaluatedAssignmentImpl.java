@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,13 @@ import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,34 +35,43 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.MINUS;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.PLUS;
+import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
 
 /**
- * Evaluated assignment that contains all constructions and authorizations from the assignment 
+ * Evaluated assignment that contains all constructions and authorizations from the assignment
  * itself and all the applicable inducements from all the roles referenced from the assignment.
- * 
+ *
  * @author Radovan Semancik
  */
 public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAssignment<F> {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
 
 	@NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
-	@NotNull private final DeltaSetTriple<Construction<F>> constructions = new DeltaSetTriple<>();
+	private final boolean evaluatedOld;
+	@NotNull private final DeltaSetTriple<Construction<F>> constructionTriple = new DeltaSetTriple<>();
+	@NotNull private final DeltaSetTriple<PersonaConstruction<F>> personaConstructionTriple = new DeltaSetTriple<>();
 	@NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles = new DeltaSetTriple<>();
 	@NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> membershipRefVals = new ArrayList<>();
 	@NotNull private final Collection<PrismReferenceValue> delegationRefVals = new ArrayList<>();
 	@NotNull private final Collection<Authorization> authorizations = new ArrayList<>();
-	@NotNull private final Collection<Mapping<?,?>> focusMappings = new ArrayList<>();
+	@NotNull private final Collection<MappingImpl<?,?>> focusMappings = new ArrayList<>();
 	@NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 	// rules related to the focal object (typically e.g. "forbid modifications")
 	@NotNull private final Collection<EvaluatedPolicyRule> focusPolicyRules = new ArrayList<>();
@@ -79,14 +84,17 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	private PrismObject<?> target;
 	private boolean isValid;
+	private boolean wasValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
 	private boolean presentInCurrentObject;
 	private boolean presentInOldObject;
-	private Collection<String> policySituations = new ArrayList<>();
+	private Collection<String> policySituations = new HashSet<>();
 
 	public EvaluatedAssignmentImpl(
-			@NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi) {
+			@NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
+			boolean evaluatedOld) {
 		this.assignmentIdi = assignmentIdi;
+		this.evaluatedOld = evaluatedOld;
 	}
 
 	@NotNull
@@ -99,7 +107,18 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	 */
 	@Override
 	public AssignmentType getAssignmentType() {
-		return assignmentIdi.getItemNew().getValue(0).asContainerable();
+		return asContainerable(assignmentIdi.getSingleValue(evaluatedOld));
+	}
+
+	@Override
+	public Long getAssignmentId() {
+		Item<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> any = assignmentIdi.getAnyItem();
+		return any != null && !any.getValues().isEmpty() ? any.getValue(0).getId() : null;
+	}
+
+	@Override
+	public AssignmentType getAssignmentType(boolean old) {
+		return asContainerable(assignmentIdi.getSingleValue(old));
 	}
 
 	@Override
@@ -116,8 +135,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@NotNull
-	public DeltaSetTriple<Construction<F>> getConstructions() {
-		return constructions;
+	public DeltaSetTriple<Construction<F>> getConstructionTriple() {
+		return constructionTriple;
 	}
 
 	/**
@@ -127,10 +146,11 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	 *
 	 * @return
 	 */
+	@Override
 	public DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		DeltaSetTriple<EvaluatedConstruction> rv = new DeltaSetTriple<>();
 		for (PlusMinusZero whichSet : PlusMinusZero.values()) {
-			Collection<Construction<F>> constructionSet = constructions.getSet(whichSet);
+			Collection<Construction<F>> constructionSet = constructionTriple.getSet(whichSet);
 			if (constructionSet != null) {
 				for (Construction<F> construction : constructionSet) {
 					rv.addToSet(whichSet, new EvaluatedConstructionImpl(construction, task, result));
@@ -143,31 +163,56 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	public Collection<Construction<F>> getConstructionSet(PlusMinusZero whichSet) {
         switch (whichSet) {
-            case ZERO: return getConstructions().getZeroSet();
-            case PLUS: return getConstructions().getPlusSet();
-            case MINUS: return getConstructions().getMinusSet();
+            case ZERO: return getConstructionTriple().getZeroSet();
+            case PLUS: return getConstructionTriple().getPlusSet();
+            case MINUS: return getConstructionTriple().getMinusSet();
             default: throw new IllegalArgumentException("whichSet: " + whichSet);
         }
     }
 
-	public void addConstructionZero(Construction<F> contruction) {
-		constructions.addToZeroSet(contruction);
+	public void addConstruction(Construction<F> contruction, PlusMinusZero whichSet) {
+		switch (whichSet) {
+            case ZERO:
+            	constructionTriple.addToZeroSet(contruction);
+            	break;
+            case PLUS:
+            	constructionTriple.addToPlusSet(contruction);
+            	break;
+            case MINUS:
+            	constructionTriple.addToMinusSet(contruction);
+            	break;
+            default:
+            	throw new IllegalArgumentException("whichSet: " + whichSet);
+        }
 	}
-	
-	public void addConstructionPlus(Construction<F> contruction) {
-		constructions.addToPlusSet(contruction);
+
+	@NotNull
+	public DeltaSetTriple<PersonaConstruction<F>> getPersonaConstructionTriple() {
+		return personaConstructionTriple;
 	}
-	
-	public void addConstructionMinus(Construction<F> contruction) {
-		constructions.addToMinusSet(contruction);
+
+	public void addPersonaConstruction(PersonaConstruction<F> personaContruction, PlusMinusZero whichSet) {
+		switch (whichSet) {
+            case ZERO:
+            	personaConstructionTriple.addToZeroSet(personaContruction);
+            	break;
+            case PLUS:
+            	personaConstructionTriple.addToPlusSet(personaContruction);
+            	break;
+            case MINUS:
+            	personaConstructionTriple.addToMinusSet(personaContruction);
+            	break;
+            default:
+            	throw new IllegalArgumentException("whichSet: " + whichSet);
+        }
 	}
-	
+
 	@NotNull
 	@Override
 	public DeltaSetTriple<EvaluatedAssignmentTargetImpl> getRoles() {
 		return roles;
 	}
-	
+
 	public void addRole(EvaluatedAssignmentTargetImpl role, PlusMinusZero mode) {
 		roles.addToSet(mode, role);
 	}
@@ -180,7 +225,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public void addOrgRefVal(PrismReferenceValue org) {
 		orgRefVals.add(org);
 	}
-	
+
 	@NotNull
 	public Collection<PrismReferenceValue> getMembershipRefVals() {
 		return membershipRefVals;
@@ -204,26 +249,26 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public Collection<Authorization> getAuthorizations() {
 		return authorizations;
 	}
-	
+
 	public void addAuthorization(Authorization authorization) {
 		authorizations.add(authorization);
 	}
-	
+
 	@NotNull
 	public Collection<AdminGuiConfigurationType> getAdminGuiConfigurations() {
 		return adminGuiConfigurations;
 	}
-	
+
 	public void addAdminGuiConfiguration(AdminGuiConfigurationType adminGuiConfiguration) {
 		adminGuiConfigurations.add(adminGuiConfiguration);
 	}
 
 	@NotNull
-	public Collection<Mapping<?,?>> getFocusMappings() {
+	public Collection<MappingImpl<?,?>> getFocusMappings() {
 		return focusMappings;
 	}
 
-	public void addFocusMapping(Mapping<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> focusMapping) {
+	public void addFocusMapping(MappingImpl<? extends PrismPropertyValue<?>,? extends PrismPropertyDefinition<?>> focusMapping) {
 		this.focusMappings.add(focusMapping);
 	}
 
@@ -251,6 +296,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		this.isValid = isValid;
 	}
 
+	public boolean getWasValid() {
+		return wasValid;
+	}
+
+	public void setWasValid(boolean wasValid) {
+		this.wasValid = wasValid;
+	}
+
 	public boolean isForceRecon() {
 		return forceRecon;
 	}
@@ -260,27 +313,28 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	public Collection<ResourceType> getResources(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		Collection<ResourceType> resources = new ArrayList<ResourceType>();
-		for (Construction<F> acctConstr: constructions.getAllValues()) {
+		Collection<ResourceType> resources = new ArrayList<>();
+		for (Construction<F> acctConstr: constructionTriple.getAllValues()) {
 			resources.add(acctConstr.getResource(task, result));
 		}
 		return resources;
 	}
 
 	// System configuration is used only to provide $configuration script variable (MID-2372)
-	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		for (Construction<F> construction :constructions.getAllValues()) {
+	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+		for (Construction<F> construction :constructionTriple.getAllValues()) {
 			construction.setFocusOdo(focusOdo);
 			construction.setSystemConfiguration(systemConfiguration);
+			construction.setWasValid(wasValid);
 			LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
 			construction.evaluate(task, result);
 		}
 	}
 
-	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		evaluateConstructions(focusOdo, null, task, result);
 	}
-	
+
 	public void setPresentInCurrentObject(boolean presentInCurrentObject) {
 		this.presentInCurrentObject = presentInCurrentObject;
 	}
@@ -303,7 +357,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	public Collection<EvaluatedPolicyRule> getFocusPolicyRules() {
 		return focusPolicyRules;
 	}
-	
+
 	public void addFocusPolicyRule(EvaluatedPolicyRule policyRule) {
 		focusPolicyRules.add(policyRule);
 	}
@@ -331,33 +385,26 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return Stream.concat(thisTargetPolicyRules.stream(), otherTargetsPolicyRules.stream()).collect(Collectors.toList());
 	}
 
-	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath, FocusType directOwner) {
-		if (!constraints.getModification().isEmpty()) {
-			PolicyConstraintsType focusConstraints = constraints.clone();
-			focusConstraints.getAssignment().clear();
-			focusConstraints.getMaxAssignees().clear();
-			focusConstraints.getMinAssignees().clear();
-			focusConstraints.getExclusion().clear();
-			focusPolicyRules.add(toEvaluatedPolicyRule(focusConstraints, assignmentPath, directOwner));
+	public void addLegacyPolicyConstraints(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
+			FocusType directOwner, PrismContext prismContext) {
+		// approximate solution - just add the constraints to all the places; hopefully any misplaced ones would be simply ignored
+		if (constraints == null) {
+			return;
 		}
-		if (!constraints.getMinAssignees().isEmpty() || !constraints.getMaxAssignees().isEmpty()
-				|| !constraints.getAssignment().isEmpty() || !constraints.getExclusion().isEmpty()) {
-			PolicyConstraintsType targetConstraints = constraints.clone();
-			targetConstraints.getModification().clear();
-			EvaluatedPolicyRule evaluatedPolicyRule = toEvaluatedPolicyRule(targetConstraints, assignmentPath, directOwner);
-			otherTargetsPolicyRules.add(evaluatedPolicyRule);
-			thisTargetPolicyRules.add(evaluatedPolicyRule);
-		}
+		otherTargetsPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
+		thisTargetPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
+		focusPolicyRules.add(toEvaluatedPolicyRule(constraints, assignmentPath, directOwner, prismContext));
 	}
 
 	@NotNull
-	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath, FocusType directOwner) {
+	private EvaluatedPolicyRule toEvaluatedPolicyRule(PolicyConstraintsType constraints, AssignmentPath assignmentPath,
+			FocusType directOwner, PrismContext prismContext) {
 		PolicyRuleType policyRuleType = new PolicyRuleType();
 		policyRuleType.setPolicyConstraints(constraints);
 		PolicyActionsType policyActionsType = new PolicyActionsType();
 		policyActionsType.setEnforcement(new EnforcementPolicyActionType());
 		policyRuleType.setPolicyActions(policyActionsType);
-		return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath);
+		return new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath, prismContext);
 	}
 
 	@Override
@@ -366,36 +413,42 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	}
 
 	@Override
-	public void triggerConstraint(@Nullable EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) throws PolicyViolationException {
-		boolean hasException = processRuleExceptions(this, rule, trigger);
+	public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+		boolean hasException = processRuleExceptions(this, rule, triggers);
 
-		if (trigger instanceof EvaluatedExclusionTrigger) {
-			EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
-			if (exclTrigger.getConflictingAssignment() != null) {
-				hasException =
-						hasException || processRuleExceptions((EvaluatedAssignmentImpl<F>) exclTrigger.getConflictingAssignment(),
-								rule, trigger);
+		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+			if (trigger instanceof EvaluatedExclusionTrigger) {
+				EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
+				if (exclTrigger.getConflictingAssignment() != null) {
+					hasException =
+							hasException || processRuleExceptions((EvaluatedAssignmentImpl<F>) exclTrigger.getConflictingAssignment(),
+									rule, triggers);
+				}
 			}
 		}
-		
+
 		if (!hasException) {
-			LensUtil.triggerConstraint(rule, trigger, policySituations);
+			LensUtil.triggerRule(rule, triggers, policySituations);
 		}
 	}
 
-	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, EvaluatedPolicyRule rule, EvaluatedPolicyRuleTrigger trigger) {
-		boolean hasException = false; 
+	@Override
+	public void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger,
+			LocalizationService localizationService) throws PolicyViolationException {
+		LensUtil.triggerConstraintLegacy(trigger, policySituations, localizationService);
+	}
+
+	private boolean processRuleExceptions(EvaluatedAssignmentImpl<F> evaluatedAssignment, @NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+		boolean hasException = false;
 		for (PolicyExceptionType policyException: evaluatedAssignment.getAssignmentType().getPolicyException()) {
 			if (policyException.getRuleName().equals(rule.getName())) {
-				LensUtil.processRuleWithException(rule, trigger, policySituations, policyException);
+				LensUtil.processRuleWithException(rule, triggers, policyException);
 				hasException = true;
-//			} else {
-//				LOGGER.trace("Skipped exception because it does not match rule name, exception: {}, rule: {}", policyException.getRuleName(), rule.getName());
 			}
 		}
 		return hasException;
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -403,15 +456,22 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment old", String.valueOf(assignmentIdi.getItemOld()), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment delta", String.valueOf(assignmentIdi.getDelta()), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "evaluatedOld", evaluatedOld, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
         if (forceRecon) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
         }
-		if (!constructions.isEmpty()) {
+        sb.append("\n");
+		if (constructionTriple.isEmpty()) {
+			DebugUtil.debugDumpWithLabel(sb, "Constructions", "(empty)", indent+1);
+		} else {
+			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructionTriple, indent+1);
+		}
+		if (!personaConstructionTriple.isEmpty()) {
 			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "Constructions", constructions, indent+1);
+			DebugUtil.debugDumpWithLabel(sb, "Persona constructions", personaConstructionTriple, indent+1);
 		}
 		if (!roles.isEmpty()) {
 			sb.append("\n");
@@ -469,15 +529,17 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	@Override
 	public String toString() {
-		return "EvaluatedAssignment(target=" + target + "; constr=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
+		return "EvaluatedAssignment(target=" + target + "; constr=" + constructionTriple + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings; "+ focusPolicyRules
 				.size()+" rules)";
 	}
-	
+
 	public String toHumanReadableString() {
 		if (target != null) {
 			return "EvaluatedAssignment(" + target + ")";
-		} else if (constructions != null && !constructions.isEmpty()) {
-			return "EvaluatedAssignment(" + constructions + ")";
+		} else if (!constructionTriple.isEmpty()) {
+			return "EvaluatedAssignment(" + constructionTriple + ")";
+		} else if (!personaConstructionTriple.isEmpty()) {
+			return "EvaluatedAssignment(" + personaConstructionTriple + ")";
 		} else {
 			return toString();
 		}
@@ -488,5 +550,19 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		rv.addAll(roles.getZeroSet());
 		rv.addAll(roles.getPlusSet());
 		return rv;
+	}
+
+	/**
+	 * @return mode (adding, deleting, keeping) with respect to the *current* object (not the old one)
+	 */
+	@NotNull
+	public PlusMinusZero getMode() {
+		if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
+			return MINUS;
+		} else if (presentInCurrentObject) {
+			return ZERO;
+		} else {
+			return PLUS;
+		}
 	}
 }

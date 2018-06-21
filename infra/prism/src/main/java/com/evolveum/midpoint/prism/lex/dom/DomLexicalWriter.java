@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.prism.lex.dom;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -30,19 +30,25 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * @author semancik
  *
  */
 public class DomLexicalWriter {
-	
+
 	private Document doc;
 	private boolean serializeCompositeObjects = false;
 	private SchemaRegistry schemaRegistry;
@@ -82,13 +88,28 @@ public class DomLexicalWriter {
         return serializeInternal(rootxnode, null);
     }
 
-    // this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
+	public Element serialize(@NotNull List<RootXNode> roots, @Nullable QName aggregateElementName) throws SchemaException {
+		initialize();
+		if (aggregateElementName == null) {
+			aggregateElementName = schemaRegistry.getPrismContext().getObjectsElementName();
+			if (aggregateElementName == null) {
+				throw new IllegalStateException("Couldn't serialize list of objects because the aggregated element name is not set");
+			}
+		}
+		Element aggregateElement = createElement(aggregateElementName, null);
+		for (RootXNode root : roots) {
+			serializeInternal(root, aggregateElement);
+		}
+		return aggregateElement;
+	}
+
+	// this one is used only from within JaxbDomHack.toAny(..) - hopefully it will disappear soon
     @Deprecated
     public Element serialize(RootXNode rootxnode, Document document) throws SchemaException {
         initializeWithExistingDocument(document);
         return serializeInternal(rootxnode, null);
     }
-    
+
     public Element serializeUnderElement(RootXNode rootxnode, Element parentElement) throws SchemaException {
     	initializeWithExistingDocument(parentElement.getOwnerDocument());
     	return serializeInternal(rootxnode, parentElement);
@@ -121,7 +142,26 @@ public class DomLexicalWriter {
 		} else {
 			throw new SchemaException("Sub-root xnode is not a map nor an explicit list, cannot serialize to XML (it is "+subnode+")");
 		}
+		addDefaultNamespaceDeclaration(topElement);
 		return topElement;
+	}
+
+	/**
+	 * Adds xmlns='...common-3' if needed.
+	 * In fact, this is VERY ugly hack to avoid putting common-3 declarations all over the elements in bulk actions response.
+	 * e.getNamespaceURI returns something only if it was present during node creation.
+	 * So, in fact, this code is more than fragile. Seems to work with the current XNode->DOM serialization, though.
+	 */
+	private void addDefaultNamespaceDeclaration(Element top) {
+		List<Element> prefixless = DOMUtil.getElementsWithoutNamespacePrefix(top);
+		if (prefixless.size() < 2) {
+			return;		// nothing to do here
+		}
+		Set<String> namespaces = prefixless.stream().map(e -> emptyIfNull(e.getNamespaceURI())).collect(Collectors.toSet());
+		if (namespaces.size() != 1 || StringUtils.isEmpty(namespaces.iterator().next())) {
+			return;
+		}
+		DOMUtil.setNamespaceDeclaration(top, "", namespaces.iterator().next());
 	}
 
 	Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
@@ -130,7 +170,7 @@ public class DomLexicalWriter {
 		serializeMap(xmap, element);
 		return element;
 	}
-	
+
 	private void serializeMap(MapXNode xmap, Element topElement) throws SchemaException {
 		for (Entry<QName,XNode> entry: xmap.entrySet()) {
 			QName elementQName = entry.getKey();
@@ -138,7 +178,7 @@ public class DomLexicalWriter {
 			serializeSubnode(xsubnode, topElement, elementQName);
 		}
 	}
-	
+
 	private void serializeSubnode(XNode xsubnode, Element parentElement, QName elementName) throws SchemaException {
 		if (xsubnode == null) {
 			return;
@@ -253,7 +293,7 @@ public class DomLexicalWriter {
                 if (asAttribute) {
                     throw new UnsupportedOperationException("Serializing ItemPath as an attribute is not supported yet");
                 }
-                XPathHolder holder = new XPathHolder(itemPathType.getItemPath());
+                ItemPathHolder holder = new ItemPathHolder(itemPathType.getItemPath());
                 element = holder.toElement(elementOrAttributeName, parentElement.getOwnerDocument());
                 parentElement.appendChild(element);
             }
@@ -352,7 +392,7 @@ public class DomLexicalWriter {
             return name;
         }
     }
-	
+
 	private QName setQNamePrefixExplicit(QName qname) {
 		DynamicNamespacePrefixMapper namespacePrefixMapper = getNamespacePrefixMapper();
 		if (namespacePrefixMapper == null) {

@@ -39,13 +39,13 @@ import org.w3c.dom.Text;
  *
  */
 public class PrettyPrinter {
-	
+
 	private static final int BYTE_ARRAY_MAX_LEN = 64;
 
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyy-mm-dd hh:mm:ss");
-	
+
 	private static String defaultNamespacePrefix = null;
-	
+
 	private static List<Class<?>> prettyPrinters = new ArrayList<>();
 
 	public static void setDefaultNamespacePrefix(String prefix) {
@@ -210,24 +210,24 @@ public class PrettyPrinter {
 			}
 			child = child.getNextSibling();
 		}
-	
+
 		sb.append(content);
-	
+
 		return sb.toString();
 	}
 
-	
+
 	public static String prettyPrint(Date date) {
 		if (date == null) {
 			return "null";
 		}
 		return dateFormat.format(date);
 	}
-	
+
 	public static String prettyPrint(Object[] value) {
 		return prettyPrint(Arrays.asList(value));
 	}
-	
+
 	public static String prettyPrint(byte[] value) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("byte[");
@@ -236,20 +236,17 @@ public class PrettyPrinter {
 			printlen = BYTE_ARRAY_MAX_LEN;
 		}
 		for(int i=0; i < printlen; i++) {
-			sb.append(Byte.toString(value[i]));
-			if (i < printlen) {
-				sb.append(',');
-			}
+			sb.append(String.format("%02x", value[i] & 0xff));
 		}
 		if (value.length > BYTE_ARRAY_MAX_LEN) {
-			sb.append(",... ");
+			sb.append("... ");
 			sb.append(value.length);
 			sb.append(" bytes total");
 		}
 		sb.append("]");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(Object value) {
 		if (value == null) {
 			return "null";
@@ -268,7 +265,7 @@ public class PrettyPrinter {
 		}
 		return out;
 	}
-	
+
 	private static String tryPrettyPrint(Object value) {
 		if (value instanceof Class) {
 			Class<?> c = (Class<?>)value;
@@ -305,7 +302,7 @@ public class PrettyPrinter {
 		// Fallback to this class
 		return tryPrettyPrint(value, PrettyPrinter.class);
 	}
-	
+
 	private static String tryPrettyPrint(Object value, Class<?> prettyPrinterClass) {
 		for (Method method : prettyPrinterClass.getMethods()) {
 			if (method.getName().equals("prettyPrint")) {
@@ -328,8 +325,118 @@ public class PrettyPrinter {
 		return null;
 	}
 	
+	public static String debugDump(Object value, int indent) {
+		if (value == null) {
+			return "null";
+		}
+		String out = null;
+		if (value instanceof DebugDumpable) {
+			return ((DebugDumpable)value).debugDump(indent);
+		}
+		if (value instanceof Collection) {
+			return DebugUtil.debugDump((Collection)value, indent);
+		}
+		out = tryDebugDumpMethod(value, indent);
+		if (out != null) {
+			return out;
+		}
+		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
+		sb.append(prettyPrint(value));
+		return sb.toString();
+	}
+	
+	private static String tryDebugDumpMethod(Object value, int indent) {
+		for (Class<?> prettyPrinterClass: prettyPrinters) {
+			String printerValue = tryDebugDumpMethod(value, indent, prettyPrinterClass);
+			if (printerValue != null) {
+				return printerValue;
+			}
+		}
+		// Fallback to this class
+		return tryDebugDumpMethod(value, indent, PrettyPrinter.class);
+	}
+
+	private static String tryDebugDumpMethod(Object value, int indent, Class<?> prettyPrinterClass) {
+		for (Method method : prettyPrinterClass.getMethods()) {
+			if (method.getName().equals("debugDump")) {
+				Class<?>[] parameterTypes = method.getParameterTypes();
+				if (parameterTypes.length == 2 && parameterTypes[0].equals(value.getClass())) {
+					try {
+						return (String)method.invoke(null, value, indent);
+					} catch (IllegalArgumentException e) {
+						return "###INTERNAL#ERROR### Illegal argument: "+e.getMessage() + "; debugDump method for value "+value;
+					} catch (IllegalAccessException e) {
+						return "###INTERNAL#ERROR### Illegal access: "+e.getMessage() + "; debugDump method for value "+value;
+					} catch (InvocationTargetException e) {
+						return "###INTERNAL#ERROR### Illegal target: "+e.getMessage() + "; debugDump method for value "+value;
+					} catch (Throwable e) {
+						return "###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage() + "; debugDump method for value "+value;
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	public static void shortDump(StringBuilder sb, Object value) {
+		if (value == null) {
+			sb.append("null");
+			return;
+		}
+		if (value instanceof ShortDumpable) {
+			((ShortDumpable)value).shortDump(sb);
+			return;
+		}
+		if (value instanceof Collection) {
+			DebugUtil.shortDump(sb, (Collection)value);
+			return;
+		}
+		if (tryShortDumpMethod(sb, value)) {
+			return;
+		}
+		sb.append(prettyPrint(value));
+	}
+	
+	private static boolean tryShortDumpMethod(StringBuilder sb, Object value) {
+		for (Class<?> prettyPrinterClass: prettyPrinters) {
+			if (tryShortDumpMethod(sb, value, prettyPrinterClass)) {
+				return true;
+			}
+		}
+		// Fallback to this class
+		return tryShortDumpMethod(sb, value, PrettyPrinter.class);
+	}
+
+	private static boolean tryShortDumpMethod(StringBuilder sb, Object value, Class<?> prettyPrinterClass) {
+		for (Method method : prettyPrinterClass.getMethods()) {
+			if (method.getName().equals("shortDump")) {
+				Class<?>[] parameterTypes = method.getParameterTypes();
+				if (parameterTypes.length == 2 && parameterTypes[0].equals(StringBuilder.class) && parameterTypes[1].equals(value.getClass())) {
+					try {
+						method.invoke(null, sb, value);
+						return true;
+					} catch (IllegalArgumentException e) {
+						sb.append("###INTERNAL#ERROR### Illegal argument: "+e.getMessage() + "; shortDump method for value "+value);
+					} catch (IllegalAccessException e) {
+						sb.append("###INTERNAL#ERROR### Illegal access: "+e.getMessage() + "; shortDump method for value "+value);
+					} catch (InvocationTargetException e) {
+						sb.append("###INTERNAL#ERROR### Illegal target: "+e.getMessage() + "; shortDump method for value "+value);
+					} catch (Throwable e) {
+						sb.append("###INTERNAL#ERROR### "+e.getClass().getName()+": "+e.getMessage() + "; shortDump method for value "+value);
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	public static void registerPrettyPrinter(Class<?> printerClass) {
 		prettyPrinters.add(printerClass);
+	}
+
+	// For diagnostics only
+	public static List<Class<?>> getPrettyPrinters() {
+		return prettyPrinters;
 	}
 
 }

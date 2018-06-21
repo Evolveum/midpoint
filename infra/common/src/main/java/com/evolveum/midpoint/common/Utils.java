@@ -17,19 +17,18 @@
 package com.evolveum.midpoint.common;
 
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * 
+ *
  * @author Igor Farinic
  * @author Radovan Semancik
- * 
+ *
  */
 public class Utils {
 
@@ -43,18 +42,18 @@ public class Utils {
 	}
 
 	public static Element fillPropertyReference(String resolve) {
-		XPathHolder xpath = new XPathHolder(
+		ItemPathHolder xpath = new ItemPathHolder(
 				Utils.getPropertyName(resolve));
 		return xpath.toElement(SchemaConstants.NS_C, "property");
 	}
 
 	/**
 	 * Removing non-printable UTF characters from the string.
-	 * 
+	 *
 	 * This is not really used now. It was done as a kind of prototype for
 	 * filters. But may come handy and it in fact tests that the pattern is
 	 * doing what expected, so it may be useful.
-	 * 
+	 *
 	 * @param bad
 	 *            string with bad chars
 	 * @return string without bad chars
@@ -76,7 +75,7 @@ public class Utils {
 	/**
 	 * According to XML specification, section 2.2:
 	 * http://www.w3.org/TR/REC-xml/
-	 * 
+	 *
 	 * @param c
 	 * @return
 	 */

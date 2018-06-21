@@ -1,5 +1,21 @@
+/*
+ * Copyright (c) 2010-2017 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.Component;
@@ -47,7 +63,7 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 
 			@Override
 			protected Panel createTreePanel(String id, Model<String> model, PageBase pageBase) {
-				OrgTreePanel panel = new OrgTreePanel(id, model, selectable) {
+				OrgTreePanel panel = new OrgTreePanel(id, model, selectable, pageBase) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -60,21 +76,30 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 				panel.setOutputMarkupId(true);
 				return panel;
 			}
+
+			@Override
+			protected boolean isWarnMessageVisible(){
+				return false;
+			}
+
 		};
 
 		tabbedPanel.setOutputMarkupId(true);
 		add(tabbedPanel);
 
 		AjaxButton assignButton = new AjaxButton(ID_ASSIGN,
-				getPageBase().createStringResource("Button.assign")) {
+				getPageBase().createStringResource("userBrowserDialog.button.addButton")) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				AbstractOrgTabPanel orgPanel = (AbstractOrgTabPanel) getParent().get(ID_ORG_TABS);
-				OrgTreePanel treePanel = (OrgTreePanel) orgPanel.getPanel();
-				List<OrgType> selectedOrgs = treePanel.getSelectedOrgs();
+				Panel treePanel = orgPanel.getPanel();
+				List<OrgType> selectedOrgs = new ArrayList<>();
+				if (treePanel != null && treePanel instanceof OrgTreePanel) {
+					selectedOrgs = ((OrgTreePanel)treePanel).getSelectedOrgs();
+				}
 				assignSelectedOrgPerformed(selectedOrgs, target);
 
 			}

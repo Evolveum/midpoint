@@ -26,10 +26,10 @@ import com.evolveum.midpoint.util.DebugUtil;
  *
  */
 public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinition> implements DebugDumpable {
-	
+
 	private ItemDelta<V,D> delta;
 	private ItemPath residualPath;
-	
+
 	public PartiallyResolvedDelta(ItemDelta<V,D> itemDelta, ItemPath residualPath) {
 		super();
 		this.delta = itemDelta;
@@ -82,7 +82,7 @@ public class PartiallyResolvedDelta<V extends PrismValue,D extends ItemDefinitio
 			return false;
 		return true;
 	}
-	
+
 	@Override
 	public String debugDump() {
 		return debugDump(0);

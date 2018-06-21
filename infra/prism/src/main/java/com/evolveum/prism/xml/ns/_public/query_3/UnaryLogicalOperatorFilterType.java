@@ -25,22 +25,20 @@ import org.w3c.dom.Element;
 
 /**
  * <p>Java class for UnaryLogicalOperatorFilterType complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
- * &lt;complexType name="UnaryLogicalOperatorFilterType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}LogicalOperatorFilterType">
- *       &lt;sequence>
- *         &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}filter"/>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="UnaryLogicalOperatorFilterType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}LogicalOperatorFilterType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}filter"/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/extension&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "UnaryLogicalOperatorFilterType", propOrder = {
@@ -58,7 +56,7 @@ public class UnaryLogicalOperatorFilterType
 
     /**
      * Creates a new {@code UnaryLogicalOperatorFilterType} instance.
-     * 
+     *
      */
     public UnaryLogicalOperatorFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
@@ -67,8 +65,8 @@ public class UnaryLogicalOperatorFilterType
 
     /**
      * Creates a new {@code UnaryLogicalOperatorFilterType} instance by deeply copying a given {@code UnaryLogicalOperatorFilterType} instance.
-     * 
-     * 
+     *
+     *
      * @param o
      *     The instance to copy.
      * @throws NullPointerException
@@ -86,11 +84,11 @@ public class UnaryLogicalOperatorFilterType
 
     /**
      * Gets the value of the filter property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link Element }
-     *     
+     *
      */
     public Element getFilter() {
         return filter;
@@ -98,11 +96,11 @@ public class UnaryLogicalOperatorFilterType
 
     /**
      * Sets the value of the filter property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link Element }
-     *     
+     *
      */
     public void setFilter(Element value) {
         this.filter = value;
@@ -111,7 +109,7 @@ public class UnaryLogicalOperatorFilterType
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin
-     * 
+     *
      */
     @Override
     public String toString() {
@@ -163,8 +161,8 @@ public class UnaryLogicalOperatorFilterType
 
     /**
      * Creates and returns a deep copy of this object.
-     * 
-     * 
+     *
+     *
      * @return
      *     A deep copy of this object.
      */

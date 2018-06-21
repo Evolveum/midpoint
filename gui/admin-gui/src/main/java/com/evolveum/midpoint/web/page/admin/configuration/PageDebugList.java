@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2016 Evolveum
+/* Copyright (c) 2010-2018 Evolveum
  *
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -71,14 +70,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -216,7 +213,7 @@ public class PageDebugList extends PageAdminConfiguration {
 	}
 
 	private void initLayout() {
-		Form main = new Form(ID_MAIN_FORM);
+		Form main = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(main);
 
 		DebugSearchDto dto = searchModel.getObject();
@@ -504,8 +501,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 	private void setupSearchDto(DebugSearchDto dto) {
 		ObjectTypes type = dto.getType();
-		Search search = SearchFactory.createSearch(type.getClassDefinition(), getPrismContext(),
-				getModelInteractionService());
+		Search search = SearchFactory.createSearch(type.getClassDefinition(), this);
 		dto.setSearch(search);
 	}
 
@@ -639,7 +635,6 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 		target.add(getFeedbackPanel());
 
-		result.recomputeStatus();
 		showResult(result);
 	}
 
@@ -930,7 +925,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 		PrismPropertyDefinition rawDef = new PrismPropertyDefinitionImpl(
 				SchemaConstants.MODEL_EXTENSION_OPTION_RAW, DOMUtil.XSD_BOOLEAN, getPrismContext());
-		PrismProperty<QName> rawProp = rawDef.instantiate();
+		PrismProperty<Boolean> rawProp = rawDef.instantiate();
 		rawProp.setRealValue(raw);
 		task.setExtensionProperty(rawProp);
 
@@ -953,7 +948,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		}
 
 		private void initLayout(IModel<List<ObjectViewDto>> resourcesModel) {
-			final Form searchForm = new Form(ID_SEARCH_FORM);
+			final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
 			add(searchForm);
 			searchForm.setOutputMarkupId(true);
 
@@ -972,19 +967,11 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			WebMarkupContainer choiceContainer = new WebMarkupContainer(ID_CHOICE_CONTAINER);
 			choiceContainer.setOutputMarkupId(true);
-			choiceContainer.add(new AttributeAppender("style", new LoadableModel<String>() {
-				private static final long serialVersionUID = 1L;
-				@Override
-				public String load(){
-					PageDebugList page = (PageDebugList) getPage();
-					return page.searchModel.getObject().getSearch().isFullTextSearchEnabled() ?
-							"margin-top: -15px;" : "";
-				}
-			}));
 			searchForm.add(choiceContainer);
 
 			DropDownChoice choice = new DropDownChoice(ID_CHOICE,
 					new PropertyModel(model, DebugSearchDto.F_TYPE), createChoiceModel(renderer), renderer);
+			choice.add(getDropDownStyleAppender());
 			choiceContainer.add(choice);
 			choice.add(new OnChangeAjaxBehavior() {
 
@@ -998,6 +985,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			DropDownChoice resource = new DropDownChoice(ID_RESOURCE,
 					new PropertyModel(model, DebugSearchDto.F_RESOURCE), resourcesModel,
 					createResourceRenderer());
+			resource.add(getDropDownStyleAppender());
 			resource.setNullValid(true);
 			resource.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
@@ -1033,7 +1021,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			add(zipCheck);
 
 			SearchPanel search = new SearchPanel(ID_SEARCH,
-					new PropertyModel<Search>(model, DebugSearchDto.F_SEARCH)) {
+                new PropertyModel<>(model, DebugSearchDto.F_SEARCH)) {
 
 				@Override
 				public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
@@ -1058,14 +1046,10 @@ public class PageDebugList extends PageAdminConfiguration {
 					Collections.addAll(choices, ObjectTypes.values());
 					choices.remove(ObjectTypes.OBJECT);
 
-					Collections.sort(choices, new Comparator<ObjectTypes>() {
-
-						@Override
-						public int compare(ObjectTypes o1, ObjectTypes o2) {
-							String str1 = (String) renderer.getDisplayValue(o1);
-							String str2 = (String) renderer.getDisplayValue(o2);
-							return String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
-						}
+					choices.sort((o1, o2) -> {
+						String str1 = (String) renderer.getDisplayValue(o1);
+						String str2 = (String) renderer.getDisplayValue(o2);
+						return String.CASE_INSENSITIVE_ORDER.compare(str1, str2);
 					});
 
 					return choices;
@@ -1085,6 +1069,18 @@ public class PageDebugList extends PageAdminConfiguration {
 				}
 
 			};
+		}
+
+		private AttributeAppender getDropDownStyleAppender(){
+			return new AttributeAppender("style", new LoadableModel<String>() {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public String load(){
+					PageDebugList page = (PageDebugList) getPage();
+					return page.searchModel.getObject().getSearch().isFullTextSearchEnabled() ?
+							"margin-top: -15px;" : "";
+				}
+			});
 		}
 	}
 }

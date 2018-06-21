@@ -33,7 +33,9 @@ public enum RObjectType {
     SEQUENCE(RSequence.class, SequenceType.class),
     SERVICE(RService.class, ServiceType.class),
     FORM(RForm.class, FormType.class),
-    CASE(RCase.class, CaseType.class);
+    CASE(RCase.class, CaseType.class),
+    FUNCTION_LIBRARY(RFunctionLibrary.class, FunctionLibraryType.class),
+    OBJECT_COLLECTION(RObjectCollection.class, ObjectCollectionType.class);
 
     private Class<? extends RObject> clazz;
     private Class<? extends ObjectType> jaxbClass;
@@ -54,6 +56,16 @@ public enum RObjectType {
     public static <T extends RObject> RObjectType getType(Class<T> clazz) {
         for (RObjectType type : RObjectType.values()) {
             if (type.getClazz().equals(clazz)) {
+                return type;
+            }
+        }
+
+        throw new IllegalArgumentException("Couldn't find type for class '" + clazz + "'.");
+    }
+
+    public static <T extends ObjectType> RObjectType getByJaxbType(Class<T> clazz) {
+        for (RObjectType type : RObjectType.values()) {
+            if (type.getJaxbClass().equals(clazz)) {
                 return type;
             }
         }

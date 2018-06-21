@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ResourceObjectDiscriminator {
-	
+
 	private QName objectClass;
 	private Collection<? extends ResourceAttribute<?>> primaryIdentifiers;
-	
+
 	public ResourceObjectDiscriminator(QName objectClass, Collection<? extends ResourceAttribute<?>> primaryIdentifiers) {
 		super();
 		this.objectClass = objectClass;
 		this.primaryIdentifiers = primaryIdentifiers;
 	}
-	
+
 	public QName getObjectClass() {
 		return objectClass;
 	}
@@ -47,7 +47,7 @@ public class ResourceObjectDiscriminator {
 	public Collection<? extends ResourceAttribute<?>> getPrimaryIdentifiers() {
 		return primaryIdentifiers;
 	}
-	
+
 	public boolean matches(PrismObject<ShadowType> shadow) {
 		ShadowType shadowType = shadow.asObjectable();
 		if (!objectClass.equals(shadowType.getObjectClass())) {

@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * OpenLDAP, but without permissive modify, shortcut attributes, etc.
- * 
+ *
  * @author semancik
  */
 public class TestOpenLdapDumber extends TestOpenLdap {
@@ -55,10 +55,10 @@ public class TestOpenLdapDumber extends TestOpenLdap {
 	protected boolean hasAssociationShortcut() {
 		return false;
 	}
-	
+
 	@Override
 	protected boolean isUsingGroupShortcutAttribute() {
 		return false;
 	}
-	
+
 }

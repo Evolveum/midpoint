@@ -26,12 +26,12 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class NameItemPathSegment extends ItemPathSegment {
-	
+
 	public static final NameItemPathSegment WILDCARD = NameItemPathSegment.createWildcard();
-	
+
 	@NotNull private final QName name;
 	private boolean isVariable = false;
-	
+
 	public NameItemPathSegment(@NotNull QName name) {
 		this.name = name;
 	}
@@ -147,5 +147,5 @@ public class NameItemPathSegment extends ItemPathSegment {
         clone.setWildcard(this.isWildcard());
         return clone;
     }
-	
+
 }

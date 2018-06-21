@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.opendj;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -42,7 +41,6 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,7 +57,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 	private static final File TEST_DIR = new File("src/test/resources/synchronization/");
 	
-	private static final File RESOURCE_OPENDJ_FILE = new File(ProvisioningTestUtil.COMMON_TEST_DIR_FILE, "resource-opendj.xml");
+	private static final File RESOURCE_OPENDJ_FILE = ProvisioningTestUtil.RESOURCE_OPENDJ_FILE;
 	
 	private static final File SYNC_TASK_FILE = new File(TEST_DIR, "sync-task-example.xml");
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
@@ -112,7 +110,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Test
 	public void test010Sanity() throws Exception {
 		final String TEST_NAME = "test010Sanity";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ "." + TEST_NAME);
 
@@ -139,7 +137,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Test
 	public void test100SyncAddWill() throws Exception {
 		final String TEST_NAME = "test100SyncAddWill";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ "." + TEST_NAME);
 
@@ -188,7 +186,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Test
 	public void test500SyncAddProtected() throws Exception {
 		final String TEST_NAME = "test500SyncAddProtected";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ "." + TEST_NAME);
 

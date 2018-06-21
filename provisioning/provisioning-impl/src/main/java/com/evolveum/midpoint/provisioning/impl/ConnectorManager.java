@@ -32,35 +32,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -71,32 +64,29 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorInstanceSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 /**
  * Class that manages the ConnectorType objects in repository.
- * 
+ *
  * It creates new ConnectorType objects when a new local connector is
  * discovered, takes care of remote connector discovery, etc.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 @Component
 public class ConnectorManager {
-	
+
 	private static final String USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA = ConnectorManager.class.getName()+".parsedSchema";
-	
+
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	
+
 	@Autowired(required = true)
     ApplicationContext springContext;
-	
+
 	@Autowired(required = true)
 	private PrismContext prismContext;
 
@@ -125,14 +115,14 @@ public class ConnectorManager {
 		}
 		return connectorFactories;
 	}
-	
+
 	private ConnectorFactory determineConnectorFactory(ConnectorType connectorType) {
 		if (connectorType == null) {
 			return null;
 		}
 		return determineConnectorFactory(connectorType.getFramework());
 	}
-	
+
 	private ConnectorFactory determineConnectorFactory(String frameworkIdentifier) {
 		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
 			if (connectorFactory.supportsFramework(frameworkIdentifier)) {
@@ -141,7 +131,7 @@ public class ConnectorManager {
 		}
 		return null;
 	}
-	
+
 	public ConnectorInstance getConfiguredConnectorInstance(ConnectorSpec connectorSpec, boolean forceFresh, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
@@ -184,15 +174,32 @@ public class ConnectorManager {
 		return configuredConnectorInstance;
 	}
 
-	private ConnectorInstance createConfiguredConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
+	// should only be used by this class and testConnection in Resource manager
+	void cacheConfifuredConnector(ConnectorSpec connectorSpec, ConnectorInstance connectorInstance) {
+			ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
+			if (connectorInstanceCache.containsKey(cacheKey)) {
+				connectorInstanceCache.remove(cacheKey);
+			}
+
+			ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
+			cacheEntry.connectorOid = connectorSpec.getConnectorOid();
+			cacheEntry.configuration = connectorSpec.getConnectorConfiguration();
+			cacheEntry.connectorInstance = connectorInstance;
+			connectorInstanceCache.put(cacheKey, cacheEntry);
+		}
+
+	// should only be used by this class and testConnection in Resource manager
+	ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		
+
 		ConnectorType connectorType = getConnectorTypeReadOnly(connectorSpec, result);
-		
+
 		ConnectorFactory connectorFactory = determineConnectorFactory(connectorType);
-		
+
 		ConnectorInstance connector = null;
 		try {
+
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
 
 			connector = connectorFactory.createConnectorInstance(connectorType,
 					ResourceTypeUtil.getResourceNamespace(connectorSpec.getResource()), connectorSpec.toString());
@@ -201,7 +208,24 @@ public class ConnectorManager {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
-		PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration().getValue();
+
+		// This log message should be INFO level. It happens only occasionally.
+		// If it happens often, it may be an
+		// indication of a problem. Therefore it is good for admin to see it.
+		LOGGER.info("Created new connector instance for {}: {} v{}",
+				connectorSpec, connectorType.getConnectorType(), connectorType.getConnectorVersion());
+
+		return connector;
+
+	}
+
+	private ConnectorInstance createConfiguredConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+
+		ConnectorInstance connector = createConnectorInstance(connectorSpec, result);
+
+		PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration() != null ?
+				connectorSpec.getConnectorConfiguration().getValue() : null;
 		if (connectorConfigurationVal == null) {
 			SchemaException e = new SchemaException("No connector configuration in "+connectorSpec);
 			result.recordFatalError(e);
@@ -209,14 +233,12 @@ public class ConnectorManager {
 		}
 		try {
 			connector.configure(connectorConfigurationVal, result);
-			
+
 			ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
 			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
-			
+
 			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), result);
-			
-			InternalMonitor.recordConnectorInstanceInitialization();
-			
+
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);
@@ -228,12 +250,6 @@ public class ConnectorManager {
 			result.recordFatalError(e);
 			throw e;
 		}
-		
-		// This log message should be INFO level. It happens only occasionally.
-		// If it happens often, it may be an
-		// indication of a problem. Therefore it is good for admin to see it.
-		LOGGER.info("Created new connector instance for {}: {} v{}",
-				connectorSpec, connectorType.getConnectorType(), connectorType.getConnectorVersion());
 
 		return connector;
 	}
@@ -248,7 +264,7 @@ public class ConnectorManager {
 		ConnectorType connectorType = connectorTypeCache.get(connOid);
 		if (connectorType == null) {
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-			PrismObject<ConnectorType> repoConnector = repositoryService.getObject(ConnectorType.class, connOid, 
+			PrismObject<ConnectorType> repoConnector = repositoryService.getObject(ConnectorType.class, connOid,
 					options, result);
 			connectorType = repoConnector.asObjectable();
 			connectorTypeCache.put(connOid, connectorType);
@@ -270,27 +286,27 @@ public class ConnectorManager {
 		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
 		Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
 		if (userDataEntry == null) {
-			InternalMonitor.recordConnectorSchemaParse();
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 			PrismSchema connectorSchema = ConnectorTypeUtil.parseConnectorSchema(connectorType, prismContext);
 			if (connectorSchema == null) {
 				throw new SchemaException("No connector schema in "+connectorType);
 			}
-			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);			
+			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);
 		}
 		return connectorType;
 	}
-	
+
 	public PrismSchema getConnectorSchema(ConnectorType connectorType) throws SchemaException {
 		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
 		PrismSchema connectorSchema;
 		Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
 		if (userDataEntry == null) {
-			InternalMonitor.recordConnectorSchemaParse();
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 			connectorSchema = ConnectorTypeUtil.parseConnectorSchema(connectorType, prismContext);
 			if (connectorSchema == null) {
 				throw new SchemaException("No connector schema in "+connectorType);
 			}
-			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);			
+			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);
 		} else {
 			if (userDataEntry instanceof PrismSchema) {
 				connectorSchema = (PrismSchema)userDataEntry;
@@ -316,11 +332,11 @@ public class ConnectorManager {
 	/**
 	 * Lists local connectors and makes sure that appropriate ConnectorType
 	 * objects for them exist in repository.
-	 * 
+	 *
 	 * It will never delete any repository object, even if the corresponding
 	 * connector cannot be found. The connector may temporarily removed, may be
 	 * present on a different node, manual upgrade may be needed etc.
-	 * 
+	 *
 	 * @return set of discovered connectors (new connectors found)
 	 * @throws CommunicationException
 	 */
@@ -339,33 +355,33 @@ public class ConnectorManager {
 			throw new SystemException("Discovery attempt with non-persistent " + hostType);
 		}
 
-		Set<ConnectorType> discoveredConnectors = new HashSet<ConnectorType>();
-		
+		Set<ConnectorType> discoveredConnectors = new HashSet<>();
+
 		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
-	
+
 			Set<ConnectorType> foundConnectors;
 			try {
-				
+
 				foundConnectors = connectorFactory.listConnectors(hostType, result);
-				
+
 			} catch (CommunicationException ex) {
 				result.recordFatalError("Discovery failed: " + ex.getMessage(), ex);
 				throw new CommunicationException("Discovery failed: " + ex.getMessage(), ex);
 			}
-			
+
 			if (foundConnectors == null) {
 				LOGGER.trace("Connector factory {} discovered null connectors, skipping", connectorFactory);
 				continue;
 			}
-			
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Got {} connectors from {}: {}", new Object[] { foundConnectors.size(), hostType, foundConnectors });
 			}
-	
+
 			for (ConnectorType foundConnector : foundConnectors) {
-	
+
 				LOGGER.trace("Found connector {}", foundConnector);
-	
+
 				boolean inRepo = true;
 				try {
 					inRepo = isInRepo(foundConnector, result);
@@ -379,9 +395,9 @@ public class ConnectorManager {
 					// But continue otherwise ...
 				}
 				if (!inRepo) {
-	
+
 					LOGGER.trace("Connector {} not in the repository, \"dicovering\" it", foundConnector);
-	
+
 					// First of all we need to "embed" connectorHost to the
 					// connectorType. The UCF does not
 					// have access to repository, therefore it cannot resolve it for
@@ -389,18 +405,18 @@ public class ConnectorManager {
 					if (hostType != null && foundConnector.getConnectorHost() == null) {
 						foundConnector.setConnectorHost(hostType);
 					}
-	
+
 					if (foundConnector.getSchema() == null) {
 						LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);
 					}
-					
+
 					// Sanitize framework-supplied OID
 					if (StringUtils.isNotEmpty(foundConnector.getOid())) {
 						LOGGER.warn("Provisioning framework " + foundConnector.getFramework()
 								+ " supplied OID for connector " + ObjectTypeUtil.toShortString(foundConnector));
 						foundConnector.setOid(null);
 					}
-	
+
 					// Store the connector object
 					String oid;
 					try {
@@ -442,7 +458,7 @@ public class ConnectorManager {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Looking for connector in repository:\n{}", query.debugDump());
 		}
-		
+
 		List<PrismObject<ConnectorType>> foundConnectors;
 		try {
 			foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
@@ -517,7 +533,7 @@ public class ConnectorManager {
         return connectorFactory.getFrameworkVersion();
     }
 
-    private class ConfiguredConnectorInstanceEntry {
+    private static class ConfiguredConnectorInstanceEntry {
 		public String connectorOid;
 		public PrismContainer<ConnectorConfigurationType> configuration;
 		public ConnectorInstance connectorInstance;
@@ -533,12 +549,19 @@ public class ConnectorManager {
 		for (Entry<ConfiguredConnectorCacheKey, ConfiguredConnectorInstanceEntry> connectorInstanceCacheEntry: connectorInstanceCache.entrySet()) {
 			connectorInstanceCacheEntry.getValue().connectorInstance.dispose();
 		}
-		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
-			connectorFactory.shutdown();
+		if (connectorFactories != null) {
+			// Skip this in the very rare case that we are shutting down before we were fully
+			// initialized. This should not happen under normal circumstances.
+			// Generally, do not call getConnectorFactories() from here. This is
+			// spring "destroy" method. We should not work with spring context here.
+			for (ConnectorFactory connectorFactory: connectorFactories) {
+				connectorFactory.shutdown();
+			}
 		}
 	}
-	
-	private interface ConnectorFactoryConsumer {
+
+	@FunctionalInterface
+    private interface ConnectorFactoryConsumer {
 		void process(ConnectorFactory connectorFactory) throws CommunicationException;
 	}
 

@@ -16,8 +16,6 @@
 package com.evolveum.midpoint.web.page.forgetpassword;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.wicket.RestartResponseException;
@@ -30,29 +28,16 @@ import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.match.DefaultMatchingRule;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.query.builder.R_AtomicFilter;
-import com.evolveum.midpoint.prism.query.builder.R_Filter;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -75,7 +60,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto.ResetMethod;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.login.PageRegistrationBase;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -84,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-@PageDescriptor(url = "/forgotpassword")
+@PageDescriptor(url = "/forgotpassword", permitAll = true)
 public class PageForgotPassword extends PageRegistrationBase {
 	private static final long serialVersionUID = 1L;
 
@@ -122,7 +106,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 	}
 
 	private void initLayout() {
-		Form<?> form = new Form(ID_PWDRESETFORM);
+		Form<?> form = new com.evolveum.midpoint.web.component.form.Form(ID_PWDRESETFORM);
 		form.setOutputMarkupId(true);
 		form.add(new VisibleEnableBehaviour() {
 
@@ -162,7 +146,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		userNameContainer.setOutputMarkupId(true);
 		staticLayout.add(userNameContainer);
 
-		RequiredTextField<String> userName = new RequiredTextField<String>(ID_USERNAME, new Model<String>());
+		RequiredTextField<String> userName = new RequiredTextField<>(ID_USERNAME, new Model<>());
 		userName.setOutputMarkupId(true);
 		userNameContainer.add(userName);
 		userNameContainer.add(new VisibleEnableBehaviour() {
@@ -177,7 +161,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		WebMarkupContainer emailContainer = new WebMarkupContainer(ID_EMAIL_CONTAINER);
 		emailContainer.setOutputMarkupId(true);
 		staticLayout.add(emailContainer);
-		RequiredTextField<String> email = new RequiredTextField<String>(ID_EMAIL, new Model<String>());
+		RequiredTextField<String> email = new RequiredTextField<>(ID_EMAIL, new Model<>());
 		email.add(RfcCompliantEmailAddressValidator.getInstance());
 		email.setOutputMarkupId(true);
 		emailContainer.add(email);
@@ -213,21 +197,14 @@ public class PageForgotPassword extends PageRegistrationBase {
 		});
 
 		DynamicFormPanel<UserType> searchAttributesForm = runPrivileged(
-				new Producer<DynamicFormPanel<UserType>>() {
-
-					@Override
-					public DynamicFormPanel<UserType> run() {
-						ObjectReferenceType formRef = getResetPasswordPolicy().getFormRef();
-
-						if (formRef == null) {
-							return null;
-						}
-
-						DynamicFormPanel<UserType> dynamicFormPanel = new DynamicFormPanel<UserType>(
-								ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE, formRef.getOid(), mainForm, true,
-								PageForgotPassword.this);
-						return dynamicFormPanel;
+				() -> {
+					ObjectReferenceType formRef = getResetPasswordPolicy().getFormRef();
+					if (formRef == null) {
+						return null;
 					}
+					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
+					return new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM, UserType.COMPLEX_TYPE,
+							formRef.getOid(), mainForm, task, PageForgotPassword.this, true);
 				});
 
 		if (searchAttributesForm != null) {
@@ -237,7 +214,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 	}
 
 	private void initButtons(Form<?> form) {
-		AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT) {
+		AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT, createStringResource("PageForgetPassword.resetPassword")) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -255,7 +232,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		submit.setOutputMarkupId(true);
 		form.add(submit);
 
-		AjaxButton backButton = new AjaxButton(ID_BACK) {
+		AjaxButton backButton = new AjaxButton(ID_BACK, createStringResource("PageForgetPassword.back")) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -313,7 +290,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 					target.add(PageForgotPassword.this);
 				} else {
 					getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-					LOGGER.error("Failed to sent none to user: {} ", result.getMessage());
+					LOGGER.error("Failed to send nonce to user: {} ", result.getMessage());
 					throw new RestartResponseException(PageForgotPassword.this);
 				}
 
@@ -380,7 +357,16 @@ public class PageForgotPassword extends PageRegistrationBase {
 		String email = emailTextField != null ? emailTextField.getModelObject() : null;
 		LOGGER.debug("Reset Password user info form submitted. username={}, email={}", username, email);
 
-		switch (getResetPasswordPolicy().getResetMethod()) {
+		ResetPolicyDto resetPasswordPolicy = getResetPasswordPolicy();
+		if (resetPasswordPolicy == null) {
+			passwordResetNotSupported();
+		}
+		ResetMethod method = resetPasswordPolicy.getResetMethod();
+		if (method == null) {
+			passwordResetNotSupported();
+		}
+
+		switch (method) {
 			case MAIL:
 				return QueryBuilder.queryFor(UserType.class, getPrismContext()).item(UserType.F_EMAIL_ADDRESS)
 						.eq(email).matchingCaseIgnore().build();
@@ -391,10 +377,15 @@ public class PageForgotPassword extends PageRegistrationBase {
 						.matchingCaseIgnore().build();
 
 			default:
-				getSession().error(getString("PageForgotPassword.unsupported.reset.type"));
-				throw new RestartResponseException(PageForgotPassword.this);
+				passwordResetNotSupported();
+				return null; // not reached
 		}
 
+	}
+
+	private void passwordResetNotSupported() {
+		getSession().error(getString("PageForgotPassword.unsupported.reset.type"));
+		throw new RestartResponseException(PageForgotPassword.this);
 	}
 
 	private UserType searchUserPrivileged(ObjectQuery query) {
@@ -410,7 +401,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 				try {
 					users = getModelService().searchObjects(UserType.class, query, null, task, result);
 				} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-						| CommunicationException | ConfigurationException e) {
+						| CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 					LoggingUtils.logException(LOGGER, "failed to search user", e);
 					return null;
 				}
@@ -438,6 +429,8 @@ public class PageForgotPassword extends PageRegistrationBase {
 	private OperationResult saveUserNonce(final UserType user, final NonceCredentialsPolicyType noncePolicy) {
 		return runPrivileged(new Producer<OperationResult>() {
 
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public OperationResult run() {
 				Task task = createAnonymousTask("generateUserNonce");
@@ -449,16 +442,14 @@ public class PageForgotPassword extends PageRegistrationBase {
 					nonceCredentials
 							.setClearValue(generateNonce(noncePolicy, task, user.asPrismObject(), result));
 
-					NonceType nonceType = new NonceType();
-					nonceType.setValue(nonceCredentials);
+//					NonceType nonceType = new NonceType();
+//					nonceType.setValue(nonceCredentials);
 
-					ObjectDelta<UserType> nonceDelta;
-
-					nonceDelta = ObjectDelta.createModificationReplaceContainer(UserType.class, user.getOid(),
-							SchemaConstants.PATH_NONCE, getPrismContext(), nonceType);
+					ObjectDelta<UserType> nonceDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
+							SchemaConstants.PATH_NONCE_VALUE, getPrismContext(), nonceCredentials);
 
 					WebModelServiceUtils.save(nonceDelta, result, task, PageForgotPassword.this);
-				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 					result.recordFatalError("Failed to generate nonce for user");
 					LoggingUtils.logException(LOGGER, "Failed to generate nonce for user: " + e.getMessage(),
 							e);
@@ -473,7 +464,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 	private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, Task task,
 			PrismObject<O> user, OperationResult result)
-					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ValuePolicyType policy = null;
 
 		if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
@@ -482,8 +473,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 			policy = valuePolicy.asObjectable();
 		}
 
-		return getModelInteractionService().generateValue(policy != null ? policy.getStringPolicy() : null,
-				24, false, user, "nonce generation", task, result);
+		return getModelInteractionService().generateValue(policy, 24, false, user, "nonce generation", task, result);
 	}
 
 }

@@ -84,7 +84,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 
     @Override
     public List<String> getAvailableActions() {
-        List<String> actions = new ArrayList<String>();
+        List<String> actions = new ArrayList<>();
         if (actionMap != null) {
             actions.addAll(actionMap.keySet());
         }

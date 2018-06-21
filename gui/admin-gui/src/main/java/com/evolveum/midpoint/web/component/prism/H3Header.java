@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,13 +120,13 @@ public class H3Header<O extends ObjectType> extends SimplePanel<ObjectWrapper<O>
         if (key == null) {
             key = "";
         }
-        
+
         return PageBase.createStringResourceStatic(getPage(), key).getString();
 
 //        return new StringResourceModel(key, getPage(), null, key).getString();
     }
 
     protected List<InlineMenuItem> createMenuItems() {
-        return new ArrayList<InlineMenuItem>();
+        return new ArrayList<>();
     }
 }

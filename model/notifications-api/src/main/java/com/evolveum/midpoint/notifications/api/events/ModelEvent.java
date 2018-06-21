@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -38,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -48,22 +50,23 @@ public class ModelEvent extends BaseEvent {
     private static final Trace LOGGER = TraceManager.getTrace(ModelEvent.class);
 
     // we can expect that modelContext != null and focus context != null as well
-    private ModelContext modelContext;
+    private ModelContext<?> modelContext;
 
-    public ModelEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+    public ModelEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ModelContext modelContext) {
         super(lightweightIdentifierGenerator);
+        this.modelContext = modelContext;
     }
 
     public ModelContext getModelContext() {
         return modelContext;
     }
 
-    public ModelElementContext getFocusContext() {
+    public ModelElementContext<?> getFocusContext() {
         return modelContext.getFocusContext();
     }
 
-    public void setModelContext(ModelContext modelContext) {
-        this.modelContext = modelContext;
+    public Collection<? extends ModelProjectionContext> getProjectionContexts() {
+        return modelContext.getProjectionContexts();
     }
 
     public List<? extends ObjectDeltaOperation> getFocusExecutedDeltas() {
@@ -71,7 +74,7 @@ public class ModelEvent extends BaseEvent {
     }
 
     public List<ObjectDeltaOperation> getAllExecutedDeltas() {
-        List<ObjectDeltaOperation> retval = new ArrayList<ObjectDeltaOperation>();
+        List<ObjectDeltaOperation> retval = new ArrayList<>();
         retval.addAll(getFocusContext().getExecutedDeltas());
         for (Object o : modelContext.getProjectionContexts()) {
             ModelProjectionContext modelProjectionContext = (ModelProjectionContext) o;
@@ -146,6 +149,14 @@ public class ModelEvent extends BaseEvent {
         return eventCategoryType == EventCategoryType.MODEL_EVENT;
     }
 
+    public ObjectDelta<?> getFocusPrimaryDelta() {
+        return getFocusContext() != null ? getFocusContext().getPrimaryDelta() : null;
+    }
+
+    public ObjectDelta<?> getFocusSecondaryDelta() {
+        return getFocusContext() != null ? getFocusContext().getSecondaryDelta() : null;
+    }
+
     public List<ObjectDelta<FocusType>> getFocusDeltas() {
         List<ObjectDelta<FocusType>> retval = new ArrayList<>();
         Class c = modelContext.getFocusClass();
@@ -208,5 +219,13 @@ public class ModelEvent extends BaseEvent {
 
 	public String getContentAsFormattedList(boolean showSynchronizationItems, boolean showAuxiliaryAttributes) {
 		return getNotificationFunctions().getContentAsFormattedList(this, showSynchronizationItems, showAuxiliaryAttributes);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
+		debugDumpCommon(sb, indent);
+		DebugUtil.debugDumpWithLabelToString(sb, "modelContext", modelContext, indent + 1);
+		return sb.toString();
 	}
 }

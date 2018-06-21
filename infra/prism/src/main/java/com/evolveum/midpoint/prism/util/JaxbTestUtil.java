@@ -75,9 +75,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * JAXB testing util. Only for use in tests. DO NOT USE IN PRODUCTION CODE.
  * This util is used to test the ablility of prism JAXB representation to be used by
  * native (Sun) JAXB code.
- * 
+ *
  * Note: this is what used to be PrismJaxbProcessor. Therefore there may be still a lot of junk to clean up.
- * 
+ *
  * @author Radovan Semancik
  */
 @Deprecated
@@ -86,7 +86,7 @@ public class JaxbTestUtil {
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
 
     private static final Trace LOGGER = TraceManager.getTrace(JaxbTestUtil.class);
-	
+
 	private PrismContext prismContext;
 	private JAXBContext context;
 
@@ -103,7 +103,7 @@ public class JaxbTestUtil {
 
 	private JaxbTestUtil() {
 	}
-	
+
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
@@ -111,7 +111,7 @@ public class JaxbTestUtil {
 	private SchemaRegistry getSchemaRegistry() {
 		return prismContext.getSchemaRegistry();
 	}
-	
+
 	public void initialize() {
 		StringBuilder sb = new StringBuilder();
 		Iterator<Package> iterator = getSchemaRegistry().getCompileTimePackages().iterator();
@@ -141,7 +141,7 @@ public class JaxbTestUtil {
 	public void setContext(JAXBContext context) {
 		this.context = context;
 	}
-	
+
 	public boolean isJaxbClass(Class<?> clazz) {
 		if (clazz == null) {
 			throw new IllegalArgumentException("No class, no fun");
@@ -158,11 +158,11 @@ public class JaxbTestUtil {
 		}
 		return false;
 	}
-	
+
 	public boolean canConvert(Class<?> clazz) {
 		return isJaxbClass(clazz);
 	}
-	
+
 	public boolean canConvert(QName xsdType) {
 		SchemaDescription schemaDesc = getSchemaRegistry().findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
 		if (schemaDesc == null) {
@@ -192,14 +192,14 @@ public class JaxbTestUtil {
 		}
 		return (Class<T>) map.get(xsdType);
 	}
-	
+
 	public <T> T toJavaValue(Element element, Class<T> typeClass) throws JAXBException {
 		QName type = JAXBUtil.getTypeQName(typeClass);
 		return (T) toJavaValue(element, type);
 	}
-	
+
 	/**
-	 * Used to convert property values from DOM 
+	 * Used to convert property values from DOM
 	 */
 	public Object toJavaValue(Element element, QName xsdType) throws JAXBException {
 		Class<?> declaredType = getCompileTimeClass(xsdType);
@@ -229,7 +229,7 @@ public class JaxbTestUtil {
 
 		return marshaller;
 	}
-	
+
 	/**
 	 * Allow for pooling and other fancy stuff. Now it dumb, creates in every call.
 	 */
@@ -240,7 +240,7 @@ public class JaxbTestUtil {
 	private Unmarshaller createUnmarshaller() throws JAXBException {
 		return context.createUnmarshaller();
 	}
-	
+
 	/**
 	 * Allow for pooling and other fancy stuff. Now it dumb, creates in every call.
 	 */
@@ -249,9 +249,9 @@ public class JaxbTestUtil {
 	}
 
     public String marshalToString(Objectable objectable) throws JAXBException {
-        return marshalToString(objectable, new HashMap<String, Object>());
+        return marshalToString(objectable, new HashMap<>());
     }
-	
+
 	public String marshalToString(Objectable objectable, Map<String, Object> properties) throws JAXBException {
 		QName elementQName = determineElementQName(objectable);
 		JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementQName, (Class) objectable.getClass(), objectable);
@@ -259,9 +259,9 @@ public class JaxbTestUtil {
 	}
 
     public String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {
-        return marshalElementToString(jaxbElement, new HashMap<String, Object>());
+        return marshalElementToString(jaxbElement, new HashMap<>());
     }
-	
+
 	public String marshalElementToString(JAXBElement<?> jaxbElement, Map<String, Object> properties) throws JAXBException {
 		StringWriter writer = new StringWriter();
 		Marshaller marshaller = getMarshaller();
@@ -273,9 +273,9 @@ public class JaxbTestUtil {
 	}
 
     public String marshalElementToString(Object element) throws JAXBException {
-        return marshalElementToString(element, new HashMap<String, Object>());
+        return marshalElementToString(element, new HashMap<>());
     }
-	
+
 	/**
 	 * Serializes DOM or JAXB element to string
 	 */
@@ -304,11 +304,11 @@ public class JaxbTestUtil {
 		} else if (element instanceof JAXBElement) {
 			return marshalElementToString((JAXBElement<?>)element);
 		} else {
-			JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementName, Object.class, element);
+			JAXBElement<Object> jaxbElement = new JAXBElement<>(elementName, Object.class, element);
 			return marshalElementToString(jaxbElement);
 		}
 	}
-	
+
 	public void marshalToDom(Objectable objectable, Node parentNode) throws JAXBException {
 		QName elementQName = determineElementQName(objectable);
 		JAXBElement<Object> jaxbElement = new JAXBElement<Object>(elementQName, (Class) objectable.getClass(), objectable);
@@ -316,9 +316,9 @@ public class JaxbTestUtil {
 	}
 
 	public void marshalElementToDom(JAXBElement<?> jaxbElement, Node parentNode) throws JAXBException {
-		getMarshaller().marshal(jaxbElement, parentNode);		
+		getMarshaller().marshal(jaxbElement, parentNode);
 	}
-		
+
 	public <T> Element marshalElementToDom(JAXBElement<T> jaxbElement, Document doc) throws JAXBException {
 		if (doc == null) {
 			doc = DOMUtil.getDocument();
@@ -348,21 +348,21 @@ public class JaxbTestUtil {
 			doc = DOMUtil.getDocument();
 		}
 
-		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
-				jaxbObject);
+		JAXBElement<T> jaxbElement = new JAXBElement<>(elementQName, (Class<T>) jaxbObject.getClass(),
+            jaxbObject);
 		Element element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
 		marshalElementToDom(jaxbElement, element);
 
 		return (Element) element.getFirstChild();
 	}
-	
+
 	public <T> void marshalObjectToDom(T jaxbObject, QName elementQName, Element parentElement) throws JAXBException {
 
-		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
-				jaxbObject);
+		JAXBElement<T> jaxbElement = new JAXBElement<>(elementQName, (Class<T>) jaxbObject.getClass(),
+            jaxbObject);
 		marshalElementToDom(jaxbElement, parentElement);
 	}
-	
+
 	public Element toDomElement(Object element) throws JAXBException {
 		return toDomElement(element, DOMUtil.getDocument());
 	}
@@ -370,7 +370,7 @@ public class JaxbTestUtil {
 	public Element toDomElement(Object jaxbElement, Document doc) throws JAXBException {
 		return toDomElement(jaxbElement,doc,false,false,false);
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Element toDomElement(Object jaxbElement, Document doc, boolean adopt, boolean clone, boolean deep) throws JAXBException {
 		if (jaxbElement == null) {
@@ -409,7 +409,7 @@ public class JaxbTestUtil {
 
 		StringReader reader = null;
 		try {
-			reader = new StringReader(xmlString); 
+			reader = new StringReader(xmlString);
 			JAXBElement<T> element = unmarshalElement(reader, type);
 			adopt(element);
 			return element;
@@ -419,42 +419,42 @@ public class JaxbTestUtil {
 			}
 		}
 	}
-	
+
 	public <T> T unmarshalObject(InputStream input, Class<T> type) throws JAXBException, SchemaException {
 		Object object = getUnmarshaller().unmarshal(input);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		adopt(jaxbElement);
-		
+
 		if (jaxbElement == null) {
 			return null;
 		}
 		T value = jaxbElement.getValue();
 		// adopt not needed, already adopted in unmarshalElement call above
 		return value;
-		
+
 	}
-	
+
 	public <T> T unmarshalObject(InputStream input) throws JAXBException, SchemaException {
 		Object object = getUnmarshaller().unmarshal(input);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		adopt(jaxbElement);
-		
+
 		if (jaxbElement == null) {
 			return null;
 		}
 		T value = jaxbElement.getValue();
 		// adopt not needed, already adopted in unmarshalElement call above
 		return value;
-		
+
 	}
-	
+
 	public <T> JAXBElement<T> unmarshalElement(Reader reader, Class<T> type) throws JAXBException, SchemaException {
 		Object object = getUnmarshaller().unmarshal(reader);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		adopt(jaxbElement);
 		return jaxbElement;
 	}
-	
+
 	public <T> T unmarshalToObject(Node node, Class<T> type) throws JAXBException, SchemaException {
 		JAXBElement<T> element = unmarshalElement(node, type);
 		if (element == null) {
@@ -463,7 +463,7 @@ public class JaxbTestUtil {
 		adopt(element);
 		return element.getValue();
 	}
-	
+
 	public <T> JAXBElement<T> unmarshalElement(Node node, Class<T> type) throws JAXBException, SchemaException {
 		Object object = createUnmarshaller().unmarshal(node);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
@@ -483,11 +483,11 @@ public class JaxbTestUtil {
 		}
 		return value;
 	}
-	
+
 	public Object unmarshalObjects(File file) throws JAXBException{
 		return createUnmarshaller().unmarshal(file);
 	}
-	
+
 	public <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException, SchemaException {
 		JAXBElement<T> element = unmarshalElement(stringXml, type);
 		if (element == null) {
@@ -549,7 +549,7 @@ public class JaxbTestUtil {
 		adopt(value, type);
 		return value;
 	}
-	
+
 	public <T> JAXBElement<T> unmarshalElement(File file, Class<T> type) throws SchemaException, FileNotFoundException, JAXBException {
 		if (file == null) {
 			throw new IllegalArgumentException("File argument must not be null.");
@@ -569,9 +569,9 @@ public class JaxbTestUtil {
 			}
 		}
 	}
-	
+
 	public <T> JAXBElement<T> unmarshalElement(InputStream is, Class<T> type) throws SchemaException, FileNotFoundException, JAXBException {
-		
+
 		try {
 			JAXBElement<T> element = (JAXBElement<T>) getUnmarshaller().unmarshal(is);
 			adopt(element);
@@ -582,7 +582,7 @@ public class JaxbTestUtil {
 			}
 		}
 	}
-    
+
     public <T> T unmarshalRootObject(File file, Class<T> type) throws JAXBException, FileNotFoundException, SchemaException {
         Validate.notNull(file, "File must not be null.");
         InputStream is = null;
@@ -597,7 +597,7 @@ public class JaxbTestUtil {
             }
         }
     }
-	
+
 	public boolean compareAny(List<Object> a, List<Object> b) {
 		if (a == b) {
 			return true;
@@ -618,7 +618,7 @@ public class JaxbTestUtil {
 		}
 		return true;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private boolean compareElement(Object a, Object b) {
 		if (a == b) {
@@ -667,17 +667,17 @@ public class JaxbTestUtil {
 		return DOMUtil.compareElement(ae, be, true);
 	}
 
-	
+
 	public <T> T fromElement(Object element, Class<T> type) throws SchemaException {
-		
+
 		if (element == null) {
 			return null;
 		}
-		
+
 		if (type.isAssignableFrom(element.getClass())) {
 			return (T) element;
 		}
-		
+
 		if (element instanceof JAXBElement) {
 			if (((JAXBElement) element).getValue() == null) {
 				return null;
@@ -686,7 +686,7 @@ public class JaxbTestUtil {
 				return (T) ((JAXBElement) element).getValue();
 			}
 		}
-		
+
 		if (element instanceof Element) {
 			try {
 				JAXBElement<T> unmarshalledElement = unmarshalElement((Element)element, type);
@@ -695,10 +695,10 @@ public class JaxbTestUtil {
 				throw new IllegalArgumentException("Unmarshall failed: " + e.getMessage(),e);
 			}
 		}
-		
+
 		throw new IllegalArgumentException("Unknown element type "+element.getClass().getName());
 	}
-	
+
 	private QName determineElementQName(Objectable objectable) {
 		PrismObject<?> prismObject = objectable.asPrismObject();
 		if (prismObject.getElementName() != null) {
@@ -727,13 +727,13 @@ public class JaxbTestUtil {
     private boolean isObjectable(Class type) {
 		return Objectable.class.isAssignableFrom(type);
 	}
-	
+
 	private <T> void adopt(T object, Class<T> type) throws SchemaException {
 		if (object instanceof Objectable) {
 			getPrismContext().adopt(((Objectable)object));
 		}
 	}
-	
+
     private void adopt(Object object) throws SchemaException {
         if (object instanceof JAXBElement) {
             adopt(((JAXBElement)object).getValue());

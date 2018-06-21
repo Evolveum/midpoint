@@ -34,23 +34,23 @@ public class TestMiscUtil {
 	@Test
 	public void testUnion() {
 		System.out.println("===[ testUnion ]===");
-		Collection<String> a = new HashSet<String>();
+		Collection<String> a = new HashSet<>();
 		a.add("A1");
 		a.add("X");
 		a.add("Y");
-		Collection<String> b = new ArrayList<String>();
+		Collection<String> b = new ArrayList<>();
 		b.add("B1");
 		b.add("B2");
 		b.add("X");
-		Collection<String> c = new Vector<String>();
+		Collection<String> c = new Vector<>();
 		c.add("C1");
 		c.add("X");
 		c.add("Y");
-		
+
 		Collection<String> union = MiscUtil.union(a,b,c);
-		
+
 		System.out.println("Union: "+union);
-		
+
 		assertEquals(6,union.size());
 		assertTrue(union.contains("A1"));
 		assertTrue(union.contains("X"));
@@ -59,7 +59,7 @@ public class TestMiscUtil {
 		assertTrue(union.contains("B2"));
 		assertTrue(union.contains("C1"));
 	}
-	
+
 	@Test
 	public void testUglyXsiHack1() {
 		System.out.println("===[ testUglyXsiHack1 ]===");
@@ -83,30 +83,30 @@ public class TestMiscUtil {
 		String out = UglyHacks.forceXsiNsDeclaration(in);
 		assertEquals(in, out);
 	}
-	
+
 	@Test
 	public void testCarthesian() {
 		System.out.println("===[ testCarthesian ]===");
-		
+
 		// GIVEN
-		Collection<Collection<String>> dimensions = new ArrayList<Collection<String>>();
-		Collection<String> dim1 = new ArrayList<String>();
+		Collection<Collection<String>> dimensions = new ArrayList<>();
+		Collection<String> dim1 = new ArrayList<>();
 		dim1.add("a");
 		dim1.add("b");
 		dimensions.add(dim1);
-		Collection<String> dim2 = new ArrayList<String>();
+		Collection<String> dim2 = new ArrayList<>();
 		dim2.add("1");
 		dim2.add("2");
 		dim2.add("3");
 		dim2.add("4");
 		dimensions.add(dim2);
-		Collection<String> dim3 = new ArrayList<String>();
+		Collection<String> dim3 = new ArrayList<>();
 		dim3.add("x");
 		dim3.add("y");
 		dim3.add("z");
 		dimensions.add(dim3);
-		
-		final List<String> combinations = new ArrayList<String>();
+
+		final List<String> combinations = new ArrayList<>();
 		Processor<Collection<String>> processor = new Processor<Collection<String>>() {
 			@Override
 			public void process(Collection<String> s) {
@@ -114,10 +114,10 @@ public class TestMiscUtil {
 				combinations.add(MiscUtil.concat(s));
 			}
 		};
-		
+
 		// WHEN
 		MiscUtil.carthesian(dimensions, processor);
-		
+
 		// THEN
 		System.out.println(combinations);
 		assertEquals("Wrong number of results", 24, combinations.size());

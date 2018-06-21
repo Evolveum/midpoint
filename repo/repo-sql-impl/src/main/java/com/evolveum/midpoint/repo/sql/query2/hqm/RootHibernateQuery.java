@@ -17,18 +17,10 @@
 package com.evolveum.midpoint.repo.sql.query2.hqm;
 
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.AndCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.InCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNotNullCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.IsNullCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.NotCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.PropertyPropertyComparisonCondition;
-import com.evolveum.midpoint.repo.sql.query2.hqm.condition.SimpleComparisonCondition;
+import com.evolveum.midpoint.repo.sql.query2.hqm.condition.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.transform.ResultTransformer;
@@ -56,6 +48,14 @@ public class RootHibernateQuery extends HibernateQuery {
         super(primaryEntityDef);
     }
 
+    private RootHibernateQuery(EntityReference primaryEntity) {
+        super(primaryEntity);
+    }
+
+    public RootHibernateQuery createWrapperQuery() {
+        return new RootHibernateQuery(getPrimaryEntity());
+    }
+
     public String addParameter(String prefix, Object value, Type type) {
         String name = findFreeName(prefix);
         parameters.put(name, new QueryParameterValue(value, type));
@@ -66,7 +66,16 @@ public class RootHibernateQuery extends HibernateQuery {
         return addParameter(prefix, value, null);
     }
 
-	public Map<String, QueryParameterValue> getParameters() {
+    public void addParametersFrom(Map<String, QueryParameterValue> newParameters) {
+        for (Map.Entry<String, QueryParameterValue> entry : newParameters.entrySet()) {
+            if (parameters.containsKey(entry.getKey())) {
+                throw new IllegalArgumentException("Parameter " + entry.getKey() + " already exists.");
+            }
+            parameters.put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public Map<String, QueryParameterValue> getParameters() {
 		return parameters;
 	}
 
@@ -137,7 +146,11 @@ public class RootHibernateQuery extends HibernateQuery {
 		this.distinct = distinct;
 	}
 
-	public Condition createIsNull(String propertyPath) {
+    public boolean isDistinct() {
+        return distinct;
+    }
+
+    public Condition createIsNull(String propertyPath) {
         return new IsNullCondition(this, propertyPath);
     }
 
@@ -205,7 +218,19 @@ public class RootHibernateQuery extends HibernateQuery {
         return new InCondition(this, propertyPath, subqueryText);
     }
 
+    public Condition createExists(String subqueryText, String linkingCondition) {
+        return new ExistsCondition(this, subqueryText, linkingCondition);
+    }
+
     public Condition createCompareXY(String leftSidePropertyPath, String rightSidePropertyPath, String operator, boolean ignoreCase) {
         return new PropertyPropertyComparisonCondition(this, leftSidePropertyPath, rightSidePropertyPath, operator, ignoreCase);
+    }
+
+    public Condition createFalse() {
+        return new ConstantCondition(this, false);
+    }
+
+    public boolean isDistinctNotNecessary() {
+        return getPrimaryEntity().getJoins().isEmpty();
     }
 }

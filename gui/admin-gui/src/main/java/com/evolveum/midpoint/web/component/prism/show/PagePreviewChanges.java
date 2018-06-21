@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,54 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.wf.ApprovalProcessesPreviewPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.page.admin.services.PageAdminServices;
+import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
+import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerHookPreviewOutputType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
@@ -49,11 +68,29 @@ import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/previewChanges", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/previewChanges", encoder = OnePageParameterEncoder.class, action = {
+        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
+                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
+                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
+                label = "PageUser.auth.user.label",
+                description = "PageUser.auth.user.description"),
+		@AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL, label = PageAdminRoles.AUTH_ROLE_ALL_LABEL, description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description"),
+        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_ORG_ALL, label = PageAdminUsers.AUTH_ORG_ALL_LABEL, description = PageAdminUsers.AUTH_ORG_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_URL, label = "PageOrgUnit.auth.orgUnit.label", description = "PageOrgUnit.auth.orgUnit.description"),
+		@AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL, label = PageAdminServices.AUTH_SERVICES_ALL_LABEL, description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
+		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SERVICE_URL, label = "PageService.auth.role.label", description = "PageService.auth.role.description")
+})
 public class PagePreviewChanges extends PageAdmin {
-
+	private static final long serialVersionUID = 1L;
+	
 	private static final String ID_PRIMARY_DELTAS_SCENE = "primaryDeltas";
 	private static final String ID_SECONDARY_DELTAS_SCENE = "secondaryDeltas";
+	private static final String ID_APPROVALS_CONTAINER = "approvalsContainer";
+	private static final String ID_APPROVALS = "approvals";
+	private static final String ID_POLICY_VIOLATIONS_CONTAINER = "policyViolationsContainer";
+	private static final String ID_POLICY_VIOLATIONS = "policyViolations";
 	private static final String ID_CONTINUE_EDITING = "continueEditing";
 	private static final String ID_SAVE = "save";
 
@@ -61,6 +98,8 @@ public class PagePreviewChanges extends PageAdmin {
 
 	private IModel<SceneDto> primaryDeltasModel;
 	private IModel<SceneDto> secondaryDeltasModel;
+	private IModel<List<EvaluatedTriggerGroupDto>> policyViolationsModel;
+	private IModel<List<ApprovalProcessExecutionInformationDto>> approvalsModel;
 
 	public PagePreviewChanges(ModelContext<? extends ObjectType> modelContext, ModelInteractionService modelInteractionService) {
 		final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
@@ -86,7 +125,7 @@ public class PagePreviewChanges extends PageAdmin {
 			Task task = createSimpleTask("visualize");
 			primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, task, task.getResult());
 			secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, task, task.getResult());
-		} catch (SchemaException e) {
+		} catch (SchemaException | ExpressionEvaluationException e) {
 			throw new SystemException(e);		// TODO
 		}
 		if (LOGGER.isTraceEnabled()) {
@@ -112,6 +151,39 @@ public class PagePreviewChanges extends PageAdmin {
 				return secondarySceneDto;
 			}
 		};
+
+		PolicyRuleEnforcerHookPreviewOutputType enforcements = modelContext != null
+				? modelContext.getHookPreviewResult(PolicyRuleEnforcerHookPreviewOutputType.class)
+				: null;
+		List<EvaluatedTriggerGroupDto> triggerGroups = enforcements != null
+				? Collections.singletonList(EvaluatedTriggerGroupDto.initializeFromRules(enforcements.getRule(), false, null))
+				: Collections.emptyList();
+		policyViolationsModel = Model.ofList(triggerGroups);
+
+		List<ApprovalSchemaExecutionInformationType> approvalsExecutionList = modelContext != null
+				? modelContext.getHookPreviewResults(ApprovalSchemaExecutionInformationType.class)
+				: Collections.emptyList();
+		List<ApprovalProcessExecutionInformationDto> approvals = new ArrayList<>();
+		if (!approvalsExecutionList.isEmpty()) {
+			Task opTask = createSimpleTask(PagePreviewChanges.class + ".createApprovals");      // TODO
+			OperationResult result = opTask.getResult();
+			ObjectResolver modelObjectResolver = getModelObjectResolver();
+			try {
+				for (ApprovalSchemaExecutionInformationType execution : approvalsExecutionList) {
+					approvals.add(ApprovalProcessExecutionInformationDto
+							.createFrom(execution, modelObjectResolver, true, opTask, result)); // TODO reuse session
+				}
+				result.computeStatus();
+			} catch (Throwable t) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare approval information", t);
+				result.recordFatalError("Couldn't prepare approval information: " + t.getMessage(), t);
+			}
+			if (WebComponentUtil.showResultInPage(result)) {
+				showResult(result);
+			}
+		}
+		approvalsModel = Model.ofList(approvals);
+
 		initLayout();
 	}
 
@@ -121,13 +193,32 @@ public class PagePreviewChanges extends PageAdmin {
 	}
 
 	private void initLayout() {
-		Form mainForm = new Form("mainForm");
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
 		mainForm.setMultiPart(true);
 		add(mainForm);
 
 		mainForm.add(new ScenePanel(ID_PRIMARY_DELTAS_SCENE, primaryDeltasModel));
 		mainForm.add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel));
+
+		WebMarkupContainer policyViolationsContainer = new WebMarkupContainer(ID_POLICY_VIOLATIONS_CONTAINER);
+		policyViolationsContainer.add(new VisibleBehaviour(() -> !violationsEmpty()));
+		policyViolationsContainer.add(new EvaluatedTriggerGroupListPanel(ID_POLICY_VIOLATIONS, policyViolationsModel));
+		mainForm.add(policyViolationsContainer);
+
+		WebMarkupContainer approvalsContainer = new WebMarkupContainer(ID_APPROVALS_CONTAINER);
+		approvalsContainer.add(new VisibleBehaviour(() -> violationsEmpty() && !approvalsEmpty()));
+		approvalsContainer.add(new ApprovalProcessesPreviewPanel(ID_APPROVALS, approvalsModel));
+		mainForm.add(approvalsContainer);
+
 		initButtons(mainForm);
+	}
+
+	private boolean approvalsEmpty() {
+		return approvalsModel.getObject().isEmpty();
+	}
+
+	private boolean violationsEmpty() {
+		return EvaluatedTriggerGroupDto.isEmpty(policyViolationsModel.getObject());
 	}
 
 	private void initButtons(Form mainForm) {
@@ -145,6 +236,8 @@ public class PagePreviewChanges extends PageAdmin {
 				savePerformed(target);
 			}
 		};
+		//save.add(new EnableBehaviour(() -> violationsEmpty()));           // does not work as expected (MID-4252)
+		save.add(new VisibleBehaviour(() -> violationsEmpty()));            // so hiding the button altogether
 		mainForm.add(save);
 	}
 

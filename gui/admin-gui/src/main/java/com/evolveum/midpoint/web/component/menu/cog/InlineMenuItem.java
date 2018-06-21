@@ -22,6 +22,9 @@ import org.apache.wicket.model.IModel;
 import java.io.Serializable;
 
 /**
+ * TODO: update to better use with DropdownButtonPanel. Move away from depreated com.evolveum.midpoint.web.component.menu.cog.
+ * TODO: Create a builder for this.
+ * 
  * @author lazyman
  */
 public class InlineMenuItem implements Serializable {

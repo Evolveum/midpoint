@@ -36,6 +36,7 @@ public class TaskDtoProviderOptions implements Serializable {
     private boolean retrieveWorkflowContext = true;
     private boolean getTaskParent = true;
     private boolean retrieveSiblings = true;
+    private boolean retrieveOperationResult = true;
 	private boolean createHandlerDto = true;
 
     public static TaskDtoProviderOptions minimalOptions() {
@@ -48,6 +49,7 @@ public class TaskDtoProviderOptions implements Serializable {
         options.setRetrieveWorkflowContext(false);
         options.setGetTaskParent(false);
 		options.setRetrieveSiblings(false);
+		options.setRetrieveOperationResult(false);
 		options.setCreateHandlerDto(false);
         return options;
     }
@@ -118,6 +120,14 @@ public class TaskDtoProviderOptions implements Serializable {
 
 	public void setRetrieveSiblings(boolean retrieveSiblings) {
 		this.retrieveSiblings = retrieveSiblings;
+	}
+
+	public boolean isRetrieveOperationResult() {
+		return retrieveOperationResult;
+	}
+
+	public void setRetrieveOperationResult(boolean retrieveOperationResult) {
+		this.retrieveOperationResult = retrieveOperationResult;
 	}
 
 	public boolean isCreateHandlerDto() {

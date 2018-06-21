@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,24 +28,25 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	DELETE("delete", "Delete", "DELETE_HELP"),
 	RECOMPUTE("recompute", "Recompute", "RECOMPUTE_HELP"),
 	TEST("test", "Test resource", "TEST_RESOURCE_HELP"),
-	
+
 	/**
 	 * Import objects from file or a stream. This means importing any type of
 	 * object (e.g. user, configuration, resource, object templates, ...
 	 */
 	IMPORT_OBJECTS("importObjects", "Import Objects", "IMPORT_OBJECTS_HELP"),
-	
+
 	/**
 	 * Import resource objects from resource. This means import of accounts, entitlements
 	 * or other objects from a resource. The import creates shadows.
 	 */
 	IMPORT_FROM_RESOURCE("importFromResource", "Import from Resource", "IMPORT_FROM_RESOURCE_HELP"),
-	
-	DISCOVER_CONNECTORS("discoverConnectors", "Discover Connectors", "DISCOVER_CONNECTORS_HELP"), 
-	
+
+	DISCOVER_CONNECTORS("discoverConnectors", "Discover Connectors", "DISCOVER_CONNECTORS_HELP"),
+
 	ASSIGN("assign", "Assign", "ASSIGN_HELP"),
 	UNASSIGN("unassign", "Unassign", "UNASSIGN_HELP"),
 	DELEGATE("delegate", "Delegate", "DELEGATE_HELP"),
+	ATTORNEY("attorney", "Attorney", "ATTORNEY_HELP"),
     EXECUTE_SCRIPT("executeScript", "Execute script", "EXECUTE_SCRIPT_HELP"),
     CHANGE_CREDENTIALS("changeCredentials", "Change credentials", "CHANGE_CREDENTIALS_HELP"),
 
@@ -79,36 +80,38 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	// any special authorization
 	AUDIT_RECORD("auditRecord", "Audit Record", "AUDIT_RECORD_HELP"),
 	// Ability to manage the audit log, e.g. to clean it up (exprunge old records).
-	AUDIT_MANAGE("auditManage", "Audit Manage", "AUDIT_MANAGE_HELP")
-	;
+	AUDIT_MANAGE("auditManage", "Audit Manage", "AUDIT_MANAGE_HELP"),
 	
+	RAW_OPERATION("rawOperation", "Raw operation", "RAW_OPERATION_HELP"),
+	PARTIAL_EXECUTION("partialExecution", "Partial execution", "PARTIAL_EXECUTION_HELP");
+
 	private String url;
 	private String label;
 	private String description;
-	
+
 	private ModelAuthorizationAction(String urlLocalPart, String label, String desc) {
 		this.url = QNameUtil.qNameToUri(new QName(ModelService.AUTZ_NAMESPACE, urlLocalPart));
 		this.label = label;
 		this.description = desc;
 	}
-	
+
 	public String getUrl() {
 		return url;
 	}
-	
+
 	@Override
 	public String getValue() {
 		return url;
 	}
-	
+
 	@Override
 	public String getLabel() {
 		return label;
 	}
-	
+
 	@Override
 	public String getDescription() {
 		return description;
 	}
-	
+
 }

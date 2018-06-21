@@ -17,22 +17,30 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+
     <form wicket:id="mainForm" class="form-inline">
+ 		
+        	 	
+        				<div wicket:id="reportType" />
+        			
+        		
+        	
         <div wicket:id="table"/>
+ 
     </form>
 
-    <wicket:fragment wicket:id="tableHeader">
-        <form class="form-inline pull-right search-form" wicket:id="searchForm">
-            <div class="form-group">
-                <label class="sr-only">
-                    <wicket:message key="pageCreatedReports.filter.reportType"/>
-                </label>
-                <select class="form-control input-sm" wicket:id="reportType"/>
-            </div>
+<!--     <wicket:fragment wicket:id="tableHeader"> -->
+<!--         <form class="form-inline pull-right search-form" wicket:id="searchForm"> -->
+<!--             <div class="form-group"> -->
+<!--                 <label class="sr-only"> -->
+<!--                     <wicket:message key="pageCreatedReports.filter.reportType"/> -->
+<!--                 </label> -->
+<!--                 <select class="form-control input-sm" wicket:id="reportType"/> -->
+<!--             </div> -->
 
-            <div wicket:id="basicSearch"/>
-        </form>
-    </wicket:fragment>
+<!--             <div wicket:id="basicSearch"/> -->
+<!--         </form> -->
+<!--     </wicket:fragment> -->
 </wicket:extend>
 </body>
 </html>

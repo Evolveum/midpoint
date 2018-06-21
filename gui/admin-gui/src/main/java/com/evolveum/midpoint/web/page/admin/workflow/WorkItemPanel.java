@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,10 +28,12 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsPanel;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.TaskChangesPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -81,12 +83,15 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
     private static final String ID_HISTORY_CONTAINER = "historyContainer";
     private static final String ID_HISTORY = "history";
     private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
+	private static final String ID_PREVIEWS_PANEL = "previewsPanel";
     private static final String ID_RELATED_WORK_ITEMS_CONTAINER = "relatedWorkItemsContainer";
     private static final String ID_RELATED_WORK_ITEMS = "relatedWorkItems";
 	private static final String ID_RELATED_WORK_ITEMS_HELP = "otherWorkItemsHelp";
     private static final String ID_RELATED_REQUESTS_CONTAINER = "relatedRequestsContainer";
     private static final String ID_RELATED_REQUESTS = "relatedRequests";
     private static final String ID_RELATED_REQUESTS_HELP = "relatedRequestsHelp";
+    private static final String ID_TRIGGERS_CONTAINER = "triggersContainer";
+    private static final String ID_TRIGGERS = "triggers";
     private static final String ID_ADDITIONAL_INFORMATION = "additionalInformation";
     private static final String ID_CUSTOM_FORM = "customForm";
     private static final String ID_APPROVER_COMMENT = "approverComment";
@@ -94,6 +99,10 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 	private static final String ID_SHOW_REQUEST_HELP = "showRequestHelp";
 	private static final String ID_REQUESTER_COMMENT_CONTAINER = "requesterCommentContainer";
 	private static final String ID_REQUESTER_COMMENT_MESSAGE = "requesterCommentMessage";
+	private static final String ID_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
+
+	private static final String DOT_CLASS = WorkItemPanel.class.getName() + ".";
+	private static final String OPERATION_LOAD_CUSTOM_FORM = DOT_CLASS + "loadCustomForm";
 
 
 	public WorkItemPanel(String id, IModel<WorkItemDto> model, Form mainForm, PageBase pageBase) {
@@ -117,6 +126,10 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		historyContainer.add(historyContainerVisible);
 		historyContainer.add(WebComponentUtil.createHelp(ID_HISTORY_HELP));
 		additionalInfoColumn.add(historyContainer);
+
+		IModel<String> taskOidModel = new PropertyModel<>(getModel(), WorkItemDto.F_TASK_OID);
+	    IModel<Boolean> showNextStagesModel = new PropertyModel<>(getModel(), WorkItemDto.F_IN_STAGE_BEFORE_LAST_ONE);
+	    additionalInfoColumn.add(new SwitchableApprovalProcessPreviewsPanel(ID_PREVIEWS_PANEL, taskOidModel, showNextStagesModel, pageBase));
 
 		WebMarkupContainer relatedWorkItemsContainer = new WebMarkupContainer(ID_RELATED_WORK_ITEMS_CONTAINER);
 		final IModel<List<WorkItemDto>> relatedWorkItemsModel = new PropertyModel<>(getModel(), WorkItemDto.F_OTHER_WORK_ITEMS);
@@ -206,35 +219,77 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 		});
 		add(WebComponentUtil.createHelp(ID_SHOW_REQUEST_HELP));
 
+		WebMarkupContainer triggersContainer = new WebMarkupContainer(ID_TRIGGERS_CONTAINER);
+	    PropertyModel<List<EvaluatedTriggerGroupDto>> triggersModel = new PropertyModel<>(getModel(), WorkItemDto.F_TRIGGERS);
+	    WebMarkupContainer triggers = new EvaluatedTriggerGroupListPanel(ID_TRIGGERS, triggersModel);
+		triggersContainer.add(triggers);
+		triggersContainer.add(new VisibleBehaviour(() -> !EvaluatedTriggerGroupDto.isEmpty(triggersModel.getObject())));
+		add(triggersContainer);
+
 		WebMarkupContainer additionalInformation = new InformationListPanel(ID_ADDITIONAL_INFORMATION,
 				new PropertyModel<>(getModel(), WorkItemDto.F_ADDITIONAL_INFORMATION));
 		add(additionalInformation);
 
-		WorkItemDto dto = getModelObject();
-		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(dto.getWorkflowContext());
+		WorkItemDto dto = null;
+		try {
+			dto = getModelObject();
+		} catch (Throwable t) {
+			// We don't want to process the exception in the constructor (e.g. because breadcrumbs are not initialized,
+			// so we are not able to return to the previous page, etc - see MID-3799.9). But we need to have the object
+			// here, if at all possible, to include dynamic form. So the hack is: if there's an error, just ignore it here.
+			// It will repeat when trying to draw the page. And then we will process it correctly.
+			LOGGER.debug("Ignoring getModelObject exception because we're in constructor. It will occur later and will be correctly processed then.", t);
+			getSession().getFeedbackMessages().clear();
+		}
+		ApprovalStageDefinitionType level = dto != null ? WfContextUtil.getCurrentStageDefinition(dto.getWorkflowContext()) : null;
+		WebMarkupContainer additionalAttributes = new WebMarkupContainer(ID_ADDITIONAL_ATTRIBUTES);
+		add(additionalAttributes);
+		additionalAttributes.add(new VisibleEnableBehaviour() {
+
+			private static final long serialVersionUID = 1L;
+
+			public boolean isVisible() {
+				return (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null);
+			};
+		});
+
 		if (level != null && level.getFormRef() != null && level.getFormRef().getOid() != null) {
 			String formOid = level.getFormRef().getOid();
 			ObjectType focus = dto.getFocus(pageBase);
 			if (focus == null) {
-				focus = new UserType(pageBase.getPrismContext());		// TODO FIXME
+				focus = new UserType(pageBase.getPrismContext());		// TODO FIXME (this should not occur anyway)
 			}
-			DynamicFormPanel<UserType> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
-					(PrismObject<UserType>) focus.asPrismObject(),
-					formOid, mainForm, false, pageBase);
-			add(customForm);
+			Task task = pageBase.createSimpleTask(OPERATION_LOAD_CUSTOM_FORM);
+			DynamicFormPanel<?> customForm = new DynamicFormPanel<>(ID_CUSTOM_FORM,
+					focus.asPrismObject(), formOid, mainForm, task, pageBase, false);
+			additionalAttributes.add(customForm);
 		} else {
-			add(new Label(ID_CUSTOM_FORM));
+			additionalAttributes.add(new Label(ID_CUSTOM_FORM));
 		}
 
         add(new TextArea<>(ID_APPROVER_COMMENT, new PropertyModel<String>(getModel(), WorkItemDto.F_APPROVER_COMMENT)));
     }
 
-	public ObjectDelta getDeltaFromForm() throws SchemaException {
-		Component formPanel = get(ID_CUSTOM_FORM);
+	ObjectDelta getDeltaFromForm() throws SchemaException {
+		Component formPanel = getFormPanel();
 		if (formPanel instanceof DynamicFormPanel) {
-			return ((DynamicFormPanel) formPanel).getObjectDelta();
+			return ((DynamicFormPanel<?>) formPanel).getObjectDelta();
 		} else {
 			return null;
 		}
+	}
+
+	// true means OK
+	boolean checkRequiredFields() {
+		Component formPanel = getFormPanel();
+		if (formPanel instanceof DynamicFormPanel) {
+			return ((DynamicFormPanel<?>) formPanel).checkRequiredFields(getPageBase());
+		} else {
+			return true;
+		}
+	}
+
+	private Component getFormPanel() {
+		return get(createComponentPath(ID_ADDITIONAL_ATTRIBUTES, ID_CUSTOM_FORM));
 	}
 }

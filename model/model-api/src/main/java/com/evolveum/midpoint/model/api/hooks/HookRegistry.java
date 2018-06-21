@@ -16,16 +16,17 @@
 package com.evolveum.midpoint.model.api.hooks;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author semancik
  *
  */
 public interface HookRegistry {
-	
+
 	void registerChangeHook(String url, ChangeHook changeHook);
 
-	Collection<ChangeHook> getAllChangeHooks();
+	List<ChangeHook> getAllChangeHooks();
 
     void registerReadHook(String url, ReadHook searchHook);
 

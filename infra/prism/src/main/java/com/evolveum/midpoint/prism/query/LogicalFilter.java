@@ -19,6 +19,8 @@ package com.evolveum.midpoint.prism.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.DebugUtil;
+
 public abstract class LogicalFilter extends ObjectFilter {
 	
 	protected List<ObjectFilter> conditions;
@@ -29,7 +31,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 	
 	public List<ObjectFilter> getConditions() {
 		if (conditions == null){
-			conditions = new ArrayList<ObjectFilter>();
+			conditions = new ArrayList<>();
 		}
 		return conditions;
 	}
@@ -40,7 +42,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 	
 	public void addCondition(ObjectFilter condition) {
 		if (this.conditions == null) {
-			conditions = new ArrayList<ObjectFilter>();
+			conditions = new ArrayList<>();
 		}
 		this.conditions.add(condition);
 	}
@@ -55,7 +57,7 @@ public abstract class LogicalFilter extends ObjectFilter {
 		if (conditions == null) {
 			return null;
 		}
-		List<ObjectFilter> clonedConditions = new ArrayList<ObjectFilter>(conditions.size());
+		List<ObjectFilter> clonedConditions = new ArrayList<>(conditions.size());
 		for (ObjectFilter condition: conditions) {
 			clonedConditions.add(condition.clone());
 		}
@@ -123,4 +125,32 @@ public abstract class LogicalFilter extends ObjectFilter {
 		return true;
 	}
 	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(getDebugDumpOperationName()).append(":");
+		for (ObjectFilter filter : getConditions()){
+			sb.append("\n");
+			sb.append(filter.debugDump(indent + 1));
+		}
+		return sb.toString();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getDebugDumpOperationName());
+		sb.append("(");
+		for (int i = 0; i < getConditions().size(); i++){
+			sb.append(getConditions().get(i));
+			if (i != getConditions().size() - 1) {
+				sb.append(",");
+			}
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	protected abstract String getDebugDumpOperationName();
 }

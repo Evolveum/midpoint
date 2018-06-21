@@ -24,7 +24,7 @@ import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 public class TestListener implements ITestListener {
-	
+
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss.SSS");
 	private static final String PREFIX = " ####[ ";
 	private static final String SUFFIX = " ]####";
@@ -65,12 +65,6 @@ public class TestListener implements ITestListener {
 	}
 
 	private void print(String message) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(DATE_FORMAT.format(new Date()));
-		sb.append(PREFIX);
-		sb.append(message);
-		sb.append(SUFFIX);
-        System.out.println(sb.toString());
+		System.out.println(DATE_FORMAT.format(new Date()) + PREFIX + message + SUFFIX);
 	}
-	
 }

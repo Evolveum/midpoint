@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -35,12 +36,17 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static java.util.Collections.emptyList;
+
 /**
  * TODO clean up these formatting methods
  *
  * @author mederly
  */
 public class WfContextUtil {
+
+	private static final Trace LOGGER = TraceManager.getTrace(WfContextUtil.class);
 
 	@Nullable
 	public static String getStageInfo(WfContextType wfc) {
@@ -152,7 +158,7 @@ public class WfContextUtil {
 		return sb.toString();
 	}
 
-	private static void appendNumber(Integer stageNumber, Integer stageCount, StringBuilder sb) {
+	public static void appendNumber(Integer stageNumber, Integer stageCount, StringBuilder sb) {
 		if (stageNumber != null) {
 			boolean parentheses = sb.length() > 0;
 			if (parentheses) {
@@ -195,7 +201,7 @@ public class WfContextUtil {
 	public static List<SchemaAttachedPolicyRuleType> getAttachedPolicyRules(WfContextType workflowContext, int order) {
 		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(workflowContext);
 		if (info == null || info.getPolicyRules() == null) {
-			return Collections.emptyList();
+			return emptyList();
 		}
 		return info.getPolicyRules().getEntry().stream()
 				.filter(e -> e.getStageMax() != null && e.getStageMax() != null
@@ -229,7 +235,7 @@ public class WfContextUtil {
 		}
 	}
 
-	private static List<ApprovalStageDefinitionType> getStages(ApprovalSchemaType approvalSchema) {
+	public static List<ApprovalStageDefinitionType> getStages(ApprovalSchemaType approvalSchema) {
 		return !approvalSchema.getStage().isEmpty() ? approvalSchema.getStage() : approvalSchema.getLevel();
 	}
 
@@ -288,8 +294,7 @@ public class WfContextUtil {
 
 	public static void normalizeStages(ApprovalSchemaType schema) {
 		// Sorting uses set(..) method which is not available on prism structures. So we do sort on a copy (ArrayList).
-		List<ApprovalStageDefinitionType> stages = new ArrayList<>(getStages(schema));
-		stages.sort(Comparator.comparing(stage -> getNumber(stage), Comparator.nullsLast(Comparator.naturalOrder())));
+		List<ApprovalStageDefinitionType> stages = getSortedStages(schema);
 		for (int i = 0; i < stages.size(); i++) {
 			stages.get(i).setOrder(null);
 			stages.get(i).setNumber(i+1);
@@ -297,6 +302,27 @@ public class WfContextUtil {
 		schema.getLevel().clear();
 		schema.getStage().clear();
 		schema.getStage().addAll(CloneUtil.cloneCollectionMembers(stages));
+	}
+
+	@NotNull
+	private static List<ApprovalStageDefinitionType> getSortedStages(ApprovalSchemaType schema) {
+		List<ApprovalStageDefinitionType> stages = new ArrayList<>(getStages(schema));
+		stages.sort(Comparator.comparing(stage -> getNumber(stage), Comparator.nullsLast(Comparator.naturalOrder())));
+		return stages;
+	}
+
+	public static List<ApprovalStageDefinitionType> sortAndCheckStages(ApprovalSchemaType schema) {
+		List<ApprovalStageDefinitionType> stages = getSortedStages(schema);
+		for (int i = 0; i < stages.size(); i++) {
+			ApprovalStageDefinitionType stage = stages.get(i);
+			Integer number = getNumber(stage);
+			if (number == null || number != i+1) {
+				throw new IllegalArgumentException("Missing or wrong number of stage #" + (i+1) + ": " + number);
+			}
+			stage.setOrder(null);
+			stage.setNumber(number);
+		}
+		return stages;
 	}
 
 	private static Integer getNumber(ApprovalStageDefinitionType stage) {
@@ -348,7 +374,9 @@ public class WfContextUtil {
 	public static WfContextType getWorkflowContext(WorkItemType workItem) {
 		PrismContainerValue<?> parent = PrismContainerValue.getParentContainerValue(workItem.asPrismContainerValue());
 		if (parent == null) {
-			throw new IllegalStateException("No containing workflow context for " + workItem);
+			LOGGER.error("No workflow context for workItem {}", workItem);
+			// this is only a workaround, FIXME MID-4030
+			return new WfContextType(workItem.asPrismContainerValue().getPrismContext());
 		}
 		Containerable parentReal = parent.asContainerable();
 		if (!(parentReal instanceof WfContextType)) {
@@ -357,14 +385,35 @@ public class WfContextUtil {
 		return (WfContextType) parentReal;
 	}
 
+	public static WfContextType getWorkflowContext(ApprovalSchemaExecutionInformationType info) {
+		if (info == null || info.getTaskRef() == null || info.getTaskRef().asReferenceValue().getObject() == null) {
+			return null;
+		}
+		@SuppressWarnings({ "unchecked", "raw" })
+		PrismObject<TaskType> task = info.getTaskRef().asReferenceValue().getObject();
+		return task.asObjectable().getWorkflowContext();
+	}
+
+	@Nullable
+	public static String getTaskOid(WorkItemType workItem) {
+		TaskType task = getTask(workItem);
+		return task != null ? task.getOid() : null;
+	}
+
+	@Nullable
 	public static TaskType getTask(WorkItemType workItem) {
 		return getTask(getWorkflowContext(workItem));
 	}
 
+	@Nullable
 	public static TaskType getTask(WfContextType wfc) {
+		if (wfc == null) {
+			return null;
+		}
 		PrismContainerValue<?> parent = PrismContainerValue.getParentContainerValue(wfc.asPrismContainerValue());
 		if (parent == null) {
-			throw new IllegalStateException("No containing task for " + wfc);
+			LOGGER.error("No containing task for " + wfc);
+			return null;
 		}
 		Containerable parentReal = parent.asContainerable();
 		if (!(parentReal instanceof TaskType)) {
@@ -377,8 +426,32 @@ public class WfContextUtil {
 		return getWorkflowContext(workItem).getObjectRef();
 	}
 
+	public static ObjectReferenceType getObjectRef(PrismContainerValue<WorkItemType> workItem) {
+		return getObjectRef(workItem.asContainerable());
+	}
+
 	public static ObjectReferenceType getTargetRef(WorkItemType workItem) {
 		return getWorkflowContext(workItem).getTargetRef();
+	}
+
+	public static ObjectReferenceType getTargetRef(PrismContainerValue<WorkItemType> workItem) {
+		return getTargetRef(workItem.asContainerable());
+	}
+
+	public static ObjectReferenceType getRequesterRef(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getRequesterRef();
+	}
+
+	public static ObjectReferenceType getRequesterRef(PrismContainerValue<WorkItemType> workItem) {
+		return getRequesterRef(workItem.asContainerable());
+	}
+
+	public static XMLGregorianCalendar getStartTimestamp(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getStartTimestamp();
+	}
+
+	public static XMLGregorianCalendar getStartTimestamp(PrismContainerValue<WorkItemType> workItem) {
+		return getStartTimestamp(workItem.asContainerable());
 	}
 
 	public static int getEscalationLevelNumber(AbstractWorkItemType workItem) {
@@ -673,5 +746,81 @@ public class WfContextUtil {
 		XMLGregorianCalendar rv = XmlTypeConverter.createXMLGregorianCalendar(baseTime);
 		rv.add(duration);
 		return rv;
+	}
+
+	public static boolean isInStageBeforeLastOne(WfContextType wfc) {
+		if (wfc == null || wfc.getStageNumber() == null) {
+			return false;
+		}
+		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfc);
+		if (info == null) {
+			return false;
+		}
+		return wfc.getStageNumber() < info.getApprovalSchema().getStage().size();
+	}
+
+	public static String getProcessName(ApprovalSchemaExecutionInformationType info) {
+		return info != null ? getOrig(ObjectTypeUtil.getName(info.getTaskRef())) : null;
+	}
+
+	public static String getTargetName(ApprovalSchemaExecutionInformationType info) {
+		WfContextType wfc = getWorkflowContext(info);
+		return wfc != null ? getOrig(ObjectTypeUtil.getName(wfc.getTargetRef())) : null;
+	}
+
+	public static String getOutcome(ApprovalSchemaExecutionInformationType info) {
+		WfContextType wfc = getWorkflowContext(info);
+		return wfc != null ? wfc.getOutcome() : null;
+	}
+
+	public static List<EvaluatedPolicyRuleType> getAllRules(SchemaAttachedPolicyRulesType policyRules) {
+		List<EvaluatedPolicyRuleType> rv = new ArrayList<>();
+		for (SchemaAttachedPolicyRuleType entry : policyRules.getEntry()) {
+			if (!rv.contains(entry.getRule())) {
+				rv.add(entry.getRule());
+			}
+		}
+		return rv;
+	}
+
+	public static List<List<EvaluatedPolicyRuleType>> getRulesPerStage(WfContextType wfc) {
+		List<List<EvaluatedPolicyRuleType>> rv = new ArrayList<>();
+		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
+		if (info == null || info.getPolicyRules() == null) {
+			return rv;
+		}
+		List<SchemaAttachedPolicyRuleType> entries = info.getPolicyRules().getEntry();
+		for (int i = 0; i < info.getApprovalSchema().getStage().size(); i++) {
+			rv.add(getRulesForStage(entries, i+1));
+		}
+		return rv;
+	}
+
+	@NotNull
+	private static List<EvaluatedPolicyRuleType> getRulesForStage(List<SchemaAttachedPolicyRuleType> entries, int stageNumber) {
+		List<EvaluatedPolicyRuleType> rulesForStage = new ArrayList<>();
+		for (SchemaAttachedPolicyRuleType entry : entries) {
+			if (entry.getStageMin() != null && stageNumber >= entry.getStageMin()
+					&& entry.getStageMax() != null && stageNumber <= entry.getStageMax()) {
+				rulesForStage.add(entry.getRule());
+			}
+		}
+		return rulesForStage;
+	}
+
+	// Do not use in approval expressions, because they are evaluated also on process start/preview.
+	// Use explicit stage number instead.
+	@NotNull
+	public static List<EvaluatedPolicyRuleType> getRulesForCurrentStage(WfContextType wfc) {
+		return getRulesForStage(wfc, wfc.getStageNumber());
+	}
+
+	@NotNull
+	public static List<EvaluatedPolicyRuleType> getRulesForStage(WfContextType wfc, Integer stageNumber) {
+		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
+		if (info == null || info.getPolicyRules() == null || stageNumber == null) {
+			return emptyList();
+		}
+		return getRulesForStage(info.getPolicyRules().getEntry(), stageNumber);
 	}
 }

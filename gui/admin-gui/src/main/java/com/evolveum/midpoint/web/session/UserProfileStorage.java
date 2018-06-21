@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.Map;
  */
 public class UserProfileStorage implements Serializable, DebugDumpable {
 
-	
+
 	private static final long serialVersionUID = 1L;
 	public static final int DEFAULT_PAGING_SIZE = 20;
 
@@ -40,10 +40,13 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
     *   Enum containing IDs of all tables. where paging size can be adjusted
     * */
     public enum TableId {
+        PAGE_USER_SELECTION,
         TABLE_ROLES,
+        TABLE_CASES,
         TABLE_USERS,
         TABLE_SERVICES,
         TABLE_RESOURCES,
+        TABLE_VALUE_POLICIES,
         ROLE_MEMEBER_PANEL,
         ORG_MEMEBER_PANEL,
         TREE_TABLE_PANEL_CHILD,
@@ -73,15 +76,20 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PAGE_CERT_CAMPAIGNS_PANEL,
         PAGE_CERT_DECISIONS_PANEL,
         PAGE_CERT_DEFINITIONS_PANEL,
+        PAGE_CASE_WORK_ITEMS_PANEL,
 		PAGE_WORK_ITEM_HISTORY_PANEL,
 		PAGE_TASK_HISTORY_PANEL,
 		PAGE_TASK_CURRENT_WORK_ITEMS_PANEL,
         PAGE_AUDIT_LOG_VIEWER,
-        TASK_EVENTS_TABLE
-		
+        TASK_EVENTS_TABLE,
+        ASSIGNMENTS_TAB_TABLE,
+        INDUCEMENTS_TAB_TABLE,
+        INDUCED_ENTITLEMENTS_TAB_TABLE,
+        POLICY_RULES_TAB_TABLE
+
     }
 
-    private Map<TableId, Integer> tables = new HashMap<TableId, Integer>();
+    private Map<TableId, Integer> tables = new HashMap<>();
 
     public Integer getPagingSize(TableId key) {
         Validate.notNull(key, "Key must not be null.");
@@ -113,5 +121,5 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
 		DebugUtil.debugDumpWithLabel(sb, "tables", tables, indent+1);
 		return sb.toString();
 	}
-    
+
 }

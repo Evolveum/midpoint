@@ -36,7 +36,7 @@ public class ContainerValueDto implements Serializable {
 
     public ContainerValueDto(PrismContainerValue value) {
 
-        itemList = new ArrayList<ContainerItemDto>();
+        itemList = new ArrayList<>();
 
         for (Object o : value.getItems()) {
             itemList.addAll(ContainerItemDto.createContainerValueDtoList((Item) o));

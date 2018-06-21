@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.io.Serializable;
+
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -29,48 +34,45 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-import org.apache.commons.lang.Validate;
-
-import java.io.Serializable;
-
 /**
  * @author lazyman
  */
 public class ValueWrapper<T> implements Serializable, DebugDumpable {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ValueWrapper.class);
 
-    private ItemWrapper item;
+    private PropertyOrReferenceWrapper item;
     private PrismValue value;
     private PrismValue oldValue;
 //    private PrismPropertyValue<T> value;
 //    private PrismPropertyValue<T> oldValue;
     private ValueStatus status;
-
-    public ValueWrapper(ItemWrapper property, PrismValue value) {
+    private boolean isEditEnabled = true;
+    
+    public ValueWrapper(PropertyOrReferenceWrapper property, PrismValue value) {
         this(property, value, ValueStatus.NOT_CHANGED);
     }
 
-    public ValueWrapper(ItemWrapper property, PrismValue value, ValueStatus status) {
-        this(property, value, null, status);
+    public ValueWrapper(PropertyOrReferenceWrapper propertyWrapper, PrismValue prismValue, ValueStatus status) {
+        this(propertyWrapper, prismValue, null, status);
     }
 
-    public ValueWrapper(ItemWrapper property, PrismValue value, PrismValue oldValue,
+    public ValueWrapper(PropertyOrReferenceWrapper propertyWrapper, PrismValue value, PrismValue oldValue,
             ValueStatus status) {
-        Validate.notNull(property, "Property wrapper must not be null.");
+        Validate.notNull(propertyWrapper, "Property wrapper must not be null.");
         Validate.notNull(value, "Property value must not be null.");
 
-        this.item = property;
+        this.item = propertyWrapper;
         this.status = status;
-        
+
 		if (value != null) {
 			if (value instanceof PrismPropertyValue) {
 
 				T val = ((PrismPropertyValue<T>) value).getValue();
 				if (val instanceof PolyString) {
 					PolyString poly = (PolyString) val;
-					this.value = new PrismPropertyValue(new PolyString(poly.getOrig(), poly.getNorm()),
-							value.getOriginType(), value.getOriginObject());
+					this.value = new PrismPropertyValue<>(new PolyString(poly.getOrig(), poly.getNorm()),
+                        value.getOriginType(), value.getOriginObject());
 				} else if (val instanceof ProtectedStringType) {
 					this.value = value.clone();
 					// prevents
@@ -85,19 +87,43 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 				this.value = value.clone();
 			}
 		}
-        
-        if (oldValue == null && value instanceof PrismPropertyValue) {
+
+		if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
+			oldValue = new PrismPropertyValue<T>(null);
+		}
+		
+		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED == propertyWrapper.getStatus()) {
+			oldValue = new PrismReferenceValue();
+		}
+		
+		if (oldValue == null && value instanceof PrismReferenceValue && ValueStatus.ADDED != propertyWrapper.getStatus()) {
+			oldValue = value.clone();
+		}
+		
+        if (oldValue == null && value instanceof PrismPropertyValue && ValueStatus.ADDED != propertyWrapper.getStatus()) {
             T val = ((PrismPropertyValue<T>) this.value).getValue();
             if (val instanceof PolyString) {
                 PolyString poly = (PolyString)val;
                 val = (T) new PolyString(poly.getOrig(), poly.getNorm());
             }
-            oldValue = new PrismPropertyValue<T>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
+            oldValue = new PrismPropertyValue<>(CloneUtil.clone(val), this.value.getOriginType(), this.value.getOriginObject());
         }
-        
+
         this.oldValue = oldValue;
     }
-
+    
+    public void setEditEnabled(boolean isEditEnabled) {
+		this.isEditEnabled = isEditEnabled;
+	}
+	
+	public boolean isEditEnabled() {
+		if (getItem().isDeprecated()) {
+			return false;
+		}
+		return isEditEnabled;
+	}
+	
+    
     public ItemWrapper getItem() {
         return item;
     }
@@ -129,7 +155,7 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
 				if (prismContext != null){
 					PrismUtil.recomputePrismPropertyValue(ppVal, prismContext);
 				}
-				
+
 			} else if (ppVal.getValue() instanceof DisplayableValue) {
 				DisplayableValue displayableValue = (DisplayableValue) ppVal.getValue();
 				ppVal.setValue((T) displayableValue.getValue());
@@ -138,16 +164,31 @@ public class ValueWrapper<T> implements Serializable, DebugDumpable {
     }
 
     public boolean hasValueChanged() {
-        return oldValue != null ? !oldValue.equals(value) : value != null;
+    	if (value instanceof PrismPropertyValue) {
+    		return oldValue != null ? !oldValue.equals(value) : value != null;
+    	} else {
+    		return oldValue != null ? !oldValue.equals(value) : value != null && !value.isEmpty();
+    	}
+        
     }
 
     public boolean isReadonly() {
         return item.isReadonly();
     }
-    
+
     public boolean isEmpty() {
-    	return value.isEmpty();
-    }
+    	if (value == null || value.isEmpty()) {
+    		return true;
+		}
+		Object realValue = value.getRealValue();
+    	if (realValue instanceof String) {
+    		return ((String) realValue).isEmpty();
+		} else if (realValue instanceof PolyString) {
+    		return ((PolyString) realValue).isEmpty();
+		} else {
+    		return false;
+		}
+	}
 
     @Override
     public String toString() {

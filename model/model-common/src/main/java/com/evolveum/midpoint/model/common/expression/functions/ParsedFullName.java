@@ -20,42 +20,42 @@ package com.evolveum.midpoint.model.common.expression.functions;
  *
  */
 public class ParsedFullName {
-	
+
 	private String givenName;
 	private String familyName;
 	private String nickName;
 	private String additionalName;
 	private String honorificPrefix;
 	private String honorificSuffix;
-	
+
 	public String getGivenName() {
 		return givenName;
 	}
-	
+
 	public void setGivenName(String givenName) {
 		this.givenName = givenName;
 	}
-	
+
 	public String getFamilyName() {
 		return familyName;
 	}
-	
+
 	public void setFamilyName(String familyName) {
 		this.familyName = familyName;
 	}
-	
+
 	public String getNickName() {
 		return nickName;
 	}
-	
+
 	public void setNickName(String nickName) {
 		this.nickName = nickName;
 	}
-	
+
 	public String getAdditionalName() {
 		return additionalName;
 	}
-	
+
 	public void setAdditionalName(String additionalName) {
 		this.additionalName = additionalName;
 	}
@@ -83,6 +83,6 @@ public class ParsedFullName {
 				+ ", honorificSuffix=" + honorificSuffix + ")";
 	}
 
-	
-	
+
+
 }

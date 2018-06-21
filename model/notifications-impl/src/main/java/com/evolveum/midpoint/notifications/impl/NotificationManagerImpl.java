@@ -23,6 +23,7 @@ import com.evolveum.midpoint.notifications.api.events.BaseEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -63,7 +64,7 @@ public class NotificationManagerImpl implements NotificationManager {
     private boolean disabled = false;               // for testing purposes (in order for model-intest to run more quickly)
 
     private HashMap<Class<? extends EventHandlerType>,EventHandler> handlers = new HashMap<>();
-    private HashMap<String,Transport> transports = new HashMap<String,Transport>();
+    private HashMap<String,Transport> transports = new HashMap<>();
 
     public void registerEventHandler(Class<? extends EventHandlerType> clazz, EventHandler handler) {
         LOGGER.trace("Registering event handler " + handler + " for " + clazz);
@@ -111,24 +112,25 @@ public class NotificationManagerImpl implements NotificationManager {
 			((BaseEvent) event).setNotificationFunctions(notificationFunctions);
 		}
 
-		LOGGER.trace("NotificationManager processing event {}", event);
+		LOGGER.trace("NotificationManager processing event:\n{}", event.debugDumpLazily(1));
 
         if (event.getAdHocHandler() != null) {
             processEvent(event, event.getAdHocHandler(), task, result);
         }
 
+        boolean errorIfNotFound = !SchemaConstants.CHANNEL_GUI_INIT_URI.equals(task.getChannel());
         SystemConfigurationType systemConfigurationType = NotificationFunctionsImpl
-				.getSystemConfiguration(cacheRepositoryService, result);
+				.getSystemConfiguration(cacheRepositoryService, errorIfNotFound, result);
         if (systemConfigurationType == null) {      // something really wrong happened (or we are doing initial import of objects)
             return;
         }
-        
+
 //        boolean specificSecurityPoliciesDefined = false;
 //        if (systemConfigurationType.getGlobalSecurityPolicyRef() != null) {
-//        
+//
 //        	SecurityPolicyType securityPolicyType = NotificationFuctionsImpl.getSecurityPolicyConfiguration(systemConfigurationType.getGlobalSecurityPolicyRef(), cacheRepositoryService, result);
 //        	if (securityPolicyType != null && securityPolicyType.getAuthentication() != null) {
-//        		
+//
 //        		for (MailAuthenticationPolicyType mailPolicy : securityPolicyType.getAuthentication().getMailAuthentication()) {
 //        			NotificationConfigurationType notificationConfigurationType = mailPolicy.getNotificationConfiguration();
 //        			if (notificationConfigurationType != null) {
@@ -136,7 +138,7 @@ public class NotificationManagerImpl implements NotificationManager {
 //        				processNotifications(notificationConfigurationType, event, task, result);
 //        			}
 //        		}
-//        		
+//
 //        		for (SmsAuthenticationPolicyType mailPolicy : securityPolicyType.getAuthentication().getSmsAuthentication()) {
 //        			NotificationConfigurationType notificationConfigurationType = mailPolicy.getNotificationConfiguration();
 //        			if (notificationConfigurationType != null) {
@@ -144,29 +146,29 @@ public class NotificationManagerImpl implements NotificationManager {
 //        				processNotifications(notificationConfigurationType, event, task, result);
 //        			}
 //        		}
-//        		
+//
 //        		return;
 //        	}
 //        }
-//        
+//
 //        if (specificSecurityPoliciesDefined) {
 //        	LOGGER.trace("Specific policy for notifier set in security configuration, skupping notifiers defined in system configuration.");
 //            return;
 //        }
-        
+
         if (systemConfigurationType.getNotificationConfiguration() == null) {
 			LOGGER.trace("No notification configuration in repository, finished event processing.");
             return;
         }
-        
-        NotificationConfigurationType notificationConfigurationType = systemConfigurationType.getNotificationConfiguration(); 
+
+        NotificationConfigurationType notificationConfigurationType = systemConfigurationType.getNotificationConfiguration();
         processNotifications(notificationConfigurationType, event, task, result);
 
 		LOGGER.trace("NotificationManager successfully processed event {} ({} top level handler(s))", event, notificationConfigurationType.getHandler().size());
     }
-    
+
     private void processNotifications(NotificationConfigurationType notificationConfigurationType, Event event, Task task, OperationResult result){
-    	
+
 
         for (EventHandlerType eventHandlerType : notificationConfigurationType.getHandler()) {
             processEvent(event, eventHandlerType, task, result);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -38,7 +40,7 @@ public interface PrismObjectDefinition<O extends Objectable> extends PrismContai
 	PrismObjectDefinition<O> clone();
 
 	@Override
-	PrismObjectDefinition<O> deepClone(boolean ultraDeep);
+	PrismObjectDefinition<O> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction);
 
 	PrismObjectDefinition<O> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition);
 

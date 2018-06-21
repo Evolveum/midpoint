@@ -14,7 +14,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar.
@@ -47,7 +46,7 @@ public class PageAssignmentDetails extends PageBase{
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        AssignmentDetailsPanel detailsPanel = new AssignmentDetailsPanel(ID_DETAILS_PANEL, assignmentModel, PageAssignmentDetails.this);
+        AssignmentDetailsPanel detailsPanel = new AssignmentDetailsPanel(ID_DETAILS_PANEL, assignmentModel);
         detailsPanel.setOutputMarkupId(true);
         mainForm.add(detailsPanel);
 
@@ -68,9 +67,11 @@ public class PageAssignmentDetails extends PageBase{
             public void onClick(AjaxRequestTarget target) {
                 RoleCatalogStorage storage = getSessionStorage().getRoleCatalog();
                 if (storage.getAssignmentShoppingCart() == null){
-                    storage.setAssignmentShoppingCart(new ArrayList<AssignmentEditorDto>());
+                    storage.setAssignmentShoppingCart(new ArrayList<>());
                 }
                 AssignmentEditorDto dto = assignmentModel.getObject();
+                dto.setMinimized(true);
+                dto.setSimpleView(false);
                 storage.getAssignmentShoppingCart().add(dto);
 
                 redirectBack();

@@ -1,0 +1,16 @@
+{
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+  "objects" : [ {
+    "user" : {
+      "name" : "u1"
+    }
+  }, {
+    "user" : {
+      "name-error" : "u2"
+    }
+  }, {
+    "role" : {
+      "name" : "r1"
+    }
+  } ]
+}

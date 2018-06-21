@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -27,33 +25,31 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.definition.Count;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import java.util.Collection;
 import java.util.Objects;
 
 /**
  * @author lazyman
  */
 @Entity
-@Table(name = "m_shadow")
+@Table(name = "m_shadow", indexes = {
+        @javax.persistence.Index(name = "iShadowNameOrig", columnList = "name_orig"),
+        @javax.persistence.Index(name = "iShadowNameNorm", columnList = "name_norm")})
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
 		indexes = {
 				@Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
@@ -72,7 +68,7 @@ import java.util.Objects;
 public class RShadow<T extends ShadowType> extends RObject<T> implements OperationResult {
 
     private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);
-    private RPolyString name;
+    private RPolyString nameCopy;
 
     private String objectClass;
     //operation result
@@ -124,9 +120,18 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         return failedOperationType;
     }
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -165,10 +170,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
 
     public void setSynchronizationTimestamp(XMLGregorianCalendar synchronizationTimestamp) {
         this.synchronizationTimestamp = synchronizationTimestamp;
-    }
-
-    public void setName(RPolyString name) {
-        this.name = name;
     }
 
     public void setAttemptNumber(Integer attemptNumber) {
@@ -224,7 +225,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
 
         RShadow that = (RShadow) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (attemptNumber != null ? !attemptNumber.equals(that.attemptNumber) : that.attemptNumber != null)
             return false;
         if (failedOperationType != that.failedOperationType) return false;
@@ -244,7 +245,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
     @Override
     public int hashCode() {
         int result1 = super.hashCode();
-        result1 = 31 * result1 + (name != null ? name.hashCode() : 0);
+        result1 = 31 * result1 + (nameCopy != null ? nameCopy.hashCode() : 0);
         result1 = 31 * result1 + (objectClass != null ? objectClass.hashCode() : 0);
         result1 = 31 * result1 + (attemptNumber != null ? attemptNumber.hashCode() : 0);
         result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
@@ -262,14 +263,13 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setObjectClass(RUtil.qnameToString(jaxb.getObjectClass()));
         repo.setIntent(jaxb.getIntent());
         repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));
         repo.setFullSynchronizationTimestamp(jaxb.getFullSynchronizationTimestamp());
 
-        ItemDefinition def = jaxb.asPrismObject().getDefinition();
-        RUtil.copyResultFromJAXB(def, ShadowType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
+        RUtil.copyResultFromJAXB(ShadowType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
 
         if (jaxb.getSynchronizationSituation() != null) {
             repo.setSynchronizationSituation(RUtil.getRepoEnumValue(jaxb.getSynchronizationSituation(),
@@ -290,18 +290,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         }
 
         if (jaxb.getAttributes() != null) {
-            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES);
+            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES, generatorResult);
         }
         repo.pendingOperationCount = jaxb.getPendingOperation().size();
-    }
-
-    @Override
-    public T toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        ShadowType object = new ShadowType();
-        RUtil.revive(object, prismContext);
-        RObject.copyToJAXB(this, object, prismContext, options);
-
-        return (T) object;
     }
 }

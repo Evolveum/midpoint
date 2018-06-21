@@ -49,8 +49,7 @@ public class ProcessInstanceProvider {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(ProcessInstanceProvider.class);
 
-    @Autowired
-    private WorkItemProvider workItemProvider;
+    @Autowired private WorkItemProvider workItemProvider;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
     private static final String OPERATION_AUGMENT_TASK_OBJECT = DOT_INTERFACE + "augmentTaskObject";
@@ -61,7 +60,7 @@ public class ProcessInstanceProvider {
 
         final OperationResult result = parentResult.createSubresult(OPERATION_AUGMENT_TASK_OBJECT);
         result.addParam("object", ObjectTypeUtil.toShortString(object));
-		result.addCollectionOfSerializablesAsParam("options", options);
+		result.addArbitraryObjectCollectionAsParam("options", options);
 
         if (!(object.asObjectable() instanceof TaskType)) {
             result.recordNotApplicableIfUnknown();

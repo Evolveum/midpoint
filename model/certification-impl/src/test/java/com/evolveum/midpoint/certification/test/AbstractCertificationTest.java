@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,12 @@ import com.evolveum.midpoint.certification.impl.*;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -37,6 +41,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,14 +61,14 @@ import static org.testng.AssertJUnit.*;
  * @author mederly
  *
  */
-public class AbstractCertificationTest extends AbstractModelIntegrationTest {
+public class AbstractCertificationTest extends AbstractUninitializedCertificationTest {
 
 	@Autowired
 	private AccCertResponseComputationHelper computationHelper;
-	
+
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-	
+
 	protected static final File ORGS_AND_USERS_FILE = new File(COMMON_DIR, "orgs-and-users.xml");
 	protected static final File USER_BOB_FILE = new File(COMMON_DIR, "user-bob.xml");
 	protected static final File USER_BOB_DEPUTY_FULL_FILE = new File(COMMON_DIR, "user-bob-deputy-full.xml");
@@ -96,10 +101,6 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected static final String USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_OID = "0b88d83f-1722-4b13-b7cc-a2d500470d7f";
 	protected static final String USER_ADMINISTRATOR_DEPUTY_NONE_OID = "e38df3fc-3510-45c2-a379-2b4a1406d4b6";
 
-	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-	protected static final String USER_ADMINISTRATOR_NAME = "administrator";
-
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
@@ -113,8 +114,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	public static final File ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_FILE = new File(COMMON_DIR, "role-eroot-user-assignment-campaign-owner.xml");
 	protected static final String ROLE_EROOT_USER_ASSIGNMENT_CAMPAIGN_OWNER_OID = "00000000-d34d-b33f-f00d-ffffffff0001";
 
-	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 
 	public static final File METAROLE_CXO_FILE = new File(COMMON_DIR, "metarole-cxo.xml");
 	protected static final String METAROLE_CXO_OID = "00000000-d34d-b33f-f00d-444444444444";
@@ -163,9 +163,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	protected RoleType roleCeo;
 	protected RoleType roleCoo;
 	protected RoleType roleCto;
-	protected RoleType roleSuperuser;
 
-	protected UserType userAdministrator;
 	protected UserType userJack;
 	protected UserType userElaine;
 	protected UserType userGuybrush;
@@ -175,27 +173,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
 
-		modelService.postInit(initResult);
-		
-		// System Configuration
-		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-		} catch (ObjectAlreadyExistsException e) {
-			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-					"looks like the previous test haven't cleaned it up", e);
-		}
-
-		repoAddObjectsFromFile(ORGS_AND_USERS_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(USER_BOB_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_BOB_DEPUTY_FULL_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_BOB_DEPUTY_NO_ASSIGNMENTS_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_BOB_DEPUTY_NO_PRIVILEGES_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_FILE, UserType.class, initResult);
-		repoAddObjectFromFile(USER_ADMINISTRATOR_DEPUTY_NONE_FILE, UserType.class, initResult);
-
 		// roles
 		repoAddObjectFromFile(METAROLE_CXO_FILE, RoleType.class, initResult);
-		roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();
 		roleCeo = repoAddObjectFromFile(ROLE_CEO_FILE, RoleType.class, initResult).asObjectable();
 		roleCoo = repoAddObjectFromFile(ROLE_COO_FILE, RoleType.class, initResult).asObjectable();
 		roleCto = repoAddObjectFromFile(ROLE_CTO_FILE, RoleType.class, initResult).asObjectable();
@@ -204,10 +183,14 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 		repoAddObjectFromFile(ORG_SECURITY_TEAM_FILE, OrgType.class, initResult).asObjectable();
 
-		// Administrator
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult).asObjectable();
-		login(userAdministrator.asPrismObject());
-		
+		repoAddObjectsFromFile(ORGS_AND_USERS_FILE, RoleType.class, initResult);
+		addAndRecompute(USER_BOB_FILE, initTask, initResult);
+		addAndRecompute(USER_BOB_DEPUTY_FULL_FILE, initTask, initResult);
+		addAndRecompute(USER_BOB_DEPUTY_NO_ASSIGNMENTS_FILE, initTask, initResult);
+		addAndRecompute(USER_BOB_DEPUTY_NO_PRIVILEGES_FILE, initTask, initResult);
+		addAndRecompute(USER_ADMINISTRATOR_DEPUTY_NO_ASSIGNMENTS_FILE, initTask, initResult);
+		addAndRecompute(USER_ADMINISTRATOR_DEPUTY_NONE_FILE, initTask, initResult);
+
 		// Users
 		userJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
 		userElaine = getUser(USER_ELAINE_OID).asObjectable();
@@ -243,6 +226,12 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		recomputeFocus(OrgType.class, ORG_SECURITY_TEAM_OID, initTask, initResult);
 	}
 
+	@NotNull
+	@Override
+	protected File getUserAdministratorFile() {
+		return USER_ADMINISTRATOR_FILE;
+	}
+
 	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String subjectOid, String targetOid, FocusType focus, String campaignOid) {
 		AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
 		assertNotNull("Certification case for " + subjectOid + ":" + targetOid + " was not found", ccase);
@@ -264,8 +253,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 	}
 
 	protected AccessCertificationCaseType checkCase(Collection<AccessCertificationCaseType> caseList, String objectOid,
-													String targetOid, FocusType focus, String campaignOid,
-													String tenantOid, String orgOid, ActivationStatusType administrativeStatus) {
+			String targetOid, FocusType focus, String campaignOid, String tenantOid, String orgOid,
+			ActivationStatusType administrativeStatus) {
 		AccessCertificationCaseType aCase = checkCase(caseList, objectOid, targetOid, focus, campaignOid);
 		String realTenantOid = aCase.getTenantRef() != null ? aCase.getTenantRef().getOid() : null;
 		String realOrgOid = aCase.getOrgRef() != null ? aCase.getOrgRef().getOid() : null;
@@ -345,7 +334,9 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertNull("Unexpected start time", campaign.getStartTimestamp());
 		assertNull("Unexpected end time", campaign.getEndTimestamp());
 	}
-	protected void assertAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
+	protected void assertAfterCampaignStart(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int cases)
+			throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException,
+			SecurityViolationException, ExpressionEvaluationException {
         assertStateAndStage(campaign, IN_REVIEW_STAGE, 1);
         assertDefinitionAndOwner(campaign, definition);
         assertApproximateTime("start time", new Date(), campaign.getStartTimestamp());
@@ -362,6 +353,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		PrismObject<AccessCertificationDefinitionType> def = getObjectViaRepo(AccessCertificationDefinitionType.class, definition.getOid());
 		assertApproximateTime("last campaign started", new Date(), def.asObjectable().getLastCampaignStartedTimestamp());
 		assertNull("unexpected last campaign closed", def.asObjectable().getLastCampaignClosedTimestamp());
+		assertCases(campaign.getOid(), cases);
     }
 
 	protected void assertAfterStageOpen(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int stageNumber) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
@@ -406,7 +398,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	protected void recordDecision(String campaignOid, AccessCertificationCaseType _case, AccessCertificationResponseType response,
 			String comment, String reviewerOid, Task task, OperationResult result)
-			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException {
+			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 		Authentication originalAuthentication = null;
 		String realReviewerOid;
 		if (reviewerOid != null) {
@@ -414,7 +406,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 			login(getUser(reviewerOid));
 			realReviewerOid = reviewerOid;
 		} else {
-			realReviewerOid = securityEnforcer.getPrincipal().getOid();
+			realReviewerOid = securityContextManager.getPrincipal().getOid();
 		}
 		List<AccessCertificationWorkItemType> workItems = _case.getWorkItem().stream()
 				.filter(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), realReviewerOid))
@@ -542,8 +534,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		assertEquals("wrong current response", OutcomeUtils.toUri(aggregatedResponse), _case.getCurrentStageOutcome());
 	}
 
-	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getObject");
+	protected AccessCertificationCampaignType getCampaignWithCases(String campaignOid) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".getObject");
 		OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> options =
 				Arrays.asList(SelectorOptions.create(F_CASE, GetOperationOptions.createRetrieve(INCLUDE)));
@@ -553,6 +545,17 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		return campaign;
 	}
 
+	private int countCampaignCases(String campaignOid) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractCertificationTest.class.getName() + ".countCampaignCases");
+		OperationResult result = task.getResult();
+		ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+				.ownerId(campaignOid)
+				.build();
+		int rv = modelService.countContainers(AccessCertificationCaseType.class, query, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return rv;
+	}
 
 	protected void assertAfterStageClose(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType definition, int stageNumber) {
         assertStateAndStage(campaign, REVIEW_STAGE_DONE, stageNumber);
@@ -561,8 +564,8 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
         assertEquals("wrong # of stages", stageNumber, campaign.getStage().size());
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertEquals("wrong stage #", stageNumber, stage.getNumber());
-        assertApproximateTime("stage 1 start", new Date(), stage.getStartTimestamp());
-        assertApproximateTime("stage 1 end", new Date(), stage.getStartTimestamp());
+        assertApproximateTime("stage start", new Date(), stage.getStartTimestamp());
+        assertApproximateTime("stage end", new Date(), stage.getStartTimestamp());
 
 		for (AccessCertificationCaseType aCase : campaign.getCase()) {
 			if (aCase.getStageNumber() != stageNumber) {
@@ -588,7 +591,7 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	// completedStage - if null, checks the stage outcome in the history list
 	protected void assertCaseOutcome(List<AccessCertificationCaseType> caseList, String subjectOid, String targetOid,
-									 AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
+			AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
         AccessCertificationCaseType ccase = findCase(caseList, subjectOid, targetOid);
         assertEquals("Wrong stage outcome in " + ccase, OutcomeUtils.toUri(stageOutcome), ccase.getCurrentStageOutcome());
         assertEquals("Wrong overall outcome in " + ccase, OutcomeUtils.toUri(overallOutcome), ccase.getOutcome());
@@ -598,9 +601,16 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 		}
     }
 
-	protected void assertPercentComplete(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+	protected void assertPercentComplete(String campaignOid, int expCasesComplete, int expCasesDecided, int expDecisionsDone)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
 		assertPercentComplete(campaign, expCasesComplete, expCasesDecided, expDecisionsDone);
+	}
+
+	protected void assertCases(String campaignOid, int expectedCases)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		int cases = countCampaignCases(campaignOid);
+		assertEquals("Wrong # of cases for campaign " + campaignOid, expectedCases, cases);
 	}
 
 	protected void assertPercentComplete(AccessCertificationCampaignType campaign, int expCasesComplete, int expCasesDecided, int expDecisionsDone) {
@@ -624,5 +634,31 @@ public class AbstractCertificationTest extends AbstractModelIntegrationTest {
 
 	public void importTriggerTask(OperationResult result) throws FileNotFoundException {
 		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE, result);
+	}
+
+	protected void waitForCampaignTasks(String campaignOid, int timeout, OperationResult result) throws CommonException {
+    	ObjectQuery query = QueryBuilder.queryFor(TaskType.class, prismContext)
+			    .item(TaskType.F_OBJECT_REF).ref(campaignOid)
+			    .build();
+		SearchResultList<PrismObject<TaskType>> campaignTasks = repositoryService.searchObjects(TaskType.class, query, null, result);
+		for (PrismObject<TaskType> campaignTask : campaignTasks) {
+			if (campaignTask.asObjectable().getExecutionStatus() != TaskExecutionStatusType.CLOSED &&
+					campaignTask.asObjectable().getExecutionStatus() != TaskExecutionStatusType.SUSPENDED) {
+				waitForTaskFinish(campaignTask.getOid(), false, timeout);
+			}
+		}
+	}
+
+	protected void assertCertificationMetadata(MetadataType metadata, String expectedOutcome, Set<String> expectedCertifiers,
+			Set<String> expectedComments) {
+	    assertNotNull("No metadata", metadata);
+	    assertEquals("Wrong outcome", expectedOutcome, metadata.getCertificationOutcome());
+		PrismAsserts.assertReferenceOids("Wrong certifiers", expectedCertifiers, metadata.getCertifierRef());
+		assertEquals("Wrong certifier comments", expectedComments, new HashSet<>(metadata.getCertifierComment()));
+	}
+
+	@NotNull
+	protected SearchResultList<PrismObject<AccessCertificationCampaignType>> getAllCampaigns(OperationResult result) throws SchemaException {
+	    return repositoryService.searchObjects(AccessCertificationCampaignType.class, null, null, result);
 	}
 }

@@ -26,9 +26,17 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.menu.MainMenuItem;
 import com.evolveum.midpoint.web.component.menu.MenuItem;
 
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.MarkupStream;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.request.Request;
+import org.apache.wicket.request.Response;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.csrf.CsrfToken;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,5 +102,39 @@ public class SecurityUtils {
         }
 
         return WebComponentUtil.isAuthorized(list.toArray(new String[list.size()]));
+    }
+
+    public static WebMarkupContainer createHiddenInputForCsrf(String id) {
+        WebMarkupContainer field = new WebMarkupContainer(id) {
+
+            @Override
+            public void onComponentTagBody(MarkupStream markupStream, ComponentTag openTag) {
+                super.onComponentTagBody(markupStream, openTag);
+
+                appendHiddenInputForCsrf(getResponse());
+            }
+        };
+        field.setRenderBodyOnly(true);
+
+        return field;
+    }
+
+    public static void appendHiddenInputForCsrf(Response resp) {
+        CsrfToken csrfToken = getCsrfToken();
+        if (csrfToken == null) {
+            return;
+        }
+
+        String parameterName = csrfToken.getParameterName();
+        String value = csrfToken.getToken();
+
+        resp.write("<input type=\"hidden\" name=\"" + parameterName + "\" value=\"" + value + "\"/>");
+    }
+
+    public static CsrfToken getCsrfToken() {
+        Request req = RequestCycle.get().getRequest();
+        HttpServletRequest httpReq = (HttpServletRequest) req.getContainerRequest();
+
+        return (CsrfToken) httpReq.getAttribute("_csrf");
     }
 }

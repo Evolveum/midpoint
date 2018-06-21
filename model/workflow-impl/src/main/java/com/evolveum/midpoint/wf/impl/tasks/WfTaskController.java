@@ -20,8 +20,10 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -48,7 +50,6 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.BooleanUtils;
@@ -60,6 +61,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.evolveum.midpoint.task.api.TaskExecutionStatus.WAITING;
 
@@ -80,8 +82,8 @@ public class WfTaskController {
 
     private static final Object DOT_CLASS = WfTaskController.class.getName() + ".";
 
-    private Set<ProcessListener> processListeners = new HashSet<>();
-    private Set<WorkItemListener> workItemListeners = new HashSet<>();
+    private Set<ProcessListener> processListeners = ConcurrentHashMap.newKeySet();
+    private Set<WorkItemListener> workItemListeners = ConcurrentHashMap.newKeySet();
 
     @Autowired private WfTaskUtil wfTaskUtil;
     @Autowired private TaskManager taskManager;
@@ -92,6 +94,7 @@ public class WfTaskController {
     @Autowired private WfConfiguration wfConfiguration;
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
+    @Autowired private ModelInteractionService modelInteractionService;
 
     //region Job creation & re-creation
     /**
@@ -114,9 +117,7 @@ public class WfTaskController {
 	 */
     public WfTask submitWfTask(WfTaskCreationInstruction instruction, Task parentTask, WfConfigurationType wfConfigurationType,
 			String channelOverride, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Processing start instruction:\n{}", instruction.debugDump());
-        }
+	    LOGGER.trace("Processing start instruction:\n{}", instruction.debugDumpLazily());
         Task task = submitTask(instruction, parentTask, wfConfigurationType, channelOverride, result);
 		WfTask wfTask = recreateWfTask(task, instruction.getChangeProcessor());
         if (!instruction.isNoProcess()) {
@@ -197,7 +198,11 @@ public class WfTaskController {
     }
 
     public void unpauseTask(WfTask wfTask, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        taskManager.unpauseTask(wfTask.getTask(), result);
+	    try {
+		    taskManager.unpauseTask(wfTask.getTask(), result);
+	    } catch (PreconditionViolationException e) {
+		    throw new SystemException("Task " + wfTask + " cannot be unpaused because it is no longer in WAITING state (should not occur)");
+	    }
     }
     //endregion
 
@@ -307,12 +312,13 @@ public class WfTaskController {
 					taskEvent, wfTask, result);
 			auditService.audit(auditEventRecord, wfTask.getTask());
             try {
-                notifyWorkItemCreated(workItem.getOriginalAssigneeRef(), workItem, wfTask, result);
-                if (workItem.getAssigneeRef() != null) {
-                	WorkItemAllocationChangeOperationInfo operationInfo =
-							new WorkItemAllocationChangeOperationInfo(null, Collections.emptyList(), workItem.getAssigneeRef());
-					notifyWorkItemAllocationChangeNewActors(workItem, operationInfo, null, wfTask.getTask(), result);
+				List<ObjectReferenceType> assigneesAndDeputies = getAssigneesAndDeputies(workItem, wfTask, result);
+				for (ObjectReferenceType assigneesOrDeputy : assigneesAndDeputies) {
+					notifyWorkItemCreated(assigneesOrDeputy, workItem, wfTask, result);		// we assume originalAssigneeRef == assigneeRef in this case
 				}
+				WorkItemAllocationChangeOperationInfo operationInfo =
+						new WorkItemAllocationChangeOperationInfo(null, Collections.emptyList(), assigneesAndDeputies);
+				notifyWorkItemAllocationChangeNewActors(workItem, operationInfo, null, wfTask.getTask(), result);
             } catch (SchemaException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send notification about work item create event", e);
             }
@@ -390,14 +396,15 @@ public class WfTaskController {
 					.prepareWorkItemDeletedAuditRecord(workItem, cause, taskEvent, wfTask, result);
 			auditService.audit(auditEventRecord, wfTask.getTask());
             try {
+				List<ObjectReferenceType> assigneesAndDeputies = getAssigneesAndDeputies(workItem, wfTask, result);
 				WorkItemAllocationChangeOperationInfo operationInfo =
-						new WorkItemAllocationChangeOperationInfo(operationKind, workItem.getAssigneeRef(), null);
+						new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
 				WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(userRef, cause, null);
             	if (workItem.getAssigneeRef().isEmpty()) {
 					notifyWorkItemDeleted(null, workItem, operationInfo, sourceInfo, wfTask, result);
 				} else {
-					for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
-						notifyWorkItemDeleted(assignee, workItem, operationInfo, sourceInfo, wfTask, result);
+					for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
+						notifyWorkItemDeleted(assigneeOrDeputy, workItem, operationInfo, sourceInfo, wfTask, result);
 					}
 				}
 				notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, null, wfTask.getTask(), result);
@@ -419,7 +426,20 @@ public class WfTaskController {
 			MidpointUtil.removeTriggersForWorkItem(wfTask.getTask(), taskEvent.getTaskId(), result);
 		}
     }
-    //endregion
+
+	public List<ObjectReferenceType> getAssigneesAndDeputies(WorkItemType workItem, WfTask wfTask, OperationResult result)
+			throws SchemaException {
+    	return getAssigneesAndDeputies(workItem, wfTask.getTask(), result);
+	}
+
+	public List<ObjectReferenceType> getAssigneesAndDeputies(WorkItemType workItem, Task task, OperationResult result)
+			throws SchemaException {
+    	List<ObjectReferenceType> rv = new ArrayList<>();
+    	rv.addAll(workItem.getAssigneeRef());
+		rv.addAll(modelInteractionService.getDeputyAssignees(workItem, task, result));
+		return rv;
+	}
+	//endregion
 
     //region Auditing and notifications
     private void auditProcessStart(WfTask wfTask, Map<String, Object> variables, OperationResult result) {

@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role oid="00000000-role-0000-0000-111111111113"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>Herbology Teacher</name>
+    <description>
+    </description>
+    <inducement>
+    	<construction>
+    		<resourceRef oid="2a7c7130-7a34-11e4-bdf6-001e8c717e5b" type="c:ResourceType"/>
+    		<association>
+            	<ref>ri:group</ref>
+            	<outbound>
+            		<strength>strong</strength>
+                	<expression>
+						<associationTargetSearch>
+							<filter>
+								<q:equal>
+									<q:path>attributes/ri:cn</q:path>
+									<q:value>herbologyTeacher</q:value>
+								</q:equal>
+							</filter>
+							<searchStrategy>onResourceIfNeeded</searchStrategy>
+						</associationTargetSearch>
+					</expression>
+				</outbound>
+            </association>
+    	</construction>
+    	
+    </inducement>
+    <assignment>
+    	<targetRef oid="2dadd243-687d-4b4c-80cd-09ddfe4cbf59" type="RoleType" />
+    </assignment>
+    <requestable>true</requestable>
+</role>

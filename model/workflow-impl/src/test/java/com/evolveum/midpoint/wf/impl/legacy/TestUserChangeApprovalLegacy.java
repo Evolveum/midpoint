@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -67,7 +68,6 @@ import java.util.*;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.*;
@@ -112,7 +112,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
      */
 	@Test
     public void test010UserModifyAddRole() throws Exception {
-        TestUtil.displayTestTile(this, "test010UserModifyAddRole");
+        TestUtil.displayTestTitle(this, "test010UserModifyAddRole");
         login(userAdministrator);
        	executeTest("test010UserModifyAddRole", USER_JACK_OID, new TestDetails() {
             @Override
@@ -131,8 +131,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                 return context;
@@ -143,7 +143,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
                 assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 assertNotAssignedRole(USER_JACK_OID, ROLE_R1_OID, rootTask, result);
-                assertWfContextAfterClockworkRun(rootTask, subtasks, result, "Assigning Role1 to jack");
+                assertWfContextAfterClockworkRun(rootTask, subtasks, result, enablePolicyRuleBasedAspect ? "Assigning role \"Role1\" to user \"jack\"" : "Assigning Role1 to jack");
             }
 
             @Override
@@ -152,7 +152,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(R1BOSS_OID), result);
-                assertWfContextAfterRootTaskFinishes(rootTask, subtasks, result, "Assigning Role1 to jack");
+                assertWfContextAfterRootTaskFinishes(rootTask, subtasks, result, enablePolicyRuleBasedAspect ? "Assigning role \"Role1\" to user \"jack\"" : "Assigning Role1 to jack");
             }
 
             @Override
@@ -248,7 +248,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test011UserModifyAddRoleChangeGivenName() throws Exception {
-        TestUtil.displayTestTile(this, "test011UserModifyAddRoleChangeGivenName");
+        TestUtil.displayTestTitle(this, "test011UserModifyAddRoleChangeGivenName");
         login(userAdministrator);
 
         executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, new TestDetails() {
@@ -257,8 +257,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN);
                 return context;
@@ -286,7 +286,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED));
-                checkUserApprovers(USER_JACK_OID, new ArrayList<String>(), result);
+                checkUserApprovers(USER_JACK_OID, new ArrayList<>(), result);
             }
 
             @Override
@@ -299,7 +299,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test012UserModifyAddRoleChangeGivenNameImmediate() throws Exception {
-        TestUtil.displayTestTile(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
+        TestUtil.displayTestTitle(this, "test012UserModifyAddRoleChangeGivenNameImmediate");
         login(userAdministrator);
         executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 2; }
@@ -307,8 +307,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
@@ -348,7 +348,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test020UserModifyAddThreeRoles() throws Exception {
-        TestUtil.displayTestTile(this, "test020UserModifyAddThreeRoles");
+        TestUtil.displayTestTitle(this, "test020UserModifyAddThreeRoles");
         login(userAdministrator);
         executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 2; }
@@ -356,8 +356,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE);
@@ -407,7 +407,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test021UserModifyAddThreeRolesImmediate() throws Exception {
-        TestUtil.displayTestTile(this, "test021UserModifyAddThreeRolesImmediate");
+        TestUtil.displayTestTitle(this, "test021UserModifyAddThreeRolesImmediate");
         login(userAdministrator);
         executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 3; }
@@ -415,8 +415,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE);
@@ -437,7 +437,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertNotAssignedRole(jack, ROLE_R3_OID);
                 assertAssignedRole(jack, ROLE_R4_OID);
                 assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
-                checkUserApprovers(USER_JACK_OID, new ArrayList<String>(), result);
+                checkUserApprovers(USER_JACK_OID, new ArrayList<>(), result);
             }
 
             @Override
@@ -464,7 +464,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test030UserAdd() throws Exception {
-        TestUtil.displayTestTile(this, "test030UserAdd");
+        TestUtil.displayTestTitle(this, "test030UserAdd");
         login(userAdministrator);
         executeTest("test030UserAdd", null, new TestDetails() {
             @Override int subtaskCount() { return 2; }
@@ -472,8 +472,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 PrismObject<UserType> bill = prismContext.parseObject(USER_BILL_FILE);
                 fillContextWithAddUserDelta(context, bill);
                 return context;
@@ -497,7 +497,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertNotAssignedRole(bill, ROLE_R2_OID);
                 assertNotAssignedRole(bill, ROLE_R3_OID);
                 assertAssignedRole(bill, ROLE_R4_OID);
-                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
+                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignmentNew().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
@@ -519,7 +519,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test031UserAddImmediate() throws Exception {
-        TestUtil.displayTestTile(this, "test031UserAddImmediate");
+        TestUtil.displayTestTitle(this, "test031UserAddImmediate");
         login(userAdministrator);
 
         deleteUserFromModel("bill");
@@ -530,8 +530,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 PrismObject<UserType> bill = prismContext.parseObject(USER_BILL_FILE);
                 fillContextWithAddUserDelta(context, bill);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
@@ -550,7 +550,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertNotAssignedRole(bill, ROLE_R2_OID);
                 assertNotAssignedRole(bill, ROLE_R3_OID);
                 assertAssignedRole(bill, ROLE_R4_OID);
-                //assertEquals("Wrong number of assignments for bill", 3, bill.asObjectable().getAssignment().size());
+                //assertEquals("Wrong number of assignments for bill", 3, bill.asObjectable().getAssignmentNew().size());
                 checkUserApproversForCreate(USER_JACK_OID, new ArrayList<>(), result);
             }
 
@@ -561,7 +561,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertNotAssignedRole(bill, ROLE_R2_OID);
                 assertNotAssignedRole(bill, ROLE_R3_OID);
                 assertAssignedRole(bill, ROLE_R4_OID);
-                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignment().size());
+                //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignmentNew().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
                 checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
@@ -582,7 +582,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test040UserModifyPasswordChangeBlocked() throws Exception {
-        TestUtil.displayTestTile(this, "test040UserModifyPasswordChangeBlocked");
+        TestUtil.displayTestTitle(this, "test040UserModifyPasswordChangeBlocked");
         login(userAdministrator);
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
@@ -595,8 +595,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
                 //context.setOptions(ModelExecuteOptions.createNoCrypt());
@@ -632,7 +632,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test041UserModifyPasswordChange() throws Exception {
-        TestUtil.displayTestTile(this, "test041UserModifyPasswordChange");
+        TestUtil.displayTestTitle(this, "test041UserModifyPasswordChange");
         login(userAdministrator);
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
@@ -644,8 +644,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
                 //context.setOptions(ModelExecuteOptions.createNoCrypt());
@@ -680,7 +680,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test050UserModifyAddRoleAndPasswordChange() throws Exception {
-        TestUtil.displayTestTile(this, "test050UserModifyAddRoleAndPasswordChange");
+        TestUtil.displayTestTitle(this, "test050UserModifyAddRoleAndPasswordChange");
         login(userAdministrator);
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         final ProtectedStringType originalPasswordValue = jack.asObjectable().getCredentials().getPassword().getValue();
@@ -692,8 +692,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
@@ -737,7 +737,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test060UserModifyAddRoleAutoApproval() throws Exception {
-        TestUtil.displayTestTile(this, "test060UserModifyAddRoleAutoApproval");
+        TestUtil.displayTestTitle(this, "test060UserModifyAddRoleAutoApproval");
         login(userAdministrator);
         executeTest("test060UserModifyAddRoleAutoApproval", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -747,8 +747,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean approvedAutomatically() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE10);
                 return context;
@@ -775,9 +775,29 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         });
     }
 
+    @Test(enabled = true)
+    public void test061UserModifyAddRoleAutoSkip() throws Exception {
+        final String TEST_NAME = "test061UserModifyAddRoleAutoSkip";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        login(userAdministrator);
+        Task task = taskManager.createTaskInstance(TestUserChangeApprovalLegacy.class.getName() + "."+TEST_NAME);
+        task.setOwner(userAdministrator);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        assignRole(USER_JACK_OID, ROLE_R10_SKIP_OID, task, result);
+
+        // THEN
+        PrismObject<UserType> jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+        assertAssignedRole(jack, ROLE_R10_OID, task, result);
+
+        result.computeStatusIfUnknown();
+        assertSuccess(result);
+    }
+
     @Test
     public void test062UserModifyAddRoleAutoApprovalFirstDecides() throws Exception {
-        TestUtil.displayTestTile(this, "test062UserModifyAddRoleAutoApprovalFirstDecides");
+        TestUtil.displayTestTitle(this, "test062UserModifyAddRoleAutoApprovalFirstDecides");
         login(userAdministrator);
         executeTest("test062UserModifyAddRoleAutoApprovalFirstDecides", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -787,8 +807,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean approvedAutomatically() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
                         (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
@@ -821,7 +841,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test
     public void test064UserModifyAddRoleNoApproversAllMustAgree() throws Exception {
-        TestUtil.displayTestTile(this, "test064UserModifyAddRoleNoApproversAllMustAgree");
+        TestUtil.displayTestTitle(this, "test064UserModifyAddRoleNoApproversAllMustAgree");
         login(userAdministrator);
         executeTest("test064UserModifyAddRoleNoApproversAllMustAgree", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -831,8 +851,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean approvedAutomatically() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
                         (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
@@ -865,7 +885,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test
     public void test065UserModifyAddRoleNoApproversFirstDecides() throws Exception {
-        TestUtil.displayTestTile(this, "test065UserModifyAddRoleNoApproversFirstDecides");
+        TestUtil.displayTestTitle(this, "test065UserModifyAddRoleNoApproversFirstDecides");
         login(userAdministrator);
         executeTest("test065UserModifyAddRoleNoApproversFirstDecides", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -875,8 +895,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean approvedAutomatically() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusDeltaToContext(context,
                         (ObjectDelta) DeltaBuilder.deltaFor(UserType.class, prismContext)
@@ -910,7 +930,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
     @Test(enabled = true)
     public void test070UserModifyAssignment() throws Exception {
-        TestUtil.displayTestTile(this, "test070UserModifyAssignment");
+        TestUtil.displayTestTitle(this, "test070UserModifyAssignment");
         login(userAdministrator);
         removeAllAssignments(USER_JACK_OID, new OperationResult("dummy"));
         assignRoleRaw(USER_JACK_OID, ROLE_R1_OID);
@@ -940,8 +960,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 UserType jack = context.getFocusContext().getObjectOld().asObjectable();
                 modifyAssignmentValidity(context, jack, validFrom, validTo);
@@ -1035,7 +1055,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
      */
     @Test(enabled = true)
     public void test080UserModifyAddResource() throws Exception {
-        TestUtil.displayTestTile(this, "test080UserModifyAddResource");
+        TestUtil.displayTestTitle(this, "test080UserModifyAddResource");
         login(userAdministrator);
         executeTest("test080UserModifyAddResource", USER_JACK_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
@@ -1043,8 +1063,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean checkObjectOnSubtasks() { return true; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_DUMMY);
                 return context;
@@ -1078,7 +1098,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
      */
     @Test(enabled = true)
     public void test090UserModifyModifyResourceAssignmentValidity() throws Exception {
-        TestUtil.displayTestTile(this, "test090UserModifyModifyResourceAssignmentValidity");
+        TestUtil.displayTestTitle(this, "test090UserModifyModifyResourceAssignmentValidity");
         login(userAdministrator);
 
         final XMLGregorianCalendar validFrom = XmlTypeConverter.createXMLGregorianCalendar(2015, 2, 25, 10, 0, 0);
@@ -1091,8 +1111,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean removeAssignmentsBeforeTest() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 UserType jack = context.getFocusContext().getObjectOld().asObjectable();
                 modifyAssignmentValidity(context, jack, validFrom, validTo);
@@ -1138,7 +1158,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     @Test(enabled = true)
     public void test095UserModifyModifyResourceAssignmentConstruction() throws Exception {
         final String TEST_NAME = "test095UserModifyModifyResourceAssignmentConstruction";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(userAdministrator);
 
         executeTest(TEST_NAME, USER_JACK_OID, new TestDetails() {
@@ -1148,8 +1168,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             @Override boolean removeAssignmentsBeforeTest() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
                 UserType jack = context.getFocusContext().getObjectOld().asObjectable();
                 modifyAssignmentConstruction(context, jack,
@@ -1186,22 +1206,27 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     protected void modifyAssignmentConstruction(LensContext<UserType> context, UserType jack,
                                                 String attributeName, String value, boolean add) throws SchemaException {
         assertEquals("jack's assignments", 1, jack.getAssignment().size());
-        PrismPropertyDefinition<ResourceAttributeDefinitionType> attributeDef =
+        PrismContainerDefinition<ResourceAttributeDefinitionType> attributeDef =
                 prismContext.getSchemaRegistry()
                         .findObjectDefinitionByCompileTimeClass(UserType.class)
-                        .findPropertyDefinition(new ItemPath(UserType.F_ASSIGNMENT,
+                        .findContainerDefinition(new ItemPath(UserType.F_ASSIGNMENT,
                                 AssignmentType.F_CONSTRUCTION,
                                 ConstructionType.F_ATTRIBUTE));
         assertNotNull("no attributeDef", attributeDef);
 
         Long assignmentId = jack.getAssignment().get(0).getId();
-        PropertyDelta<ResourceAttributeDefinitionType> attributeDelta = new PropertyDelta<ResourceAttributeDefinitionType>(
-                new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
-                        new IdItemPathSegment(assignmentId),
-                        new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),
-                        new NameItemPathSegment(ConstructionType.F_ATTRIBUTE)),
-                attributeDef, prismContext);
+        ContainerDelta<ResourceAttributeDefinitionType> attributeDelta = new ContainerDelta<>(
+            new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
+                new IdItemPathSegment(assignmentId),
+                new NameItemPathSegment(AssignmentType.F_CONSTRUCTION),
+                new NameItemPathSegment(ConstructionType.F_ATTRIBUTE)),
+            attributeDef, prismContext);
         ResourceAttributeDefinitionType attributeDefinitionType = new ResourceAttributeDefinitionType();
+        if (add) {
+            attributeDelta.addValueToAdd(attributeDefinitionType.asPrismContainerValue());
+        } else {
+            attributeDelta.addValueToDelete(attributeDefinitionType.asPrismContainerValue());
+        }
         attributeDefinitionType.setRef(new ItemPathType(new ItemPath(new QName(RESOURCE_DUMMY_NAMESPACE, attributeName))));
         MappingType outbound = new MappingType();
         outbound.setStrength(MappingStrengthType.STRONG);       // to see changes on the resource
@@ -1210,11 +1235,6 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         outbound.setExpression(expression);
         attributeDefinitionType.setOutbound(outbound);
 
-        if (add) {
-            attributeDelta.addValueToAdd(new PrismPropertyValue<>(attributeDefinitionType));
-        } else {
-            attributeDelta.addValueToDelete(new PrismPropertyValue<>(attributeDefinitionType));
-        }
 
         ObjectDelta<UserType> userDelta = new ObjectDelta<>(UserType.class, ChangeType.MODIFY, prismContext);
         userDelta.setOid(USER_JACK_OID);

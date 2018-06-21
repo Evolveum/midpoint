@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import javax.xml.namespace.QName;
 public interface Referencable {
 
 	PrismReferenceValue asReferenceValue();
-	
-	void setupReferenceValue(PrismReferenceValue value);
+
+	Referencable setupReferenceValue(PrismReferenceValue value);
 
 	String getOid();
 

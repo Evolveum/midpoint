@@ -47,9 +47,9 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_3.IllegalArgumentFaultT
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectNotFoundFaultType;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 public class ModelTUtil {
 
@@ -117,7 +117,7 @@ public class ModelTUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param repository
 	 * @param file
 	 *            - user to be found

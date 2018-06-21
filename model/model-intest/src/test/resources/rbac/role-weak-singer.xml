@@ -26,6 +26,7 @@
     		<attribute>
                 <ref>ri:title</ref>
                 <outbound>
+                	<strength>strong</strength>
                 	<expression>
                 		<value>Singer</value>
 					</expression>

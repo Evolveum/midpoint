@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -54,14 +56,14 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private static final String ID_PREVIEW_CHANGES = "previewChanges";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
-	
+
 	private Form mainForm;
-	
+
 	private LoadableModel<ObjectWrapper<O>> objectModel;
 	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 		@Override
 		protected ExecuteChangeOptionsDto load() {
-			return new ExecuteChangeOptionsDto();
+			return ExecuteChangeOptionsDto.createFromSystemConfiguration();
 		}
 	};
 
@@ -84,7 +86,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	public LoadableModel<ObjectWrapper<O>> getObjectModel() {
 		return objectModel;
 	}
-	
+
 	public ObjectWrapper<O> getObjectWrapper() {
 		return objectModel.getObject();
 	}
@@ -92,7 +94,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	public PrismObject<O> getObject() {
 		return objectModel.getObject().getObject();
 	}
-	
+
 	public Form getMainForm() {
 		return mainForm;
 	}
@@ -104,7 +106,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		initLayoutOptions();
 		initLayoutButtons(parentPage);
 	}
-	
+
 	protected void initLayoutTabs(final PageAdminObjectDetails<O> parentPage) {
 		List<ITab> tabs = createTabs(parentPage);
 		TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TAB_PANEL, parentPage, tabs, null,
@@ -117,10 +119,18 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	protected void initLayoutOptions() {
 		ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS,
 				executeOptionsModel, true, false);
-        optionsPanel.setVisible(getOptionsPanelVisibility());
+        optionsPanel.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return getOptionsPanelVisibility();
+			}
+
+		});
 		mainForm.add(optionsPanel);
 	}
-	
+
 	protected void initLayoutButtons(PageAdminObjectDetails<O> parentPage) {
 		initLayoutPreviewButton(parentPage);
 		initLayoutSaveButton(parentPage);
@@ -143,9 +153,26 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			}
 		};
         saveButton.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
             @Override
-        public boolean isVisible(){
-                return !getObjectWrapper().isReadonly();
+            public boolean isVisible() {
+                return !getObjectWrapper().isReadonly() &&
+						!getDetailsPage().isForcedPreview();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                //in case user isn't allowed to modify focus data but has
+                // e.g. #assign authorization, Save button is disabled on page load.
+                // Save button becomes enabled just if some changes are made
+                // on the Assignments tab (in the use case with #assign authorization)
+                PrismContainerDefinition def = getObjectWrapper().getDefinition();
+                if (ContainerStatus.MODIFYING.equals(getObjectWrapper().getStatus())
+                        && !def.canModify()){
+                    return areSavePreviewButtonsEnabled();
+                }
+                return true;
             }
         });
 		mainForm.setDefaultButton(saveButton);
@@ -169,9 +196,21 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			}
 		};
         previewButton.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible(){
                 return AbstractObjectMainPanel.this.isPreviewButtonVisible();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                PrismContainerDefinition def = getObjectWrapper().getDefinition();
+                if (ContainerStatus.MODIFYING.equals(getObjectWrapper().getStatus())
+                        && !def.canModify()){
+                    return areSavePreviewButtonsEnabled();
+                }
+                return true;
             }
         });
 		mainForm.add(previewButton);
@@ -188,11 +227,11 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			public void onClick(AjaxRequestTarget target) {
 				backPerformed(target);
 			}
-			
+
 		};
 		mainForm.add(back);
 	}
-	
+
 	public ExecuteChangeOptionsDto getExecuteChangeOptionsDto() {
 		return executeOptionsModel.getObject();
 	}
@@ -200,12 +239,30 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private void backPerformed(AjaxRequestTarget target) {
 		getDetailsPage().redirectBack();
 	}
-	
+
 	protected PageAdminObjectDetails<O> getDetailsPage() {
 		return (PageAdminObjectDetails<O>)getPage();
 	}
 
     protected boolean getOptionsPanelVisibility(){
-        return true;
+        if (getObjectWrapper().isReadonly()){
+			return false;
+		}
+		PrismContainerDefinition def = getObjectWrapper().getDefinition();
+		if (ContainerStatus.MODIFYING.equals(getObjectWrapper().getStatus())
+				&& !def.canModify()){
+			return false;
+		}
+		return true;
+    }
+
+    public void reloadSavePreviewButtons(AjaxRequestTarget target){
+        target.add(AbstractObjectMainPanel.this.get(ID_MAIN_FORM).get(ID_PREVIEW_CHANGES));
+        target.add(AbstractObjectMainPanel.this.get(ID_MAIN_FORM).get(ID_SAVE));
+
+    }
+
+    protected boolean areSavePreviewButtonsEnabled(){
+        return false;
     }
 }

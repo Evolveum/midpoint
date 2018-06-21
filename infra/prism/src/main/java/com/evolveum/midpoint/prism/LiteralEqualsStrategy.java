@@ -37,7 +37,7 @@ import javax.xml.namespace.QName;
  *
  */
 public class LiteralEqualsStrategy extends JAXBEqualsStrategy {
-	
+
 	public static EqualsStrategy INSTANCE = new LiteralEqualsStrategy();
 
 	@Override
@@ -68,5 +68,5 @@ public class LiteralEqualsStrategy extends JAXBEqualsStrategy {
 			return super.equalsInternal(leftLocator, rightLocator, lhs, rhs);
 		}
 	}
-	
+
 }

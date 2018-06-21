@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
-import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -65,13 +65,15 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
     }
 
     @Override
-    public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public PipelineData execute(ActionExpressionType expression, PipelineData input, ExecutionContext context, OperationResult globalResult) throws ScriptExecutionException {
 
-        boolean rebind = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_REBIND_RESOURCES, input, context, false, PARAM_REBIND_RESOURCES, result);
+        boolean rebind = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_REBIND_RESOURCES, input, context, false, PARAM_REBIND_RESOURCES, globalResult);
 
-        Data output = Data.createEmpty();
+        PipelineData output = PipelineData.createEmpty();
 
-        for (PrismValue value: input.getData()) {
+        for (PipelineItem item: input.getData()) {
+            PrismValue value = item.getValue();
+            OperationResult result = operationsHelper.createActionResult(item, this, context, globalResult);
             context.checkTaskStop();
             if (value instanceof PrismObjectValue && ((PrismObjectValue) value).asObjectable() instanceof ConnectorHostType) {
                 PrismObject<ConnectorHostType> connectorHostTypePrismObject = ((PrismObjectValue) value).asPrismObject();
@@ -81,7 +83,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 try {
 					newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), context.getTask(), result);
                     operationsHelper.recordEnd(context, connectorHostTypePrismObject.asObjectable(), started, null);
-                } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException | ObjectNotFoundException | RuntimeException e) {
+                } catch (CommunicationException | SecurityViolationException | SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException e) {
                     operationsHelper.recordEnd(context, connectorHostTypePrismObject.asObjectable(), started, e);
 					exception = processActionException(e, NAME, value, context);
 					newConnectors = Collections.emptySet();
@@ -89,7 +91,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 context.println((exception != null ? "Attempted to discover " : "Discovered " + newConnectors.size())
 						+ " new connector(s) from " + connectorHostTypePrismObject + exceptionSuffix(exception));
                 for (ConnectorType connectorType : newConnectors) {
-                    output.addItem(connectorType.asPrismObject());
+                    output.addValue(connectorType.asPrismObject().getValue(), item.getResult(), item.getVariables());
                 }
                 try {
 					if (rebind) {
@@ -103,8 +105,9 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
 				//noinspection ThrowableNotThrown
 				processActionException(new ScriptExecutionException("Input item is not a PrismObject<ConnectorHost>"), NAME, value, context);
             }
+            operationsHelper.trimAndCloneResult(result, globalResult, context);
         }
-        return output;
+        return output;      // TODO configurable output (either connector hosts or discovered connectors)
     }
 
     private void rebindConnectors(Set<ConnectorType> newConnectors, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
@@ -120,7 +123,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
         List<PrismObject<ResourceType>> resources;
         try {
             resources = modelService.searchObjects(ResourceType.class, null, null, null, result);
-        } catch (SchemaException|ConfigurationException|ObjectNotFoundException|CommunicationException|SecurityViolationException e) {
+        } catch (SchemaException|ConfigurationException|ObjectNotFoundException|CommunicationException|SecurityViolationException|ExpressionEvaluationException e) {
             throw new ScriptExecutionException("Couldn't list resources: " + e.getMessage(), e);
         }
         for (PrismObject<ResourceType> resource : resources) {
@@ -152,7 +155,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
         List<PrismObject<ConnectorType>> foundConnectors;
         try {
             foundConnectors = modelService.searchObjects(ConnectorType.class, query, null, null, result);
-        } catch (SchemaException|ConfigurationException|ObjectNotFoundException|CommunicationException|SecurityViolationException e) {
+        } catch (SchemaException|ConfigurationException|ObjectNotFoundException|CommunicationException|SecurityViolationException|ExpressionEvaluationException e) {
             throw new ScriptExecutionException("Couldn't get connectors of type: " + connectorType.getConnectorType() + ": " + e.getMessage(), e);
         }
 
@@ -164,7 +167,7 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
             		connectorType.setConnectorHostRef(ObjectTypeUtil.createObjectRef(connectorType.getConnectorHost().getOid(), ObjectTypes.CONNECTOR_HOST));
                 	connectorType.setConnectorHost(null);
             	}
-            	
+
             }
             if (connectorType.getConnectorHostRef().equals(foundConnectorType.getConnectorHostRef()) &&
                     foundConnectorType.getConnectorVersion() != null &&

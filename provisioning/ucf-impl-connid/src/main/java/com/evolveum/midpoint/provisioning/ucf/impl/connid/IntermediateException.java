@@ -18,7 +18,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 /**
  * This exception exists only for the purpose of passing checked exceptions where they are not allowed.
  * This comes handy e.g. in callbacks. This exception must never be shown to "outside".
- * 
+ *
  * @author Radovan Semancik
  *
  */

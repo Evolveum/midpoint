@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,16 +33,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * A service provided by the IDM Model focused on system diagnostic. It allows to retrieve diagnostic data
  * that are not exactly part of system configuration (such as repository configuration). It can also be used
- * to initiate self-tests and similar diagnostic routines. 
- * 
+ * to initiate self-tests and similar diagnostic routines.
+ *
  * UNSTABLE: This is likely to change
  * PRIVATE: This interface is not supposed to be used outside of midPoint
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public interface ModelDiagnosticService {
-	
+
 	String CLASS_NAME_WITH_DOT = ModelDiagnosticService.class.getName() + ".";
 	String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + "repositorySelfTest";
     String REPOSITORY_TEST_ORG_CLOSURE_CONSISTENCY = CLASS_NAME_WITH_DOT + "repositoryTestOrgClosureConsistency";
@@ -51,12 +51,12 @@ public interface ModelDiagnosticService {
 	String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
 	String GET_LOG_FILE_CONTENT = CLASS_NAME_WITH_DOT + "getLogFileContent";
 	String GET_LOG_FILE_SIZE = CLASS_NAME_WITH_DOT + "getLogFileSize";
-	
+
 	/**
 	 * Provide repository run-time configuration and diagnostic information.
 	 */
 	RepositoryDiag getRepositoryDiag(Task task, OperationResult parentResult);
-	
+
 	/**
 	 * Runs a short, non-destructive repository self test.
 	 * This methods should never throw a (checked) exception. All the results
@@ -78,7 +78,7 @@ public interface ModelDiagnosticService {
      *
      * TODO this method is SQL service specific; it should be generalized/fixed somehow.
      */
-	void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult result) throws SchemaException, SecurityViolationException;
+	void repositoryTestOrgClosureConsistency(Task task, boolean repairIfNecessary, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
 
     /**
 	 * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
@@ -97,16 +97,16 @@ public interface ModelDiagnosticService {
 	 * EXPERIMENTAL.
 	 */
 	RepositoryQueryDiagResponse executeRepositoryQuery(RepositoryQueryDiagRequest request, Task task, OperationResult parentResult)
-			throws SchemaException, SecurityViolationException;
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
 
 	/**
 	 * Execute arbitrary mapping.
 	 *
-	 * EXPERIMENTAL
+	 * EXPERIMENTAL 
 	 */
 	MappingEvaluationResponseType evaluateMapping(MappingEvaluationRequestType request, Task task, OperationResult parentResult)
 			throws SchemaException, SecurityViolationException, ExpressionEvaluationException,
-			ObjectNotFoundException;
+			ObjectNotFoundException, CommunicationException, ConfigurationException;
 	/**
 	 * Exports data model
 	 *
@@ -114,11 +114,11 @@ public interface ModelDiagnosticService {
 	 */
 	String exportDataModel(Collection<String> resourceOids, DataModelVisualizer.Target target,
 			Task task, OperationResult parentResult)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
 
 	String exportDataModel(ResourceType resource, DataModelVisualizer.Target target, Task task,
 			OperationResult parentResult)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException;
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException;
 
 	// EXPERIMENTAL
 
@@ -131,7 +131,7 @@ public interface ModelDiagnosticService {
 	 * @param parentResult
 	 */
 	LogFileContentType getLogFileContent(Long fromPosition, Long maxSize, Task task, OperationResult parentResult)
-			throws SecurityViolationException, IOException, SchemaException;
+			throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException;
+	long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
 }

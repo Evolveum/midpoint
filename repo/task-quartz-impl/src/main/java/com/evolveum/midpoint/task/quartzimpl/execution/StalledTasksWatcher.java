@@ -67,7 +67,7 @@ public class StalledTasksWatcher {
         }
     }
 
-    private Map<String,ProgressInformation> lastProgressMap = new HashMap<String,ProgressInformation>();
+    private Map<String,ProgressInformation> lastProgressMap = new HashMap<>();
 
     public StalledTasksWatcher(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;

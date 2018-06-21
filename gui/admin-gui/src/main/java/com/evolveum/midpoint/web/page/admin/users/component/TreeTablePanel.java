@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -26,8 +28,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -59,7 +59,7 @@ import java.util.List;
 
 /**
  * Used as a main component of the Org tree page.
- * 
+ *
  * todo create function computeHeight() in midpoint.js, update height properly
  * when in "mobile" mode... [lazyman] todo implement midpoint theme for tree
  * [lazyman]
@@ -98,12 +98,12 @@ public class TreeTablePanel extends BasePanel<String> {
 		super(id, rootOid);
 		this.parentPage = parentPage;
 		setParent(parentPage);
-		initLayout();
+		initLayout(parentPage);
 	}
 
-	protected void initLayout() {
+	protected void initLayout(ModelServiceLocator serviceLocator) {
 
-		OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, getModel(), false) {
+		OrgTreePanel treePanel = new OrgTreePanel(ID_TREE_PANEL, getModel(), false, serviceLocator) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -117,8 +117,8 @@ public class TreeTablePanel extends BasePanel<String> {
 			}
 
 			@Override
-			protected List<InlineMenuItem> createTreeChildrenMenu() {
-				return TreeTablePanel.this.createTreeChildrenMenu();
+			protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
+				return TreeTablePanel.this.createTreeChildrenMenu(org);
 			}
 
 		};
@@ -129,7 +129,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 	private OrgMemberPanel createMemberPanel(OrgType org) {
-		OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<OrgType>(org), parentPage);
+		OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org));
 		memberPanel.setOutputMarkupId(true);
 		return memberPanel;
 	}
@@ -143,81 +143,125 @@ public class TreeTablePanel extends BasePanel<String> {
 		return items;
 	}
 
-	private List<InlineMenuItem> createTreeChildrenMenu() {
+	private List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
 		List<InlineMenuItem> items = new ArrayList<>();
+		try {
+			boolean allowModify = org == null ||
+					// TODO: the modify authorization here is probably wrong.
+					// It is a model autz. UI autz should be here instead?
+					parentPage.isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
+							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
+							null, null, null);
+			boolean allowRead = org == null ||
+					// TODO: the authorization URI here is probably wrong.
+					// It is a model autz. UI autz should be here instead?
+					parentPage.isAuthorized(ModelAuthorizationAction.READ.getUrl(),
+							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
+							null, null, null);
+			InlineMenuItem item;
+			if (allowModify) {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-		InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								moveRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						moveRootPerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.makeRoot"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.makeRoot"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								makeRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
+			}
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						makeRootPerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+			boolean allowDelete = org == null ||
+					// TODO: the authorization URI here is probably wrong.
+					// It is a model autz. UI autz should be here instead?
+					parentPage.isAuthorized(ModelAuthorizationAction.DELETE.getUrl(),
+							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
+							null, null, null);
+			if (allowDelete) {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.delete"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.delete"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								deleteNodePerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
+			}
+			if (allowModify) {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						deleteNodePerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								recomputeRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.edit"), Model.of(allowModify), Model.of(allowModify),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						recomputeRootPerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								editRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
+			} else if (allowRead){
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.viewDetails"), Model.of(allowRead), Model.of(allowRead),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.edit"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								editRootPerformed(getRowModel().getObject(), target);
+							}
+						});
+				items.add(item);
+			}
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						editRootPerformed(getRowModel().getObject(), target);
-					}
-				});
-		items.add(item);
+			// TODO: the modify authorization here is probably wrong.
+			// It is a model autz. UI autz should be here instead?
+			boolean allowAddNew = parentPage.isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+					AuthorizationPhaseType.REQUEST, (new OrgType(parentPage.getPrismContext())).asPrismObject(),
+					null, null, null);
+			if (allowModify && allowAddNew) {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.createChild"),
+						new ColumnMenuAction<SelectableBean<OrgType>>() {
+							private static final long serialVersionUID = 1L;
 
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.createChild"),
-				new ColumnMenuAction<SelectableBean<OrgType>>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						try {
-							initObjectForAdd(
-									ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue()),
-									OrgType.COMPLEX_TYPE, null, target);
-						} catch (SchemaException e) {
-							throw new SystemException(e.getMessage(), e);
-						}
-					}
-				});
-		items.add(item);
-
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								try {
+									initObjectForAdd(
+											ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue()),
+											OrgType.COMPLEX_TYPE, null, target);
+								} catch (SchemaException e) {
+									throw new SystemException(e.getMessage(), e);
+								}
+							}
+						});
+				items.add(item);
+			}
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
+		}
 		return items;
 	}
 
@@ -249,7 +293,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			objType.getParentOrgRef().add(parentOrgRef.clone());
 		}
 
-		WebComponentUtil.dispatchToObjectDetailsPage(obj, this);
+		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, this);
 
 	}
 
@@ -446,7 +490,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					query, null, task, result);
 			return (count > 0);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-				| ConfigurationException | CommunicationException e) {
+				| ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, e.getMessage(), e);
 			result.recordFatalError("Could not count members for org " + orgToDelete.getValue(), e);
 			return false;

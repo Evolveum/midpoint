@@ -43,7 +43,7 @@ import javax.persistence.*;
         @javax.persistence.Index(name = "iAssignmentReferenceTargetOid", columnList = "targetOid")
 })
 @Persister(impl = MidPointSingleTablePersister.class)
-public class RAssignmentReference extends RContainerReference {
+public class RAssignmentReference extends RContainerReference  {
 
     private RAssignment owner;
 

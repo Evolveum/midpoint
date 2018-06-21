@@ -24,10 +24,10 @@ import org.identityconnectors.framework.common.objects.Attribute;
  *
  * @author lazyman
  * @author Radovan Semancik
- * 
+ *
  */
 public class Utils {
-	
+
 	public static String getMandatoryStringAttribute(Set<Attribute> attributes, String attributeName) {
 		String value = getAttributeSingleValue(attributes, attributeName, String.class);
 		if (value == null) {
@@ -35,7 +35,7 @@ public class Utils {
 		}
 		return value;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static <T> T getAttributeSingleValue(Set<Attribute> attributes, String attributeName, Class<T> type) {
 		for (Attribute attr : attributes) {

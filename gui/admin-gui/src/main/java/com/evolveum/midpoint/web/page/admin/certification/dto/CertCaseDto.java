@@ -79,7 +79,7 @@ public class CertCaseDto extends CertCaseOrWorkItemDto {
     		return null;		// shouldn't occur
 		}
 		return names.computeIfAbsent(ref.getOid(), oid -> {
-			PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceRaw(ref, page, task, result);
+			PrismObject<UserType> reviewerObject = WebModelServiceUtils.resolveReferenceNoFetch(ref, page, task, result);
 			return reviewerObject != null ? WebComponentUtil.getName(reviewerObject) : ref.getOid();
 		});
 	}

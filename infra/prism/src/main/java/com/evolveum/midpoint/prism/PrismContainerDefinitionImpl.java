@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -25,22 +24,22 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.path.ParentPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Definition of a property container.
- * <p/>
+ * <p>
  * Property container groups properties into logical blocks. The reason for
  * grouping may be as simple as better understandability of data structure. But
  * the group usually means different meaning, source or structure of the data.
@@ -48,13 +47,13 @@ import java.util.*;
  * that are dynamic, not fixed by a static schema. Such grouping also naturally
  * translates to XML and helps to "quarantine" such properties to avoid Unique
  * Particle Attribute problems.
- * <p/>
+ * <p>
  * Property Container contains a set of (potentially multi-valued) properties.
  * The order of properties is not significant, regardless of the fact that it
  * may be fixed in the XML representation. In the XML representation, each
  * element inside Property Container must be either Property or a Property
  * Container.
- * <p/>
+ * <p>
  * This class represents schema definition for property container. See
  * {@link Definition} for more details.
  *
@@ -109,13 +108,13 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 		if (complexTypeDefinition == null) {
 			return null;
 		}
-		return (Class<C>) complexTypeDefinition.getCompileTimeClass();	
+		return (Class<C>) complexTypeDefinition.getCompileTimeClass();
 	}
 
 	public void setCompileTimeClass(Class<C> compileTimeClass) {
 		this.compileTimeClass = compileTimeClass;
 	}
-    
+
     protected String getSchemaNamespace() {
         return getName().getNamespaceURI();
     }
@@ -136,7 +135,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         }
 		return complexTypeDefinition != null && complexTypeDefinition.isAbstract();
 	}
-    
+
     @Override
 	public void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {
@@ -202,55 +201,31 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     @Override
 	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz) {
 
-		// we need to be compatible with older versions..soo if the path does
-		// not contains qnames with namespaces defined (but the prefix was
-		// specified) match definition according to the local name
-        if (StringUtils.isEmpty(firstName.getNamespaceURI())) {
-        	for (ItemDefinition def : getDefinitions()){
-        		if (QNameUtil.match(firstName, def.getName())){
-        			return (ID) def.findItemDefinition(rest, clazz);
-        		}
-        	}
-        }
-        
-        for (ItemDefinition def : getDefinitions()) {
-            if (firstName.equals(def.getName())) {
-                return (ID) def.findItemDefinition(rest, clazz);
-            }
-        }
+	    for (ItemDefinition def : getDefinitions()) {
+		    if (QNameUtil.match(firstName, def.getName())) {
+			    return (ID) def.findItemDefinition(rest, clazz);
+		    }
+	    }
 
-//        if (isRuntimeSchema()) {
-//            return findRuntimeItemDefinition(firstName, rest, clazz);
-//        }
+        if (complexTypeDefinition != null && complexTypeDefinition.isXsdAnyMarker()) {
+	        SchemaRegistry schemaRegistry = getSchemaRegistry();
+	        if (schemaRegistry != null) {
+		        ItemDefinition def = schemaRegistry.findItemDefinitionByElementName(firstName);
+		        if (def != null) {
+			        return (ID) def.findItemDefinition(rest, clazz);
+		        }
+	        }
+        }
 
         return null;
     }
 
-//    @Override
-//	public <T> PrismPropertyDefinition<T> findPropertyDefinition(ItemPath path) {
-//        while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
-//    		path = path.rest();
-//    	}
-//        if (path.isEmpty()) {
-//            throw new IllegalArgumentException("Property path is empty while searching for property definition in " + this);
-//        }
-//        QName firstName = ((NameItemPathSegment)path.first()).getName();
-//        if (path.size() == 1) {
-//            return findPropertyDefinition(firstName);
-//        }
-//        PrismContainerDefinition pcd = findContainerDefinition(firstName);
-//        if (pcd == null) {
-//            throw new IllegalArgumentException("There is no " + firstName + " subcontainer in " + this);
-//        }
-//        return pcd.findPropertyDefinition(path.rest());
-//    }
-
     /**
      * Returns set of property definitions.
-     * <p/>
+     * <p>
      * WARNING: This may return definitions from the associated complex type.
      * Therefore changing the returned set may influence also the complex type definition.
-     * <p/>
+     * <p>
      * The set contains all property definitions of all types that were parsed.
      * Order of definitions is insignificant.
      *
@@ -268,17 +243,17 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Returns set of property definitions.
-     * <p/>
+     * <p>
      * The set contains all property definitions of all types that were parsed.
      * Order of definitions is insignificant.
-     * <p/>
+     * <p>
      * The returned set is immutable! All changes may be lost.
      *
      * @return set of definitions
      */
     @Override
 	public List<PrismPropertyDefinition> getPropertyDefinitions() {
-    	List<PrismPropertyDefinition> props = new ArrayList<PrismPropertyDefinition>();
+    	List<PrismPropertyDefinition> props = new ArrayList<>();
         for (ItemDefinition def : complexTypeDefinition.getDefinitions()) {
             if (def instanceof PrismPropertyDefinition) {
                 props.add((PrismPropertyDefinition) def);
@@ -308,13 +283,21 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 		return new ContainerDelta(path, this, prismContext);
 	}
 
+    @Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		if (complexTypeDefinition != null) {
+			complexTypeDefinition.accept(visitor);
+		}
+	}
+    
 	/**
      * Shallow clone
      */
     @NotNull
 	@Override
     public PrismContainerDefinitionImpl<C> clone() {
-        PrismContainerDefinitionImpl<C> clone = new PrismContainerDefinitionImpl<C>(name, complexTypeDefinition, prismContext, compileTimeClass);
+        PrismContainerDefinitionImpl<C> clone = new PrismContainerDefinitionImpl<>(name, complexTypeDefinition, prismContext, compileTimeClass);
         copyDefinitionData(clone);
         return clone;
     }
@@ -324,13 +307,13 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         clone.complexTypeDefinition = this.complexTypeDefinition;
         clone.compileTimeClass = this.compileTimeClass;
     }
-    
+
     @Override
-	public ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap) {
+	public ItemDefinition deepClone(Map<QName,ComplexTypeDefinition> ctdMap, Map<QName,ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
 		PrismContainerDefinitionImpl<C> clone = clone();
 		ComplexTypeDefinition ctd = getComplexTypeDefinition();
 		if (ctd != null) {
-			ctd = ctd.deepClone(ctdMap);
+			ctd = ctd.deepClone(ctdMap, onThisPath, postCloneAction);
 			clone.setComplexTypeDefinition(ctd);
 		}
 		return clone;
@@ -353,7 +336,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param name     name of the property (element name)
@@ -365,7 +348,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         addDefinition(propDef);
         return propDef;
     }
-    
+
     private void addDefinition(ItemDefinition itemDef) {
 		if (complexTypeDefinition == null) {
 			throw new UnsupportedOperationException("Cannot add an item definition because there's no complex type definition");
@@ -378,7 +361,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param name      name of the property (element name)
@@ -407,7 +390,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param localName name of the property (element name) relative to the schema namespace
@@ -421,7 +404,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param localName     name of the property (element name) relative to the schema namespace
@@ -436,7 +419,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     /**
      * Creates new instance of property definition and adds it to the container.
-     * <p/>
+     * <p>
      * This is the preferred method of creating a new definition.
      *
      * @param localName     name of the property (element name) relative to the schema namespace
@@ -454,11 +437,11 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
         propertyDefinition.setMaxOccurs(maxOccurs);
         return propertyDefinition;
     }
-    
+
     public PrismContainerDefinition createContainerDefinition(QName name, QName typeName) {
     	return createContainerDefinition(name, typeName, 1, 1);
     }
-    
+
     public PrismContainerDefinition createContainerDefinition(QName name, QName typeName,
             int minOccurs, int maxOccurs) {
     	PrismSchema typeSchema = prismContext.getSchemaRegistry().findSchemaByNamespace(typeName.getNamespaceURI());
@@ -471,16 +454,36 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     	}
     	return createContainerDefinition(name, typeDefinition, minOccurs, maxOccurs);
     }
-    
+
     public PrismContainerDefinition<C> createContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition,
             int minOccurs, int maxOccurs) {
-    	PrismContainerDefinitionImpl<C> def = new PrismContainerDefinitionImpl<C>(name, complexTypeDefinition, prismContext);
+    	PrismContainerDefinitionImpl<C> def = new PrismContainerDefinitionImpl<>(name, complexTypeDefinition, prismContext);
         def.setMinOccurs(minOccurs);
         def.setMaxOccurs(maxOccurs);
         addDefinition(def);
         return def;
     }
-    
+
+	@Override
+	public boolean canBeDefinitionOf(PrismValue pvalue) {
+		if (pvalue == null) {
+			return false;
+		}
+		if (!(pvalue instanceof PrismContainerValue<?>)) {
+			return false;
+		}
+		Itemable parent = pvalue.getParent();
+		if (parent != null) {
+			if (!(parent instanceof PrismContainer<?>)) {
+				return false;
+			}
+			return canBeDefinitionOf((PrismContainer)parent);
+		} else {
+			// TODO: maybe look at the subitems?
+			return true;
+		}
+	}
+
 	@Override
 	public PrismContainerValue<C> createValue() {
 		return new PrismContainerValue<>(prismContext);
@@ -488,21 +491,28 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 
     @Override
     public String debugDump(int indent) {
+    	return debugDump(indent, new IdentityHashMap<>());
+    }
+
+    @Override
+    public String debugDump(int indent, IdentityHashMap<Definition, Object> seen) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(toString());
         if (isRuntimeSchema()) {
             sb.append(" dynamic");
         }
-        for (Definition def : getDefinitions()) {
-        	sb.append("\n");
-        	if (def == this) {
-        		// Not perfect loop protection, but works for now
-                DebugUtil.indentDebugDump(sb, indent);
-                sb.append("<itself>");
-        	} else {
-        		sb.append(def.debugDump(indent + 1));
-        	}
+        if (seen.containsKey(this) || complexTypeDefinition != null && seen.containsKey(complexTypeDefinition)) {
+        	sb.append(" (already shown)");
+        } else {
+        	seen.put(this, null);
+        	if (complexTypeDefinition != null) {
+		        seen.put(complexTypeDefinition, null);
+	        }
+	        for (Definition def : getDefinitions()) {
+		        sb.append("\n");
+		        sb.append(def.debugDump(indent + 1, seen));
+	        }
         }
         return sb.toString();
     }
@@ -512,7 +522,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	public boolean isEmpty() {
         return complexTypeDefinition.isEmpty();
     }
-    
+
     /**
      * Return a human readable name of this class suitable for logs.
      */

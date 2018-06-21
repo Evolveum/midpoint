@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,8 +65,8 @@ public interface PrimaryChangeAspect {
      * @return list of start process instructions  @see WfTaskCreationInstruction
      */
     @NotNull
-    List<PcpChildWfTaskCreationInstruction> prepareTasks(@NotNull ObjectTreeDeltas objectTreeDeltas,
-            ModelInvocationContext ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
+    <T extends ObjectType> List<PcpChildWfTaskCreationInstruction<?>> prepareTasks(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
+            ModelInvocationContext<T> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.

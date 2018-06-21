@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,21 +27,28 @@ import java.net.URISyntaxException;
 
 public class ApplicationHomeSetup {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
-    private String midpointHomeSystemPropertyName;
+    private static final Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
+
+    private boolean silent = false;
 
     public void init(String midpointHomeSystemPropertyName) {
-
-        this.midpointHomeSystemPropertyName = midpointHomeSystemPropertyName;
+        this.silent = Boolean.getBoolean(StartupConfiguration.MIDPOINT_SILENT_PROPERTY_NAME);
 
         LOGGER.info(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
-        System.out.println(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
+        printToSysout(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
 
         String midpointHomePath = System.getProperty(midpointHomeSystemPropertyName);
 
         createMidpointHomeDirectories(midpointHomePath);
         setupMidpointHomeDirectory(midpointHomePath);
+    }
 
+    private void printToSysout(String message) {
+        if (silent) {
+            return;
+        }
+
+        System.out.println(message);
     }
     
     /**
@@ -50,7 +57,6 @@ public class ApplicationHomeSetup {
      * Directory information based on: http://wiki.evolveum.com/display/midPoint/midpoint.home+-+directory+structure
      */
     private void createMidpointHomeDirectories(String midpointHomePath) {
-    	
     	if (!checkDirectoryExistence(midpointHomePath)) {
             createDir(midpointHomePath);
         }
@@ -65,7 +71,8 @@ public class ApplicationHomeSetup {
                 midpointHomePath + "schema",
                 midpointHomePath + "import",
                 midpointHomePath + "export",
-                midpointHomePath + "tmp"
+                midpointHomePath + "tmp",
+                midpointHomePath + "lib"
         };
 
         for (String directory : directories) {
@@ -85,7 +92,6 @@ public class ApplicationHomeSetup {
 		}
     	
     }
-
 
     private boolean checkDirectoryExistence(String dir) {
         File d = new File(dir);

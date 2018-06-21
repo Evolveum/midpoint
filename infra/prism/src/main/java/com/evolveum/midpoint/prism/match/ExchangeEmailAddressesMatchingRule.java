@@ -25,12 +25,12 @@ import java.util.regex.Pattern;
 /**
  * A specific matching rule for Microsoft Exchange EmailAddresses attribute consisting of SMTP:/smtp: prefix and email address.
  * It considers the case in the prefix but ignores the case in the email address.
- * 
+ *
  * @author Pavol Mederly
  *
  */
 public class ExchangeEmailAddressesMatchingRule implements MatchingRule<String> {
-	
+
 	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "exchangeEmailAddresses");
 
 	@Override

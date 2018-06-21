@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -34,7 +35,7 @@ import java.io.Serializable;
 public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
     private String propertyExpression;
-    private IModel<Boolean> enabled = new Model<Boolean>(true);
+    private IModel<Boolean> enabled = new Model<>(true);
 
     public CheckBoxColumn(IModel<String> displayModel) {
         this(displayModel, Selectable.F_SELECTED);
@@ -50,7 +51,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
                              final IModel<T> rowModel) {
         IModel<Boolean> selected = getCheckBoxValueModel(rowModel);
 
-        CheckBoxPanel check = new CheckBoxPanel(componentId, selected, enabled) {
+        IsolatedCheckBoxPanel check = new IsolatedCheckBoxPanel(componentId, selected, getEnabled(rowModel)) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
@@ -67,15 +68,20 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
     }
 
     protected IModel<Boolean> getCheckBoxValueModel(IModel<T> rowModel){
-        return new PropertyModel<Boolean>(rowModel, propertyExpression);
+        return new PropertyModel<>(rowModel, propertyExpression);
     }
 
     @Override
     public String getCssClass() {
+        IModel<String> display = getDisplayModel();
+        if (display != null && StringUtils.isNotEmpty(display.getObject())) {
+            return null;
+        }
+
         return "icon";
     }
 
-    protected IModel<Boolean> getEnabled() {
+    protected IModel<Boolean> getEnabled(IModel<T> rowModel) {
         return enabled;
     }
 

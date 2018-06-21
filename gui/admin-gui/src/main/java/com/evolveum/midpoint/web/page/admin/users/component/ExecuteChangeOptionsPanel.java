@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.CheckBox;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -30,19 +29,33 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_FORCE = "force";
+	private static final String ID_FORCE_CONTAINER = "forceContainer";
     private static final String ID_RECONCILE = "reconcile";
-    private static final String ID_RECONCILE_LABEL = "reconcileLabel";
+    private static final String ID_RECONCILE_CONTAINER = "reconcileContainer";
     private static final String ID_RECONCILE_AFFECTED = "reconcileAffected";
-    private static final String ID_RECONCILE_AFFECTED_LABEL = "reconcileAffectedLabel";
+    private static final String ID_RECONCILE_AFFECTED_CONTAINER = "reconcileAffectedContainer";
     private static final String ID_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
+    private static final String ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER = "executeAfterAllApprovalsContainer";
     private static final String ID_KEEP_DISPLAYING_RESULTS = "keepDisplayingResults";
-    private static final String ID_KEEP_DISPLAYING_RESULTS_LABEL = "keepDisplayingResultsLabel";
+    private static final String ID_KEEP_DISPLAYING_RESULTS_CONTAINER = "keepDisplayingResultsContainer";
 
-    private boolean showReconcile;
-    private boolean showReconcileAffected;
-    private boolean showKeepDisplayingResults;
+    private static final String FORCE_LABEL = "ExecuteChangeOptionsPanel.label.force";
+    private static final String FORCE_HELP = "ExecuteChangeOptionsPanel.label.force.help";
+    private static final String RECONCILE_LABEL = "ExecuteChangeOptionsPanel.label.reconcile";
+    private static final String RECONCILE_HELP = "ExecuteChangeOptionsPanel.label.reconcile.help";
+    private static final String RECONCILE_AFFECTED_LABEL = "ExecuteChangeOptionsPanel.label.reconcileAffected";
+    private static final String RECONCILE_AFFECTED_HELP = "ExecuteChangeOptionsPanel.label.reconcileAffected.help";
+    private static final String EXECUTE_AFTER_ALL_APPROVALS_LABEL = "ExecuteChangeOptionsPanel.label.executeAfterAllApprovals";
+    private static final String EXECUTE_AFTER_ALL_APPROVALS_HELP = "ExecuteChangeOptionsPanel.label.executeAfterAllApprovals.help";
+    private static final String KEEP_DISPLAYING_RESULTS_LABEL = "ExecuteChangeOptionsPanel.label.keepDisplayingResults";
+    private static final String KEEP_DISPLAYING_RESULTS_HELP = "ExecuteChangeOptionsPanel.label.keepDisplayingResults.help";
 
-    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model, boolean showReconcile, boolean showReconcileAffected) {
+    private final boolean showReconcile;
+    private final boolean showReconcileAffected;
+    private final boolean showKeepDisplayingResults;
+
+    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model,
+            boolean showReconcile, boolean showReconcileAffected) {
         super(id, model);
         this.showReconcile = showReconcile;
         this.showReconcileAffected = showReconcileAffected;
@@ -50,7 +63,8 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         initLayout();
     }
 
-    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model, boolean showReconcile, boolean showReconcileAffected, boolean showKeepDisplayingResults) {
+    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model,
+            boolean showReconcile, boolean showReconcileAffected, boolean showKeepDisplayingResults) {
         super(id, model);
         this.showReconcile = showReconcile;
         this.showReconcileAffected = showReconcileAffected;
@@ -59,60 +73,40 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     }
 
     private void initLayout() {
-        CheckBox force = new CheckBox(ID_FORCE,
-                new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_FORCE));
-        add(force);
+        createContainer(ID_FORCE_CONTAINER,
+        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_FORCE),
+        		FORCE_LABEL,
+        		FORCE_HELP,
+        		true);
 
-        WebMarkupContainer reconcileLabel = new WebMarkupContainer(ID_RECONCILE_LABEL);
-        reconcileLabel.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
+        createContainer(ID_RECONCILE_CONTAINER, 
+        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE),
+        		RECONCILE_LABEL,
+        		RECONCILE_HELP, 
+        		showReconcile);
 
-            @Override
-            public boolean isVisible() {
-                return showReconcile;
-            }
+        createContainer(ID_RECONCILE_AFFECTED_CONTAINER,
+        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE_AFFECTED),
+        		RECONCILE_AFFECTED_LABEL,
+        		RECONCILE_AFFECTED_HELP,
+        		showReconcileAffected);
 
-        });
-        add(reconcileLabel);
+        createContainer(ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER,
+        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS),
+        		EXECUTE_AFTER_ALL_APPROVALS_LABEL,
+        		EXECUTE_AFTER_ALL_APPROVALS_HELP,
+        		true);
 
-        CheckBox reconcile = new CheckBox(ID_RECONCILE,
-                new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE));
-        reconcileLabel.add(reconcile);
+        createContainer(ID_KEEP_DISPLAYING_RESULTS_CONTAINER,
+        		new PropertyModel<>(getModel(), ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS),
+        		KEEP_DISPLAYING_RESULTS_LABEL,
+        		KEEP_DISPLAYING_RESULTS_HELP,
+        		showKeepDisplayingResults);
+    }
 
-        WebMarkupContainer reconcileAffectedLabel = new WebMarkupContainer(ID_RECONCILE_AFFECTED_LABEL);
-        reconcileAffectedLabel.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return showReconcileAffected;
-            }
-
-        });
-        add(reconcileAffectedLabel);
-
-        CheckBox reconcileAffected = new CheckBox(ID_RECONCILE_AFFECTED,
-                new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE_AFFECTED));
-        reconcileAffectedLabel.add(reconcileAffected);
-
-        CheckBox executeAfterAllApprovals = new CheckBox(ID_EXECUTE_AFTER_ALL_APPROVALS,
-                new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS));
-        add(executeAfterAllApprovals);
-
-        WebMarkupContainer keepDisplayingResultsLabel = new WebMarkupContainer(ID_KEEP_DISPLAYING_RESULTS_LABEL);
-        keepDisplayingResultsLabel.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return showKeepDisplayingResults;
-            }
-
-        });
-        add(keepDisplayingResultsLabel);
-
-        CheckBox keepDisplayingResults = new CheckBox(ID_KEEP_DISPLAYING_RESULTS,
-                new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_KEEP_DISPLAYING_RESULTS));
-        keepDisplayingResultsLabel.add(keepDisplayingResults);
+    private void createContainer(String containerId, IModel<Boolean> checkboxModel, String labelKey, String helpKey, boolean show) {
+    	CheckBoxPanel panel = new CheckBoxPanel(containerId, checkboxModel, null, createStringResource(labelKey), createStringResource(helpKey));
+    	panel.setVisible(show);
+        add(panel);
     }
 }

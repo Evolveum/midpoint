@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,14 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -40,37 +39,37 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Iterative search result handler for account synchronization. Works both for
  * reconciliation and import from resource.
- * 
+ *
  * This class is called back from the searchObjectsIterative() operation of the
  * provisioning service. It does most of the work of the "import" and resource
  * reconciliation operations.
- * 
+ *
  * @see ImportAccountsFromResourceTaskHandler
  * @see ReconciliationTaskHandler
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResultHandler<ShadowType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizeAccountResultHandler.class);
-	
+
 	private ResourceObjectChangeListener objectChangeListener;
 	private String resourceOid;
 	private ThreadLocal<ResourceType> resourceWorkingCopy = new ThreadLocal<>();       // because PrismContainer is not thread safe even for reading, each thread must have its own copy
 	private ResourceType resourceReadOnly;				// this is a "master copy", not to be touched by getters - its content is copied into resourceWorkingCopy content when needed
-	private ObjectClassComplexTypeDefinition objectClass;
+	private ObjectClassComplexTypeDefinition objectClassDef;
 	private QName sourceChannel;
 	private boolean forceAdd;
 
-	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClass,
+	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClassDef,
 			String processShortName, Task coordinatorTask, ResourceObjectChangeListener objectChangeListener,
 			TaskManager taskManager) {
 		super(coordinatorTask, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource, taskManager);
 		this.objectChangeListener = objectChangeListener;
 		this.resourceReadOnly = resource;
 		this.resourceOid = resource.getOid();
-		this.objectClass = objectClass;
+		this.objectClassDef = objectClassDef;
 		forceAdd = false;
 		setRecordIterationStatistics(false);		// we do statistics ourselves in handler, because in case of reconciliation
 													// we are not called via AbstractSearchIterativeResultHandler.processRequest
@@ -83,7 +82,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	public void setForceAdd(boolean forceAdd) {
 		this.forceAdd = forceAdd;
 	}
-	
+
 	public QName getSourceChannel() {
 		return sourceChannel;
 	}
@@ -91,7 +90,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	public void setSourceChannel(QName sourceChannel) {
 		this.sourceChannel = sourceChannel;
 	}
-	
+
 	public String getResourceOid() {
 		return resourceOid;
 	}
@@ -106,17 +105,13 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	}
 
 	public ObjectClassComplexTypeDefinition getObjectClass() {
-		return objectClass;
+		return objectClassDef;
 	}
 
-	/*
+	/**
 	 * This methods will be called for each search result. It means it will be
 	 * called for each account on a resource. We will pretend that the account
 	 * was created and invoke notification interface.
-	 * 
-	 * @see
-	 * com.evolveum.midpoint.provisioning.api.ResultHandler#handle(com.evolveum
-	 * .midpoint.xml.ns._public.common.common_1.ObjectType)
 	 */
 	@Override
 	protected boolean handleObject(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
@@ -139,18 +134,20 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 
 	protected boolean handleObjectInternal(PrismObject<ShadowType> accountShadow, Task workerTask, OperationResult result) {
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("{} considering object:\n{}", getProcessShortNameCapitalized(), accountShadow.debugDump(1));
+		}
+
 		ShadowType newShadowType = accountShadow.asObjectable();
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
-			LOGGER.trace("{} skipping {} because it is protected", new Object[]{
-					getProcessShortNameCapitalized(), accountShadow});
+			LOGGER.trace("{} skipping {} because it is protected", getProcessShortNameCapitalized(), accountShadow);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
 			return true;
 		}
 
-		if (objectClass != null && (objectClass instanceof RefinedObjectClassDefinition)
-				&& !((RefinedObjectClassDefinition) objectClass).matches(newShadowType)) {
-			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent", new Object[]{
-					getProcessShortNameCapitalized(), accountShadow});
+		if (objectClassDef != null && !objectClassDef.matches(newShadowType)) {
+			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent specified in {}",
+					getProcessShortNameCapitalized(), accountShadow, objectClassDef);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
 			return true;
 		}
@@ -172,8 +169,8 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			// We should provide shadow in the state before the change. But we are
 			// pretending that it has
 			// not existed before, so we will not provide it.
-			ObjectDelta<ShadowType> shadowDelta = new ObjectDelta<ShadowType>(
-					ShadowType.class, ChangeType.ADD, accountShadow.getPrismContext());
+			ObjectDelta<ShadowType> shadowDelta = new ObjectDelta<>(
+                ShadowType.class, ChangeType.ADD, accountShadow.getPrismContext());
 			//PrismObject<AccountShadowType> shadowToAdd = refinedAccountDefinition.getObjectDefinition().parseObjectType(newShadowType);
 			PrismObject<ShadowType> shadowToAdd = newShadowType.asPrismObject();
 			shadowDelta.setObjectToAdd(shadowToAdd);

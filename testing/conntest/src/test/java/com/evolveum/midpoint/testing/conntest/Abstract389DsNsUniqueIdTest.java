@@ -28,17 +28,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  *
  */
 public abstract class Abstract389DsNsUniqueIdTest extends Abstract389DsTest {
-	
+
 	@Override
 	public String getPrimaryIdentifierAttributeName() {
 		return "nsUniqueId";
 	}
-	
+
 	@Override
 	protected boolean syncCanDetectDelete() {
 		return false;
 	}
-	
+
 	@Override
 	protected boolean isUsingGroupShortcutAttribute() {
 		return false;

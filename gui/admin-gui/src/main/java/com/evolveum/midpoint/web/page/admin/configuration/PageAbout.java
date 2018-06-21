@@ -29,6 +29,10 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -97,6 +101,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_PROVISIONING_DETAIL_NAME = "provisioningDetailName";
     private static final String ID_PROVISIONING_DETAIL_VALUE = "provisioningDetailValue";
     private static final String ID_JVM_PROPERTIES = "jvmProperties";
+    private static final String ID_CLEAR_CSS_JS_CACHE = "clearCssJsCache";
 
     private static final String[] PROPERTIES = new String[]{"file.separator", "java.class.path",
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
@@ -157,7 +162,7 @@ public class PageAbout extends PageAdminConfiguration {
         addLabel(ID_REPOSITORY_URL, "repositoryUrl");
 
         ListView<LabeledString> additionalDetails = new ListView<LabeledString>(ID_ADDITIONAL_DETAILS,
-                new PropertyModel<List<LabeledString>>(repoDiagModel, "additionalDetails")) {
+            new PropertyModel<>(repoDiagModel, "additionalDetails")) {
 
             @Override
             protected void populateItem(ListItem<LabeledString> item) {
@@ -175,7 +180,7 @@ public class PageAbout extends PageAdminConfiguration {
         add(additionalDetails);
 
         ListView<LabeledString> provisioningAdditionalDetails = new ListView<LabeledString>(ID_PROVISIONING_ADDITIONAL_DETAILS,
-                new PropertyModel<List<LabeledString>>(provisioningDiagModel, "additionalDetails")) {
+            new PropertyModel<>(provisioningDiagModel, "additionalDetails")) {
 
             @Override
             protected void populateItem(ListItem<LabeledString> item) {
@@ -268,6 +273,16 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(cleanupActivitiProcesses);
+
+        AjaxButton clearCssJsCache = new AjaxButton(ID_CLEAR_CSS_JS_CACHE,
+                createStringResource("PageAbout.button.clearCssJsCache")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearLessJsCache(target);
+            }
+        };
+        add(clearCssJsCache);
     }
 
     private RepositoryDiag loadRepoDiagModel() {
@@ -317,7 +332,7 @@ public class PageAbout extends PageAdminConfiguration {
 
             @Override
             protected List<SystemItem> load() {
-                List<SystemItem> items = new ArrayList<SystemItem>();
+                List<SystemItem> items = new ArrayList<>();
                 for (String property : PROPERTIES) {
                     items.add(new SystemItem(property, System.getProperty(property)));
                 }
@@ -340,7 +355,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             Task task = createSimpleTask(OPERATION_TEST_REPOSITORY_CHECK_ORG_CLOSURE);
             getModelDiagnosticService().repositoryTestOrgClosureConsistency(task, true, result);
-        } catch (SchemaException|SecurityViolationException e) {
+        } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | ConfigurationException | CommunicationException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -361,13 +376,13 @@ public class PageAbout extends PageAdminConfiguration {
 			} else {
 				task.setOwner(user.getUser().asPrismObject());
 			}
-			getSecurityEnforcer().authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
+			authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
 			task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
 			task.setHandlerUri(ModelPublicConstants.REINDEX_TASK_HANDLER_URI);
 			task.setName("Reindex repository objects");
 			taskManager.switchToBackground(task, result);
 			result.setBackgroundTaskOid(task.getOid());
-        } catch (SecurityViolationException|SchemaException|RuntimeException e) {
+        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();
@@ -386,11 +401,12 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private void cleanupActivitiProcessesPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_CLEANUP_ACTIVITI_PROCESSES);
+		Task task = getTaskManager().createTaskInstance(OPERATION_CLEANUP_ACTIVITI_PROCESSES);
+        OperationResult result = task.getResult();
         try {
             WorkflowService workflowService = getWorkflowService();
-            workflowService.cleanupActivitiProcesses(result);
-        } catch (SecurityViolationException|SchemaException|RuntimeException e) {
+            workflowService.cleanupActivitiProcesses(task, result);
+        } catch (SecurityViolationException | SchemaException|RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError(e);
         } finally {
             result.computeStatusIfUnknown();

@@ -17,14 +17,19 @@
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
+import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -33,13 +38,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
-import org.quartz.*;
+import org.jetbrains.annotations.NotNull;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.InterruptableJob;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.springframework.security.core.Authentication;
 
 import javax.xml.datatype.Duration;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.retrieveItemsNamed;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -50,31 +61,32 @@ public class JobExecutor implements InterruptableJob {
     /*
      * Ugly hack - this class is instantiated not by Spring but explicitly by Quartz.
      */
-	public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl tmqi) {
-		taskManagerImpl = tmqi;
+	public static void setTaskManagerQuartzImpl(TaskManagerQuartzImpl managerImpl) {
+		taskManagerImpl = managerImpl;
 	}
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(JobExecutor.class);
 
     private static final long WATCHFUL_SLEEP_INCREMENT = 500;
 
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
-    private static final int RESCHEDULE_TIME_FOR_NO_SUITABLE_NODE = 60;
+    private static final int RESCHEDULE_TIME_RANDOMIZATION_INTERVAL = 3;
+	private static final long FREE_BUCKET_WAIT_TIME = -1;        // indefinitely
 
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
 	 * the task here.
-	 * 
+	 *
 	 * http://quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-03
-	 * "Each (and every) time the scheduler executes the job, it creates a new instance of 
+	 * "Each (and every) time the scheduler executes the job, it creates a new instance of
 	 * the class before calling its execute(..) method."
 	 */
 	private volatile TaskQuartzImpl task;
 	private volatile Thread executingThread;				// used for interruptions
-	
+
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		
+
 		OperationResult executionResult = createOperationResult("execute");
 
         if (taskManagerImpl == null) {
@@ -85,13 +97,13 @@ public class JobExecutor implements InterruptableJob {
 		// get the task instance
 		String oid = context.getJobDetail().getKey().getName();
         try {
-			task = (TaskQuartzImpl) taskManagerImpl.getTask(oid, executionResult);
+			task = taskManagerImpl.getTask(oid, retrieveItemsNamed(TaskType.F_RESULT), executionResult);
 		} catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Task with OID {} no longer exists, removing Quartz job and exiting the execution routine.", e, oid);
             taskManagerImpl.getExecutionManager().removeTaskFromQuartz(oid, executionResult);
             return;
         } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be retrieved because of schema exception. Please correct the problem or resynchronize midPoint repository with Quartz job store using 'xxxxxxx' function. Now exiting the execution routine.", e, oid);
+            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be retrieved because of schema exception. Please correct the problem or resynchronize midPoint repository with Quartz job store. Now exiting the execution routine.", e, oid);
             return;
         } catch (RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} could not be retrieved, exiting the execution routine.", e, oid);
@@ -136,7 +148,7 @@ public class JobExecutor implements InterruptableJob {
             isRecovering = true;
         }
 
-		if (!checkExecutionConstraints(task, context, executionResult)) {
+		if (!checkExecutionConstraints(task, executionResult)) {
 			return;			// rescheduling is done within the checker method
 		}
 
@@ -148,11 +160,11 @@ public class JobExecutor implements InterruptableJob {
 		try {
 
             taskManagerImpl.registerRunningTask(task);
-        
+
 			handler = taskManagerImpl.getHandler(task.getHandlerUri());
             logThreadRunStart(handler);
             taskManagerImpl.notifyTaskThreadStart(task, isRecovering);
-		
+
 			if (handler==null) {
 				LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
                 executionResult.recordFatalError("No handler for URI '" + task.getHandlerUri() + "', closing the task.");
@@ -162,16 +174,18 @@ public class JobExecutor implements InterruptableJob {
                 // actually there is no point in throwing JEE; the only thing that is done with it is
                 // that it is logged by Quartz
 			}
-			
+
 			// Setup Spring Security context
 			PrismObject<UserType> taskOwner = task.getOwner();
 			try {
-				taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext(taskOwner);
+				// just to be sure we won't run the owner-setting login with any garbage security context (see MID-4160)
+				taskManagerImpl.getSecurityContextManager().setupPreAuthenticatedSecurityContext((Authentication) null);
+				taskManagerImpl.getSecurityContextManager().setupPreAuthenticatedSecurityContext(taskOwner);
 			} catch (SchemaException e) {
 	            LoggingUtils.logUnexpectedException(LOGGER, "Task with OID {} cannot be executed: error setting security context", e, oid);
 	            return;
 			}
-		
+
 			if (task.isCycle()) {
 				executeRecurrentTask(handler);
 			} else if (task.isSingle()) {
@@ -181,54 +195,64 @@ public class JobExecutor implements InterruptableJob {
                 executionResult.recordFatalError("Tasks must be either recurrent or single-run. This one is neither. Closing it.");
                 closeFlawedTask(task, executionResult);
 			}
-		
+
 		} finally {
-            waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
-            taskManagerImpl.unregisterRunningTask(task);
-            executingThread = null;
+			try {
+				waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
-            if (!task.canRun()) {
-                processTaskStop(executionResult);
-            }
+				taskManagerImpl.unregisterRunningTask(task);
+				executingThread = null;
 
-			logThreadRunFinish(handler);
-            taskManagerImpl.notifyTaskThreadFinish(task);
+				if (!task.canRun()) {
+					processTaskStop(executionResult);
+				}
+
+				logThreadRunFinish(handler);
+				taskManagerImpl.notifyTaskThreadFinish(task);
+			} finally {
+				// "logout" this thread
+				taskManagerImpl.getSecurityContextManager().setupPreAuthenticatedSecurityContext((Authentication) null);
+			}
 		}
 
 	}
 
+	static class GroupExecInfo {
+		int limit;
+		Set<Task> tasks = new HashSet<>();
+
+		GroupExecInfo(Integer l) {
+			limit = l != null ? l : Integer.MAX_VALUE;
+		}
+
+		public void accept(Integer limit, Task task) {
+			if (limit != null && limit < this.limit) {
+				this.limit = limit;
+			}
+			this.tasks.add(task);
+		}
+
+		@Override
+		public String toString() {
+			return "{limit=" + limit + ", tasks=" + tasks + "}";
+		}
+	}
+
 	// returns false if constraints are not met (i.e. execution should finish immediately)
-	private boolean checkExecutionConstraints(TaskQuartzImpl task, JobExecutionContext context, OperationResult result) throws JobExecutionException {
+	private boolean checkExecutionConstraints(TaskQuartzImpl task, OperationResult result) throws JobExecutionException {
 		TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
 		if (executionConstraints == null) {
 			return true;
 		}
 
-		// group limit
-		String group = executionConstraints.getGroup();
-		if (group != null) {
-			List<Task> tasksInGroup = new ArrayList<>();
-			ClusterStatusInformation clusterStatusInformation = taskManagerImpl.getExecutionManager()
-					.getClusterStatusInformation(true, false, result);
-			for (ClusterStatusInformation.TaskInfo taskInfo : clusterStatusInformation.getTasks()) {
-				Task runningTask;
-				try {
-					runningTask = taskManagerImpl.getTask(taskInfo.getOid(), result);
-				} catch (ObjectNotFoundException e) {
-					LOGGER.debug("Couldn't find running task {} when checking execution constraints: {}", taskInfo.getOid(), e.getMessage());
-					continue;
-				} catch (SchemaException e) {
-					LoggingUtils.logUnexpectedException(LOGGER,
-							"Couldn't retrieve running task {} when checking execution constraints", e, taskInfo.getOid());
-					continue;
-				}
-				if (group.equals(runningTask.getGroup()) && !task.getOid().equals(runningTask.getOid())) {
-					tasksInGroup.add(runningTask);
-				}
-			}
-			int limit = executionConstraints.getGroupTaskLimit() != null ? executionConstraints.getGroupTaskLimit() : 1;
-			LOGGER.trace("Tasks in group {}: {}", group, tasksInGroup);
+		// group limits
+		Map<String, GroupExecInfo> groupMap = createGroupMap(task, result);
+		LOGGER.trace("groupMap = {}", groupMap);
+		for (Map.Entry<String, GroupExecInfo> entry : groupMap.entrySet()) {
+			String group = entry.getKey();
+			int limit = entry.getValue().limit;
+			Set<Task> tasksInGroup = entry.getValue().tasks;
 			if (tasksInGroup.size() >= limit) {
 				RescheduleTime rescheduleTime = getRescheduleTime(executionConstraints,
 						DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT, task.getNextRunStartTime(result));
@@ -242,71 +266,57 @@ public class JobExecutor implements InterruptableJob {
 			}
 		}
 
-		// node restrictions
-		String currentNode = taskManagerImpl.getNodeId();
+		// node restrictions (deprecated)
 		List<String> allowedNodes = executionConstraints.getAllowedNode();
 		List<String> disallowedNodes = executionConstraints.getDisallowedNode();
-		if (!passesAllowed(currentNode, allowedNodes)) {
-			rescheduleToAllowedNode(task, "is not among allowed nodes (" + allowedNodes + ")", allowedNodes,
-					disallowedNodes, context, result);
-			return false;
+		if (!allowedNodes.isEmpty() || !disallowedNodes.isEmpty()) {
+			LOGGER.warn("Items allowedNodes and disallowedNodes in task/executionConstraints are no longer supported and are ignored. Please use node/taskExecutionLimitations instead. Task: {}", task);
 		}
-		if (!passesDisallowed(currentNode, disallowedNodes)) {
-			rescheduleToAllowedNode(task, "is among disallowed nodes (" + disallowedNodes + ")", allowedNodes,
-					disallowedNodes, context, result);
-			return false;
-		}
-
 		return true;
 	}
 
-	private boolean passesAllowed(String currentNode, List<String> allowedNodes) {
-		return allowedNodes.isEmpty() || allowedNodes.contains(currentNode);
-	}
-
-	private boolean passesDisallowed(String currentNode, List<String> disallowedNodes) {
-		return !disallowedNodes.contains(currentNode);
-	}
-
-	private boolean passes(String node, List<String> allowedNodes, List<String> disallowedNodes) {
-		return passesAllowed(node, allowedNodes) && passesDisallowed(node, disallowedNodes);
-	}
-
-	private void rescheduleToAllowedNode(TaskQuartzImpl task, String reason, List<String> allowedNodes,
-			List<String> disallowedNodes, JobExecutionContext context, OperationResult result) throws JobExecutionException {
-		String currentNode = taskManagerImpl.getNodeId();
-		NodeType node = getAvailableNode(allowedNodes, disallowedNodes, result);
-		if (node == null) {
-			RescheduleTime rescheduleTime = getRescheduleTime(null,
-					RESCHEDULE_TIME_FOR_NO_SUITABLE_NODE, task.getNextRunStartTime(result));
-			LOGGER.info("Task {} cannot be executed on current node ({}) because it {}. But there is currently no suitable"
-					+ " node to run it on. Will try again at {}{}.", task, currentNode, reason, rescheduleTime.asDate(),
-					rescheduleTime.regular ? " (i.e. at the next regular run time)" : "");
-			if (!rescheduleTime.regular) {
-				rescheduleLater(task, rescheduleTime.timestamp);
+	@NotNull
+	private Map<String, GroupExecInfo> createGroupMap(TaskQuartzImpl task, OperationResult result) {
+		Map<String, GroupExecInfo> groupMap = new HashMap<>();
+		Map<String, Integer> groupsWithLimits = task.getGroupsWithLimits();
+		if (!groupsWithLimits.isEmpty()) {
+			groupsWithLimits.forEach((g, l) -> groupMap.put(g, new GroupExecInfo(l)));
+			ClusterStatusInformation csi = taskManagerImpl.getExecutionManager()
+					.getClusterStatusInformation(true, false, result);
+			for (ClusterStatusInformation.TaskInfo taskInfo : csi.getTasks()) {
+				if (task.getOid().equals(taskInfo.getOid())) {
+					continue;
+				}
+				Task otherTask;
+				try {
+					otherTask = taskManagerImpl.getTask(taskInfo.getOid(), result);
+				} catch (ObjectNotFoundException e) {
+					LOGGER.debug("Couldn't find running task {} when checking execution constraints: {}", taskInfo.getOid(),
+							e.getMessage());
+					continue;
+				} catch (SchemaException e) {
+					LoggingUtils.logUnexpectedException(LOGGER,
+							"Couldn't retrieve running task {} when checking execution constraints", e, taskInfo.getOid());
+					continue;
+				}
+				addToGroupMap(groupMap, otherTask);
 			}
-			return;
 		}
-		LOGGER.debug("Task {} cannot be executed on current node ({}) because it {}, trying to run it at {}.",
-				task, currentNode, reason, node.getNodeIdentifier());
-		taskManagerImpl.getExecutionManager().redirectTaskToNode(task, node, result);
+		return groupMap;
 	}
 
-	private NodeType getAvailableNode(List<String> allowedNodes, List<String> disallowedNodes, OperationResult result) {
-		ClusterStatusInformation clusterStatusInformation = taskManagerImpl.getExecutionManager()
-				.getClusterStatusInformation(true, false, result);
-		List<NodeType> matching = clusterStatusInformation.getNodes().stream()
-				.filter(node -> passes(node.getNodeIdentifier(), allowedNodes, disallowedNodes)
-						&& node.getExecutionStatus() == NodeExecutionStatusType.RUNNING)
-				.collect(Collectors.toList());
-		if (matching.isEmpty()) {
-			return null;
-		} else {
-			return matching.get((int) (Math.random() * matching.size()));
+	private void addToGroupMap(Map<String, GroupExecInfo> groupMap, Task otherTask) {
+		for (Map.Entry<String, Integer> otherGroupWithLimit : otherTask.getGroupsWithLimits().entrySet()) {
+			String otherGroup = otherGroupWithLimit.getKey();
+			GroupExecInfo groupExecInfo = groupMap.get(otherGroup);
+			if (groupExecInfo != null) {
+				Integer otherLimit = otherGroupWithLimit.getValue();
+				groupExecInfo.accept(otherLimit, otherTask);
+			}
 		}
 	}
 
-	private class RescheduleTime {
+	private static class RescheduleTime {
 		private final long timestamp;
 		private final boolean regular;
 		private RescheduleTime(long timestamp, boolean regular) {
@@ -328,6 +338,7 @@ public class JobExecutor implements InterruptableJob {
 		} else {
 			retryAt = System.currentTimeMillis() + defaultInterval * 1000L;
 		}
+		retryAt += Math.random() * RESCHEDULE_TIME_RANDOMIZATION_INTERVAL * 1000.0;     // to avoid endless collisions
 		if (nextTaskRunTime != null && nextTaskRunTime < retryAt) {
 			return new RescheduleTime(nextTaskRunTime, true);
 		} else {
@@ -346,18 +357,6 @@ public class JobExecutor implements InterruptableJob {
 		}
 	}
 
-//	private void rescheduleElsewhere(TaskQuartzImpl task, String node) throws JobExecutionException {
-//		Trigger trigger = TaskQuartzImplUtil.createTriggerNowForTask(task);
-//		try {
-//			taskManagerImpl.getExecutionManager().scheduleTaskNow(task, node, );
-//			//taskManagerImpl.getExecutionManager().getQuartzScheduler().scheduleJob(trigger);
-//		} catch (SchedulerException e) {
-//			// TODO or handle it somehow?
-//			throw new JobExecutionException("Couldn't reschedule task " + task + " (rescheduled because" +
-//					" of execution constraints): " + e.getMessage(), e);
-//		}
-//	}
-
 	private void waitForTransientChildrenAndCloseThem(OperationResult result) {
         taskManagerImpl.waitForTransientChildren(task, result);
 
@@ -366,7 +365,7 @@ public class JobExecutor implements InterruptableJob {
             if (subtask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
                 if (((TaskQuartzImpl) subtask).getLightweightHandlerFuture() == null) {
                     LOGGER.trace("Lightweight task handler for subtask {} has not started yet; closing the task.", subtask);
-                    closeTask(task, result);
+                    closeTask((TaskQuartzImpl) subtask, result);
                 }
             }
         }
@@ -462,12 +461,12 @@ public class JobExecutor implements InterruptableJob {
         }
     }
 
-	private void executeSingleTask(TaskHandler handler, OperationResult executionResult) throws JobExecutionException {
+	private void executeSingleTask(TaskHandler handler, OperationResult executionResult) {
 
         Validate.notNull(handler, "Task handler is null");
 
 		try {
-			
+
 			TaskRunResult runResult;
 
 			recordCycleRunStart(executionResult, handler);
@@ -495,10 +494,13 @@ public class JobExecutor implements InterruptableJob {
             } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
                 // PERMANENT ERROR means we do not continue executing other handlers, we just close this task
                 taskManagerImpl.closeTask(task, executionResult);
+	            task.checkDependentTasksOnClose(executionResult);       // TODO
             } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED || runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
                 // FINISHED/FINISHED_HANDLER means we continue with other handlers, if there are any
                 task.finishHandler(executionResult);			// this also closes the task, if there are no remaining handlers
                 // if there are remaining handlers, task will be re-executed by Quartz
+            } else if (runResult.getRunResultStatus() == TaskRunResultStatus.IS_WAITING) {
+	            LOGGER.trace("Task switched to waiting state, exiting the execution routine. Task = {}", task);
             } else {
                 throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);
             }
@@ -508,8 +510,8 @@ public class JobExecutor implements InterruptableJob {
 			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		}
 	}
-	
-	private void executeRecurrentTask(TaskHandler handler) throws JobExecutionException {
+
+	private void executeRecurrentTask(TaskHandler handler) {
 
 		try {
 
@@ -525,7 +527,7 @@ mainCycle:
                     LOGGER.trace("CycleRunner loop: task latest start time ({}) has elapsed, exiting the execution cycle. Task = {}", task.getSchedule().getLatestStartTime(), task);
                     break;
                 }
-				
+
 				LOGGER.trace("CycleRunner loop: start");
 
                 TaskRunResult runResult;
@@ -555,6 +557,9 @@ mainCycle:
                     break;
                 } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED) {
                     LOGGER.trace("Task handler finished, continuing with the execution cycle. Task = {}", task);
+                } else if (runResult.getRunResultStatus() == TaskRunResultStatus.IS_WAITING) {
+                    LOGGER.trace("Task switched to waiting state, exiting the execution cycle. Task = {}", task);
+                    break;
                 } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
                     LOGGER.trace("Task handler finished with FINISHED_HANDLER, calling task.finishHandler() and exiting the execution cycle. Task = {}", task);
                     task.finishHandler(executionResult);			// this also closes the task, if there are no remaining handlers
@@ -596,7 +601,7 @@ mainCycle:
 				long sleepFor = lastRunStartTime + (interval * 1000) - System.currentTimeMillis();
 				if (sleepFor < 0)
 					sleepFor = 0;
-				
+
 				LOGGER.trace("CycleRunner loop: sleep ({})", sleepFor);
 
                 for (long time = 0; time < sleepFor + WATCHFUL_SLEEP_INCREMENT; time += WATCHFUL_SLEEP_INCREMENT) {
@@ -639,33 +644,120 @@ mainCycle:
 			//throw new JobExecutionException("An exception occurred during processing of task " + task, t);
 		}
 	}
-	
+
     private TaskRunResult executeHandler(TaskHandler handler, OperationResult executionResult) {
 
-    	TaskRunResult runResult;
-    	try {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Executing handler " + handler.getClass().getName());
-            }
-            if (task.getResult() == null) {
-                task.setResult(new OperationResult("run"));
-            }
-    		runResult = handler.run(task);
-    		if (runResult == null) {				// Obviously an error in task handler
-                LOGGER.error("Unable to record run finish: task returned null result");
-				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
-			}
-    	} catch (Throwable t) {
-			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
-            runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
-    	}
+		task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy());
+	    if (task.getResult() == null) {
+		    LOGGER.warn("Task without operation result found, please check the task creation/retrieval/update code: {}", task);
+		    task.setResultTransient(task.createUnnamedTaskResult());
+	    }
+
+	    TaskRunResult runResult;
+		if (handler instanceof WorkBucketAwareTaskHandler) {
+			runResult = executeWorkBucketAwareTaskHandler((WorkBucketAwareTaskHandler) handler, executionResult);
+		} else {
+			runResult = executePlainTaskHandler(handler);
+		}
 
         waitForTransientChildrenAndCloseThem(executionResult);
-
         return runResult;
 	}
 
-    private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
+	private TaskRunResult executePlainTaskHandler(TaskHandler handler) {
+		TaskRunResult runResult;
+		try {
+			LOGGER.trace("Executing handler {}", handler.getClass().getName());
+			runResult = handler.run(task);
+			if (runResult == null) {				// Obviously an error in task handler
+				LOGGER.error("Unable to record run finish: task returned null result");
+				runResult = createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+			}
+		} catch (Throwable t) {
+			LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
+			runResult = createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+		}
+		return runResult;
+	}
+
+	private TaskRunResult executeWorkBucketAwareTaskHandler(WorkBucketAwareTaskHandler handler, OperationResult executionResult) {
+		WorkStateManager workStateManager = taskManagerImpl.getWorkStateManager();
+
+		if (task.getWorkState() != null && Boolean.TRUE.equals(task.getWorkState().isAllWorkComplete())) {
+			LOGGER.debug("Work is marked as complete; restarting it in task {}", task);
+			try {
+				List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, taskManagerImpl.getPrismContext())
+						.item(TaskType.F_WORK_STATE).replace()
+						.asItemDeltas();
+				task.applyDeltasImmediate(itemDeltas, executionResult);
+			} catch (SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException | RuntimeException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove work state from (completed) task {} -- continuing", e, task);
+			}
+		}
+
+		boolean initialBucket = true;
+		TaskWorkBucketProcessingResult runResult = null;
+		for (;;) {
+			WorkBucketType bucket;
+			try {
+				try {
+					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), initialBucket, executionResult);
+				} catch (InterruptedException e) {
+					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
+					if (task.canRun()) {
+						throw new IllegalStateException("Unexpected InterruptedException: " + e.getMessage(), e);
+					} else {
+						return createInterruptedTaskRunResult();
+					}
+				}
+			} catch (Throwable t) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", t, task, null);
+				return createFailureTaskRunResult("Couldn't allocate a work bucket for task: " + t.getMessage(), t);
+			}
+			initialBucket = false;
+			if (bucket == null) {
+				LOGGER.trace("No (next) work bucket within {}, exiting", task);
+				runResult = handler.onNoMoreBuckets(task, runResult);
+				return runResult != null ? runResult : createSuccessTaskRunResult();
+			}
+			try {
+				LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
+				runResult = handler.run(task, bucket, runResult);
+				LOGGER.trace("runResult is {} for {}", runResult, task);
+				if (runResult == null) {                // Obviously an error in task handler
+					LOGGER.error("Unable to record run finish: task returned null result");
+					//releaseWorkBucketChecked(bucket, executionResult);
+					return createFailureTaskRunResult("Unable to record run finish: task returned null result", null);
+				}
+			} catch (Throwable t) {
+				LOGGER.error("Task handler threw unexpected exception: {}: {}; task = {}", t.getClass().getName(), t.getMessage(), task, t);
+				//releaseWorkBucketChecked(bucket, executionResult);
+				return createFailureTaskRunResult("Task handler threw unexpected exception: " + t.getMessage(), t);
+			}
+			if (!runResult.isBucketComplete()) {
+				return runResult;
+			}
+			try {
+				taskManagerImpl.getWorkStateManager().completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
+				return createFailureTaskRunResult("Couldn't complete work bucket: " + e.getMessage(), e);
+			}
+			if (!task.canRun() || !runResult.isShouldContinue()) {
+				return runResult;
+			}
+		}
+	}
+
+//	private void releaseWorkBucketChecked(AbstractWorkBucketType bucket, OperationResult executionResult) {
+//		try {
+//			taskManagerImpl.getWorkStateManager().releaseWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+//		} catch (com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException e) {
+//			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't release work bucket for task {}", e, task);
+//		}
+//	}
+
+	private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
         TaskRunResult runResult = new TaskRunResult();
         OperationResult opResult;
         if (task.getResult() != null) {
@@ -680,7 +772,34 @@ mainCycle:
         }
         runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-        runResult.setProgress(task.getProgress());
+        return runResult;
+    }
+
+	private TaskRunResult createSuccessTaskRunResult() {
+        TaskRunResult runResult = new TaskRunResult();
+        OperationResult opResult;
+        if (task.getResult() != null) {
+            opResult = task.getResult();
+        } else {
+            opResult = createOperationResult(DOT_CLASS + "executeHandler");
+        }
+        opResult.recordSuccess();
+        runResult.setOperationResult(opResult);
+        runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+        return runResult;
+    }
+
+	private TaskRunResult createInterruptedTaskRunResult() {
+        TaskRunResult runResult = new TaskRunResult();
+        OperationResult opResult;
+        if (task.getResult() != null) {
+            opResult = task.getResult();
+        } else {
+            opResult = createOperationResult(DOT_CLASS + "executeHandler");
+        }
+        opResult.recordSuccess();
+        runResult.setOperationResult(opResult);
+        runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);
         return runResult;
     }
 
@@ -688,17 +807,17 @@ mainCycle:
     private OperationResult createOperationResult(String methodName) {
 		return new OperationResult(DOT_CLASS + methodName);
 	}
-	
+
 	private void logThreadRunStart(TaskHandler handler) {
-		LOGGER.trace("Task thread run STARTING  " + task + ", handler = " + handler);
+		LOGGER.debug("Task thread run STARTING  " + task + ", handler = " + handler);
 	}
-	
+
 	private void logThreadRunFinish(TaskHandler handler) {
-		LOGGER.trace("Task thread run FINISHED " + task + ", handler = " + handler);
+		LOGGER.debug("Task thread run FINISHED " + task + ", handler = " + handler);
 	}
-    
+
 	private void recordCycleRunStart(OperationResult result, TaskHandler handler) {
-		LOGGER.trace("Task cycle run STARTING " + task + ", handler = " + handler);
+		LOGGER.debug("Task cycle run STARTING " + task + ", handler = " + handler);
         taskManagerImpl.notifyTaskStart(task);
         try {
             task.setLastRunStartTimestamp(System.currentTimeMillis());
@@ -706,8 +825,10 @@ mainCycle:
                 task.setCategory(task.getCategoryFromHandler());
             }
             task.setNode(taskManagerImpl.getNodeId());
+            OperationResult newResult = new OperationResult("run");
+			newResult.setStatus(OperationResultStatus.IN_PROGRESS);
+            task.setResult(newResult);										// MID-4033
             task.savePendingModifications(result);
-
         } catch (Exception e) {	// TODO: implement correctly after clarification
 			LoggingUtils.logUnexpectedException(LOGGER, "Cannot record run start for task {}", e, task);
 		}
@@ -717,16 +838,19 @@ mainCycle:
 	 * Returns a flag whether to continue (false if the task has disappeared)
 	 */
 	private boolean recordCycleRunFinish(TaskRunResult runResult, TaskHandler handler, OperationResult result) {
-		LOGGER.trace("Task cycle run FINISHED " + task + ", handler = " + handler);
+		LOGGER.debug("Task cycle run FINISHED {}, handler = {}", task, handler);
         taskManagerImpl.notifyTaskFinish(task, runResult);
 		try {
-            task.setProgress(runResult.getProgress());
+			if (runResult.getProgress() != null) {
+				task.setProgress(runResult.getProgress());
+			}
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
             if (runResult.getOperationResult() != null) {
                 try {
 					OperationResult taskResult = runResult.getOperationResult().clone();
                     taskResult.cleanupResult();
 					taskResult.summarize(true);
+//	                System.out.println("Setting task result to " + taskResult);
 					task.setResult(taskResult);
                 } catch (Throwable ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Problem with task result cleanup/summarize - continuing with raw result", ex);
@@ -734,6 +858,7 @@ mainCycle:
                 }
             }
             task.setNode(null);
+            task.storeOperationStatsDeferred();
             task.savePendingModifications(result);
 
 			return true;
@@ -750,19 +875,18 @@ mainCycle:
 	}
 
 	@Override
-	public void interrupt() throws UnableToInterruptJobException {
+	public void interrupt() {
 		LOGGER.trace("Trying to shut down the task " + task + ", executing in thread " + executingThread);
 
         boolean interruptsAlways = taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS;
         boolean interruptsMaybe = taskManagerImpl.getConfiguration().getUseThreadInterrupt() != UseThreadInterrupt.NEVER;
         if (task != null) {
             task.unsetCanRun();
-            for (Task subtask : task.getRunningLightweightAsynchronousSubtasks()) {
-                TaskQuartzImpl subtaskq = (TaskQuartzImpl) subtask;
-                subtaskq.unsetCanRun();
+            for (TaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
+                subtask.unsetCanRun();
                 // if we want to cancel the Future using interrupts, we have to do it now
                 // because after calling cancel(false) subsequent calls to cancel(true) have no effect whatsoever
-                subtaskq.getLightweightHandlerFuture().cancel(interruptsMaybe);
+                subtask.getLightweightHandlerFuture().cancel(interruptsMaybe);
             }
         }
         if (interruptsAlways) {

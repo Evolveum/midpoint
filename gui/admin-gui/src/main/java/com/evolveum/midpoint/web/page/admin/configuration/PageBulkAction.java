@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,14 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.BulkActionDto;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,7 +46,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.bind.JAXBElement;
+import java.util.Collections;
 
 /**
  * @author lazyman
@@ -72,13 +76,13 @@ public class PageBulkAction extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
-        CheckBox async = new CheckBox(ID_ASYNC, new PropertyModel<Boolean>(model, BulkActionDto.F_ASYNC));
+        CheckBox async = new CheckBox(ID_ASYNC, new PropertyModel<>(model, BulkActionDto.F_ASYNC));
         mainForm.add(async);
 
-        AceEditor editor = new AceEditor(ID_EDITOR, new PropertyModel<String>(model, BulkActionDto.F_SCRIPT));
+        AceEditor editor = new AceEditor(ID_EDITOR, new PropertyModel<>(model, BulkActionDto.F_SCRIPT));
         mainForm.add(editor);
 
         AjaxSubmitButton start = new AjaxSubmitButton(ID_START, createStringResource("PageBulkAction.button.start")) {
@@ -108,18 +112,12 @@ public class PageBulkAction extends PageAdminConfiguration {
             return;
         }
 
-        ScriptingExpressionType expression = null;
+        Object parsed = null;
         try {
-            Object parsed = getPrismContext().parserFor(bulkActionDto.getScript()).parseRealValue();
+            parsed = getPrismContext().parserFor(bulkActionDto.getScript()).parseRealValue();
             if (parsed == null) {
                 result.recordFatalError("No bulk action object was provided.");
-            }
-//            if (parsed instanceof JAXBElement) {
-//                parsed = ((JAXBElement) parsed).getValue();
-//            }
-            if (parsed instanceof ScriptingExpressionType) {
-                expression = (ScriptingExpressionType) parsed;
-            } else {
+            } else if (!(parsed instanceof ExecuteScriptType) && !(parsed instanceof ScriptingExpressionType)) {
                 result.recordFatalError("Provided text is not a bulk action object. An instance of {scripting-3}ScriptingExpressionType is expected; you have provided " + parsed.getClass() + " instead.");
             }
         } catch (SchemaException|RuntimeException e) {
@@ -127,22 +125,32 @@ public class PageBulkAction extends PageAdminConfiguration {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse bulk action object", e);
         }
 
-        if (expression != null) {
+        if (parsed != null) {
             if (bulkActionDto.isAsync()) {
                 try {
-                    getScriptingService().evaluateExpressionInBackground(expression, task, result);
-                    result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");
-                } catch (SchemaException|SecurityViolationException e) {
+                    if (parsed instanceof ExecuteScriptType) {
+                        getScriptingService().evaluateExpressionInBackground((ExecuteScriptType) parsed, task, result);
+                    } else {
+                        //noinspection ConstantConditions
+                        getScriptingService().evaluateExpressionInBackground((ScriptingExpressionType) parsed, task, result);
+                    }
+                    result.recordStatus(OperationResultStatus.IN_PROGRESS, task.getName() + " has been successfully submitted to execution");   // todo 18n
+                } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     result.recordFatalError("Couldn't submit bulk action to execution", e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
                 }
             } else {
                 try {
-                    ScriptExecutionResult executionResult = getScriptingService().evaluateExpression(expression, task, result);
+                    //noinspection ConstantConditions
+                    ScriptExecutionResult executionResult =
+                            parsed instanceof ExecuteScriptType ?
+                                    getScriptingService().evaluateExpression((ExecuteScriptType) parsed, Collections.emptyMap(),
+                                            false, task, result) :
+                                    getScriptingService().evaluateExpression((ScriptingExpressionType) parsed, task, result);
                     result.recordStatus(OperationResultStatus.SUCCESS, "Action executed. Returned " + executionResult.getDataOutput().size() + " item(s). Console and data output available via 'Export to XML' function.");
                     result.addReturn("console", executionResult.getConsoleOutput());
-                    result.addCollectionOfSerializablesAsReturn("data", executionResult.getDataOutput());
-                } catch (ScriptExecutionException|SchemaException|SecurityViolationException e) {
+                    result.addArbitraryObjectCollectionAsReturn("data", executionResult.getDataOutput());
+                } catch (ScriptExecutionException | SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     result.recordFatalError("Couldn't execute bulk action", e);
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute bulk action", e);
                 }

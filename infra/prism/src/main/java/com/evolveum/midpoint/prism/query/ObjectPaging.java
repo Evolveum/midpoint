@@ -16,23 +16,25 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-
 public class ObjectPaging implements DebugDumpable, Serializable {
 	
 	private Integer offset;
 	private Integer maxSize;
-	private List<ObjectOrdering> ordering = new ArrayList<>();
+	@NotNull private final List<ObjectOrdering> ordering = new ArrayList<>();
+    private List<ObjectGrouping> grouping = new ArrayList<>();
+
 	private String cookie;
 	
 	protected ObjectPaging() {
@@ -43,34 +45,72 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		this.maxSize = maxSize;
 	}
 
+    ObjectPaging(Integer offset, Integer maxSize, ItemPath groupBy) {
+        this.offset = offset;
+        this.maxSize = maxSize;
+        setGrouping(groupBy);
+    }
+
 	ObjectPaging(ItemPath orderBy, OrderDirection direction) {
 		setOrdering(orderBy, direction);
 	}
 
-	ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
+    ObjectPaging(ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
+        setOrdering(orderBy, direction);
+        setGrouping(groupBy);
+    }
+
+    ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
 		this.offset = offset;
 		this.maxSize = maxSize;
 		setOrdering(orderBy, direction);
 	}
+
+    ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
+        this.offset = offset;
+        this.maxSize = maxSize;
+        setOrdering(orderBy, direction);
+
+        setGrouping(groupBy);
+    }
+
+	ObjectPaging(ItemPath groupBy) {
+        setGrouping(groupBy);
+    }
 	
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize){
 		return new ObjectPaging(offset, maxSize);
 	}
 	
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, QName orderBy, OrderDirection direction) {
-		return new ObjectPaging(offset, maxSize, new ItemPath(orderBy), direction);
+		return new ObjectPaging(offset, maxSize, orderBy != null ? new ItemPath(orderBy) : null, direction);
 	}
 
 	public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
 		return new ObjectPaging(offset, maxSize, orderBy, direction);
 	}
-	
-	public static ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings) {
+
+    public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath groupBy) {
+        return new ObjectPaging(offset, maxSize, groupBy);
+    }
+
+    public static ObjectPaging createPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
+        return new ObjectPaging(offset, maxSize, orderBy, direction, groupBy);
+    }
+
+    public static ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings) {
+        ObjectPaging paging = new ObjectPaging(offset, maxSize);
+        paging.setOrdering(orderings);
+        return paging;
+    }
+
+	public static ObjectPaging createPaging(Integer offset, Integer maxSize, List<ObjectOrdering> orderings, List<ObjectGrouping> groupings) {
 		ObjectPaging paging = new ObjectPaging(offset, maxSize);
 		paging.setOrdering(orderings);
+        paging.setGrouping(groupings);
 		return paging;
 	}
-
+    
 	public static ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction) {
 		return new ObjectPaging(orderBy, direction);
 	}
@@ -78,6 +118,22 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	public static ObjectPaging createPaging(QName orderBy, OrderDirection direction) {
 		return new ObjectPaging(new ItemPath(orderBy), direction);
 	}
+
+    public static ObjectPaging createPaging(ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
+        return new ObjectPaging(orderBy, direction, groupBy);
+    }
+
+    public static ObjectPaging createPaging(QName orderBy, OrderDirection direction, QName groupBy) {
+        return new ObjectPaging(new ItemPath(orderBy), direction, new ItemPath(groupBy));
+    }
+
+    public static ObjectPaging createPaging(ItemPath groupBy) {
+        return new ObjectPaging(groupBy);
+    }
+
+    public static ObjectPaging createPaging(QName groupBy) {
+        return new ObjectPaging(new ItemPath(groupBy));
+    }
 	
 	public static ObjectPaging createEmptyPaging(){
 		return new ObjectPaging();
@@ -103,19 +159,45 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		}
 	}
 
+	public ItemPath getGroupBy(){
+	    ObjectGrouping primary = getPrimaryGrouping();
+	    return primary != null ? primary.getGroupBy() : null;
+    }
+
+    public ObjectGrouping getPrimaryGrouping() {
+	    if (hasGrouping()) {
+	        return grouping.get(0);
+        } else {
+	        return null;
+        }
+    }
+
 	// TODO name?
 	public List<ObjectOrdering> getOrderingInstructions() {
 		return ordering;
 	}
 
+	public List<ObjectGrouping> getGroupingInstructions() {
+		return grouping;
+	}
+
 	public boolean hasOrdering() {
-		return ordering != null && !ordering.isEmpty();			// first is just for sure
+		return !ordering.isEmpty();
 	}
 
 	public void setOrdering(ItemPath orderBy, OrderDirection direction) {
-		this.ordering = new ArrayList<>();
+		this.ordering.clear();
 		addOrderingInstruction(orderBy, direction);
 	}
+
+	public boolean hasGrouping() {
+	    return !grouping.isEmpty();
+    }
+
+    public void setGrouping(ItemPath groupBy) {
+	    this.grouping.clear();
+	    addGroupingInstruction(groupBy);
+    }
 
 	public void addOrderingInstruction(ItemPath orderBy, OrderDirection direction) {
 		this.ordering.add(new ObjectOrdering(orderBy, direction));
@@ -125,13 +207,43 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		addOrderingInstruction(new ItemPath(orderBy), direction);
 	}
 
+	@SuppressWarnings("NullableProblems")
 	public void setOrdering(ObjectOrdering... orderings) {
-		this.ordering = new ArrayList<>(Arrays.asList(orderings));
+		this.ordering.clear();
+		if (orderings != null) {
+			this.ordering.addAll(Arrays.asList(orderings));
+		}
 	}
 
 	public void setOrdering(Collection<ObjectOrdering> orderings) {
-		this.ordering = orderings != null ? new ArrayList<>(orderings) : new ArrayList<>();
+		this.ordering.clear();
+		if (orderings != null) {
+			this.ordering.addAll(orderings);
+		}
 	}
+
+
+    public void addGroupingInstruction(ItemPath groupBy) {
+        this.grouping.add(new ObjectGrouping(groupBy));
+    }
+
+    public void addGroupingInstruction(QName groupBy) {
+        addGroupingInstruction(new ItemPath(groupBy));
+    }
+
+    public void setGrouping(ObjectGrouping... groupings) {
+        this.grouping.clear();
+        if (groupings != null) {
+            this.grouping.addAll(Arrays.asList(groupings));
+        }
+    }
+
+    public void setGrouping(Collection<ObjectGrouping> groupings) {
+        this.grouping.clear();
+        if (groupings != null) {
+            this.grouping.addAll(groupings);
+        }
+    }
 
 	public Integer getOffset() {
 		return offset;
@@ -188,11 +300,15 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	protected void copyTo(ObjectPaging clone) {
 		clone.offset = this.offset;
 		clone.maxSize = this.maxSize;
-		if (this.ordering != null) {
-			clone.ordering = new ArrayList<>(this.ordering);
-		} else {
-			clone.ordering = null;
-		}
+		clone.ordering.clear();
+		clone.ordering.addAll(this.ordering);
+
+        if (this.grouping != null) {
+            clone.grouping = new ArrayList<>(this.grouping);
+        } else {
+            clone.grouping = null;
+        }
+
 		clone.cookie = this.cookie;
 	}
 
@@ -208,22 +324,27 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		if (getOffset() != null) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append("Offset: " + getOffset());
+			sb.append("Offset: ").append(getOffset());
 		}
 		if (getMaxSize() != null) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append("Max size: " + getMaxSize());
+			sb.append("Max size: ").append(getMaxSize());
 		}
 		if (hasOrdering()) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append("Ordering: ").append(ordering);
 		}
+        if (hasGrouping()) {
+            sb.append("\n");
+            DebugUtil.indentDebugDump(sb, indent + 1);
+            sb.append("Grouping: ").append(grouping);
+        }
 		if (getCookie() != null) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append("Cookie: " + getCookie());
+			sb.append("Cookie: ").append(getCookie());
 		}
 		return sb.toString();
 	}
@@ -232,10 +353,6 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("PAGING: ");
-		if (this == null){
-			sb.append("null");
-			return sb.toString();
-		}
 		if (getOffset() != null){
 			sb.append("O: ");
 			sb.append(getOffset());
@@ -251,6 +368,11 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 			sb.append(ordering);
 			sb.append(", ");
 		}
+        if (hasGrouping()) {
+            sb.append("GRP: ");
+            sb.append(grouping);
+            sb.append(", ");
+        }
 		if (getCookie() != null) {
 			sb.append("C:");
 			sb.append(getCookie());
@@ -259,6 +381,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 		return sb.toString();
 	}
 
+	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 	@Override
 	public boolean equals(Object o) {
 		return equals(o, true);
@@ -276,21 +399,26 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 			return false;
 		if (maxSize != null ? !maxSize.equals(that.maxSize) : that.maxSize != null)
 			return false;
-		if ((ordering != null && that.ordering == null) || (ordering == null && that.ordering != null)) {
+		if (ordering.size() != that.ordering.size()) {
 			return false;
 		}
-		if (ordering != null) {
-			if (ordering.size() != that.ordering.size()) {
+		for (int i = 0; i < ordering.size(); i++) {
+			ObjectOrdering oo1 = this.ordering.get(i);
+			ObjectOrdering oo2 = that.ordering.get(i);
+			if (!oo1.equals(oo2, exact)) {
 				return false;
 			}
-			for (int i = 0; i < ordering.size(); i++) {
-				ObjectOrdering oo1 = this.ordering.get(i);
-				ObjectOrdering oo2 = that.ordering.get(i);
-				if (!oo1.equals(oo2, exact)) {
-					return false;
-				}
-			}
 		}
+        if (grouping.size() != that.grouping.size()) {
+            return false;
+        }
+        for (int i = 0; i < grouping.size(); i++) {
+            ObjectGrouping og1 = this.grouping.get(i);
+            ObjectGrouping og2 = that.grouping.get(i);
+            if (!og1.equals(og2, exact)) {
+                return false;
+            }
+        }
 		return cookie != null ? cookie.equals(that.cookie) : that.cookie == null;
 	}
 
@@ -298,7 +426,8 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	public int hashCode() {
 		int result = offset != null ? offset.hashCode() : 0;
 		result = 31 * result + (maxSize != null ? maxSize.hashCode() : 0);
-		result = 31 * result + (ordering != null ? ordering.hashCode() : 0);
+		result = 31 * result + ordering.hashCode();
+		result = 31 * result + (grouping != null ? grouping.hashCode() : 0);
 		result = 31 * result + (cookie != null ? cookie.hashCode() : 0);
 		return result;
 	}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
+    <task>
+        <name>List selected resource objects items</name>
+		<extension>
+            <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
+                <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                    <s:type>c:ShadowType</s:type>
+                    <s:query>
+                        <q:filter>
+                            <q:and>
+                                <q:ref>
+                                    <q:path>resourceRef</q:path>
+                                    <q:value>
+                                        <oid>ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe</oid>
+                                        <type>ResourceType</type>
+                                    </q:value>
+                                </q:ref>
+                                <q:equal>
+                                    <q:path>objectClass</q:path>
+                                    <q:value xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">ri:AccountObjectClass</q:value>
+                                </q:equal>
+                            </q:and>
+                        </q:filter>
+                    </s:query>
+                    <s:pipeline>
+                        <s:filterContent>
+                            <s:keep>name</s:keep>
+                            <s:keep>synchronizationSituation</s:keep>
+                            <s:keep>intent</s:keep>
+                            <s:keep>protected</s:keep>
+                        </s:filterContent>
+                        <s:action>
+                            <s:type>log</s:type>
+                        </s:action>
+                    </s:pipeline>
+                </s:search>
+            </scext:executeScript>
+		</extension>
+        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+        <executionStatus>runnable</executionStatus>
+
+        <category>BulkActions</category>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3</handlerUri>
+        <recurrence>single</recurrence>
+    </task>
+
+</objects>

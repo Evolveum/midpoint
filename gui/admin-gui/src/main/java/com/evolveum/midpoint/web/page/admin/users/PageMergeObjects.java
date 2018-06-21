@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.model.CountableLoadableModel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.util.MergeDeltas;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,10 +27,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
@@ -42,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.MergeObjectsPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -68,7 +63,9 @@ import java.util.List;
                 label = "PageMergeObjects.auth.mergeObjects.label",
                 description = "PageMergeObjects.auth.mergeObjects.description") })
 public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
-    private static final String DOT_CLASS = PageMergeObjects.class.getName() + ".";
+	private static final long serialVersionUID = 1L;
+
+	private static final String DOT_CLASS = PageMergeObjects.class.getName() + ".";
     private static final String OPERATION_DELETE_USER = DOT_CLASS + "deleteUser";
     private static final String OPERATION_MERGE_OBJECTS = DOT_CLASS + "mergeObjects";
     private static final Trace LOGGER = TraceManager.getTrace(PageMergeObjects.class);
@@ -132,24 +129,45 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id){
-        return new FocusMainPanel<UserType>(id, getObjectModel(), new LoadableModel<List<AssignmentEditorDto>>() {
+
+    	//empty assignments model
+    	CountableLoadableModel<AssignmentType> assignemtns = new CountableLoadableModel<AssignmentType>() {
+        	private static final long serialVersionUID = 1L;
+
             @Override
-            protected List<AssignmentEditorDto> load() {
+            protected List<AssignmentType> load() {
                 return new ArrayList<>();
             }
-        },
-                new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>() {
-                    @Override
-                    protected List<FocusSubwrapperDto<ShadowType>> load() {
-                        return new ArrayList<>();
-                    }
-                }, this){
-            @Override
+    	};
+
+    	//empty policy rules  model
+    	 CountableLoadableModel<AssignmentType> policyRules = new CountableLoadableModel<AssignmentType>() {
+         	private static final long serialVersionUID = 1L;
+
+             @Override
+             protected List<AssignmentType> load() {
+                 return new ArrayList<>();
+             }
+         };
+
+         //empty projections model
+         LoadableModel<List<FocusSubwrapperDto<ShadowType>>> shadows = new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>() {
+         	private static final long serialVersionUID = 1L;
+                     @Override
+                     protected List<FocusSubwrapperDto<ShadowType>> load() {
+                         return new ArrayList<>();
+                     }
+                 };
+
+        return new FocusMainPanel<UserType>(id, getObjectModel(), shadows, this) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
             protected List<ITab> createTabs(final PageAdminObjectDetails<UserType> parentPage) {
                 List<ITab> tabs = new ArrayList<>();
                 tabs.add(
                         new PanelTab(parentPage.createStringResource("PageMergeObjects.tabTitle"), new VisibleEnableBehaviour()){
-
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -172,9 +190,10 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
             }
         };
     }
+
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel(){
-        UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+        UserSummaryPanel summaryPanel = new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
         setSummaryPanelVisibility(summaryPanel);
         return summaryPanel;
     }
@@ -183,6 +202,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     protected void setSummaryPanelVisibility(FocusSummaryPanel summaryPanel){
         summaryPanel.setVisible(false);
     }
+
     @Override
     protected Class getRestartResponsePage() {
         return PageUsers.class;
@@ -203,7 +223,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     }
 
     @Override
-    public boolean isEditingFocus() {
+    public boolean isOidParameterExists() {
         return true;
     }
 

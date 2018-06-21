@@ -21,11 +21,9 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -47,6 +45,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -61,9 +60,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import javax.xml.namespace.QName;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests {
@@ -92,7 +91,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	public void testConfirmUser() throws Exception {
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(
 				TEST_FOLDER, "account-xpath-evaluation.xml"));
-		
+
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
 
 		//TODO:  "$c:user/c:givenName/t:orig replaced with "$c:user/c:givenName

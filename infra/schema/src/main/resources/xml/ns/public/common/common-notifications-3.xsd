@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@
             <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        What to put into "From" field of mail messages (unless overriden by specific situation).
+                        What to put into "From" field of mail messages (unless overridden by specific situation).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -76,6 +76,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Instead of sending mail via SMTP, writes all messages to a file. Useful for debugging.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In addition to sending mail via SMTP, writes all messages to a file. Useful for debugging.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -166,7 +173,7 @@
             <xsd:enumeration value="starttlsRequired">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Uses STARTTLS feature. If it is not available on the server, the mesage sending fails.
+                        Uses STARTTLS feature. If it is not available on the server, the message sending fails.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="STARTTLS_REQUIRED"/>
@@ -185,6 +192,10 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="NamedConfigurationType">
+        <xsd:attribute name="name" type="xsd:string" />
+    </xsd:complexType>
 
     <xsd:complexType name="SmsConfigurationType">
         <xsd:annotation>
@@ -218,8 +229,39 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In addition to sending messages via SMS, writes all messages to a file. Useful for debugging.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="FileConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Where and how to store "file" notifications.
+            </xsd:documentation>
+            <!--<xsd:appinfo>-->
+            <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:NamedConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="file" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                File to store notifications into.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="CustomTransportConfigurationType">
@@ -248,6 +290,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						In addition to executing the expression, writes all messages to a file. Useful for debugging.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" />
     </xsd:complexType>
@@ -264,11 +313,72 @@
             <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="method" type="c:HttpMethodType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Which HTTP method is used to send SMS. Currently, "get" and "post" are supported.
+                        If not specified, "get" is assumed.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="url" type="c:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to construct URL used to send SMS.
+                        DEPRECATED. Use urlExpression instead.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>3.7.1</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="urlExpression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that returns URL used to send SMS.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="headersExpression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that returns HTTP request headers. The expression should return 0, 1 or more string values
+                        that will be used as request HTTP headers. Each value is in the form of "name: value", i.e.
+                        a header name followed by comma, space and a header value. If one header has to have more values,
+                        such name-value pair should be present more times for the given header name.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bodyExpression" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that returns request body used to send SMS (as a string).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="bodyEncoding" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Encoding to be used for the message body. ISO 8859-1 is the default.
+                        Note that if you use any other encoding, your responsibility is to provide appropriate
+                        Content-Type header (see headersExpression item). This requirement might change in the future.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="username" type="xsd:string" minOccurs="0">
@@ -292,6 +402,16 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In addition to executing the expression, writes all messages to a file. Useful for debugging.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.7.1</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" />
     </xsd:complexType>
@@ -310,6 +430,7 @@
             <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
             <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0"/>
             <xsd:element name="sms" type="tns:SmsConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="file" type="tns:FileConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="customTransport" type="tns:CustomTransportConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -416,6 +537,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="timeValidityNotifier" type="tns:TimeValidityNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="simpleFocalObjectNotifier" type="tns:SimpleFocalObjectNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -431,6 +559,13 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="simpleWorkflowNotifier" type="tns:SimpleWorkflowNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleCaseManagementNotifier" type="tns:SimpleCaseManagementNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -458,7 +593,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-             <xsd:element name="accountActivation" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
+             <xsd:element name="accountActivationNotifier" type="tns:AccountActivationNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -498,6 +633,16 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simplePolicyRuleNotifier" type="tns:SimplePolicyRuleNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.6</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="generalNotifier" type="tns:GeneralNotifierType" minOccurs="0" maxOccurs="unbounded">
@@ -606,6 +751,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="caseWorkItemEvent">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CASE_WORK_ITEM_EVENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="accessCertificationEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -634,6 +786,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="caseManagementEvent">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CASE_MANAGEMENT_EVENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="taskEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -645,6 +804,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="CUSTOM_EVENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="policyRuleEvent">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="POLICY_RULE_EVENT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -887,6 +1053,18 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    
+    <xsd:complexType name="TimeValidityNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:SimplePolicyRuleNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
     <xsd:complexType name="SimpleFocalObjectNotifierType">
         <xsd:annotation>
@@ -901,6 +1079,18 @@
     </xsd:complexType>
 
     <xsd:complexType name="SimpleWorkflowNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimpleCaseManagementNotifierType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -1033,6 +1223,21 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:GeneralNotifierType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimplePolicyRuleNotifierType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.6</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:GeneralNotifierType">

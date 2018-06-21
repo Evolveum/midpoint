@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,17 +47,17 @@ public abstract class SimplePanel<T> extends BasePanel<T> {
     public PageBase getPageBase() {
         return WebComponentUtil.getPageBase(this);
     }
-    
+
     public void setModelObject(T obj){
     	setDefaultModelObject(obj);
     }
-    
+
     protected abstract void initLayout();
 
 //    public PrismContext getPrismContext(){
 //    	return getPageBase().getPrismContext();
 //    }
-    
+
 //    public WebMarkupContainer getFeedbackPanel(){
 //    	return getPageBase().getFeedbackPanel();
 //    }

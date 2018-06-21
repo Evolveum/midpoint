@@ -52,7 +52,7 @@ public class RandomString {
     public RandomString(int length) {
     	this(length, false);
     }
-    
+
     public RandomString(int length, boolean readable) {
         if (length < 1) {
             throw new IllegalArgumentException("length < 1: " + length);

@@ -22,6 +22,7 @@ package com.evolveum.midpoint.repo.sql.data.common.enums;
  *
  * @author lazyman
  */
+@FunctionalInterface
 public interface SchemaEnum<C> {
 
     C getSchemaValue();

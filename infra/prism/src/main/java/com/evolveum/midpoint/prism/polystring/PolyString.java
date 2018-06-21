@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import java.io.Serializable;
@@ -37,14 +38,14 @@ import javax.xml.namespace.QName;
  * composed of the full Unicode character set. The other versions may be
  * normalized to trim it, normalize character case, normalize spaces,
  * remove national characters or even transliterate the string.
- * 
+ *
  * PolyString is (almost) immutable. The original value is immutable, but the
  * other normalized values can be changed. However the only way to change them
  * is to recompute them from the original value.
- * 				
+ *
  * @author Radovan Semancik
  */
-public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, Serializable, Comparable<Object> {
+public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, ShortDumpable, Serializable, Comparable<Object> {
 	private static final long serialVersionUID = -5070443143609226661L;
 
 	public static final QName F_ORIG = new QName(PrismConstants.NS_TYPES, "orig");
@@ -52,7 +53,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
 	private final String orig;
 	private String norm = null;
-	
+
 	public PolyString(String orig) {
 		super();
 		if (orig == null) {
@@ -60,7 +61,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		}
 		this.orig = orig;
 	}
-	
+
 	public PolyString(String orig, String norm) {
 		super();
 		if (orig == null) {
@@ -77,22 +78,22 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public String getNorm() {
 		return norm;
 	}
-	
+
 	public boolean isEmpty() {
 		if (orig == null) {
 			return true;
 		}
 		return orig.isEmpty();
 	}
-	
+
 	public void recompute(PolyStringNormalizer normalizer) {
 		norm = normalizer.normalize(orig);
 	}
-	
+
 	public boolean isComputed() {
 		return !(norm == null);
 	}
-	
+
 	@Override
 	public Object resolve(ItemPath subpath) {
 		if (subpath == null || subpath.isEmpty()) {
@@ -128,12 +129,12 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		}
 		return new PolyString(this.orig + other.toString());
 	}
-		
+
 	// Groovy operator overload
 	public PolyString getAt(int index) {
 		return new PolyString(this.orig.substring(index, index+1));
 	}
-	
+
 	@Override
 	public int compareTo(Object other) {
 		if (other == null) {
@@ -142,7 +143,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		String otherString = other.toString();
 		return this.orig.compareTo(otherString);
 	}
-	
+
 //	public PolyString getAt(Range at) {
 //		// TODO
 //	}
@@ -150,17 +151,37 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 //	public PolyString getAt(IntRange at) {
 //		// TODO
 //	}
-	
+
 	public int length() {
 		return orig.length();
 	}
-	
+
 	public PolyString trim() {
 		return new PolyString(orig.trim(), norm.trim());
 	}
-	
+
 	public String substring(int from, int to) {
 		return this.orig.substring(from,to);
+	}
+
+	/**
+	 * Helper function that checks whether this original string begins with the specified value.
+	 *
+	 * @param value the value
+	 * @return the string
+	 */
+	public boolean startsWith(String value) {
+		return this.orig.startsWith(value);
+	}
+
+	/**
+	 * Helper function that checks whether this original string ends with the specified value.
+	 *
+	 * @param value the value
+	 * @return the string
+	 */
+	public boolean endsWith(String value) {
+		return this.orig.endsWith(value);
 	}
 
 	@Override
@@ -215,11 +236,6 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public String toString() {
 		return orig;
 	}
-	
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
 
 	@Override
 	public String debugDump(int indent) {
@@ -233,6 +249,11 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		}
 		sb.append(")");
 		return sb.toString();
+	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(orig);
 	}
 
     public static String getOrig(PolyString s) {
@@ -249,7 +270,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			return true;
 		if (other == null)
 			return false;
-		
+
 		if (norm == null) {
 			if (other.norm != null)
 				return false;
@@ -257,7 +278,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			return false;
 		return true;
 	}
-	
+
 	@Override
 	public boolean matches(String regex) {
 		return Pattern.matches(regex, norm) || Pattern.matches(regex, orig);

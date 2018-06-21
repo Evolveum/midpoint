@@ -29,7 +29,7 @@
         <xsd:sequence>
           <xsd:element name="objectType" type="xsd:QName" />
           <xsd:element name="oid" type="xsd:string" />
-          <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" />
+          <xsd:element name="options" type="c:SelectorQualifiedGetOptionsType" />
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="getObject" type="tns:GetObjectType" />
@@ -63,7 +63,7 @@
                             </xsd:documentation>
             </xsd:annotation>
           </xsd:element>
-          <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" />
+          <xsd:element name="options" type="c:SelectorQualifiedGetOptionsType" />
         </xsd:sequence>
       </xsd:complexType>
       <xsd:element name="searchObjects" type="tns:SearchObjectsType" />

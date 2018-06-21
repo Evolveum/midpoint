@@ -18,10 +18,13 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
  * @author mederly
@@ -33,9 +36,9 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 	private final AssignmentPath conflictingPath;
 
 	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
-			String message, @NotNull EvaluatedAssignment conflictingAssignment,
+			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
 			ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
-		super(PolicyConstraintKindType.EXCLUSION, constraint, message);
+		super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage);
 		this.conflictingAssignment = conflictingAssignment;
 		this.conflictingTarget = conflictingTarget;
 		this.conflictingPath = conflictingPath;
@@ -43,6 +46,10 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 
 	public <F extends FocusType> EvaluatedAssignment<F> getConflictingAssignment() {
 		return conflictingAssignment;
+	}
+
+	public AssignmentPath getConflictingPath() {
+		return conflictingPath;
 	}
 
 	@Override
@@ -72,15 +79,19 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 	}
 
 	@Override
-	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
 		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
-		fillCommonContent(rv, owningRule);
-		rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
-		rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
-		if (conflictingPath != null) {
-			rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType());
+		fillCommonContent(rv);
+		if (options.getTriggeredRulesStorageStrategy() == FULL) {
+			rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
+			rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
+			if (conflictingPath != null) {
+				rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
+			}
+			if (options.isIncludeAssignmentsContent() && conflictingAssignment.getAssignmentType() != null) {
+				rv.setConflictingAssignment(conflictingAssignment.getAssignmentType().clone());
+			}
 		}
-		rv.setConflictingAssignment(conflictingAssignment.getAssignmentType());
 		return rv;
 	}
 }

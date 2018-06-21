@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -75,12 +76,12 @@ import static org.testng.AssertJUnit.assertTrue;
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestUniversity extends AbstractStoryTest {
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "university");
-	
+
 	public static final File OBJECT_TEMPLATE_ORG_FILE = new File(TEST_DIR, "object-template-org.xml");
 	public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
-	
+
 	protected static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
 	protected static final String RESOURCE_DUMMY_HR_ID = "HR";
 	protected static final String RESOURCE_DUMMY_HR_OID = "10000000-0000-0000-0000-000000000001";
@@ -94,10 +95,10 @@ public class TestUniversity extends AbstractStoryTest {
 
 	public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
 	public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
-	
+
 	public static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
 	public static final String ROLE_META_ORG_OID = "10000000-0000-0000-0000-000000006601";
-	
+
 	protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR, "task-dummy-hr-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
 
@@ -113,16 +114,21 @@ public class TestUniversity extends AbstractStoryTest {
 
     @Autowired
 	private ReconciliationTaskHandler reconciliationTaskHandler;
-	
+
 	private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
-	
+
 	protected static DummyResource dummyResourceHr;
 	protected static DummyResourceContoller dummyResourceCtlHr;
 	protected ResourceType resourceDummyHrType;
 	protected PrismObject<ResourceType> resourceDummyHr;
-	
+
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
+
+	@Override
+	protected String getTopOrgOid() {
+		return ORG_TOP_OID;
+	}
 
 	@Override
     protected void startResources() throws Exception {
@@ -133,14 +139,14 @@ public class TestUniversity extends AbstractStoryTest {
     public static void stopResources() throws Exception {
         openDJController.stop();
     }
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		reconciliationTaskResultListener = new DebugReconciliationTaskResultListener();
 		reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
-		
+
 		// Resources
 		dummyResourceCtlHr = DummyResourceContoller.create(RESOURCE_DUMMY_HR_ID, resourceDummyHr);
 		DummyObjectClass privilegeObjectClass = dummyResourceCtlHr.getDummyResource().getPrivilegeObjectClass();
@@ -150,7 +156,7 @@ public class TestUniversity extends AbstractStoryTest {
 		resourceDummyHrType = resourceDummyHr.asObjectable();
 		dummyResourceCtlHr.setResource(resourceDummyHr);
 		dummyResourceHr.setSyncStyle(DummySyncStyle.SMART);
-		
+
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
@@ -173,16 +179,16 @@ public class TestUniversity extends AbstractStoryTest {
 		// Tasks
 		importObjectFromFile(TASK_LIVE_SYNC_DUMMY_HR_FILE, initResult);
 	}
-	
+
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
-        
+
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
         TestUtil.assertSuccess(testResultHr);
-        
+
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
 
@@ -190,11 +196,11 @@ public class TestUniversity extends AbstractStoryTest {
 
         dumpOrgTree();
 	}
-	
+
 	@Test
     public void test100AddComeniusUniversity() throws Exception {
 		final String TEST_NAME = "test100AddComeniusUniversity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
 		DummyPrivilege comenius = new DummyPrivilege("UK");
@@ -219,7 +225,7 @@ public class TestUniversity extends AbstractStoryTest {
 	@Test
 	public void test110AddComeniusStructure() throws Exception {
 		final String TEST_NAME = "test110AddComeniusStructure";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
 		DummyPrivilege srcFmfi = new DummyPrivilege("FMFI");
@@ -281,20 +287,20 @@ public class TestUniversity extends AbstractStoryTest {
 	private void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
+		assertAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
 	}
 
 	private void assertNoGroupMembers(PrismObject<OrgType> org) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertNoAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"));
+		assertNoAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"));
 	}
 
 
 	@Test
 	public void test120MoveComputingCentre() throws Exception {
 		final String TEST_NAME = "test120MoveComputingCentre";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		Task task = taskManager.createTaskInstance(TestUniversity.class.getName() + "." + TEST_NAME);
 
 		DummyPrivilege srcVc = dummyResourceHr.getPrivilegeByName("VC");
@@ -332,7 +338,7 @@ public class TestUniversity extends AbstractStoryTest {
 		assertHasOrg(prif, uk.getOid());
 		assertAssignedOrg(prif, uk.getOid());
 		assertSubOrgs(prif, 1);
-		assertGroupMembers(prif, "cn=DL-VC,ou=VC,ou=PRIF,ou=UK,dc=example,dc=com");
+		assertGroupMembers(prif, "cn=dl-vc,ou=vc,ou=prif,ou=uk,dc=example,dc=com");
 
 		PrismObject<OrgType> vc = getAndAssertFunctionalOrg("VC");
 		assertNotNull("VC was not found", vc);
@@ -510,7 +516,7 @@ public class TestUniversity extends AbstractStoryTest {
 //        assertTrue(RESP_CANIBALISM_DN + " does not contain " + ACCOUNT_LEMONHEAD_DN, membersAfterTest.contains(ACCOUNT_LEMONHEAD_DN.toLowerCase()));    // ...it seems to get lowercased during the reconciliation
 //    }
 
-	private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+	private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = getOrg(orgName);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, "functional");
 		assertAssignedRole(org, ROLE_META_ORG_OID);
@@ -538,17 +544,4 @@ public class TestUniversity extends AbstractStoryTest {
 		return org;
 	}
 
-	private PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-		assertNotNull("The org "+orgName+" is missing!", org);
-		display("Org "+orgName, org);
-		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
-		return org;
-	}
-
-	private void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		display("Org tree", dumpOrgTree(ORG_TOP_OID));
-	}
-
-	
 }

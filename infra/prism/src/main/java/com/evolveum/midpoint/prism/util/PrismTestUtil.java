@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,8 +46,8 @@ import java.util.List;
 
 /**
  * Class that statically instantiates the prism contexts and provides convenient static version of the PrismContext
- * and processor classes. 
- * 
+ * and processor classes.
+ *
  * This is usable for tests. DO NOT use this in the main code. Although it is placed in "main" for convenience,
  * is should only be used in tests.
  *
@@ -57,6 +59,10 @@ public class PrismTestUtil {
 
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
     
+    private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
+	private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
+	private static final String LOG_MESSAGE_PREFIX = "";
+
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
 
@@ -68,7 +74,7 @@ public class PrismTestUtil {
     	setFactory(newPrismContextFactory);
     	resetPrismContext();
     }
-    
+
 	public static void setFactory(PrismContextFactory newPrismContextFactory) {
 		PrismTestUtil.prismContextFactory = newPrismContextFactory;
 	}
@@ -90,7 +96,7 @@ public class PrismTestUtil {
     	newPrismContext.initialize();
         return newPrismContext;
     }
-    
+
     public static PrismContext getPrismContext() {
     	if (prismContext == null) {
     		throw new IllegalStateException("Prism context is not set in PrismTestUtil. Maybe a missing call to resetPrismContext(..) in test initialization?");
@@ -98,22 +104,26 @@ public class PrismTestUtil {
     	return prismContext;
     }
     
+    public static void setPrismContext(PrismContext prismContext) {
+		PrismTestUtil.prismContext = prismContext;
+	}
+
     public static SchemaRegistry getSchemaRegistry() {
     	return prismContext.getSchemaRegistry();
     }
-    
+
     // ==========================
     // == parsing
     // ==========================
-    
+
     public static <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
     	return getPrismContext().parseObject(file);
     }
-    
+
     public static <T extends Objectable> PrismObject<T> parseObject(String xmlString) throws SchemaException {
     	return getPrismContext().parseObject(xmlString);
     }
-    
+
     @Deprecated
     public static <T extends Objectable> PrismObject<T> parseObject(Element element) throws SchemaException {
     	return getPrismContext().parserFor(element).parse();
@@ -127,7 +137,7 @@ public class PrismTestUtil {
     public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
     	return getPrismContext().parserFor(file).parseObjects();
     }
-    
+
     // ==========================
     // == Serializing
     // ==========================
@@ -170,6 +180,10 @@ public class PrismTestUtil {
         return getPrismContext().parserFor(data).type(type).parseRealValue();
     }
 
+    public static <T> T parseAtomicValueCompat(String data, QName type) throws SchemaException {
+        return getPrismContext().parserFor(data).compat().type(type).parseRealValue();
+    }
+
     public static <T> T parseAnyValue(File file) throws SchemaException, IOException {
         return getPrismContext().parserFor(file).parseRealValue();
     }
@@ -201,23 +215,54 @@ public class PrismTestUtil {
 		LOGGER.info("===[ {} ]===",testName);
 	}
 	
+	public static void displayWhen(String testName) {
+		System.out.println("\n\n---[ "+testName+" WHEN ]---\n");
+		LOGGER.info("---[ {} WHEN ]---",testName);
+	}
+	
+	public static void displayThen(String testName) {
+		System.out.println("\n\n---[ "+testName+" THEN ]---\n");
+		LOGGER.info("---[ {} THEN ]---",testName);
+	}
+
 	public static SearchFilterType unmarshalFilter(File file) throws Exception {
 		return prismContext.parserFor(file).parseRealValue(SearchFilterType.class);
 	}
-	
+
 	public static ObjectFilter getFilterCondition(ObjectFilter filter, int index) {
 		if (!(filter instanceof NaryLogicalFilter)) {
 			throw new IllegalArgumentException("Filter not an instance of n-ary logical filter.");
 		}
 		return ((LogicalFilter) filter).getConditions().get(index);
 	}
+
+	public static void display(String title, String value) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(value);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+				+ value);
+	}
+
+	public static void display(String title, DebugDumpable dumpable) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(dumpable == null ? "null" : dumpable.debugDump(1));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
+				+ (dumpable == null ? "null" : dumpable.debugDump(1)));
+	}
+	
+	public static void display(String title, Object value) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(PrettyPrinter.prettyPrint(value));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
+				+ PrettyPrinter.prettyPrint(value));
+	}
 	
 	public static void displayQuery(ObjectQuery query) {
-		LOGGER.trace("object query: {}", query);
-		System.out.println("object query: " + query);
+		LOGGER.trace("object query:\n{}\n", query);
+		System.out.println("object query:\n" + query + "\n");
 		if (query != null) {
-			LOGGER.trace("QUERY DUMP: {}", query.debugDump());
-			System.out.println("QUERY DUMP: " + query.debugDump());
+			LOGGER.trace("object query debug dump:\n{}\n", query.debugDump());
+			System.out.println("object query debug dump:\n" + query.debugDump() + "\n");
 		}
 	}
 
@@ -240,9 +285,9 @@ public class PrismTestUtil {
 
         String dumpX = mapXNode.debugDump();
         LOGGER.info(dumpX);
-        System.out.println(dumpX);
+        System.out.println("filter clause xnode:\n" + dumpX + "\n");
 
-        String dumpXml = prismContext.xmlSerializer().serialize(new RootXNode(new QName("query"), mapXNode));
-        System.out.println(dumpXml);
+        String dumpXml = prismContext.xmlSerializer().serialize(new RootXNode(new QName("filterClauseXNode"), mapXNode));
+        System.out.println("filter clause xnode serialized:\n" + dumpXml + "\n");
 	}
 }

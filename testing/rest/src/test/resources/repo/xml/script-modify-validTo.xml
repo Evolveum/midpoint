@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xmlns:api="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3">
+    <s:pipeline>
+        <s:action>
+            <s:type>resolve</s:type>        <!-- resolves references to real objects -->
+        </s:action>
+        <s:action>
+            <s:type>modify</s:type>
+            <s:parameter>
+                <s:name>delta</s:name>
+                <c:value xsi:type="t:ObjectDeltaType">
+                    <!-- object type and oid will be filled-in from the input; change type is 'modify' by default -->
+                    <t:itemDelta>
+                        <t:modificationType>replace</t:modificationType>
+                        <t:path>activation/validTo</t:path>
+                        <t:value>2018-08-31T00:00:00.000+00:00</t:value>
+                    </t:itemDelta>
+                </c:value>
+            </s:parameter>
+        </s:action>
+    </s:pipeline>
+    <s:input>
+        <s:value xsi:type="c:ObjectReferenceType" oid="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" type="UserType"/> <!-- invalid OID -->
+        <s:value xsi:type="c:ObjectReferenceType" oid="229487cb-59b6-490b-879d-7a6d925dd08c" type="UserType"/> <!-- jack -->
+    </s:input>
+    <s:options>
+        <s:continueOnAnyError>true</s:continueOnAnyError>
+    </s:options>
+</s:executeScript>

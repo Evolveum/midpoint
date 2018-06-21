@@ -34,7 +34,7 @@ public abstract class UcfException extends Exception {
 	public UcfException(String msg) {
 		super(msg);
 	}
-	
+
 	public UcfException(String msg,Throwable cause) {
 		super(msg,cause);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class SubstringFilter<T> extends PropertyValueFilter<T> {
@@ -57,8 +54,12 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 		List<PrismPropertyValue<T>> values = anyValueToPropertyValueList(prismContext, anyValue);
 		return new SubstringFilter<>(path, itemDefinition, matchingRule, values, null, anchorStart, anchorEnd);
 	}
-
-	// TODO expression based substring filter
+	
+	public static <T> SubstringFilter<T> createSubstring(@NotNull ItemPath path, @Nullable PrismPropertyDefinition<T> itemDefinition,
+			 @NotNull PrismContext prismContext,
+			 @Nullable QName matchingRule, ExpressionWrapper expressionWrapper, boolean anchorStart, boolean anchorEnd) {
+		return new SubstringFilter<>(path, itemDefinition, matchingRule, null, expressionWrapper, anchorStart, anchorEnd);
+	}
 
 	public boolean isAnchorStart() {
 		return anchorStart;
@@ -85,24 +86,26 @@ public class SubstringFilter<T> extends PropertyValueFilter<T> {
 
 	@Override
 	public boolean match(PrismContainerValue containerValue, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		Item item = getObjectItem(containerValue);
+		Collection<PrismValue> objectItemValues = getObjectItemValues(containerValue);
+
+		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, getFilterItem());
 		
-		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, item);
-		
-		for (Object val : item.getValues()){
-			if (val instanceof PrismPropertyValue){
+		for (Object val : objectItemValues) {
+			if (val instanceof PrismPropertyValue) {
 				Object value = ((PrismPropertyValue) val).getValue();
-				Iterator<String> iterator = (Iterator<String>) toRealValues().iterator();
-				while(iterator.hasNext()){
+				for (Object o : toRealValues()) {
+					if (o == null) {
+						continue;			// shouldn't occur
+					}
 					StringBuilder sb = new StringBuilder();
 					if (!anchorStart) {
 						sb.append(".*");
 					}
-					sb.append(Pattern.quote(iterator.next()));
+					sb.append(Pattern.quote(o.toString()));
 					if (!anchorEnd) {
 						sb.append(".*");
 					}
-					if (matching.matchRegex(value, sb.toString())){
+					if (matching.matchRegex(value, sb.toString())) {
 						return true;
 					}
 				}

@@ -16,7 +16,7 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import org.jetbrains.annotations.NotNull;
@@ -30,30 +30,30 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 
+ *
  *                 Defines a type for XPath-like item pointer. It points to a specific part
  *                 of the prism object.
- *             
- * 
+ *
+ *
  * <p>Java class for ItemPathType complex type.
  *
  * <p>The following schema fragment specifies the expected content contained within this class.
  *
  * <pre>
- * &lt;complexType name="ItemPathType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;any/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType name="ItemPathType"&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;any/&gt;
+ *       &lt;/sequence&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
- *
- *
  */
 
 // TODO it is questionable whether to treat ItemPathType as XmlType any more (similar to RawType)
@@ -61,22 +61,22 @@ import java.io.Serializable;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ItemPathType")
 public class ItemPathType implements Serializable, Equals, Cloneable {
-	
+
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemPathType");
-	
+
 	@XmlTransient
 	private ItemPath itemPath;
 
     @Deprecated         // use one of the content-filling constructors instead
     public ItemPathType() {
     }
-    
+
     public ItemPathType(ItemPath itemPath) {
 		this.itemPath = itemPath;
 	}
 
     public ItemPathType(String itemPath) {
-        XPathHolder holder = new XPathHolder(itemPath);
+        ItemPathHolder holder = new ItemPathHolder(itemPath);
         this.itemPath = holder.toItemPath();
     }
 
@@ -87,7 +87,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
         }
 		return itemPath;
 	}
-	
+
 	public void setItemPath(ItemPath itemPath){
 		this.itemPath = itemPath;
 	}
@@ -132,19 +132,19 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 	@Override
 	public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object that,
 			EqualsStrategy equalsStrategy) {
-		
+
 		if (!(that instanceof ItemPathType)){
     		return false;
     	}
-    	
+
     	ItemPathType other = (ItemPathType) that;
-    	
+
     	ItemPath thisPath = getItemPath();
     	ItemPath otherPath = other.getItemPath();
 
         return thisPath.equals(otherPath);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -167,5 +167,9 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 		} else {
 			throw new IllegalArgumentException("Value " + value + " is neither ItemPath nor ItemPathType.");
 		}
+	}
+
+	public static List<ItemPath> toItemPathList(List<ItemPathType> list) {
+    	return list.stream().map(pt -> pt.getItemPath()).collect(Collectors.toList());
 	}
 }

@@ -27,7 +27,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationConfirmationNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -36,17 +35,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class RegistrationConfirmationNotifier extends ConfirmationNotifier {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConfirmationNotifier.class);
-	
+
 	@Override
 	public void init() {
 		register(RegistrationConfirmationNotifierType.class);
 	}
-	
+
 	@Override
 	protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType,
 			OperationResult result) {
-		if (!(super.checkApplicability(event, generalNotifierType, result))
-				|| !(event instanceof ModelEvent)
+		if (!(super.quickCheckApplicability(event, generalNotifierType, result))
 				|| !((ModelEvent) event).hasFocusOfType(UserType.class)) {
 			LOGGER.trace(
 					"RegistrationConfirmationNotifier is not applicable for this kind of event, continuing in the handler chain; event class = "
@@ -78,25 +76,25 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier {
 			return false;
 		}
 	}
-	
+
 	@Override
 	protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport,
 			Task task, OperationResult result) {
 		return "Registration confirmation";
 	}
-	
+
 	@Override
     protected String getBody(Event event, GeneralNotifierType generalNotifierType, String transport, Task task, OperationResult result) {
 
       UserType userType = getUser(event);
-        
+
 		String plainTextPassword = "IhopeYouRememberYourPassword";
 		try {
 			plainTextPassword = getMidpointFunctions().getPlaintextUserPassword(userType);
 		} catch (EncryptionException e) {
 			//ignore...????
 		}
-		
+
         StringBuilder messageBuilder = new StringBuilder("Dear ");
         messageBuilder.append(userType.getGivenName()).append(",\n")
         .append("your account was successfully created. To activate your account click on the following confiramtion link. ")
@@ -108,13 +106,13 @@ public class RegistrationConfirmationNotifier extends ConfirmationNotifier {
         .append(userType.getName().getOrig())
         .append("password: ")
         .append(plainTextPassword);
-        
+
         return messageBuilder.toString();
     }
-	
+
 	@Override
 	public String getConfirmationLink(UserType userType) {
-		return SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX + "?" + SchemaConstants.USER_ID + "=" + userType.getName().getOrig() + "&" + SchemaConstants.TOKEN + "=" + getNonce(userType);
-		
+		return getMidpointFunctions().createRegistrationConfirmationLink(userType);
+
 	}
 }

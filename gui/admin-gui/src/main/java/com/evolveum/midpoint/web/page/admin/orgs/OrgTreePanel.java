@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.*;
 
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -40,7 +39,12 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.GuiFeature;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
@@ -54,20 +58,24 @@ import com.evolveum.midpoint.web.page.admin.users.component.SelectableFolderCont
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
+	private static final long serialVersionUID = 1L;
+
+	private static final Trace LOGGER = TraceManager.getTrace(OrgTreePanel.class);
 
 	private boolean selectable;
     private String treeTitleKey = "";
 	SessionStorage storage;
 
 
-	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable) {
-        this(id, rootOid, selectable, "");
+	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator) {
+        this(id, rootOid, selectable, serviceLocator, "");
     }
 
-	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, String treeTitleKey) {
+	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator, String treeTitleKey) {
 		super(id, rootOid);
 
 		MidPointAuthWebSession session = OrgTreePanel.this.getSession();
@@ -76,6 +84,8 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		this.treeTitleKey = treeTitleKey;
 		this.selectable = selectable;
 		selected = new LoadableModel<SelectableBean<OrgType>>() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected SelectableBean<OrgType> load() {
                 TabbedPanel currentTabbedPanel = null;
@@ -90,15 +100,17 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
                         }
                     }
 				}
+				SelectableBean<OrgType> bean;
 				if (OrgTreePanel.this.getSelectedItem(getOrgTreeStateStorage()) != null) {
-					return OrgTreePanel.this.getSelectedItem(getOrgTreeStateStorage());
+					bean = OrgTreePanel.this.getSelectedItem(getOrgTreeStateStorage());
 				} else {
-					return getRootFromProvider();
+					bean =  getRootFromProvider();
 				}
+				return bean;
 			}
 		};
 
-		initLayout();
+		initLayout(serviceLocator);
 	}
 
 	public SelectableBean<OrgType> getSelected() {
@@ -113,9 +125,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		return ((OrgTreeProvider) getTree().getProvider()).getSelectedObjects();
 	}
 
-	private static final long serialVersionUID = 1L;
-
-	private void initLayout() {
+	private void initLayout(ModelServiceLocator serviceLocator) {
 		WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
 		treeHeader.setOutputMarkupId(true);
 		add(treeHeader);
@@ -125,26 +135,29 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         treeHeader.add(treeTitle);
 
 		InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU,
-				new Model<>((Serializable) createTreeMenuInternal()));
+				new Model<>((Serializable) createTreeMenuInternal(serviceLocator.getAdminGuiConfiguration())));
 		treeHeader.add(treeMenu);
 
 		ISortableTreeProvider provider = new OrgTreeProvider(this, getModel()) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
-			protected List<InlineMenuItem> createInlineMenuItems() {
-				return createTreeChildrenMenu();
+			protected List<InlineMenuItem> createInlineMenuItems(OrgType org) {
+				return createTreeChildrenMenu(org);
 			}
 		};
 		List<IColumn<SelectableBean<OrgType>, String>> columns = new ArrayList<>();
 
 		if (selectable) {
-			columns.add(new CheckBoxHeaderColumn<SelectableBean<OrgType>>());
+			columns.add(new CheckBoxHeaderColumn<>());
 		}
 
-		columns.add(new TreeColumn<SelectableBean<OrgType>, String>(
-				createStringResource("TreeTablePanel.hierarchy")));
-		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu()));
+		columns.add(new TreeColumn<>(
+            createStringResource("TreeTablePanel.hierarchy")));
+		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu(null)));
 
 		WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void renderHead(IHeaderResponse response) {
@@ -162,8 +175,9 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		};
 		add(treeContainer);
 
-		TableTree<SelectableBean<OrgType>, String> tree = new TableTree<SelectableBean<OrgType>, String>(
-				ID_TREE, columns, provider, Integer.MAX_VALUE, new TreeStateModel(this, provider){
+		TreeStateModel treeStateMode = new TreeStateModel(this, provider) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Set<SelectableBean<OrgType>> getExpandedItems(){
 				return OrgTreePanel.this.getExpandedItems(getOrgTreeStateStorage());
@@ -176,11 +190,16 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			public void setCollapsedItem(SelectableBean<OrgType> item){
 				OrgTreePanel.this.setCollapsedItem(null, getOrgTreeStateStorage());
 			}
-		}) {
+		};
+
+		TableTree<SelectableBean<OrgType>, String> tree = new TableTree<SelectableBean<OrgType>, String>(
+				ID_TREE, columns, provider, Integer.MAX_VALUE, treeStateMode) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected Component newContentComponent(String id, IModel<SelectableBean<OrgType>> model) {
 				return new SelectableFolderContent(id, this, model, selected) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected void onClick(AjaxRequestTarget target) {
@@ -198,6 +217,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 					final IModel<SelectableBean<OrgType>> model) {
 				Item<SelectableBean<OrgType>> item = super.newRowItem(id, index, model);
 				item.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public String getObject() {
@@ -242,8 +262,9 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	}
 
 	private static class TreeStateModel extends AbstractReadOnlyModel<Set<SelectableBean<OrgType>>> {
+		private static final long serialVersionUID = 1L;
 
-		private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<SelectableBean<OrgType>>();
+		private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<>();
 		private ISortableTreeProvider provider;
 		private OrgTreePanel panel;
 
@@ -286,6 +307,9 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		}
 
 		public void collapseAll() {
+			if (getExpandedItems() != null) {
+				getExpandedItems().clear();
+			}
 			set.collapseAll();
 		}
 
@@ -308,27 +332,33 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		}
 	}
 
-	private List<InlineMenuItem> createTreeMenuInternal() {
+	private List<InlineMenuItem> createTreeMenuInternal(AdminGuiConfigurationType adminGuiConfig) {
 		List<InlineMenuItem> items = new ArrayList<>();
 
-		InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll"),
-				new InlineMenuItemAction() {
+		if (AdminGuiConfigTypeUtil.isFeatureVisible(adminGuiConfig, GuiFeature.ORGTREE_COLLAPSE_ALL.getUri())) {
+			InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll"),
+					new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						collapseAllPerformed(target);
-					}
-				});
-		items.add(item);
-		item = new InlineMenuItem(createStringResource("TreeTablePanel.expandAll"),
-				new InlineMenuItemAction() {
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							collapseAllPerformed(target);
+						}
+					});
+			items.add(item);
+		}
+		if (AdminGuiConfigTypeUtil.isFeatureVisible(adminGuiConfig, GuiFeature.ORGTREE_EXPAND_ALL.getUri())) {
+			InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.expandAll"),
+					new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						expandAllPerformed(target);
-					}
-				});
-		items.add(item);
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							expandAllPerformed(target);
+						}
+					});
+			items.add(item);
+		}
 
 		List<InlineMenuItem> additionalActions = createTreeMenu();
 		if (additionalActions != null) {
@@ -341,14 +371,14 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		return null;
 	}
 
-	protected List<InlineMenuItem> createTreeChildrenMenu() {
+	protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
 		return new ArrayList<>();
 	}
 
 	protected void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
 
 	}
-	
+
 	private void collapseAllPerformed(AjaxRequestTarget target) {
 		TableTree<SelectableBean<OrgType>, String> tree = getTree();
 		TreeStateModel model = (TreeStateModel) tree.getDefaultModel();

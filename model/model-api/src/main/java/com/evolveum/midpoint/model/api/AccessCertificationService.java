@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -104,18 +105,18 @@ public interface AccessCertificationService {
      *
      * @param campaignOid
      * @param task
-     * @param result
+     * @param result 
      */
-    void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
+    void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
      * Closes a campaign.
      *
      * @param campaignOid
      * @param task
-     * @param result
+     * @param result 
      */
-    void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException;
+    void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
      * TODO update description
@@ -136,12 +137,16 @@ public interface AccessCertificationService {
      * @param options Options to use (e.g. RESOLVE_NAMES).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
-     * @return A list of relevant certification cases.
+     * @return A list of relevant certification cases. 
      *
      */
     List<AccessCertificationWorkItemType> searchOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
             Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
+
+    int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
     /**
      * Records a particular decision of a reviewer.
@@ -152,10 +157,10 @@ public interface AccessCertificationService {
      * @param response The response.
      * @param comment Reviewer's comment.
      * @param task Task in context of which all operations will take place.
-     * @param parentResult Result for the operations.
+     * @param parentResult Result for the operations. 
      */
     void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment,
-                        Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
+                        Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
      * Provides statistical information about outcomes of cases in a given campaign.
@@ -168,6 +173,7 @@ public interface AccessCertificationService {
      */
 
     AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException;
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
+	void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result);
 }

@@ -86,5 +86,5 @@ public class ExpressionEnvironment<F extends ObjectType> {
 				+ projectionContext + ", currentResult=" + currentResult + ", currentTask=" + currentTask
 				+ ")";
 	}
-	
+
 }

@@ -23,10 +23,8 @@ import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -46,13 +43,17 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -74,7 +75,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 //"http://localhost:8080/midpoint/confirm/registrationid=" + newUser.getOid()
 //+ "/token=" + userType.getCostCenter() + "/roleId=00000000-0000-0000-0000-000000000008";
-@PageDescriptor(url = "/registration")
+@PageDescriptor(urls = {@Url(mountUrl = "/registration")}, permitAll = true)
 public class PageSelfRegistration extends PageRegistrationBase {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageSelfRegistration.class);
@@ -139,42 +140,44 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		if (pageParameters == null) {
 			return null;
 		}
+
 		StringValue oidValue = pageParameters.get(PARAM_USER_OID);
 		if (oidValue != null) {
 			return oidValue.toString();
 		}
+
 		return null;
 	}
 
 	private UserType createUserModel(final String userOid) {
-
-		if (userOid != null) {
-			PrismObject<UserType> result = runPrivileged(new Producer<PrismObject<UserType>>() {
-
-				@Override
-				public PrismObject<UserType> run() {
-					LOGGER.trace("Loading preregistered user with oid {}.", userOid);
-					Task task = createAnonymousTask(OPERATION_LOAD_USER);
-					OperationResult result = new OperationResult(OPERATION_LOAD_USER);
-					PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid,
-							PageSelfRegistration.this, task, result);
-					result.computeStatus();
-					return user;
-				}
-
-			});
-
-			if (result == null) {
-				LOGGER.error("Failed to load preregistered user");
-				getSession().error(
-						createStringResource("PageSelfRegistration.invalid.registration.link").getString());
-				throw new RestartResponseException(PageLogin.class);
-			}
-			return result.asObjectable();
+		if (userOid == null) {
+			LOGGER.trace("Registration process for new user started");
+			return instantiateUser();
 		}
-		LOGGER.trace("Registration process for new user started");
-		return instantiateUser();
 
+		PrismObject<UserType> result = runPrivileged(new Producer<PrismObject<UserType>>() {
+
+			@Override
+			public PrismObject<UserType> run() {
+				LOGGER.trace("Loading preregistered user with oid {}.", userOid);
+				Task task = createAnonymousTask(OPERATION_LOAD_USER);
+				OperationResult result = new OperationResult(OPERATION_LOAD_USER);
+				PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, userOid,
+						PageSelfRegistration.this, task, result);
+				result.computeStatus();
+				return user;
+			}
+
+		});
+
+		if (result == null) {
+			LOGGER.error("Failed to load preregistered user");
+			getSession().error(
+					createStringResource("PageSelfRegistration.invalid.registration.link").getString());
+			throw new RestartResponseException(PageLogin.class);
+		}
+
+		return result.asObjectable();
 	}
 
 	private UserType instantiateUser() {
@@ -210,7 +213,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		captcha.setOutputMarkupId(true);
 		mainForm.add(captcha);
 
-		AjaxSubmitButton register = new AjaxSubmitButton(ID_SUBMIT_REGISTRATION) {
+		AjaxSubmitButton register = new AjaxSubmitButton(ID_SUBMIT_REGISTRATION, createStringResource("PageSelfRegistration.register")) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -226,7 +229,6 @@ public class PageSelfRegistration extends PageRegistrationBase {
 				submitRegistration(target);
 
 			}
-
 		};
 
 		mainForm.add(register);
@@ -250,7 +252,8 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 		});
 
-		AjaxButton back = new AjaxButton(ID_BACK) {
+		AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageSelfRegistration.back")) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -259,7 +262,6 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			}
 		};
 		mainForm.add(back);
-
 	}
 
 	private void initStaticFormLayout(Form<?> mainForm) {
@@ -328,22 +330,18 @@ public class PageSelfRegistration extends PageRegistrationBase {
 					}
 				}, mainForm);
 
-		DynamicFormPanel<UserType> dynamicForm = runPrivileged(new Producer<DynamicFormPanel<UserType>>() {
+		DynamicFormPanel<UserType> dynamicForm = runPrivileged(
+				() -> {
+					final ObjectReferenceType ort = getSelfRegistrationConfiguration().getFormRef();
 
-			@Override
-			public DynamicFormPanel<UserType> run() {
-				final ObjectReferenceType ort = getSelfRegistrationConfiguration().getFormRef();
+					if (ort == null) {
+						return null;
+					}
+					Task task = createAnonymousTask(OPERATION_LOAD_DYNAMIC_FORM);
 
-				if (ort == null) {
-					return null;
-				}
-
-				DynamicFormPanel<UserType> dynamicForm = new DynamicFormPanel<UserType>(ID_DYNAMIC_FORM_PANEL,
-						userModel, ort.getOid(), mainForm, true, PageSelfRegistration.this);
-				return dynamicForm;
-			}
-
-		});
+					return new DynamicFormPanel<>(ID_DYNAMIC_FORM_PANEL,
+                        userModel, ort.getOid(), mainForm, task, PageSelfRegistration.this, true);
+				});
 
 		if (dynamicForm != null) {
 			dynamicRegistrationForm.add(dynamicForm);
@@ -354,8 +352,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
 		// ProtectedStringType initialPassword = null;
 		PasswordPanel password = new PasswordPanel(ID_PASSWORD,
-				new PropertyModel<ProtectedStringType>(userModel, "credentials.password.value"), false, true,
-				false);
+            new PropertyModel<>(userModel, "credentials.password.value"), false, true);
 		password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		password.getBaseFormComponent().setRequired(true);
 		staticRegistrationForm.add(password);
@@ -543,7 +540,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		ObjectDelta<UserType> userDelta;
 		try {
 			userDelta = prepareUserDelta(task, result);
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			result.recordFatalError("Failed to create delta for user: " + e.getMessage(), e);
 			return;
 		}
@@ -555,7 +552,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 	}
 
-	private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private ObjectDelta<UserType> prepareUserDelta(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (getOidFromParams(getPageParameters()) == null) {
 			LOGGER.trace("Preparing user ADD delta (new user registration)");
 			UserType userType = prepareUserToSave(task, result);
@@ -577,7 +574,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 			} else {
 				delta = getDynamicFormPanel().getObjectDelta();
 			}
-			
+
 			delta.addModificationReplaceContainer(SchemaConstants.PATH_NONCE,
 					createNonce(getSelfRegistrationConfiguration().getNoncePolicy(), task, result)
 							.asPrismContainerValue());
@@ -587,7 +584,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		}
 	}
 
-	private UserType prepareUserToSave(Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+	private UserType prepareUserToSave(Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		SelfRegistrationDto selfRegistrationConfiguration = getSelfRegistrationConfiguration();
 		UserType userType = userModel.getObject();
@@ -647,7 +644,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 	}
 
 	private void createCredentials(UserType user, NonceCredentialsPolicyType noncePolicy, Task task,
-			OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+			OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		NonceType nonceType = createNonce(noncePolicy, task, result);
 
 		// PasswordType password = createPassword();
@@ -664,7 +661,7 @@ public class PageSelfRegistration extends PageRegistrationBase {
 
 	}
 
-	private NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+	private NonceType createNonce(NonceCredentialsPolicyType noncePolicy, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ProtectedStringType nonceCredentials = new ProtectedStringType();
 		nonceCredentials.setClearValue(generateNonce(noncePolicy, null, task, result));
 
@@ -681,17 +678,21 @@ public class PageSelfRegistration extends PageRegistrationBase {
 		return password;
 	}
 
-	private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy, 
-			PrismObject<O> user, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+	private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy,
+			PrismObject<O> user, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ValuePolicyType policy = null;
 
 		if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
 			PrismObject<ValuePolicyType> valuePolicy = WebModelServiceUtils.loadObject(ValuePolicyType.class,
 					noncePolicy.getValuePolicyRef().getOid(), PageSelfRegistration.this, task, result);
+			if (valuePolicy == null) {
+				LOGGER.error("Nonce cannot be generated, as value policy {} cannot be fetched", noncePolicy.getValuePolicyRef().getOid());
+				throw new ObjectNotFoundException("Nonce cannot be generated");         // no more information (security); TODO implement more correctly
+			}
 			policy = valuePolicy.asObjectable();
 		}
-
-		return getModelInteractionService().generateValue(policy != null ? policy.getStringPolicy() : null, 
+		
+		return getModelInteractionService().generateValue(policy,
 				24, false, user, "nonce generation (registration)", task, result);
 	}
 

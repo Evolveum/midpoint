@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -29,6 +30,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -53,6 +57,7 @@ import java.util.*;
  * @author mederly
  */
 public class PageTaskController implements Serializable {
+	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskController.class);
 
@@ -81,7 +86,7 @@ public class PageTaskController implements Serializable {
 					LOGGER.debug("Deleting sync token:\n{}", delta.debugDump());
 				}
 				parentPage.getModelService()
-						.executeChanges(Collections.<ObjectDelta<? extends ObjectType>>singleton(delta), null, operationTask, result);
+						.executeChanges(Collections.singleton(delta), null, operationTask, result);
 				result.recomputeStatus();
 			}
 		} catch (Exception ex) {
@@ -102,7 +107,7 @@ public class PageTaskController implements Serializable {
 		try {
 			List<ItemDelta<?, ?>> itemDeltas = getDeltasToExecute(dto);
 			ObjectDelta<TaskType> delta = ObjectDelta.createModifyDelta(dto.getOid(), itemDeltas, TaskType.class, parentPage.getPrismContext());
-			final Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.<ObjectDelta<? extends ObjectType>>singletonList(delta);
+			final Collection<ObjectDelta<? extends ObjectType>> deltas = Collections.singletonList(delta);
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Saving task modifications:\n{}", DebugUtil.debugDump(deltas));
@@ -155,6 +160,23 @@ public class PageTaskController implements Serializable {
 			addDelta(rv, TaskType.F_THREAD_STOP_ACTION, curr.getThreadStopActionType());
 		}
 
+		if (dto.getTaskType().getExecutionConstraints() == null) {
+			if (curr.getExecutionGroup() != null || curr.getGroupTaskLimit() != null) {
+				TaskExecutionConstraintsType constraints =
+						new TaskExecutionConstraintsType(getPrismContext())
+								.group(curr.getExecutionGroup())
+								.groupTaskLimit(curr.getGroupTaskLimit());
+				addDelta(rv, TaskType.F_EXECUTION_CONSTRAINTS, constraints);
+			}
+		} else {
+			if (!ObjectUtils.equals(orig.getExecutionGroup(), curr.getExecutionGroup())) {
+				addDelta(rv, TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP, curr.getExecutionGroup());
+			}
+			if (!ObjectUtils.equals(orig.getGroupTaskLimit(), curr.getGroupTaskLimit())) {
+				addDelta(rv, TaskType.F_EXECUTION_CONSTRAINTS, TaskExecutionConstraintsType.F_GROUP_TASK_LIMIT, curr.getExecutionGroup());
+			}
+		}
+
 		if (!ObjectUtils.equals(orig.getWorkerThreads(), curr.getWorkerThreads())) {
 			SchemaRegistry registry = parentPage.getPrismContext().getSchemaRegistry();
 			PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
@@ -168,27 +190,37 @@ public class PageTaskController implements Serializable {
 		return rv;
 	}
 
+	private PrismContext getPrismContext() {
+		return parentPage.getPrismContext();
+	}
+
 	private void addDelta(List<ItemDelta<?, ?>> deltas, QName itemName, Object itemRealValue) throws SchemaException {
 		deltas.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
 			.item(itemName).replace(itemRealValue)
 			.asItemDelta());
 	}
 
+	private void addDelta(List<ItemDelta<?, ?>> deltas, QName itemName1, QName itemName2, Object itemRealValue) throws SchemaException {
+		deltas.add(DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
+			.item(itemName1, itemName2).replace(itemRealValue)
+			.asItemDelta());
+	}
+
 	void suspendPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
-		OperationResult result = TaskOperationUtils.suspendPerformed(parentPage.getTaskService(), Collections.singleton(oid));
+		OperationResult result = TaskOperationUtils.suspendPerformed(parentPage.getTaskService(), Collections.singleton(oid), parentPage);
 		afterStateChangingOperation(target, result);
 	}
 
 	void resumePerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
-		OperationResult result = TaskOperationUtils.resumePerformed(parentPage.getTaskService(), Arrays.asList(oid));
+		OperationResult result = TaskOperationUtils.resumePerformed(parentPage.getTaskService(), Collections.singletonList(oid), parentPage);
 		afterStateChangingOperation(target, result);
 	}
 
 	void runNowPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
-		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Arrays.asList(oid));
+		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Collections.singletonList(oid), parentPage);
 		afterStateChangingOperation(target, result);
 	}
 
@@ -197,13 +229,14 @@ public class PageTaskController implements Serializable {
 		if (instanceId == null) {
 			return;
 		}
-		OperationResult result = new OperationResult(PageProcessInstances.OPERATION_STOP_PROCESS_INSTANCE);
+		Task task = parentPage.createSimpleTask(PageProcessInstances.OPERATION_STOP_PROCESS_INSTANCE);
+		OperationResult result = task.getResult();
 		try {
 			parentPage.getWorkflowService().stopProcessInstance(instanceId,
 					WebComponentUtil.getOrigStringFromPoly(SecurityUtils.getPrincipalUser().getName()),
-					result);
+					task, result);
 			result.computeStatusIfUnknown();
-		} catch (SchemaException|ObjectNotFoundException|SecurityViolationException|RuntimeException e) {
+		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop approval process instance {}", e, instanceId);
 			result.recordFatalError("Couldn't stop approval process instance " + instanceId + ": " + e.getMessage(), e);
 		}

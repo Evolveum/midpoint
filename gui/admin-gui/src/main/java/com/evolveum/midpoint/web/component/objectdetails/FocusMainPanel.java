@@ -21,23 +21,30 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.component.assignment.GenericAbstractRoleAssignmentPanel;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
-import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -64,16 +71,14 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
 
 	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
-	private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
 	private TaskDtoProvider taskDtoProvider;
+    private FocusAssignmentsTabPanel assignmentsTabPanel = null;
 
 	public FocusMainPanel(String id, LoadableModel<ObjectWrapper<F>> objectModel,
-						  LoadableModel<List<AssignmentEditorDto>> assignmentsModel,
-						  LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
-						  PageAdminFocus<F> parentPage) {
+			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
+			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");
-		this.assignmentsModel = assignmentsModel;
 		this.projectionModel = projectionModel;
 		initLayout(parentPage);
 	}
@@ -122,6 +127,9 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 		for (ObjectFormType objectFormType : objectFormTypes) {
 			final FormSpecificationType formSpecificationType = objectFormType.getFormSpecification();
+			if (formSpecificationType == null){
+				continue;
+			}
 			String title = formSpecificationType.getTitle();
 			if (title == null) {
 				title = "pageAdminFocus.extended";
@@ -158,14 +166,14 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 		if (AbstractFocusTabPanel.class.isAssignableFrom(panelClass)) {
 			Constructor<?> constructor;
 			try {
-				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class, LoadableModel.class, PageBase.class);
+				constructor = panelClass.getConstructor(String.class, Form.class, LoadableModel.class, LoadableModel.class, PageBase.class);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new SystemException("Unable to locate constructor (String,Form,LoadableModel,LoadableModel,LoadableModel,PageBase) in "+panelClass+": "+e.getMessage(), e);
 			}
 			AbstractFocusTabPanel<F> tabPanel;
 			try {
 				tabPanel = (AbstractFocusTabPanel<F>) constructor.newInstance(panelId, getMainForm(), getObjectModel(),
-						assignmentsModel, projectionModel ,parentPage);
+						projectionModel ,parentPage);
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw new SystemException("Error instantiating "+panelClass+": "+e.getMessage(), e);
 			}
@@ -191,19 +199,28 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, projectionModel, parentPage);
+		return new FocusDetailsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
 	}
 
 	protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusProjectionsTabPanel<F>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
+		return new FocusProjectionsTabPanel<>(panelId, getMainForm(), getObjectModel(), projectionModel, parentPage);
 	}
 
 	protected WebMarkupContainer createFocusAssignmentsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
+		assignmentsTabPanel = new FocusAssignmentsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+        return assignmentsTabPanel;
 	}
-
-	protected WebMarkupContainer createRequestAssignmentTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new RequestAssignmentTabPanel<F>(panelId, getMainForm(), getObjectModel(), assignmentsModel, parentPage);
+	
+	protected WebMarkupContainer createFocusDataProtectionTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
+		assignmentsTabPanel = new FocusAssignmentsTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage) {
+			
+			 @Override
+			protected AssignmentPanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, F> model) {
+				return new GenericAbstractRoleAssignmentPanel(panelId, model);
+			}
+			
+		};
+        return assignmentsTabPanel;
 	}
 
 	protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
@@ -268,9 +285,49 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 					@Override
 					public String getCount() {
-						return Integer.toString(assignmentsModel.getObject() == null ? 0 : assignmentsModel.getObject().size());
+						return Integer.toString(countAssignments());
 					}
 				});
+		
+		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL);
+		
+		if (WebModelServiceUtils.isEnableExperimentalFeature(parentPage)) {
+			tabs.add(new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.dataProtection"), authorization) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public WebMarkupContainer createPanel(String panelId) {
+					return createFocusDataProtectionTabPanel(panelId, parentPage);
+				}
+
+				@Override
+				public String getCount() {
+					PrismObject<F> focus = getObjectModel().getObject().getObject();
+					List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+					int count = 0;
+					for (AssignmentType assignment : assignments) {
+						if (assignment.getTargetRef() == null) {
+							continue;
+						}
+						if (QNameUtil.match(assignment.getTargetRef().getType(), OrgType.COMPLEX_TYPE)) {
+							Task task = parentPage.createSimpleTask("load data protection obejcts");
+							PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), parentPage,
+									task, task.getResult());
+
+							if (org != null) {
+								if (org.asObjectable().getOrgType().contains("access")) {
+									count++;
+								}
+							}
+						}
+					}
+
+					return String.valueOf(count);
+				}
+			});
+		}
+		
 
 		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_TASKS_URL);
 		tabs.add(
@@ -280,7 +337,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusTasksTabPanel<F>(panelId, getMainForm(), getObjectModel(), taskDtoProvider, parentPage);
+						return new FocusTasksTabPanel<>(panelId, getMainForm(), getObjectModel(), taskDtoProvider, parentPage);
 					}
 
 					@Override
@@ -289,19 +346,51 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
-        if (!(parentPage instanceof PageSelfProfile)) {
-			authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_REQUEST_ROLE_URL);
-            tabs.add(
-                    new PanelTab(parentPage.createStringResource("pageAdminFocus.request"), authorization) {
-
-                    	private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public WebMarkupContainer createPanel(String panelId) {
-                            return createRequestAssignmentTabPanel(panelId, parentPage);
-                        }
-                    });
-        }
 	}
 
+	@Override
+    protected boolean areSavePreviewButtonsEnabled(){
+        return isAssignmentsModelChanged();
+    }
+
+    private boolean isAssignmentsModelChanged(){
+		ObjectWrapper<F> focusWrapper = getObjectModel().getObject();
+		ContainerWrapper<AssignmentType> assignmentsWrapper =
+				focusWrapper.findContainerWrapper(new ItemPath(FocusType.F_ASSIGNMENT));
+		if (assignmentsWrapper != null) {
+			for (ContainerValueWrapper assignmentWrapper : assignmentsWrapper.getValues()) {
+				if (ValueStatus.DELETED.equals(assignmentWrapper.getStatus()) ||
+						ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	protected int countPolicyRules() {
+		int policyRuleCounter = 0;
+		PrismObject<F> focus = getObjectModel().getObject().getObject();
+		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+		for (AssignmentType assignment : assignments) {
+			if (AssignmentsUtil.isPolicyRuleAssignment(assignment)) {
+				policyRuleCounter++;
+			}
+		}
+		return policyRuleCounter;
+	}
+
+	protected int countAssignments() {
+
+		int rv = 0;
+		PrismObject<F> focus = getObjectModel().getObject().getObject();
+		List<AssignmentType> assignments = focus.asObjectable().getAssignment();
+		for (AssignmentType assignment : assignments) {
+			if (!AssignmentsUtil.isPolicyRuleAssignment(assignment) && !AssignmentsUtil.isConsentAssignment(assignment)
+					&& AssignmentsUtil.isAssignmentRelevant(assignment)) {
+				rv++;
+			}
+		}
+		return rv;
+	}
 }

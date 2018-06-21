@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.common.refinery;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * @author mederly
@@ -42,7 +44,10 @@ public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefiniti
 
 	boolean canModify(LayerType layer);
 
+	@Deprecated
 	boolean isIgnored(LayerType layer);
+	
+	ItemProcessing getProcessing(LayerType layer);
 
 	String getDescription();
 
@@ -83,7 +88,7 @@ public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefiniti
 	RefinedAttributeDefinition<T> clone();
 
 	@Override
-	RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap);
+	RefinedAttributeDefinition<T> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction);
 
 	String debugDump(int indent, LayerType layer);
 

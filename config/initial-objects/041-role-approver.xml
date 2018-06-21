@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016 Evolveum
+  ~ Copyright (c) 2017-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -105,7 +105,7 @@
     	</description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>OrgType</type>
+			<type>OrgType</type>
         </object>
         <item>name</item>
         <item>displayName</item>
@@ -130,5 +130,5 @@
         <item>riskLevel</item>
         <item>serviceType</item>
     </authorization>
-    <roleType>system</roleType>
+    <subtype>system</subtype>
 </role>

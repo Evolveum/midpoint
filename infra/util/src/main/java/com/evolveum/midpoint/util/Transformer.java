@@ -19,8 +19,9 @@ package com.evolveum.midpoint.util;
  * @author semancik
  *
  */
+@FunctionalInterface
 public interface Transformer<T,X> {
 
 	X transform(T in);
-	
+
 }

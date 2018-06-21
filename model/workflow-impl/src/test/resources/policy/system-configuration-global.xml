@@ -57,7 +57,19 @@
         <allowCompleteOthersItems>true</allowCompleteOthersItems>
 		<useLegacyApproversSpecification>never</useLegacyApproversSpecification>
 		<useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
-    </workflowConfiguration>
+		<approverCommentsFormatting>
+			<value>
+				<script>
+					<code>performer.name + ' :: ' + output.comment</code>
+				</script>
+			</value>
+			<condition>
+				<script>
+					<code>output.comment != null &amp;&amp; !output.comment.isEmpty()</code>
+				</script>
+			</condition>
+		</approverCommentsFormatting>
+	</workflowConfiguration>
 	<globalPolicyRule>
 		<policyConstraints>
 			<assignment>
@@ -82,6 +94,29 @@
 						<q:value>Role4</q:value>
 					</q:equal>
 				</q:not>
+			</filter>
+		</targetSelector>
+	</globalPolicyRule>
+	<globalPolicyRule>
+		<policyConstraints>
+			<assignment>
+				<operation>add</operation>
+				<relation>q:any</relation>
+			</assignment>
+		</policyConstraints>
+		<policyActions>
+			<enforcement/>
+		</policyActions>
+		<focusSelector>
+			<type>UserType</type>
+		</focusSelector>
+		<targetSelector>
+			<type>RoleType</type>
+			<filter>
+				<q:equal>
+					<q:path>name</q:path>
+					<q:value>Role15</q:value>
+				</q:equal>
 			</filter>
 		</targetSelector>
 	</globalPolicyRule>

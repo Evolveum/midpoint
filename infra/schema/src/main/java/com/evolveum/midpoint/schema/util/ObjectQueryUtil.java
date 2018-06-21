@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.apache.commons.lang.mutable.MutableBoolean;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -42,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
+
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 public class ObjectQueryUtil {
 
@@ -81,7 +83,7 @@ public class ObjectQueryUtil {
     }
 
     public static ObjectQuery createNormNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-        PolyStringNormalizer normalizer = new PrismDefaultPolyStringNormalizer();
+        PolyStringNormalizer normalizer = new AlphanumericPolyStringNormalizer();
         name.recompute(normalizer);
 		return QueryBuilder.queryFor(ObjectType.class, prismContext)
 				.item(ObjectType.F_NAME).eq(name).matchingNorm()
@@ -411,6 +413,16 @@ public class ObjectQueryUtil {
 			return simplifiedFilter;
 		} else if (filter instanceof UndefinedFilter || filter instanceof AllFilter) {
 			return null;
+		} else if (filter instanceof InOidFilter) {
+			if (isEmpty(((InOidFilter) filter).getOids())) {
+				// (MID-4193) InOid filter with empty lists are not reasonably evaluable in HQL.
+				// As a general rule we can assume that these filters would always yield zero records
+				// so they can be replaced by None filter. Should this assumption turn out to be invalid,
+				// remove this optimization and implement correct behavior in repo query interpreter.
+				return NoneFilter.createNone();
+			} else {
+				return filter.clone();
+			}
 		} else {
 			// Cannot simplify
 			return filter.clone();

@@ -73,6 +73,18 @@ public class MetadataFactory {
     public static void fromJAXB(MetadataType jaxb, Metadata repo, PrismContext prismContext)
             throws DtoTranslationException {
         if (jaxb == null) {
+            repo.setCreateChannel(null);
+            repo.setCreateTimestamp(null);
+
+            repo.setModifyChannel(null);
+            repo.setModifyTimestamp(null);
+
+            repo.setCreatorRef(null);
+            repo.setModifierRef(null);
+
+            repo.getCreateApproverRef().clear();
+            repo.getModifyApproverRef().clear();
+
             return;
         }
 

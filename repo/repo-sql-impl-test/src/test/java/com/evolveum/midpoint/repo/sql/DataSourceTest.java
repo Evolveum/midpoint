@@ -22,8 +22,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 /**
- * @see com.evolveum.midpoint.repo.sql.util.DataSourceTestBeanPostprocessor
- *
  * @author lazyman
  */
 @ContextConfiguration(locations = {"../../../../../ctx-test-datasource.xml"})

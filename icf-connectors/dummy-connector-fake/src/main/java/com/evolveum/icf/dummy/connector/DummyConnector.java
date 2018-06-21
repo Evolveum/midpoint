@@ -28,7 +28,7 @@ import org.identityconnectors.framework.spi.ConnectorClass;
 
 /**
  * Fake Dummy Connector.
- * 
+ *
  * This is connector that is using the same ICF parameters and class names as Dummy Connector. It has a different
  * version. It is used to test that we can have two completely different versions of the same connector both in
  * the system at the same time. I mean really different. Different code, different config schema, different behavior.
@@ -38,11 +38,11 @@ import org.identityconnectors.framework.spi.ConnectorClass;
 configurationClass = DummyConfiguration.class)
 public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
-	
+
     private static final Log log = Log.getLog(DummyConnector.class);
 
 	private static final String FAKE_ATTR_NAME = "fakeAttr";
-    
+
     /**
      * Place holder for the {@link Configuration} passed into the init() method
      */
@@ -80,10 +80,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * Implement the following operations using the contract and
      * description found in the Javadoc for these methods.
      ******************/
-    
+
     /**
      * {@inheritDoc}
-     */    
+     */
 
     /**
      * {@inheritDoc}
@@ -116,7 +116,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("removeAttributeValues::begin");
         throw new UnsupportedOperationException("Remove attribute values is not supported in this shamefull fake");
     }
-    
+
 	/**
      * {@inheritDoc}
      */
@@ -130,24 +130,24 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Schema schema() {
         log.info("schema::begin");
-        
+
         SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
-        
+
         // __ACCOUNT__ objectclass
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
-        
-        
+
+
         AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(FAKE_ATTR_NAME, String.class);
     	attrBuilder.setMultiValued(true);
     	attrBuilder.setRequired(false);
     	objClassBuilder.addAttributeInfo(attrBuilder.build());
-                
+
         // __PASSWORD__ attribute
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
-        
+
         // __ENABLE__ attribute
         objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-        
+
         // __NAME__ will be added by default
         builder.defineObjectClass(objClassBuilder.build());
 
@@ -174,12 +174,12 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("resolveUsername::end");
         return uid;
     }
-    
+
     /**
      * {@inheritDoc}
      */
     public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
-    	
+
     	throw new UnsupportedOperationException("Scripts are not supported in this shamefull fake");
     }
 
@@ -187,7 +187,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
-        
+
     	throw new UnsupportedOperationException("Scripts are not supported in this shamefull fake");
     }
 
@@ -205,7 +205,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     public void executeQuery(ObjectClass objectClass, String query, ResultsHandler handler, OperationOptions options) {
         log.info("executeQuery::begin");
         // Lets be stupid and just return everything. That means our single account. ICF will filter it.
-        handler.handle(getFooConnectorObject());                
+        handler.handle(getFooConnectorObject());
         log.info("executeQuery::end");
     }
 
@@ -222,7 +222,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public SyncToken getLatestSyncToken(ObjectClass objectClass) {
         log.info("getLatestSyncToken::begin");
-        
+
         throw new UnsupportedOperationException("Sync is not supported in this shamefull fake");
     }
 
@@ -238,18 +238,18 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("Test configuration was successful.");
         log.info("test::end");
     }
-    
+
 	private ConnectorObject getFooConnectorObject() {
 		ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
 
 		builder.setUid("foo");
 		builder.addAttribute(Name.NAME, "foo");
-		
+
 		builder.addAttribute(FAKE_ATTR_NAME, "fake foo");
-		
+
 		GuardedString gs = new GuardedString("sup3rS3cr3tFak3".toCharArray());
 		builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
-		
+
 		builder.addAttribute(OperationalAttributes.ENABLE_NAME, true);
 
         return builder.build();

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -216,7 +214,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
             config = pageBase.getModelService().getObject(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, task, result);
         } catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-                | CommunicationException | ConfigurationException e) {
+                | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.error("Error getting system configuration: {}", e.getMessage(), e);
             return null;
         }
@@ -233,7 +231,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
         }
         return mergeTypeNamesList;
     }
-    
+
     private PrismObject<F> getMergeObjectsResult() {
         OperationResult result = new OperationResult(OPERATION_GET_MERGE_OBJECT_PREVIEW);
         PrismObject<F> mergeResultObject = null;

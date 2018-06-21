@@ -34,14 +34,14 @@ import java.io.FileNotFoundException;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestObjTemplateLiveSyncTask extends AbstractObjTemplateSyncTest {
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		dummyResourceByzantine.setSyncStyle(DummySyncStyle.SMART);
 	}
-	
+
 	@Override
 	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
 		if (resource == resourceDummyByzantine) {

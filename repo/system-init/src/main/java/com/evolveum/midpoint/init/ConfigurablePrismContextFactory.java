@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -38,7 +37,16 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
     private static final String EXTENSION_DIR = "extensionDir";
     private MidpointConfiguration configuration;
 
-	ConfigurablePrismContextFactory() {
+    // This is a hack to facilitate having separate extension schema directories for individual tests.
+    // It would be better to declare it as instance attribute but then it's not easy to set it up
+    // in TestNG tests (before midPoint is started).
+    private static String extensionDirOverride;
+
+    public static void setExtensionDirOverride(String extensionDirOverride) {
+        ConfigurablePrismContextFactory.extensionDirOverride = extensionDirOverride;
+    }
+
+    ConfigurablePrismContextFactory() {
 		super();
 	}
 
@@ -55,9 +63,16 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
         Configuration config = configuration.getConfiguration(CONFIGURATION_GLOBAL);
         if (config == null) {
             LOGGER.warn("Global part 'midpoint.global' is not defined in configuration file.");
-            return;
         }
-        String extensionDir = config.getString(EXTENSION_DIR);
+
+        String extensionDir;
+        if (extensionDirOverride != null) {
+            extensionDir = extensionDirOverride;
+        } else if (config != null) {
+            extensionDir = config.getString(EXTENSION_DIR); // potentially null
+        } else {
+            extensionDir = null;
+        }
 
         if (StringUtils.isEmpty(extensionDir)) {
             if (StringUtils.isNotEmpty(configuration.getMidpointHome())) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.prism.lex.json;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -30,12 +30,12 @@ public class ItemPathTypeSerializer extends JsonSerializer<ItemPathType> {
 
 	@Override
 	public void serialize(@NotNull ItemPathType value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-		XPathHolder xpath = new XPathHolder(value.getItemPath());
-		String path = xpath.getXPathWithDeclarations(true);
+		ItemPathHolder xpath = new ItemPathHolder(value.getItemPath(), true);
+		String path = xpath.getXPathWithDeclarations();
 		jgen.writeObject(path);
-		
+
 	}
-	
+
 	@Override
 	public void serializeWithType(@NotNull ItemPathType value, JsonGenerator jgen, SerializerProvider provider,
 			TypeSerializer typeSer) throws IOException {

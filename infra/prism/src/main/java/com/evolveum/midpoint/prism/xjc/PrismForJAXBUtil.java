@@ -32,7 +32,6 @@ import javax.xml.namespace.QName;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -61,9 +60,9 @@ public final class PrismForJAXBUtil {
         if (pvalue == null) {
             return null;
         }
-        
+
         Object propertyRealValue = pvalue.getValue();
-        
+
         if (propertyRealValue instanceof Element) {
         	if (requestedType.isAssignableFrom(Element.class)) {
         		return (T) propertyRealValue;
@@ -87,10 +86,10 @@ public final class PrismForJAXBUtil {
 			}
 			return requestedTypeInstance;
         }
-        
+
         return JaxbTypeConverter.mapPropertyRealValueToJaxb(propertyRealValue);
     }
-    
+
     private static <T> Field getAnyField(Class<T> clazz) {
     	for (Field field: clazz.getDeclaredFields()) {
     		XmlAnyElement xmlAnyElementAnnotation = field.getAnnotation(XmlAnyElement.class);
@@ -100,7 +99,7 @@ public final class PrismForJAXBUtil {
     	}
     	return null;
     }
-    
+
     public static <T> List<T> getPropertyValues(PrismContainerValue<?> container, QName name, Class<T> clazz) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
@@ -119,7 +118,7 @@ public final class PrismForJAXBUtil {
         return new PropertyArrayList<>(property, container);
     }
 
-    
+
     public static <T> void setPropertyValue(PrismContainerValue<?> container, QName name, T value) {
         Validate.notNull(container, "Container must not be null.");
         Validate.notNull(name, "QName must not be null.");
@@ -211,25 +210,10 @@ public final class PrismForJAXBUtil {
 	        		// This value is already part of another prism. We need to clone it to add it here.
 	        		fieldContainerValue = fieldContainerValue.clone();
 	        	}
-	            fieldContainer = new PrismContainer<T>(fieldName, parent.getPrismContext());
+	            fieldContainer = new PrismContainer<>(fieldName, parent.getPrismContext());
 	            fieldContainer.add(fieldContainerValue);
-	            if (parent.getParent() == null) {
-	                parent.add(fieldContainer);
-	            } else {
-                    parent.addReplaceExisting(fieldContainer);
-	            }
+                parent.addReplaceExisting(fieldContainer);
 	        }
-//	        // Make sure that the definition from parent is applied to new field container
-//	        if (fieldContainer.getDefinition() == null) {
-//	        	PrismContainer<?> parentContainer = parent.getContainer();
-//	        	if (parentContainer != null) {
-//		        	PrismContainerDefinition<?> parentDefinition = parentContainer.getDefinition();
-//		        	if (parentDefinition != null) {
-//		        		PrismContainerDefinition<T> fieldDefinition = parentDefinition.findContainerDefinition(fieldName);
-//		        		fieldContainer.setDefinition(fieldDefinition);
-//		        	}
-//	        	}
-//	        }
         } catch (SchemaException e) {
         	// This should not happen. Code generator and compiler should take care of that.
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
@@ -368,7 +352,7 @@ public final class PrismForJAXBUtil {
         }
         return filter.getFilterClauseXNode();
     }
-    
+
     public static PolyStringType getReferenceTargetName(PrismReferenceValue rval) {
         PolyString targetName = rval.getTargetName();
         if (targetName == null) {
@@ -376,7 +360,7 @@ public final class PrismForJAXBUtil {
         }
         return new PolyStringType(targetName);
     }
-    
+
     public static void setReferenceTargetName(PrismReferenceValue rval, PolyStringType name) {
         if (name == null) {
         	rval.setTargetName((PolyString) null);

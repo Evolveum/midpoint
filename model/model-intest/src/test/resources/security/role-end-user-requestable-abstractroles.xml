@@ -142,5 +142,5 @@
          </filter>
       </target>
    </authorization>
-   <roleType>system</roleType>
+   <subtype>system</subtype>
 </role>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,13 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
+ * DEPRECATED: use DropdownButtonPanel instead
+ * 
+ * This is the old cog-like dropdown from pre-adminlte times
+ * 
  * @author lazyman
  */
+@Deprecated
 public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
 
     private static String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
@@ -81,6 +86,7 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
             }
         };
         menuItemButton.setOutputMarkupId(true);
+        menuItemButton.setOutputMarkupPlaceholderTag(true);
         menuItemButton.add(new AttributeAppender("class", "dropdown-toggle " + getAdditionalButtonClass()));
         menuItemButton.add(new AttributeAppender("style", getMenuItemButtonStyle()));
         menuItemContainer.add(menuItemButton);

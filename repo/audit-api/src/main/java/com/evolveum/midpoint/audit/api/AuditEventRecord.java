@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,19 +37,17 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Audit event record describes a single event (usually data change) in a format suitable for audit.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -62,28 +60,43 @@ public class AuditEventRecord implements DebugDumpable {
 	 * Timestamp in millis.
 	 */
 	private Long timestamp;
-	
+
 	/**
 	 * Unique identification of the event.
 	 */
 	private String eventIdentifier;
-	
+
 	/**
 	 * Identitification of (interactive) session in which the event occured.
 	 */
 	private String sessionIdentifier;
-	
+
 	// channel???? (e.g. web gui, web service, ...)
-	
+
 	// task ID (not OID!)
 	private String taskIdentifier;
 	private String taskOID;
-	
-	// host ID
-	private String hostIdentifier;
-	
-	// initiator (subject, event "owner"): store OID, type(implicit?), name
+
+	private String hostIdentifier;		// local node name as obtained from the networking stack
+	private String nodeIdentifier;		// midPoint cluster node identifier (NodeType.nodeIdentifier)
+	private String remoteHostAddress;	// remote host address as obtained from the networking stack
+
+	/**
+	 * Initiator is the (legal) entity on behalf of whom is the action executed.
+	 * It is the subject of the operation. Authorizations of the initiator are used
+	 * to evaluate access to the operation. This is the entity who is formally responsible
+	 * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
+	 * the initiator may be an organization in later midPoint versions.
+	 */
 	private PrismObject<UserType> initiator;
+	
+	/**
+	 * Attorney is the (physical) user who have executed the action.
+	 * This is the user that have logged-in to the user interface. This is the user that
+	 * pressed the button to execute the action. This is always identity of a user and
+	 * it will always be a user. It cannot be a company or any other virtual entity.
+	 */
+	private PrismObject<UserType> attorney;
 
 	/**
 	 *  (primary) target (object, the thing acted on): store OID, type, name.
@@ -94,23 +107,23 @@ public class AuditEventRecord implements DebugDumpable {
 	 *  OPTIONAL
 	 */
 	private PrismReferenceValue target;
-	
+
 	// user that the target "belongs to"????: store OID, name
-	private PrismObject<UserType> targetOwner;
-		
+	private PrismObject<FocusType> targetOwner;
+
 	// event type
 	private AuditEventType eventType;
-	
+
 	// event stage (request, execution)
 	private AuditEventStage eventStage;
-	
+
 	// delta
 	private final Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = new ArrayList<>();
-	
+
 	// delta order (primary, secondary)
-	
+
 	private String channel;
-	
+
 	// outcome (success, failure)
 	private OperationResultStatus outcome;
 
@@ -129,7 +142,7 @@ public class AuditEventRecord implements DebugDumpable {
 
 	public AuditEventRecord() {
 	}
-	
+
 	public AuditEventRecord(AuditEventType eventType) {
 		this.eventType = eventType;
 	}
@@ -142,7 +155,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public Long getTimestamp() {
 		return timestamp;
 	}
-	
+
 	public void clearTimestamp() {
 		timestamp = null;
 	}
@@ -191,12 +204,49 @@ public class AuditEventRecord implements DebugDumpable {
 		this.hostIdentifier = hostIdentifier;
 	}
 
+	public String getNodeIdentifier() {
+		return nodeIdentifier;
+	}
+
+	public void setNodeIdentifier(String nodeIdentifier) {
+		this.nodeIdentifier = nodeIdentifier;
+	}
+
+	public String getRemoteHostAddress() {
+		return remoteHostAddress;
+	}
+
+	public void setRemoteHostAddress(String remoteHostAddress) {
+		this.remoteHostAddress = remoteHostAddress;
+	}
+
+	/**
+	 * Initiator is the (legal) entity on behalf of whom is the action executed.
+	 * It is the subject of the operation. Authorizations of the initiator are used
+	 * to evaluate access to the operation. This is the entity who is formally responsible
+	 * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
+	 * the initiator may be an organization in later midPoint versions.
+	 */
 	public PrismObject<UserType> getInitiator() {
 		return initiator;
 	}
 
 	public void setInitiator(PrismObject<UserType> initiator) {
 		this.initiator = initiator;
+	}
+
+	/**
+	 * Attorney is the (physical) user who have executed the action.
+	 * This is the user that have logged-in to the user interface. This is the user that
+	 * pressed the button to execute the action. This is always identity of a user and
+	 * it will always be a user. It cannot be a company or any other virtual entity.
+	 */
+	public PrismObject<UserType> getAttorney() {
+		return attorney;
+	}
+
+	public void setAttorney(PrismObject<UserType> attorney) {
+		this.attorney = attorney;
 	}
 
 	public PrismReferenceValue getTarget() {
@@ -206,7 +256,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public void setTarget(PrismReferenceValue target) {
 		this.target = target;
 	}
-	
+
 	// Compatibility and convenience
 	public void setTarget(PrismObject<?> targetObject) {
 		if (targetObject != null) {
@@ -216,11 +266,11 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 	}
 
-	public PrismObject<UserType> getTargetOwner() {
+	public PrismObject<FocusType> getTargetOwner() {
 		return targetOwner;
 	}
 
-	public void setTargetOwner(PrismObject<UserType> targetOwner) {
+	public void setTargetOwner(PrismObject<FocusType> targetOwner) {
 		this.targetOwner = targetOwner;
 	}
 
@@ -243,7 +293,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public Collection<ObjectDeltaOperation<? extends ObjectType>> getDeltas() {
 		return deltas;
 	}
-	
+
 	public void addDelta(ObjectDeltaOperation<? extends ObjectType> delta) {
 		deltas.add(delta);
 	}
@@ -251,7 +301,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public void addDeltas(Collection<ObjectDeltaOperation<? extends ObjectType>> deltasToAdd) {
 		deltas.addAll(deltasToAdd);
 	}
-	
+
 	public String getChannel() {
 		return channel;
 	}
@@ -271,7 +321,7 @@ public class AuditEventRecord implements DebugDumpable {
 	public void setOutcome(OperationResultStatus outcome) {
 		this.outcome = outcome;
 	}
-	
+
 	public void setResult(String result) {
         this.result = result;
 	}
@@ -295,12 +345,12 @@ public class AuditEventRecord implements DebugDumpable {
     public void setParameter(String parameter) {
         this.parameter = parameter;
     }
-    
+
     @Transient
     public Long getRepoId() {
 		return repoId;
 	}
-    
+
     public void setRepoId(Long repoId) {
 		this.repoId = repoId;
 	}
@@ -369,11 +419,11 @@ public class AuditEventRecord implements DebugDumpable {
 //            }
 //        }
 	}
-    
+
     public AuditEventRecordType createAuditEventRecordType(){
     	return createAuditEventRecordType(false);
 	}
-    
+
     public AuditEventRecordType createAuditEventRecordType(boolean tolerateInconsistencies) {
     	AuditEventRecordType auditRecordType = new AuditEventRecordType();
     	auditRecordType.setChannel(channel);
@@ -381,7 +431,10 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setEventStage(AuditEventStage.fromAuditEventStage(eventStage));
     	auditRecordType.setEventType(AuditEventType.fromAuditEventType(eventType));
     	auditRecordType.setHostIdentifier(hostIdentifier);
+    	auditRecordType.setRemoteHostAddress(remoteHostAddress);
+		auditRecordType.setNodeIdentifier(nodeIdentifier);
     	auditRecordType.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiator, true));
+    	auditRecordType.setAttorneyRef(ObjectTypeUtil.createObjectRef(attorney, true));
     	auditRecordType.setMessage(message);
     	auditRecordType.setOutcome(OperationResultStatus.createStatusType(outcome));
     	auditRecordType.setParameter(parameter);
@@ -427,7 +480,7 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 		return auditRecordType;
 	}
-    
+
     public static AuditEventRecord createAuditEventRecord(AuditEventRecordType auditEventRecordType) {
     	AuditEventRecord auditRecord = new AuditEventRecord();
     	auditRecord.setChannel(auditEventRecordType.getChannel());
@@ -435,7 +488,10 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecord.setEventStage(AuditEventStage.toAuditEventStage(auditEventRecordType.getEventStage()));
     	auditRecord.setEventType(AuditEventType.toAuditEventType(auditEventRecordType.getEventType()));
     	auditRecord.setHostIdentifier(auditEventRecordType.getHostIdentifier());
+    	auditRecord.setRemoteHostAddress(auditEventRecordType.getRemoteHostAddress());
+		auditRecord.setNodeIdentifier(auditEventRecordType.getNodeIdentifier());
     	auditRecord.setInitiator(getObjectFromObjectReferenceType(auditEventRecordType.getInitiatorRef()));
+    	auditRecord.setAttorney(getObjectFromObjectReferenceType(auditEventRecordType.getAttorneyRef()));
     	auditRecord.setMessage(auditEventRecordType.getMessage());
     	auditRecord.setOutcome(OperationResultStatus.parseStatusType(auditEventRecordType.getOutcome()));
     	auditRecord.setParameter(auditEventRecordType.getParameter());
@@ -454,7 +510,7 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 		return auditRecord;
     }
-    
+
     private static PrismReferenceValue getReferenceValueFromObjectReferenceType(ObjectReferenceType refType) {
     	if (refType == null) {
     		return null;
@@ -469,11 +525,11 @@ public class AuditEventRecord implements DebugDumpable {
     	if (ref == null){
     		return null;
     	}
-    	
+
     	PrismReferenceValue prismRef = ref.asReferenceValue();
     	return prismRef.getObject();
     }
-	
+
 	public AuditEventRecord clone() {
 		AuditEventRecord clone = new AuditEventRecord();
 		clone.channel = this.channel;
@@ -482,7 +538,10 @@ public class AuditEventRecord implements DebugDumpable {
 		clone.eventStage = this.eventStage;
 		clone.eventType = this.eventType;
 		clone.hostIdentifier = this.hostIdentifier;
+		clone.remoteHostAddress = this.remoteHostAddress;
+		clone.nodeIdentifier = this.nodeIdentifier;
 		clone.initiator = this.initiator;
+		clone.attorney = this.attorney;
 		clone.outcome = this.outcome;
 		clone.sessionIdentifier = this.sessionIdentifier;
 		clone.target = this.target;
@@ -502,7 +561,8 @@ public class AuditEventRecord implements DebugDumpable {
 	public String toString() {
 		return "AUDIT[" + formatTimestamp(timestamp) + " eid=" + eventIdentifier
 				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
-				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", I=" + formatObject(initiator)
+				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
+				+ ", I=" + formatObject(initiator) + ", A=" + formatObject(attorney)
 				+ ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
 				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
@@ -532,14 +592,14 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 		return TIMESTAMP_FORMAT.format(new java.util.Date(timestamp));
 	}
-	
+
 	private static String formatObject(PrismObject<? extends ObjectType> object) {
 		if (object == null) {
 			return "null";
 		}
 		return object.toString();
 	}
-	
+
     private String formatReference(PrismReferenceValue refVal) {
     	if (refVal == null) {
     		return "null";
@@ -568,7 +628,10 @@ public class AuditEventRecord implements DebugDumpable {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task Identifier", taskIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task OID", taskOID, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Host Identifier", hostIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Node Identifier", nodeIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Remote Host Address", remoteHostAddress, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Initiator", formatObject(initiator), indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Attorney", formatObject(attorney), indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Target", formatReference(target), indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Target Owner", formatObject(targetOwner), indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Type", eventType, indent + 1);
@@ -622,4 +685,15 @@ public class AuditEventRecord implements DebugDumpable {
 		}
 	}
 
+	public void setInitiatorAndLoginParameter(PrismObject<UserType> initiator) {
+		setInitiator(initiator);
+		String parameter = null;
+		if (initiator != null) {
+			PolyStringType name = initiator.asObjectable().getName();
+			if (name != null) {
+				parameter = name.getOrig();
+			}
+		}
+		setParameter(parameter);
+	}
 }

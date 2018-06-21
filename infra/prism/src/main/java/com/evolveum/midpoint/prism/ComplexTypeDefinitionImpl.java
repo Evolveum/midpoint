@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,34 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
-import com.evolveum.midpoint.prism.path.ParentPathSegment;
+import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.util.QNameUtil;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
 /**
  * TODO
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements ComplexTypeDefinition {
 
+	private static final Trace LOGGER = TraceManager.getTrace(ComplexTypeDefinitionImpl.class);
+
 	private static final long serialVersionUID = 2655797837209175037L;
 	@NotNull private final List<ItemDefinition> itemDefinitions = new ArrayList<>();
+	private boolean referenceMarker;
 	private boolean containerMarker;
 	private boolean objectMarker;
 	private boolean xsdAnyMarker;
@@ -51,6 +53,10 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	private String defaultNamespace;
 	@NotNull private List<String> ignoredNamespaces = new ArrayList<>();
 
+	// temporary/experimental - to avoid trimming "standard" definitions
+	// we reset this flag when cloning
+	protected boolean shared = true;
+
 	public ComplexTypeDefinitionImpl(@NotNull QName typeName, @NotNull PrismContext prismContext) {
 		super(typeName, prismContext);
 	}
@@ -59,13 +65,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	protected String getSchemaNamespace() {
 		return getTypeName().getNamespaceURI();
 	}
-		
+
 	/**
 	 * Returns set of item definitions.
-	 * 
+	 *
 	 * The set contains all item definitions of all types that were parsed.
 	 * Order of definitions is insignificant.
-	 * 
+	 *
 	 * @return set of definitions
 	 */
 	@NotNull
@@ -73,9 +79,14 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	public List<? extends ItemDefinition> getDefinitions() {
 		return Collections.unmodifiableList(itemDefinitions);
 	}
-	
+
 	public void add(ItemDefinition<?> definition) {
 		itemDefinitions.add(definition);
+	}
+
+	@Override
+	public boolean isShared() {
+		return shared;
 	}
 
 	@Override
@@ -86,7 +97,16 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	public void setExtensionForType(QName extensionForType) {
 		this.extensionForType = extensionForType;
 	}
-	
+
+	@Override
+	public boolean isReferenceMarker() {
+		return referenceMarker;
+	}
+
+	public void setReferenceMarker(boolean referenceMarker) {
+		this.referenceMarker = referenceMarker;
+	}
+
 	@Override
 	public boolean isContainerMarker() {
 		return containerMarker;
@@ -100,7 +120,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	public boolean isObjectMarker() {
 		return objectMarker;
 	}
-	
+
 	@Override
 	public boolean isXsdAnyMarker() {
 		return xsdAnyMarker;
@@ -149,7 +169,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
-	
+
 	// Creates reference to other schema
 	// TODO: maybe check if the name is in different namespace
 	// TODO: maybe create entirely new concept of property reference?
@@ -174,6 +194,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	//region Finding definitions
 
 	// TODO deduplicate w.r.t. findNamedItemDefinition
+	// but beware, consider only local definitions!
 	@Override
 	public <T extends ItemDefinition> T findItemDefinition(@NotNull QName name, @NotNull Class<T> clazz, boolean caseInsensitive) {
 		for (ItemDefinition def : getDefinitions()) {
@@ -207,6 +228,22 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 				}
 			} else if (first instanceof ObjectReferencePathSegment) {
 				throw new IllegalStateException("Couldn't use '@' path segment in this context. CTD=" + getTypeName() + ", path=" + path);
+			} else if (first instanceof IdentifierPathSegment) {
+				if (!clazz.isAssignableFrom(PrismPropertyDefinition.class)) {
+					return null;
+				}
+				PrismPropertyDefinitionImpl<?> oidDefinition;
+				// experimental
+				if (objectMarker) {
+					oidDefinition = new PrismPropertyDefinitionImpl<>(PrismConstants.T_ID, DOMUtil.XSD_STRING, prismContext);
+				} else if (containerMarker) {
+					oidDefinition = new PrismPropertyDefinitionImpl<>(PrismConstants.T_ID, DOMUtil.XSD_INTEGER, prismContext);
+				} else {
+					throw new IllegalStateException("No identifier for complex type " + this);
+				}
+				oidDefinition.setMaxOccurs(1);
+				//noinspection unchecked
+				return (ID) oidDefinition;
 			} else {
 				throw new IllegalStateException("Unexpected path segment: " + first + " in " + path);
 			}
@@ -227,7 +264,19 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 				}
             }
         }
-		return found;
+        if (found != null) {
+	        return found;
+        }
+		if (isXsdAnyMarker()) {
+			SchemaRegistry schemaRegistry = getSchemaRegistry();
+			if (schemaRegistry != null) {
+				ItemDefinition def = schemaRegistry.findItemDefinitionByElementName(firstName);
+				if (def != null) {
+					return (ID) def.findItemDefinition(rest, clazz);
+				}
+			}
+		}
+		return null;
 	}
 	//endregion
 
@@ -237,7 +286,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	@Override
 	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
 		for (ItemDefinition otherItemDef: otherComplexTypeDef.getDefinitions()) {
-			add(otherItemDef.clone());
+			ItemDefinition existingItemDef = findItemDefinition(otherItemDef.getName());
+			if (existingItemDef != null) {
+				LOGGER.warn("Overwriting existing definition {} by {} (in {})", existingItemDef, otherItemDef, this);
+				replaceDefinition(otherItemDef.getName(), otherItemDef.clone());
+			} else {
+				add(otherItemDef.clone());
+			}
 		}
 	}
 
@@ -256,39 +311,58 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	public boolean isEmpty() {
 		return itemDefinitions.isEmpty();
 	}
+	
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		for (ItemDefinition itemDefinition : itemDefinitions) {
+			itemDefinition.accept(visitor);
+		}
+	}
 
 	@NotNull
 	@Override
 	public ComplexTypeDefinitionImpl clone() {
 		ComplexTypeDefinitionImpl clone = new ComplexTypeDefinitionImpl(this.typeName, prismContext);
 		copyDefinitionData(clone);
+		clone.shared = false;
 		return clone;
 	}
 
 	public ComplexTypeDefinition deepClone() {
-		return deepClone(new HashMap<>());
+		return deepClone(new HashMap<>(), new HashMap<>(), null);
 	}
 
 	@NotNull
 	@Override
-	public ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap) {
+	public ComplexTypeDefinition deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
 		if (ctdMap != null) {
 			ComplexTypeDefinition clone = ctdMap.get(this.getTypeName());
 			if (clone != null) {
 				return clone; // already cloned
 			}
 		}
+		ComplexTypeDefinition cloneInParent = onThisPath.get(this.getTypeName());
+		if (cloneInParent != null) {
+			return cloneInParent;
+		}
 		ComplexTypeDefinitionImpl clone = clone(); // shallow
 		if (ctdMap != null) {
 			ctdMap.put(this.getTypeName(), clone);
 		}
+		onThisPath.put(this.getTypeName(), clone);
 		clone.itemDefinitions.clear();
 		for (ItemDefinition itemDef: this.itemDefinitions) {
-			clone.itemDefinitions.add(itemDef.deepClone(ctdMap));
+			ItemDefinition itemClone = itemDef.deepClone(ctdMap, onThisPath, postCloneAction);
+			clone.itemDefinitions.add(itemClone);
+			if (postCloneAction != null) {
+				postCloneAction.accept(itemClone);
+			}
 		}
+		onThisPath.remove(this.getTypeName());
 		return clone;
 	}
-	
+
 	protected void copyDefinitionData(ComplexTypeDefinitionImpl clone) {
 		super.copyDefinitionData(clone);
         clone.containerMarker = this.containerMarker;
@@ -318,7 +392,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		}
 		throw new IllegalArgumentException("The definition with name "+propertyName+" was not found in complex type "+getTypeName());
 	}
-	
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -368,6 +442,11 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 
 	@Override
 	public String debugDump(int indent) {
+		return debugDump(indent, new IdentityHashMap<>());
+	}
+
+	@Override
+	public String debugDump(int indent, IdentityHashMap<Definition, Object> seen) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<indent; i++) {
 			sb.append(DebugDumpable.INDENT_STRING);
@@ -377,8 +456,8 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 			sb.append(",ext:");
 			sb.append(PrettyPrinter.prettyPrint(extensionForType));
 		}
-		if (ignored) {
-			sb.append(",ignored");
+		if (processing != null) {
+			sb.append(",").append(processing);
 		}
 		if (containerMarker) {
 			sb.append(",Mc");
@@ -389,11 +468,22 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 		if (xsdAnyMarker) {
 			sb.append(",Ma");
 		}
+		if (instantiationOrder != null) {
+			sb.append(",o:").append(instantiationOrder);
+		}
+		if (!staticSubTypes.isEmpty()) {
+			sb.append(",st:").append(staticSubTypes.size());
+		}
 		extendDumpHeader(sb);
-		for (ItemDefinition def : getDefinitions()) {
-			sb.append("\n");
-			sb.append(def.debugDump(indent+1));
-			extendDumpDefinition(sb, def);
+		if (seen.containsKey(this)) {
+			sb.append(" (already shown)");
+		} else {
+			seen.put(this, null);
+			for (ItemDefinition def : getDefinitions()) {
+				sb.append("\n");
+				sb.append(def.debugDump(indent + 1));
+				extendDumpDefinition(sb, def);
+			}
 		}
 		return sb.toString();
 	}
@@ -403,7 +493,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
 	}
 
 	protected void extendDumpDefinition(StringBuilder sb, ItemDefinition<?> def) {
-		// Do nothing		
+		// Do nothing
 	}
 
 	/**
@@ -419,7 +509,27 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Com
         return "complex type";
     }
 
-//	@Override
+	@Override
+	public void trimTo(@NotNull Collection<ItemPath> paths) {
+    	if (shared) {
+    		// TODO switch this to warning before releasing this code (3.6.1 or 3.7)
+    		throw new IllegalStateException("Couldn't trim shared definition: " + this);
+		}
+		for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
+			ItemDefinition<?> itemDef = iterator.next();
+			ItemPath itemPath = new ItemPath(itemDef.getName());
+			if (!ItemPath.containsSuperpathOrEquivalent(paths, itemPath)) {
+				iterator.remove();
+			} else if (itemDef instanceof PrismContainerDefinition) {
+				PrismContainerDefinition<?> itemPcd = (PrismContainerDefinition<?>) itemDef;
+				if (itemPcd.getComplexTypeDefinition() != null) {
+					itemPcd.getComplexTypeDefinition().trimTo(ItemPath.remainder(paths, itemPath, false));
+				}
+			}
+		}
+	}
+
+	//	@Override
 //	public void accept(Visitor visitor) {
 //		super.accept(visitor);
 //		itemDefinitions.forEach(def -> def.accept(visitor));

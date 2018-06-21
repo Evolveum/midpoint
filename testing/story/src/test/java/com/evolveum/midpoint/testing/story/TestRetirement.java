@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,9 +87,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRetirement extends AbstractStoryTest {
-	
+
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "retirement");
-	
+
 	protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
@@ -97,11 +97,11 @@ public class TestRetirement extends AbstractStoryTest {
 
 	public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
 	public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
-	
+
 	public static final File ORG_RETIRED_FILE = new File(TEST_DIR, "org-retired.xml");
 	public static final String ORG_RETIRED_OID = "00000000-8888-6666-0000-100000ffffff";
 	public static final String ORG_RETIRED_NAME = "RETIRED";
-	
+
 	public static final File ROLE_META_ORG_FILE = new File(TEST_DIR, "role-meta-org.xml");
 	public static final String ROLE_META_ORG_OID = "10000000-0000-0000-0000-000000006601";
 
@@ -119,7 +119,7 @@ public class TestRetirement extends AbstractStoryTest {
 	protected static final String USER_TELEKE_USERNAME = "teleke";
 	protected static final String USER_TELEKE_GIVEN_NAME = "Felix";
 	protected static final String USER_TELEKE_FAMILY_NAME = "Teleke z Tölökö";
-	
+
 	protected static final String USER_GORC_USERNAME = "gorc";
 	protected static final String USER_GORC_USERNAME2 = "obluda";
 	protected static final String USER_GORC_GIVEN_NAME = "Robert";
@@ -128,7 +128,7 @@ public class TestRetirement extends AbstractStoryTest {
 	protected static final String USER_DEZI_USERNAME = "dezi";
 	protected static final String USER_DEZI_GIVEN_NAME = "Vilja";
 	protected static final String USER_DEZI_FAMILY_NAME = "Dézi";
-		
+
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 
@@ -137,7 +137,12 @@ public class TestRetirement extends AbstractStoryTest {
 	protected String orgVysneVlkodlakyOid;
 	protected String orgRolyulaDiabolicaOid;
 	protected String userGorcOid;
-	
+
+	@Override
+	protected String getTopOrgOid() {
+		return ORG_TOP_OID;
+	}
+
 	@Override
     protected void startResources() throws Exception {
         openDJController.startCleanServerRI();
@@ -147,13 +152,13 @@ public class TestRetirement extends AbstractStoryTest {
     public static void stopResources() throws Exception {
         openDJController.stop();
     }
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
-		
-		// Resources	
+
+
+		// Resources
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
 		resourceOpenDjType = resourceOpenDj.asObjectable();
 		openDJController.setResource(resourceOpenDj);
@@ -164,29 +169,29 @@ public class TestRetirement extends AbstractStoryTest {
 		// Role
 		importObjectFromFile(ROLE_META_ORG_FILE, initResult);
 	}
-	
+
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
-        
+
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);
 
         dumpOrgTree();
         dumpLdap();
 	}
-	
+
 	@Test
     public void test050AddOrgRetired() throws Exception {
 		final String TEST_NAME = "test050AddOrgRetired";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = PrismTestUtil.parseObject(ORG_RETIRED_FILE);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Adding org", orgBefore);
@@ -196,10 +201,10 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-		
+
 		PrismObject<OrgType> org = getObject(OrgType.class, ORG_RETIRED_OID);
 		display("org", org);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, ORG_TYPE_FUNCTIONAL);
@@ -214,18 +219,18 @@ public class TestRetirement extends AbstractStoryTest {
 		display("OU retirement entry", openDJController.toHumanReadableLdifoid(ouEntry));
 		openDJController.assertObjectClass(ouEntry, "organizationalUnit");
 
-		assertSubOrgs(org, 0);        
+		assertSubOrgs(org, 0);
 	}
-	
+
 	@Test
     public void test100AddOrgRoyulaCarpathia() throws Exception {
 		final String TEST_NAME = "test100AddOrgRoyulaCarpathia";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Adding org", orgBefore);
@@ -235,27 +240,27 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
         orgRolyulaCarpathiaOid = orgAfter.getOid();
 
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(ORG_TOP_OID, 1);
 	}
-	
+
 	@Test
     public void test110AddUserTeleke() throws Exception {
 		final String TEST_NAME = "test110AddUserTeleke";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> userBefore = createUser(USER_TELEKE_USERNAME, 
+        PrismObject<UserType> userBefore = createUser(USER_TELEKE_USERNAME,
         		USER_TELEKE_GIVEN_NAME, USER_TELEKE_FAMILY_NAME, orgRolyulaCarpathiaOid);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Adding user", userBefore);
@@ -265,9 +270,9 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getAndAssertUser(USER_TELEKE_USERNAME, ORG_ROYULA_CARPATHIA_NAME);
-        
+
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_ROYULA_CARPATHIA_NAME, ORG_TOP_OID);
 
 		dumpOrgTree();
@@ -276,16 +281,16 @@ public class TestRetirement extends AbstractStoryTest {
 		assertSubOrgs(orgAfter, 0);
 		assertSubOrgs(ORG_TOP_OID, 1);
 	}
-	
+
 	@Test
     public void test200AddOrgCortuvHrad() throws Exception {
 		final String TEST_NAME = "test200AddOrgCortuvHrad";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Adding org", orgBefore);
@@ -295,7 +300,7 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_CORTUV_HRAD_NAME, orgRolyulaCarpathiaOid);
         orgCortuvHradOid = orgAfter.getOid();
 
@@ -306,17 +311,17 @@ public class TestRetirement extends AbstractStoryTest {
 		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
 		assertSubOrgs(ORG_TOP_OID, 1);
 	}
-	
+
 	@Test
     public void test210AddUserGorc() throws Exception {
 		final String TEST_NAME = "test210AddUserGorc";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> userBefore = createUser(USER_GORC_USERNAME, 
+        PrismObject<UserType> userBefore = createUser(USER_GORC_USERNAME,
         		USER_GORC_GIVEN_NAME, USER_GORC_FAMILY_NAME, orgCortuvHradOid);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Adding user", userBefore);
@@ -326,10 +331,10 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getAndAssertUser(USER_GORC_USERNAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);
         userGorcOid = userAfter.getOid();
-        
+
 		dumpOrgTree();
 		dumpLdap();
 	}
@@ -337,12 +342,12 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test220AddOrgVysneVlkodlaky() throws Exception {
 		final String TEST_NAME = "test220AddOrgVysneVlkodlaky";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<OrgType> orgBefore = createOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Adding org", orgBefore);
@@ -352,7 +357,7 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<OrgType> orgAfter = getAndAssertFunctionalOrg(ORG_VYSNE_VLKODLAKY_NAME, orgCortuvHradOid);
         orgVysneVlkodlakyOid = orgAfter.getOid();
 
@@ -363,17 +368,17 @@ public class TestRetirement extends AbstractStoryTest {
 		assertSubOrgs(orgRolyulaCarpathiaOid, 1);
 		assertSubOrgs(ORG_TOP_OID, 1);
 	}
-	
+
 	@Test
     public void test230AddUserViljaDezi() throws Exception {
 		final String TEST_NAME = "test230AddUserViljaDezi";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> userBefore = createUser(USER_DEZI_USERNAME, 
+        PrismObject<UserType> userBefore = createUser(USER_DEZI_USERNAME,
         		USER_DEZI_GIVEN_NAME, USER_DEZI_FAMILY_NAME, orgVysneVlkodlakyOid);
-        
+
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         display("Adding user", userBefore);
@@ -383,9 +388,9 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         PrismObject<UserType> userAfter = getAndAssertUser(USER_DEZI_USERNAME, ORG_VYSNE_VLKODLAKY_NAME, ORG_CORTUV_HRAD_NAME, ORG_ROYULA_CARPATHIA_NAME);
-        
+
 		dumpOrgTree();
 		dumpLdap();
 	}
@@ -393,7 +398,7 @@ public class TestRetirement extends AbstractStoryTest {
 	@Test
     public void test300RetireUserGorc() throws Exception {
 		final String TEST_NAME = "test300RetireUserGorc";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -411,18 +416,18 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<UserType> userAfter = getAndAssertRetiredUser(USER_GORC_USERNAME);
         userGorcOid = userAfter.getOid();
 	}
-	
+
 	@Test
     public void test302ReconcileUserGorc() throws Exception {
 		final String TEST_NAME = "test302ReconcileUserGorc";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -434,18 +439,18 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<UserType> userAfter = getAndAssertRetiredUser(USER_GORC_USERNAME);
         userGorcOid = userAfter.getOid();
 	}
-	
+
 	@Test
     public void test303ReconcileUserGorcAgain() throws Exception {
 		final String TEST_NAME = "test303ReconcileUserGorcAgain";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestRetirement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -457,10 +462,10 @@ public class TestRetirement extends AbstractStoryTest {
         TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        
+
         dumpOrgTree();
 		dumpLdap();
-        
+
         PrismObject<UserType> userAfter = getAndAssertRetiredUser(USER_GORC_USERNAME);
         userGorcOid = userAfter.getOid();
 	}
@@ -519,10 +524,10 @@ public class TestRetirement extends AbstractStoryTest {
 		assertNotNull("No account LDAP entry for "+username, accountEntry);
 		display("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
 		openDJController.assertObjectClass(accountEntry, "inetOrgPerson");
-		
+
 		return user;
 	}
-	
+
 	private PrismObject<UserType> getAndAssertRetiredUser(String username) throws SchemaException, CommonException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
 		PrismObject<UserType> user = findUserByUsername(username);
 		display("user", user);
@@ -537,11 +542,11 @@ public class TestRetirement extends AbstractStoryTest {
 		assertNotNull("No account LDAP entry for "+username+" ("+dn+")", accountEntry);
 		display("account entry", openDJController.toHumanReadableLdifoid(accountEntry));
 		openDJController.assertObjectClass(accountEntry, "inetOrgPerson");
-		
+
 		return user;
 	}
 
-	private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+	private PrismObject<OrgType> getAndAssertFunctionalOrg(String orgName, String directParentOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		PrismObject<OrgType> org = getOrg(orgName);
 		display("org", org);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, ORG_TYPE_FUNCTIONAL);
@@ -563,37 +568,24 @@ public class TestRetirement extends AbstractStoryTest {
 		return org;
 	}
 
-	private PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
-		assertNotNull("The org "+orgName+" is missing!", org);
-		display("Org "+orgName, org);
-		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
-		return org;
-	}
-
-	private void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		display("Org tree", dumpOrgTree(ORG_TOP_OID));
-	}
-	
 	private void dumpLdap() throws DirectoryException {
 		display("LDAP server tree", openDJController.dumpTree());
 		display("LDAP server content", openDJController.dumpEntries());
 	}
-	
-	
+
 	private void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
+		assertAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
 	}
 
 	private void assertNoGroupMembers(PrismObject<OrgType> org) throws Exception {
 		String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
 		PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-		assertNoAttribute(groupShadow, new QName(MidPointConstants.NS_RI, "uniqueMember"));
+		assertNoAttribute(resourceOpenDj, groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"));
 	}
-	
-	private void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+	private void reconcileAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		final Task task = createTask("reconcileAllUsers");
 		OperationResult result = task.getResult();
 		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
@@ -613,8 +605,8 @@ public class TestRetirement extends AbstractStoryTest {
 		display("Reconciling all users");
 		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
 	}
-	
-	private void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+
+	private void reconcileAllOrgs() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		final Task task = createTask("reconcileAllOrgs");
 		OperationResult result = task.getResult();
 		ResultHandler<OrgType> handler = new ResultHandler<OrgType>() {
@@ -634,5 +626,5 @@ public class TestRetirement extends AbstractStoryTest {
 		display("Reconciling all orgs");
 		modelService.searchObjectsIterative(OrgType.class, null, handler, null, task, result);
 	}
-	
+
 }

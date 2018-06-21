@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.6-SNAPSHOT</version>
+        <version>3.9-SNAPSHOT</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
     <scm>
@@ -36,6 +36,7 @@
         <module>repo-api</module>
         <module>repo-cache</module>
         <module>system-init</module>
+        <module>repo-common</module>
         <module>repo-test-util</module>
         <module>repo-sql-impl</module>
         <module>repo-sql-impl-test</module>
@@ -43,6 +44,8 @@
         <module>task-quartz-impl</module>
     	<module>security-api</module>
     	<module>security-impl</module>
+    	<module>security-enforcer-api</module>
+    	<module>security-enforcer-impl</module>
     </modules>
     <dependencies> 
     	<dependency> <!-- Not used, but required for surefire plugin not to complain -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  */
 public class PasswordCallback implements CallbackHandler {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PasswordCallback.class);
 
     private PasswordAuthenticationEvaluatorImpl passwordAuthenticationEvaluatorImpl;
@@ -49,10 +49,9 @@ public class PasswordCallback implements CallbackHandler {
         String username = pc.getIdentifier();
         String wssPasswordType = pc.getType();
         LOGGER.trace("Username: '{}', Password type: {}", username, wssPasswordType);
-        
+
         try {
-        	ConnectionEnvironment connEnv = new ConnectionEnvironment();
-        	connEnv.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+        	ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
         	pc.setPassword(passwordAuthenticationEvaluatorImpl.getAndCheckUserPassword(connEnv, username));
         } catch (Exception e) {
         	LOGGER.trace("Exception in password callback: {}: {}", e.getClass().getSimpleName(), e.getMessage(), e);

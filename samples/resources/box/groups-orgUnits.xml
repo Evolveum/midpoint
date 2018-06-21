@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+     oid="ff05007c-4037-48b7-984e-662cdc16a25e"
+     version="0">
+   <name>Groups</name>
+   <description>Groups that belong under Box</description>
+   <metadata>
+      <requestTimestamp>2017-07-25T12:55:39.933+02:00</requestTimestamp>
+      <requestorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                    oid="00000000-0000-0000-0000-000000000002"
+                    relation="org:default"
+                    type="c:UserType"><!-- administrator --></requestorRef>
+      <createTimestamp>2017-07-25T12:55:39.961+02:00</createTimestamp>
+      <creatorRef xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+                  oid="00000000-0000-0000-0000-000000000002"
+                  relation="org:default"
+                  type="c:UserType"><!-- administrator --></creatorRef>
+      <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+   </metadata>
+   <activation>
+      <effectiveStatus>enabled</effectiveStatus>
+      <enableTimestamp>2017-07-25T12:55:39.947+02:00</enableTimestamp>
+   </activation>
+   <iteration>0</iteration>
+   <iterationToken/>
+   <displayName>GROUPS</displayName>
+</org>
+</objects>

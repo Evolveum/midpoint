@@ -27,12 +27,12 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 /**
  * String matching rule that ignores the case.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class StringIgnoreCaseMatchingRule implements MatchingRule<String> {
-	
+
 	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "stringIgnoreCase");
 
 	@Override
@@ -72,7 +72,7 @@ public class StringIgnoreCaseMatchingRule implements MatchingRule<String> {
 		if (a == null){
 			return false;
 		}
-		
+
 		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 		Matcher matcher = pattern.matcher(a);
 		return matcher.matches();

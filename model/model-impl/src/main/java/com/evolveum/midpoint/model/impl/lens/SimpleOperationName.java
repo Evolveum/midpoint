@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,24 @@ package com.evolveum.midpoint.model.impl.lens;
  *
  */
 public enum SimpleOperationName {
-	
-	ADD("add"),
-	MODIFY("modify"),
-	DELETE("delete");
-	
-	private final String value;
 
-	private SimpleOperationName(String value) {
+	ADD("add", "added"),
+	MODIFY("modify", "modified"),
+	DELETE("delete", "deleted");
+
+	private final String value;
+	private final String pastTense;
+
+	SimpleOperationName(String value, String pastTense) {
 		this.value = value;
+		this.pastTense = pastTense;
 	}
 
 	public String getValue() {
 		return value;
 	}
 
+	public String getPastTense() {
+		return pastTense;
+	}
 }

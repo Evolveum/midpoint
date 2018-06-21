@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,8 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
 			sort(list);
 		}
         if (list != null) {
-            for (long i = first; i < first + count; i++) {
+		    long last = list.size() < (first + count) ? list.size() : (first + count);
+            for (long i = first; i < last; i++) {
                 if (i < 0 || i >= list.size()) {
                     throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
                             + " but list size is " + list.size());
@@ -104,4 +105,6 @@ public class ListDataProvider<T extends Serializable> extends BaseSortableDataPr
 
         return list.size();
     }
+
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -206,7 +206,7 @@ public class PageCertCampaign extends PageAdminCertification {
 	}
 
 	private void initLayout() {
-		Form mainForm = new Form(ID_MAIN_FORM);
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
 
 		initBasicInfoLayout(mainForm);
@@ -276,7 +276,7 @@ public class PageCertCampaign extends PageAdminCertification {
 
 	private List<IColumn<CertCaseDto, String>> initColumns() {
 		List<IColumn<CertCaseDto, String>> columns = new ArrayList<>();
-		
+
 		IColumn column;
 
 		column = helper.createTypeColumn(OBJECT, this);
@@ -311,14 +311,14 @@ public class PageCertCampaign extends PageAdminCertification {
 		column = new PropertyColumn(createStringResource("PageCertCampaign.table.reviewedInStage"), CertCaseDto.F_CURRENT_RESPONSE_STAGE_NUMBER);
 		columns.add(column);
 
-		final AvailableResponses availableResponses = new AvailableResponses(getPage());
+		final AvailableResponses availableResponses = new AvailableResponses(this);
 		final int responses = availableResponses.getCount();
 
 		column = new MultiButtonColumn<CertCaseDto>(new Model(), responses+1) {
 
 			@Override
-			public String getCaption(int id) {
-				return availableResponses.getCaption(id);
+			public String getButtonTitle(int id) {
+				return availableResponses.getTitle(id);
 			}
 
 			@Override
@@ -505,6 +505,7 @@ public class PageCertCampaign extends PageAdminCertification {
 			result.computeStatusIfUnknown();
 		}
 
+		WebComponentUtil.safeResultCleanup(result, LOGGER);
 		showResult(result);
 		statModel.reset();
 		campaignModel.reset();
@@ -512,7 +513,6 @@ public class PageCertCampaign extends PageAdminCertification {
 		target.add((Component) getOutcomesTable());		// ???
 		target.add(getFeedbackPanel());
 	}
-
 
 	private ObjectQuery createCaseQuery() {
 		ObjectQuery query = new ObjectQuery();

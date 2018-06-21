@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,7 +41,6 @@ import org.testng.annotations.Test;
 
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -60,11 +58,11 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestConsistencySimple extends AbstractInitializedModelIntegrationTest {
 
 	private static final boolean ASSERT_SUCCESS = true;
-		
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		login(USER_ADMINISTRATOR_USERNAME);
 	}
 
@@ -159,7 +157,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
     private void executeTest(final String TEST_NAME, FocusOperation focusOperation, ShadowOperation shadowOperation,
 			ResourceObjectOperation resourceObjectOperation) throws Exception {
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestConsistencySimple.class.getName() + "." + TEST_NAME);

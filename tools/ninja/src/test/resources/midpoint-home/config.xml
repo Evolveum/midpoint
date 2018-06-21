@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<configuration>
+    <midpoint>
+        <webApplication>
+            <importFolder>${midpoint.home}/import</importFolder>
+        </webApplication>
+        <repository>
+            <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlRepositoryFactory</repositoryServiceFactoryClass>
+            <baseDir>${midpoint.home}</baseDir>
+            <asServer>true</asServer>
+        </repository>
+        <audit>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+            <auditService>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+            </auditService>
+        </audit>
+        <icf>
+            <scanClasspath>true</scanClasspath>
+            <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
+        </icf>
+        <keystore>
+            <keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
+            <keyStorePassword>changeit</keyStorePassword>
+            <encryptionKeyAlias>default</encryptionKeyAlias>
+            <!--
+            You can use smaller cipher key size for encryption. For:
+            AES_128 "http://www.w3.org/2001/04/xmlenc#aes128-cbc";
+            AES_256 "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
+            AES_192 "http://www.w3.org/2001/04/xmlenc#aes192-cbc";
+
+            in element <xmlCipher></xmlCipher>
+            By default AES_128 is used. If you change key size, than
+            you must also create secret key in key store with proper key size and change encryptionKeyAlias.
+
+            To generate keystore with keytool use command:
+            keytool -genseckey -alias default -keystore keystore.jceks -storetype jceks -keyalg AES -keysize 128
+
+            secret key password is by default 'midpoint'
+            -->
+        </keystore>
+        <!-- <profilingEnabled>true</profilingEnabled> -->
+    </midpoint>
+</configuration>

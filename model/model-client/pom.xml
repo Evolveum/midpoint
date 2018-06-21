@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.6-SNAPSHOT</version>
+        <version>3.9-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,12 +35,12 @@
       <repository>
         <id>evolveum-nexus</id>
         <name>Internal Releases</name>
-        <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+        <url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
       </repository>
       <snapshotRepository>
         <id>evolveum-nexus</id>
         <name>Internal Releases</name>
-        <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        <url>https://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
       </snapshotRepository>
     </distributionManagement>
 
@@ -66,6 +66,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
 			<groupId>org.apache.cxf</groupId>
@@ -82,16 +83,6 @@
             <artifactId>cxf-xjc-runtime</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-frontend-jaxws</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-                <groupId>com.sun.xml.bind</groupId>
-                <artifactId>jaxb-impl</artifactId>
-                <scope>runtime</scope>
-        </dependency>
-        <dependency>
                 <groupId>com.sun.xml.bind</groupId>
                 <artifactId>jaxb-core</artifactId>
                 <scope>runtime</scope>
@@ -103,6 +94,10 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
 		</dependency>
         <!-- This is needed only for equals methods. Simplify it now
         <dependency>
@@ -120,7 +115,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.9-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -219,7 +214,7 @@
                     <dependency>
                         <groupId>com.evolveum.midpoint.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>3.6-SNAPSHOT</version>
+                        <version>3.9-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
             </plugin>

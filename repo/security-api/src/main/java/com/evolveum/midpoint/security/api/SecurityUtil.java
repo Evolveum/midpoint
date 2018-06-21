@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 Evolveum
+ * Copyright (c) 2014-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,90 +15,67 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.MiscUtil;
-
-import org.apache.lucene.document.Field.Store;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Radovan Semancik
  */
 public class SecurityUtil {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityUtil.class);
 
-	/**
-	 * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
-	 */
-	public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication == null) {
-			SecurityViolationException ex = new SecurityViolationException("No authentication");
-			LOGGER.error("No authentication", ex);
-			throw ex;
-		}
-		Object principalObject = authentication.getPrincipal();
-		if (!(principalObject instanceof MidPointPrincipal)) {
-			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)) {
-				return null;
-			} else {
-				throw new IllegalArgumentException("Expected that spring security principal will be of type "+
-					MidPointPrincipal.class.getName()+" but it was "+ MiscUtil.getObjectName(principalObject));
-			}
-		}
-		return (MidPointPrincipal) principalObject;
-	}
-	
-	public static boolean isAuthenticated() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		return (authentication != null);
-	}
-	
+	@NotNull private static List<String> remoteHostAddressHeaders = Collections.emptyList();
+
 	public static Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
-		Collection<String> actions = new ArrayList<String>(configAttributes.size());
+		Collection<String> actions = new ArrayList<>(configAttributes.size());
 		for (ConfigAttribute attr: configAttributes) {
 			actions.add(attr.getAttribute());
 		}
 		return actions;
 	}
-	
+
 	public static void logSecurityDeny(Object object, String message) {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Denied access to {} by {} {}", object, getSubjectDescription(), message);
 		}
 	}
 	
+	public static void logSecurityDeny(MidPointPrincipal midPointPrincipal, Object object, String message) {
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Denied access to {} by {} {}", object, midPointPrincipal, message);
+		}
+	}
+
 	public static void logSecurityDeny(Object object, String message, Throwable cause, Collection<String> requiredAuthorizations) {
 		if (LOGGER.isDebugEnabled()) {
 			String subjectDesc = getSubjectDescription();
 			LOGGER.debug("Denied access to {} by {} {}", object, subjectDesc, message);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Denied access to {} by {} {}; one of the following authorization actions is required: "+requiredAuthorizations, 
-						new Object[]{object, subjectDesc, message, cause});
+				LOGGER.trace("Denied access to {} by {} {}; one of the following authorization actions is required: "+requiredAuthorizations,
+						object, subjectDesc, message, cause);
 			}
 		}
 	}
@@ -123,7 +100,7 @@ public class SecurityUtil {
 		}
 		return ((MidPointPrincipal)principalObject).getUsername();
 	}
-	
+
 	public static <T> T getCredPolicyItem(CredentialPolicyType defaltCredPolicyType, CredentialPolicyType credPolicyType, Function<CredentialPolicyType, T> getter) {
 		if (credPolicyType != null) {
 			T val = getter.apply(credPolicyType);
@@ -139,7 +116,7 @@ public class SecurityUtil {
 		}
 		return null;
 	}
-	
+
 	public static PasswordCredentialsPolicyType getEffectivePasswordCredentialsPolicy(SecurityPolicyType securityPolicy) {
 		if (securityPolicy == null) {
 			return null;
@@ -160,7 +137,7 @@ public class SecurityUtil {
 		copyDefaults(creds.getDefault(), passPolicy);
 		return passPolicy;
 	}
-	
+
 	public static SecurityQuestionsCredentialsPolicyType getEffectiveSecurityQuestionsCredentialsPolicy(SecurityPolicyType securityPolicy) {
 		if (securityPolicy == null) {
 			return null;
@@ -181,8 +158,8 @@ public class SecurityUtil {
 		copyDefaults(creds.getDefault(), securityQuestionsPolicy);
 		return securityQuestionsPolicy;
 	}
-	
-	
+
+
 	public static List<NonceCredentialsPolicyType> getEffectiveNonceCredentialsPolicies(SecurityPolicyType securityPolicy) {
 		if (securityPolicy == null) {
 			return null;
@@ -203,16 +180,16 @@ public class SecurityUtil {
 		}
 		return newNoncePolicies;
 	}
-	
+
 	public static NonceCredentialsPolicyType getEffectiveNonceCredentialsPolicy(SecurityPolicyType securityPolicy) throws SchemaException {
-		List<NonceCredentialsPolicyType> noncePolies = getEffectiveNonceCredentialsPolicies(securityPolicy);
-		if (noncePolies.isEmpty()) {
+		List<NonceCredentialsPolicyType> noncePolicies = getEffectiveNonceCredentialsPolicies(securityPolicy);
+		if (CollectionUtils.isEmpty(noncePolicies)) {
 			return null;
 		}
-		if (noncePolies.size() > 1) {
+		if (noncePolicies.size() > 1) {
 			throw new SchemaException("More than one nonce policy");
 		}
-		return noncePolies.get(0);
+		return noncePolicies.get(0);
 	}
 
 	private static void copyDefaults(CredentialPolicyType defaults,
@@ -252,7 +229,7 @@ public class SecurityUtil {
 			target.setWarningBeforeExpirationDuration(defaults.getWarningBeforeExpirationDuration());
 		}
 	}
-	
+
 	public static int getCredentialHistoryLength(CredentialPolicyType credentialPolicy) {
 		if (credentialPolicy == null) {
 			return 0;
@@ -264,17 +241,15 @@ public class SecurityUtil {
 		return historyLength;
 	}
 
-	public static CredentialsStorageTypeType getCredentialStoragetTypeType(CredentialsStorageMethodType storageMethod) {
+	public static CredentialsStorageTypeType getCredentialStorageTypeType(CredentialsStorageMethodType storageMethod) {
 		if (storageMethod == null) {
 			return null;
 		}
 		return storageMethod.getStorageType();
 	}
-	
+
 	/**
 	 * Not very systematic. Used mostly in hacks.
-	 * @param securityPolicy
-	 * @return
 	 */
 	public static ValuePolicyType getPasswordPolicy(SecurityPolicyType securityPolicy) {
 		if (securityPolicy == null) {
@@ -297,5 +272,87 @@ public class SecurityUtil {
 			return null;
 		}
 		return policyObj.asObjectable();
+	}
+
+	// This is a bit of hack. We don't have an access to system configuration object from the static context,
+	// so we rely on the upper layers to provide 'client address' header list here when the configuration object changes.
+	// A more serious solution would be moving getCurrentConnectionInformation out of static context (perhaps into
+	// securityEnforcer). But this would mean the easiness of its use would be gone...
+	@SuppressWarnings("NullableProblems")
+	public static void setRemoteHostAddressHeaders(SystemConfigurationType config) {
+		List<String> newValue = config != null && config.getInfrastructure() != null ?
+				new ArrayList<>(config.getInfrastructure().getRemoteHostAddressHeader()) :
+				Collections.emptyList();
+		if (!MiscUtil.unorderedCollectionEquals(remoteHostAddressHeaders, newValue)) {
+			LOGGER.debug("Setting new value for 'remoteHostAddressHeaders': {}", newValue);
+		}
+		remoteHostAddressHeaders = newValue;
+	}
+
+	/**
+	 * Returns current connection information, as derived from HTTP request stored in current thread.
+	 * May be null if the thread is not associated with any HTTP request (e.g. task threads, operations invoked from GUI but executing in background).
+	 */
+	public static HttpConnectionInformation getCurrentConnectionInformation() {
+		RequestAttributes attr = RequestContextHolder.getRequestAttributes();
+		if (!(attr instanceof ServletRequestAttributes)) {
+			return null;
+		}
+		ServletRequestAttributes servletRequestAttributes = (ServletRequestAttributes) attr;
+		HttpServletRequest request = servletRequestAttributes.getRequest();
+		if (request == null) {
+			return null;
+		}
+		HttpConnectionInformation rv = new HttpConnectionInformation();
+		HttpSession session = request.getSession(false);
+		if (session != null) {
+			rv.setSessionId(session.getId());
+		}
+		rv.setLocalHostName(request.getLocalName());
+		rv.setRemoteHostAddress(getRemoteHostAddress(request));
+		return rv;
+	}
+
+	private static String getRemoteHostAddress(HttpServletRequest request) {
+		for (String headerName : remoteHostAddressHeaders) {
+			String header = request.getHeader(headerName);
+			if (header != null) {
+				return getAddressFromHeader(headerName, header);
+			}
+		}
+		return request.getRemoteAddr();
+	}
+
+	// TODO implement various methods if necessary
+	private static String getAddressFromHeader(String name, String value) {
+		String[] split = StringUtils.split(value, ",");
+		return StringUtils.trim(split[0]);
+	}
+
+	/**
+	 * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
+	 */
+	public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null) {
+			SecurityViolationException ex = new SecurityViolationException("No authentication");
+			LOGGER.error("No authentication", ex);
+			throw ex;
+		}
+		Object principalObject = authentication.getPrincipal();
+		if (!(principalObject instanceof MidPointPrincipal)) {
+			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)) {
+				return null;
+			} else {
+				throw new IllegalArgumentException("Expected that spring security principal will be of type "+
+					MidPointPrincipal.class.getName()+" but it was "+ MiscUtil.getObjectName(principalObject));
+			}
+		}
+		return (MidPointPrincipal) principalObject;
+	}
+
+	public static boolean isAuthenticated() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		return (authentication != null);
 	}
 }

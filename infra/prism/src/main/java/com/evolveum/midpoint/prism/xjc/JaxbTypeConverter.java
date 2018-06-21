@@ -23,7 +23,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  */
 public class JaxbTypeConverter {
-	
+
 	public static <T> T mapPropertyRealValueToJaxb(Object propertyRealValue) {
     	// TODO: check for type compatibility
     	if (propertyRealValue instanceof PolyString) {
@@ -31,7 +31,7 @@ public class JaxbTypeConverter {
     	}
     	return (T)propertyRealValue;
     }
-	
+
 	private static PolyStringType toPolyStringType(PolyString polyString) {
 		if (polyString == null) {
 			return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,10 +222,12 @@ public class PrismUnmarshaller {
             if (prim.isEmpty()) {
                 return containerDef.createValue();
             } else {
-                throw new IllegalArgumentException("Cannot parse container value from (non-empty) " + node);
+                pc.warnOrThrow(LOGGER, "Cannot parse container value from (non-empty) " + node);
+                return containerDef.createValue();
             }
         } else {
-            throw new IllegalArgumentException("Cannot parse container value from " + node);
+            pc.warnOrThrow(LOGGER, "Cannot parse container value from " + node);
+            return containerDef.createValue();
         }
     }
 
@@ -272,7 +274,8 @@ public class PrismUnmarshaller {
                         // an error. We positively know that it is not in the schema.
                         pc.warnOrThrow(LOGGER, "Item " + itemName + " has no definition (schema present, in container "
                                 + containerDef + ")" + "while parsing " + map.debugDump());
-                        continue;
+                        // we can go along this item (at least show it in repository pages) - MID-3249
+                        // TODO make this configurable
                     } else {
                         // No definition for item, but the schema is runtime. the definition may come later.
                         // Null is OK here. The item will be parsed as "raw"
@@ -370,13 +373,20 @@ public class PrismUnmarshaller {
                 return null;
             }
             if (realValue == null) {
-                return null;
+            	// Be careful here. Expression element can be legal sub-element of complex properties.
+            	// Therefore parse expression only if there is no legal value.
+            	ExpressionWrapper expression = PrismUtil.parseExpression(node, prismContext);
+            	if (expression != null) {
+            		PrismPropertyValue<T> ppv = new PrismPropertyValue<>(null, prismContext, null, null, expression);
+            		return ppv;
+
+            	}
             }
             PrismPropertyValue<T> ppv = new PrismPropertyValue<>(realValue);
             ppv.setPrismContext(prismContext);
             return ppv;
         } else {
-        	pc.warnOrThrow(LOGGER, "Cannot parse as " + typeName + ": " + node.debugDump());
+        	pc.warnOrThrow(LOGGER, "Cannot parse as " + typeName + " because bean unmarshaller cannot process it (generated bean classes are missing?): " + node.debugDump());
 			return createRawPrismPropertyValue(node);
         }
     }
@@ -475,7 +485,7 @@ public class PrismUnmarshaller {
 			if (!pc.isAllowMissingRefTypes() && !allowMissingRefTypesOverride) {
 				type = definition.getTargetTypeName();
 				if (type == null) {
-					throw new SchemaException("Target type in reference " + definition.getName() + 
+					throw new SchemaException("Target type in reference " + definition.getName() +
 							" not specified in reference nor in the schema");
 				}
 			}
@@ -486,7 +496,7 @@ public class PrismUnmarshaller {
             QName defTargetType = definition.getTargetTypeName();
             if (defTargetType != null) {
                 if (!(prismContext.getSchemaRegistry().isAssignableFrom(defTargetType, type))) {
-                    throw new SchemaException("Target type specified in reference " + definition.getName() + 
+                    throw new SchemaException("Target type specified in reference " + definition.getName() +
                     		" (" + type + ") does not match target type in schema (" + defTargetType + ")");
                 }
             }
@@ -505,8 +515,8 @@ public class PrismUnmarshaller {
 
         refVal.setDescription(map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_DESCRIPTION, DOMUtil.XSD_STRING));
 
-        refVal.setFilter(parseFilter(map.get(XNode.KEY_REFERENCE_FILTER)));
-        
+        refVal.setFilter(parseFilter(map.get(XNode.KEY_REFERENCE_FILTER), pc));
+
         String resolutionTimeString = map.getParsedPrimitiveValue(XNode.KEY_REFERENCE_RESOLUTION_TIME, DOMUtil.XSD_STRING);
         if (resolutionTimeString != null) {
         	EvaluationTimeType resolutionTime = EvaluationTimeType.fromValue(resolutionTimeString);
@@ -584,18 +594,18 @@ public class PrismUnmarshaller {
 
         PrismReferenceValue refVal = new PrismReferenceValue();
         setReferenceObject(refVal, compositeObject);
-        ((PrismReferenceDefinitionImpl) definition).setComposite(true);
+        ((PrismReferenceDefinitionImpl) definition).setComposite(true);             // TODO why do we modify the definition? is that safe?
         return refVal;
     }
 
-    private SearchFilterType parseFilter(XNode xnode) throws SchemaException {
+    private SearchFilterType parseFilter(XNode xnode, ParsingContext pc) throws SchemaException {
         if (xnode == null) {
             return null;
         }
         if (xnode.isEmpty()) {
             return null;
         }
-        return SearchFilterType.createFromXNode(xnode, prismContext);
+        return SearchFilterType.createFromParsedXNode(xnode, pc, prismContext);
     }
 
     private ItemDefinition locateItemDefinition(@NotNull QName itemName,

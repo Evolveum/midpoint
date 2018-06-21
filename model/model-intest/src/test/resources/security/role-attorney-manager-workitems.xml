@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="5cf5b6c8-b968-11e7-b77d-6b029450f900"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>Attorney Manager Workitems</name>
+    <description>Power of attorney for subordinate employees. Authorizations limited to workitems.</description>
+    
+    <authorization>
+    	<name>attorney-manager-read-all</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    </authorization>
+    
+    <authorization>
+    	<name>attorney-manager-workitems</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#attorney</action>
+    	<object>
+    		<type>UserType</type>
+    		<orgRelation>
+    			<subjectRelation>org:manager</subjectRelation>
+    			<scope>allDescendants</scope>
+    			<includeReferenceOrg>true</includeReferenceOrg>
+    		</orgRelation>
+    	</object>
+    	<limitations>
+    		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#myWorkItems</action>
+    	</limitations>
+    </authorization>
+    
+</role>

@@ -22,12 +22,12 @@ import java.util.Map;
  *
  */
 public class ScriptHistoryEntry {
-	
+
 	private String language;
 	private String code;
 	private Map<String,Object> params;
 	private long timestamp;
-	
+
 	public ScriptHistoryEntry(String language, String code, Map<String, Object> params) {
 		super();
 		this.language = language;
@@ -39,23 +39,23 @@ public class ScriptHistoryEntry {
 	public String getLanguage() {
 		return language;
 	}
-	
+
 	public void setLanguage(String language) {
 		this.language = language;
 	}
-	
+
 	public String getCode() {
 		return code;
 	}
-	
+
 	public void setCode(String code) {
 		this.code = code;
 	}
-	
+
 	public Map<String, Object> getParams() {
 		return params;
 	}
-	
+
 	public void setParams(Map<String, Object> params) {
 		this.params = params;
 	}

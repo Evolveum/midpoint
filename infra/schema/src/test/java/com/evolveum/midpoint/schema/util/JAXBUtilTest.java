@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @Deprecated
 public class JAXBUtilTest {
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -53,10 +53,10 @@ public class JAXBUtilTest {
 	@Test
 	public void testUnmarshallerUtf() throws JAXBException, SchemaException, FileNotFoundException {
 		// GIVEN
-		
+
 		UserType user = JaxbTestUtil.getInstance().unmarshalElement(new File("src/test/resources/util/user-utf8.xml"), UserType.class)
 				.getValue();
-		
+
 		// WHEN
 
         PolyStringType fullName = user.getFullName();
@@ -69,10 +69,10 @@ public class JAXBUtilTest {
 	@Test
 	public void testUnmarshallerIso88592() throws JAXBException, SchemaException, FileNotFoundException {
 		// GIVEN
-		
+
 		UserType user = JaxbTestUtil.getInstance().unmarshalElement(new File("src/test/resources/util/user-8859-2.xml"),UserType.class)
 				.getValue();
-		
+
 		// WHEN
 
         PolyStringType fullname = user.getFullName();
@@ -94,7 +94,7 @@ public class JAXBUtilTest {
 				"</user>";
 
 		UserType user = JaxbTestUtil.getInstance().unmarshalElement(s, UserType.class).getValue();
-		
+
 		// WHEN
 
         PolyStringType fullname = user.getFullName();
@@ -103,7 +103,7 @@ public class JAXBUtilTest {
 
 		assertTrue("Diacritics correctly decoded", "Jožko Nováčik".equals(fullname.getOrig()));
 	}
-	
+
 	@Test
 	public void testUnmarshallerStringIso88592() throws JAXBException, SchemaException {
 		// GIVEN
@@ -116,7 +116,7 @@ public class JAXBUtilTest {
 				"</user>";
 
 		UserType user = JaxbTestUtil.getInstance().unmarshalElement(s, UserType.class).getValue();
-		
+
 		// WHEN
 
         PolyStringType fullname = user.getFullName();

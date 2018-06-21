@@ -15,14 +15,15 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,42 +52,42 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author Radovan Semancik
- * 
+ *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 public class TestDummyNegative extends AbstractDummyTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyNegative.class);
-	
-	private static final String ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME = TEST_DIR + "account-elaine-resource-not-found.xml";
-	
+
+	private static final File ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILE = new File(TEST_DIR, "account-elaine-resource-not-found.xml");
+
 	@Test
 	public void test110GetResourceBrokenSchemaNetwork() throws Exception {
 		testGetResourceBrokenSchema(BreakMode.NETWORK, "test110GetResourceBrokenSchemaNetwork");
 	}
-	
+
 	@Test
 	public void test111GetResourceBrokenSchemaGeneric() throws Exception {
 		testGetResourceBrokenSchema(BreakMode.GENERIC, "test111GetResourceBrokenSchemaGeneric");
 	}
-	
+
 	@Test
 	public void test112GetResourceBrokenSchemaIo() throws Exception {
 		testGetResourceBrokenSchema(BreakMode.IO, "test112GetResourceBrokenSchemaIO");
 	}
-	
+
 	@Test
 	public void test113GetResourceBrokenSchemaRuntime() throws Exception {
 		testGetResourceBrokenSchema(BreakMode.RUNTIME, "test113GetResourceBrokenSchemaRuntime");
 	}
-	
+
 	public void testGetResourceBrokenSchema(BreakMode breakMode, String testName) throws Exception {
-		TestUtil.displayTestTile(testName);
+		TestUtil.displayTestTitle(testName);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ "."+testName);
-		
+
 		// precondition
 		PrismObject<ResourceType> repoResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Repo resource (before)", repoResource);
@@ -95,22 +96,22 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		dummyResource.setSchemaBreakMode(breakMode);
 		try {
-			
+
 			// WHEN
 			PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
-			
+
 			// THEN
 			display("Resource with broken schema", resource);
 			OperationResultType fetchResult = resource.asObjectable().getFetchResult();
-			
+
 			result.computeStatus();
 			display("getObject result", result);
 			assertEquals("Unexpected result of getObject operation", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
-			
+
 			assertNotNull("No fetch result", fetchResult);
 			display("fetchResult", fetchResult);
 			assertEquals("Unexpected result of fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
-			
+
 		} finally {
 			dummyResource.setSchemaBreakMode(BreakMode.NONE);
 		}
@@ -119,7 +120,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	@Test
 	public void test190GetResource() throws Exception {
 		final String TEST_NAME = "test190GetResource";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -129,28 +130,28 @@ public class TestDummyNegative extends AbstractDummyTest {
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
-			
+
 		TestUtil.displayThen(TEST_NAME);
 		assertSuccess(result);
-		
+
 		display("Resource after", resource);
 		IntegrationTestTools.displayXml("Resource after (XML)", resource);
 		assertHasSchema(resource, "dummy");
 	}
-	
+
 	@Test
 	public void test200AddAccountNullAttributes() throws Exception {
 		final String TEST_NAME = "test200AddAccountNullAttributes";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
-		
+
 		account.removeContainer(ShadowType.F_ATTRIBUTES);
 
 		display("Adding shadow", account);
@@ -159,20 +160,20 @@ public class TestDummyNegative extends AbstractDummyTest {
 			// WHEN
 			TestUtil.displayWhen(TEST_NAME);
 			provisioningService.addObject(account, null, null, task, result);
-			
+
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
 			// This is expected
 			display("Expected exception", e);
 		}
-		
+
 		TestUtil.displayThen(TEST_NAME);
 		syncServiceMock.assertNotifyFailureOnly();
 	}
-	
+
 	@Test
 	public void test201AddAccountEmptyAttributes() throws Exception {
-		TestUtil.displayTestTile("test201AddAccountEmptyAttributes");
+		TestUtil.displayTestTitle("test201AddAccountEmptyAttributes");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ ".test201AddAccountEmptyAttributes");
@@ -180,10 +181,10 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ ".test201AddAccountEmptyAttributes");
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
-		
+
 		account.findContainer(ShadowType.F_ATTRIBUTES).getValue().clear();
 
 		display("Adding shadow", account);
@@ -191,19 +192,19 @@ public class TestDummyNegative extends AbstractDummyTest {
 		try {
 			// WHEN
 			provisioningService.addObject(account, null, null, task, result);
-			
+
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
 			// This is expected
 			display("Expected exception", e);
 		}
-		
+
 		syncServiceMock.assertNotifyFailureOnly();
 	}
-	
+
 	@Test
 	public void test210AddAccountNoObjectclass() throws Exception {
-		TestUtil.displayTestTile("test210AddAccountNoObjectclass");
+		TestUtil.displayTestTitle("test210AddAccountNoObjectclass");
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ ".test210AddAccountNoObjectclass");
@@ -211,10 +212,10 @@ public class TestDummyNegative extends AbstractDummyTest {
 				+ ".test210AddAccountNoObjectclass");
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
-		
+
 		// IMPORTANT: deliberately violating the schema
 		accountType.setObjectClass(null);
 		accountType.setKind(null);
@@ -224,7 +225,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		try {
 			// WHEN
 			provisioningService.addObject(account, null, null, task, result);
-			
+
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
 			// This is expected
@@ -233,21 +234,21 @@ public class TestDummyNegative extends AbstractDummyTest {
 
 		syncServiceMock.assertNotifyFailureOnly();
 	}
-	
+
 	@Test
 	public void test220AddAccountNoResourceRef() throws Exception {
 		final String TEST_NAME = "test220AddAccountNoResourceRef";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
-		
+
 		accountType.setResourceRef(null);
 
 		display("Adding shadow", account);
@@ -255,31 +256,31 @@ public class TestDummyNegative extends AbstractDummyTest {
 		try {
 			// WHEN
 			provisioningService.addObject(account, null, null, task, result);
-			
+
 			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
 		} catch (SchemaException e) {
 			// This is expected
 			display("Expected exception", e);
 		}
 
-		//FIXME: not sure, if this check is needed..if the reosurce is not specified, provisioning probably will be not called. 
+		//FIXME: not sure, if this check is needed..if the reosurce is not specified, provisioning probably will be not called.
 //		syncServiceMock.assertNotifyFailureOnly();
 	}
-	
+
 	@Test
 	public void test221DeleteAccountResourceNotFound() throws Exception {
 		final String TEST_NAME = "test221DeleteAccountResourceNotFound";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ShadowType accountType = parseObjectTypeFromFile(ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILENAME, ShadowType.class);
+		ShadowType accountType = parseObjectType(ACCOUNT_ELAINE_RESOURCE_NOT_FOUND_FILE);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
-		
+
 //		accountType.setResourceRef(null);
 
 		display("Adding shadow", account);
@@ -300,23 +301,23 @@ public class TestDummyNegative extends AbstractDummyTest {
 	}
 
 	/**
-	 * Try to get an account when a shadow has been deleted (but the account exists). 
-	 * Proper ObjectNotFoundException is expected, compensation should not run. 
+	 * Try to get an account when a shadow has been deleted (but the account exists).
+	 * Proper ObjectNotFoundException is expected, compensation should not run.
 	 */
 	@Test
 	public void test230GetAccountDeletedShadow() throws Exception {
 		final String TEST_NAME = "test230GetAccountDeletedShadow";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		
+
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_MORGAN_FILE);
 		String shadowOid = provisioningService.addObject(account, null, null, task, result);
-		
+
 		repositoryService.deleteObject(ShadowType.class, shadowOid, result);
-		
+
 		// reset
 		task = taskManager.createTaskInstance(TestDummyNegative.class.getName() + "." + TEST_NAME);
 		result = task.getResult();
@@ -325,7 +326,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 		try {
 			// WHEN
 			provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
-			
+
 			AssertJUnit.fail("Unexpected success");
 		} catch (ObjectNotFoundException e) {
 			// this is expected
@@ -333,7 +334,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 			result.computeStatus();
 			display("Result", result);
 			TestUtil.assertFailure(result);
-			
+
 		}
 
 		syncServiceMock.assertNoNotifyChange();

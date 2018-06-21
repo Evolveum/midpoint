@@ -29,16 +29,10 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -50,38 +44,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  */
 @Component
 public class RecomputeTriggerHandler implements TriggerHandler {
-	
+
 	public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-3";
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTriggerHandler.class);
 
 	@Autowired(required = true)
 	private TriggerHandlerRegistry triggerHandlerRegistry;
-	
+
 	@Autowired(required = true)
     private Clockwork clockwork;
-	
+
 	@Autowired(required=true)
 	private PrismContext prismContext;
-	
+
 	@Autowired(required = true)
     private ProvisioningService provisioningService;
-	
+
 	@Autowired(required = true)
 	private ContextFactory contextFactory;
-	
+
 	@PostConstruct
 	private void initialize() {
 		triggerHandlerRegistry.register(HANDLER_URI, this);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.trigger.TriggerHandler#handle(com.evolveum.midpoint.prism.PrismObject)
 	 */
 	@Override
 	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result) {
 		try {
-			
+
 			LOGGER.trace("Recomputing {}", object);
 			// Reconcile option used for compatibility. TODO: do we need it?
 			LensContext<UserType> lensContext = contextFactory.createRecomputeContext(object, ModelExecuteOptions.createReconcile(), task, result);
@@ -90,22 +84,8 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 			}
 			clockwork.run(lensContext, task, result);
 			LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());
-			
-		} catch (SchemaException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (ObjectNotFoundException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (ExpressionEvaluationException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (CommunicationException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (ObjectAlreadyExistsException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (ConfigurationException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (PolicyViolationException e) {
-			LOGGER.error(e.getMessage(), e);
-		} catch (SecurityViolationException e) {
+
+		} catch (CommonException | PreconditionViolationException | RuntimeException | Error  e) {
 			LOGGER.error(e.getMessage(), e);
 		}
 

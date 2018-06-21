@@ -86,6 +86,8 @@
                 </div>
             </div>
 
+            <div wicket:id="previewsPanel" />
+
             <div class="box box-info" wicket:id="relatedWorkItemsContainer">
                 <div class="box-header">
                     <h3 class="box-title"><wicket:message key="workItemPanel.otherWorkItems"/></h3> <i wicket:id="otherWorkItemsHelp" wicket:message="title:workItemPanel.otherWorkItemsHelp"/>
@@ -107,13 +109,30 @@
         </div>
     </div>
 
+    <div wicket:id="triggersContainer" class="box box-solid box-info" style="margin-bottom: 0; margin-top:20px;">
+        <div class="box-header with-border">
+            <h3 class="box-title" style="margin-right: 35px;"><wicket:message key="workItemPanel.reasons"/></h3>
+        </div>
+        <div class="box-body">
+            <div wicket:id="triggers"></div>
+        </div>
+    </div>
+
     <p/>
     <a href="#" wicket:id="showRequest"><wicket:message key="WorkItemPanel.showRequest"/></a> <i wicket:id="showRequestHelp" wicket:message="title:workItemPanel.showRequestHelp"/>
 
     <div style="margin-top:20px" wicket:id="additionalInformation"/>
 
     <!-- TODO more forms -->
-    <div wicket:id="customForm" />
+    <div class="box box-info" wicket:id="additionalAttributes">
+                <div class="box-header">
+                    <h3 class="box-title"><wicket:message key="workItemPanel.additionalAttributes"/></h3>
+                </div>
+                <div class="box-body">
+                    <div wicket:id="customForm" />
+                </div>
+            </div>
+    
 
     <h3><wicket:message key="workItemPanel.approverComment"/></h3>
     <textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>

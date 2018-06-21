@@ -82,7 +82,7 @@ public class MDCLevelTurboFilter extends TurboFilter {
 	}
 
 	/**
-	 * @param onMatch action to set on success
+	 * @param action the action to set on success
 	 */
 	public void setOnMatch(String action) {
 		if ("NEUTRAL".equals(action)) {
@@ -95,7 +95,7 @@ public class MDCLevelTurboFilter extends TurboFilter {
 	}
 
 	/**
-	 * @param onMismatch the onMismatch to set on failure
+	 * @param action the onMismatch to set on failure
 	 */
 	public void setOnMismatch(String action) {
 		if ("NEUTRAL".equals(action)) {
@@ -124,7 +124,7 @@ public class MDCLevelTurboFilter extends TurboFilter {
 	}
 
 	/**
-	 * @param level the level to breach
+	 * @param loggingLevel the level to breach
 	 */
 	public void setLevel(String loggingLevel) {
 		String level = loggingLevel.toUpperCase();

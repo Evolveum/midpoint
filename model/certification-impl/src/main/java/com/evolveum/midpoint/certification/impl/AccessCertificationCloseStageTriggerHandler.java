@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -38,28 +41,30 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
+
 /**
  * @author mederly
  *
  */
 @Component
 public class AccessCertificationCloseStageTriggerHandler implements TriggerHandler {
-	
+
 	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-3";
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageTriggerHandler.class);
 
 	@Autowired
 	private TriggerHandlerRegistry triggerHandlerRegistry;
-	
+
 	@Autowired
 	private CertificationManager certificationManager;
-	
+
 	@PostConstruct
 	private void initialize() {
 		triggerHandlerRegistry.register(HANDLER_URI, this);
 	}
-	
+
 	@Override
 	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, Task task, OperationResult result) {
 		try {
@@ -73,13 +78,21 @@ public class AccessCertificationCloseStageTriggerHandler implements TriggerHandl
 			AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object;
 			LOGGER.info("Automatically closing current stage of {}", ObjectTypeUtil.toShortString(campaign));
 
+			if (campaign.getState() != IN_REVIEW_STAGE) {
+				LOGGER.warn("Campaign {} is not in a review stage; this 'close stage' trigger will be ignored.", ObjectTypeUtil.toShortString(campaign));
+				return;
+			}
+
 			int currentStageNumber = campaign.getStageNumber();
 			certificationManager.closeCurrentStage(campaign.getOid(), currentStageNumber, task, result);
 			if (currentStageNumber < CertCampaignTypeUtil.getNumberOfStages(campaign)) {
 				LOGGER.info("Automatically opening next stage of {}", ObjectTypeUtil.toShortString(campaign));
 				certificationManager.openNextStage(campaign.getOid(), currentStageNumber + 1, task, result);
+			} else {
+				LOGGER.info("Automatically starting remediation for {}", ObjectTypeUtil.toShortString(campaign));
+				certificationManager.startRemediation(campaign.getOid(), task, result);
 			}
-		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|SecurityViolationException|RuntimeException e) {
+		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
 			LoggingUtils.logException(LOGGER, "Couldn't close current campaign and possibly advance to the next one", e);
 		}
 	}

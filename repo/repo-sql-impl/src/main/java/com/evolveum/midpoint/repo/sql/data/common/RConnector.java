@@ -16,16 +16,14 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
@@ -34,7 +32,6 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -43,10 +40,13 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_connector")
 @Persister(impl = MidPointJoinedPersister.class)
+@Table(indexes = {
+        @Index(name = "iConnectorNameOrig", columnList = "name_orig"),
+        @Index(name = "iConnectorNameNorm", columnList = "name_norm")})
 public class RConnector extends RObject<ConnectorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);
-    private RPolyString name;
+    private RPolyString nameCopy;
     private String framework;
     private REmbeddedReference connectorHostRef;
     private String connectorType;
@@ -85,13 +85,18 @@ public class RConnector extends RObject<ConnectorType> {
         return framework;
     }
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setFramework(String framework) {
@@ -126,7 +131,7 @@ public class RConnector extends RObject<ConnectorType> {
 
         RConnector that = (RConnector) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (connectorBundle != null ? !connectorBundle.equals(that.connectorBundle) : that.connectorBundle != null)
             return false;
         if (connectorHostRef != null ? !connectorHostRef.equals(that.connectorHostRef) : that.connectorHostRef != null)
@@ -145,7 +150,7 @@ public class RConnector extends RObject<ConnectorType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (framework != null ? framework.hashCode() : 0);
         result = 31 * result + (connectorType != null ? connectorType.hashCode() : 0);
         result = 31 * result + (connectorVersion != null ? connectorVersion.hashCode() : 0);
@@ -158,7 +163,7 @@ public class RConnector extends RObject<ConnectorType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorBundle(jaxb.getConnectorBundle());
         repo.setConnectorType(jaxb.getConnectorType());
         repo.setConnectorVersion(jaxb.getConnectorVersion());
@@ -175,15 +180,5 @@ public class RConnector extends RObject<ConnectorType> {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-    }
-
-    @Override
-    public ConnectorType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        ConnectorType object = new ConnectorType();
-        RUtil.revive(object, prismContext);
-        RConnector.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }

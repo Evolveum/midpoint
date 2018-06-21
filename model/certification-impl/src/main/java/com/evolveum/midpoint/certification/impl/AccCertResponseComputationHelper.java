@@ -128,7 +128,9 @@ public class AccCertResponseComputationHelper {
     private List<AccessCertificationResponseType> getResponses(AccessCertificationCaseType _case, int stageNumber) {
         return _case.getWorkItem().stream()
 				.filter(wi -> wi.getStageNumber() == stageNumber)
-				.map(wi -> OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(wi)))
+				.map(wi -> ObjectUtils.defaultIfNull(
+				                OutcomeUtils.fromUri(WorkItemTypeUtil.getOutcome(wi)),
+                                AccessCertificationResponseType.NO_RESPONSE))
 				.collect(Collectors.toList());
     }
 

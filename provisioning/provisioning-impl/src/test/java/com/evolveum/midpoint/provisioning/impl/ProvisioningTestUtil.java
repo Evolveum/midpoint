@@ -15,11 +15,9 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.util.List;
@@ -30,14 +28,8 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -47,29 +39,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class ProvisioningTestUtil {
-	
+
 	public static final File COMMON_TEST_DIR_FILE = new File("src/test/resources/common/");
 	public static final File TEST_DIR_IMPL_FILE = new File("src/test/resources/impl/");
-	
+
+	public static final File RESOURCE_OPENDJ_FILE = new File(COMMON_TEST_DIR_FILE, "resource-opendj.xml");
+
 	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
-	
-	public static final String DOT_JPG_FILENAME = "src/test/resources/dot.jpg";
-	
+
+	public static final String DOT_JPG_FILENAME = "src/test/resources/common/dot.jpg";
+
 	public static final File USER_ADMIN_FILE = new File(COMMON_TEST_DIR_FILE, "admin.xml");
-	
+
 	public static final String CONNID_CONNECTOR_FACADE_CLASS_NAME = "org.identityconnectors.framework.api.ConnectorFacade";
 	public static final String CONNID_UID_NAME = "__UID__";
 	public static final String CONNID_NAME_NAME = "__NAME__";
 	public static final String CONNID_DESCRIPTION_NAME = "__DESCRIPTION__";
-	
+
 	public static void checkRepoAccountShadow(PrismObject<ShadowType> repoShadow) {
 		checkRepoShadow(repoShadow, ShadowKindType.ACCOUNT);
 	}
-	
+
 	public static void checkRepoEntitlementShadow(PrismObject<ShadowType> repoShadow) {
 		checkRepoShadow(repoShadow, ShadowKindType.ENTITLEMENT);
 	}
-	
+
 	public static void checkRepoShadow(PrismObject<ShadowType> repoShadow, ShadowKindType kind) {
 		checkRepoShadow(repoShadow, kind, 2);
 	}
@@ -88,42 +82,10 @@ public class ProvisioningTestUtil {
 			assertEquals("Unexpected number of attributes in repo shadow "+repoShadow, (int)expectedNumberOfAttributes, attributes.size());
 		}
 	}
-	
+
 	public static QName getDefaultAccountObjectClass(ResourceType resourceType) {
 		String namespace = ResourceTypeUtil.getResourceNamespace(resourceType);
 		return new QName(namespace, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
-	}
-	
-	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName, 
-			T... expectedValues) {
-		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-		assertAttribute(resource, shadow, attrQname, expectedValues);
-	}
-	
-	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname, 
-			T... expectedValues) {
-		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
-	}
-	
-	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule, 
-			QName attrQname, T... expectedValues) throws SchemaException {
-		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
-		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, matchingRule, actualValues, expectedValues);
-	}
-	
-	public static void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname) {
-		PrismContainer<?> attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-		if (attributesContainer == null || attributesContainer.isEmpty()) {
-			return;
-		}
-		PrismProperty attribute = attributesContainer.findProperty(attrQname);
-		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
-	}
-	
-	public static void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, String attrName) {
-		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
-		assertNoAttribute(resource, shadow, attrQname);
 	}
 
 }

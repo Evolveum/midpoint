@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.tasks.WfTask;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -57,11 +58,9 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
     private static final Trace LOGGER = TraceManager.getTrace(WfPrepareChildOperationTaskHandler.class);
 
     //region Spring dependencies and initialization
-    @Autowired
-    private TaskManager taskManager;
-
-    @Autowired
-    private WfTaskController wfTaskController;
+    @Autowired private TaskManager taskManager;
+    @Autowired private WfTaskController wfTaskController;
+    @Autowired private ApprovalMetadataHelper metadataHelper;
 
     @PostConstruct
     public void init() {
@@ -102,7 +101,9 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                 wfTask.deleteModelOperationContext();
             } else {
                 // place deltaOut into model context
-                modelContext.getFocusContext().setPrimaryDelta(deltasOut.getFocusChange());
+                ObjectDelta focusChange = deltasOut.getFocusChange();
+                metadataHelper.addAssignmentApprovalMetadata(focusChange, task, result);
+                modelContext.getFocusContext().setPrimaryDelta(focusChange);
                 Set<Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>>> entries = deltasOut.getProjectionChangeMapEntries();
                 for (Map.Entry<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> entry : entries) {
                     // TODO what if projection context does not exist?
@@ -111,10 +112,10 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Resulting model context to be stored into task {}:\n{}", task, modelContext.debugDump(0));
                 }
-                wfTask.storeModelContext(modelContext);
+                wfTask.storeModelContext(modelContext, true);
             }
             task.savePendingModifications(result);
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | ConfigurationException | RuntimeException e) {
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare child model context", e);
             status = TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
         } catch (CommunicationException e) {
@@ -128,7 +129,7 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
     // TODO implement correctly
     private void dumpDeltaOut(ObjectTreeDeltas<?> deltasOut) {
-        List<ObjectDelta<?>> deltaOut = deltasOut != null ? deltasOut.getDeltaList() : new ArrayList<ObjectDelta<?>>();
+        List<ObjectDelta<? extends ObjectType>> deltaOut = deltasOut != null ? deltasOut.getDeltaList() : new ArrayList<>();
         LOGGER.trace("deltaOut has {} modifications:", deltaOut.size());
         for (ObjectDelta<?> delta : deltaOut) {
             LOGGER.trace("{}", delta.debugDump());
@@ -149,11 +150,6 @@ public class WfPrepareChildOperationTaskHandler implements TaskHandler {
     @Override
     public String getCategoryName(Task task) {
         return TaskCategory.WORKFLOW;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
     //endregion
 }

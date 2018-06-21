@@ -29,8 +29,10 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -62,38 +64,39 @@ public class ResourceConnectorPanel extends Panel {
 	private static final String ID_POOL_STATUS_NUM_ACTIVE = "poolStatusNumActive";
 
 	private PageBase parentPage;
-	
+
 	public ResourceConnectorPanel(String id, ShadowKindType kind,
 			final IModel<PrismObject<ResourceType>> model, PageBase parentPage) {
 		super(id, model);
 		this.parentPage = parentPage;
-			
+
 		initLayout(model, parentPage);
 	}
 
-	
+
 	private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
 		setOutputMarkupId(true);
-		
+
 		IModel<List<ConnectorOperationalStatus>> statsModel = new AbstractReadOnlyModel<List<ConnectorOperationalStatus>>() {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public List<ConnectorOperationalStatus> getObject() {
 				PrismObject<ResourceType> resource = model.getObject();
-				OperationResult result = new OperationResult(OPERATION_GET_CONNECTOR_OPERATIONAL_STATUS);
+				Task task = parentPage.createSimpleTask(OPERATION_GET_CONNECTOR_OPERATIONAL_STATUS);
+				OperationResult result = task.getResult();
 				List<ConnectorOperationalStatus> status = null;
 				try {
-					status = parentPage.getModelInteractionService().getConnectorOperationalStatus(resource.getOid(), result);
+					status = parentPage.getModelInteractionService().getConnectorOperationalStatus(resource.getOid(), task, result);
 				} catch (SchemaException | ObjectNotFoundException | CommunicationException
-						| ConfigurationException e) {
+						| ConfigurationException | ExpressionEvaluationException e) {
 					LOGGER.error("Error getting connector status for {}: {}", resource, e.getMessage(), e);
 					parentPage.showResult(result);
 				}
 				return status;
 			}
 		};
-		
+
 		ListView<ConnectorOperationalStatus> listview = new ListView<ConnectorOperationalStatus>(ID_CONNECTOR_LIST, statsModel) {
 			private static final long serialVersionUID = 1L;
 
@@ -116,7 +119,7 @@ public class ResourceConnectorPanel extends Panel {
 		add(listview);
 
 	}
-	
+
 	private Label createLabel(IModel<ConnectorOperationalStatus> statsModel, String id, String fieldName) {
 		return new Label(id, new PropertyModel<String>(statsModel, fieldName));
 	}

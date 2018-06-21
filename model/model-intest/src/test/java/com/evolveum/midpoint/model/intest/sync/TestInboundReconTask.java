@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -43,17 +42,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInboundReconTask extends AbstractInboundSyncTest {
-		
+
 	private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
 	private static final Date ACCOUNT_MANCOMB_VALID_TO_DATE = MiscUtil.asDate(2066, 5, 4, 3, 2, 1);
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
-		dummyResourceEmerald.setSyncStyle(DummySyncStyle.DUMB);		
+
+		dummyResourceEmerald.setSyncStyle(DummySyncStyle.DUMB);
 	}
-	
+
 	@Override
 	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
 		if (resource == resourceDummyEmerald) {
@@ -75,7 +74,7 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 	@Override
 	public void test180NoChange() throws Exception {
 		final String TEST_NAME = "test180NoChange";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -118,31 +117,31 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 	@Override
 	public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
 		final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         rememberTimeBeforeSync();
         prepareNotifications();
-        
+
         // Preconditions
         assertUsers(6);
 
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        
+
 		dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        
+
         waitForSyncTaskNextRun(resourceDummyEmerald);
-		
+
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        
+
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountMancomb);
         assertNull("Account shadow mancomb not gone", accountMancomb);
-        
+
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb is gone", userMancomb);
@@ -153,9 +152,9 @@ public class TestInboundReconTask extends AbstractInboundSyncTest {
 //        assertNull("Unexpected valid to in user", userMancomb.asObjectable().getActivation().getValidTo());
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
-        
+
         assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        
+
         assertUsers(6);
 
         // notifications

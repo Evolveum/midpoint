@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	@Test
 	public void test100SearchByMoreAssignees() throws Exception {
 		final String TEST_NAME = "test100SearchByMoreAssignees";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);
@@ -107,7 +107,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	@Test
 	public void test200TestQueryByTaskVariable() throws Exception {
 		final String TEST_NAME = "test200TestQueryByTaskVariable";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		TaskService taskService = activitiEngine.getTaskService();
@@ -116,7 +116,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		System.out.println("Task = " + task);
 		assertNotNull("No task", task);
 
-		final String TASK_NAME = "Approve assigning Role1a to jack";
+		final String TASK_NAME = "Assigning role \"Role1a\" to user \"jack\"";
 		final String VAR = "someVariable";
 		taskService.setVariableLocal(task.getId(), VAR, "[:abc];[:def];[UserType:"+userLead1Oid+"]");
 		TaskQuery tq1 = taskService.createTaskQuery().includeTaskLocalVariables()
@@ -188,7 +188,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	@Test
 	public void test210TestQueryByIdentityLink() throws Exception {
 		final String TEST_NAME = "test210TestQueryByIdentityLink";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		TaskService taskService = activitiEngine.getTaskService();
@@ -197,7 +197,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 		System.out.println("Task = " + task);
 		assertNotNull("No task", task);
 
-		final String TASK_NAME = "Approve assigning Role1a to jack";
+		final String TASK_NAME = "Assigning role \"Role1a\" to user \"jack\"";
 		List<IdentityLink> linksBefore = taskService.getIdentityLinksForTask(task.getId());
 		System.out.println("Identity links (before)" + linksBefore);
 		taskService.addUserIdentityLink(task.getId(), "123", CommonProcessVariableNames.MIDPOINT_ASSIGNEE);
@@ -282,7 +282,7 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 	@Test
 	public void test300SearchByAssignee() throws Exception {
 		final String TEST_NAME = "test210SearchByAssignee";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
 		Task task = createTask(TEST_NAME);

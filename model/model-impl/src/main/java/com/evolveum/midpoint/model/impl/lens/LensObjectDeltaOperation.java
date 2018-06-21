@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LensObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
@@ -34,7 +35,7 @@ import java.io.Serializable;
 public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaOperation<T> implements Serializable {
 
 	private boolean audited = false;
-	
+
 	public LensObjectDeltaOperation() {
 		super();
 	}
@@ -50,7 +51,7 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
 	public void setAudited(boolean audited) {
 		this.audited = audited;
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -59,12 +60,13 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
 		DebugUtil.debugDumpWithLabel(sb, "audited", audited, indent + 1);
 		return sb.toString();
 	}
-	
+
 	@Override
 	protected String getDebugDumpClassName() {
         return "LensObjectDeltaOperation";
     }
 
+    @NotNull
     public LensObjectDeltaOperationType toLensObjectDeltaOperationType() throws SchemaException {
         LensObjectDeltaOperationType retval = new LensObjectDeltaOperationType();
         retval.setObjectDeltaOperation(DeltaConvertor.toObjectDeltaOperationType(this, DeltaConversionOptions.createSerializeReferenceNames()));
@@ -83,7 +85,7 @@ public class LensObjectDeltaOperation<T extends ObjectType> extends ObjectDeltaO
     }
 
 	public LensObjectDeltaOperation<T> clone() {
-		LensObjectDeltaOperation<T> clone = new LensObjectDeltaOperation<T>();
+		LensObjectDeltaOperation<T> clone = new LensObjectDeltaOperation<>();
 		super.copyToClone(clone);
 		copyToClone(clone);
 		return clone;

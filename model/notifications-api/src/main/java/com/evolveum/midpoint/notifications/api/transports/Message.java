@@ -100,7 +100,7 @@ public class Message implements DebugDumpable {
     public void setContentType(String contentType) {
         this.contentType = contentType;
     }
-    
+
     public String getFrom() {
         return from;
     }
@@ -138,7 +138,7 @@ public class Message implements DebugDumpable {
 			DebugUtil.debugDumpWithLabel(rv, "From", from, indent+1);
 			rv.append("\n");
 		}
-		
+
 		DebugUtil.debugDumpWithLabel(rv, "To", to, indent+1);
 		rv.append("\n");
 

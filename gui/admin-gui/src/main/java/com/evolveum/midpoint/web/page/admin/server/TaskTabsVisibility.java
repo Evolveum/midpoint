@@ -24,6 +24,7 @@ class TaskTabsVisibility implements Serializable {
     private boolean approvalsVisible;
     private boolean operationVisible;
     private boolean resultVisible;
+    private boolean errorsVisible;
 
 	public boolean computeBasicVisible(PageTaskEdit parentPage) {
 		basicVisible = parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow();
@@ -99,6 +100,13 @@ class TaskTabsVisibility implements Serializable {
         return resultVisible;
     }
 
+	public boolean computeErrorsVisible(PageTaskEdit parentPage) {
+		//TODO what are the correct visibility conditions?
+		errorsVisible = !parentPage.isEdit()
+				&& (parentPage.isShowAdvanced() || !parentPage.getTaskDto().isWorkflow());
+        return errorsVisible;
+    }
+
 	public void computeAll(PageTaskEdit parentPage) {
 		computeBasicVisible(parentPage);
 		computeSchedulingVisible(parentPage);
@@ -108,6 +116,7 @@ class TaskTabsVisibility implements Serializable {
 		computeApprovalsVisible(parentPage);
 		computeOperationVisible(parentPage);
 		computeResultVisible(parentPage);
+		computeErrorsVisible(parentPage);
 	}
 
 	public boolean isBasicVisible() {
@@ -142,6 +151,10 @@ class TaskTabsVisibility implements Serializable {
 		return resultVisible;
 	}
 
+	public boolean isErrorsVisible() {
+		return errorsVisible;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -165,6 +178,8 @@ class TaskTabsVisibility implements Serializable {
 			return false;
 		if (operationVisible != that.operationVisible)
 			return false;
+		if (errorsVisible != that.errorsVisible)
+			return false;
 		return resultVisible == that.resultVisible;
 
 	}
@@ -179,6 +194,7 @@ class TaskTabsVisibility implements Serializable {
 		result = 31 * result + (approvalsVisible ? 1 : 0);
 		result = 31 * result + (operationVisible ? 1 : 0);
 		result = 31 * result + (resultVisible ? 1 : 0);
+		result = 31 * result + (errorsVisible ? 1 : 0);
 		return result;
 	}
 }

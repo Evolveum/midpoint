@@ -15,21 +15,30 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.model.impl.lens.projector.AssignmentProcessor;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -41,6 +50,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.bag.TreeBag;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -51,12 +61,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayObjectTypeCollection;
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
 
 /**
  * Comprehensive test of assignment evaluator and processor.
@@ -110,8 +116,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	@Autowired private AssignmentProcessor assignmentProcessor;
     @Autowired private Clock clock;
+	@Autowired private ObjectResolver objectResolver;
+	@Autowired private MappingFactory mappingFactory;
+	@Autowired private MappingEvaluator mappingEvaluator;
+	@Autowired private ActivationComputer activationComputer;
 
-    // first part
+
+
+	// first part
     private RoleType role1, role2, role4, role5, role6;
     private OrgType org3;
     private RoleType metarole1, metarole2, metarole3, metarole4;
@@ -157,9 +169,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	@Test(enabled = FIRST_PART)
+	public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+		displayTestTitle(TEST_NAME);
+
+		assertEquals("Wrong default relation", SchemaConstants.ORG_DEFAULT, prismContext.getDefaultRelation());
+	}
+
+	@Test(enabled = FIRST_PART)
 	public void test010AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test010AssignR1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -204,7 +224,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test020AssignMR1ToR1() throws Exception {
 		final String TEST_NAME = "test020AssignMR1ToR1";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -213,14 +233,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<RoleType> context = createContextForAssignment(RoleType.class, ROLE_R1_OID, RoleType.class, ROLE_MR1_OID, null, null, result);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		display("Output context", context);
 		display("Evaluated assignment triple", context.getEvaluatedAssignmentTriple());
-
-		result.computeStatus();
-		assertSuccess("Assignment processor failed (result)", result);
+		assertSuccess(result);
 
 		// assignment of construction R1-0
 		// assignment of focus mappings R1-0
@@ -253,7 +273,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test030AssignR1ToJackProjectorDisabled() throws Exception {
 		final String TEST_NAME = "test030AssignR1ToJackProjectorDisabled";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -285,7 +305,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test040AssignR1ToJackAsApprover() throws Exception {
 		final String TEST_NAME = "test040AssignR1ToJackAsApprover";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -342,7 +362,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test050JackDeputyOfBarbossa() throws Exception {
 		final String TEST_NAME = "test050JackDeputyOfBarbossa";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -425,7 +445,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test060JackDeputyOfGuybrushDeputyOfBarbossa() throws Exception {
 		final String TEST_NAME = "test060JackDeputyOfGuybrushDeputyOfBarbossa";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -447,7 +467,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		objects.add(getUser(USER_GUYBRUSH_OID).asObjectable());
 
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, UserType.class, USER_GUYBRUSH_OID,
-				SchemaConstants.ORG_DEPUTY, null, result);
+				SchemaConstants.ORG_DEPUTY, assignment -> assignment.beginLimitTargetContent().allowTransitive(true).end(), result);
 
 		// WHEN
 		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
@@ -488,6 +508,77 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
 	}
 
+	// goes through assignmentEvaluator in order to employ login mode
+	// MID-4176
+	@Test(enabled = FIRST_PART)
+	public void test062JackDeputyOfGuybrushDeputyOfBarbossaInLoginMode() throws Exception {
+		final String TEST_NAME = "test062JackDeputyOfGuybrushDeputyOfBarbossaInLoginMode";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		AssignmentType jackGuybrushAssignment = new AssignmentType(prismContext)
+				.targetRef(USER_GUYBRUSH_OID, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY);
+		jackGuybrushAssignment.beginLimitTargetContent().allowTransitive(true);
+		jack.asObjectable().getAssignment().add(jackGuybrushAssignment);
+		LensContext<UserType> context = new LensContextPlaceholder<>(jack, prismContext);
+
+		AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator.Builder<UserType>()
+				.repository(repositoryService)
+				.focusOdo(new ObjectDeltaObject<>(jack, null, jack))
+				.lensContext(context)
+				.channel(context.getChannel())
+				.objectResolver(objectResolver)
+				.systemObjectCache(systemObjectCache)
+				.prismContext(prismContext)
+				.mappingFactory(mappingFactory)
+				.mappingEvaluator(mappingEvaluator)
+				.activationComputer(activationComputer)
+				.now(clock.currentTimeXMLGregorianCalendar())
+				.systemConfiguration(context.getSystemConfiguration())
+				.loginMode(true)
+				.build();
+
+		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
+		assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(jackGuybrushAssignment));
+		assignmentIdi.recompute();
+
+		// WHEN
+		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = assignmentEvaluator
+				.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, jack.asObjectable(), jack.toString(), task, result);
+
+		// THEN
+		display("Output context", context);
+		display("Evaluated assignment", evaluatedAssignment);
+
+		result.computeStatus();
+		assertSuccess("Assignment evaluator failed (result)", result);
+
+		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
+
+		assertTargets(evaluatedAssignment, true, "R1 R2 O3 R4 R5 R6", null, null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "guybrush barbossa MR1 MR2 MR3 MR4 MMR1", null, null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "");
+		assertOrgRef(evaluatedAssignment, "O3");
+		assertDelegation(evaluatedAssignment, "guybrush barbossa R1 R2 O3 R4 R5 R6");
+		PrismReferenceValue guybrushRef = evaluatedAssignment.getDelegationRefVals().stream()
+				.filter(v -> USER_GUYBRUSH_OID.equals(v.getOid())).findFirst().orElseThrow(
+						() -> new AssertionError("No guybrush ref in delegation ref vals"));
+		assertEquals("Wrong relation for guybrush delegation", SchemaConstants.ORG_DEPUTY, guybrushRef.getRelation());
+
+		// the following entities are not evaluated in login mode
+		assertConstructions(evaluatedAssignment, (String) null, null, null, null, null, null);
+		assertFocusMappings(evaluatedAssignment, (String) null);
+		assertFocusPolicyRules(evaluatedAssignment, (String) null);
+
+		assertTargetPolicyRules(evaluatedAssignment, (String) null, null);
+		assertAuthorizations(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+		assertGuiConfig(evaluatedAssignment, "R1 R2 O3 R4 R5 R6");
+	}
+
 	/**
 	 *                MMR1 -----------I------------------------------*
 	 *                 ^                                             |
@@ -509,7 +600,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test070JackDeputyOfBarbossaApproverOfR1() throws Exception {
 		final String TEST_NAME = "test070JackDeputyOfBarbossaApproverOfR1";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -589,7 +680,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test100DisableSomeRoles() throws Exception {
 		final String TEST_NAME = "test100DisableSomeRoles";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -606,7 +697,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test110AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test010AssignR1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -628,9 +719,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		EvaluatedAssignmentImpl<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
-		assertTargets(evaluatedAssignment, true, "R1", null, null, null, null, null);
-		assertTargets(evaluatedAssignment, false, "MR1", null, null, null, null, null);
-		assertMembershipRef(evaluatedAssignment, "R1");
+		assertTargets(evaluatedAssignment, true, "R1", "R2 R4", null, null, null, null);
+		assertTargets(evaluatedAssignment, false, "MR1", "MMR1 MR3", null, null, null, null);
+		assertMembershipRef(evaluatedAssignment, "R1 R2 R4");
 		assertOrgRef(evaluatedAssignment, null);
 		assertDelegation(evaluatedAssignment, null);
 
@@ -667,7 +758,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test150DisableSomeAssignments() throws Exception {
 		final String TEST_NAME = "test150DisableSomeAssignments";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -682,7 +773,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test160AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test160AssignR1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -743,7 +834,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test200AddConditions() throws Exception {
 		final String TEST_NAME = "test200AddConditions";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -764,7 +855,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIRST_PART)
 	public void test210AssignR1ToJack() throws Exception {
 		final String TEST_NAME = "test210AssignR1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -791,9 +882,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assertEquals("Wrong evaluatedAssignment.isValid", true, evaluatedAssignment.isValid());
 
 		// R4 is not in plusInvalid, because only directly assigned targets are listed among targets (see validityOverride)
-		assertTargets(evaluatedAssignment, true, "R1", null, "", null, "R2", null);
+		assertTargets(evaluatedAssignment, true, "R1", null, "", "R4", "R2", null);
 		assertTargets(evaluatedAssignment, false, "", null, "MR1 MMR1", null, "MR2", null);
-		assertMembershipRef(evaluatedAssignment, "R1");
+		assertMembershipRef(evaluatedAssignment, "R1 R4");
 		assertOrgRef(evaluatedAssignment, null);
 		assertDelegation(evaluatedAssignment, null);
 
@@ -830,7 +921,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = SECOND_PART)
 	public void test300AssignR7ToJack() throws Exception {
 		final String TEST_NAME = "test300AssignR7ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -973,7 +1064,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = THIRD_PART)
 	public void test400AssignJackPirate() throws Exception {
 		final String TEST_NAME = "test400AssignJackPirate";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1069,24 +1160,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertAssignmentPath(2);
 
 		// swap indices if internals of evaluator change and "Pirate" branch is executed first
-		getRunInfo("MetaroleCrewMember!", 1)
+		getRunInfo("MetaroleCrewMember!", 0)
 				.assertThisAssignment("->MetaroleCrewMember")
 				.assertImmediateAssignment("->Pirate")
 				.assertSource("Pirate")
 				.assertImmediateRole(null)
 				.assertAssignmentPath(2);
 
-		getRunInfo("MetaroleCrewMember!", 0)
+		getRunInfo("MetaroleCrewMember!", 1)
 				.assertThisAssignment("->MetaroleCrewMember")
 				.assertImmediateAssignment("->Sailor")
 				.assertSource("Sailor")
-				.assertImmediateRole("Pirate")
-				.assertAssignmentPath(3);
-
-		getRunInfo("MetarolePerson!", 1)
-				.assertThisAssignment("->MetarolePerson")
-				.assertImmediateAssignment("->MetaroleCrewMember")
-				.assertSource("MetaroleCrewMember")
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
@@ -1094,17 +1178,24 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertThisAssignment("->MetarolePerson")
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
+				.assertImmediateRole("Pirate")
+				.assertAssignmentPath(3);
+
+		getRunInfo("MetarolePerson!", 1)
+				.assertThisAssignment("->MetarolePerson")
+				.assertImmediateAssignment("->MetaroleCrewMember")
+				.assertSource("MetaroleCrewMember")
 				.assertImmediateRole("Sailor")
 				.assertAssignmentPath(4);
 
-		getRunInfo("Human!", 1)
+		getRunInfo("Human!", 0)
 				.assertThisAssignment("->Human")
 				.assertImmediateAssignment("->MetarolePerson")
 				.assertSource("MetarolePerson")
 				.assertImmediateRole("MetaroleCrewMember")
 				.assertAssignmentPath(4);
 
-		getRunInfo("Human!", 0)
+		getRunInfo("Human!", 1)
 				.assertThisAssignment("->Human")
 				.assertImmediateAssignment("->MetarolePerson")
 				.assertSource("MetarolePerson")
@@ -1134,28 +1225,28 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
-		getRunInfo("MetaroleCrewMember-MetarolePerson!", 1)
+		getRunInfo("MetaroleCrewMember-MetarolePerson!", 0)
 				.assertThisAssignment("->MetarolePerson")
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
-		getRunInfo("MetaroleCrewMember-MetarolePerson!", 0)
+		getRunInfo("MetaroleCrewMember-MetarolePerson!", 1)
 				.assertThisAssignment("->MetarolePerson")
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
 				.assertImmediateRole("Sailor")
 				.assertAssignmentPath(4);
 
-		getRunInfo("MetarolePerson-Human!", 1)
+		getRunInfo("MetarolePerson-Human!", 0)
 				.assertThisAssignment("->Human")
 				.assertImmediateAssignment("->MetarolePerson")
 				.assertSource("MetarolePerson")
 				.assertImmediateRole("MetaroleCrewMember")
 				.assertAssignmentPath(4);
 
-		getRunInfo("MetarolePerson-Human!", 0)
+		getRunInfo("MetarolePerson-Human!", 1)
 				.assertThisAssignment("->Human")
 				.assertImmediateAssignment("->MetarolePerson")
 				.assertSource("MetarolePerson")
@@ -1176,25 +1267,18 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
-		getRunInfo("C3", 1)
+		getRunInfo("C3", 0)
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
 				.assertThisObject("Pirate")
 				.assertImmediateRole("Pirate")
 				.assertAssignmentPath(3);
 
-		getRunInfo("C3", 0)
+		getRunInfo("C3", 1)
 				.assertImmediateAssignment("->MetaroleCrewMember")
 				.assertSource("MetaroleCrewMember")
 				.assertThisObject("Sailor")
 				.assertImmediateRole("Sailor")
-				.assertAssignmentPath(4);
-
-		getRunInfo("C4", 1)
-				.assertImmediateAssignment("->MetarolePerson")
-				.assertSource("MetarolePerson")
-				.assertThisObject("MetaroleCrewMember")			// TODO
-				.assertImmediateRole("MetaroleCrewMember")
 				.assertAssignmentPath(4);
 
 		getRunInfo("C4", 0)
@@ -1202,16 +1286,23 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.assertSource("MetarolePerson")
 				.assertThisObject("MetaroleCrewMember")			// TODO
 				.assertImmediateRole("MetaroleCrewMember")
+				.assertAssignmentPath(4);
+
+		getRunInfo("C4", 1)
+				.assertImmediateAssignment("->MetarolePerson")
+				.assertSource("MetarolePerson")
+				.assertThisObject("MetaroleCrewMember")			// TODO
+				.assertImmediateRole("MetaroleCrewMember")
 				.assertAssignmentPath(5);
 
-		getRunInfo("C5", 1)
+		getRunInfo("C5", 0)
 				.assertImmediateAssignment("->Human")
 				.assertSource("Human")
 				.assertThisObject("Human")
 				.assertImmediateRole("MetarolePerson")
 				.assertAssignmentPath(5);
 
-		getRunInfo("C5", 0)
+		getRunInfo("C5", 1)
 				.assertImmediateAssignment("->Human")
 				.assertSource("Human")
 				.assertThisObject("Human")
@@ -1435,7 +1526,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test500AssignJackOrg11() throws Exception {
 		final String TEST_NAME = "test500AssignJackOrg11";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1496,7 +1587,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test505AssignJackOrg11AsManager() throws Exception {
 		final String TEST_NAME = "test505AssignJackOrg11AsManager";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1554,7 +1645,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test507AssignJackOrg11AsApprover() throws Exception {
 		final String TEST_NAME = "test507AssignJackOrg11AsApprover";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1611,7 +1702,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test510AssignJackOrg21() throws Exception {
 		final String TEST_NAME = "test510AssignJackOrg21";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1667,7 +1758,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test515AssignJackOrg21AsManager() throws Exception {
 		final String TEST_NAME = "test515AssignJackOrg21AsManager";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1737,7 +1828,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FOURTH_PART)
 	public void test520AssignJackOrg41AsApprover() throws Exception {
 		final String TEST_NAME = "test520AssignJackOrg41AsApprover";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -1804,7 +1895,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	@Test(enabled = FIFTH_PART)
 	public void test600AssignA1ToJack() throws Exception {
 		final String TEST_NAME = "test600AssignA1ToJack";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
@@ -2261,7 +2352,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	private String getStringRepresentation(EvaluationOrder order) {
 		List<String> names = new ArrayList<>();
-		for (QName relation : order.getRelations()) {
+		for (@NotNull QName relation : order.getRelations()) {
 			int count = order.getMatchingRelationOrder(relation);
 			if (count == 0) {
 				continue;
@@ -2414,7 +2505,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	//region ============================================================= helper methods (misc)
 
 	private <F extends FocusType> List<Construction<F>> getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
-		return evaluatedAssignment.getConstructions().getAllValues().stream()
+		return evaluatedAssignment.getConstructionTriple().getAllValues().stream()
 				.filter(c -> name.equals(c.getDescription()))
 				.collect(Collectors.toList());
 	}

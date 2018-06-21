@@ -41,25 +41,21 @@ import java.util.List;
  */
 @Component
 public class AccessCertificationCloseStageApproachingTriggerHandler implements TriggerHandler {
-	
+
 	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage-approaching/handler-3";
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageApproachingTriggerHandler.class);
 
-	@Autowired
-	private TriggerHandlerRegistry triggerHandlerRegistry;
-	
-	@Autowired
-	private AccCertEventHelper eventHelper;
-
-	@Autowired
-	private AccCertQueryHelper queryHelper;
+	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
+	@Autowired private AccCertEventHelper eventHelper;
+	@Autowired private AccCertQueryHelper queryHelper;
+	@Autowired private AccCertUpdateHelper updateHelper;
 
 	@PostConstruct
 	private void initialize() {
 		triggerHandlerRegistry.register(HANDLER_URI, this);
 	}
-	
+
 	@Override
 	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, Task task, OperationResult result) {
 		try {
@@ -82,8 +78,10 @@ public class AccessCertificationCloseStageApproachingTriggerHandler implements T
 			Collection<String> reviewers = eventHelper.getCurrentActiveReviewers(caseList);
 			for (String reviewerOid : reviewers) {
 				List<AccessCertificationCaseType> reviewerCaseList = queryHelper.selectOpenCasesForReviewer(caseList, reviewerOid);
-				ObjectReferenceType reviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
-				eventHelper.onReviewDeadlineApproaching(reviewerRef, reviewerCaseList, campaign, task, result);
+				ObjectReferenceType actualReviewerRef = ObjectTypeUtil.createObjectRef(reviewerOid, ObjectTypes.USER);
+				for (ObjectReferenceType reviewerOrDeputyRef : updateHelper.getReviewerAndDeputies(actualReviewerRef, task, result)) {
+					eventHelper.onReviewDeadlineApproaching(reviewerOrDeputyRef, actualReviewerRef, reviewerCaseList, campaign, task, result);
+				}
 			}
 		} catch (SchemaException|RuntimeException e) {
 			LoggingUtils.logException(LOGGER, "Couldn't generate 'deadline approaching' notifications", e);

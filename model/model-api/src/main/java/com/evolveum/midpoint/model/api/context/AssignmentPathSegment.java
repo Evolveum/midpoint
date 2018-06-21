@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,14 @@ package com.evolveum.midpoint.model.api.context;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPathSegmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
  * Single assignment in an assignment path. In addition to the AssignmentType, it contains resolved target:
@@ -32,9 +36,19 @@ import org.jetbrains.annotations.NotNull;
  * @author semancik
  * @author mederly
  */
-public interface AssignmentPathSegment extends DebugDumpable {
+public interface AssignmentPathSegment extends DebugDumpable, ShortDumpable {
 
+	// Returns version of the assignment (old/new) that was evaluated
 	AssignmentType getAssignment();
+
+	AssignmentType getAssignment(boolean evaluateOld);
+
+	// Returns 'assignment new' - i.e. the analogous to getAssignment(false)
+	// Until 2017-06-13 the name of this method was 'getAssignment()'
+	// TODO its use is a bit questionable; it might return null, when evaluating negative-mode assignments
+	AssignmentType getAssignmentNew();
+
+	AssignmentType getAssignmentAny();
 
 	/**
 	 * True if the segment corresponds to assignment. False if it's an inducement.
@@ -65,5 +79,14 @@ public interface AssignmentPathSegment extends DebugDumpable {
 	boolean isDelegation();
 
 	@NotNull
-	AssignmentPathSegmentType toAssignmentPathSegmentType();
+	AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent);
+
+	/**
+	 * Returns true if the path segment matches specified order constraints. All of them must match.
+	 * Although there are some defaults, it is recommended to specify constraints explicitly.
+	 */
+	boolean matches(@NotNull List<OrderConstraintsType> orderConstraints);
+
+	// Preliminary limited implementation. Use with care.
+	boolean equivalent(AssignmentPathSegment otherSegment);
 }

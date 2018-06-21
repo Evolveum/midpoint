@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="cbe8baa0-64dd-11e8-9760-076bd690e1c4"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource: Limited</name>
+	<description>Dummy resource with limited sync propagation (limitPropagation=true)</description>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>limited</icfi:instanceId>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<outbound>
+					<name>ICFS NAME outbound mapping</name>
+				    <strength>weak</strength>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<name>ICFS NAME inbound mapping</name>
+					<!-- This avoids "kickback" of a name from account to a user. -->
+					<strength>weak</strength>
+					<target>
+						<path>$c:user/c:name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+				<displayName>UID</displayName>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<displayName>Full Name</displayName>
+				<outbound>
+					<name>fullname outbound mapping</name>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+				<inbound>
+					<name>fullname inbound mapping</name>
+					<strength>weak</strength>
+					<target>
+						<path>$user/fullName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:location</ref>
+				<displayName>Location</displayName>
+				<outbound>
+					<name>location outbound mapping</name>
+					<strength>strong</strength>
+					<source>
+						<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							$c:user/c:locality</path>
+					</source>
+				</outbound>
+				<inbound>
+					<name>location inbound mapping</name>
+					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+					<expression>
+						<script>
+							<code>'Came from ' + input</code>
+						</script>
+					</expression>
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+				<inbound>
+					<expression>
+						<script>
+							<includeNullInputs>false</includeNullInputs>
+							<code>'The crew of ' + input</code>
+						</script>
+					</expression>
+					<target>
+						<path>organizationalUnit</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:loot</ref>
+				<displayName>Loot</displayName>
+				<fetchStrategy>explicit</fetchStrategy>
+				<outbound>
+					<channel>http://pirates.net/avast</channel>
+					<expression>
+						<value>10000</value>
+					</expression>
+				</outbound>
+				<inbound>
+					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync</channel>
+					<target>
+						<path>costCenter</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:weapon</ref>
+				<displayName>Weapon</displayName>
+				<outbound>
+					<source>
+						<path>declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
+							$user/extension/piracy:weapon
+						</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<displayName>Drink</displayName>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<expression>
+						<value>rum</value>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<displayName>Quote</displayName>
+				<tolerant>true</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<expression>
+						<value>Arr!</value>
+					</expression>
+				</outbound>
+			</attribute>
+			
+			<association>
+            	<ref>ri:group</ref>
+            	<kind>entitlement</kind>
+            	<intent>group</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:members</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
+            
+            <association>
+            	<ref>ri:priv</ref>
+            	<kind>entitlement</kind>
+            	<intent>privilege</intent>
+            	<direction>subjectToObject</direction>
+            	<associationAttribute>ri:privileges</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
+			
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+            
+            <protected>
+            	<icfs:name>daviejones</icfs:name>
+            </protected>
+            <protected>
+            	<icfs:name>calypso</icfs:name>
+            </protected>
+            
+            <activation>
+            	<existence>
+            		<outbound>
+            			<timeTo>
+            				<referenceTime>
+            					<path>$shadow/activation/disableTimestamp</path>
+            				</referenceTime>
+            				<offset>P1M</offset>
+            			</timeTo>
+            			<expression>
+            				<asIs/>
+            			</expression>
+            		</outbound>
+            		<outbound>
+            			<timeFrom>
+            				<referenceTime>
+            					<path>$shadow/activation/disableTimestamp</path>
+            				</referenceTime>
+            				<offset>P1M</offset>
+            			</timeFrom>
+            			<expression>
+            				<value>false</value>
+            			</expression>
+            		</outbound>
+            	</existence>
+            	<administrativeStatus>
+            		<outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+            		</outbound>
+            	</administrativeStatus>
+            </activation>
+			
+			<credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                    	<strength>weak</strength>
+                        <expression>
+                            <generate/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+            
+		</objectType>
+		
+		<objectType>
+			<kind>entitlement</kind>
+        	<intent>group</intent>
+        	<default>false</default>
+        	<objectClass>ri:GroupObjectClass</objectClass>
+        	<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Groupname</displayName>
+				<outbound>
+				    <source>
+				    	<path>$focus/name</path>
+				    </source>
+				</outbound>
+				<inbound>
+					<strength>weak</strength>
+					<target>
+						<path>name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:description</ref>
+				<outbound>
+				    <strength>weak</strength>
+				    <source>
+				    	<path>$focus/description</path>
+				    </source>
+				</outbound>
+				<inbound>
+					<strength>weak</strength>
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
+			</attribute>
+        </objectType>
+
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<default>true</default>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+        
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<intent>fakePrivilege</intent>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<intent>badPrivilege</intent>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
+        <objectType>
+        	<kind>entitlement</kind>
+        	<intent>privilege</intent>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+
+        <objectType>
+        	<!-- Not really used. It is here just to confuse the tests. -->
+        	<kind>entitlement</kind>
+        	<intent>uglyPrivilege</intent>
+        	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
+        </objectType>
+		
+	</schemaHandling>
+
+	<consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+	</consistency>
+	
+	<synchronization>
+		<objectSynchronization>
+			<name>Account sync policy</name>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+						$account/attributes/icfs:name</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			<limitPropagation>true</limitPropagation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	             	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+             	</action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+<!-- 	        <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel> -->
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>
+
+		<objectSynchronization>
+			<name>Group sync policy</name>
+			<objectClass>ri:GroupObjectClass</objectClass>
+			<kind>entitlement</kind>
+			<intent>group</intent>
+			<focusType>c:RoleType</focusType>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";$shadow/attributes/icfs:name</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>
+	</synchronization>
+
+</resource>

@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.common.expression.script.xpath;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -28,6 +26,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -51,6 +51,7 @@ import javax.xml.xpath.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Radovan Semancik
@@ -60,7 +61,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
     public static String XPATH_LANGUAGE_URL = "http://www.w3.org/TR/xpath/";
 
     private XPathFactory factory = XPathFactory.newInstance();
-    
+
     private PrismContext prismContext;
 
     public XPathScriptEvaluator(PrismContext prismContext) {
@@ -69,9 +70,11 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 
     @Override
 	public <T, V extends PrismValue> List<V> evaluate(ScriptExpressionEvaluatorType expressionType,
-                                                      ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType,
-                                                      ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
-                                                      String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
+			ExpressionVariables variables, ItemDefinition outputDefinition,
+			Function<Object, Object> additionalConvertor,
+			ScriptExpressionReturnTypeType suggestedReturnType,
+			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
+			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 
     	String codeString = expressionType.getCode();
@@ -88,21 +91,21 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         if (type == null) {
         	type = (Class<T>) Element.class;                        // actually, if outputDefinition is null, the return value is of no interest for us
         }
-		
+
         QName returnType = determineRerturnType(type, expressionType, outputDefinition, suggestedReturnType);
 
         Object evaluatedExpression = evaluate(returnType, codeString, variables, objectResolver, functions,
         		contextDescription, result);
 
         List<V> propertyValues;
-        
+
         boolean scalar = !outputDefinition.isMultiValue();
         if (expressionType.getReturnType() != null) {
         	scalar = isScalar(expressionType.getReturnType());
         } else if (suggestedReturnType != null) {
         	scalar = isScalar(suggestedReturnType);
         }
-        
+
         if (scalar) {
         	if (evaluatedExpression instanceof NodeList) {
         		NodeList evaluatedExpressionNodeList = (NodeList)evaluatedExpression;
@@ -115,7 +118,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         			evaluatedExpression = evaluatedExpressionNodeList.item(0);
         		}
         	}
-        	propertyValues = new ArrayList<V>(1);
+        	propertyValues = new ArrayList<>(1);
         	V pval = convertScalar(type, returnType, evaluatedExpression, contextDescription);
         	if (pval instanceof PrismPropertyValue && !isNothing(((PrismPropertyValue<T>)pval).getValue())) {
         		propertyValues.add(pval);
@@ -126,7 +129,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
             }
         	propertyValues = convertList(type, (NodeList) evaluatedExpression, contextDescription);
         }
-        
+
         return (List<V>) PrismValue.cloneCollection(propertyValues);
     }
 
@@ -139,14 +142,14 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 	}
 
 	private Object evaluate(QName returnType, String code, ExpressionVariables variables, ObjectResolver objectResolver,
-			Collection<FunctionLibrary> functions, 
+			Collection<FunctionLibrary> functions,
     		String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException {
 
         XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
         //System.out.println("code " + code);
         XPath xpath = factory.newXPath();
-        XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, 
+        XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver,
         		contextDescription, prismContext, result);
         xpath.setXPathVariableResolver(variableResolver);
         xpath.setNamespaceContext(new MidPointNamespaceContext(codeHolder.getNamespaceMap()));
@@ -214,7 +217,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
     private ExpressionEvaluationException createExpressionEvaluationException(Exception e, String contextDescription) {
         return new ExpressionEvaluationException(lookForMessage(e) + " in " + contextDescription, e);
     }
-    
+
     public static String lookForMessage(Throwable e) {
     	// the net.sf.saxon.trans.XPathException lies. It has meaningless message. skip it.
     	if (e instanceof net.sf.saxon.trans.XPathException && e.getCause() != null) {
@@ -250,19 +253,19 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 		if (expressionType.getReturnType() == ScriptExpressionReturnTypeType.LIST || suggestedReturnType == ScriptExpressionReturnTypeType.LIST) {
 			return XPathConstants.NODESET;
 		}
-		
+
 		if (expressionType.getReturnType() == ScriptExpressionReturnTypeType.SCALAR) {
 			return toXPathReturnType(outputDefinition.getTypeName());
 		}
-		
+
 		if (suggestedReturnType == ScriptExpressionReturnTypeType.LIST) {
 			return XPathConstants.NODESET;
 		}
-		
+
 		if (suggestedReturnType == ScriptExpressionReturnTypeType.SCALAR) {
 			return toXPathReturnType(outputDefinition.getTypeName());
 		}
-		
+
 		if (outputDefinition.isMultiValue()) {
 			return XPathConstants.NODESET;
 		} else {
@@ -341,9 +344,9 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         if (value instanceof ObjectReferenceType){
         	return (V) ((ObjectReferenceType) value).asReferenceValue();
         }
-    	
+
     	if (type.isAssignableFrom(value.getClass())) {
-            return (V) new PrismPropertyValue<T>((T) value);
+            return (V) new PrismPropertyValue<>((T) value);
         }
         try {
         	T resultValue = null;
@@ -360,8 +363,8 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
             	resultValue = (T) new PolyString((String)resultValue);
             }
             PrismUtil.recomputeRealValue(resultValue, prismContext);
-            
-            return (V) new PrismPropertyValue<T>(resultValue);
+
+            return (V) new PrismPropertyValue<>(resultValue);
         } catch (SchemaException e) {
             throw new ExpressionEvaluationException("Error converting result of "
                     + contextDescription + ": " + e.getMessage(), e);
@@ -373,7 +376,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 
     private <T, V extends PrismValue> List<V> convertList(Class<T> type, NodeList valueNodes, String contextDescription) throws
             ExpressionEvaluationException {
-        List<V> values = new ArrayList<V>();
+        List<V> values = new ArrayList<>();
         if (valueNodes == null) {
             return values;
         }
@@ -387,7 +390,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
                 if (isNothing(item)) {
                     continue;
                 }
-                values.add((V) new PrismPropertyValue<T>(item));
+                values.add((V) new PrismPropertyValue<>(item));
             }
             return values;
         } catch (SchemaException e) {
@@ -396,7 +399,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
             throw new ExpressionEvaluationException("Error converting return value of " + contextDescription + ": " + e.getMessage(), e);
         }
     }
-    
+
     private <T> boolean isNothing(T value) {
     	return value == null || ((value instanceof String) && ((String) value).isEmpty());
     }
@@ -409,7 +412,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
     public String getLanguageName() {
         return "XPath 2.0";
     }
-    
+
 	@Override
 	public String getLanguageUrl() {
 		return XPATH_LANGUAGE_URL;

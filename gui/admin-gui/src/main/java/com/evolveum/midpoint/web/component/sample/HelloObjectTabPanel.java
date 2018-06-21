@@ -29,12 +29,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Sample showing a custom object form that displays simple greeting.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class HelloObjectTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
-	
+
 	private static final String ID_HELLO_LABEL = "helloLabel";
 
 	public HelloObjectTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, PageBase pageBase) {

@@ -44,7 +44,7 @@ public class NotificationConfigurationDto implements Serializable{
     private List<MailServerConfigurationTypeDto> servers;
     private MailServerConfigurationTypeDto selectedServer;
 
-  
+
     public NotificationConfigurationDto(){}
 
     public NotificationConfigurationDto(NotificationConfigurationType config){
@@ -67,10 +67,10 @@ public class NotificationConfigurationDto implements Serializable{
             }
         }
     }
-    
+
     public NotificationConfigurationType getNewObject(SystemConfigurationType systemConfig) {
-	
-		
+
+
 		NotificationConfigurationType notificationConfig = (systemConfig.getNotificationConfiguration() != null) ? systemConfig.getNotificationConfiguration() : new NotificationConfigurationType();
 		MailConfigurationType mailConfig = (notificationConfig.getMail() != null) ? notificationConfig.getMail() : new MailConfigurationType();
 
@@ -78,7 +78,7 @@ public class NotificationConfigurationDto implements Serializable{
 			mailConfig.setDefaultFrom(getDefaultFrom());
 			mailConfig.setRedirectToFile(getRedirectToFile());
 			mailConfig.getServer().clear();
-			
+
 			for (MailServerConfigurationTypeDto serverDto : getServers()) {
 				MailServerConfigurationType newConfig = new MailServerConfigurationType();
 				newConfig.setHost(serverDto.getHost());
@@ -96,9 +96,9 @@ public class NotificationConfigurationDto implements Serializable{
 
 				mailConfig.getServer().add(newConfig);
 			}
-			
+
 			notificationConfig.setMail(mailConfig);
-		
+
 		return notificationConfig;
 	}
 

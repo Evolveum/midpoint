@@ -21,7 +21,7 @@ import java.util.Collection;
 
 /**
  * Used to represent combined definition of structural and auxiliary object classes.
- * 
+ *
  * @author semancik
  *
  */

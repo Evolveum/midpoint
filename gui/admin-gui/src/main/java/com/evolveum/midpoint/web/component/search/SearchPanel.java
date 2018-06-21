@@ -27,11 +27,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.cog.MenuLinkPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -130,11 +128,11 @@ public class SearchPanel extends BasePanel<Search> {
             }
         };
 
-        Form form = new Form(ID_FORM);
+        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
         add(form);
 
         ListView items = new ListView<SearchItem>(ID_ITEMS,
-                new PropertyModel<List<SearchItem>>(getModel(), Search.F_ITEMS)) {
+            new PropertyModel<>(getModel(), Search.F_ITEMS)) {
 
             @Override
             protected void populateItem(ListItem<SearchItem> item) {
@@ -185,7 +183,6 @@ public class SearchPanel extends BasePanel<Search> {
                 searchPerformed(target);
             }
         };
-        searchSimple.setMarkupId(ID_SEARCH_SIMPLE);
         searchSimple.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -217,10 +214,12 @@ public class SearchPanel extends BasePanel<Search> {
 		searchContainer.add(searchDropdown);
 
 		AjaxSubmitButton searchButtonBeforeDropdown = new AjaxSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN) {
+
 			@Override
 			protected void onError(AjaxRequestTarget target, Form<?> form) {
 				target.add(form);
 			}
+
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				searchPerformed(target);
@@ -266,7 +265,8 @@ public class SearchPanel extends BasePanel<Search> {
 		searchItems.add(searchItem);
 
 		ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, Model.ofList(searchItems)) {
-			@Override
+
+		    @Override
 			protected void populateItem(ListItem<InlineMenuItem> item) {
 				WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, item.getModel());
 				menuItemBody.setRenderBodyOnly(true);
@@ -360,8 +360,8 @@ public class SearchPanel extends BasePanel<Search> {
             public void bind(Component component) {
                 super.bind( component );
 
-                component.add( AttributeModifier.replace( "onkeydown", Model.of("if(event.keyCode == 13) {document.getElementById('"+
-                        ID_SEARCH_SIMPLE +"').click();}") ) );
+                component.add( AttributeModifier.replace( "onkeydown",
+                        Model.of("if(event.keyCode == 13) {$('[about=\"searchSimple\"]').click();}") ) );
             }
         });
         fullTextInput.setOutputMarkupId(true);
@@ -504,12 +504,12 @@ public class SearchPanel extends BasePanel<Search> {
         popover.add(propList);
 
         ListView properties = new ListView<Property>(ID_PROPERTIES,
-                new PropertyModel<List<Property>>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
+            new PropertyModel<>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
 
             @Override
             protected void populateItem(final ListItem<Property> item) {
                 CheckBox check = new CheckBox(ID_CHECK,
-                        new PropertyModel<Boolean>(item.getModel(), Property.F_SELECTED));
+                    new PropertyModel<>(item.getModel(), Property.F_SELECTED));
                 check.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     @Override

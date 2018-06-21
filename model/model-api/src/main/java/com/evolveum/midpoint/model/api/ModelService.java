@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -79,10 +80,10 @@ import org.jetbrains.annotations.NotNull;
  * attributes for objects. E.g. RBAC models may automatically derive resource
  * accounts attributes based on user role membership.
  * </p>
- * 
+ *
  * @author lazyman
  * @author Radovan Semancik
- * 
+ *
  */
 public interface ModelService {
 
@@ -111,7 +112,7 @@ public interface ModelService {
 	static final String MERGE_OBJECTS = CLASS_NAME_WITH_DOT + "mergeObjects";
 
 	static final String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
-	
+
 	/**
 	 * <p>
 	 * Returns object for provided OID. It retrieves the object from an appropriate source
@@ -121,7 +122,7 @@ public interface ModelService {
 	 * <p>
 	 * Fails if object with the OID does not exists.
 	 * </p>
-	 * 
+	 *
 	 * @param type
 	 *            (class) of an object to get
 	 * @param oid
@@ -135,7 +136,7 @@ public interface ModelService {
 	 * @return Retrieved object
 	 * @throws ObjectNotFoundException
 	 *             requested object does not exist
-	 * @throws SchemaException 
+	 * @throws SchemaException
 	 * 				the object is not schema compliant
 	 * @throw SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
@@ -154,8 +155,8 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-			Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, 
-			CommunicationException, ConfigurationException;
+			Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+			CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -167,7 +168,7 @@ public interface ModelService {
 	 * also implicitly links the objects (mark them to be analogous) if such a link is part of the data model.
 	 * E.g. the implementation links all accounts to the user if they are passed in a single delta collection.
 	 * This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked
-	 * explicitly. 
+	 * explicitly.
 	 * </p>
 	 * <p>
 	 * There must be no more than one delta for each object.
@@ -197,7 +198,7 @@ public interface ModelService {
 	 * The operation may fail if any of the objects to be created or modified does not conform to
 	 * the underlying schema of the storage system or the schema enforced by the implementation.
 	 * </p>
-	 * 
+	 *
 	 * @param deltas
 	 *            Collection of object deltas to execute
 	 * @param options
@@ -216,7 +217,7 @@ public interface ModelService {
 	 * @throws SchemaException
 	 *             error dealing with resource schema, e.g. created object does
 	 *             not conform to schema
-	 * @throws ExpressionEvaluationException 
+	 * @throws ExpressionEvaluationException
 	 * 				evaluation of expression associated with the object has failed
 	 * @throws CommunicationException
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
@@ -233,7 +234,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected state
 	 */
     Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
 
     Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, Collection<ProgressListener> listeners, OperationResult parentResult)
@@ -250,7 +251,7 @@ public interface ModelService {
 	 * instead of this one. This method will assume the reconcile option to keep compatible behavior with
 	 * previous versions.
 	 * </p>
-	 * 
+	 *
 	 * @param type type (class) of an object to recompute
 	 * @param oid OID of the object to recompute
 	 * @param parentResult
@@ -262,13 +263,13 @@ public interface ModelService {
     @Deprecated
 	<F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult)
 			 throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
-	
+
 	/**
 	 * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
 	 * mapping and tries to re-apply them as necessary.
-	 * 
+	 *
 	 * @since 3.6
-	 * 
+	 *
 	 * @param type type (class) of an object to recompute
 	 * @param oid OID of the object to recompute
 	 * @param options execute options
@@ -280,7 +281,7 @@ public interface ModelService {
 	 */
 	<F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			 throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
-	
+
 	/**
 	 * <p>
 	 * Returns the User object representing owner of specified account (account
@@ -294,7 +295,7 @@ public interface ModelService {
 	 * user. Forward association is implemented by property "account" of user
 	 * object.
 	 * </p>
-	 * 
+	 *
 	 * @param shadowOid
 	 *            OID of the account to look for an owner
 	 * @param task
@@ -304,6 +305,7 @@ public interface ModelService {
 	 * @return owner of the account or null
 	 * @throws ObjectNotFoundException
 	 *             specified account was not found
+	 * @throws ExpressionEvaluationException  
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
@@ -312,9 +314,9 @@ public interface ModelService {
 	 * @deprecated
 	 */
 	PrismObject<UserType> findShadowOwner(String shadowOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException;
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
 
-	
+
 	/**
 	 * <p>
 	 * Returns the Focus object representing owner of specified shadow.
@@ -327,7 +329,7 @@ public interface ModelService {
 	 * user. Forward association is implemented by property "account" of user
 	 * object.
 	 * </p>
-	 * 
+	 *
 	 * @param shadowOid
 	 *            OID of the shadow to look for an owner
 	 * @param task
@@ -337,6 +339,8 @@ public interface ModelService {
 	 * @return owner of the account or null
 	 * @throws ObjectNotFoundException
 	 *             specified account was not found
+	 * @throws ExpressionEvaluationException 
+	 * @throws CommunicationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
@@ -344,7 +348,7 @@ public interface ModelService {
 	 *             state
 	 */
 	PrismObject<? extends FocusType> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException;
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
 
 	/**
 	 * <p>
@@ -379,7 +383,7 @@ public interface ModelService {
 	 * reference resolution or any other "smart" algorithm.
 	 * </p>
 	 * <p>
-	 * 
+	 *
 	 * @param resourceOid
 	 *            OID of the resource to fetch objects from
 	 * @param objectClass
@@ -398,8 +402,8 @@ public interface ModelService {
 	 */
 	@Deprecated
 	List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, 
-			ConfigurationException, SecurityViolationException;
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
+			ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -407,7 +411,7 @@ public interface ModelService {
 	 * </p>
 	 * <p>
 	 * Searches through all object of a specified type. Returns a list of objects that match
-	 * search criteria. 
+	 * search criteria.
 	 * </p>
 	 * <p>
 	 * Note that this method has a very limited scaling capability
@@ -421,7 +425,7 @@ public interface ModelService {
 	 * that type. Fails if object type is wrong. Should fail if unknown property is
 	 * specified in the query.
 	 * </p>
-	 * 
+	 *
 	 * @param type
 	 *            (class) of an object to search
 	 * @param query
@@ -434,12 +438,12 @@ public interface ModelService {
 	 *            parent OperationResult (in/out)
 	 * @return all objects of specified type that match search criteria (subject
 	 *         to paging)
-	 * 
+	 *
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 * @throws ObjectNotFoundException
 	 *             object required for a search was not found (e.g. resource definition)
-	 * @throws CommunicationException 
+	 * @throws CommunicationException
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
 	 * @throw SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
@@ -451,7 +455,7 @@ public interface ModelService {
 	 */
 	<T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException,
-            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * Search for "sub-object" structures, i.e. containers.
@@ -463,16 +467,16 @@ public interface ModelService {
 	 * @param parentResult
 	 * @param <T>
 	 * @return
-	 * @throws SchemaException
+	 * @throws SchemaException  
 	 */
 	<T extends Containerable> SearchResultList<T> searchContainers(
 			Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException;
+			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException;
 
 	<T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult parentResult)
-			throws SchemaException, SecurityViolationException;
+			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	/**
 	 * <p>
@@ -486,7 +490,7 @@ public interface ModelService {
 	 * that type. Fails if object type is wrong. Should fail if unknown property is
 	 * specified in the query.
 	 * </p>
-	 * 
+	 *
 	 * @param type
 	 *            (class) of an object to search
 	 * @param query
@@ -503,7 +507,7 @@ public interface ModelService {
 	 *             unknown property used in search query
 	 * @throws ObjectNotFoundException
 	 *             object required for a search was not found (e.g. resource definition)
-	 * @throws CommunicationException 
+	 * @throws CommunicationException
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
 	 * @throw SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
@@ -514,7 +518,8 @@ public interface ModelService {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -523,9 +528,9 @@ public interface ModelService {
 	 * <p>
 	 * Searches through all object of a specified type and returns a count of such objects.
 	 * This method is usually much more efficient than equivalent search method. It is used mostly for
-	 * presentation purposes, e.g. displaying correct number of pages in the GUI listings. 
+	 * presentation purposes, e.g. displaying correct number of pages in the GUI listings.
 	 * </p>
-	 * 
+	 *
 	 * @param type
 	 *            (class) of an object to search
 	 * @param query
@@ -538,12 +543,12 @@ public interface ModelService {
 	 *            parent OperationResult (in/out)
 	 * @return number of objects of specified type that match search criteria (subject
 	 *         to paging). May return null if the number of objects is not known.
-	 * 
+	 *
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 * @throws ObjectNotFoundException
 	 *             object required for a search was not found (e.g. resource definition)
-	 * @throws CommunicationException 
+	 * @throws CommunicationException
 	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
 	 * @throw SecurityViolationException
 	 * 				Security violation during operation execution. May be caused either by midPoint internal
@@ -554,8 +559,8 @@ public interface ModelService {
 	 *             wrong query format
 	 */
 	<T extends ObjectType> Integer countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult parentResult) 
-            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
+            Task task, OperationResult parentResult)
+            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 
 	/**
 	 * <p>
@@ -574,7 +579,7 @@ public interface ModelService {
 	 * using OperationResult to track its own execution but rather to track the
 	 * execution of resource tests (that in fact happen in provisioning).
 	 * </p>
-	 * 
+	 *
 	 * @param resourceOid
 	 *            OID of resource to test
 	 * @return results of executed tests
@@ -595,22 +600,22 @@ public interface ModelService {
 	 * TODO: Better description
 	 */
 	void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException; 
-	
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
 	/**
 	 * <p>
 	 * Import single account from resource.
 	 * </p>
-	 * TODO: Better description 
+	 * TODO: Better description
 	 */
 	void importFromResource(String shadowOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	/**
 	 * Import objects from file.
-	 * 
+	 *
 	 * Invocation of this method may be switched to background.
-	 * 
+	 *
 	 * @param input
 	 * @param task
 	 */
@@ -618,41 +623,55 @@ public interface ModelService {
 
 	/**
 	 * Import objects from stream.
-	 * 
+	 *
 	 * Invocation of this method will happen in foreground, as the stream cannot
 	 * be serialized.
-	 * 
+	 *
 	 * The results will be provided in the task.
-	 * 
+	 *
 	 * @param input
 	 * @param task
 	 */
+	@Deprecated
 	void importObjectsFromStream(InputStream input, ImportOptionsType options, Task task, OperationResult parentResult);
 
 	/**
+	 * Import objects from stream.
+	 *
+	 * Invocation of this method will happen in foreground, as the stream cannot
+	 * be serialized.
+	 *
+	 * The results will be provided in the task.
+	 *
+	 * @param input
+	 * @param task
+	 */
+	void importObjectsFromStream(InputStream input, String language, ImportOptionsType options, Task task, OperationResult parentResult);
+
+	/**
 	 * Discovers local or remote connectors.
-	 * 
+	 *
 	 * The operation will try to search for new connectors. It works either on
 	 * local host (hostType is null) or on a remote host (hostType is not null).
 	 * All discovered connectors are stored in the repository.
-	 * 
+	 *
 	 * It returns connectors that were discovered: those that were not in the
 	 * repository before invocation of this operation.
-	 * 
+	 *
 	 * @param hostType
 	 *            definition of a connector host or null
 	 * @param parentResult
 	 *            parentResult parent OperationResult (in/out)
 	 * @return discovered connectors
-	 * @throws CommunicationException error communicating with the connector host
+	 * @throws CommunicationException error communicating with the connector host 
 	 */
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, Task task, OperationResult parentResult) 
-			throws CommunicationException, SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException;
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, Task task, OperationResult parentResult)
+			throws CommunicationException, SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException;
 
 	/**
 	 * Finish initialization of the model and lower system components
 	 * (provisioning, repository, etc).
-	 * 
+	 *
 	 * The implementation may execute resource-intensive tasks in this method.
 	 * All the dependencies should be already constructed, properly wired and
 	 * initialized. Also logging and other infrastructure should be already set
@@ -681,23 +700,25 @@ public interface ModelService {
 			Collection<SelectorOptions<GetOperationOptions>> readOptions, ModelCompareOptions compareOptions,
 			@NotNull List<ItemPath> ignoreItemPaths, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
-			ConfigurationException;
-	
+			ConfigurationException, ExpressionEvaluationException;
+
 	/**
 	 * Merge two objects into one.
-	 * 
+	 *
 	 * EXPERIMENTAL feature. The method signature is likely to change in the future.
-	 * 
+	 *
 	 * @param type object type
 	 * @param leftOid left-side object OID
 	 * @param rightOid  right-side object OID
 	 * @param mergeConfigurationName name of the merge configuration to use
 	 * @param task
 	 * @param result
-	 * @return 
+	 * @return
 	 */
-	<O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, String leftOid, String rightOid, 
-			String mergeConfigurationName, Task task, OperationResult result) 
+	<O extends ObjectType> Collection<ObjectDeltaOperation<? extends ObjectType>> mergeObjects(Class<O> type, String leftOid, String rightOid,
+			String mergeConfigurationName, Task task, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, PolicyViolationException, SecurityViolationException;
-	
+
+	@NotNull
+	PrismContext getPrismContext();
 }

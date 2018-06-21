@@ -30,9 +30,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
@@ -86,7 +86,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     RepositoryService repositoryService;
-    
+
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -124,13 +124,13 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 //        }
 //        Assert.fail("add must fail.");
 //    }
-    
+
 	@Test(expectedExceptions = FaultMessage.class)
     public void testGetNullOid() throws FaultMessage {
         try {
             modelService.getObject(UserType.COMPLEX_TYPE, null, new SelectorQualifiedGetOptionsType(),
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -141,8 +141,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void testGetEmptyOid() throws FaultMessage {
         try {
             modelService.getObject(UserType.COMPLEX_TYPE, "", new SelectorQualifiedGetOptionsType(),
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -153,8 +153,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void testGetNullOidAndPropertyRef() throws FaultMessage {
         try {
             modelService.getObject(UserType.COMPLEX_TYPE, null, null,
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -168,8 +168,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         setSecurityContext(expectedUser);
     	try {
             modelService.getObject(UserType.COMPLEX_TYPE, "001", null,
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }  finally {
@@ -190,8 +190,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                     new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
             modelService.getObject(UserType.COMPLEX_TYPE, oid, new SelectorQualifiedGetOptionsType(),
-                    new Holder<ObjectType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertObjectNotFoundFault(ex);
         } finally {
@@ -244,21 +244,21 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
 //    @Test(expectedExceptions = FaultMessage.class)
     public void nullQueryType() throws FaultMessage, SchemaException, IOException, JAXBException {
-    	
+
         try {
         	final UserType expectedUser = (UserType) PrismTestUtil.parseObject(new File(
                     TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml")).asObjectable();
             setSecurityContext(expectedUser);
             modelService.searchObjects(UserType.COMPLEX_TYPE, null, null,
-                    new Holder<ObjectListType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
             Assert.fail("Illegal argument exception was not thrown.");
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         } finally {
         	SecurityContextHolder.getContext().setAuthentication(null);
         }
-        
+
     }
 
 //    @Test(expectedExceptions = FaultMessage.class)
@@ -268,15 +268,15 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                     TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml")).asObjectable();
             setSecurityContext(expectedUser);
             modelService.searchObjects(UserType.COMPLEX_TYPE, null, null,
-                    new Holder<ObjectListType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
             Assert.fail("Illegal argument exception was not thrown.");
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         } finally {
         	SecurityContextHolder.getContext().setAuthentication(null);
         }
-        
+
     }
 
     @Test(expectedExceptions = FaultMessage.class)
@@ -291,8 +291,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         	QueryType queryType = new QueryType();
         	queryType.setPaging(paging);
             modelService.searchObjects(UserType.COMPLEX_TYPE, queryType, null,
-                    new Holder<ObjectListType>(),
-                    new Holder<OperationResultType>());
+                new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         } finally {
@@ -349,8 +349,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void nullAccountOidListAccountShadowOwner() throws FaultMessage {
         try {
-            modelService.findShadowOwner(null, new Holder<UserType>(),
-                    new Holder<OperationResultType>());
+            modelService.findShadowOwner(null, new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
@@ -360,14 +360,14 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     @Test(expectedExceptions = FaultMessage.class)
     public void emptyAccountOidListAccountShadowOwner() throws FaultMessage {
         try {
-            modelService.findShadowOwner("", new Holder<UserType>(),
-                    new Holder<OperationResultType>());
+            modelService.findShadowOwner("", new Holder<>(),
+                new Holder<>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
         }
         Assert.fail("Illegal argument exception must be thrown");
     }
-    
+
 	private void setSecurityContext(UserType user) {
 		SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
 				new MidPointPrincipal(user), null));

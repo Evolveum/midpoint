@@ -3,7 +3,6 @@ package com.evolveum.midpoint.gui.api.component.path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -38,13 +37,11 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 	private static final String ID_PLUS = "plus";
 	private static final String ID_MINUS = "minus";
 
-	Map<QName, Collection<ItemDefinition<?>>> schemaDefinitionsMap = null;
-
 	public ItemPathPanel(String id, IModel<ItemPathDto> model, PageBase parent) {
 		super(id, model);
 
 		setParent(parent);
-		initNamspaceDefinitionMap();
+
 
 		initLayout();
 
@@ -56,9 +53,9 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 	}
 
 	private void initLayout() {
-		final ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION,
+		ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION,
 				new AbstractReadOnlyModel<ItemPathDto>() {
-			
+
 					private static final long serialVersionUID = 1L;
 					public ItemPathDto getObject() {
 						return ItemPathPanel.this.getModelObject();
@@ -69,7 +66,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			protected Map<QName, Collection<ItemDefinition<?>>> getSchemaDefinitionMap() {
-				return schemaDefinitionsMap;
+				return initNamspaceDefinitionMap();
 			}
 		};
 		itemDefPanel.setOutputMarkupId(true);
@@ -90,7 +87,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			public boolean isVisible() {
-				if (getModelObject().getParentPath() == null) {
+				if (getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null) {
 					return true;
 				}
 				return (getModelObject().getParentPath().getItemDef() instanceof PrismContainerDefinition);
@@ -104,7 +101,14 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				refreshItemPathPanel(ItemPathPanel.this.getModelObject().getParentPath(), false, target);
+				ItemPathDto path = ItemPathPanel.this.getModelObject();
+//				ItemPathDto parent = null;
+//				if (path.getItemDef() == null){
+//					parent = path.getParentPath();
+//				} else {
+//					parent = path;
+//				}
+				refreshItemPathPanel(path, false, target);
 
 			}
 		};
@@ -113,22 +117,22 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			public boolean isVisible() {
-				return getModelObject().getParentPath() != null;
+				return getModelObject().getParentPath() != null && getModelObject().getParentPath().toItemPath() != null;
 			}
 		});
 		minusButton.setOutputMarkupId(true);
 		add(minusButton);
 
-		DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<QName>(ID_NAMESPACE,
-				new PropertyModel<QName>(getModel(), "objectType"),
-				new ListModel<QName>(WebComponentUtil.createObjectTypeList()), new QNameChoiceRenderer());
+		DropDownChoicePanel<QName> namespacePanel = new DropDownChoicePanel<>(ID_NAMESPACE,
+            new PropertyModel<>(getModel(), "objectType"),
+            new ListModel<>(WebComponentUtil.createObjectTypeList()), new QNameChoiceRenderer());
 		namespacePanel.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				target.add(itemDefPanel);
+				refreshItemPath(ItemPathPanel.this.getModelObject(), target);
 
 			}
 		});
@@ -139,7 +143,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 			@Override
 			public boolean isVisible() {
-				return getModelObject().getParentPath() == null;
+				return getModelObject().getParentPath() == null || getModelObject().getParentPath().toItemPath() == null;
 			}
 		});
 		namespacePanel.setOutputMarkupId(true);
@@ -151,9 +155,21 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		if (isAdd && !pathSegmentPanel.validate()) {
 			return;
 		}
-		
+
 		if (!isAdd) {
-			itemPathDto = itemPathDto.getParentPath();
+			ItemPathDto newItem = itemPathDto;
+			ItemPathDto currentItem = itemPathDto.getParentPath();
+			ItemPathDto parentPath = currentItem.getParentPath();
+			ItemPathDto resultingItem = null;
+			if (parentPath == null) {
+				parentPath = new ItemPathDto();
+				parentPath.setObjectType(currentItem.getObjectType());
+				resultingItem = parentPath;
+			} else {
+				resultingItem = parentPath;
+			}
+			newItem.setParentPath(resultingItem);
+			itemPathDto = resultingItem;
 		}
 		// pathSegmentPanel.refreshModel(itemPathDto);
 		this.getModel().setObject(itemPathDto);
@@ -163,8 +179,14 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 	}
 
-	private void initNamspaceDefinitionMap() {
-		schemaDefinitionsMap = new HashMap<>();
+	private void refreshItemPath(ItemPathDto itemPathDto, AjaxRequestTarget target) {
+
+		this.getModel().setObject(itemPathDto);
+		target.add(this);
+	}
+
+	private Map<QName, Collection<ItemDefinition<?>>> initNamspaceDefinitionMap() {
+		Map<QName, Collection<ItemDefinition<?>>> schemaDefinitionsMap = new HashMap<>();
 		if (getModelObject().getObjectType() != null) {
 			Class clazz = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
 					getModelObject().getObjectType());
@@ -182,7 +204,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 				schemaDefinitionsMap.put(getModelObject().getObjectType(), itemDefs);
 			}
 		}
-		// }
+		return schemaDefinitionsMap;
 	}
 
 }

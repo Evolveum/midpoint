@@ -21,23 +21,23 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * Interface for objects that behave like an item: they have a name and may have a definition.
- * 
+ *
  * Currently provides common abstraction on top of Item and ItemDelta, as both can hold values and
  * construct them in a similar way.
  *
  * Also used for ValueFilter, although semantics of e.g. getPath() is quite different in this case.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public interface Itemable {
-	
+
 	QName getElementName();
-	
+
 	ItemDefinition getDefinition();
-	
+
 	PrismContext getPrismContext();
-	
+
 	ItemPath getPath();
 
 }

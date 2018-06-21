@@ -17,9 +17,9 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -32,9 +32,12 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +68,9 @@ public class MappingDiagEvaluator {
 
 	public MappingEvaluationResponseType evaluateMapping(@NotNull MappingEvaluationRequestType request, @NotNull Task task,
 			@NotNull OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
-		Mapping.Builder<?,?> builder = mappingFactory.createMappingBuilder();
+		MappingImpl.Builder<?,?> builder = mappingFactory.createMappingBuilder();
 
 		ObjectDeltaObject<?> sourceContext = createSourceContext(request, task, result);
 
@@ -79,7 +82,7 @@ public class MappingDiagEvaluator {
 				.profiling(true)
 				.now(clock.currentTimeXMLGregorianCalendar());
 
-		Mapping<?,?> mapping = builder.build();
+		MappingImpl<?,?> mapping = builder.build();
 
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 		try {

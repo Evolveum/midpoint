@@ -6,9 +6,9 @@
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<policyItemDefinition>
-		<c:target>
-			<t:path>organization</t:path>
-		</c:target>
+		<target>
+			<path>organization</path>
+		</target>
 	</policyItemDefinition>
 	
 </policyItemsDefinition>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.evolveum.midpoint.prism.marshaller.XPathHolder;
+import com.evolveum.midpoint.prism.marshaller.ItemPathHolder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -49,36 +50,43 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoginEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
- * 
+ *
  * @author semancik
  */
 public class SchemaDebugUtil {
 
 	private static int SHOW_LIST_MEMBERS = 3;
-	
+
 	public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
 		return debugDump(dumpables,0);
 	}
-	
+
 	public static String debugDump(Collection<? extends DebugDumpable> dumpables, int indent) {
 		StringBuilder sb = new StringBuilder();
 		indentDebugDump(sb, indent);
 		sb.append(getCollectionOpeningSymbol(dumpables));
-		if (!dumpables.isEmpty()) {		
+		if (!dumpables.isEmpty()) {
 			sb.append("\n");
 			for (DebugDumpable dd : dumpables) {
 				if (dd == null) {
@@ -94,7 +102,7 @@ public class SchemaDebugUtil {
 		sb.append(getCollectionClosingSymbol(dumpables));
 		return sb.toString();
 	}
-	
+
 	public static String debugDumpXsdAnyProperties(Collection<?> xsdAnyCollection, int indent) {
 		StringBuilder sb = new StringBuilder();
 		indentDebugDump(sb, indent);
@@ -147,19 +155,19 @@ public class SchemaDebugUtil {
 		}
 		return ")";
 	}
-	
+
 	public static void indentDebugDump(StringBuilder sb, int indent) {
 		for(int i = 0; i < indent; i++) {
 			sb.append(DebugDumpable.INDENT_STRING);
 		}
 	}
-	
+
 	public static <K, V extends DebugDumpable> String dumpMapMultiLine(Map<K, V> map) {
 		StringBuilder sb = new StringBuilder();
 		debugDumpMapMultiLine(sb, map, 0);
 		return sb.toString();
 	}
-	
+
 	public static <K, V extends DebugDumpable> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
 		Iterator<Entry<K, V>> i = map.entrySet().iterator();
 		while (i.hasNext()) {
@@ -198,7 +206,7 @@ public class SchemaDebugUtil {
 			}
 		}
 	}
-	
+
 	public static String debugDump(ObjectType objectType, int indent) {
 		if (objectType == null) {
 			StringBuilder sb = new StringBuilder();
@@ -224,7 +232,7 @@ public class SchemaDebugUtil {
 		sb.append(getCollectionClosingSymbol(collection));
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(QName qname) {
 		if (qname == null) {
 			return "null";
@@ -234,7 +242,7 @@ public class SchemaDebugUtil {
 		}
 		return qname.toString();
 	}
-	
+
 	public static String prettyPrint(AssignmentType assignmentType) {
 		if (assignmentType == null) {
 			return "null";
@@ -258,7 +266,7 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(ConstructionType act) {
 		if (act == null) {
 			return "null";
@@ -285,7 +293,7 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(ResourceAttributeDefinitionType vc) {
 		if (vc == null) {
 			return "null";
@@ -294,14 +302,97 @@ public class SchemaDebugUtil {
 		if (vc.getRef() != null) {
 			sb.append("ref=");
 			sb.append(prettyPrint(vc.getRef()));
-			sb.append("...");
+
+			boolean other = !vc.getInbound().isEmpty();
+			if (vc.getOutbound() != null && vc.getOutbound().getExpression() != null ) {
+				Object value = SimpleExpressionUtil.getConstantIfPresent(vc.getOutbound().getExpression());
+				if (value != null) {
+					sb.append(", value='").append(PrettyPrinter.prettyPrint(value)).append("'");
+				} else {
+					other = true;
+				}
+			}
+
+			if (other) {
+				sb.append(", ...");
+			}
 		}
-		
+
 		// TODO: Other properties
 		sb.append(")");
 		return sb.toString();
 	}
 	
+	public static String prettyPrint(ResourceObjectTypeDependencyType depType) {
+		if (depType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ResourceObjectTypeDependencyType(");
+		
+		if (depType.getResourceRef() != null) {
+			sb.append(depType.getResourceRef().getOid());
+			sb.append(":");
+		}
+		sb.append(depType.getKind());
+		sb.append("/");
+		sb.append(depType.getIntent());
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ExpressionType expressionType) {
+		if (expressionType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ExpressionType(");
+		appendPropertyIfNotNull(sb, "description", expressionType.getDescription());
+		appendPropertyIfNotNull(sb, "extension", expressionType.getExtension());
+		appendPropertyIfNotNull(sb, "trace", expressionType.isTrace());
+		appendPropertyIfNotNull(sb, "variable", expressionType.getVariable());
+		appendPropertyIfNotNull(sb, "returnMultiplicity", expressionType.getReturnMultiplicity());
+		appendPropertyIfNotNull(sb, "allowEmptyValues", expressionType.isAllowEmptyValues());
+		appendPropertyIfNotNull(sb, "queryInterpretationOfNoValue", expressionType.getQueryInterpretationOfNoValue());
+		appendPropertyIfNotNull(sb, "runAsRef", expressionType.getRunAsRef());
+		List<JAXBElement<?>> expressionEvaluators = expressionType.getExpressionEvaluator();
+		sb.append("evaluator").append("=");
+		if (expressionEvaluators.isEmpty()) {
+			sb.append("[]");
+		} else {
+			if (expressionEvaluators.size() > 1) {
+				sb.append("[");
+			}
+			for (JAXBElement<?> expressionEvaluator : expressionEvaluators) {
+				sb.append(expressionEvaluator.getName().getLocalPart());
+				sb.append(":");
+				sb.append(PrettyPrinter.prettyPrint(expressionEvaluator.getValue()));
+				if (expressionEvaluators.size() > 1) {
+					sb.append(", ");
+				}
+			}
+			if (expressionEvaluators.size() > 1) {
+				sb.append("]");
+			}
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ConstExpressionEvaluatorType expressionType) {
+		if (expressionType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ConstExpressionEvaluatorType(");
+		sb.append(expressionType.getValue());
+		sb.append(")");
+		return sb.toString();
+	}
+
+	private static void appendPropertyIfNotNull(StringBuilder sb, String propName, Object value) {
+		if (value != null) {
+			sb.append(propName).append("=").append(value).append(",");
+		}
+	}
+
 	public static String prettyPrint(CachingMetadataType cachingMetadata) {
 		if (cachingMetadata == null) {
 			return "null";
@@ -315,6 +406,41 @@ public class SchemaDebugUtil {
 			sb.append("retrievalTimestamp:");
 			sb.append(prettyPrint(cachingMetadata.getRetrievalTimestamp()));
 		}
+		sb.append(")");
+		return sb.toString();
+	}
+
+	public static String prettyPrint(ScheduleType scheduleType) {
+		if (scheduleType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ScheduleType(");
+		if (scheduleType.getCronLikePattern() != null) {
+			sb.append("cronLikePattern:");
+			sb.append(scheduleType.getCronLikePattern());
+		}
+
+		if (scheduleType.getEarliestStartTime() != null) {
+			sb.append("earliestStartTime:");
+			sb.append(prettyPrint(scheduleType.getEarliestStartTime()));
+		}
+		if (scheduleType.getInterval() != null) {
+			sb.append("interval:");
+			sb.append(prettyPrint(scheduleType.getInterval()));
+		}
+		if (scheduleType.getLatestStartTime() != null) {
+			sb.append("latestStartTime:");
+			sb.append(prettyPrint(scheduleType.getLatestStartTime()));
+		}
+		if (scheduleType.getLatestFinishTime() != null) {
+			sb.append("latestFinishTime:");
+			sb.append(prettyPrint(scheduleType.getLatestFinishTime()));
+		}
+		if (scheduleType.getMisfireAction() != null) {
+			sb.append("misfireAction:");
+			sb.append(prettyPrint(scheduleType.getMisfireAction()));
+		}
+
 		sb.append(")");
 		return sb.toString();
 	}
@@ -355,31 +481,35 @@ public class SchemaDebugUtil {
 		return object.asPrismObject().toString();
 	}
 
-	
+
 	public static String prettyPrint(ProtectedStringType protectedStringType) {
 		if (protectedStringType == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("ProtectedStringType(");
-		
+
 		if (protectedStringType.getEncryptedDataType() != null) {
 			sb.append("[encrypted data]");
 		}
-		
+
 		if (protectedStringType.getHashedDataType() != null) {
 			sb.append("[hashed data]");
 		}
 
 		if (protectedStringType.getClearValue() != null) {
 			sb.append("\"");
-			sb.append(protectedStringType.getClearValue());
+			if (InternalsConfig.isAllowClearDataLogging()) {
+				sb.append(protectedStringType.getClearValue());
+			} else {
+				sb.append("[clear data]");
+			}
 			sb.append("\"");
 		}
 
 		sb.append(")");
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(OperationResultType resultType) {
 		if (resultType == null) {
 			return "null";
@@ -403,7 +533,7 @@ public class SchemaDebugUtil {
 		sb.append(",");
 		if (change.getPath() != null) {
 			//FIXME : xpath vs itemPath
-			XPathHolder xpath = new XPathHolder(change.getPath().getItemPath());
+			ItemPathHolder xpath = new ItemPathHolder(change.getPath().getItemPath());
 			sb.append(xpath.toString());
 		} else {
 			sb.append("xpath=null");
@@ -421,7 +551,7 @@ public class SchemaDebugUtil {
 
 	/**
 	 * Assumes that all elements in the lists have the same QName
-	 * 
+	 *
 	 * @param list
 	 * @return
 	 */
@@ -570,7 +700,7 @@ public class SchemaDebugUtil {
 //
 //		return sb.toString();
 //	}
-	
+
 	private static void prettyPrintFilter(StringBuilder sb, Element filter) {
 
 		if (filter == null) {
@@ -620,7 +750,7 @@ public class SchemaDebugUtil {
 		sb.append(filter.toString());
 		sb.append(")");
 	}
-	
+
 	private static void prettyPrintPaging(StringBuilder sb, ObjectPaging paging) {
 
 		if (paging == null) {
@@ -632,7 +762,7 @@ public class SchemaDebugUtil {
 		sb.append(paging.toString());
 		sb.append(")");
 	}
-	
+
 	public static String prettyPrint(PagingType paging) {
 
 		if (paging == null) {
@@ -667,7 +797,7 @@ public class SchemaDebugUtil {
 
 		return sb.toString();
 	}
-	
+
 	public static String prettyPrint(SynchronizationSituationDescriptionType syncDescType) {
 		if (syncDescType == null) {
 			return "null";
@@ -686,28 +816,80 @@ public class SchemaDebugUtil {
 		sb.append(")");
 		return sb.toString();
 	}
-		
+
+	public static String prettyPrint(ObjectDeltaType deltaType) {
+		if (deltaType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ObjectDeltaType(");
+		sb.append(prettyPrint(deltaType.getObjectType())).append(" ");
+		sb.append(prettyPrint(deltaType.getOid())).append(" ");
+		sb.append(deltaType.getChangeType()).append(": ");
+		com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
+		if (objectToAdd != null) {
+			sb.append(prettyPrint(objectToAdd));
+		}
+		List<ItemDeltaType> itemDelta = deltaType.getItemDelta();
+		if (itemDelta != null && !itemDelta.isEmpty()) {
+			sb.append(prettyPrint(itemDelta));
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(ObjectDeltaOperationType deltaOpType) {
+		if (deltaOpType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("ObjectDeltaOperationType(");
+		sb.append(prettyPrint(deltaOpType.getObjectDelta()));
+		sb.append(": ");
+		OperationResultType result = deltaOpType.getExecutionResult();
+		if (result == null) {
+			sb.append("null result");
+		} else {
+			sb.append(result.getStatus());
+		}
+		// object, resource?
+		sb.append(")");
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(LoginEventType loginEventType) {
+		if (loginEventType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("LoginEventType(");
+		sb.append(prettyPrint(loginEventType.getTimestamp()));
+		String from = loginEventType.getFrom();
+		if (from != null) {
+			sb.append(" from ").append(from);
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+
 	public static String prettyPrint(JAXBElement<?> element) {
 		return "JAXBElement("+PrettyPrinter.prettyPrint(element.getName())+"): "+element.getValue();
 	}
-	
+
 	public static String prettyPrint(UnknownJavaObjectType xml) {
 		if (xml == null) {
 			return "null";
 		}
 		return "Java("+xml.getClazz()+","+xml.getToString()+")";
 	}
-	
+
 //	public static String prettyPrint(OperationProvisioningScriptsType scriptsType) {
 //		if (scriptsType == null) {
 //			return "null";
 //		}
 //		StringBuilder sb = new StringBuilder("")
 //		for (OperationProvisioningScriptType scriptType: scriptsType.getScript()) {
-//			
+//
 //		}
 //	}
-	
+
 	public static String prettyPrint(Object value) {
 		if (value == null) {
 			return "null";
@@ -772,13 +954,55 @@ public class SchemaDebugUtil {
 	}
 
 	public static String prettyPrint(ObjectQuery query){
-		
 		return query.toString();
 	}
 	
+	public static void shortDump(StringBuilder sb, ObjectDeltaType deltaType) {
+		if (deltaType == null) {
+			sb.append("null");
+			return;
+		}
+		sb.append("delta(");
+		QName objectType = deltaType.getObjectType();
+		if (objectType == null) {
+			sb.append("null");
+		} else {
+			sb.append(objectType.getLocalPart());
+		}
+		sb.append(" ");
+		sb.append(deltaType.getOid()).append(" ");
+		sb.append(deltaType.getChangeType()).append(": ");
+		com.evolveum.prism.xml.ns._public.types_3.ObjectType objectToAdd = deltaType.getObjectToAdd();
+		if (objectToAdd != null) {
+			sb.append(prettyPrint(objectToAdd));
+		}
+		List<ItemDeltaType> itemDelta = deltaType.getItemDelta();
+		if (itemDelta != null && !itemDelta.isEmpty()) {
+			sb.append(prettyPrint(itemDelta));
+		}
+		sb.append(")");
+	}
+	
+	public static void shortDump(StringBuilder sb, ObjectDeltaOperationType deltaOpType) {
+		if (deltaOpType == null) {
+			sb.append("null");
+			return;
+		}
+		shortDump(sb, deltaOpType.getObjectDelta());
+		sb.append(": ");
+		OperationResultType result = deltaOpType.getExecutionResult();
+		if (result == null) {
+			sb.append("null result");
+		} else {
+			sb.append(result.getStatus());
+		}
+	}
+
 	static {
 		PrettyPrinter.registerPrettyPrinter(SchemaDebugUtil.class);
 	}
 
-
+	public static void initialize() {
+		// nothing to do here, we just make sure static initialization will take place
+	}
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -52,6 +52,15 @@
         <construction>
             <resourceRef oid="00000000-0000-0000-0000-0000000000e1"/>
         </construction>
+        <policyRule>
+            <policyConstraints>
+                <objectState>
+                    <expression>
+                        <value>1234</value>
+                    </expression>
+                </objectState>
+            </policyConstraints>
+        </policyRule>
     </assignment>
     <assignment id="2">
         <metadata>

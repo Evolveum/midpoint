@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
@@ -28,7 +29,6 @@ import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -47,7 +47,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -60,11 +59,9 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -122,8 +119,7 @@ public class PageResources extends PageAdminResources {
 				Search dto = storage.getSearch();
 
 				if (dto == null) {
-					dto = SearchFactory.createSearch(ResourceType.class, getPrismContext(),
-							getModelInteractionService());
+					dto = SearchFactory.createSearch(ResourceType.class, PageResources.this);
 				}
 
 				return dto;
@@ -141,7 +137,7 @@ public class PageResources extends PageAdminResources {
         if (storage == null) {
             storage = getSessionStorage().initPageStorage(SessionStorage.KEY_RESOURCES);
         }
-        Search search = SearchFactory.createSearch(ResourceType.class, getPrismContext(), getModelInteractionService());
+        Search search = SearchFactory.createSearch(ResourceType.class, this);
 		if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())){
 			search.setFullText(text);
 		} else if (search.getItems() != null && search.getItems().size() > 0){
@@ -153,13 +149,12 @@ public class PageResources extends PageAdminResources {
     }
 
 	private void initLayout() {
-		Form mainForm = new Form(ID_MAIN_FORM);
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
-				.createCollection(GetOperationOptions.createNoFetch());
-		options.add(SelectorOptions.create(ResourceType.F_CONNECTOR_REF,
-				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+		Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(ResourceType.F_CONNECTOR);
+		options.add(SelectorOptions.create(GetOperationOptions.createNoFetch()));
+
 
 		MainObjectListPanel<ResourceType> resourceListPanel = new MainObjectListPanel<ResourceType>(ID_TABLE,
 				ResourceType.class, TableId.TABLE_RESOURCES, options, this) {
@@ -173,6 +168,11 @@ public class PageResources extends PageAdminResources {
 			@Override
 			protected List<IColumn<SelectableBean<ResourceType>, String>> createColumns() {
 				return PageResources.this.initResourceColumns();
+			}
+
+			@Override
+			protected PrismObject<ResourceType> getNewObjectListObject(){
+				return (new ResourceType()).asPrismObject();
 			}
 
 			@Override
@@ -191,6 +191,7 @@ public class PageResources extends PageAdminResources {
 				navigateToNext(PageResourceWizard.class);
 
 			}
+
 		};
 		resourceListPanel.setOutputMarkupId(true);
 		resourceListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_RESOURCE_BOX_CSS_CLASSES);
@@ -203,7 +204,7 @@ public class PageResources extends PageAdminResources {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
 
 		menuItems.add(new InlineMenuItem(createStringResource("PageResources.inlineMenuItem.test"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
@@ -217,7 +218,7 @@ public class PageResources extends PageAdminResources {
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
 
 		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
-				new Model<Boolean>(true), new Model<Boolean>(true), false,
+            new Model<>(true), new Model<>(true), false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
@@ -235,8 +236,8 @@ public class PageResources extends PageAdminResources {
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 
 		menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.deleteSyncToken"),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
 				false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
@@ -249,8 +250,8 @@ public class PageResources extends PageAdminResources {
 				}));
 
 		menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.editResource"),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
-				isHeader ? new Model<Boolean>(false) : new Model<Boolean>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
+				isHeader ? new Model<>(false) : new Model<>(true),
 				false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
@@ -261,7 +262,7 @@ public class PageResources extends PageAdminResources {
 					}
 				}));
 		menuItems.add(new InlineMenuItem(createStringResource("pageResources.button.editAsXml"),
-				new Model<Boolean>(false), new Model<Boolean>(false), false,
+            new Model<>(false), new Model<>(false), false,
 				new ColumnMenuAction<SelectableBean<ResourceType>>() {
 
 					@Override
@@ -372,7 +373,7 @@ public class PageResources extends PageAdminResources {
 					} else {
 						selected = getResourceTable().getSelectedObjects();
 					}
-				
+
 				switch (selected.size()) {
 					case 1:
 						Object first = selected.get(0);
@@ -412,7 +413,7 @@ public class PageResources extends PageAdminResources {
 		result.recomputeStatus();
 		if (result.isSuccess()) {
 			result.recordStatus(OperationResultStatus.SUCCESS,
-					"The resource(s) have been successfully deleted.");
+					"The resource(s) have been successfully deleted."); // todo i18n
 		}
 
 		getResourceTable().clearCache();

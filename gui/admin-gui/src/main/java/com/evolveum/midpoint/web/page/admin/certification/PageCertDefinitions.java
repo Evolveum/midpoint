@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.certification;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -28,10 +29,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.MultiButtonPanel2;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -39,9 +43,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -82,10 +89,11 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 	}
 
 	private void initLayout() {
-		Form mainForm = new Form(ID_MAIN_FORM);
+		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
 
-		MainObjectListPanel<AccessCertificationDefinitionType> mainPanel = new MainObjectListPanel<AccessCertificationDefinitionType>(ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
+		MainObjectListPanel<AccessCertificationDefinitionType> mainPanel = new MainObjectListPanel<AccessCertificationDefinitionType>(
+				ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null, this) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -96,6 +104,11 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 			@Override
 			public void objectDetailsPerformed(AjaxRequestTarget target, AccessCertificationDefinitionType service) {
 				PageCertDefinitions.this.detailsPerformed(target, service);
+			}
+
+			@Override
+			protected PrismObject<AccessCertificationDefinitionType> getNewObjectListObject(){
+				return (new AccessCertificationDefinitionType()).asPrismObject();
 			}
 
 			@Override
@@ -113,6 +126,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 				navigateToNext(PageCertDefinition.class);
 			}
 		};
+		mainPanel.setOutputMarkupId(true);
 		mainPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_CERT_DEF_BOX_CSS_CLASSES);
 		mainForm.add(mainPanel);
 	}
@@ -142,39 +156,44 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		column = new PropertyColumn(createStringResource("PageCertDefinitions.table.description"), "value.description");
 		columns.add(column);
 
-		column = new MultiButtonColumn<SelectableBean<AccessCertificationDefinitionType>>(new Model(), 3) {
+		column = new AbstractColumn<SelectableBean<AccessCertificationDefinitionType>, String>(new Model<>()) {
 
-			private final String[] captionKeys = {
-					"PageCertDefinitions.button.createCampaign",
-					"PageCertDefinitions.button.showCampaigns",
-					"PageCertDefinitions.button.deleteDefinition"
-			};
-
-			private final DoubleButtonColumn.BUTTON_COLOR_CLASS[] colors = {
-					DoubleButtonColumn.BUTTON_COLOR_CLASS.PRIMARY,
-					DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT,
-					DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER
-			};
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			public String getCaption(int id) {
-				return PageCertDefinitions.this.createStringResource(captionKeys[id]).getString();
-			}
+			public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationDefinitionType>>> cellItem, String componentId,
+									 IModel<SelectableBean<AccessCertificationDefinitionType>> rowModel) {
 
-			@Override
-			public String getButtonColorCssClass(int id) {
-				return colors[id].toString();
-			}
+				cellItem.add(new MultiButtonPanel2<SelectableBean<AccessCertificationDefinitionType>>(componentId, rowModel, 3) {
 
-			@Override
-			public void clickPerformed(int id, AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
-				switch (id) {
-					case 0: createCampaignPerformed(target, model.getObject().getValue()); break;
-					case 1: showCampaignsPerformed(target, model.getObject().getValue()); break;
-					case 2: deleteConfirmation(target, model.getObject().getValue()); break;
-				}
-			}
+					private static final long serialVersionUID = 1L;
 
+					@Override
+					protected AjaxIconButton createButton(int index, String componentId, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
+						AjaxIconButton btn = null;
+						switch (index) {
+							case 0:
+								btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.createCampaign"),
+										new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.PRIMARY),
+										target -> createCampaignPerformed(target, model.getObject().getValue()));
+								btn.add(new EnableBehaviour(() -> !Boolean.TRUE.equals(model.getObject().getValue().isAdHoc())));
+								break;
+							case 1:
+								btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.showCampaigns"),
+										new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT),
+										target -> showCampaignsPerformed(target, model.getObject().getValue()));
+								break;
+							case 2:
+								btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.deleteDefinition"),
+										new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER),
+										target -> deleteConfirmation(target, model.getObject().getValue()));
+								break;
+						}
+
+						return btn;
+					}
+				});
+			}
 		};
 		columns.add(column);
 
@@ -199,7 +218,11 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		OperationResult result = new OperationResult(OPERATION_CREATE_CAMPAIGN);
 		try {
 			Task task = createSimpleTask(OPERATION_CREATE_CAMPAIGN);
-			getCertificationService().createCampaign(definition.getOid(), task, result);
+			if (!Boolean.TRUE.equals(definition.isAdHoc())) {
+				getCertificationService().createCampaign(definition.getOid(), task, result);
+			} else {
+				result.recordWarning("Definition '" + definition.getName() + "' is for ad-hoc campaigns that cannot be started manually.");
+			}
 		} catch (Exception ex) {
 			result.recordFatalError(ex);
 		} finally {
@@ -232,7 +255,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
 		result.computeStatusIfUnknown();
 		if (result.isSuccess()) {
-			result.recordStatus(OperationResultStatus.SUCCESS, "The definition has been successfully deleted.");
+			result.recordStatus(OperationResultStatus.SUCCESS, "The definition has been successfully deleted.");    // todo i18n
 		}
 
 		getDefinitionsTable().clearCache();

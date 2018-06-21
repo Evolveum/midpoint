@@ -17,9 +17,9 @@ package com.evolveum.midpoint.infra.wsutil;
 
 /**
  * Run with:
- * 
+ *
  * mvn exec:java -Dexec.classpathScope=test -Dexec.mainClass="com.evolveum.midpoint.infra.wsutil.DummyMain" -Dexec.args="...."
- * 
+ *
  * @author semancik
  *
  */

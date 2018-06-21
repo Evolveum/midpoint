@@ -17,16 +17,19 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
+import java.io.Serializable;
+import java.util.Objects;
+
 /**
  * Single-purpose class to return task run results.
- * 
+ *
  * More than one value is returned, therefore it is
  * bundled into a class.
- * 
+ *
  * @author Radovan Semancik
  *
  */
-public final class TaskRunResult {
+public class TaskRunResult implements Serializable {
 
 	public enum TaskRunResultStatus {
 		/**
@@ -44,7 +47,6 @@ public final class TaskRunResult {
          * For single-run tasks, the effect is the same as of FINISHED value.
          * However, for recurring tasks, this return value causes current handler to be removed from the handler stack.
          */
-
         FINISHED_HANDLER,
 
         /**
@@ -54,10 +56,10 @@ public final class TaskRunResult {
          * re-trying the run. Usual case of this error is task misconfiguration.
          */
 		PERMANENT_ERROR,
-		
+
 		/**
 		 * Temporary failure during the run.
-		 * 
+		 *
 		 * The error is temporary. The situation may change later when the conditions will be more "favorable".
          * It makes sense to retry the run. Usual cases of this error are network timeouts.
          *
@@ -80,24 +82,28 @@ public final class TaskRunResult {
          * Task has to be restarted, typically because a new handler was put onto the handler stack during
          * the task run.
          */
-        RESTART_REQUESTED
+        RESTART_REQUESTED,
 
+		/**
+		 * Task has entered waiting state. TODO. EXPERIMENTAL.
+		 */
+		IS_WAITING
     }
-	
-	private long progress;
-	private TaskRunResultStatus runResultStatus;
-	private OperationResult operationResult;
-	
+
+	protected Long progress;          // null means "do not update, take whatever is in the task"
+	protected TaskRunResultStatus runResultStatus;
+	protected OperationResult operationResult;
+
 	/**
 	 * @return the progress
 	 */
-	public long getProgress() {
+	public Long getProgress() {
 		return progress;
 	}
 	/**
 	 * @param progress the progress to set
 	 */
-	public void setProgress(long progress) {
+	public void setProgress(Long progress) {
 		this.progress = progress;
 	}
 	/**
@@ -112,53 +118,37 @@ public final class TaskRunResult {
 	public void setRunResultStatus(TaskRunResultStatus status) {
 		this.runResultStatus = status;
 	}
-	
+
 	public OperationResult getOperationResult() {
 		return operationResult;
 	}
-	
+
 	public void setOperationResult(OperationResult operationResult) {
 		this.operationResult = operationResult;
 	}
-	
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof TaskRunResult))
+			return false;
+		TaskRunResult that = (TaskRunResult) o;
+		return Objects.equals(progress, that.progress) &&
+				runResultStatus == that.runResultStatus &&
+				Objects.equals(operationResult, that.operationResult);
+	}
+
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((operationResult == null) ? 0 : operationResult.hashCode());
-		result = prime * result + (int) (progress ^ (progress >>> 32));
-		result = prime * result
-				+ ((runResultStatus == null) ? 0 : runResultStatus.hashCode());
-		return result;
+		return Objects.hash(progress, runResultStatus, operationResult);
 	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		TaskRunResult other = (TaskRunResult) obj;
-		if (operationResult == null) {
-			if (other.operationResult != null)
-				return false;
-		} else if (!operationResult.equals(other.operationResult))
-			return false;
-		if (progress != other.progress)
-			return false;
-		if (runResultStatus != other.runResultStatus)
-			return false;
-		return true;
-	}
-	
+
 	@Override
 	public String toString() {
 		return "TaskRunResult(progress=" + progress + ", status="
 				+ runResultStatus + ", result=" + operationResult
 				+ ")";
 	}
-	
+
 }

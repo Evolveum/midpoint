@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
     <parent>
         <artifactId>infra</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>3.6-SNAPSHOT</version>
+        <version>3.9-SNAPSHOT</version>
     </parent>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
@@ -35,12 +35,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.9-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.9-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>commons-collections</groupId>
@@ -114,7 +114,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>test-ng</artifactId>
-            <version>3.6-SNAPSHOT</version>
+            <version>3.9-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -135,59 +135,6 @@
     </dependencies>
     <build>
         <plugins>
-            <!-- <plugin>
-                   <groupId>org.jvnet.jaxb2.maven2</groupId>
-                   <artifactId>maven-jaxb2-plugin</artifactId>
-                   <version>0.7.0</version>
-                   <executions>
-                       <execution>
-                           <goals>
-                               <goal>generate</goal>
-                           </goals>
-                       </execution>
-                   </executions>
-                   <configuration>
-                       <args>
-                           <arg>-XtoString</arg>
-                           <arg>-Xequals</arg>
-                           <arg>-XhashCode</arg>
-                           <arg>-Xcopyable</arg>
-                           <arg>-Xmergeable</arg>
-                       </args>
-                       <plugins>
-                           <plugin>
-                               <groupId>org.jvnet.jaxb2_commons</groupId>
-                               <artifactId>jaxb2-basics</artifactId>
-                               <version>0.6.3</version>
-                           </plugin>
-                       </plugins>
-                   </configuration>
-               </plugin>  -->
-            <!-- <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-prism-schema-files</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.evolveum.midpoint.infra</groupId>
-                                    <artifactId>prism</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>jar</type>
-                                </artifactItem>
-                            </artifactItems>
-                            <includes>**/*.xsd,**/*.dtd,**/*.wsdl</includes>
-                            <outputDirectory>${project.basedir}/target/additional-schemas/prism</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin> -->
             <plugin>
                 <!-- Used to pull XSD files from the JAR -->
                 <groupId>com.evolveum.midpoint.tools</groupId>
@@ -307,7 +254,7 @@
                     <dependency>
                         <groupId>com.evolveum.midpoint.tools</groupId>
                         <artifactId>xjc-plugin</artifactId>
-                        <version>3.6-SNAPSHOT</version>
+                        <version>3.9-SNAPSHOT</version>
                     </dependency>
                     <dependency>
 		                <groupId>com.sun.xml.bind</groupId>
@@ -319,7 +266,7 @@
             <plugin>
                 <groupId>com.evolveum.midpoint.infra</groupId>
                 <artifactId>prism-maven-plugin</artifactId>
-                <version>3.6-SNAPSHOT</version>
+                <version>3.9-SNAPSHOT</version>
                 <configuration>
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>

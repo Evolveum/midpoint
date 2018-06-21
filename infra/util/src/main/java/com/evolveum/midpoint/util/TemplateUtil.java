@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.util;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
+import java.util.Map.Entry;
+
+/**
+ * @author mederly
+ *
+ */
+public class TemplateUtil {
+
+	// very primitive implementation, for now
+	// TODO implement some escaping of control characters
+	public static String replace(String template, @NotNull Map<String, String> replacements) {
+		if (template == null) {
+			return null;
+		}
+		String rv = template;
+		for (Entry<String, String> entry : replacements.entrySet()) {
+			rv = rv.replace("{" + entry.getKey() + "}", entry.getValue());
+		}
+		return rv;
+	}
+}

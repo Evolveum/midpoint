@@ -31,10 +31,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -88,12 +88,13 @@ public class XsdTypeMapper {
         addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(Duration.class, DOMUtil.XSD_DURATION, true);
-        
+
         addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
         addMapping(ItemPath.class, ItemPathType.COMPLEX_TYPE, false);
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
-        
+
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
+        addMapping(RawType.class,  DOMUtil.XSD_STRING, false);
         addMappingExt(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);				// TODO remove
 
         xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
@@ -122,7 +123,7 @@ public class XsdTypeMapper {
         }
         return xsdType;
     }
-    
+
     public static QName getJavaToXsdMapping(Class<?> type) {
         if (javaToXsdTypeMap.containsKey(type)) {
             return javaToXsdTypeMap.get(type);
@@ -133,7 +134,7 @@ public class XsdTypeMapper {
         }
         return null;
     }
-    
+
     public static QName determineQNameWithNs(QName xsdType){
     	if (StringUtils.isNotBlank(xsdType.getNamespaceURI())){
     		return xsdType;
@@ -147,17 +148,17 @@ public class XsdTypeMapper {
     	}
     	return null;
     }
-    
+
     public static <T> Class<T> getXsdToJavaMapping(QName xsdType) {
     	Class clazz = xsdToJavaTypeMap.get(xsdType);
     	if (clazz == null){
-    		Set<QName> keys = xsdToJavaTypeMap.keySet();
-    		for (Iterator<QName> iterator = keys.iterator(); iterator.hasNext();){
-    			QName key = iterator.next();
-    			if (QNameUtil.match(key, xsdType)){
-    				return xsdToJavaTypeMap.get(key);
-    			}
-    		}
+    		Set<Map.Entry<QName, Class>> entries = xsdToJavaTypeMap.entrySet();
+    		for (Map.Entry<QName, Class> entry : entries) {
+                QName key = entry.getKey();
+                if (QNameUtil.match(key, xsdType)){
+                    return entry.getValue();
+                }
+            }
     	}
     	return xsdToJavaTypeMap.get(xsdType);
     }
@@ -222,7 +223,7 @@ public class XsdTypeMapper {
         Class<T> typedClass = (Class<T>) javaType;
         return typedClass;
     }
-    
+
     public static String multiplicityToString(Integer integer) {
 		if (integer == null) {
 			return null;
@@ -252,7 +253,7 @@ public class XsdTypeMapper {
 		}
 		return true;
 	}
-	
+
     static {
         try {
             initTypeMap();

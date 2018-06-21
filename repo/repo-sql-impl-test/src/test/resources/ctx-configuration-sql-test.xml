@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,9 +30,6 @@
 
     <bean name="repositoryService" factory-bean="repositoryFactory" factory-method="getRepositoryService"
           class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory"/>
-
-    <bean name="cacheRepositoryService" factory-bean="repositoryFactory" factory-method="getCacheRepositoryService"
-          class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" />
 
     <bean name="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"
           init-method="init" destroy-method="destroy" />

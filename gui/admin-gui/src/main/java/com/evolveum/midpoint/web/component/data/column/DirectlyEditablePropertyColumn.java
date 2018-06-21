@@ -46,8 +46,8 @@ public class DirectlyEditablePropertyColumn<T> extends PropertyColumn<T, String>
     }
 
     protected InputPanel createInputPanel(String componentId, final IModel<T> model) {
-        TextPanel textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
-        TextField textField = (TextField) textPanel.getBaseFormComponent();     // UGLY HACK
+        TextPanel<?> textPanel = new TextPanel<String>(componentId, new PropertyModel<>(model, getPropertyExpression()));
+        TextField<?> textField = (TextField<?>) textPanel.getBaseFormComponent();     // UGLY HACK
         textField.add(new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -58,6 +58,6 @@ public class DirectlyEditablePropertyColumn<T> extends PropertyColumn<T, String>
     }
 
     public void onBlur(AjaxRequestTarget target, IModel<T> model) {
-        // doing nothing; may be overriden in subclasses
+        // doing nothing; may be overridden in subclasses
     }
 }

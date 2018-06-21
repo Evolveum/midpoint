@@ -72,7 +72,10 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
 
+        // probably not needed, as audit service would take care of it; but it doesn't hurt so let's keep it here
         record.setHostIdentifier(request.getLocalName());
+        record.setRemoteHostAddress(request.getLocalAddr());
+        record.setNodeIdentifier(taskManager.getNodeId());
         record.setSessionIdentifier(request.getRequestedSessionId());
 
         auditService.audit(record, task);

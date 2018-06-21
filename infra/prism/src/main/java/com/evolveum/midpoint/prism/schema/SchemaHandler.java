@@ -31,9 +31,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Implements {@link EntityResolver} and {@link ErrorHandler} that reports sax
  * errors to log.
- * 
+ *
  * @author Vilo Repan
- * 
+ *
  */
 public class SchemaHandler implements ErrorHandler, EntityResolver {
 
@@ -79,7 +79,7 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String,
 	 * java.lang.String)
 	 */
@@ -93,11 +93,11 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
 			LOGGER.trace("Resolved entity '{}', '{}': '{}' (resolver: {})", new Object[] { publicId, systemId, source, entityResolver});
 			return source;
 		} catch (SAXException e) {
-			LOGGER.error("XML error resolving entity '{}', '{}': '{}'",
+			LOGGER.error("XML error resolving entity '{}', '{}': '{}-{}'",
 					new Object[] { publicId, systemId, e.getMessage(), e });
 			throw e;
 		} catch (IOException e) {
-			LOGGER.error("IO error resolving entity '{}', '{}': '{}'",
+			LOGGER.error("IO error resolving entity '{}', '{}': '{}-{}'",
 					new Object[] { publicId, systemId, e.getMessage(), e });
 			throw e;
 		}

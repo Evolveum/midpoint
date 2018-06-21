@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,11 +32,11 @@ import java.util.Iterator;
 
 /**
  * DeltaSetTriple that is limited to hold prism values. By limiting to the PrismValue descendants we gain advantage to be
- * clonnable and ability to compare real values. 
+ * clonnable and ability to compare real values.
  *
  * @author Radovan Semancik
  */
-public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTriple<V> 
+public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTriple<V>
 				implements DebugDumpable, Visitable {
 
     public PrismValueDeltaSetTriple() {
@@ -47,7 +46,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
     public PrismValueDeltaSetTriple(Collection<V> zeroSet, Collection<V> plusSet, Collection<V> minusSet) {
     	super(zeroSet, plusSet, minusSet);
     }
-    
+
     /**
      * Compares two (unordered) collections and creates a triple describing the differences.
      */
@@ -74,6 +73,11 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
         }
     }
     
+    @Override
+    protected boolean presentInSet(Collection<V> set, V item) {
+    	return set != null && PrismValue.containsRealValue(set, item);
+    }
+
 	public Class<V> getValueClass() {
 		V anyValue = getAnyValue();
 		if (anyValue == null) {
@@ -81,7 +85,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 		}
 		return (Class<V>) anyValue.getClass();
 	}
-	
+
 	public Class<?> getRealValueClass() {
 		V anyValue = getAnyValue();
 		if (anyValue == null) {
@@ -114,7 +118,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 		}
 		return false;
 	}
-	
+
 	public void applyDefinition(ItemDefinition itemDefinition) throws SchemaException {
 		applyDefinition(zeroSet, itemDefinition);
 		applyDefinition(plusSet, itemDefinition);
@@ -129,7 +133,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			item.applyDefinition(itemDefinition);
 		}
 	}
-	
+
 	/**
 	 * Sets specified source type for all values in all sets
 	 */
@@ -146,7 +150,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			}
 		}
 	}
-	
+
 	/**
 	 * Sets specified origin object for all values in all sets
 	 */
@@ -163,7 +167,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			}
 		}
 	}
-	
+
 	public void removeEmptyValues(boolean allowEmptyValues) {
 		removeEmptyValues(plusSet, allowEmptyValues);
 		removeEmptyValues(zeroSet, allowEmptyValues);
@@ -210,7 +214,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 	protected void copyValues(PrismValueDeltaSetTriple<V> clone) {
 		super.copyValues(clone, original -> (V) original.clone());
 	}
-	
+
 	public void checkConsistence() {
 		Visitor visitor = visitable -> {
 			if (visitable instanceof PrismValue) {
@@ -220,7 +224,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			}
 		};
 		accept(visitor);
-		
+
 		Processor<V> processor = pval -> {
 			if (pval.getParent() != null) {
 				throw new IllegalStateException("Value "+pval+" in triple "+PrismValueDeltaSetTriple.this+" has parent, looks like it was not cloned properly");
@@ -228,7 +232,7 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 		};
 		foreach(processor);
 	}
-	
+
 	@Override
 	public void accept(Visitor visitor) {
 		acceptSet(zeroSet, visitor);
@@ -244,24 +248,24 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 			val.accept(visitor);
 		}
 	}
-	
+
 	public void checkNoParent() {
-		checkNoParent(zeroSet);
-		checkNoParent(plusSet);
-		checkNoParent(minusSet);
+		checkNoParent(zeroSet, "zero");
+		checkNoParent(plusSet, "plus");
+		checkNoParent(minusSet, "minus");
 	}
-	
-	private void checkNoParent(Collection<V> set) {
+
+	private void checkNoParent(Collection<V> set, String desc) {
 		if (set == null) {
 			return;
 		}
 		for (V val: set) {
 			if (val.getParent() != null) {
-				throw new IllegalStateException("Value "+val+" in triple set "+this+" has a parrent "+val.getParent()+". This is unexpected");
+				throw new IllegalStateException("Value "+val+" in "+desc+" triple set "+this+" has a parrent "+val.getParent()+". This is unexpected");
 			}
 		}
 	}
-	
+
 	protected String debugName() {
     	return "PVDeltaSetTriple";
     }

@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -59,57 +59,57 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * UCF test with dummy resource and several connector instances.
- * 
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = { "classpath:ctx-ucf-connid-test.xml" })
 public class TestUcfDummyMulti extends AbstractUcfDummyTest {
-	
+
 	private static Trace LOGGER = TraceManager.getTrace(TestUcfDummyMulti.class);
-		
+
 	@Test
 	public void test000PrismContextSanity() throws Exception {
 		final String TEST_NAME = "test000PrismContextSanity";
-		TestUtil.displayTestTile(TEST_NAME);
-		
+		TestUtil.displayTestTitle(TEST_NAME);
+
 		SchemaRegistry schemaRegistry = PrismTestUtil.getPrismContext().getSchemaRegistry();
 		PrismSchema schemaIcfc = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_CONFIGURATION);
 		assertNotNull("ICFC schema not found in the context ("+SchemaConstants.NS_ICF_CONFIGURATION+")", schemaIcfc);
-		PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef = 
+		PrismContainerDefinition<ConnectorConfigurationType> configurationPropertiesDef =
 			schemaIcfc.findContainerDefinitionByElementName(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("icfc:configurationProperties not found in icfc schema ("+
 				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME+")", configurationPropertiesDef);
 		PrismSchema schemaIcfs = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_ICF_SCHEMA);
 		assertNotNull("ICFS schema not found in the context ("+SchemaConstants.NS_ICF_SCHEMA+")", schemaIcfs);
 	}
-		
+
 	@Test
 	public void test020CreateConfiguredConnector() throws Exception {
 		final String TEST_NAME = "test020CreateConfiguredConnector";
-		TestUtil.displayTestTile(TEST_NAME);
-		
+		TestUtil.displayTestTitle(TEST_NAME);
+
 		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
 				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(TestUcfDummyMulti.class.getName() + "." + TEST_NAME);
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
-		
+
 		// WHEN
 		cc.configure(configContainer, result);
-		
+
 		// THEN
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
-		
+
 		resourceSchema = cc.fetchResourceSchema(null, result);
 		assertNotNull("No resource schema", resourceSchema);
 	}
-	
+
 	@Test
 	public void test100AddAccount() throws Exception {
 		final String TEST_NAME = "test100AddAccount";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
@@ -125,7 +125,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, defaultAccountDefinition);
 		ResourceAttribute<String> icfsNameProp = attributesContainer.findOrCreateAttribute(SchemaConstants.ICFS_NAME);
 		icfsNameProp.setRealValue(ACCOUNT_JACK_USERNAME);
-		
+
 		// WHEN
 		cc.addObject(shadow, null, null, result);
 
@@ -133,21 +133,21 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_JACK_USERNAME);
 		assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" was not created", dummyAccount);
 		assertNotNull("Account "+ACCOUNT_JACK_USERNAME+" has no username", dummyAccount.getName());
-		
+
 	}
-	
+
 	@Test
 	public void test110SearchNonBlocking() throws Exception {
 		final String TEST_NAME = "test100SearchNonBlocking";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
-		
-		final List<PrismObject<ShadowType>> searchResults = new ArrayList<PrismObject<ShadowType>>();
 
-		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+		final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
+
+		ShadowResultHandler handler = new ShadowResultHandler() {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
@@ -165,27 +165,27 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
 		// THEN
 		assertEquals("Unexpected number of search results", 1, searchResults.size());
-		
+
 		ConnectorOperationalStatus opStat = cc.getOperationalStatus();
 		display("stats", opStat);
 		assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumActive());
 		assertEquals("Wrong pool active", (Integer)1, opStat.getPoolStatusNumIdle());
 	}
-	
+
 	@Test
 	public void test200BlockingSearch() throws Exception {
 		final String TEST_NAME = "test200BlockingSearch";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		final OperationResult result = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
 
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
-		
-		final List<PrismObject<ShadowType>> searchResults = new ArrayList<PrismObject<ShadowType>>();
 
-		final ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+		final List<PrismObject<ShadowType>> searchResults = new ArrayList<>();
+
+		final ShadowResultHandler handler = new ShadowResultHandler() {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
@@ -196,10 +196,10 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		};
 
 		dummyResource.setBlockOperations(true);
-		
+
 		// WHEN
 		Thread t = new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				try {
@@ -212,48 +212,48 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		});
 		t.setName("search1");
 		t.start();
-		
+
 		// Give the new thread a chance to get blocked
 		Thread.sleep(500);
-		
+
 		ConnectorOperationalStatus opStat = cc.getOperationalStatus();
 		display("stats (blocked)", opStat);
 		assertEquals("Wrong pool active", (Integer)1, opStat.getPoolStatusNumActive());
 		assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumIdle());
 
 		assertEquals("Unexpected number of search results", 0, searchResults.size());
-		
+
 		dummyResource.unblock();
-		
+
 		t.join();
-		
+
 		dummyResource.setBlockOperations(false);
-		
+
 		// THEN
 		assertEquals("Unexpected number of search results", 1, searchResults.size());
-		
+
 		opStat = cc.getOperationalStatus();
 		display("stats (final)", opStat);
 		assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumActive());
 		assertEquals("Wrong pool active", (Integer)1, opStat.getPoolStatusNumIdle());
-		
+
 		PrismObject<ShadowType> searchResult = searchResults.get(0);
 		display("Search result", searchResult);
 	}
-	
+
 	@Test
 	public void test210TwoBlockingSearches() throws Exception {
 		final String TEST_NAME = "test210TwoBlockingSearches";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 
-		
+
 		final ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 		// Determine object class from the schema
-		
+
 		final OperationResult result1 = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
-		final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<PrismObject<ShadowType>>();
-		final ResultHandler<ShadowType> handler1 = new ResultHandler<ShadowType>() {
+		final List<PrismObject<ShadowType>> searchResults1 = new ArrayList<>();
+		final ShadowResultHandler handler1 = new ShadowResultHandler() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
 				checkUcfShadow(shadow, accountDefinition);
@@ -261,10 +261,10 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 				return true;
 			}
 		};
-		
+
 		final OperationResult result2 = new OperationResult(this.getClass().getName() + "." + TEST_NAME);
-		final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<PrismObject<ShadowType>>();
-		final ResultHandler<ShadowType> handler2 = new ResultHandler<ShadowType>() {
+		final List<PrismObject<ShadowType>> searchResults2 = new ArrayList<>();
+		final ShadowResultHandler handler2 = new ShadowResultHandler() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
 				checkUcfShadow(shadow, accountDefinition);
@@ -274,10 +274,10 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		};
 
 		dummyResource.setBlockOperations(true);
-		
+
 		// WHEN
 		Thread t1 = new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				try {
@@ -290,10 +290,10 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		});
 		t1.setName("search1");
 		t1.start();
-		
+
 		// Give the new thread a chance to get blocked
 		Thread.sleep(500);
-		
+
 		ConnectorOperationalStatus opStat = cc.getOperationalStatus();
 		display("stats (blocked 1)", opStat);
 		assertEquals("Wrong pool active", (Integer)1, opStat.getPoolStatusNumActive());
@@ -302,7 +302,7 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		assertEquals("Unexpected number of search results", 0, searchResults1.size());
 
 		Thread t2 = new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				try {
@@ -318,37 +318,37 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 
 		// Give the new thread a chance to get blocked
 		Thread.sleep(500);
-		
+
 		opStat = cc.getOperationalStatus();
 		display("stats (blocked 2)", opStat);
 		assertEquals("Wrong pool active", (Integer)2, opStat.getPoolStatusNumActive());
 		assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumIdle());
 
 		assertEquals("Unexpected number of search results", 0, searchResults1.size());
-		
+
 		dummyResource.unblockAll();
-		
+
 		t1.join();
 		t2.join();
-		
+
 		dummyResource.setBlockOperations(false);
-		
+
 		// THEN
 		assertEquals("Unexpected number of search results 1", 1, searchResults1.size());
 		assertEquals("Unexpected number of search results 2", 1, searchResults2.size());
-		
+
 		opStat = cc.getOperationalStatus();
 		display("stats (final)", opStat);
 		assertEquals("Wrong pool active", (Integer)0, opStat.getPoolStatusNumActive());
 		assertEquals("Wrong pool active", (Integer)2, opStat.getPoolStatusNumIdle());
-		
+
 		PrismObject<ShadowType> searchResult1 = searchResults1.get(0);
 		display("Search result 1", searchResult1);
-		
+
 		PrismObject<ShadowType> searchResult2 = searchResults2.get(0);
 		display("Search result 2", searchResult2);
 	}
-		
+
 	private void checkUcfShadow(PrismObject<ShadowType> shadow, ObjectClassComplexTypeDefinition objectClassDefinition) {
 		assertNotNull("No objectClass in shadow "+shadow, shadow.asObjectable().getObjectClass());
 		assertEquals("Wrong objectClass in shadow "+shadow, objectClassDefinition.getTypeName(), shadow.asObjectable().getObjectClass());
@@ -356,6 +356,6 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		assertNotNull("No attributes in shadow "+shadow, attributes);
 		assertFalse("Empty attributes in shadow "+shadow, attributes.isEmpty());
 	}
-	
+
 
 }

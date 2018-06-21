@@ -64,7 +64,7 @@ public class PatternFilter extends AbstractFilter {
     }
 
     private List<Replace> getReplaces() {
-        List<Replace> replaces = new ArrayList<Replace>();
+        List<Replace> replaces = new ArrayList<>();
 
         List<Object> parameters = getParameters();
         for (Object object : parameters) {

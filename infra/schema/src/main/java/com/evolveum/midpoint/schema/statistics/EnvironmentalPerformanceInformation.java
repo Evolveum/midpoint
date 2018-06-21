@@ -400,7 +400,7 @@ public class EnvironmentalPerformanceInformation {
             e.setSyncSuccess(e.getSyncSuccess() + de.getSyncSuccess());
             e.setScriptSuccess(e.getScriptSuccess() + de.getScriptSuccess());
             e.setOtherSuccess(e.getOtherSuccess() + de.getOtherSuccess());
-            
+
             e.setGetFailure(e.getGetFailure() + de.getGetFailure());
             e.setSearchFailure(e.getSearchFailure() + de.getSearchFailure());
             e.setCreateFailure(e.getCreateFailure() + de.getCreateFailure());

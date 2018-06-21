@@ -24,7 +24,9 @@ import java.io.Serializable;
  * */
 public class PropertyConstraintTypeDto implements Serializable{
 
-    public static final String F_PROPERTY_PATH = "propertyPath";
+ 	private static final long serialVersionUID = 1L;
+ 	
+	public static final String F_PROPERTY_PATH = "propertyPath";
     public static final String F_OID_BOUND = "oidBound";
 
     private String propertyPath;

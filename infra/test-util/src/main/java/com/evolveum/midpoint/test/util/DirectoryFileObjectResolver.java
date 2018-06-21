@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -42,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class DirectoryFileObjectResolver implements ObjectResolver {
 
 	private File directory;
-	
+
 	public DirectoryFileObjectResolver(File directory) {
 		super();
 		this.directory = directory;
@@ -63,7 +64,7 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 			throw new ObjectNotFoundException("Object "+ref.getOid()+" does not exists");
 		}
 	}
-	
+
 	private String oidToFilename(String oid) {
 		return oid+".xml";
 	}
@@ -73,6 +74,10 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 													   Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler,
 													   Object task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException, SecurityViolationException {
+		//TODO: do we want to test custom libraries in the "unit" tests
+		if (type.equals(FunctionLibraryType.class)) {
+			return;
+		}
 		throw new UnsupportedOperationException();
 	}
 

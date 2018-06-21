@@ -31,14 +31,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * The XML comparison is not schema aware. It will not handle
  * QNames in values correctly. The comparison ignores XML formatting
  * (whitespaces between elements).
- * 
+ *
  * @author Radovan Semancik
  *
  */
 public class XmlMatchingRule implements MatchingRule<String> {
-	
+
 	public static final Trace LOGGER = TraceManager.getTrace(XmlMatchingRule.class);
-	
+
 	public static final QName NAME = new QName(PrismConstants.NS_MATCHING_RULE, "xml");
 
 	@Override
@@ -63,11 +63,11 @@ public class XmlMatchingRule implements MatchingRule<String> {
 			return false;
 		}
 		try {
-			
+
 			Document docA = DOMUtil.parseDocument(a);
 			Document docB = DOMUtil.parseDocument(b);
 			return DOMUtil.compareDocument(docA, docB, false, false);
-			
+
 		} catch (IllegalStateException | IllegalArgumentException e) {
 			LOGGER.warn("Invalid XML in XML matching rule: {}", e.getMessage());
 			// Invalid XML. We do not want to throw the exception from matching rule.
@@ -85,12 +85,12 @@ public class XmlMatchingRule implements MatchingRule<String> {
 			return original;
 		}
 		try {
-			
+
 			Document doc = DOMUtil.parseDocument(original);
 			DOMUtil.normalize(doc, false);
 			String out = DOMUtil.printDom(doc, false, true).toString();
 			return out.trim();
-			
+
 		} catch (IllegalStateException | IllegalArgumentException e) {
 			LOGGER.warn("Invalid XML in XML matching rule: {}", e.getMessage());
 			return original.trim();

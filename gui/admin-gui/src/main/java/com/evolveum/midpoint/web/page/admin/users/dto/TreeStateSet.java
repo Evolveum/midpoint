@@ -29,7 +29,7 @@ import java.util.Set;
  */
 public class TreeStateSet<T extends Serializable> implements Set<T>, Serializable {
 
-    private Set<T> set = new HashSet<T>();
+    private Set<T> set = new HashSet<>();
     private boolean inverse;
 
     public void expandAll() {

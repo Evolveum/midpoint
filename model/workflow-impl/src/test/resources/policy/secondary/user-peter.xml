@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<user oid="756c33ea-10cc-496d-b9c2-34802b993210"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+	<name>peter</name>
+	<assignment id="2">
+		<targetRef oid="19f11686-df22-11e6-b0e9-835ed7ca08a5" type="RoleType"/>		<!-- prize-bronze -->
+	</assignment>
+</user>

@@ -51,7 +51,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
     public static final String TAB_PANEL_ID = "panel";
     public static final String RIGHT_SIDE_TAB_ITEM_ID = "rightSideTabItem";
     public static final String RIGHT_SIDE_TAB_ID = "rightSideTab";
-    
+
 	protected static final String ID_TITLE = "title";
 	protected static final String ID_COUNT = "count";
 	protected static final String ID_LINK = "link";
@@ -122,7 +122,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
                 titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
                 item.add(titleLink);
-                
+
                 final IModel<String> countModel;
                 if (tab instanceof CountModelProvider) {
                 	countModel = ((CountModelProvider)tab).getCountModel();
@@ -176,7 +176,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
      */
     @Override
     protected IModel<?> initModel() {
-        return new Model<Integer>(-1);
+        return new Model<>(-1);
     }
 
     /**
@@ -488,7 +488,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
      */
     protected void onTabChange(int index) {}
 
-	public interface RightSideItemProvider extends Serializable {
+	@FunctionalInterface
+    public interface RightSideItemProvider extends Serializable {
 		Component createRightSideItem(String id);
 	}
 }

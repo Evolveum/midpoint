@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+ 
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+	<role oid="665d7d52-92d7-11e7-877a-b359a4a005d2">
+		<name>Newsletter</name>
+		<description>Regular or irregular delivery of a newsletter by electronic means. The newsletter contains information and news about products, services, community and the ecosystem. Newsletter content may be personalized by using the data from user profile.</description>
+		<roleType>dps</roleType>
+	</role>
+
+	<role oid="d5a6855a-92d7-11e7-955a-8b4649d10023">
+		<name>Personalized user experience</name>
+		<description>User interaction of company web sites may use information from the user profile to personalize user experience.</description>
+		<roleType>dps</roleType>
+	</role>
+
+	<role oid="5dac0420-92d8-11e7-9c64-63f66b08c50a">
+		<name>Usage statistics</name>
+		<description>Data controller may observe user behavior and gather statistical data that may be combined with personal data from user profile.</description>
+		<roleType>dps</roleType>
+	</role>
+
+	<role oid="cfebc2c8-92d8-11e7-b56f-d3ff62d95a3e">
+		<name>Partner network information exchange</name>
+		<description>Limited scope of user personal data may be shared with selected members of the partner network.</description>
+		<roleType>dps</roleType>
+	</role>
+	
+</objects>

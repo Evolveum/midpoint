@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package com.evolveum.midpoint.schema.parser;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
@@ -25,10 +26,10 @@ import javax.xml.namespace.QName;
 /**
  * @author mederly
  */
-public abstract class AbstractPropertyValueParserTest<T> extends AbstractParserTest<PrismPropertyValue<T>> {
+public abstract class AbstractPropertyValueParserTest<T> extends AbstractPrismValueParserTest<PrismPropertyValue<T>> {
 
 	@SuppressWarnings("Convert2MethodRef")
-	protected void processParsings(Class<T> clazz, QName type, PrismPropertyDefinition definition, SerializingFunction<PrismPropertyValue<T>> serializer, String serId) throws Exception {
+	protected void processParsings(Class<T> clazz, QName type, PrismPropertyDefinition<T> definition, SerializingFunction<PrismPropertyValue<T>> serializer, String serId) throws Exception {
 		process("parseItemValue - no hint", p -> p.parseItemValue(), serializer, serId);
 
 		if (clazz != null) {
@@ -82,9 +83,4 @@ public abstract class AbstractPropertyValueParserTest<T> extends AbstractParserT
 	}
 
 	protected abstract void assertPrismPropertyValueLocal(PrismPropertyValue<T> value) throws SchemaException;
-
-	protected PrismContext getPrismContext() {
-		return PrismTestUtil.getPrismContext();
-	}
-
 }

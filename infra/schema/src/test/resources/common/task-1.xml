@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -62,4 +62,13 @@
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
 	<recurrence>single</recurrence>
 	<!-- No schedule - will execute immediately -->
+
+	<workflowContext>
+		<processInstanceId>1</processInstanceId>
+		<processName>abc</processName>
+		<processInstanceName>def</processInstanceName>
+		<processorSpecificState xsi:type="WfPrimaryChangeProcessorStateType">
+			<changeAspect>aspect</changeAspect>
+		</processorSpecificState>
+	</workflowContext>
 </task>

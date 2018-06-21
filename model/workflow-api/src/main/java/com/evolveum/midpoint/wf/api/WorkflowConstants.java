@@ -24,7 +24,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 public class WorkflowConstants {
 
 	public static final String NS_WORKFLOW_TRIGGER_PREFIX = SchemaConstants.NS_WORKFLOW + "/trigger";
-	
+
+	// don't forget to add audit property names into localization properties file
 	public static final String AUDIT_COMMENT = "wf.comment";
 	public static final String AUDIT_OBJECT = "wf.object";
 	public static final String AUDIT_TARGET = "wf.target";

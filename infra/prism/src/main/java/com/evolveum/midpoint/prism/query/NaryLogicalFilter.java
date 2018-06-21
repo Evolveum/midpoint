@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,18 +29,6 @@ public abstract class NaryLogicalFilter extends LogicalFilter {
 		setConditions(conditions);
 	}
 
-	@Override
-	public String debugDump() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String debugDump(int indent) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public ObjectFilter getLastCondition() {
 		List<ObjectFilter> conditions = getConditions();
 		if (conditions.isEmpty()) {
@@ -49,4 +37,5 @@ public abstract class NaryLogicalFilter extends LogicalFilter {
 			return conditions.get(conditions.size()-1);
 		}
 	}
+
 }

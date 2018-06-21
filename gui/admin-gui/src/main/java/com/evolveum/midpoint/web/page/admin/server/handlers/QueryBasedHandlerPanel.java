@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class QueryBasedHandlerPanel<D extends QueryBasedHandlerDto> extends Base
 		initLayout();
 		setOutputMarkupId(true);
 	}
-	
+
 	private void initLayout() {
 		WebMarkupContainer objectTypeContainer = new WebMarkupContainer(ID_OBJECT_TYPE_CONTAINER);
 		Label objectType = new Label(ID_OBJECT_TYPE, new AbstractReadOnlyModel<String>() {

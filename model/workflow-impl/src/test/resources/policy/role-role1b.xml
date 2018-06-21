@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,7 +20,11 @@
 	<assignment> <!-- metarole 1 'default' -->
 		<targetRef oid="00000001-d34d-b33f-f00d-M00000000001" type="RoleType"/>
 	</assignment>
+	<activation>
+		<administrativeStatus>disabled</administrativeStatus>
+	</activation>
 	<inducement>
 		<targetRef oid="00000001-d34d-b33f-f00d-00000000010b" type="RoleType" />
 	</inducement>
+	<delegable>true</delegable>
 </role>

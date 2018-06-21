@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -96,6 +96,18 @@
                 <tr wicket:id="threadStopContainer">
                     <td><wicket:message key="pageTaskEdit.threadStop"/></td>
                     <td><select class="form-control input-sm" wicket:id="threadStop"/></td>
+                </tr>
+                <tr wicket:id="executionGroupContainer">
+                    <td><wicket:message key="pageTaskEdit.executionGroup"/></td>
+                    <td><input class="form-control input-sm" wicket:id="executionGroup"/></td>
+                </tr>
+                <tr wicket:id="groupTaskLimitContainer">
+                    <td><wicket:message key="pageTaskEdit.groupTaskLimit"/></td>
+                    <td><input class="form-control input-sm" wicket:id="groupTaskLimit"/></td>
+                </tr>
+                <tr wicket:id="allowedNodesContainer">
+                    <td><wicket:message key="pageTaskEdit.allowedNodes"/></td>
+                    <td><label wicket:id="allowedNodes" style="font-weight:normal"></label></td>
                 </tr>
             </table>
         </div>

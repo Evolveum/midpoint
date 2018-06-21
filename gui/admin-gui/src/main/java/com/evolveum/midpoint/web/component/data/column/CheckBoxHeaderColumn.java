@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.TableHeadersToolbar;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
@@ -40,19 +41,20 @@ import java.util.List;
  * @author lazyman
  */
 public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn<T> {
+	private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
+	private static final Trace LOGGER = TraceManager.getTrace(CheckBoxHeaderColumn.class);
 
     public CheckBoxHeaderColumn() {
         super(null);
     }
-    
+
     private boolean visible = true;
 
     @Override
     public Component getHeader(final String componentId) {
-        final IModel<Boolean> model = new Model<Boolean>(false);
-        CheckBoxPanel panel = new CheckBoxPanel(componentId, model, getEnabled()) {
+        final IModel<Boolean> model = new Model<>(false);
+        IsolatedCheckBoxPanel panel = new IsolatedCheckBoxPanel(componentId, model, getEnabled(null)) {
 
             @Override
             public void onUpdate(AjaxRequestTarget target) {
@@ -64,27 +66,27 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         };
         panel.setOutputMarkupId(true);
         panel.add(new VisibleEnableBehaviour() {
-        	
+
         	@Override
         	public boolean isVisible() {
         		return CheckBoxHeaderColumn.this.isCheckboxVisible();
         	}
-        	
+
         });
 
         return panel;
     }
-    
+
 
     @Override
     public String getCssClass() {
-        return "icon";
+        return "check";
     }
-    
+
     protected boolean isCheckboxVisible(){
     	return visible;
     }
-    
+
     public void setCheckboxVisible(boolean visible){
     	this.visible = visible;
     }
@@ -109,11 +111,14 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             if (object instanceof Selectable) {
                 Selectable selectable = (Selectable) object;
                 selectable.setSelected(selected);
+            } else if (object instanceof ContainerValueWrapper){
+                ContainerValueWrapper valueWrapper = (ContainerValueWrapper) object;
+                valueWrapper.setSelected(selected);
             }
         }
 
-        //refresh rows with ajax
         ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
+
         while (iterator.hasNext()) {
             SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
             if (!row.getOutputMarkupId()) {
@@ -124,7 +129,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         }
     }
 
-    public static <T> boolean shouldBeHeaderSelected(DataTable table) {
+    public boolean shouldBeHeaderSelected(DataTable table) {
         boolean selectedAll = true;
 
         BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) table.getDataProvider();
@@ -134,13 +139,21 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         }
 
         for (T object : objects) {
-            if (object instanceof Selectable) {
-                Selectable selectable = (Selectable) object;
-                selectedAll &= selectable.isSelected();
-            }
+            selectedAll &= isTableRowSelected(object);
         }
 
         return selectedAll;
+    }
+
+    protected boolean isTableRowSelected(T object){
+        if (object instanceof Selectable) {
+            Selectable selectable = (Selectable) object;
+            return selectable.isSelected();
+        } else if (object instanceof ContainerValueWrapper){
+            ContainerValueWrapper valueWrapper = (ContainerValueWrapper) object;
+            return valueWrapper.isSelected();
+        }
+        return false;
     }
 
     /**
@@ -149,7 +162,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
     @Override
     protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel) {
         //update header checkbox
-        CheckBoxPanel header = findCheckBoxColumnHeader(table);
+        IsolatedCheckBoxPanel header = findCheckBoxColumnHeader(table);
         if (header == null) {
             return;
         }
@@ -158,7 +171,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         target.add(header);
     }
 
-    public static CheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
+    public IsolatedCheckBoxPanel findCheckBoxColumnHeader(DataTable table) {
         WebMarkupContainer topToolbars = table.getTopToolbars();
         ComponentHierarchyIterator iterator = topToolbars.visitChildren(TableHeadersToolbar.class);
         if (!iterator.hasNext()) {
@@ -169,14 +182,14 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         // simple attempt to find checkbox which is header for our column
         // todo: this search will fail if there are more checkbox header columns (which is not supported now,
         // because Selectable.F_SELECTED is hardcoded all over the place...
-        iterator = toolbar.visitChildren(CheckBoxPanel.class);
+        iterator = toolbar.visitChildren(IsolatedCheckBoxPanel.class);
         while (iterator.hasNext()) {
             Component c = iterator.next();
             if (!c.getOutputMarkupId()) {
                 continue;
             }
 
-            return (CheckBoxPanel) c;
+            return (IsolatedCheckBoxPanel) c;
         }
 
         return null;

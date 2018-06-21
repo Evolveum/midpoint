@@ -41,12 +41,12 @@ public class MyAccountsPanel extends SimplePanel<List<SimpleAccountDto>> {
 
     @Override
     protected void initLayout() {
-        List<IColumn<SimpleAccountDto, String>> columns = new ArrayList<IColumn<SimpleAccountDto, String>>();
+        List<IColumn<SimpleAccountDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn(createStringResource("MyAccountsPanel.account.name"), "accountName"));
         columns.add(new PropertyColumn(createStringResource("MyAccountsPanel.account.resource"), "resourceName"));
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
-        TablePanel accountsTable = new TablePanel<SimpleAccountDto>(ID_ACCOUNTS_TABLE, provider, columns);
+        TablePanel accountsTable = new TablePanel<>(ID_ACCOUNTS_TABLE, provider, columns);
         accountsTable.setShowPaging(false);
 
         add(accountsTable);

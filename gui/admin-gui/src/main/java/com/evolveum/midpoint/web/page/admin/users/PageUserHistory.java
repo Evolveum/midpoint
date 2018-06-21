@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentsPreviewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -71,25 +70,30 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
     }
 
     @Override
-    protected ObjectWrapper<UserType> loadObjectWrapper(PrismObject<UserType> user) {
-        ObjectWrapper<UserType> objectWrapper = super.loadObjectWrapper(user);
-        objectWrapper.setReadonly(true);
-        objectWrapper.setShowEmpty(false);
+    protected ObjectWrapper<UserType> loadObjectWrapper(PrismObject<UserType> user, boolean isReadonly) {
+        ObjectWrapper<UserType> objectWrapper = super.loadObjectWrapper(user, true);
 
         for (ContainerWrapper container : objectWrapper.getContainers()) {
-            container.setReadonly(true);
-
-            List<ItemWrapper> itemWrappers = container.getItems();
-            for (ItemWrapper item : itemWrappers){
-                if (item instanceof PropertyWrapper){
-                    ((PropertyWrapper) item).setReadonly(true);
-                } else if (item instanceof ReferenceWrapper){
-                    ((ReferenceWrapper) item).setReadonly(true);
-                }
-            }
+            setContainerValuesReadOnlyState(container);
         }
 
         return objectWrapper;
+    }
+
+    private void setContainerValuesReadOnlyState(ContainerWrapper container) {
+        container.setReadonly(true);
+
+        container.getValues().forEach(v -> {
+            ((ContainerValueWrapper) v).getItems().forEach(item -> {
+                if (item instanceof ContainerWrapper) {
+                    setContainerValuesReadOnlyState((ContainerWrapper) item);
+                } else if (item instanceof PropertyOrReferenceWrapper) {
+                    ((PropertyOrReferenceWrapper) item).setReadonly(true);
+                }
+            });
+            ((ContainerValueWrapper) v).setReadonly(true);
+
+        });
     }
 
     @Override
@@ -99,7 +103,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
 
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel() {
-        return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel());
+        return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {
@@ -148,7 +152,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
 
     @Override
     protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
-        return new FocusMainPanel<UserType>(id, getObjectModel(), getAssignmentsModel(), getProjectionModel(), this) {
+        return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this) {
             @Override
             protected List<ITab> createTabs(final PageAdminObjectDetails<UserType> parentPage) {
                 List<ITab> tabs = new ArrayList<>();
@@ -198,8 +202,7 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
 
                             @Override
                             public String getCount() {
-                                return Integer.toString(getAssignmentsModel().getObject() == null ?
-                                        0 : getAssignmentsModel().getObject().size());
+                                return Integer.toString(countAssignments());
                             }
                         });
                 authorization = new FocusTabVisibleBehavior(unwrapModel(),
@@ -210,14 +213,14 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentTablePanel<UserType>(panelId, parentPage.createStringResource("FocusType.delegatedToMe"),
+                        return new AssignmentTablePanel<UserType>(panelId, 
                                 getDelegatedToMeModel()) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             public void populateAssignmentDetailsPanel(ListItem<AssignmentEditorDto> item) {
                                 DelegationEditorPanel editor = new DelegationEditorPanel(ID_ROW, item.getModel(), true,
-                                        new ArrayList<AssignmentsPreviewDto>(), PageUserHistory.this);
+                                        new ArrayList<>(), PageUserHistory.this);
                                 item.add(editor);
                             }
 
@@ -225,6 +228,11 @@ public class PageUserHistory extends PageAdminFocus<UserType> {
                             public String getExcludeOid() {
                                 return getObject().getOid();
                             }
+                            
+                            @Override
+                            		public IModel<String> getLabel() {
+                            			return parentPage.createStringResource("FocusType.delegatedToMe");
+                            		}
 
                             @Override
                             protected List<InlineMenuItem> createAssignmentMenu() {

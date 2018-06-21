@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <s:pipeline>
+    </s:pipeline>
+    <s:input>
+        <s:value xsi:type="xsd:string">s1</s:value>
+        <s:value xsi:type="xsd:int">12345678</s:value>
+        <s:value xsi:type="c:ObjectReferenceType" oid="00000000-0000-0000-0000-000000000002" type="UserType"/> <!-- administrator -->
+        <s:value xsi:type="c:UserType" oid="00000000-0000-0000-0000-00000000000F">
+            <c:name>Jozef</c:name>
+        </s:value>
+    </s:input>
+    <s:options>
+        <s:continueOnAnyError>true</s:continueOnAnyError>
+    </s:options>
+</s:executeScript>

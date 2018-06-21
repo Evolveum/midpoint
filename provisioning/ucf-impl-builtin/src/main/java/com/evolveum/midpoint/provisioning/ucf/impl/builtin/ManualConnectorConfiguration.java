@@ -22,7 +22,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConfigurationProperty;
  *
  */
 public class ManualConnectorConfiguration {
-	
+
 	private String defaultAssignee;
 
 	@ConfigurationProperty
@@ -33,5 +33,5 @@ public class ManualConnectorConfiguration {
 	public void setDefaultAssignee(String defaultAssignee) {
 		this.defaultAssignee = defaultAssignee;
 	}
-	
+
 }

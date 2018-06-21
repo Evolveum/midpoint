@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,10 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -129,6 +128,7 @@ public interface RepositoryService {
     String RELEASE_TASK = CLASS_NAME_WITH_DOT + "releaseTask";
     String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
 	String SEARCH_CONTAINERS = CLASS_NAME_WITH_DOT + "searchContainers";
+	String COUNT_CONTAINERS = CLASS_NAME_WITH_DOT + "countContainers";
     String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
     String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
     String COUNT_OBJECTS = CLASS_NAME_WITH_DOT + "countObjects";
@@ -138,6 +138,8 @@ public interface RepositoryService {
 	String ADVANCE_SEQUENCE = CLASS_NAME_WITH_DOT + "advanceSequence";
 	String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
 	String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
+
+	String KEY_DIAG_DATA = "repositoryDiagData";			// see GetOperationOptions.attachDiagData
 
 	/**
 	 * Returns object for provided OID.
@@ -189,6 +191,9 @@ public interface RepositoryService {
 	 */
 	<T extends ObjectType> String getVersion(Class<T> type,String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
+
+	<T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult);
 
 	/**
 	 * <p>Add new object.</p>
@@ -330,19 +335,20 @@ public interface RepositoryService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
-			throws SchemaException;
-
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options,
 			OperationResult parentResult) throws SchemaException;
 
+	@Deprecated // use the version with options instead
+	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
+			throws SchemaException;
+
 	boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
-	
+
 	<O extends ObjectType> boolean isDescendant(PrismObject<O> object, String orgOid) throws SchemaException;
-	
+
 	<O extends ObjectType> boolean isAncestor(PrismObject<O> object, String oid) throws SchemaException;
-	
+
 	/**
 	 * <p>Modifies object using relative change description.</p>
 	 * Must fail if user with
@@ -361,6 +367,9 @@ public interface RepositoryService {
 	 *
 	 * TODO: optimistic locking
 	 *
+	 * Note: the precondition is checked only if actual modification is going to take place
+	 * (not e.g. if the list of modifications is empty).
+	 *
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 *
@@ -378,6 +387,10 @@ public interface RepositoryService {
 
 	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
 
 	/**
 	 * <p>Deletes object with specified OID.</p>
@@ -495,12 +508,12 @@ public interface RepositoryService {
 	<T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException;
-	
+
 	/**
-	 * 
+	 *
 	 * This operation is guaranteed to be atomic. If two threads or even two nodes request a value from
 	 * the same sequence at the same time then different values will be returned.
-	 * 
+	 *
 	 * @param oid sequence OID
 	 * @param parentResult Operation result
 	 * @return next unallocated counter value
@@ -508,18 +521,18 @@ public interface RepositoryService {
 	 * @throws SchemaException the sequence cannot produce a value (e.g. maximum counter reached)
 	 */
 	long advanceSequence(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-	
+
 	/**
-	 * 
+	 *
 	 * The sequence may ignore the values, e.g. if value re-use is disabled or when the list of
 	 * unused values is full. In such a case the values will be ignored silently and no error is indicated.
-	 * 
+	 *
 	 * @param oid sequence OID
 	 * @param unusedValues values to return
 	 * @param parentResult Operation result
 	 */
 	void returnUnusedValuesToSequence(String oid, Collection<Long> unusedValues, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-	
+
     /**
 	 * Provide repository run-time configuration and diagnostic information.
 	 */
@@ -566,7 +579,7 @@ public interface RepositoryService {
 	RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result);
 
 	<O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector, PrismObject<O> object,
-			Trace logger, String logMessagePrefix) throws SchemaException;
+			ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * Returns matching rule supported by the repository for a given data type (String, PolyString, ...), for
@@ -593,4 +606,10 @@ public interface RepositoryService {
 	FullTextSearchConfigurationType getFullTextSearchConfiguration();
 
 	void postInit(OperationResult result) throws SchemaException;
+
+	ConflictWatcher createAndRegisterConflictWatcher(String oid);
+
+	void unregisterConflictWatcher(ConflictWatcher watcher);
+
+	boolean hasConflict(ConflictWatcher watcher, OperationResult result);
 }

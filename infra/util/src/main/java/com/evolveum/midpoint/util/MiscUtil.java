@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,28 @@
  */
 package com.evolveum.midpoint.util;
 
+import com.evolveum.midpoint.util.exception.SystemException;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -33,8 +44,11 @@ import java.util.stream.Stream;
  *
  */
 public class MiscUtil {
-	
-	private static final int BUFFER_SIZE = 2048; 
+
+	private static final int BUFFER_SIZE = 2048;
+
+	private static final Trace LOGGER = TraceManager.getTrace(MiscUtil.class);
+
 	private static DatatypeFactory df = null;
 
     static {
@@ -44,7 +58,8 @@ public class MiscUtil {
             throw new IllegalStateException("Exception while obtaining Datatype Factory instance", dce);
         }
     }
-	
+
+    @NotNull
 	public static <T> Collection<T> union(Collection<T>... sets) {
 		Set<T> resultSet = new HashSet<>();
 		for (Collection<T> set: sets) {
@@ -54,9 +69,9 @@ public class MiscUtil {
 		}
 		return resultSet;
 	}
-	
+
 	public static <T> Collection<? extends T> unionExtends(Collection<? extends T>... sets) {
-		Set<T> resultSet = new HashSet<T>();
+		Set<T> resultSet = new HashSet<>();
 		for (Collection<? extends T> set: sets) {
 			if (set != null) {
 				resultSet.addAll(set);
@@ -64,7 +79,7 @@ public class MiscUtil {
 		}
 		return resultSet;
 	}
-	
+
 	public static <T> boolean listEquals(List<T> a, List<T> b) {
 		if (a == null && b == null) {
 			return true;
@@ -82,20 +97,24 @@ public class MiscUtil {
 		}
 		return true;
 	}
-	
+
 	public static boolean unorderedCollectionEquals(Collection a, Collection b) {
 		return unorderedCollectionEquals(a, b, (xa, xb) -> xa.equals(xb));
 	}
-	
+
 	/**
-	 * Only zero vs non-zero value of comparator is important. 
+	 * Only zero vs non-zero value of comparator is important.
 	 */
 	public static <T> boolean unorderedCollectionCompare(Collection<T> a, Collection<T> b, final Comparator<T> comparator) {
-		return unorderedCollectionEquals(a, b, (xa, xb) -> comparator.compare(xa, xb) == 0);
+		if (comparator == null) {
+			return unorderedCollectionEquals(a, b);
+		} else {
+			return unorderedCollectionEquals(a, b, (xa, xb) -> comparator.compare(xa, xb) == 0);
+		}
 	}
-	
+
 	/**
-	 * Only zero vs non-zero value of comparator is important. 
+	 * Only zero vs non-zero value of comparator is important.
 	 */
 	public static <A,B> boolean unorderedCollectionEquals(Collection<A> a, Collection<B> b, HeteroComparator<A,B> comparator) {
 		if (a == null && b == null) {
@@ -117,6 +136,7 @@ public class MiscUtil {
 				if (comparator.isEquivalent(ao, oo)) {
 					iterator.remove();
 					found = true;
+					break;
 				}
 			}
 			if (!found) {
@@ -128,7 +148,7 @@ public class MiscUtil {
 		}
 		return true;
 	}
-	
+
 	public static <T> boolean unorderedArrayEquals(T[] a, T[] b) {
 		Comparator<T> comparator = new Comparator<T>() {
 			@Override
@@ -138,9 +158,9 @@ public class MiscUtil {
 		};
 		return unorderedArrayEquals(a, b, comparator);
 	}
-	
+
 	/**
-	 * Only zero vs non-zero value of comparator is important. 
+	 * Only zero vs non-zero value of comparator is important.
 	 */
 	public static <T> boolean unorderedArrayEquals(T[] a, T[] b, Comparator<T> comparator) {
 		if (a == null && b == null) {
@@ -172,18 +192,22 @@ public class MiscUtil {
 		}
 		return true;
 	}
-	
-	public static int unorderedCollectionHashcode(Collection collection) {
+
+	public static <T> int unorderedCollectionHashcode(Collection<T> collection, Predicate<T> filter) {
 		// Stupid implmentation, just add all the hashcodes
 		int hashcode = 0;
-		for (Object item: collection) {
-			hashcode += item.hashCode();
+		for (T item: collection) {
+			if (filter != null && !filter.test(item)) {
+				continue;
+			}
+			int itemHash = item.hashCode();
+			hashcode += itemHash;
 		}
 		return hashcode;
 	}
-	
+
 	public static String readFile(File file) throws IOException {
-		StringBuffer fileData = new StringBuffer(BUFFER_SIZE);
+		StringBuilder fileData = new StringBuilder(BUFFER_SIZE);
         BufferedReader reader = new BufferedReader(new FileReader(file));
         char[] buf = new char[BUFFER_SIZE];
         int numRead=0;
@@ -195,7 +219,7 @@ public class MiscUtil {
         reader.close();
         return fileData.toString();
 	}
-	
+
 	public static void copyFile(File sourceFile, File destFile) throws IOException {
 		if (!destFile.exists()) {
 			destFile.createNewFile();
@@ -243,14 +267,15 @@ public class MiscUtil {
         }
     }
 
+	@SafeVarargs
 	public static <T> Collection<T> createCollection(T... items) {
-		Collection<T> collection = new ArrayList<T>(items.length);
+		Collection<T> collection = new ArrayList<>(items.length);
 		for (T item: items) {
 			collection.add(item);
 		}
 		return collection;
 	}
-	
+
 	/**
 	 * n-ary and that ignores null values.
 	 */
@@ -305,7 +330,7 @@ public class MiscUtil {
             return df.newXMLGregorianCalendar(gc);
         }
     }
-    
+
     /**
      * Converts an XMLGregorianCalendar to an instance of java.util.Date
      *
@@ -321,7 +346,7 @@ public class MiscUtil {
             return xgc.toGregorianCalendar().getTime();
         }
     }
-    
+
     public static Long asLong(XMLGregorianCalendar xgc) {
         if (xgc == null) {
             return null;
@@ -329,20 +354,20 @@ public class MiscUtil {
             return xgc.toGregorianCalendar().getTimeInMillis();
         }
     }
-    
+
     public static java.util.Date asDate(int year, int month, int date, int hrs, int min, int sec) {
     	Calendar cal = Calendar.getInstance();
     	cal.set(year, month - 1, date, hrs, min, sec);
 		cal.set(Calendar.MILLISECOND, 0);
     	return cal.getTime();
     }
-    
+
     public static <T> void carthesian(Collection<Collection<T>> dimensions, Processor<Collection<T>> processor) {
-    	List<Collection<T>> dimensionList = new ArrayList<Collection<T>>(dimensions.size());
+    	List<Collection<T>> dimensionList = new ArrayList<>(dimensions.size());
     	dimensionList.addAll(dimensions);
-    	carthesian(new ArrayList<T>(dimensions.size()), dimensionList, 0, processor);
+    	carthesian(new ArrayList<>(dimensions.size()), dimensionList, 0, processor);
     }
-        
+
     private static <T> void carthesian(List<T> items, List<Collection<T>> dimensions, int dimensionNum, Processor<Collection<T>> processor) {
     	Collection<T> myDimension = dimensions.get(dimensionNum);
     	for (T item: myDimension) {
@@ -355,7 +380,7 @@ public class MiscUtil {
     		items.remove(items.size() - 1);
     	}
     }
-    
+
 	public static String concat(Collection<String> stringCollection) {
 		StringBuilder sb = new StringBuilder();
 		for (String s: stringCollection) {
@@ -363,7 +388,7 @@ public class MiscUtil {
 		}
 		return sb.toString();
 	}
-	
+
 	public static boolean isAllNull(Collection<?> collection) {
 		for (Object o: collection) {
 			if (o != null) {
@@ -379,7 +404,7 @@ public class MiscUtil {
 		}
 		return "("+object.getClass().getSimpleName() + ")"  + object;
 	}
-	
+
 	public static boolean isNoValue(Collection<?> collection) {
 		if (collection == null)
 			return true;
@@ -416,13 +441,13 @@ public class MiscUtil {
 		if (orig == null) {
 			return null;
 		}
-		Map<K,V> clone = new HashMap<K, V>();
+		Map<K,V> clone = new HashMap<>();
 		for (Entry<K, V> origEntry: orig.entrySet()) {
 			clone.put(origEntry.getKey(), origEntry.getValue());
 		}
 		return clone;
 	}
-	
+
 	public static String toString(Object o) {
 		if (o == null) {
 			return "null";
@@ -431,14 +456,14 @@ public class MiscUtil {
 	}
 
 	public static List<String> splitLines(String string) {
-		List<String> lines = new ArrayList<String>();
+		List<String> lines = new ArrayList<>();
 		Scanner scanner = new Scanner(string);
 		while (scanner.hasNextLine()) {
 		  lines.add(scanner.nextLine());
 		}
 		return lines;
 	}
-	
+
 	public static boolean isBetween(XMLGregorianCalendar date, XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		return (date.compare(start) == DatatypeConstants.GREATER || date.compare(start) == DatatypeConstants.EQUAL)
 				&& (date.compare(end) == DatatypeConstants.LESSER || date.compare(end) == DatatypeConstants.EQUAL);
@@ -459,18 +484,18 @@ public class MiscUtil {
         }
         return htmlString.replaceAll("<[^>]*>", "");
     }
-    
+
     public static <T> Collection<T> getValuesFromDisplayableValues(Collection<? extends DisplayableValue<T>> disps) {
     	if (disps == null) {
     		return null;
     	}
-    	List<T> out = new ArrayList<T>(disps.size());
+    	List<T> out = new ArrayList<>(disps.size());
     	for (DisplayableValue<T> disp: disps) {
     		out.add(disp.getValue());
     	}
     	return out;
     }
-    
+
     public static String binaryToHex(byte[] bytes) {
 		StringBuilder sb = new StringBuilder(bytes.length * 2);
 		for (byte b : bytes) {
@@ -483,7 +508,7 @@ public class MiscUtil {
 		int l = hex.length();
 		byte[] bytes = new byte[l/2];
 		for (int i = 0; i < l; i += 2) {
-			bytes[i/2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4) 
+			bytes[i/2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
 					+ Character.digit(hex.charAt(i + 1), 16));
 		}
 		return bytes;
@@ -497,7 +522,7 @@ public class MiscUtil {
 			addIfNotPresent(receivingList, supplyingElement);
 		}
 	}
-	
+
 	public static <T> void addIfNotPresent(List<T> receivingList, T supplyingElement) {
 		if (!receivingList.contains(supplyingElement)) {
 			receivingList.add(supplyingElement);
@@ -558,6 +583,19 @@ public class MiscUtil {
 		}
 	}
 
+	// similar to the above ... todo deduplicate
+	public static <T> T getSingleValue(Collection<T> values, T defaultValue, String contextDescription) {
+		if (values.size() == 0) {
+			return defaultValue;
+		} else if (values.size() > 1) {
+			throw new IllegalStateException("Expected exactly one value; got "
+					+ values.size() + " ones in " + contextDescription);
+		} else {
+			T value = values.iterator().next();
+			return value != null ? value : defaultValue;
+		}
+	}
+
 	public static boolean isCollectionOf(Object object, @NotNull Class<?> memberClass) {
 		return object instanceof Collection
 				&& ((Collection<?>) object).stream().allMatch(member -> member != null && memberClass.isAssignableFrom(member.getClass()));
@@ -568,4 +606,107 @@ public class MiscUtil {
 				? Stream.of(cls.cast(o))
 				: Stream.empty();
 	}
+
+	// CollectionUtils does not provide this
+	// @pre: !list.isEmpty()
+	public static <T> T last(List<T> list) {
+		return list.get(list.size() - 1);
+	}
+
+	@NotNull
+	public static String emptyIfNull(String s) {
+		return s != null ? s : "";
+	}
+
+	@NotNull
+	public static <T> List<T> emptyIfNull(List<T> list) {
+		return list != null ? list : Collections.emptyList();
+	}
+
+	public static String nullIfEmpty(String s) {
+		return "".equals(s) ? null : s;
+	}
+
+	/**
+	 * Returns true if the collection contains at least one pair of equals elements.
+	 */
+	public static <T> boolean hasDuplicates(Collection<T> collection) {
+		Set<T> set = new HashSet<>();
+		for (T e: collection) {
+			if (!set.add(e)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static String formatExceptionMessageWithCause(Throwable t) {
+		return formatExceptionMessageWithCause(t, 0);
+	}
+
+	public static String formatExceptionMessageWithCause(Throwable t, int indent) {
+		if (t == null) {
+			return null;
+		} else {
+			String local = StringUtils.repeat("  ", indent) + formatExceptionMessage(t);
+			return t.getCause() == null
+					? local
+					: local + ":\n" + formatExceptionMessageWithCause(t.getCause(), indent + 1);
+		}
+	}
+
+	private static String formatExceptionMessage(Throwable t) {
+		return t != null
+				? t.getMessage() + " [" + t.getClass().getSimpleName() + "]"
+				: null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <T extends Throwable> void throwException(Throwable exception) throws T
+	{
+		throw (T) exception;
+	}
+
+	public static void throwExceptionAsUnchecked(Throwable t) {
+		MiscUtil.throwException(t);
+	}
+
+	@FunctionalInterface
+	public interface CheckedSupplier<T> {
+		T get() throws Exception;
+	}
+
+	public static <T> Supplier<T> exceptionsToRuntime(CheckedSupplier<T> checkedSupplier) {
+		return () -> {
+			try {
+				return checkedSupplier.get();
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Exception e) {
+				throw new SystemException(e);
+			}
+		};
+	}
+
+	public static <T> Collection<T> filter(Collection<T> input, Predicate<? super T> predicate) {
+		return input.stream().filter(predicate).collect(Collectors.toList());
+	}
+
+	public static <T> Set<T> filter(Set<T> input, Predicate<? super T> predicate) {
+		return input.stream().filter(predicate).collect(Collectors.toSet());
+	}
+
+	@NotNull
+	public static <V> Collection<V> nonNullValues(@NotNull Collection<V> values) {
+		return values.stream().filter(Objects::nonNull).collect(Collectors.toList());
+	}
+
+	public static URL toUrlUnchecked(URI uri) {
+		try {
+			return uri.toURL();
+		} catch (MalformedURLException e) {
+			throw new SystemException(e);
+		}
+	}
+
 }

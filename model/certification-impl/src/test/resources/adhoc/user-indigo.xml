@@ -17,4 +17,19 @@
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	oid="11b35bd2-9b2f-4a00-94fa-7ed0079a7500">
 	<name>indigo</name>
+	<assignment>
+		<policyRule>
+			<policyConstraints>
+				<modification>
+					<item>description</item>
+					<item>activation/administrativeStatus</item>
+				</modification>
+			</policyConstraints>
+			<policyActions>
+				<certification>
+					<definitionRef oid="83a16584-bb2a-448c-aee1-82fc6d577bcb" /> <!-- adhoc-certification-modification -->
+				</certification>
+			</policyActions>
+		</policyRule>
+	</assignment>
 </user>

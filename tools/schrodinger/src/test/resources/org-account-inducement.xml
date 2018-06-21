@@ -1,0 +1,14 @@
+<org xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+     xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+     xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+    <name>testOrgUnit</name>
+    <inducement>
+        <construction>
+            <kind>account</kind>
+            <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="c:ResourceType"/>
+        </construction>
+    </inducement>
+    <displayName>Test Unit</displayName>
+    <identifier>0001</identifier>
+    <orgType>functional</orgType>
+</org>

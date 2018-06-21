@@ -31,35 +31,35 @@ public class JasperReportParameterDto extends Selectable implements Serializable
     public JasperReportParameterDto() {
     }
 
-   
+
     public JasperReportParameterDto(JRParameter param) {
         this.name = param.getName();
         this.typeAsString = param.getValueClassName();
         this.type = (Class<?>) param.getValueClass();
         this.forPrompting = param.isForPrompting();
-        
+
         if (param.getDescription() != null){
     		this.description = param.getDescription();
     	}
     	this.nestedType = param.getNestedType();
     	this.nestedTypeAsString = param.getNestedTypeName();
-    	
-    	this.value = new ArrayList<>(); 
+
+    	this.value = new ArrayList<>();
     	this.value.add(new JasperReportValueDto());
-    	
+
     	this.properties = new JasperReportParameterPropertiesDto(param.getPropertiesMap());
-    	
-        
+
+
     }
-    
+
     public List<JasperReportValueDto> getValue() {
 		return value;
 	}
-    
+
     public void setValue(List<JasperReportValueDto> value) {
 		this.value = value;
 	}
-   
+
     public void addValue() {
 		getValue().add(new JasperReportValueDto());
 	}
@@ -70,7 +70,7 @@ public class JasperReportParameterDto extends Selectable implements Serializable
 			getValue().add(new JasperReportValueDto());
 		}
 	}
-    
+
 
     public boolean isForPrompting() {
         return forPrompting;
@@ -91,7 +91,7 @@ public class JasperReportParameterDto extends Selectable implements Serializable
     public String getTypeAsString() {
         return typeAsString;
     }
-    
+
     public String getNestedTypeAsString() {
 		return nestedTypeAsString;
 	}
@@ -104,23 +104,23 @@ public class JasperReportParameterDto extends Selectable implements Serializable
         this.description = description;
     }
 
-    
+
     public JasperReportParameterPropertiesDto getProperties() {
 		return properties;
 	}
-    
+
     public JRPropertiesMap getJRProperties() {
 		if (properties == null) {
 			return null;
 		}
-		
+
 		return properties.getPropertiesMap();
 	}
 
     public void setProperties(JasperReportParameterPropertiesDto properties) {
 		this.properties = properties;
 	}
-  
+
     public Class<?> getType() throws ClassNotFoundException {
         if (type == null) {
             if (StringUtils.isNotBlank(typeAsString)) {
@@ -131,7 +131,7 @@ public class JasperReportParameterDto extends Selectable implements Serializable
         }
         return type;
     }
-    
+
     public Class<?> getNestedType() throws ClassNotFoundException {
     	if (StringUtils.isBlank(nestedTypeAsString)) {
     		return null;
@@ -139,12 +139,12 @@ public class JasperReportParameterDto extends Selectable implements Serializable
     	nestedType = Class.forName(nestedTypeAsString);
         return nestedType;
     }
-    
+
     public boolean isMultiValue() throws ClassNotFoundException{
     	if (List.class.isAssignableFrom(getType())){
     		return true;
     	}
-    	
+
     	return false;
     }
 

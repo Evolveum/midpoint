@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,13 @@ package com.evolveum.midpoint.model.common.expression.script;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -48,9 +49,10 @@ public class ScriptExpression {
     private ScriptExpressionEvaluatorType scriptType;
     private ScriptEvaluator evaluator;
     private ItemDefinition outputDefinition;
+	private Function<Object, Object> additionalConvertor;
     private ObjectResolver objectResolver;
     private Collection<FunctionLibrary> functions;
-
+    
     private static final Trace LOGGER = TraceManager.getTrace(ScriptExpression.class);
 	private static final int MAX_CODE_CHARS = 42;
 
@@ -74,7 +76,7 @@ public class ScriptExpression {
     public void setObjectResolver(ObjectResolver objectResolver) {
         this.objectResolver = objectResolver;
     }
-	
+
 	public Collection<FunctionLibrary> getFunctions() {
 		return functions;
 	}
@@ -83,31 +85,30 @@ public class ScriptExpression {
 		this.functions = functions;
 	}
 
+	public Function<Object, Object> getAdditionalConvertor() {
+		return additionalConvertor;
+	}
+
+	public void setAdditionalConvertor(Function<Object, Object> additionalConvertor) {
+		this.additionalConvertor = additionalConvertor;
+	}
+	
 	public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType,
-												   boolean useNew, String contextDescription, Task task, OperationResult result)
+			boolean useNew, String contextDescription, Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, this);
+		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, task, this);
 		context.setEvaluateNew(useNew);
-		
+
 		try {
 			context.setupThreadLocal();
-			
-			List<V> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, suggestedReturnType, objectResolver, functions, contextDescription, task, result);
-			
+
+			List<V> expressionResult = evaluator.evaluate(scriptType, variables, outputDefinition, additionalConvertor, suggestedReturnType, objectResolver, functions, contextDescription, task, result);
+
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;
 
-		} catch (ExpressionEvaluationException ex) {
-			traceExpressionFailure(variables, contextDescription, ex);
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			traceExpressionFailure(variables, contextDescription, ex);
-			throw ex;
-		} catch (SchemaException ex) {
-			traceExpressionFailure(variables, contextDescription, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
+		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | RuntimeException ex) {
 			traceExpressionFailure(variables, contextDescription, ex);
 			throw ex;
 		} finally {
@@ -125,10 +126,8 @@ public class ScriptExpression {
         		"Relativity mode: {}\n"+
         		"Variables:\n{}\n"+
         		"Code:\n{}\n"+
-        		"Result: {}", new Object[]{
-                shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables), formatCode(),
-                SchemaDebugUtil.prettyPrint(returnValue)
-        });
+        		"Result: {}", shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables),
+				formatCode(), SchemaDebugUtil.prettyPrint(returnValue));
     }
 
     private void traceExpressionFailure(ExpressionVariables variables, String shortDesc, Exception exception) {
@@ -142,16 +141,14 @@ public class ScriptExpression {
         		"Relativity mode: {}\n"+
         		"Variables:\n{}\n"+
         		"Code:\n{}\n"+
-        		"Error: {}", new Object[]{
-                shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables), formatCode(),
-                SchemaDebugUtil.prettyPrint(exception)
-        });
+        		"Error: {}", shortDesc, evaluator.getLanguageName(), scriptType.getRelativityMode(), formatVariables(variables),
+				formatCode(), SchemaDebugUtil.prettyPrint(exception));
     }
-    
+
     private boolean isTrace() {
-		return LOGGER.isTraceEnabled() || (scriptType != null && scriptType.isTrace() == Boolean.TRUE); 
+		return LOGGER.isTraceEnabled() || (scriptType != null && scriptType.isTrace() == Boolean.TRUE);
 	}
-	
+
 	private void trace(String msg, Object... args) {
 		if (scriptType != null && scriptType.isTrace() == Boolean.TRUE) {
 			LOGGER.info(msg, args);
@@ -170,7 +167,7 @@ public class ScriptExpression {
 	private String formatCode() {
 		return DebugUtil.excerpt(scriptType.getCode().replaceAll("[\\s\\r\\n]+", " "), MAX_CODE_CHARS);
     }
-	
+
 	public ItemPath parsePath(String path) {
 		if (path == null) {
 			return null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,283 +15,98 @@
  */
 package com.evolveum.midpoint.schema.internals;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Simple monitoring object. It records the count of expensive operations
  * in the system. It is used in the tests to make sure such operations are not
  * executed more frequently than expected. It may also have some run-time value.
- * 
+ *
  * @author Radovan Semancik
  *
  */
-public class InternalMonitor implements PrismMonitor {
-	
+public class InternalMonitor implements PrismMonitor, DebugDumpable {
+
 	private static final Trace LOGGER = TraceManager.getTrace(InternalMonitor.class);
 
 	private static final String CLONE_START_TIMESTAMP_KEY = InternalMonitor.class.getName()+".cloneStartTimestamp";
-	
-	private static long resourceSchemaParseCount = 0;
-	private static long resourceSchemaFetchCount = 0;
-	private static boolean traceResourceSchemaOperations = false;
-	
-	private static long connectorInstanceInitializationCount = 0;
-	private static long connectorSchemaParseCount = 0;
-	private static long connectorCapabilitiesFetchCount = 0;
+
+	private static Map<InternalCounters,Long> counterMap = new HashMap<>();
+	private static Map<InternalOperationClasses,Boolean> traceMap = new HashMap<>();
+
 	private static CachingStatistics resourceCacheStats = new CachingStatistics();
 	private static CachingStatistics connectorCacheStats = new CachingStatistics();
-	private static long scriptCompileCount = 0;
-	private static long scriptExecutionCount = 0;
-	
-	private static boolean traceConnectorOperation = false;
-	private static long connectorOperationCount = 0;
-	
-	private static long connectorSimulatedPagingSearchCount = 0;
-	
-	private static long shadowFetchOperationCount = 0;
-	private static boolean traceShadowFetchOperation = false;
-	
-	private static long shadowChangeOpeartionCount = 0;
-	/**
-	 * All provisioning operations that reach out to the resources.
-	 */
-	private static long provisioningAllExtOperationCount = 0;
-	
-	private static long prismObjectCloneCount = 0;
-	private static long prismObjectCloneDurationMillis = 0;
-	private static boolean tracePrismObjectClone = false;
-	
-	public static long getResourceSchemaParseCount() {
-		return resourceSchemaParseCount;
-	}
-	
-	public synchronized static void recordResourceSchemaParse() {
-		resourceSchemaParseCount++;
-		if (traceShadowFetchOperation) {
-			traceOperation("resource schema parse", resourceSchemaParseCount, true);
+
+	private static boolean cloneTimingEnabled = false;
+	private static long prismObjectCloneDurationNanos = 0;
+
+	private static InternalInspector inspector;
+
+	public static long getCount(InternalCounters counter) {
+		Long count = counterMap.get(counter);
+		if (count == null) {
+			return 0;
 		}
+		return count;
 	}
-	
-	public static long getConnectorInstanceInitializationCount() {
-		return connectorInstanceInitializationCount;
-	}
-	
-	public synchronized static void recordConnectorInstanceInitialization() {
-		connectorInstanceInitializationCount++;
-	}
-	
-	public static long getResourceSchemaFetchCount() {
-		return resourceSchemaFetchCount;
-	}
-	
-	public synchronized static void recordResourceSchemaFetch() {
-		resourceSchemaFetchCount++;
-		provisioningAllExtOperationCount++;
-		if (traceShadowFetchOperation) {
-			traceOperation("resource schema fetch", resourceSchemaFetchCount, true);
+
+	public static void recordCount(InternalCounters counter) {
+		long count = recordCountInternal(counter);
+		InternalOperationClasses operationClass = counter.getOperationClass();
+		if (operationClass != null && isTrace(operationClass)) {
+			traceOperation(counter, operationClass, count);
 		}
 	}
 
-	public static long getConnectorSchemaParseCount() {
-		return connectorSchemaParseCount;
-	}
-	
-	public synchronized static void recordConnectorSchemaParse() {
-		connectorSchemaParseCount++;
-	}
-
-	public static long getConnectorCapabilitiesFetchCount() {
-		return connectorCapabilitiesFetchCount;
-	}
-	
-	public synchronized static void recordConnectorCapabilitiesFetchCount() {
-		connectorCapabilitiesFetchCount++;
-		provisioningAllExtOperationCount++;
-	}
-
-	public static CachingStatistics getResourceCacheStats() {
-		return resourceCacheStats;
-	}
-
-	public static CachingStatistics getConnectorCacheStats() {
-		return connectorCacheStats;
-	}
-
-	public static long getScriptCompileCount() {
-		return scriptCompileCount;
-	}
-
-	public static void setScriptCompileCount(long scriptCompileCount) {
-		InternalMonitor.scriptCompileCount = scriptCompileCount;
-	}
-	
-	public static void recordScriptCompile() {
-		scriptCompileCount++;
-	}
-
-	public static long getScriptExecutionCount() {
-		return scriptExecutionCount;
-	}
-
-	public static void setScriptExecutionCount(long scriptExecutionCount) {
-		InternalMonitor.scriptExecutionCount = scriptExecutionCount;
-	}
-	
-	public static void recordScriptExecution() {
-		scriptExecutionCount++;
-	}
-
-	public static long getShadowFetchOperationCount() {
-		return shadowFetchOperationCount;
-	}
-	
-	public static void recordShadowFetchOperation() {
-		shadowFetchOperationCount++;
-		provisioningAllExtOperationCount++;
-		if (traceShadowFetchOperation) {
-			traceOperation("shadow fetch", shadowFetchOperationCount, true);
+	private static synchronized long recordCountInternal(InternalCounters counter) {
+		Long count = counterMap.get(counter);
+		if (count == null) {
+			count = 0L;
 		}
+		count++;
+		counterMap.put(counter, count);
+		return count;
 	}
 
-	public static boolean isTraceShadowFetchOperation() {
-		return traceShadowFetchOperation;
-	}
-
-	public static void setTraceShadowFetchOperation(boolean traceShadowFetchOperation) {
-		LOGGER.debug("MONITOR traceShadowFetchOperation={}", traceShadowFetchOperation);
-		InternalMonitor.traceShadowFetchOperation = traceShadowFetchOperation;
-	}
-
-	public static boolean isTraceResourceSchemaOperations() {
-		return traceResourceSchemaOperations;
-	}
-
-	public static void setTraceResourceSchemaOperations(
-			boolean traceResourceSchemaOperations) {
-		LOGGER.debug("MONITOR traceResourceSchemaOperations={}", traceResourceSchemaOperations);
-		InternalMonitor.traceResourceSchemaOperations = traceResourceSchemaOperations;
-	}
-
-	public static long getShadowChangeOpeartionCount() {
-		return shadowChangeOpeartionCount;
-	}
-	
-	public static void recordShadowChangeOperation() {
-		shadowChangeOpeartionCount++;
-		provisioningAllExtOperationCount++;
-	}
-	
-	public static long getConnectorOperationCount() {
-		return connectorOperationCount;
-	}
-	
-	public static void recordConnectorOperation(String name) {
-		connectorOperationCount++;
-		if (traceConnectorOperation) {
-			traceOperation("connector "+name, connectorOperationCount, true);
-		}
-	}
-	
-	public static long getConnectorSimulatedPagingSearchCount() {
-		return connectorSimulatedPagingSearchCount;
-	}
-	
-	public static void recordConnectorSimulatedPagingSearchCount() {
-		connectorSimulatedPagingSearchCount++;
-		if (traceConnectorOperation) {
-			traceOperation("simulated paged search", connectorSimulatedPagingSearchCount, true);
-		}
-	}
-
-	public static boolean isTraceConnectorOperation() {
-		return traceShadowFetchOperation;
-	}
-
-	public static void setTraceConnectorOperation(boolean trace) {
-		LOGGER.debug("MONITOR traceConnectorOperation={}", trace);
-		InternalMonitor.traceConnectorOperation = trace;
-	}
-	
-	public static long getProvisioningAllExtOperationCont() {
-		return provisioningAllExtOperationCount;
-	}
-	
-	public static void recordShadowOtherOperation() {
-		provisioningAllExtOperationCount++;
-	}
-	
-	public static long getPrismObjectCloneDurationMillis() {
-		return prismObjectCloneDurationMillis;
-	}
-
-	public static void setPrismObjectCloneDurationMillis(long prismObjectCloneDurationMillis) {
-		InternalMonitor.prismObjectCloneDurationMillis = prismObjectCloneDurationMillis;
-	}
-
-	public static boolean isTracePrismObjectClone() {
-		return tracePrismObjectClone;
-	}
-
-	public static void setTracePrismObjectClone(boolean tracePrismObjectClone) {
-		InternalMonitor.tracePrismObjectClone = tracePrismObjectClone;
-	}
-
-	@Override
-	public <O extends Objectable> void beforeObjectClone(PrismObject<O> orig) {
-		LOGGER.trace("MONITOR prism object clone start: {}", orig);
-		if (!orig.isImmutable()) {
-			orig.setUserData(CLONE_START_TIMESTAMP_KEY, System.currentTimeMillis());
-		}
-	}
-	
-	@Override
-	public synchronized <O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone) {
-		prismObjectCloneCount++;
-		Object cloneStartObject = orig.getUserData(CLONE_START_TIMESTAMP_KEY);
-		if (cloneStartObject != null && cloneStartObject instanceof Long) {
-			long cloneDurationMillis = System.currentTimeMillis() - (Long)cloneStartObject;
-			prismObjectCloneDurationMillis += cloneDurationMillis;
-			LOGGER.debug("MONITOR prism object clone end: {} (duration {} ms)", orig, cloneDurationMillis);
+	public static boolean isTrace(InternalOperationClasses operationClass) {
+		Boolean b = traceMap.get(operationClass);
+		if (b == null) {
+			return false;
 		} else {
-			LOGGER.debug("MONITOR prism object clone end: {}", orig);
-		}
-		if (tracePrismObjectClone) {
-			traceOperation("prism object clone", prismObjectCloneCount, false);
+			return b;
 		}
 	}
-	
-	public static long getPrismObjectCloneCount() {
-		return prismObjectCloneCount;
+
+	private static boolean isTrace(InternalCounters counter) {
+		InternalOperationClasses operationClass = counter.getOperationClass();
+		if (operationClass == null) {
+			return false;
+		}
+		return isTrace(operationClass);
 	}
 
-	public static void setPrismObjectCloneCount(long prismObjectCloneCount) {
-		InternalMonitor.prismObjectCloneCount = prismObjectCloneCount;
+	public static void setTrace(InternalOperationClasses operationClass, boolean val) {
+		traceMap.put(operationClass, val);
 	}
 
-	public static void reset() {
-		LOGGER.info("MONITOR reset");
-		resourceSchemaParseCount = 0;
-		connectorInstanceInitializationCount = 0;
-		resourceSchemaFetchCount = 0;
-		connectorSchemaParseCount = 0;
-		connectorCapabilitiesFetchCount = 0;
-		resourceCacheStats = new CachingStatistics();
-		connectorCacheStats = new CachingStatistics();
-		scriptCompileCount = 0;
-		scriptExecutionCount = 0;
-		shadowFetchOperationCount = 0;
-		traceShadowFetchOperation = false;
-		shadowChangeOpeartionCount = 0;
-		traceConnectorOperation = false;
-		connectorOperationCount = 0;
+	private static void traceOperation(InternalCounters counter, InternalOperationClasses operationClass, long count) {
+		traceOperation(counter.getKey() + "["+ operationClass.getKey() +"]", null, count, false);
 	}
 
-	private static void traceOperation(String opName, long counter, boolean traceAndDebug) {
-		LOGGER.info("MONITOR {} ({})", opName, counter);
+	private static void traceOperation(String opName, Supplier<String> paramsSupplier, long count, boolean traceAndDebug) {
+		LOGGER.info("MONITOR {} ({})", opName, count);
 		if (LOGGER.isDebugEnabled()) {
 			StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
 			String immediateClass = null;
@@ -310,11 +125,159 @@ public class InternalMonitor implements PrismMonitor {
 				sb.append(stackElement.toString());
 				sb.append("\n");
 			}
-			if (traceAndDebug) {
-				LOGGER.debug("MONITOR {} ({}): {} {}", new Object[]{opName, counter, immediateClass, immediateMethod});
+			String params = "";
+			if (paramsSupplier != null) {
+				params = paramsSupplier.get();
 			}
-			LOGGER.trace("MONITOR {} ({}):\n{}", new Object[]{opName, counter, sb});
+			if (traceAndDebug) {
+				LOGGER.debug("MONITOR {}({}) ({}): {} {}", opName, params, count, immediateClass, immediateMethod);
+			}
+			LOGGER.trace("MONITOR {}({}) ({}):\n{}", opName, params, count, sb);
 		}
 	}
 
+
+	public static CachingStatistics getResourceCacheStats() {
+		return resourceCacheStats;
+	}
+
+	public static CachingStatistics getConnectorCacheStats() {
+		return connectorCacheStats;
+	}
+
+	public static void recordConnectorOperation(String name) {
+		long count = recordCountInternal(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		if (isTrace(InternalCounters.CONNECTOR_OPERATION_COUNT)) {
+			traceOperation("connectorOperation", () -> name, count, true);
+		}
+	}
+	
+	public static void recordConnectorModification(String name) {
+		long count = recordCountInternal(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
+		if (isTrace(InternalCounters.CONNECTOR_MODIFICATION_COUNT)) {
+			traceOperation("connectorModification", () -> name, count, true);
+		}
+	}
+
+	public static <O extends ObjectType> void recordRepositoryRead(Class<O> type, String oid) {
+		long count = recordCountInternal(InternalCounters.REPOSITORY_READ_COUNT);
+		if (isTrace(InternalCounters.REPOSITORY_READ_COUNT)) {
+			traceOperation("repositoryRead", () -> type.getSimpleName() + ", " + oid , count, false);
+		}
+		if (inspector != null) {
+			inspector.inspectRepositoryRead(type, oid);
+		}
+	}
+
+	public synchronized <O extends Objectable> void recordPrismObjectCompareCount(PrismObject<O> thisObject, Object thatObject) {
+		recordCountInternal(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
+	}
+
+	public static boolean isCloneTimingEnabled() {
+		return cloneTimingEnabled;
+	}
+
+	public static void setCloneTimingEnabled(boolean cloneTimingEnabled) {
+		InternalMonitor.cloneTimingEnabled = cloneTimingEnabled;
+	}
+
+	public static long getPrismObjectCloneDurationMillis() {
+		return prismObjectCloneDurationNanos;
+	}
+
+	public static void setPrismObjectCloneDurationMillis(long prismObjectCloneDurationNanos) {
+		InternalMonitor.prismObjectCloneDurationNanos = prismObjectCloneDurationNanos;
+	}
+
+	@Override
+	public <O extends Objectable> void beforeObjectClone(PrismObject<O> orig) {
+		if (!cloneTimingEnabled) {
+			return;
+		}
+		LOGGER.trace("MONITOR prism object clone start: {}", orig);
+		if (!orig.isImmutable()) {
+			orig.setUserData(CLONE_START_TIMESTAMP_KEY, System.nanoTime());
+		}
+	}
+
+	@Override
+	public synchronized <O extends Objectable> void afterObjectClone(PrismObject<O> orig, PrismObject<O> clone) {
+		long count = recordCountInternal(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
+		if (cloneTimingEnabled) {
+			Object cloneStartObject = orig.getUserData(CLONE_START_TIMESTAMP_KEY);
+			if (cloneStartObject != null && cloneStartObject instanceof Long) {
+				long cloneDurationNanos = System.nanoTime() - (Long)cloneStartObject;
+				prismObjectCloneDurationNanos += cloneDurationNanos;
+				LOGGER.debug("MONITOR prism object clone end: {} (duration {} ns)", orig, cloneDurationNanos);
+			} else {
+				LOGGER.debug("MONITOR prism object clone end: {}", orig);
+			}
+		}
+		if (isTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT)) {
+			traceOperation("prism object clone", null, count, false);
+		}
+	}
+
+	public static <F extends FocusType> void recordRoleEvaluation(F target, boolean fullEvaluation) {
+		long count = recordCountInternal(InternalCounters.ROLE_EVALUATION_COUNT);
+		if (isTrace(InternalCounters.ROLE_EVALUATION_COUNT)) {
+			traceOperation("roleEvaluation", () -> target.toString() , count, true);
+		}
+		if (inspector != null) {
+			inspector.inspectRoleEvaluation(target, fullEvaluation);
+		}
+	}
+
+	public static <F extends FocusType> void recordRoleEvaluationSkip(F target, boolean fullEvaluation) {
+		long count = recordCountInternal(InternalCounters.ROLE_EVALUATION_SKIP_COUNT);
+		if (isTrace(InternalCounters.ROLE_EVALUATION_SKIP_COUNT)) {
+			traceOperation("roleEvaluationSkip", () -> target.toString() , count, true);
+		}
+	}
+
+	public static InternalInspector getInspector() {
+		return inspector;
+	}
+
+	public static void setInspector(InternalInspector inspector) {
+		InternalMonitor.inspector = inspector;
+	}
+
+	public static void reset() {
+		LOGGER.info("MONITOR reset");
+		counterMap.clear();
+		traceMap.clear();
+		resourceCacheStats = new CachingStatistics();
+		connectorCacheStats = new CachingStatistics();
+		inspector = null;
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		return debugDumpStatic(indent);
+	}
+
+	public static String debugDumpStatic(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilder(InternalMonitor.class, indent);
+		sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, "counters", indent + 1);
+		for (InternalCounters counter: InternalCounters.values()) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, counter.getLabel(), getCount(counter), indent + 2);
+		}
+		sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, "traces", indent + 1);
+		for (InternalOperationClasses trace: InternalOperationClasses.values()) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, trace.getLabel(), isTrace(trace), indent + 2);
+		}
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabelLn(sb, "cloneTimingEnabled", cloneTimingEnabled, indent + 1);
+		if (cloneTimingEnabled) {
+			DebugUtil.debugDumpWithLabelLn(sb, "prismObjectCloneDuration", (prismObjectCloneDurationNanos/1000000)+" ms (" + prismObjectCloneDurationNanos + " ns)", indent + 1);
+		}
+		DebugUtil.debugDumpWithLabelLn(sb, "resourceCacheStats", resourceCacheStats, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "connectorCacheStats", connectorCacheStats, indent + 1);
+		return sb.toString();
+	}
 }

@@ -28,7 +28,7 @@ import javax.xml.ws.WebServiceFeature;
  *
  */
 @WebServiceClient(name = "dumyService",
-				  targetNamespace = "http://midpoint.evolveum.com/xml/ns/test/dummy-1") 
+				  targetNamespace = "http://midpoint.evolveum.com/xml/ns/test/dummy-1")
 public class DummyService extends Service {
 
     public final static QName SERVICE = new QName("http://midpoint.evolveum.com/xml/ns/test/dummy-1", "dumyService");
@@ -45,7 +45,7 @@ public class DummyService extends Service {
     public DummyService() {
         super(null, SERVICE);
     }
-    
+
     //This constructor requires JAX-WS API 2.2. You will need to endorse the 2.2
     //API jar or re-run wsdl2java with "-frontend jaxws21" to generate JAX-WS 2.1
     //compliant code instead.
@@ -78,7 +78,7 @@ public class DummyService extends Service {
     }
 
     /**
-     * 
+     *
      * @param features
      *     A list of {@link javax.xml.ws.WebServiceFeature} to configure on the proxy.  Supported features not in the <code>features</code> parameter will have their default values.
      * @return

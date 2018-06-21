@@ -17,13 +17,13 @@ package com.evolveum.midpoint.schema.constants;
 
 /**
  * Enumeration of standardized test connection opration codes as they are presented in the OperationResult.
- * 
+ *
  * @author lazyman
  * @author Radovan Semancik
- * 
+ *
  */
 public enum ConnectorTestOperation {
-	
+
 	TEST_CONNECTION(ConnectorTestOperation.class.getName() + ".testConnection"),
 
 	/**
@@ -46,7 +46,7 @@ public enum ConnectorTestOperation {
 	 * Check whether a connection to the resource can be established.
 	 */
 	CONNECTOR_CONNECTION(ConnectorTestOperation.class.getName() + ".connector.connection"),
-	
+
 	/**
 	 * Check whether a connection to the resource can be established.
 	 */

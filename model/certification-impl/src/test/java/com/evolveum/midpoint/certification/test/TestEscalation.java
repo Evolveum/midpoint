@@ -32,7 +32,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
@@ -69,7 +68,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test010CreateCampaign() throws Exception {
         final String TEST_NAME = "test010CreateCampaign";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
@@ -98,7 +97,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test013SearchAllCases() throws Exception {
         final String TEST_NAME = "test013SearchAllCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         searchWithNoCasesExpected(TEST_NAME);
     }
@@ -126,7 +125,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test021OpenFirstStage() throws Exception {
         final String TEST_NAME = "test021OpenFirstStage";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
@@ -165,7 +164,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test032SearchAllCases() throws Exception {
         final String TEST_NAME = "test032SearchAllCases";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
@@ -188,7 +187,7 @@ public class TestEscalation extends AbstractCertificationTest {
     @Test
     public void test050SearchWorkItems() throws Exception {
         final String TEST_NAME = "test050SearchWorkItems";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
@@ -214,7 +213,7 @@ public class TestEscalation extends AbstractCertificationTest {
 	@Test
 	public void test100RecordDecision() throws Exception {
 		final String TEST_NAME = "test100RecordDecision";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestCertificationBasic.class.getName() + "." + TEST_NAME);
@@ -250,7 +249,7 @@ public class TestEscalation extends AbstractCertificationTest {
 	@Test
     public void test110Escalate() throws Exception {
         final String TEST_NAME = "test110Escalate";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        TestUtil.displayTestTitle(this, TEST_NAME);
         login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
         // GIVEN
@@ -308,13 +307,13 @@ public class TestEscalation extends AbstractCertificationTest {
 
 		display("dummy transport", dummyTransport);
 		List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
-		assertEquals("Wrong # of dummy notifications", 2, messages.size());			// original + new approver
+		assertEquals("Wrong # of dummy notifications", 3, messages.size());			// original + new approver + deputy of administrator
 	}
 
 	@Test
 	public void test120EscalateAgain() throws Exception {
 		final String TEST_NAME = "test120EscalateAgain";
-		TestUtil.displayTestTile(this, TEST_NAME);
+		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
 		// GIVEN
@@ -375,6 +374,35 @@ public class TestEscalation extends AbstractCertificationTest {
 		display("dummy transport", dummyTransport);
 		List<Message> messages = dummyTransport.getMessages("dummy:simpleReviewerNotifier");
 		assertEquals("Wrong # of dummy notifications", 1, messages.size());			// new approver
+    }
+
+	@Test
+	public void test130Remediation() throws Exception {
+		final String TEST_NAME = "test130Remediation";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		dummyTransport.clearMessages();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+        clock.resetOverride();
+        clock.overrideDuration("P15D");          // stage ends at P14D
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		display("campaign after escalation", campaign);
+		assertStateAndStage(campaign, AccessCertificationCampaignStateType.IN_REMEDIATION, 2);
     }
 
 	protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {

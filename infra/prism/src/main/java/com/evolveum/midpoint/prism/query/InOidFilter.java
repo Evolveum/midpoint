@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,9 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
+import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import org.apache.commons.lang.StringUtils;
@@ -31,15 +30,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class InOidFilter extends ObjectFilter {
 
-	private Collection<String> oids;
+	private List<String> oids;
 	private ExpressionWrapper expression;
 	private boolean considerOwner;				// temporary hack (checks owner OID)
-	
+
 	private InOidFilter(boolean considerOwner, Collection<String> oids) {
 		this.considerOwner = considerOwner;
-		this.oids = oids;
+		setOids(oids);
 	}
-	
+
 	private InOidFilter(boolean considerOwner, ExpressionWrapper expression){
 		this.considerOwner = considerOwner;
 		this.expression = expression;
@@ -52,7 +51,7 @@ public class InOidFilter extends ObjectFilter {
 	public static InOidFilter createInOid(Collection<String> oids){
 		return new InOidFilter(false, oids);
 	}
-	
+
 	public static InOidFilter createInOid(String... oids){
 		return new InOidFilter(false, Arrays.asList(oids));
 	}
@@ -68,13 +67,13 @@ public class InOidFilter extends ObjectFilter {
 	public static InOidFilter createInOid(boolean considerOwner, ExpressionWrapper expression){
 		return new InOidFilter(considerOwner, expression);
 	}
-		
+
 	public Collection<String> getOids() {
 		return oids;
 	}
-	
+
 	public void setOids(Collection<String> oids) {
-		this.oids = oids;
+		this.oids = oids != null ? new ArrayList<>(oids) : null;
 	}
 
 	public boolean isConsiderOwner() {
@@ -84,11 +83,11 @@ public class InOidFilter extends ObjectFilter {
 	public ExpressionWrapper getExpression() {
 		return expression;
 	}
-	
+
 	public void setExpression(ExpressionWrapper expression) {
 		this.expression = expression;
 	}
-	
+
 	@Override
 	public void checkConsistence(boolean requireDefinitions) {
 		if (oids == null) {
@@ -102,48 +101,40 @@ public class InOidFilter extends ObjectFilter {
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("IN OID: ");
 		if (considerOwner) {
 			sb.append("(for owner)");
 		}
 		sb.append("VALUE:");
 		if (getOids() != null) {
-			sb.append("\n");
 			for (String oid : getOids()) {
+				sb.append("\n");
 				DebugUtil.indentDebugDump(sb, indent+1);
 				sb.append(oid);
-				sb.append("\n");
 			}
 		} else {
-			sb.append(" null\n");
+			sb.append(" null");
 		}
-		
+
 		return sb.toString();
-		
+
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("IN OID: ");
 		if (getOids() != null){
-			Iterator<String> itertor = getOids().iterator();
-			while (itertor.hasNext()){
-				String value = itertor.next();
+			for (String value : getOids()) {
 				if (value == null) {
 					sb.append("null");
 				} else {
 					sb.append(value);
 				}
 				sb.append("; ");
-				
 			}
 		}
 		return sb.toString();

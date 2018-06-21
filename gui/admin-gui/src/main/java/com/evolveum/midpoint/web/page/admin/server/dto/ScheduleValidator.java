@@ -25,6 +25,8 @@ import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScheduleValidator extends AbstractFormValidator {
 
@@ -47,7 +49,20 @@ public class ScheduleValidator extends AbstractFormValidator {
 
     @Override
 	public FormComponent<?>[] getDependentFormComponents() {
-		return new FormComponent[] { recurring, bound, interval };      // todo is this correct? (cron should not be here, as it is not always present...)
+    	List<FormComponent<?>> dependentComponents = new ArrayList<>();
+    	if (interval.isEnabled()) {
+    		dependentComponents.add(interval);
+    	}
+    	
+    	if (recurring.isEnabled()) {
+    		dependentComponents.add(recurring);
+    	}
+    	
+    	if (bound.isEnabled()) {
+    		dependentComponents.add(bound);
+    	}
+    	
+    	return dependentComponents.toArray(new FormComponent<?>[]{});    // todo is this correct? (cron should not be here, as it is not always present...)
 	}
 
 	@Override

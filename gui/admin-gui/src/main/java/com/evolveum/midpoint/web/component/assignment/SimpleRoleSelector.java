@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -28,19 +32,19 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author semancik
  */
-public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType> extends BasePanel<List<AssignmentEditorDto>> {
+public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType> extends BasePanel<ContainerWrapper<AssignmentType>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleRoleSelector.class);
@@ -51,7 +55,7 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 
     List<PrismObject<R>> availableRoles;
 
-    public SimpleRoleSelector(String id, IModel<List<AssignmentEditorDto>> assignmentModel, List<PrismObject<R>> availableRoles) {
+    public SimpleRoleSelector(String id, IModel<ContainerWrapper<AssignmentType>> assignmentModel, List<PrismObject<R>> availableRoles) {
         super(id, assignmentModel);
         this.availableRoles = availableRoles;
         initLayout();
@@ -63,10 +67,6 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 
     public String getExcludeOid() {
         return null;
-    }
-
-    protected IModel<List<AssignmentEditorDto>> getAssignmentModel() {
-        return getModel();
     }
 
     private void initLayout() {
@@ -97,7 +97,7 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 
             @Override
             public IModel<?> getBody() {
-                return new Model<String>(getModel().getObject().asObjectable().getName().getOrig());
+                return new Model<>(getModel().getObject().asObjectable().getName().getOrig());
             }
 
             @Override
@@ -128,10 +128,12 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 
 
     private boolean isSelected(PrismObject<R> role) {
-        for (AssignmentEditorDto dto: getAssignmentModel().getObject()) {
-            if (willProcessAssignment(dto)) {
-                if (dto.getTargetRef() != null && role.getOid().equals(dto.getTargetRef().getOid())) {
-                    if (dto.getStatus() != UserDtoStatus.DELETE) {
+        for (ContainerValueWrapper<AssignmentType> assignmentContainer: getModel().getObject().getValues()) {
+            AssignmentType assignment = assignmentContainer.getContainerValue().getValue();
+            if (willProcessAssignment(assignment)) {
+            	ObjectReferenceType targetRef = assignment.getTargetRef();
+                if (targetRef != null && role.getOid().equals(targetRef.getOid())) {
+                    if (assignmentContainer.getStatus() != ValueStatus.DELETED) {
                         return true;
                     }
                 }
@@ -141,55 +143,56 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
     }
 
     private void toggleRole(PrismObject<R> role) {
-        Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
+        Iterator<ContainerValueWrapper<AssignmentType>> iterator = getModel().getObject().getValues().iterator();
         while (iterator.hasNext()) {
-            AssignmentEditorDto dto = iterator.next();
-            if (willProcessAssignment(dto)) {
-                if (dto.getTargetRef() != null && role.getOid().equals(dto.getTargetRef().getOid())) {
-                    if (dto.getStatus() == UserDtoStatus.ADD) {
+            ContainerValueWrapper<AssignmentType> assignmentContainer = iterator.next();
+            AssignmentType assignment = assignmentContainer.getContainerValue().getValue();
+            if (willProcessAssignment(assignment)) {
+            	ObjectReferenceType targetRef = assignment.getTargetRef();
+                if (targetRef != null && role.getOid().equals(targetRef.getOid())) {
+                    if (assignmentContainer.getStatus() == ValueStatus.ADDED) {
                         iterator.remove();
                     } else {
-                        dto.setStatus(UserDtoStatus.DELETE);
+                        assignmentContainer.setStatus(ValueStatus.DELETED);
                     }
                     return;
                 }
             }
         }
 
-        AssignmentEditorDto dto = createAddAssignmentDto(role, getPageBase());
-        getAssignmentModel().getObject().add(dto);
-    }
-
-    protected AssignmentEditorDto createAddAssignmentDto(PrismObject<R> role, PageBase pageBase) {
-        AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(role.asObjectable(), getPageBase());
-        dto.setMinimized(true);
-        return dto;
+        AssignmentType newAssignment = ObjectTypeUtil.createAssignmentTo(role);
+        //TODO
+        //create ContainerValueWrapper for new assignment
+//        getAssignmentModel().getObject().add(newAssignment);
     }
 
     private void reset() {
-        Iterator<AssignmentEditorDto> iterator = getAssignmentModel().getObject().iterator();
+        Iterator<ContainerValueWrapper<AssignmentType>> iterator = getModel().getObject().getValues().iterator();
         while (iterator.hasNext()) {
-            AssignmentEditorDto dto = iterator.next();
-            if (isManagedRole(dto) && willProcessAssignment(dto)) {
-                if (dto.getStatus() == UserDtoStatus.ADD) {
+            ContainerValueWrapper<AssignmentType> assignmentContainer = iterator.next();
+            AssignmentType assignment = assignmentContainer.getContainerValue().getValue();
+            if (isManagedRole(assignment) && willProcessAssignment(assignment)) {
+                if (assignmentContainer.getStatus() == ValueStatus.ADDED) {
                     iterator.remove();
-                } else if (dto.getStatus() == UserDtoStatus.DELETE) {
-                    dto.setStatus(UserDtoStatus.MODIFY);
+                } else if (assignmentContainer.getStatus() == ValueStatus.DELETED) {
+                    //what status to use for container?
+//                    assignmentContainer.setStatus(UserDtoStatus.MODIFY);
                 }
             }
         }
     }
 
-    protected boolean willProcessAssignment(AssignmentEditorDto dto) {
+    protected boolean willProcessAssignment(AssignmentType dto) {
         return true;
     }
 
-    protected boolean isManagedRole(AssignmentEditorDto dto) {
-        if (dto.getTargetRef() == null || dto.getTargetRef().getOid() == null) {
+    protected boolean isManagedRole(AssignmentType assignment) {
+    	ObjectReferenceType targetRef = assignment.getTargetRef();
+        if (targetRef == null || targetRef.getOid() == null) {
             return false;
         }
         for (PrismObject<R> availableRole: availableRoles) {
-            if (availableRole.getOid().equals(dto.getTargetRef().getOid())) {
+            if (availableRole.getOid().equals(targetRef.getOid())) {
                 return true;
             }
         }

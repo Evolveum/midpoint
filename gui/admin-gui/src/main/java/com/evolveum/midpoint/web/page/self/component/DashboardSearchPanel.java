@@ -1,13 +1,12 @@
 package com.evolveum.midpoint.web.page.self.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
-
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -28,33 +27,38 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public class DashboardSearchPanel extends SimplePanel<T> {
+public class DashboardSearchPanel extends BasePanel<T> {
 
-    private static final String ID_SEARCH_INPUT = "searchInput";
-    private static final String ID_SEARCH_BUTTON = "searchButton";
-    private static final String ID_LINK_LABEL = "linkLabel";
-    private static final String ID_SEARCH_TYPE_ITEM = "searchTypeItem";
-    private static final String ID_SEARCH_TYPES = "searchTypes";
-    private static final String ID_BUTTON_LABEL = "buttonLabel";
-    private static final String ID_SEARCH_FORM = "searchForm";
-    private static final List<String> SEARCH_TYPES = Arrays.asList(new String[]{
-            "User", "Resource", "Task"});
-    private static final int USER_INDEX = 0;
-    private static final int RESOURCE_INDEX = 1;
-    private static final int TASK_INDEX = 2;
+    private final String ID_SEARCH_INPUT = "searchInput";
+    private final String ID_SEARCH_BUTTON = "searchButton";
+    private final String ID_SEARCH_TYPE_ITEM = "searchTypeItem";
+    private final String ID_SEARCH_TYPES = "searchTypes";
+    private final String ID_BUTTON_LABEL = "buttonLabel";
+    private final String ID_SEARCH_FORM = "searchForm";
+    private List<String> SEARCH_TYPES;
+    private final int USER_INDEX = 0;
+    private final int RESOURCE_INDEX = 1;
+    private final int TASK_INDEX = 2;
     private int selectedSearchType = 0;
 
     public DashboardSearchPanel(String id) {
-        this(id, null);
-    }
-
-    public DashboardSearchPanel(String id, IModel<T> model) {
-        super(id, model);
+        super(id);
     }
 
     @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        SEARCH_TYPES = Arrays.asList(
+                createStringResource("PageDashboard.search.users").getString(),
+                createStringResource("PageDashboard.search.resources").getString(),
+                createStringResource("PageDashboard.search.tasks").getString()
+        );
+
+        initLayout();
+    }
+
     protected void initLayout() {
-        final Form searchForm = new Form(ID_SEARCH_FORM);
+        final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 
@@ -78,7 +82,7 @@ public class DashboardSearchPanel extends SimplePanel<T> {
                 @Override
                 protected void onComponentTag(final ComponentTag tag) {
                     super.onComponentTag(tag);
-                    tag.put("placeholder", createStringResource("SearchPanel.searchByName").getString());
+                    tag.put("placeholder", createStringResource("PageDashboard.search.input").getString());
                 }
             };
             searchForm.add(searchInput);
@@ -102,10 +106,6 @@ public class DashboardSearchPanel extends SimplePanel<T> {
             searchForm.add(searchButton);
             searchForm.setDefaultButton(searchButton);
 
-//            final WebMarkupContainer list = new WebMarkupContainer(ID_SEARCH_TYPES);
-//            list.setOutputMarkupId(true);
-
-
             ListView<String> li = new ListView<String>(ID_SEARCH_TYPES, new IModel<List<String>>() {
                 @Override
                 public void detach() {
@@ -119,16 +119,16 @@ public class DashboardSearchPanel extends SimplePanel<T> {
                 @Override
                 public void setObject(List<String> list) {
                 }
-            })
-            {
+            }) {
 
-                    @Override
-                    protected void populateItem(final ListItem<String> item) {
+                @Override
+                protected void populateItem(final ListItem<String> item) {
                     final AjaxLink searchTypeLink = new AjaxLink(ID_SEARCH_TYPE_ITEM) {
                         @Override
                         public IModel<?> getBody() {
-                            return new Model<String>(item.getModel().getObject());
+                            return new Model<>(item.getModel().getObject());
                         }
+
                         @Override
                         public void onClick(AjaxRequestTarget target) {
                             selectedSearchType = accessibleSearchTypes.indexOf(item.getModelObject());
@@ -150,46 +150,6 @@ public class DashboardSearchPanel extends SimplePanel<T> {
             searchForm.add(li);
 
 
-//            final RepeatingView searchTypes = new RepeatingView(ID_SEARCH_TYPE_ITEM);
-//            searchTypes.setOutputMarkupId(true);
-//            if (accessibleSearchTypes.size() > 1) {
-//                for (int i = 0; i < accessibleSearchTypes.size(); i++) {
-//                    if (i == selectedSearchType){
-//                        continue;
-//                    }
-//                    final String searchTypeItem = accessibleSearchTypes.get(i);
-//                    final AjaxSubmitLink searchTypeLink = new AjaxSubmitLink(searchTypes.newChildId()) {
-//                        @Override
-//                        public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-//                                selectedSearchType = accessibleSearchTypes.indexOf(searchTypeItem);
-//                                target.add(DashboardSearchPanel.this.get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_BUTTON)));
-//                                target.add(DashboardSearchPanel.this.get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_TYPES)));
-////                                target.add(DashboardSearchPanel.this.get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_TYPES, ID_SEARCH_TYPE_ITEM)));
-//                        }
-//
-//                        @Override
-//                        protected void onComponentTag(final ComponentTag tag) {
-//                            super.onComponentTag(tag);
-//                            tag.put("value", searchTypeItem);
-//                        }
-//
-//                    };
-//                    searchTypeLink.setOutputMarkupId(true);
-//                    Label linkLabel = new Label(ID_LINK_LABEL, new Model<String>() {
-//                        public String getObject() {
-//                            return searchTypeItem;
-//                        }
-//                    });
-//                    linkLabel.setOutputMarkupId(true);
-//                    searchTypeLink.add(linkLabel);
-//                    searchTypes.add(searchTypeLink);
-//                }
-//            }
-//            list.add(searchTypes);
-//            if (accessibleSearchTypes.size() == 1){
-//                list.setVisible(false);
-//            }
-//            searchForm.add(list);
         }
     }
 
@@ -204,7 +164,4 @@ public class DashboardSearchPanel extends SimplePanel<T> {
 
     }
 
-    protected IModel<String> createSearchTextModel() {
-        return (IModel) getModel();
-    }
 }

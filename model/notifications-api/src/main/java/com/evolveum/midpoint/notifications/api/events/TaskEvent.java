@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -90,7 +91,8 @@ public class TaskEvent extends BaseEvent {
 		if (eventStatusType == null) {
 			return false;
 		}
-		if (taskRunResult == null) {
+		if (taskRunResult == null || taskRunResult.getOperationResult() == null) {
+			// TODO consider if we really want to return 'true' for both success and in_progress here
 			return eventStatusType == EventStatusType.SUCCESS || eventStatusType == EventStatusType.ALSO_SUCCESS || eventStatusType == EventStatusType.IN_PROGRESS;
 		}
 		OperationResult result = taskRunResult.getOperationResult();
@@ -133,6 +135,16 @@ public class TaskEvent extends BaseEvent {
 	}
 
 	public long getProgress() {
-		return taskRunResult != null ? taskRunResult.getProgress() : task.getProgress();
+		return taskRunResult != null && taskRunResult.getProgress() != null ? taskRunResult.getProgress() : task.getProgress();
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
+		debugDumpCommon(sb, indent);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "task", task, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "taskRunResult", taskRunResult, indent + 1);
+		DebugUtil.debugDumpWithLabelToString(sb, "operationType", operationType, indent + 1);
+		return sb.toString();
 	}
 }

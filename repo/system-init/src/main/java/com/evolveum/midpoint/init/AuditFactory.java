@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.*;
-import org.apache.cxf.common.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -46,7 +46,7 @@ public class AuditFactory implements ApplicationContextAware, RuntimeConfigurati
     private ApplicationContext applicationContext;
     @Autowired
     MidpointConfiguration midpointConfiguration;
-    private List<AuditServiceFactory> serviceFactories = new ArrayList<AuditServiceFactory>();
+    private List<AuditServiceFactory> serviceFactories = new ArrayList<>();
     private AuditService auditService;
 
     public void init() {

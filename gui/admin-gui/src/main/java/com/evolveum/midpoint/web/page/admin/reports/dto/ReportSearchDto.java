@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  * */
 public class ReportSearchDto implements Serializable, DebugDumpable {
 	private static final long serialVersionUID = 1L;
-	
+
 	public static final String F_SEARCH_TEXT = "text";
     public static final String F_PARENT = "parent";
 
@@ -47,7 +47,7 @@ public class ReportSearchDto implements Serializable, DebugDumpable {
     public void setParent(Boolean parent) {
         this.parent = parent;
     }
-    
+
     @Override
 	public String debugDump() {
 		return debugDump(0);

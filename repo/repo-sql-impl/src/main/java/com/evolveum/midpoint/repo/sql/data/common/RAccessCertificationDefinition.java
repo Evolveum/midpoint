@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -25,39 +24,45 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
 
 @Entity
 @Table(name = RAccessCertificationDefinition.TABLE_NAME,
-        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_definition_name", columnNames = {"name_norm"}))
+        uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_definition_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iCertDefinitionNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 @ForeignKey(name = "fk_acc_cert_definition")
 public class RAccessCertificationDefinition extends RObject<AccessCertificationDefinitionType> {
 
     public static final String TABLE_NAME = "m_acc_cert_definition";
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private String handlerUri;
     private REmbeddedReference ownerRefDefinition;
     private XMLGregorianCalendar lastCampaignStartedTimestamp;
     private XMLGregorianCalendar lastCampaignClosedTimestamp;
 //    private String campaignSchedulingInterval;
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public String getHandlerUri() {
@@ -115,7 +120,7 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
 
         RAccessCertificationDefinition that = (RAccessCertificationDefinition) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (handlerUri != null ? !handlerUri.equals(that.handlerUri) : that.handlerUri != null) return false;
         if (ownerRefDefinition != null ? !ownerRefDefinition.equals(that.ownerRefDefinition) : that.ownerRefDefinition != null) return false;
         if (lastCampaignStartedTimestamp != null ? !lastCampaignStartedTimestamp.equals(that.lastCampaignStartedTimestamp) : that.lastCampaignStartedTimestamp != null)
@@ -130,7 +135,7 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (handlerUri != null ? handlerUri.hashCode() : 0);
         return result;
     }
@@ -141,22 +146,10 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
 
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setOwnerRefDefinition(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
         repo.setLastCampaignStartedTimestamp(jaxb.getLastCampaignStartedTimestamp());
         repo.setLastCampaignClosedTimestamp(jaxb.getLastCampaignClosedTimestamp());
-    }
-
-    @Override
-    public AccessCertificationDefinitionType toJAXB(PrismContext prismContext,
-                                                    Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        AccessCertificationDefinitionType object = new AccessCertificationDefinitionType();
-        RUtil.revive(object, prismContext);
-        RAccessCertificationDefinition.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }

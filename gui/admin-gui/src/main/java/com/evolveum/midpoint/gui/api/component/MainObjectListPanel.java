@@ -15,43 +15,38 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.io.FileOutputStream;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDataExporter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IDataExporter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.request.resource.ResourceStreamResource;
-import org.apache.wicket.util.resource.IResourceStream;
 
 /**
  * @author katkav
@@ -64,6 +59,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private static final String ID_IMPORT_OBJECT = "importObject";
     private static final String ID_EXPORT_DATA = "exportData";
     private static final String ID_BUTTON_BAR = "buttonBar";
+    private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
     public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
         super(id, type, tableId, options, parentPage);
@@ -128,9 +124,13 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         private static final long serialVersionUID = 1L;
 
+        private boolean canCountBeforeExporting;
+
         public <O extends ObjectType> ButtonBar(String id, String markupId, MainObjectListPanel<O> markupProvider) {
             super(id, markupId, markupProvider);
 
+            // TODO if displaying shadows in the repository (and not from resource) we can afford to count the objects
+            this.canCountBeforeExporting = markupProvider.getType() == null || !ShadowType.class.isAssignableFrom(markupProvider.getType());
             initLayout(markupProvider);
         }
 
@@ -160,6 +160,28 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     mainObjectListPanel.newObjectPerformed(target);
                 }
             };
+            //TODO will be fixed in 3.6.1
+//            newObjectIcon.add(new VisibleEnableBehaviour(){
+//                private static final long serialVersionUID = 1L;
+//
+//                @Override
+//                public boolean isVisible(){
+//
+//                    boolean isVisible = false;
+//                    try {
+//                        PrismObject<O> objectToCreate = mainObjectListPanel.getNewObjectListObject();
+//                        if (objectToCreate != null) {
+//                            mainObjectListPanel.adoptNewObject(objectToCreate);
+//                        }
+//                        isVisible = ((PageBase) getPage()).getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
+//                                null, objectToCreate, null, null, null);
+//                    } catch (Exception ex){
+//                        LOGGER.error("Failed to check authorization for ADD action on new object of " + mainObjectListPanel.getType().getSimpleName()
+//                                + " type, ", ex);
+//                    }
+//                    return isVisible;
+//                }
+//            });
             add(newObjectIcon);
 
             AjaxIconButton importObject = new AjaxIconButton(ID_IMPORT_OBJECT, new Model<>("fa fa-upload"),
@@ -172,20 +194,61 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                     ((PageBase) getPage()).navigateToNext(PageImportObject.class);
                 }
             };
+            importObject.add(new VisibleEnableBehaviour(){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isVisible(){
+
+                    boolean isVisible = false;
+                    try {
+                        isVisible = ((PageBase) getPage()).isAuthorized(ModelAuthorizationAction.IMPORT_OBJECTS.getUrl())
+                                && WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,
+                                AuthorizationConstants.AUTZ_UI_CONFIGURATION_IMPORT_URL);
+                    } catch (Exception ex){
+                        LOGGER.error("Failed to check authorization for IMPORT action for " + mainObjectListPanel.getType().getSimpleName()
+                                + " object, ", ex);
+                    }
+                    return isVisible;
+                }
+            });
             add(importObject);
 
-            String fileName = mainObjectListPanel.getType().getSimpleName() +
-                    "_" + mainObjectListPanel.createStringResource("MainObjectListPanel.exportFileName").getString();
-            CSVDataExporter csvDataExporter = new CSVDataExporter();
-            ResourceStreamResource resource = (new ResourceStreamResource() {
-                protected IResourceStream getResourceStream() {
-                    return new ExportToolbar.DataExportResourceStreamWriter(csvDataExporter, mainObjectListPanel.getTable().getDataTable());
+            CsvDownloadButtonPanel exportDataLink = new CsvDownloadButtonPanel(ID_EXPORT_DATA, canCountBeforeExporting) {
+
+            	private static final long serialVersionUID = 1L;
+
+				@Override
+            	protected DataTable<?, ?> getDataTable() {
+            		return mainObjectListPanel.getTable().getDataTable();
+            	}
+
+            	@Override
+            	protected String getFilename() {
+            		return mainObjectListPanel.getType().getSimpleName() +
+		                    "_" + mainObjectListPanel.createStringResource("MainObjectListPanel.exportFileName").getString();
+            	}
+
+			};
+            exportDataLink.add(new VisibleEnableBehaviour(){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public boolean isVisible(){
+                    return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_URI);
                 }
-            }).setFileName(fileName + "." + csvDataExporter.getFileNameExtension());
-            AbstractLink exportDataLink = (new ResourceLink(ID_EXPORT_DATA, resource)).setBody(csvDataExporter.getDataFormatNameModel());
+            });
 
             add(exportDataLink);
 
         }
+    }
+
+    protected PrismObject<O> getNewObjectListObject(){
+        return null;
+    }
+
+    private void adoptNewObject(PrismObject<O> object) throws SchemaException{
+        getPageBase().getMidpointApplication().getPrismContext().adopt(object);
     }
 }

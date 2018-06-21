@@ -15,7 +15,7 @@
  */
 
 /**
- * 
+ *
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -60,7 +61,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -69,10 +69,10 @@ import static org.testng.AssertJUnit.assertTrue;
 /**
  * The test of Provisioning service on the API level. The test is using dummy
  * resource for speed and flexibility.
- * 
+ *
  * @author Radovan Semancik
  * @author Pavol Mederly
- * 
+ *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
@@ -83,7 +83,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
 	protected String willIcfUid;
 
-	public static final File TEST_DIR = new File("src/test/resources/impl/dummy-priorities-read-replace/");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-priorities-read-replace");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override
@@ -98,7 +98,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		InternalMonitor.setTraceConnectorOperation(true);
+		InternalMonitor.setTrace(InternalOperationClasses.CONNECTOR_OPERATIONS, true);
 		// in order to have schema available here
 		resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, taskManager.createTaskInstance(), initResult).asObjectable();
 	}
@@ -107,7 +107,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 	@Test
 	public void test100AddAccount() throws Exception {
 		final String TEST_NAME = "test100AddAccount";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -190,7 +190,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 	@Test
 	public void test123ModifyObjectReplace() throws Exception {
 		final String TEST_NAME = "test123ModifyObjectReplace";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
 				+ "." + TEST_NAME);
@@ -279,7 +279,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 	@Test
 	public void test150ModifyObjectAddDelete() throws Exception {
 		final String TEST_NAME = "test150ModifyObjectAddDelete";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TestDummyPrioritiesAndReadReplace.class.getName()
 				+ "." + TEST_NAME);

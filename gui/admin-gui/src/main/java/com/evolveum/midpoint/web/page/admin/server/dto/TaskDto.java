@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -37,6 +38,8 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -52,6 +55,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.server.handlers.HandlerDtoFactory;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.HandlerDto;
 import com.evolveum.midpoint.web.page.admin.server.handlers.dto.ResourceRelatedHandlerDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -68,13 +72,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto.computeTriggers;
 
 /**
  * @author lazyman
@@ -89,6 +92,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_MODEL_OPERATION_STATUS = "modelOperationStatus";
     public static final String F_SUBTASKS = "subtasks";
     public static final String F_NAME = "name";
+    public static final String F_OID = "oid";
     public static final String F_DESCRIPTION = "description";
     public static final String F_CATEGORY = "category";
     public static final String F_PARENT_TASK_NAME = "parentTaskName";
@@ -114,6 +118,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_NOT_START_BEFORE = "notStartBefore";
 	public static final String F_NOT_START_AFTER = "notStartAfter";
 	public static final String F_MISFIRE_ACTION = "misfireActionType";
+	public static final String F_EXECUTION_GROUP = "executionGroup";
+	public static final String F_GROUP_TASK_LIMIT = "groupTaskLimit";
 	public static final String F_OBJECT_REF_NAME = "objectRefName";
 	public static final String F_OBJECT_TYPE = "objectType";
 	public static final String F_OBJECT_QUERY = "objectQuery";
@@ -122,11 +128,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	public static final String F_EXECUTE_IN_RAW_MODE = "executeInRawMode";
 	public static final String F_PROCESS_INSTANCE_ID = "processInstanceId";
 	public static final String F_HANDLER_DTO = "handlerDto";
+	public static final String F_IN_STAGE_BEFORE_LAST_ONE = "isInStageBeforeLastOne";
 	public static final long RUNS_CONTINUALLY = -1L;
 	public static final long ALREADY_PASSED = -2L;
 	public static final long NOW = 0L;
+	public static final String F_TRIGGERS = "triggers";
 
-	private TaskType taskType;
+	@NotNull private final TaskType taskType;
 
 	private TaskEditableState currentEditableState = new TaskEditableState();
 	private TaskEditableState originalEditableState;
@@ -151,15 +159,20 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private List<TaskDto> subtasks = new ArrayList<>();          // only persistent subtasks are here
 	private List<TaskDto> transientSubtasks = new ArrayList<>();        // transient ones are here
 
+	private boolean subtasksLoaded;
+
 	// other
 	private List<InlineMenuItem> menuItems;
 	private HandlerDto handlerDto;
+	private List<EvaluatedTriggerGroupDto> triggers;            // initialized on demand
 
     //region Construction
-    public TaskDto(TaskType taskType, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
-			TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options,
-			Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException, ObjectNotFoundException {
-        Validate.notNull(taskType, "Task must not be null.");
+
+	// parentTaskBean can be filled-in for optimization purposes (MID-4238); but take care to provide it in a suitable form
+	// (e.g. with subtasks, if they are needed) - a conservative approach to this is implemented in fillInChildren
+    public TaskDto(@NotNull TaskType taskType, TaskType parentTaskBean, ModelService modelService, TaskService taskService, ModelInteractionService modelInteractionService,
+			TaskManager taskManager, WorkflowManager workflowManager, TaskDtoProviderOptions options, boolean subtasksLoaded,
+			Task opTask, OperationResult parentResult, PageBase pageBase) throws SchemaException {
         Validate.notNull(modelService);
         Validate.notNull(taskService);
         Validate.notNull(modelInteractionService);
@@ -171,27 +184,44 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		this.currentEditableState.name = taskType.getName() != null ? taskType.getName().getOrig() : null;
 		this.currentEditableState.description = taskType.getDescription();
 
+		this.currentEditableState.executionGroup = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroup() : null;
+		this.currentEditableState.groupTaskLimit = taskType.getExecutionConstraints() != null ? taskType.getExecutionConstraints().getGroupTaskLimit() : null;
 		fillInScheduleAttributes(taskType);
+
+		this.subtasksLoaded = subtasksLoaded;
 
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
         fillInHandlerUriList(taskType);
         fillInObjectRefAttributes(taskType, options, pageBase, opTask, thisOpResult);
-        fillInParentTaskAttributes(taskType, taskService, options, thisOpResult);
+        fillInParentTaskAttributes(taskType, parentTaskBean, taskService, options, opTask, thisOpResult);
         fillInOperationResultAttributes(taskType);
         if (options.isRetrieveModelContext()) {
-            fillInModelContext(taskType, modelInteractionService, opTask, thisOpResult);
+        	try {
+		        fillInModelContext(taskType, modelInteractionService, opTask, thisOpResult);
+	        } catch (CommonException | RuntimeException e) {
+		        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve model context for task {}", e, taskType);
+		        // TODO make sure that op result contains the error (in common cases it is there)
+	        }
         }
 		if (options.isRetrieveWorkflowContext()) {
 			// TODO fill-in "cheap" wf attributes not only when this option is set
-			fillInWorkflowAttributes(taskType, modelInteractionService, workflowManager, pageBase.getPrismContext(), opTask, thisOpResult);
+			try {
+				fillInWorkflowAttributes(taskType, modelInteractionService, workflowManager, pageBase.getPrismContext(), opTask, thisOpResult);
+			} catch (CommonException | RuntimeException e) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve workflow-related attributes from task {}", e, taskType);
+				// TODO make sure that op result contains the error (in common cases it is there)
+			}
 		}
         thisOpResult.computeStatusIfUnknown();
 
         fillFromExtension();
 
-        for (TaskType child : taskType.getSubtask()) {
-            addChildTaskDto(new TaskDto(child, modelService, taskService, modelInteractionService, taskManager,
-					workflowManager, options, opTask, parentResult, pageBase));
+        try {
+	        fillInChildren(taskType, modelService, taskService, modelInteractionService, taskManager, workflowManager, options,
+			        opTask, parentResult, pageBase);
+        } catch (CommonException | RuntimeException e) {
+	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve children task information for task {}", e, taskType);
+	        // TODO make sure that op result contains the error (in common cases it is there)
         }
 
 		if (options.isCreateHandlerDto()) {
@@ -204,7 +234,20 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		originalEditableState = currentEditableState.clone();
     }
 
-    @Override
+	private void fillInChildren(@NotNull TaskType taskType, ModelService modelService, TaskService taskService,
+			ModelInteractionService modelInteractionService, TaskManager taskManager, WorkflowManager workflowManager,
+			TaskDtoProviderOptions options, Task opTask, OperationResult parentResult, PageBase pageBase)
+			throws SchemaException {
+		TaskType thisTaskWithChildren = null;
+		for (TaskType child : taskType.getSubtask()) {
+			TaskDto childTaskDto = new TaskDto(child, thisTaskWithChildren, modelService, taskService, modelInteractionService,
+					taskManager, workflowManager, options, false, opTask, parentResult, pageBase);
+			addChildTaskDto(childTaskDto);
+			thisTaskWithChildren = childTaskDto.parentTaskType;     // to avoid repeated reads
+		}
+	}
+
+	@Override
     public List<InlineMenuItem> getMenuItems() {
         if (menuItems == null) {
             menuItems = new ArrayList<>();
@@ -268,23 +311,46 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     public String getTaskObjectName(TaskType taskType, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
-		return WebModelServiceUtils.resolveReferenceName(taskType.getObjectRef(), pageBase, opTask, thisOpResult);
+        OperationResult currentResult;
+        ObjectReferenceType objectRef;
+	    if (taskType.getWorkflowContext() != null) {
+	    	// For workflow-related tasks the task object might not be created yet (MID-4512). The simplest way
+		    // of avoiding displaying the error is to use a separate operation result.
+		    currentResult = new OperationResult(TaskDto.class.getName() + ".getTaskObjectName");
+		    objectRef = taskType.getWorkflowContext().getObjectRef();  // here should be the name present (important for objects that are to be created)
+	    } else {
+	    	currentResult = thisOpResult;
+	    	objectRef = null;
+	    }
+	    if (objectRef == null) {            // either not a workflow task, or wfc.objectRef does not exist
+	    	objectRef = taskType.getObjectRef();
+	    }
+	    return WebModelServiceUtils.resolveReferenceName(objectRef, pageBase, opTask, currentResult);
     }
 
-    private void fillInParentTaskAttributes(TaskType taskType, TaskService taskService, TaskDtoProviderOptions options, OperationResult thisOpResult) {
+    private void fillInParentTaskAttributes(TaskType taskType,
+		    TaskType parentTaskBean, TaskService taskService,
+		    TaskDtoProviderOptions options, Task operationTask, OperationResult thisOpResult) {
         if (options.isGetTaskParent() && taskType.getParent() != null) {
             try {
-				Collection<SelectorOptions<GetOperationOptions>> getOptions =
-						options.isRetrieveSiblings() ? createCollection(TaskType.F_SUBTASK, createRetrieve()) : null;
-                parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, thisOpResult).asObjectable();
-            } catch (SchemaException|ObjectNotFoundException|SecurityViolationException|ConfigurationException e) {
+            	// we assume parentTaskBean was fetched using correct options (see fillInChildren)
+	            if (parentTaskBean != null) {
+		            //System.out.println("Using cached task (id = " + taskType.getParent() + "); for " + taskType);
+		            parentTaskType = parentTaskBean;
+	            } else {
+		            Collection<SelectorOptions<GetOperationOptions>> getOptions =
+				            options.isRetrieveSiblings() ? createCollection(TaskType.F_SUBTASK, createRetrieve()) : null;
+		            //System.out.println("Calling taskService.getTaskByIdentifier(" + taskType.getParent() + "); for " + taskType);
+		            parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), getOptions, operationTask, thisOpResult).asObjectable();
+	            }
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | CommunicationException e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve parent task for task {}", e, taskType.getOid());
             }
         }
     }
 
-    private void fillInOperationResultAttributes(TaskType taskType) {
-        opResult = new ArrayList<OperationResult>();
+    private void fillInOperationResultAttributes(TaskType taskType) throws SchemaException {
+        opResult = new ArrayList<>();
         if (taskType.getResult() != null) {
             taskOperationResult = OperationResult.createOperationResult(taskType.getResult());
             opResult.add(taskOperationResult);
@@ -293,28 +359,15 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private void fillInModelContext(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws ObjectNotFoundException {
-        ModelContext ctx = unwrapModelContext(taskType, modelInteractionService, opTask, result);
+        ModelContext ctx = ModelContextUtil.unwrapModelContext(taskType.getModelOperationContext(), modelInteractionService, opTask, result);
 		if (ctx != null) {
 			modelOperationStatusDto = new ModelOperationStatusDto(ctx, modelInteractionService, opTask, result);
 		}
     }
 
-	private ModelContext unwrapModelContext(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws ObjectNotFoundException {
-		LensContextType lensContextType = taskType.getModelOperationContext();
-		if (lensContextType != null) {
-			try {
-				return modelInteractionService.unwrapModelContext(lensContextType, result);
-			} catch (SchemaException | CommunicationException | ConfigurationException e) {   // todo treat appropriately
-				throw new SystemException("Couldn't access model operation context in task: " + e.getMessage(), e);
-			}
-		} else {
-			return null;
-		}
-	}
-
-    private void fillInWorkflowAttributes(TaskType taskType, ModelInteractionService modelInteractionService, WorkflowManager workflowManager,
+	private void fillInWorkflowAttributes(TaskType taskType, ModelInteractionService modelInteractionService, WorkflowManager workflowManager,
 			PrismContext prismContext, Task opTask,
-			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException {
+			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
         workflowDeltasIn = retrieveDeltasToProcess(taskType, modelInteractionService, opTask, thisOpResult);
 		workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
@@ -347,14 +400,14 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			}
 		}
 
-		ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, thisOpResult);
+		ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, opTask, thisOpResult);
 		this.changesCategorizationList = computeChangesCategorizationList(changesByState, modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
 	@NotNull
 	private List<TaskChangesDto> computeChangesCategorizationList(ChangesByState changesByState, ModelInteractionService modelInteractionService,
 			PrismContext prismContext, Task opTask,
-			OperationResult thisOpResult) throws SchemaException {
+			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
 		List<TaskChangesDto> changes = new ArrayList<>();
 		if (!changesByState.getApplied().isEmpty()) {
 			changes.add(createTaskChangesDto("TaskDto.changesApplied", "box-solid box-success", changesByState.getApplied(), modelInteractionService, prismContext, opTask, thisOpResult));
@@ -378,12 +431,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public static TaskChangesDto createChangesToBeApproved(ObjectTreeDeltas<?> deltas, ModelInteractionService modelInteractionService,
-			PrismContext prismContext, Task opTask, OperationResult thisOpResult) throws SchemaException {
+			PrismContext prismContext, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
 		return createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary", deltas, modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
 	private static TaskChangesDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
-			PrismContext prismContext, Task opTask, OperationResult result) throws SchemaException {
+			PrismContext prismContext, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
 		Scene scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, opTask, result);
 		SceneDto sceneDto = new SceneDto(scene);
@@ -392,7 +445,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	private List<SceneDto> retrieveDeltasToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
-			OperationResult thisOpResult) throws SchemaException {
+			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         WfContextType wfc = taskType.getWorkflowContext();
         if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
             return null;
@@ -402,7 +455,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
 	private SceneDto retrieveDeltaToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
-			OperationResult thisOpResult) throws SchemaException {
+			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
 		WfContextType wfc = taskType.getWorkflowContext();
 		if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
 			return null;
@@ -414,7 +467,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
     private List<SceneDto> objectTreeDeltasToDeltaDtoList(ObjectTreeDeltasType deltas, PrismContext prismContext,
-			ModelInteractionService modelInteractionService, Task opTask, OperationResult thisOpResult) throws SchemaException {
+			ModelInteractionService modelInteractionService, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         List<SceneDto> retval = new ArrayList<>();
 		if (deltas == null) {
 			return retval;
@@ -427,7 +480,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     private List<SceneDto> retrieveResultingDeltas(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
-			OperationResult thisOpResult) throws SchemaException {
+			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         WfContextType wfc = taskType.getWorkflowContext();
         if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
             return null;
@@ -513,6 +566,22 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		this.currentEditableState.misfireActionType = misfireActionType;
 	}
 
+	public String getExecutionGroup() {
+    	return currentEditableState.executionGroup;
+	}
+
+	public void setExecutionGroup(String value) {
+    	this.currentEditableState.executionGroup = value;
+	}
+
+	public Integer getGroupTaskLimit() {
+    	return currentEditableState.groupTaskLimit;
+	}
+
+	public void setGroupTaskLimit(Integer value) {
+    	this.currentEditableState.groupTaskLimit = value;
+	}
+
 	public ThreadStopActionType getThreadStopActionType() {
 		return currentEditableState.threadStopActionType;
 	}
@@ -557,7 +626,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public String getCategory() {
         return taskType.getCategory();
     }
-    
+
     public List<String> getHandlerUriList() {
         return handlerUriList;
     }
@@ -587,12 +656,110 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return taskType.getExpectedTotal();
     }
 
-    public String getProgressDescription() {
-        return getProgressDescription(taskType.getProgress());
+    public String getProgressDescription(PageBase pageBase) {
+	    Long stalledSince = getStalledSince();
+	    if (stalledSince != null) {
+		    return pageBase.getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription());
+	    } else {
+		    return getRealProgressDescription();
+	    }
     }
 
-    public String getProgressDescription(Long currentProgress) {
-        if (currentProgress == null && taskType.getExpectedTotal() == null) {
+	public boolean isPartitionedMaster() {
+		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.PARTITIONED_MASTER;
+	}
+
+	public boolean isCoordinator() {
+		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.COORDINATOR;
+	}
+
+	public boolean isCoordinatedWorker() {
+		return taskType.getWorkManagement() != null && taskType.getWorkManagement().getTaskKind() == TaskKindType.WORKER;
+	}
+
+	public boolean hasBuckets() {
+		if (taskType.getWorkState() == null) {
+			return false;
+		}
+		if (taskType.getWorkState().getNumberOfBuckets() != null && taskType.getWorkState().getNumberOfBuckets() > 1) {
+			return true;
+		}
+		List<WorkBucketType> buckets = taskType.getWorkState().getBucket();
+		if (buckets.size() > 1) {
+			return true;
+		} else if (buckets.size() == 1 && buckets.get(0).getContent() != null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public boolean isWorkStateHolder() {
+		return (isCoordinator() || hasBuckets()) && !isCoordinatedWorker();
+	}
+
+	private String getRealProgressDescription() {
+		if (isPartitionedMaster()) {
+			return getPartitionedTaskProgressDescription();
+		} else if (isWorkStateHolder()) {
+			return getBucketedTaskProgressDescription();
+		} else {
+			return getPlainTaskProgressDescription();
+		}
+	}
+
+	private String getPartitionedTaskProgressDescription() {
+		if (!subtasksLoaded) {
+			return "?";
+		}
+		int completePartitions = 0;
+		int allPartitions = subtasks.size();
+		int firstIncompleteSequentialNumber = 0;
+		TaskDto firstIncomplete = null;
+		for (TaskDto subtask : subtasks) {
+			if (subtask.getRawExecutionStatus() == TaskExecutionStatus.CLOSED) {
+				completePartitions++;
+			} else if (subtask.getPartitionSequentialNumber() != null) {
+				if (firstIncomplete == null ||
+						subtask.getPartitionSequentialNumber() < firstIncompleteSequentialNumber) {
+					firstIncompleteSequentialNumber = subtask.getPartitionSequentialNumber();
+					firstIncomplete = subtask;
+				}
+			}
+		}
+		String coarseProgress = completePartitions + "/" + allPartitions;
+		if (firstIncomplete == null) {
+			return coarseProgress;
+		} else {
+			return coarseProgress + " + " + firstIncomplete.getRealProgressDescription();
+		}
+	}
+
+	private Integer getPartitionSequentialNumber() {
+    	return taskType.getWorkManagement() != null ? taskType.getWorkManagement().getPartitionSequentialNumber() : null;
+	}
+
+	private String getBucketedTaskProgressDescription() {
+    	int completeBuckets = getCompleteBuckets();
+		Integer expectedBuckets = getExpectedBuckets();
+		if (expectedBuckets == null) {
+			return String.valueOf(completeBuckets);
+		} else {
+			return (completeBuckets*100/expectedBuckets) + "%";
+		}
+	}
+
+	private Integer getExpectedBuckets() {
+		return taskType.getWorkState() != null ? taskType.getWorkState().getNumberOfBuckets() : null;
+	}
+
+	private Integer getCompleteBuckets() {
+    	return TaskWorkStateTypeUtil.getCompleteBucketsNumber(taskType);
+	}
+
+	private String getPlainTaskProgressDescription() {
+		Long currentProgress = taskType.getProgress();
+	    if (currentProgress == null && taskType.getExpectedTotal() == null) {
             return "";      // the task handler probably does not report progress at all
         } else {
             StringBuilder sb = new StringBuilder();
@@ -623,7 +790,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public String getOid() {
         return taskType.getOid();
     }
-    
+
     public String getIdentifier() {
         return taskType.getTaskIdentifier();
     }
@@ -667,7 +834,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     public OperationResultStatus getStatus() {
-        return taskOperationResult != null ? taskOperationResult.getStatus() : null;
+        if (taskOperationResult != null) {
+        	return taskOperationResult.getStatus();
+        } else if (taskType.getResultStatus() != null) {
+        	return OperationResultStatus.parseStatusType(taskType.getResultStatus());
+        } else {
+        	return null;
+        }
     }
 
     private boolean isRunNotFinished() {
@@ -770,6 +943,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return xgc2long(taskType.getStalledSince());
 	}
 
+	@NotNull
 	public TaskType getTaskType() {
 		return taskType;
 	}
@@ -1100,4 +1274,45 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return originalEditableState;
 	}
 
+	public boolean isInStageBeforeLastOne() {
+		return WfContextUtil.isInStageBeforeLastOne(getWorkflowContext());
+	}
+
+	public String getAllowedNodes(List<NodeType> nodes) {
+		Map<String, Integer> restrictions = TaskManagerUtil.getNodeRestrictions(getExecutionGroup(), nodes);
+		String n = restrictions.entrySet().stream()
+				.filter(e -> e.getValue() == null || e.getValue() > 0)
+				.map(e -> e.getKey() + (e.getValue() != null ? " (" + e.getValue() + ")" : ""))
+				.collect(Collectors.joining(", "));
+		return n.isEmpty() ? "-" : n;
+	}
+
+	public List<EvaluatedTriggerGroupDto> getTriggers() {
+		if (triggers == null) {
+			triggers = computeTriggers(getWorkflowContext());
+		}
+		return triggers;
+	}
+
+	public void ensureSubtasksLoaded(PageBase pageBase) {
+		if (!subtasksLoaded) {
+			Collection<SelectorOptions<GetOperationOptions>> getOptions = createCollection(TaskType.F_SUBTASK, createRetrieve());
+			Task opTask = pageBase.createAnonymousTask("ensureSubtasksLoaded");
+			try {
+				TaskType task = pageBase.getModelService()
+						.getObject(TaskType.class, getOid(), getOptions, opTask, opTask.getResult()).asObjectable();
+				fillInChildren(task, pageBase.getModelService(), pageBase.getTaskService(), pageBase.getModelInteractionService(),
+						pageBase.getTaskManager(), pageBase.getWorkflowManager(), TaskDtoProviderOptions.minimalOptions(), opTask,
+						opTask.getResult(), pageBase);
+				subtasksLoaded = true;
+			} catch (ObjectNotFoundException t) {   // often happens when refreshing Task List page
+				LOGGER.debug("Couldn't load subtasks for task {}", taskType, t);
+				subtasksLoaded = false;
+			} catch (Throwable t) {
+				pageBase.error("Couldn't load subtasks: " + t.getMessage());            // TODO
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load subtasks for task {}", t, taskType);
+				subtasksLoaded = false;
+			}
+		}
+	}
 }

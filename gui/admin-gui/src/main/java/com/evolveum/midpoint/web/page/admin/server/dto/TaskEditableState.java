@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,8 @@ public class TaskEditableState implements Serializable, Cloneable {
 	Date notStartAfter;
 	MisfireActionType misfireActionType;
 	ThreadStopActionType threadStopActionType;
+	String executionGroup;
+	Integer groupTaskLimit;
 
 	Integer workerThreads;
 
@@ -59,6 +61,8 @@ public class TaskEditableState implements Serializable, Cloneable {
 		clone.notStartAfter = CloneUtil.clone(notStartAfter);
 		clone.misfireActionType = misfireActionType;
 		clone.threadStopActionType = threadStopActionType;
+		clone.executionGroup = executionGroup;
+		clone.groupTaskLimit = groupTaskLimit;
 		clone.workerThreads = workerThreads;
 		clone.handlerSpecificState = CloneUtil.clone(handlerSpecificState);
 		return clone;
@@ -112,6 +116,14 @@ public class TaskEditableState implements Serializable, Cloneable {
 
 	public ThreadStopActionType getThreadStopActionType() {
 		return threadStopActionType;
+	}
+
+	public String getExecutionGroup() {
+		return executionGroup;
+	}
+
+	public Integer getGroupTaskLimit() {
+		return groupTaskLimit;
 	}
 
 	public Integer getWorkerThreads() {

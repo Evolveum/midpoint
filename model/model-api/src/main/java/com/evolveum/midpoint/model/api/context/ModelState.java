@@ -22,17 +22,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelStateType;
  *
  */
 public enum ModelState {
-	
+
 	INITIAL,
-	
+
 	PRIMARY,
-	
+
 	SECONDARY,
-	
+
 	EXECUTION,
-	
+
 	POSTEXECUTION,
-	
+
 	FINAL;
 
     public ModelStateType toModelStateType() {

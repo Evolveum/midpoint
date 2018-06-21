@@ -1,0 +1,74 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="0b759ce2-df29-11e6-a84c-9b213183a815"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+    <name>Color metarole</name>
+    <description>Excludes all color roles, efficiently creating a SoD class</description>
+    <inducement>
+    	<policyRule>
+    		<name>color exclusion red</name>
+    		<policyConstraints>
+		    	<exclusion>
+			    	<targetRef oid="eaa4ec3e-df28-11e6-9cca-336e0346d5cc" type="RoleType"/> <!-- Red -->
+		    	</exclusion>
+		    </policyConstraints>
+		    <policyActions>
+		    	<prune/>
+		    </policyActions>
+		</policyRule>
+    </inducement>
+    <inducement>
+    	<policyRule>
+    		<name>color exclusion green</name>
+    		<policyConstraints>
+		    	<exclusion>
+			    	<targetRef oid="2fd9e8f4-df29-11e6-9605-cfcedd703b9e" type="RoleType"/> <!-- Green -->
+		    	</exclusion>
+		    </policyConstraints>
+		    <policyActions>
+		    	<prune/>
+		    </policyActions>
+		</policyRule>
+    </inducement>
+    <inducement>
+    	<policyRule>
+    		<name>color exclusion blue</name>
+    		<policyConstraints>
+		    	<exclusion>
+			    	<targetRef oid="553e8df2-df29-11e6-a7ca-cb7c1f38d89f" type="RoleType"/> <!-- Blue -->
+		    	</exclusion>
+		    </policyConstraints>
+		    <policyActions>
+		    	<prune/>
+		    </policyActions>
+		</policyRule>
+    </inducement>
+    <inducement>
+    	<policyRule>
+    		<name>color exclusion none</name>
+    		<policyConstraints>
+		    	<exclusion>
+			    	<targetRef oid="662a997e-df2b-11e6-9bb3-5f235d1a8e60" type="RoleType"/> <!-- None -->
+		    	</exclusion>
+		    </policyConstraints>
+		    <policyActions>
+		    	<prune/>
+		    </policyActions>
+    	</policyRule>
+    </inducement>
+</role>

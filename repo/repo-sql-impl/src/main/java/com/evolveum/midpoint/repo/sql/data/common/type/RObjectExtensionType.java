@@ -20,5 +20,5 @@ package com.evolveum.midpoint.repo.sql.data.common.type;
  */
 public enum RObjectExtensionType {
 
-    EXTENSION, ATTRIBUTES;
+    EXTENSION, ATTRIBUTES
 }

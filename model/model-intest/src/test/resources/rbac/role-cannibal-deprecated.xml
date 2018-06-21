@@ -34,11 +34,13 @@
     	</construction>
     </inducement>
     <policyConstraints>
-    	<minAssignees>
-    		<multiplicity>2</multiplicity>
-    	</minAssignees>
-    	<maxAssignees>
-    		<multiplicity>3</multiplicity>
-    	</maxAssignees>
+		<or>
+			<minAssignees>
+				<multiplicity>2</multiplicity>
+			</minAssignees>
+			<maxAssignees>
+				<multiplicity>3</multiplicity>
+			</maxAssignees>
+		</or>
     </policyConstraints>
 </role>

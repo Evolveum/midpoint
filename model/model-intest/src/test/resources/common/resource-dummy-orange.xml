@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2016 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 
 
 <!-- Orange dummy resource for testing associations with resource-provided referential integrity.
-     It also have very little outbound expressions and it has some strange inbound expressions. -->
+     It also have very little outbound expressions and it has some strange inbound expressions.
+     Also, it has schema exetended with the "mate" attribute, which is used for account-account association. -->
 
 <resource oid="10000000-0000-0000-0000-000000001104"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -55,7 +56,12 @@
 			<icfi:uselessGuardedString>
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
-			<icfi:uselessString>USEless</icfi:uselessString>
+			<icfi:uselessString>
+				<expression>
+                  <const xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                         xsi:type="c:ConstExpressionEvaluatorType">useless</const>
+				</expression>
+			</icfi:uselessString>
 			<icfi:varyLetterCase>true</icfi:varyLetterCase>
 		</icfc:configurationProperties>
 
@@ -166,12 +172,18 @@
                 		<path>description</path>
                 	</target>
 				</inbound>
+				<inbound>
+                	<target>
+                		<path>extension/tales</path>
+                	</target>
+				</inbound>
 			</attribute>
             <attribute>
                 <ref>ri:gossip</ref>
                 <displayName>Gossip</displayName>
                 <tolerant>true</tolerant>
                 <inbound>
+					<name>gossip-inbound</name>
                 	<!-- Make this mapping tolerant. We so not want to remove existing assignments. -->
                 	<tolerant>true</tolerant>
                 	<expression>
@@ -208,9 +220,9 @@
             
             <association>
             	<ref>ri:group</ref>
-            	<kind>entitlement</kind>
             	<tolerant>true</tolerant>
-				<intolerantValuePattern>.*-wannabe</intolerantValuePattern>
+            	<intolerantValuePattern>.*-wannabe</intolerantValuePattern>
+            	<kind>entitlement</kind>
             	<intent>group</intent>
             	<intent>group-wannabe</intent>
             	<direction>objectToSubject</direction>
@@ -227,6 +239,15 @@
             	<associationAttribute>ri:privileges</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
 				<explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+            </association>
+            
+            <association>
+            	<ref>ri:crew</ref>
+            	<kind>account</kind>
+            	<intent>default</intent>
+            	<direction>subjectToObject</direction>
+            	<associationAttribute>ri:mate</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
             </association>
 
 			<iteration>

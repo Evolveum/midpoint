@@ -38,10 +38,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 public class DummyResourceCollection {
 
 	private static final Trace LOGGER = TraceManager.getTrace(DummyResourceCollection.class);
-	
+
 	private Map<String, DummyResourceContoller> map = new HashMap<>();
 	private ModelService modelService;
-	
+
 	public DummyResourceCollection(ModelService modelService) {
 		super();
 		this.modelService = modelService;
@@ -75,7 +75,7 @@ public class DummyResourceCollection {
 		map.put(name, controller);
 		return controller;
 	}
-	
+
 	public DummyResourceContoller get(String name) {
 		DummyResourceContoller contoller = map.get(name);
 		if (contoller == null) {
@@ -95,11 +95,11 @@ public class DummyResourceCollection {
 	public DummyResource getDummyResource(String name) {
 		return get(name).getDummyResource();
 	}
-	
+
 	public void forEachResourceCtl(Consumer<DummyResourceContoller> lambda) {
 		map.forEach((k,v) -> lambda.accept(v));
 	}
-	
+
 	/**
 	 * Resets the blocking state, error simulation, etc.
 	 */

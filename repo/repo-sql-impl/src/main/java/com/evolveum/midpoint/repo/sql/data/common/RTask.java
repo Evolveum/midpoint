@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -24,14 +23,12 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
+import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -40,8 +37,6 @@ import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -54,18 +49,21 @@ import java.util.Set;
 		@javax.persistence.Index(name = "iTaskWfEndTimestamp", columnList = "wfEndTimestamp"),
 		@javax.persistence.Index(name = "iTaskWfRequesterOid", columnList = "wfRequesterRef_targetOid"),
 		@javax.persistence.Index(name = "iTaskWfObjectOid", columnList = "wfObjectRef_targetOid"),
-		@javax.persistence.Index(name = "iTaskWfTargetOid", columnList = "wfTargetRef_targetOid") })
+		@javax.persistence.Index(name = "iTaskWfTargetOid", columnList = "wfTargetRef_targetOid"),
+        @javax.persistence.Index(name = "iTaskNameOrig", columnList = "name_orig")},
+        uniqueConstraints = @UniqueConstraint(name = "uc_task_identifier", columnNames = {"taskIdentifier"}))
 @ForeignKey(name = "fk_task")
 @Persister(impl = MidPointJoinedPersister.class)
-public class RTask extends RObject<TaskType> implements OperationResult {
+public class RTask extends RObject<TaskType> implements OperationResultFull {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private String taskIdentifier;
     private RTaskExecutionStatus executionStatus;
     private String node;
     private String category;
     private String handlerUri;
     //operation result
+    private byte[] fullResult;
     private ROperationResultStatus status;
     //end of operation result
     private XMLGregorianCalendar lastRunStartTimestamp;
@@ -159,9 +157,18 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return recurrence;
     }
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @JaxbPath(itemPath = { @JaxbName(localPart = "workflowContext"), @JaxbName(localPart = "processInstanceId") })
@@ -197,8 +204,16 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return wfEndTimestamp;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    @Lob
+    @NotQueryable
+    @Override
+    public byte[] getFullResult() {
+        return fullResult;
+    }
+
+    @Override
+    public void setFullResult(byte[] fullResult) {
+        this.fullResult = fullResult;
     }
 
     public void setCanRunOnNode(String canRunOnNode) {
@@ -339,7 +354,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
 
         RTask rTask = (RTask) o;
 
-        if (name != null ? !name.equals(rTask.name) : rTask.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(rTask.nameCopy) : rTask.nameCopy != null) return false;
         if (binding != rTask.binding) return false;
         if (executionStatus != rTask.executionStatus) return false;
         if (handlerUri != null ? !handlerUri.equals(rTask.handlerUri) : rTask.handlerUri != null) return false;
@@ -370,6 +385,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         if (wfProcessInstanceId != null ? !wfProcessInstanceId.equals(rTask.wfProcessInstanceId) : rTask.wfProcessInstanceId != null) return false;
         if (wfStartTimestamp != null ? !wfStartTimestamp.equals(rTask.wfStartTimestamp) : rTask.wfStartTimestamp != null) return false;
         if (wfEndTimestamp != null ? !wfEndTimestamp.equals(rTask.wfEndTimestamp) : rTask.wfEndTimestamp != null) return false;
+        if (fullResult != null ? !fullResult.equals(rTask.wfEndTimestamp) : rTask.fullResult != null) return false;
 
         return true;
     }
@@ -377,7 +393,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     @Override
     public int hashCode() {
         int result1 = super.hashCode();
-        result1 = 31 * result1 + (name != null ? name.hashCode() : 0);
+        result1 = 31 * result1 + (nameCopy != null ? nameCopy.hashCode() : 0);
         result1 = 31 * result1 + (taskIdentifier != null ? taskIdentifier.hashCode() : 0);
         result1 = 31 * result1 + (executionStatus != null ? executionStatus.hashCode() : 0);
         result1 = 31 * result1 + (node != null ? node.hashCode() : 0);
@@ -393,6 +409,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         result1 = 31 * result1 + (parent != null ? parent.hashCode() : 0);
         result1 = 31 * result1 + (waitingReason != null ? waitingReason.hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
+        result1 = 31 * result1 + (fullResult != null ? fullResult.hashCode() : 0);
 
         return result1;
     }
@@ -403,7 +420,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
 
         PrismObjectDefinition<TaskType> taskDefinition = jaxb.asPrismObject().getDefinition();
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
         repo.setExecutionStatus(RUtil.getRepoEnumValue(jaxb.getExecutionStatus(), RTaskExecutionStatus.class));
         repo.setHandlerUri(jaxb.getHandlerUri());
@@ -413,7 +430,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         repo.setNode(jaxb.getNode());
         repo.setBinding(RUtil.getRepoEnumValue(jaxb.getBinding(), RTaskBinding.class));
         repo.setRecurrence(RUtil.getRepoEnumValue(jaxb.getRecurrence(), RTaskRecurrence.class));
-        repo.setCanRunOnNode(jaxb.getCanRunOnNode());
+        repo.setCanRunOnNode(jaxb.getExecutionConstraints() != null ? jaxb.getExecutionConstraints().getGroup() : null);
         repo.setThreadStopAction(RUtil.getRepoEnumValue(jaxb.getThreadStopAction(), RThreadStopAction.class));
         repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());
@@ -433,16 +450,6 @@ public class RTask extends RObject<TaskType> implements OperationResult {
             repo.setWfEndTimestamp(wfc.getEndTimestamp());
         }
 
-        RUtil.copyResultFromJAXB(taskDefinition, jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
-    }
-
-    @Override
-    public TaskType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        TaskType object = new TaskType();
-        RUtil.revive(object, prismContext);
-        RTask.copyToJAXB(this, object, prismContext, options);
-
-        return object;
+        RUtil.copyResultFromJAXB(TaskType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
     }
 }

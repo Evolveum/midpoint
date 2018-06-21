@@ -16,12 +16,17 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections.map.HashedMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.BooleanSupplier;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -60,11 +65,17 @@ public class AdminGuiConfigTypeUtil {
 		if (adminGuiConfiguration.getPreferredDataLanguage() != null) {
 			composite.setPreferredDataLanguage(adminGuiConfiguration.getPreferredDataLanguage());
 		}
+		if (adminGuiConfiguration.isEnableExperimentalFeatures() != null) {
+			composite.setEnableExperimentalFeatures(adminGuiConfiguration.isEnableExperimentalFeatures());
+		}
+		if (adminGuiConfiguration.getDefaultExportSettings() != null) {
+			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings());
+		}
 		if (adminGuiConfiguration.getObjectLists() != null) {
 			if (composite.getObjectLists() == null) {
 				composite.setObjectLists(adminGuiConfiguration.getObjectLists().clone());
 			} else {
-				for (GuiObjectListType objectList: adminGuiConfiguration.getObjectLists().getObjectList()) {
+				for (GuiObjectListViewType objectList: adminGuiConfiguration.getObjectLists().getObjectList()) {
 					mergeList(composite.getObjectLists(), objectList);
 				}
 			}
@@ -74,7 +85,16 @@ public class AdminGuiConfigTypeUtil {
 				composite.setObjectForms(adminGuiConfiguration.getObjectForms().clone());
 			} else {
 				for (ObjectFormType objectForm: adminGuiConfiguration.getObjectForms().getObjectForm()) {
-					replaceForm(composite.getObjectForms(), objectForm);
+					joinForms(composite.getObjectForms(), objectForm);
+				}
+			}
+		}
+		if (adminGuiConfiguration.getObjectDetails() != null) {
+			if (composite.getObjectDetails() == null) {
+				composite.setObjectDetails(adminGuiConfiguration.getObjectDetails().clone());
+			} else {
+				for (GuiObjectDetailsPageType objectDetails: adminGuiConfiguration.getObjectDetails().getObjectDetailsPage()) {
+					joinObjectDetails(composite.getObjectDetails(), objectDetails);
 				}
 			}
 		}
@@ -87,8 +107,11 @@ public class AdminGuiConfigTypeUtil {
 				}
 			}
 		}
+		for (UserInterfaceFeatureType feature: adminGuiConfiguration.getFeature()) {
+			mergeFeature(composite.getFeature(), feature);
+		}
 		if (composite.getObjectLists() != null && composite.getObjectLists().getObjectList() != null){
-			for (GuiObjectListType objectListType : composite.getObjectLists().getObjectList()){
+			for (GuiObjectListViewType objectListType : composite.getObjectLists().getObjectList()){
 				if (objectListType.getColumn() != null) {
 //					objectListType.getColumn().clear();
 //					objectListType.getColumn().addAll(orderCustomColumns(objectListType.getColumn()));
@@ -98,32 +121,77 @@ public class AdminGuiConfigTypeUtil {
 				}
 			}
 		}
+
+		if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
+			composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
+		}
 	}
 
-	private static void replaceForm(ObjectFormsType objectForms, ObjectFormType newForm) {
+	private static void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {
 		Iterator<ObjectFormType> iterator = objectForms.getObjectForm().iterator();
 		while (iterator.hasNext()) {
 			ObjectFormType currentForm = iterator.next();
-			if (currentForm.getType().equals(newForm.getType())) {
+			if (isTheSameObjectForm(currentForm, newForm)) {
 				iterator.remove();
 			}
 		}
 		objectForms.getObjectForm().add(newForm.clone());
 	}
 
-	private static void mergeList(GuiObjectListsType objectLists, GuiObjectListType newList) {
-		// We support only the default object lists now, so simply replace the existing definition with the
-		// latest definition. We will need a more sophisticated merging later.
-		Iterator<GuiObjectListType> iterator = objectLists.getObjectList().iterator();
+	private static void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
+		Iterator<GuiObjectDetailsPageType> iterator = objectDetailsSet.getObjectDetailsPage().iterator();
 		while (iterator.hasNext()) {
-			GuiObjectListType currentList = iterator.next();
-			if (currentList.getType().equals(newList.getType())) {
+			GuiObjectDetailsPageType currentDetails = iterator.next();
+			if (isTheSameObjectType(currentDetails, newObjectDetails)) {
 				iterator.remove();
 			}
 		}
+		objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
+	}
+
+	private static boolean isTheSameObjectType(AbstractObjectTypeConfigurationType oldConf, AbstractObjectTypeConfigurationType newConf) {
+		return QNameUtil.match(oldConf.getType(), newConf.getType());
+	}
+
+	private static boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm){
+		if (!isTheSameObjectType(oldForm,newForm)) {
+			return false;
+		}
+		if (oldForm.isIncludeDefaultForms() != null &&
+				newForm.isIncludeDefaultForms() != null){
+			return true;
+		}
+		if (oldForm.getFormSpecification() == null && newForm.getFormSpecification() == null) {
+			String oldFormPanelUri = oldForm.getFormSpecification().getPanelUri();
+			String newFormPanelUri = newForm.getFormSpecification().getPanelUri();
+			if (oldFormPanelUri != null && oldFormPanelUri.equals(newFormPanelUri)) {
+				return true;
+			}
+
+			String oldFormPanelClass = oldForm.getFormSpecification().getPanelClass();
+			String newFormPanelClass = newForm.getFormSpecification().getPanelClass();
+			if (oldFormPanelClass != null && oldFormPanelClass.equals(newFormPanelClass)) {
+				return true;
+			}
+
+			String oldFormRefOid = oldForm.getFormSpecification().getFormRef() == null ?
+					null : oldForm.getFormSpecification().getFormRef().getOid();
+			String newFormRefOid = newForm.getFormSpecification().getFormRef() == null ?
+					null : newForm.getFormSpecification().getFormRef().getOid();
+			if (oldFormRefOid != null && oldFormRefOid.equals(newFormRefOid)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void mergeList(GuiObjectListViewsType objectLists, GuiObjectListViewType newList) {
+		// We support only the default object lists now, so simply replace the existing definition with the
+		// latest definition. We will need a more sophisticated merging later.
+		objectLists.getObjectList().removeIf(currentList -> currentList.getType().equals(newList.getType()));
 		objectLists.getObjectList().add(newList.clone());
 	}
-	
+
 	private static void mergeWidget(DashboardLayoutType compositeDashboard, DashboardWidgetType newWidget) {
 		String newWidgetIdentifier = newWidget.getIdentifier();
 		DashboardWidgetType compositeWidget = findWidget(compositeDashboard, newWidgetIdentifier);
@@ -134,18 +202,87 @@ public class AdminGuiConfigTypeUtil {
 		}
 	}
 
+	public static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
+		return findFeature(dashboard.getWidget(), widgetIdentifier);
+	}
+
 	private static void mergeWidget(DashboardWidgetType compositeWidget, DashboardWidgetType newWidget) {
-		UserInterfaceElementVisibilityType newCompositeVisibility = mergeVisibility(compositeWidget.getVisibility(), newWidget.getVisibility());
-		compositeWidget.setVisibility(newCompositeVisibility);
+		mergeFeature(compositeWidget, newWidget, UserInterfaceElementVisibilityType.VACANT);
+		// merge other widget properties (in the future)
+	}
+
+	private static void mergeFeature(List<UserInterfaceFeatureType> compositeFeatures, UserInterfaceFeatureType newFeature) {
+		String newIdentifier = newFeature.getIdentifier();
+		UserInterfaceFeatureType compositeFeature = findFeature(compositeFeatures, newIdentifier);
+		if (compositeFeature == null) {
+			compositeFeatures.add(newFeature.clone());
+		} else {
+			mergeFeature(compositeFeature, newFeature, UserInterfaceElementVisibilityType.AUTOMATIC);
+		}
+	}
+
+	private static <T extends UserInterfaceFeatureType> void mergeFeature(T compositeFeature, T newFeature, UserInterfaceElementVisibilityType defaultVisibility) {
+		UserInterfaceElementVisibilityType newCompositeVisibility = mergeVisibility(compositeFeature.getVisibility(), newFeature.getVisibility(), defaultVisibility);
+		compositeFeature.setVisibility(newCompositeVisibility);
+	}
+
+	public static <T extends UserInterfaceFeatureType> T findFeature(List<T> features, String identifier) {
+		for (T feature: features) {
+			if (feature.getIdentifier().equals(identifier)) {
+				return feature;
+			}
+		}
+		return null;
+	}
+
+	public static UserInterfaceElementVisibilityType getFeatureVisibility(AdminGuiConfigurationType adminGuiConfig, String identifier) {
+		if (adminGuiConfig == null) {
+			return UserInterfaceElementVisibilityType.AUTOMATIC;
+		}
+		UserInterfaceFeatureType feature = findFeature(adminGuiConfig.getFeature(), identifier);
+		if (feature == null) {
+			return UserInterfaceElementVisibilityType.AUTOMATIC;
+		}
+		UserInterfaceElementVisibilityType visibility = feature.getVisibility();
+		if (visibility == null) {
+			return UserInterfaceElementVisibilityType.AUTOMATIC;
+		}
+		return visibility;
+	}
+
+	public static boolean isFeatureVisible(AdminGuiConfigurationType adminGuiConfig, String identifier) {
+		return isFeatureVisible(adminGuiConfig, identifier, null);
+	}
+
+	public static boolean isFeatureVisible(AdminGuiConfigurationType adminGuiConfig, String identifier, BooleanSupplier automaticPredicate) {
+		UserInterfaceElementVisibilityType visibility = getFeatureVisibility(adminGuiConfig, identifier);
+		return isVisible(visibility, automaticPredicate);
+	}
+
+	public static boolean isVisible(UserInterfaceElementVisibilityType visibility, BooleanSupplier automaticPredicate) {
+		if (visibility == UserInterfaceElementVisibilityType.HIDDEN) {
+			return false;
+		}
+		if (visibility == UserInterfaceElementVisibilityType.VISIBLE) {
+			return true;
+		}
+		if (visibility == UserInterfaceElementVisibilityType.AUTOMATIC) {
+			if (automaticPredicate == null) {
+				return true;
+			} else {
+				return automaticPredicate.getAsBoolean();
+			}
+		}
+		return false;
 	}
 
 	private static UserInterfaceElementVisibilityType mergeVisibility(
-			UserInterfaceElementVisibilityType compositeVisibility, UserInterfaceElementVisibilityType newVisibility) {
+			UserInterfaceElementVisibilityType compositeVisibility, UserInterfaceElementVisibilityType newVisibility, UserInterfaceElementVisibilityType defaultVisibility) {
 		if (compositeVisibility == null) {
-			compositeVisibility = UserInterfaceElementVisibilityType.VACANT;
+			compositeVisibility = defaultVisibility;
 		}
 		if (newVisibility == null) {
-			newVisibility = UserInterfaceElementVisibilityType.VACANT;
+			newVisibility = defaultVisibility;
 		}
 		if (compositeVisibility == UserInterfaceElementVisibilityType.HIDDEN || newVisibility == UserInterfaceElementVisibilityType.HIDDEN) {
 			return UserInterfaceElementVisibilityType.HIDDEN;
@@ -157,15 +294,6 @@ public class AdminGuiConfigTypeUtil {
 			return UserInterfaceElementVisibilityType.AUTOMATIC;
 		}
 		return UserInterfaceElementVisibilityType.VACANT;
-	}
-
-	public static DashboardWidgetType findWidget(DashboardLayoutType dashboard, String widgetIdentifier) {
-		for (DashboardWidgetType widget: dashboard.getWidget()) {
-			if (widget.getIdentifier().equals(widgetIdentifier)) {
-				return widget;
-			}
-		}
-		return null;
 	}
 
 	/*
@@ -220,6 +348,36 @@ public class AdminGuiConfigTypeUtil {
 			temp.clear();
 		}
 		return customColumnsList;
+	}
+
+	public static <O extends ObjectType> GuiObjectDetailsPageType findObjectConfiguration(Class<O> type, AdminGuiConfigurationType adminGuiConfig) {
+		if (adminGuiConfig == null) {
+			return null;
+		}
+		GuiObjectDetailsSetType objectDetailsSetType = adminGuiConfig.getObjectDetails();
+		if (objectDetailsSetType == null) {
+			return null;
+		}
+		return AdminGuiConfigTypeUtil.findObjectConfiguration(objectDetailsSetType.getObjectDetailsPage(), type);
+	}
+
+	public static <T extends AbstractObjectTypeConfigurationType, O extends ObjectType> T findObjectConfiguration(
+			List<T> list, Class<O> type) {
+		if (list == null) {
+			return null;
+		}
+		QName typeQName = ObjectTypes.getObjectType(type).getTypeQName();
+		for (T item: list) {
+			if (QNameUtil.match(item.getType(), typeQName)) {
+				return item;
+			}
+		}
+		for (T item: list) {
+			if (item.getType() == null) {
+				return item;
+			}
+		}
+		return null;
 	}
 
 }

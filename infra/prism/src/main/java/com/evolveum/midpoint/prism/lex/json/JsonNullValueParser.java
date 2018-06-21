@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public class JsonNullValueParser<T> implements ValueParser<T> {
 
 	public JsonNullValueParser() {
 	}
-	
+
 	@Override
 	public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 		Class clazz = XsdTypeMapper.toJavaType(typeName);
@@ -40,7 +40,7 @@ public class JsonNullValueParser<T> implements ValueParser<T> {
 		}
 		return (T) JavaTypeConverter.convert(clazz, "");
 	}
-	
+
 	@Override
 	public boolean isEmpty() {
 		return true;

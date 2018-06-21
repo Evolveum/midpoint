@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<user oid="47f403ae-5a22-4226-aab9-cd321a62d6d3"
+	  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+	<name>guybrush</name>
+	<!-- Member of Scumm Bar but manager of Ministry of Rum (where he is NOT member) -->
+	<parentOrgRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+	<parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
+	<assignment>
+		<targetRef oid="00000000-8888-6666-0000-100000000006" type="c:OrgType"/>
+	</assignment>
+	<assignment>
+		<targetRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType" relation="org:manager"/>
+	</assignment>
+	<fullName>Guybrush Threepwood</fullName>
+	<givenName>Guybrush</givenName>
+	<familyName>Threepwood</familyName>
+	<emailAddress>guybrush@evolveum.com</emailAddress>
+	<credentials>
+		<password>
+			<value>a123456</value>
+		</password>
+	</credentials>  
+</user>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 package com.evolveum.midpoint.gui.api.component.result;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,12 +35,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -62,33 +67,54 @@ public class OpResult implements Serializable, Visitable {
 	private OpResult parent;
     private int count;
     private String xml;
+    private LocalizableMessage userFriendlyMessage;
 
 	// we assume there is at most one background task created (TODO revisit this assumption)
 	private String backgroundTaskOid;
 	private Boolean backgroundTaskVisible;			// available on root opResult only
-    
+
     private boolean showMore;
     private boolean showError;
-    
+
     private boolean alreadyShown;
-    
+
+    public LocalizableMessage getUserFriendlyMessage() {
+        return userFriendlyMessage;
+    }
+
     public boolean isAlreadyShown() {
 		return alreadyShown;
 	}
-    
+
     public void setAlreadyShown(boolean alreadyShown) {
 		this.alreadyShown = alreadyShown;
 	}
 
-    public static OpResult getOpResult(PageBase page, OperationResult result){
+    public static OpResult getOpResult(PageBase page, OperationResult result) {
         OpResult opResult = new OpResult();
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
 
-        opResult.message = result.getMessage();
+        if (result.getCause() != null && result.getCause() instanceof CommonException) {
+            LocalizableMessage localizableMessage = ((CommonException) result.getCause()).getUserFriendlyMessage();
+            if (localizableMessage != null) {
+                opResult.message = WebComponentUtil.resolveLocalizableMessage(localizableMessage, page);
+                
+                // Exclamation code:
+//                String key = localizableMessage.getKey() != null ? localizableMessage.getKey() : localizableMessage.getFallbackMessage();
+//        		StringResourceModel stringResourceModel = new StringResourceModel(key, page).setModel(new Model<String>()).setDefaultValue(localizableMessage.getFallbackMessage())
+//				.setParameters(localizableMessage.getArgs());
+//        		opResult.message = stringResourceModel.getString();
+            }
+        }
+
+        if (opResult.message == null) {
+            opResult.message = result.getMessage();
+        }
         opResult.operation = result.getOperation();
         opResult.status = result.getStatus();
         opResult.count = result.getCount();
+        opResult.userFriendlyMessage = result.getUserFriendlyMessage();
 
         if (result.getCause() != null) {
             Throwable cause = result.getCause();
@@ -100,23 +126,23 @@ public class OpResult implements Serializable, Visitable {
         }
 
         if (result.getParams() != null) {
-            for (Map.Entry<String, Serializable> entry : result.getParams().entrySet()) {
+            for (Map.Entry<String, Collection<String>> entry : result.getParams().entrySet()) {
                 String paramValue = null;
-                Object value = entry.getValue();
-                if (value != null) {
-                    paramValue = value.toString();
+                Collection<String> values = entry.getValue();
+                if (values != null) {
+                    paramValue = values.toString();
                 }
 
                 opResult.getParams().add(new Param(entry.getKey(), paramValue));
             }
         }
-        
-        if(result.getContext() != null){
-        	for (Map.Entry<String, Serializable> entry : result.getContext().entrySet()) {
+
+        if (result.getContext() != null) {
+            for (Map.Entry<String, Collection<String>> entry : result.getContext().entrySet()) {
                 String contextValue = null;
-                Object value = entry.getValue();
-                if (value != null) {
-                	contextValue = value.toString();
+                Collection<String> values = entry.getValue();
+                if (values != null) {
+                    contextValue = values.toString();
                 }
 
                 opResult.getContexts().add(new Context(entry.getKey(), contextValue));
@@ -125,24 +151,24 @@ public class OpResult implements Serializable, Visitable {
 
         if (result.getSubresults() != null) {
             for (OperationResult subresult : result.getSubresults()) {
-				OpResult subOpResult = OpResult.getOpResult(page, subresult);
-				opResult.getSubresults().add(subOpResult);
-				subOpResult.parent = opResult;
-				if (subOpResult.getBackgroundTaskOid() != null) {
-					opResult.backgroundTaskOid = subOpResult.getBackgroundTaskOid();
-				}
+                OpResult subOpResult = OpResult.getOpResult(page, subresult);
+                opResult.getSubresults().add(subOpResult);
+                subOpResult.parent = opResult;
+                if (subOpResult.getBackgroundTaskOid() != null) {
+                    opResult.backgroundTaskOid = subOpResult.getBackgroundTaskOid();
+                }
             }
         }
 
-		if (result.getBackgroundTaskOid() != null) {
-			opResult.backgroundTaskOid = result.getBackgroundTaskOid();
-		}
+        if (result.getBackgroundTaskOid() != null) {
+            opResult.backgroundTaskOid = result.getBackgroundTaskOid();
+        }
 
         try {
-        	OperationResultType resultType = result.createOperationResultType();
-        	ObjectFactory of = new ObjectFactory();
-			opResult.xml = page.getPrismContext().xmlSerializer().serialize(of.createOperationResult(resultType));
-		} catch (SchemaException|RuntimeException ex) {
+            OperationResultType resultType = result.createOperationResultType();
+            ObjectFactory of = new ObjectFactory();
+            opResult.xml = page.getPrismContext().xmlSerializer().serialize(of.createOperationResult(resultType));
+        } catch (SchemaException | RuntimeException ex) {
             String m = "Can't create xml: " + ex;
 //			error(m);
             opResult.xml = "<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>";
@@ -158,11 +184,11 @@ public class OpResult implements Serializable, Visitable {
 			return;
 		}
 		try {
-			if (pageBase.getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null)) {
+			if (pageBase.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL)) {
 				backgroundTaskVisible = true;
 				return;
 			}
-		} catch (SchemaException e) {
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			backgroundTaskVisible = false;
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine background task visibility", e);
 			return;
@@ -172,7 +198,7 @@ public class OpResult implements Serializable, Visitable {
 		try {
 			pageBase.getModelService().getObject(TaskType.class, backgroundTaskOid, null, task, task.getResult());
 			backgroundTaskVisible = true;
-		} catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException e) {
+		} catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
 			LOGGER.debug("Task {} is not visible by the current user: {}: {}", backgroundTaskOid, e.getClass(), e.getMessage());
 			backgroundTaskVisible = false;
 		}
@@ -181,22 +207,22 @@ public class OpResult implements Serializable, Visitable {
 	public boolean isShowMore() {
 		return showMore;
 	}
-    
+
     public void setShowMore(boolean showMore) {
 		this.showMore = showMore;
 	}
-    
+
     public boolean isShowError() {
 		return showError;
 	}
-    
+
     public void setShowError(boolean showError) {
 		this.showError = showError;
 	}
-    
+
     public List<OpResult> getSubresults() {
         if (subresults == null) {
-            subresults = new ArrayList<OpResult>();
+            subresults = new ArrayList<>();
         }
         return subresults;
     }
@@ -219,14 +245,14 @@ public class OpResult implements Serializable, Visitable {
 
     public List<Param> getParams() {
         if (params == null) {
-            params = new ArrayList<Param>();
+            params = new ArrayList<>();
         }
         return params;
     }
-    
+
     public List<Context> getContexts() {
         if (contexts == null) {
-        	contexts = new ArrayList<Context>();
+        	contexts = new ArrayList<>();
         }
         return contexts;
     }
@@ -238,7 +264,7 @@ public class OpResult implements Serializable, Visitable {
     public int getCount() {
         return count;
     }
-    
+
     public String getXml() {
     	return xml;
     }
@@ -259,15 +285,15 @@ public class OpResult implements Serializable, Visitable {
 
 	@Override
 	public void accept(Visitor visitor) {
-		
+
 		visitor.visit(this);
-		
+
 		for (OpResult result : this.getSubresults()){
 			result.accept(visitor);
 		}
-		
+
 	}
-	
+
 	public void setShowMoreAll(final boolean show) {
 		Visitor visitor = new Visitor() {
 

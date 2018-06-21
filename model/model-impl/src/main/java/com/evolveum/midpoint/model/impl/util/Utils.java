@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.model.impl.util;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -74,9 +74,9 @@ public final class Utils {
 	private static final Trace LOGGER = TraceManager.getTrace(Utils.class);
 	private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()
 	            + ".resolveReference";
-	
+
 	@Deprecated	// use RepositoryService.objectSearchIterative instead
-	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query, 
+	public static <T extends ObjectType> void searchIterative(RepositoryService repositoryService, Class<T> type, ObjectQuery query,
 			Handler<PrismObject<T>> handler, int blockSize, OperationResult opResult) throws SchemaException {
 		ObjectQuery myQuery = query.clone();
 		// TODO: better handle original values in paging
@@ -333,7 +333,7 @@ public final class Utils {
 		refVal.setOid(oid);
 		result.recordSuccessIfUnknown();
 	}
-	
+
 	private static boolean containExpression(ObjectFilter filter){
 		if (filter == null){
 			return false;
@@ -380,17 +380,17 @@ public final class Utils {
 
 	    private static ObjectClassComplexTypeDefinition determineObjectClassInternal(
                 RefinedResourceSchema refinedSchema, QName objectclass, ShadowKindType kind, String intent, Object source) throws SchemaException {
-	    	
+	
 	        if (kind == null && intent == null && objectclass != null) {
 	        	// Return generic object class definition from resource schema. No kind/intent means that we want
 	        	// to process all kinds and intents in the object class.
-	        	ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.findObjectClassDefinition(objectclass);
+	        	ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.getOriginalResourceSchema().findObjectClassDefinition(objectclass);
 	        	if (objectClassDefinition == null) {
 	        		throw new SchemaException("No object class "+objectclass+" in the schema for "+source);
 	        	}
 	        	return objectClassDefinition;
 	        }
-	        
+
 	        RefinedObjectClassDefinition refinedObjectClassDefinition;
 
 	        if (kind != null) {
@@ -407,7 +407,7 @@ public final class Utils {
                 }
 	        	refinedObjectClassDefinition = null;
 	        }
-	        
+
 	        return refinedObjectClassDefinition;
 	    }
 
@@ -415,7 +415,7 @@ public final class Utils {
 				OperationResult result) {
 			// Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
 			if (!ModelExecuteOptions.isNoCrypt(options)) {
-				for(ObjectDelta<? extends ObjectType> delta: deltas) {				
+				for(ObjectDelta<? extends ObjectType> delta: deltas) {
 					try {
 						CryptoUtil.encryptValues(protector, delta);
 					} catch (EncryptionException e) {
@@ -451,7 +451,7 @@ public final class Utils {
     public static void clearRequestee(Task task) {
         setRequestee(task, (PrismObject) null);
     }
-    
+
     public static boolean isDryRun(Task task) throws SchemaException {
 		Boolean dryRun = isDryRunInternal(task);
 		if (dryRun == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
@@ -474,18 +474,18 @@ public final class Utils {
 		}
 		return item.getValues().iterator().next().getValue();
     }
-    
+
     public static ModelExecuteOptions getModelExecuteOptions(Task task) throws SchemaException {
     	Validate.notNull(task, "Task must not be null.");
     	if (task.getExtension() == null) {
     		return null;
     	}
-    	LOGGER.info("Task:\n{}",task.debugDump(1));
+    	//LOGGER.info("Task:\n{}",task.debugDump(1));
     	PrismProperty<ModelExecuteOptionsType> item = task.getExtensionProperty(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
 		if (item == null || item.isEmpty()) {
 			return null;
 		}
-		LOGGER.info("Item:\n{}",item.debugDump(1));
+		//LOGGER.info("Item:\n{}",item.debugDump(1));
 		if (item.getValues().size() > 1) {
 			throw new SchemaException("Unexpected number of values for option 'modelExecuteOptions'.");
 		}
@@ -493,9 +493,9 @@ public final class Utils {
 		if (modelExecuteOptionsType == null) {
 			return null;
 		}
-		LOGGER.info("modelExecuteOptionsType: {}",modelExecuteOptionsType);
+		//LOGGER.info("modelExecuteOptionsType: {}",modelExecuteOptionsType);
 		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromModelExecutionOptionsType(modelExecuteOptionsType);
-		LOGGER.info("modelExecuteOptions: {}",modelExecuteOptions);
+		//LOGGER.info("modelExecuteOptions: {}",modelExecuteOptions);
 		return modelExecuteOptions;
     }
 
@@ -519,7 +519,7 @@ public final class Utils {
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
 		return variables;
 	}
-    
+
     public static ExpressionVariables getDefaultExpressionVariables(ObjectType focusType,
     		ShadowType shadowType, ResourceType resourceType, SystemConfigurationType configurationType) {
     	PrismObject<? extends ObjectType> focus = null;
@@ -540,17 +540,17 @@ public final class Utils {
     	}
 		return getDefaultExpressionVariables(focus, shadow, null, resource, configuration, null);
     }
-    
+
     public static <O extends ObjectType> ExpressionVariables getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
-    		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr, 
+    		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr,
     		PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext) {
     	ExpressionVariables variables = new ExpressionVariables();
     	addDefaultExpressionVariables(variables, focus, shadow, discr, resource, configuration, affectedElementContext);
     	return variables;
     }
-    
+
     public static <O extends ObjectType> void addDefaultExpressionVariables(ExpressionVariables variables, PrismObject<? extends ObjectType> focus,
-    		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr, 
+    		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr,
     		PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext) {
 
         // Legacy. And convenience/understandability.
@@ -561,14 +561,15 @@ public final class Utils {
 
         variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
 		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadow);
+		variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadow);
 		variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
 		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
-		
+
 		if (affectedElementContext != null) {
 			variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, affectedElementContext.getOperation().getValue());
 		}
 	}
-    
+
     public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, ExpressionVariables expressionVariables) {
 		if (assignmentPathVariables != null) {
 			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment());
@@ -593,7 +594,7 @@ public final class Utils {
 		}
 		return synchronizationPolicy.toString();
 	}
-	
+
 	public static PrismReferenceValue determineAuditTargetDeltaOps(Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps) {
 		if (deltaOps == null || deltaOps.isEmpty()) {
 			return null;
@@ -612,7 +613,7 @@ public final class Utils {
 		// target randomly. That would be confusing.
 		return null;
 	}
-	
+
 	public static PrismReferenceValue determineAuditTarget(Collection<ObjectDelta<? extends ObjectType>> deltas) {
 		if (deltas == null || deltas.isEmpty()) {
 			return null;
@@ -640,7 +641,7 @@ public final class Utils {
 		}
 		return targetRef;
 	}
-	
+
 	public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
             ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
@@ -657,5 +658,5 @@ public final class Utils {
 //			}
         }
     }
-	
+
 }

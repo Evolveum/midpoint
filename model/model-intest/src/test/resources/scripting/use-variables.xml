@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+<s:executeScript xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <s:action>
+        <s:type>execute-script</s:type>
+        <s:parameter>
+            <s:name>script</s:name>
+            <c:value xsi:type="c:ScriptExpressionEvaluatorType">
+                <c:code>
+                    log.info('=== Variables ===')
+                    this.binding.variables.each {k,v -> log.info('{} = {}', k, v)}
+
+                    if (userName != 'user1') {
+                        return 'Wrong username: ' + userName
+                    }
+                    if (new java.util.HashSet(groups) != ['group1', 'group2', 'group3'] as Set) {
+                        return 'Wrong groups: ' + groups
+                    }
+                    if (academicYear != '2017/2018') {
+                        return 'Wrong academic year: ' + academicYear
+                    }
+                    if (calendarYear != 2017) {
+                        return 'Wrong calendar year: ' + calendarYear
+                    }
+                    if (!(deadline instanceof javax.xml.datatype.XMLGregorianCalendar)) {
+                        return 'deadline missing or of wrong type: ' + deadline?.class
+                    }
+                    return 'ok'
+                </c:code>
+            </c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>forWholeInput</s:name>
+            <c:value>true</c:value>
+        </s:parameter>
+        <s:parameter>
+            <s:name>outputItem</s:name>
+            <c:value>http://midpoint.evolveum.com/xml/ns/public/common/common-3#description</c:value>       <!-- just a plain string -->
+        </s:parameter>
+    </s:action>
+    <s:variables>
+        <s:variable>
+            <s:name>userName</s:name>
+            <s:expression>
+                <c:path>$task/extension/userName</c:path>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>groups</s:name>
+            <s:expression>
+                <c:path>$task/extension/studyGroup</c:path>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>academicYear</s:name>
+            <s:expression>
+                <c:value>2017/2018</c:value>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>calendarYear</s:name>
+            <s:expression>
+                <c:value xsi:type="xsd:int">2017</c:value>
+            </s:expression>
+        </s:variable>
+        <s:variable>
+            <s:name>deadline</s:name>
+            <s:type>xsd:dateTime</s:type>
+            <s:expression>
+                <c:script>
+                    <c:code>
+                        basic.fromNow("P3D")
+                    </c:code>
+                </c:script>
+            </s:expression>
+        </s:variable>
+    </s:variables>
+</s:executeScript>

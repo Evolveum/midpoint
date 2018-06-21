@@ -16,8 +16,9 @@
 
 package com.evolveum.midpoint.prism.query;
 
+@FunctionalInterface
 public interface Visitor {
 
 	void visit(ObjectFilter filter);
-	
+
 }

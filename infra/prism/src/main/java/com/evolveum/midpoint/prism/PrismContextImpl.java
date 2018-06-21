@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,20 @@ import com.evolveum.midpoint.prism.lex.LexicalProcessorRegistry;
 import com.evolveum.midpoint.prism.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
+import com.evolveum.midpoint.prism.polystring.ConfigurableNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
@@ -50,28 +54,35 @@ import java.io.InputStream;
 public class PrismContextImpl implements PrismContext {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismContextImpl.class);
-    
+
     private static boolean allowSchemalessSerialization = true;
 	private static boolean extraValidation = false;										// TODO replace by something serious
-    
+
 	@NotNull private final SchemaRegistryImpl schemaRegistry;
 	@NotNull private final LexicalProcessorRegistry lexicalProcessorRegistry;
-	@NotNull private final PolyStringNormalizer defaultPolyStringNormalizer;			// TODO make non-final when needed
+	@NotNull private PolyStringNormalizer defaultPolyStringNormalizer;
 	@NotNull private final PrismUnmarshaller prismUnmarshaller;
 	@NotNull private final PrismMarshaller prismMarshaller;
 	@NotNull private final BeanMarshaller beanMarshaller;
 	@NotNull private final BeanUnmarshaller beanUnmarshaller;
+	private ParsingMigrator parsingMigrator;
 	private PrismMonitor monitor = null;
 
 	private SchemaDefinitionFactory definitionFactory;
 
 	@Autowired		// TODO is this really applied?
 	private Protector defaultProtector;
-	
+
 	// We need to keep this because of deprecated methods and various hacks
 	@NotNull private final JaxbDomHack jaxbDomHack;
 
 	private QName defaultRelation;
+
+	private QName objectsElementName;
+
+	static {
+		PrismPrettyPrinter.initialize();
+	}
 
 	//region Standard overhead
 	private PrismContextImpl(@NotNull SchemaRegistryImpl schemaRegistry) {
@@ -85,13 +96,18 @@ public class PrismContextImpl implements PrismContext {
 		this.prismMarshaller = new PrismMarshaller(beanMarshaller);
 		this.jaxbDomHack = new JaxbDomHack(lexicalProcessorRegistry.domProcessor(), this);
 
-		defaultPolyStringNormalizer = new PrismDefaultPolyStringNormalizer();
+		try {
+			configurePolyStringNormalizer(null);
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			// Should not happen
+			throw new SystemException(e.getMessage(), e);
+		}
 	}
 
 	public static PrismContextImpl create(@NotNull SchemaRegistryImpl schemaRegistry) {
 		return new PrismContextImpl(schemaRegistry);
 	}
-	
+
 	public static PrismContextImpl createEmptyContext(@NotNull SchemaRegistryImpl schemaRegistry) {
 		return new PrismContextImpl(schemaRegistry);
 	}
@@ -99,6 +115,39 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public void initialize() throws SchemaException, SAXException, IOException {
 		schemaRegistry.initialize();
+	}
+
+	@Override
+	public void configurePolyStringNormalizer(PolyStringNormalizerConfigurationType configuration) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		if (configuration == null) {
+			defaultPolyStringNormalizer = new AlphanumericPolyStringNormalizer();
+			return;
+		}
+		
+		String className = configuration.getClassName();
+		if (className == null) {
+			defaultPolyStringNormalizer = new AlphanumericPolyStringNormalizer();
+		} else {
+			String fullClassName = getNormalizerFullClassName(className);
+			Class<?> normalizerClass;
+			try {
+				normalizerClass = Class.forName(fullClassName);
+			} catch (ClassNotFoundException e) {
+				throw new ClassNotFoundException("Cannot find class "+fullClassName+": "+e.getMessage(), e);
+			}
+			defaultPolyStringNormalizer = (PolyStringNormalizer) normalizerClass.newInstance();
+		}
+		
+		if (defaultPolyStringNormalizer instanceof ConfigurableNormalizer) {
+			((ConfigurableNormalizer)defaultPolyStringNormalizer).configure(configuration);
+		}
+	}
+
+	private String getNormalizerFullClassName(String shortClassName) {
+		if (shortClassName.contains(".")) {
+			return shortClassName;
+		}
+		return AlphanumericPolyStringNormalizer.class.getPackage().getName() + "." + shortClassName;
 	}
 
 	public static boolean isAllowSchemalessSerialization() {
@@ -200,7 +249,7 @@ public class PrismContextImpl implements PrismContext {
 	public Protector getDefaultProtector() {
 		return defaultProtector;
 	}
-	
+
 	public void setDefaultProtector(Protector defaultProtector) {
 		this.defaultProtector = defaultProtector;
 	}
@@ -215,6 +264,7 @@ public class PrismContextImpl implements PrismContext {
 		this.monitor = monitor;
 	}
 
+	@Override
 	public QName getDefaultRelation() {
 		return defaultRelation;
 	}
@@ -222,6 +272,16 @@ public class PrismContextImpl implements PrismContext {
 	public void setDefaultRelation(QName defaultRelation) {
 		this.defaultRelation = defaultRelation;
 	}
+
+	@Override
+	public QName getObjectsElementName() {
+		return objectsElementName;
+	}
+
+	public void setObjectsElementName(QName objectsElementName) {
+		this.objectsElementName = objectsElementName;
+	}
+
 	//endregion
 
 	//region Parsing
@@ -255,7 +315,23 @@ public class PrismContextImpl implements PrismContext {
 	public PrismParserNoIO parserFor(@NotNull Element data) {
 		return new PrismParserImplNoIO(new ParserElementSource(data), null, ParsingContext.createDefault(), this, null, null, null, null);
 	}
-    //endregion
+
+	@NotNull
+	@Override
+	public String detectLanguage(@NotNull File file) throws IOException {
+		return lexicalProcessorRegistry.detectLanguage(file);
+	}
+
+	@Override
+	public ParsingMigrator getParsingMigrator() {
+		return parsingMigrator;
+	}
+
+	@Override
+	public void setParsingMigrator(ParsingMigrator parsingMigrator) {
+		this.parsingMigrator = parsingMigrator;
+	}
+	//endregion
 
     //region adopt(...) methods
     /**
@@ -266,7 +342,7 @@ public class PrismContextImpl implements PrismContext {
 		container.revive(this);
 		getSchemaRegistry().applyDefinition(container, declaredType, false);
 	}
-	
+
 	@Override
 	public <C extends Containerable> void adopt(PrismContainer<C> container) throws SchemaException {
 		adopt(container, container.getCompileTimeClass());
@@ -292,7 +368,7 @@ public class PrismContextImpl implements PrismContext {
 		delta.revive(this);
 		getSchemaRegistry().applyDefinition(delta, delta.getObjectTypeClass(), false);
 	}
-	
+
 	@Override
 	public <C extends Containerable, O extends Objectable> void adopt(C containerable, Class<O> type, ItemPath path) throws SchemaException {
 		PrismContainerValue<C> prismContainerValue = containerable.asPrismContainerValue();
@@ -305,7 +381,7 @@ public class PrismContextImpl implements PrismContext {
 		prismContainerValue.revive(this);
 		getSchemaRegistry().applyDefinition(prismContainerValue, type, path, false);
 	}
-	
+
 	@Override
 	public <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, QName typeName,
 			ItemPath path) throws SchemaException {
@@ -363,7 +439,6 @@ public class PrismContextImpl implements PrismContext {
 
     //endregion
 
-
     @NotNull
 	@Override
 	public <T extends Objectable> PrismObject<T> createObject(@NotNull Class<T> clazz) throws SchemaException {
@@ -378,6 +453,22 @@ public class PrismContextImpl implements PrismContext {
 	@Override
 	public <T extends Objectable> T createObjectable(@NotNull Class<T> clazz) throws SchemaException {
 		return createObject(clazz).asObjectable();
+	}
+
+	@NotNull
+	@Override
+	public <O extends Objectable> PrismObject<O> createKnownObject(@NotNull Class<O> clazz) {
+		try {
+			return createObject(clazz);
+		} catch (SchemaException e) {
+			throw new SystemException("Unexpected SchemaException while instantiating " + clazz + ": " + e.getMessage(), e);
+		}
+	}
+
+	@NotNull
+	@Override
+	public <O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz) {
+		return createKnownObject(clazz).asObjectable();
 	}
 
 	@NotNull

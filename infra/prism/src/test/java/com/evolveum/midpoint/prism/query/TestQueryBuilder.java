@@ -26,9 +26,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIConversion;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
@@ -56,12 +53,12 @@ public class TestQueryBuilder {
     public static final QName USER_TYPE_QNAME = new QName(NS_FOO, "UserType");
     public static final QName ASSIGNMENT_TYPE_QNAME = new QName(NS_FOO, "AssignmentType");
     private static MatchingRuleRegistry matchingRuleRegistry;
-	
+
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
-		
+
 		matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
 	}
 
@@ -69,7 +66,7 @@ public class TestQueryBuilder {
     public void beforeMethod(Method method) throws Exception {
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>> START TEST" + getClass().getName() + "." + method.getName() + "<<<<<<<<<<<<<<<<<<<<<<<<");
     }
-	
+
 	@Test
 	public void test100EmptyFilter() throws Exception{
 		ObjectQuery actual = QueryBuilder.queryFor(UserType.class, getPrismContext()).build();
@@ -511,13 +508,8 @@ public class TestQueryBuilder {
                         .item(new ItemPath(UserType.F_NAME), nameDef)
                 .build();
         ObjectQuery expected = ObjectQuery.createObjectQuery(
-                LessFilter.createLess(
-                        new ItemPath(UserType.F_LOCALITY),
-                        localityDef,
-                        new ItemPath(UserType.F_NAME),
-                        nameDef,
-                        true
-                )
+                LessFilter.createLess(new ItemPath(UserType.F_LOCALITY), localityDef, null,
+		                new ItemPath(UserType.F_NAME), nameDef, true)
         );
         compare(actual, expected);
     }

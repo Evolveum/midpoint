@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import com.evolveum.midpoint.web.util.ExactMatchMountedMapper;
 import com.evolveum.midpoint.xml.ns._public.gui.admin_1.DescriptorType;
 import com.evolveum.midpoint.xml.ns._public.gui.admin_1.ObjectFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 
@@ -38,6 +37,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * @author lazyman
@@ -47,10 +47,11 @@ public final class DescriptorLoader implements DebugDumpable {
     private static final Trace LOGGER = TraceManager.getTrace(DescriptorLoader.class);
 
     private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
+    private static List<String> permitAllUrls = new ArrayList<>();
     private static Map<String, Class> urlClassMap = new HashMap<>();
     
-    private String baseFileName = "/WEB-INF/descriptor.xml";
-    private String customFileName = "/WEB-INF/classes/descriptor.xml";
+    private String baseFileName = "/descriptor.xml";
+    private String customFileName = "/descriptor.xml";
 
     public static Map<String, DisplayableValue<String>[]> getActions() {
         return actions;
@@ -75,12 +76,16 @@ public final class DescriptorLoader implements DebugDumpable {
 	public void setCustomFileName(String customFileName) {
 		this.customFileName = customFileName;
 	}
+	
+	public static Collection<String> getPermitAllUrls() {
+		return permitAllUrls;
+	}
 
 	public void loadData(MidPointApplication application) {
         LOGGER.debug("Loading data from descriptor files.");
 
-        try (InputStream baseInput = application.getServletContext().getResourceAsStream(baseFileName);
-             InputStream customInput = application.getServletContext().getResourceAsStream(customFileName)) {
+        try (InputStream baseInput = DescriptorLoader.class.getResourceAsStream(baseFileName);
+             InputStream customInput = DescriptorLoader.class.getResourceAsStream(customFileName)) {
             if (baseInput == null) {
                 LOGGER.error("Couldn't find " + baseFileName + " file, can't load application menu and other stuff.");
             }
@@ -101,11 +106,11 @@ public final class DescriptorLoader implements DebugDumpable {
             if (customDescriptor != null) {
                 scanPackagesForPages(customDescriptor.getPackagesToScan(), application);
             }
-            
+
             if (LOGGER.isTraceEnabled()) {
             	LOGGER.trace("loaded:\n{}", debugDump(1));
             }
-            
+
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't process application descriptor", ex);
         }
@@ -135,6 +140,12 @@ public final class DescriptorLoader implements DebugDumpable {
     }
 
     private void loadActions(PageDescriptor descriptor) {
+    	
+    	if (descriptor.permitAll()) {
+    		foreachUrl(descriptor, url -> permitAllUrls.add(url));
+    		return;
+    	}
+    	
         List<AuthorizationActionValue> actions = new ArrayList<>();
 
         //avoid of setting guiAll authz for "public" pages (e.g. login page)
@@ -160,9 +171,13 @@ public final class DescriptorLoader implements DebugDumpable {
             actions.add(new AuthorizationActionValue(AuthorizationConstants.AUTZ_GUI_ALL_URL,
                     AuthorizationConstants.AUTZ_GUI_ALL_LABEL, AuthorizationConstants.AUTZ_GUI_ALL_DESCRIPTION));
         }
-
-        for (String url : descriptor.url()) {
-            this.actions.put(buildPrefixUrl(url), actions.toArray(new DisplayableValue[actions.size()]));
+        
+        foreachUrl(descriptor, url -> this.actions.put(url, actions.toArray(new DisplayableValue[actions.size()])));
+    }
+    
+    private void foreachUrl(PageDescriptor descriptor, Consumer<String> urlConsumer) {
+    	for (String url : descriptor.url()) {
+    		urlConsumer.accept(buildPrefixUrl(url));
         }
 
         for (Url url : descriptor.urls()) {
@@ -170,7 +185,7 @@ public final class DescriptorLoader implements DebugDumpable {
             if (StringUtils.isEmpty(urlForSecurity)) {
                 urlForSecurity = buildPrefixUrl(url.mountUrl());
             }
-            this.actions.put(urlForSecurity, actions.toArray(new DisplayableValue[actions.size()]));
+            urlConsumer.accept(urlForSecurity);
         }
     }
 

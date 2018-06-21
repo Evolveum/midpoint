@@ -23,6 +23,9 @@
 			<storageMethod>
 				<storageType>hashing</storageType>
 			</storageMethod>
+			<historyStorageMethod>	<!-- MID-4553 -->
+				<storageType>hashing</storageType>
+			</historyStorageMethod>
 		</default>
 		<securityQuestions>
 			<question>

@@ -32,18 +32,16 @@ public abstract class AbstractOptions {
 			sb.append("=false,");
 		}
 	}
-	
+
     protected void appendVal(StringBuilder sb, String name, Object val) {
-		if (val == null) {
-			return;
-		} else {
+		if (val != null) {
 			sb.append(name);
 			sb.append("=");
 			sb.append(val);
 			sb.append(",");
 		}
 	}
-    
+
     protected void removeLastComma(StringBuilder sb) {
     	if (sb.charAt(sb.length() - 1) == ',') {
 			sb.deleteCharAt(sb.length() - 1);

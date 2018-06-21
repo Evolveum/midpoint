@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -36,9 +36,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -152,8 +155,8 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
 		boolean admin;
 		try {
-			admin = getSecurityEnforcer().isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null);
-		} catch (SchemaException | RuntimeException e) {
+			admin = isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null);
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine admin authorization -- continuing as non-admin", e);
 			admin = false;
 		}
@@ -163,7 +166,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
+        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
 
 		List<QName> objectTypeList = WebComponentUtil.createObjectTypeList();
@@ -174,7 +177,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			}
 		});
 		DropDownChoice<QName> objectTypeChoice = new DropDownChoice<>(ID_OBJECT_TYPE,
-				new PropertyModel<QName>(model, RepoQueryDto.F_OBJECT_TYPE),
+            new PropertyModel<>(model, RepoQueryDto.F_OBJECT_TYPE),
 				new ListModel<>(objectTypeList),
 				new QNameChoiceRenderer());
 		objectTypeChoice.setOutputMarkupId(true);
@@ -187,19 +190,19 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		});
 		mainForm.add(objectTypeChoice);
 
-		AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<String>(model, RepoQueryDto.F_MIDPOINT_QUERY));
+		AceEditor editorMidPoint = new AceEditor(ID_EDITOR_MIDPOINT, new PropertyModel<>(model, RepoQueryDto.F_MIDPOINT_QUERY));
 		editorMidPoint.setHeight(400);
 		editorMidPoint.setResizeToMaxHeight(false);
         mainForm.add(editorMidPoint);
 
-		AceEditor editorHibernate = new AceEditor(ID_EDITOR_HIBERNATE, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_QUERY));
+		AceEditor editorHibernate = new AceEditor(ID_EDITOR_HIBERNATE, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_QUERY));
 		editorHibernate.setHeight(300);
 		editorHibernate.setResizeToMaxHeight(false);
 		editorHibernate.setReadonly(!isAdmin);
 		editorHibernate.setMode(null);
 		mainForm.add(editorHibernate);
 
-		AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<String>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
+		AceEditor hibernateParameters = new AceEditor(ID_HIBERNATE_PARAMETERS, new PropertyModel<>(model, RepoQueryDto.F_HIBERNATE_PARAMETERS));
 		hibernateParameters.setReadonly(true);
 		hibernateParameters.setHeight(100);
 		hibernateParameters.setResizeToMaxHeight(false);
@@ -339,7 +342,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 		});
 		mainForm.add(incompleteResultsNote);
 
-		AceEditor resultText = new AceEditor(ID_RESULT_TEXT, new PropertyModel<String>(model, RepoQueryDto.F_QUERY_RESULT_TEXT));
+		AceEditor resultText = new AceEditor(ID_RESULT_TEXT, new PropertyModel<>(model, RepoQueryDto.F_QUERY_RESULT_TEXT));
 		resultText.setReadonly(true);
 		resultText.setHeight(300);
 		resultText.setResizeToMaxHeight(false);
@@ -384,9 +387,10 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 				target.add(getFeedbackPanel());
 				return;
 			}
-			Search search = SearchFactory.createSearch(request.getType(), getPrismContext(), getModelInteractionService());
+			Search search = SearchFactory.createSearch(request.getType(), this);
 			search.setAdvancedQuery(filterAsString);
 			search.setShowAdvanced(true);
+			search.setSearchType(SearchBoxModeType.ADVANCED);
 			if (!search.isAdvancedQueryValid(getPrismContext())) {
 				// shouldn't occur because the query was already parsed
 				error("Query is not valid: " + search.getAdvancedError());
@@ -497,7 +501,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 	}
 
 	private void updateRequestWithMidpointQuery(RepositoryQueryDiagRequest request, QName objectType, String queryText,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		PrismContext prismContext = getPrismContext();
 		if (objectType == null) {
 			objectType = ObjectType.COMPLEX_TYPE;

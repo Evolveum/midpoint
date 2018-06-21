@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,19 @@
  */
 package com.evolveum.midpoint.util.exception;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 /**
  * Object with specified criteria (OID) has not been found in the repository.
- * 
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class ObjectNotFoundException extends CommonException {
 	private static final long serialVersionUID = -9003686713018111855L;
 
-	private String oid = null;;
-	
+	private String oid = null;
+
 	public ObjectNotFoundException() {
 		super();
 	}
@@ -34,13 +36,21 @@ public class ObjectNotFoundException extends CommonException {
 		super(message, cause);
 	}
 
+	public ObjectNotFoundException(LocalizableMessage userFriendlyMessage, Throwable cause) {
+		super(userFriendlyMessage, cause);
+	}
+
 	public ObjectNotFoundException(String message, Throwable cause, String oid) {
 		super(message, cause);
 		this.oid = oid;
 	}
-	
+
 	public ObjectNotFoundException(String message) {
 		super(message);
+	}
+
+	public ObjectNotFoundException(LocalizableMessage userFriendlyMessage) {
+		super(userFriendlyMessage);
 	}
 
     public ObjectNotFoundException(String message, String oid) {
@@ -57,7 +67,7 @@ public class ObjectNotFoundException extends CommonException {
 	}
 
 	@Override
-	public String getOperationResultMessage() {
+	public String getErrorTypeMessage() {
 		return "Object not found";
 	}
 }

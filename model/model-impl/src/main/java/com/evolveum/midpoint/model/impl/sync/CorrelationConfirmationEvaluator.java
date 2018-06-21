@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -28,11 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -45,9 +45,12 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -59,7 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -83,7 +86,7 @@ public class CorrelationConfirmationEvaluator {
 	
 	public <F extends FocusType> List<PrismObject<F>> findFocusesByCorrelationRule(Class<F> focusType, ShadowType currentShadow,
 			List<ConditionalSearchFilterType> conditionalFilters, ResourceType resourceType, SystemConfigurationType configurationType, Task task, OperationResult result)
-					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (conditionalFilters == null || conditionalFilters.isEmpty()) {
 			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
@@ -110,7 +113,7 @@ public class CorrelationConfirmationEvaluator {
 						continue;
 					}
 					if (foundUsers != null && foundUsers.isEmpty() && users == null) {
-						users = new ArrayList<PrismObject<F>>();
+						users = new ArrayList<>();
 					}
 
 					if (users == null && foundUsers != null) {
@@ -129,9 +132,8 @@ public class CorrelationConfirmationEvaluator {
 		
 		if (users != null) {
 			LOGGER.debug(
-					"SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}",
-					new Object[] { currentShadow, users.size(),
-							PrettyPrinter.prettyPrint(users, 3) });
+					"SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}", currentShadow, users.size(),
+					PrettyPrinter.prettyPrint(users, 3));
 			if (users.size() > 1) {
                     // remove duplicates
 				Set<PrismObject<F>> usersWithoutDups = new HashSet<>();
@@ -147,7 +149,7 @@ public class CorrelationConfirmationEvaluator {
 	private boolean satisfyCondition(ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter,
 			ResourceType resourceType, SystemConfigurationType configurationType, String shortDesc, Task task,
 			OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException {
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		if (conditionalFilter.getCondition() == null){
 			return true;
@@ -180,7 +182,7 @@ public class CorrelationConfirmationEvaluator {
 	private <F extends FocusType> List<PrismObject<F>> findUsersByCorrelationRule(Class<F> focusType,
 			ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter, ResourceType resourceType, SystemConfigurationType configurationType,
 			Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException{
 		if (!conditionalFilter.containsFilterClause()) {
 			LOGGER.warn("Correlation rule for resource '{}' doesn't contain filter clause, "
 					+ "returning empty list of users.", resourceType);
@@ -211,6 +213,18 @@ public class CorrelationConfirmationEvaluator {
 			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
 					SchemaDebugUtil.prettyPrint(conditionalFilter));
 			throw new ExpressionEvaluationException("Couldn't convert query.", ex);
+		} catch (CommunicationException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+					SchemaDebugUtil.prettyPrint(conditionalFilter));
+			throw new CommunicationException("Couldn't convert query.", ex);
+		} catch (ConfigurationException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+					SchemaDebugUtil.prettyPrint(conditionalFilter));
+			throw new ConfigurationException("Couldn't convert query.", ex);
+		} catch (SecurityViolationException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+					SchemaDebugUtil.prettyPrint(conditionalFilter));
+			throw new SecurityViolationException("Couldn't convert query.", ex);
 		}
 			
 		List<PrismObject<F>> users;
@@ -241,6 +255,8 @@ public class CorrelationConfirmationEvaluator {
 					+ "returning empty list of users.", resourceType);
 			return false;
 		}
+
+		// TODO evaluate condition here
 
 		ObjectQuery q;
 		try {
@@ -299,9 +315,9 @@ public class CorrelationConfirmationEvaluator {
 
 	public <F extends FocusType> List<PrismObject<F>> findUserByConfirmationRule(Class<F> focusType, List<PrismObject<F>> users,
 			ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration, ExpressionType expression, Task task, OperationResult result) 
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException
 	{
-		List<PrismObject<F>> list = new ArrayList<PrismObject<F>>();
+		List<PrismObject<F>> list = new ArrayList<>();
 		for (PrismObject<F> user : users) {
 			try {
 				F userType = user.asObjectable();
@@ -322,6 +338,15 @@ public class CorrelationConfirmationEvaluator {
 			} catch (SchemaException ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getElementName());
 				throw new SchemaException("Couldn't confirm user " + user.getElementName(), ex);
+			} catch (CommunicationException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getElementName());
+				throw new CommunicationException("Couldn't confirm user " + user.getElementName(), ex);
+			} catch (ConfigurationException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getElementName());
+				throw new ConfigurationException("Couldn't confirm user " + user.getElementName(), ex);
+			} catch (SecurityViolationException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getElementName());
+				throw new SecurityViolationException("Couldn't confirm user " + user.getElementName(), ex);
 			}
 		}
 
@@ -331,7 +356,7 @@ public class CorrelationConfirmationEvaluator {
 	}
 
 	private ObjectQuery updateFilterWithAccountValues(ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration,
-			ObjectQuery origQuery, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			ObjectQuery origQuery, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		if (origQuery.getFilter() == null) {
 			LOGGER.trace("No filter provided, skipping updating filter");
@@ -342,14 +367,14 @@ public class CorrelationConfirmationEvaluator {
 	}
 
 	private ObjectQuery evaluateQueryExpressions(ObjectQuery query, ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration,
-			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, resource, configuration);
 		return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionFactory, prismContext, shortDesc, task, result);
 	}
 	
 	public <F extends FocusType> boolean evaluateConfirmationExpression(Class<F> focusType, F user, ShadowType shadow, ResourceType resource,
 			SystemConfigurationType configuration, ExpressionType expressionType, Task task, OperationResult result) 
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expressionType, "Expression must not be null.");

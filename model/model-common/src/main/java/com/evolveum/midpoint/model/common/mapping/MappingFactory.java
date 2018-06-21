@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,15 @@ package com.evolveum.midpoint.model.common.mapping;
 
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 
 /**
  * @author Radovan Semancik
@@ -34,16 +33,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
  */
 public class MappingFactory {
 
-	ObjectFactory objectFactory = new ObjectFactory();
-	
+//	ObjectFactory objectFactory = new ObjectFactory();
+
 	private ExpressionFactory expressionFactory;
 	private ObjectResolver objectResolver;
 	private Protector protector;						// not used for now
 	private PrismContext prismContext;
 	private FilterManager<Filter> filterManager;
-    private SecurityEnforcer securityEnforcer;
+    private SecurityContextManager securityContextManager;
 	private boolean profiling = false;
-		
+
 	public ExpressionFactory getExpressionFactory() {
 		return expressionFactory;
 	}
@@ -51,7 +50,7 @@ public class MappingFactory {
 	public void setExpressionFactory(ExpressionFactory expressionFactory) {
 		this.expressionFactory = expressionFactory;
 	}
-	
+
 	public void setProtector(Protector protector) {
 		this.protector = protector;
 	}
@@ -72,12 +71,12 @@ public class MappingFactory {
 		this.filterManager = filterManager;
 	}
 
-    public SecurityEnforcer getSecurityEnforcer() {
-        return securityEnforcer;
+    public SecurityContextManager getSecurityEnforcer() {
+        return securityContextManager;
     }
 
-    public void setSecurityEnforcer(SecurityEnforcer securityEnforcer) {
-        this.securityEnforcer = securityEnforcer;
+    public void setSecurityContextManager(SecurityContextManager securityContextManager) {
+        this.securityContextManager = securityContextManager;
     }
 
     public boolean isProfiling() {
@@ -88,17 +87,17 @@ public class MappingFactory {
 		this.profiling = profiling;
 	}
 
-	public <V extends PrismValue, D extends ItemDefinition> Mapping.Builder<V, D> createMappingBuilder() {
-		return new Mapping.Builder<V, D>()
+	public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder() {
+		return new MappingImpl.Builder<V, D>()
 				.prismContext(prismContext)
 				.expressionFactory(expressionFactory)
-				.securityEnforcer(securityEnforcer)
+				.securityContextManager(securityContextManager)
 				.variables(new ExpressionVariables())
 				.filterManager(filterManager)
 				.profiling(profiling);
 	}
 
-	public <V extends PrismValue, D extends ItemDefinition> Mapping.Builder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
+	public <V extends PrismValue, D extends ItemDefinition> MappingImpl.Builder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
 		return this.<V,D>createMappingBuilder().mappingType(mappingType)
 				.contextDescription(shortDesc);
 	}

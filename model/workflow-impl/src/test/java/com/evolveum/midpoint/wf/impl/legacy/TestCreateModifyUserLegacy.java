@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -60,7 +59,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
      */
 	@Test(enabled = true)
     public void test010CreateElisabeth() throws Exception {
-        TestUtil.displayTestTile(this, "test010CreateElisabeth");
+        TestUtil.displayTestTitle(this, "test010CreateElisabeth");
        	executeTest("test010CreateElisabeth", USER_ELISABETH_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
             @Override boolean immediate() { return false; }
@@ -68,8 +67,8 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             @Override boolean removeAssignmentsBeforeTest() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 addFocusDeltaToContext(context, (ObjectDelta) ObjectDelta.createAddDelta(PrismTestUtil.parseObject(USER_ELISABETH_FILE)));
                 return context;
             }
@@ -101,7 +100,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
      */
     @Test(enabled = true)
     public void test020ModifyElisabethAssignRole3() throws Exception {
-        TestUtil.displayTestTile(this, "test020ModifyElisabethAssignRole3");
+        TestUtil.displayTestTitle(this, "test020ModifyElisabethAssignRole3");
         executeTest("test020ModifyElisabethAssignRole3", USER_ELISABETH_OID, new TestDetails() {
             @Override int subtaskCount() { return 1; }
             @Override boolean immediate() { return false; }
@@ -109,8 +108,8 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             @Override boolean removeAssignmentsBeforeTest() { return false; }
 
             @Override
-            public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType> context = createUserAccountContext();
+            public LensContext createModelContext(Task task, OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserLensContext();
                 fillContextWithUser(context, USER_ELISABETH_OID, result);
                 addFocusModificationToContext(context, REQ_USER_ELISABETH_MODIFY_ADD_ASSIGNMENT_ROLE1);
                 return context;

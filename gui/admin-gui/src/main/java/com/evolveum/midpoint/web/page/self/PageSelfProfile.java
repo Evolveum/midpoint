@@ -22,9 +22,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -40,7 +38,7 @@ import org.apache.wicket.model.Model;
                 label = "PageSelfProfile.auth.profile.label",
                 description = "PageSelfProfile.auth.profile.description")})
 public class PageSelfProfile extends PageUser {
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(PageSelfProfile.class);
 
 	@Override
@@ -50,8 +48,8 @@ public class PageSelfProfile extends PageUser {
 
 
 	@Override
-	protected boolean getOptionsPanelVisibility(){
-		return false;
+	protected boolean isSelfProfile(){
+		return true;
 	}
 
 

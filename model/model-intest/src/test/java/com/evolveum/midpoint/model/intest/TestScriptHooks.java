@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 
 import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -35,7 +33,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -51,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 
 	private static final File TEST_DIR = new File("src/test/resources/scripthooks");
-	
+
 	protected static final File RESOURCE_DUMMY_HOOK_FILE = new File(TEST_DIR, "resource-dummy-hook.xml");
 	protected static final String RESOURCE_DUMMY_HOOK_OID = "10000000-0000-0000-0000-000004444001";
 	protected static final String RESOURCE_DUMMY_HOOK_NAME = "hook";
@@ -59,29 +56,29 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 
 	private static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
 	private static final String ORG_TOP_OID = "80808080-8888-6666-0000-100000000001";
-	
+
 	private static final File GENERIC_BLACK_PEARL_FILE = new File(TEST_DIR, "generic-blackpearl.xml");
 	private static final String GENERIC_BLACK_PEARL_OID = "54195419-5419-5419-5419-000000000001";
 
 	private static final File SYSTEM_CONFIGURATION_HOOKS_FILE = new File(TEST_DIR, "system-configuration-hooks.xml");
-		
+
 	protected DummyResource dummyResourceHook;
 	protected DummyResourceContoller dummyResourceCtlHook;
 	protected ResourceType resourceDummyHookType;
 	protected PrismObject<ResourceType> resourceDummyHook;
-	
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
 		super.initSystem(initTask, initResult);
-		
+
 		dummyResourceCtlHook = DummyResourceContoller.create(RESOURCE_DUMMY_HOOK_NAME, resourceDummyHook);
 		dummyResourceCtlHook.extendSchemaPirate();
 		dummyResourceHook = dummyResourceCtlHook.getDummyResource();
-		resourceDummyHook = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_HOOK_FILE, RESOURCE_DUMMY_HOOK_OID, initTask, initResult); 
+		resourceDummyHook = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_HOOK_FILE, RESOURCE_DUMMY_HOOK_OID, initTask, initResult);
 		resourceDummyHookType = resourceDummyHook.asObjectable();
 		dummyResourceCtlHook.setResource(resourceDummyHook);
-		
+
 		importObjectFromFile(GENERIC_BLACK_PEARL_FILE);
 		importObjectFromFile(ORG_TOP_FILE);
 	}
@@ -96,37 +93,36 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test100JackAssignHookAccount() throws Exception {
 		final String TEST_NAME = "test100JackAssignHookAccount";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestScriptHooks.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         dummyAuditService.clear();
         StaticHookRecorder.reset();
-                
+
 		// WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_HOOK_OID, null, task, result);
-		
+
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+		assertSuccess(result);
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
         String accountOid = getSingleLinkOid(userJack);
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Shadow (repo)", accountShadow);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyHookType);
-        
+
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Shadow (model)", accountModel);
         assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyHookType);
-        
+
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_HOOK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
@@ -135,7 +131,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         StaticHookRecorder.assertInvocationCount("foo", 5);
         StaticHookRecorder.assertInvocationCount("bar", 5);
         StaticHookRecorder.assertInvocationCount("bar-user", 1);
-        
+
         // Check audit
         display("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
@@ -147,48 +143,47 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 	}
-	
+
 	@Test
     public void test110JackAddOrganization() throws Exception {
 		final String TEST_NAME = "test110JackAddOrganization";
-        TestUtil.displayTestTile(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestScriptHooks.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);        
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         dummyAuditService.clear();
         StaticHookRecorder.reset();
-                
+
 		// WHEN
-        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATION, task, result, new PolyString("Pirate Brethren"));
-		
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATION, task, result, createPolyString("Pirate Brethren"));
+
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
-        
+		assertSuccess(result);
+
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
         String accountOid = getSingleLinkOid(userJack);
-        
+
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Shadow (repo)", accountShadow);
         assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyHookType);
-        
+
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Shadow (model)", accountModel);
         assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyHookType);
-        
+
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_HOOK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
-        
+
         PrismObject<OrgType> brethrenOrg = searchObjectByName(OrgType.class, "Pirate Brethren", task, result);
         assertNotNull("Brethren org was not created", brethrenOrg);
         display("Brethren org", brethrenOrg);
-        
+
         assertAssignedOrg(userJack, brethrenOrg);
 
         display("StaticHookRecorder", StaticHookRecorder.dump());
@@ -209,5 +204,5 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 //        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class);
 //        dummyAuditService.assertExecutionSuccess();
 	}
-			
+
 }

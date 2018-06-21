@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.common.validator;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -23,7 +24,6 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -56,33 +56,31 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * 
- * 
+ *
+ *
  * @author Radovan Semancik
- * 
+ *
  */
 public class Validator {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Validator.class);
 	private static final String INPUT_STREAM_CHARSET = "utf-8";
 	private static final String OPERATION_PREFIX = Validator.class.getName() + ".";
-	private static final String OPERATION_RESOURCE_NAMESPACE_CHECK = OPERATION_PREFIX
-			+ "resourceNamespaceCheck";
+	private static final String OPERATION_RESOURCE_NAMESPACE_CHECK = OPERATION_PREFIX + "resourceNamespaceCheck";
 	private static final String OPERATION_RESOURCE_BASICS_CHECK = OPERATION_PREFIX + "objectBasicsCheck";
 	private static final String START_LINE_NUMBER = "startLineNumber";
 	private static final String END_LINE_NUMBER = "endLineNumber";
 	private boolean verbose = false;
 	private boolean validateSchemas = true;
+	private boolean validateName = true;
 	private boolean allowAnyType = false;
 	private EventHandler handler;
-	private DOMConverter domConverter = new DOMConverter();
-	private Unmarshaller unmarshaller = null;
 	private PrismContext prismContext;
 	private Schema midPointJavaxSchema;
 	private javax.xml.validation.Validator xsdValidator;
-	long progress = 0;
-	long errors = 0;
-	long stopAfterErrors = 0;
+	private long progress = 0;
+	private long errors = 0;
+	private long stopAfterErrors = 0;
 
 	public Validator(PrismContext prismContext) {
 		this.prismContext = prismContext;
@@ -134,6 +132,14 @@ public class Validator {
 		return validateSchemas;
 	}
 
+	public boolean isValidateName() {
+		return validateName;
+	}
+
+	public void setValidateName(boolean validateName) {
+		this.validateName = validateName;
+	}
+
 	public void setAllowAnyType(boolean allowAnyType) {
 		this.allowAnyType = allowAnyType;
 	}
@@ -158,17 +164,28 @@ public class Validator {
 		return errors;
 	}
 
-	public void validate(InputStream inputStream, OperationResult validatorResult,
-			String objectResultOperationName) {
+	public void validate(String lexicalRepresentation, OperationResult validationResult, String objectResultOperationName) {
+		try {
+			try (ByteArrayInputStream is = new ByteArrayInputStream(lexicalRepresentation.getBytes(INPUT_STREAM_CHARSET))) {
+				validate(is, validationResult, objectResultOperationName);
+			}
+		} catch (IOException e) {
+			throw new SystemException(e);       // shouldn't really occur
+		}
+	}
 
-		XMLStreamReader stream = null;
+	public void validate(InputStream inputStream, OperationResult validatorResult, String objectResultOperationName) {
+
+		DOMConverter domConverter = new DOMConverter();
+
+		XMLStreamReader stream;
 		try {
 
-			Map<String, String> rootNamespaceDeclarations = new HashMap<String, String>();
+			Map<String, String> rootNamespaceDeclarations = new HashMap<>();
 
 			XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 			stream = xmlInputFactory.createXMLStreamReader(inputStream);
-			
+
 			int eventType = stream.nextTag();
 			if (eventType == XMLStreamConstants.START_ELEMENT) {
 				if (!QNameUtil.match(stream.getName(), SchemaConstants.C_OBJECTS)) {
@@ -178,10 +195,9 @@ public class Validator {
 					progress++;
 					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
-					EventResult cont = null;
+					EventResult cont;
 					try {
-						cont = readFromStreamAndValidate(stream, objectResult,
-								rootNamespaceDeclarations, validatorResult);
+						cont = readFromStreamAndValidate(stream, objectResult, rootNamespaceDeclarations, validatorResult, domConverter);
 					} catch (RuntimeException e) {
 						// Make sure that unexpected error is recorded.
 						objectResult.recordFatalError(e);
@@ -189,7 +205,7 @@ public class Validator {
 					}
 
 					if (!cont.isCont()) {
-						String message = null;
+						String message;
 						if (cont.getReason() != null) {
 							message = cont.getReason();
 						} else {
@@ -221,11 +237,11 @@ public class Validator {
 					progress++;
 					objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
-					EventResult cont = null;
+					EventResult cont;
 					try {
 						// Read and validate individual object from the stream
 						cont = readFromStreamAndValidate(stream, objectResult,
-								rootNamespaceDeclarations, validatorResult);
+								rootNamespaceDeclarations, validatorResult, domConverter);
 					} catch (RuntimeException e) {
 						if (objectResult.isUnknown()) {
 							// Make sure that unexpected error is recorded.
@@ -237,7 +253,7 @@ public class Validator {
 					if (objectResult.isError()) {
 						errors++;
 					}
-					
+
 					objectResult.cleanupResult();
 					validatorResult.summarize();
 
@@ -254,7 +270,11 @@ public class Validator {
 					}
 					if (!cont.isCont()) {
 						if (stopAfterErrors > 0 && errors >= stopAfterErrors) {
-							validatorResult.recordFatalError("Too many errors (" + errors + ")");
+							if (errors == 1) {
+								validatorResult.recordFatalError("Stopping on error; " + (progress - errors) + " passed");
+							} else {
+								validatorResult.recordFatalError("Too many errors (" + errors + "); " + (progress - errors) + " passed");
+							}
 							return;
 						}
 					}
@@ -277,7 +297,8 @@ public class Validator {
 	}
 
 	private EventResult readFromStreamAndValidate(XMLStreamReader stream, OperationResult objectResult,
-			Map<String, String> rootNamespaceDeclarations, OperationResult validatorResult) {
+			Map<String, String> rootNamespaceDeclarations, OperationResult validatorResult,
+			DOMConverter domConverter) {
 
 		objectResult.addContext(START_LINE_NUMBER, stream.getLocation().getLineNumber());
 
@@ -305,13 +326,13 @@ public class Validator {
 
 		return validateObjectInternal(objectElement, objectResult, validatorResult);
 	}
-	
+
 	public EventResult validateObject(String stringXml, OperationResult objectResult) {
 		Document objectDoc = DOMUtil.parseDocument(stringXml);
 		Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
 		return validateObjectInternal(objectElement, objectResult, objectResult);
 	}
-	
+
 	public EventResult validateObject(Element objectElement, OperationResult objectResult) {
 		return validateObjectInternal(objectElement, objectResult, objectResult);
 	}
@@ -354,24 +375,20 @@ public class Validator {
 			}
 
 			PrismObject<? extends Objectable> object = prismContext.parserFor(objectElement).parse();
-			
+
 			try {
 				object.checkConsistence();
 			} catch (RuntimeException e) {
 				objectResult.recordFatalError("Internal object inconsistence, probably a parser bug: "+e.getMessage(), e);
 				return EventResult.skipObject(e.getMessage());
 			}
-			
-			Objectable objectType = null;
-			if (object != null) {
-				objectType = object.asObjectable();
-			}
-			
-			if (verbose) {
-				LOGGER.trace("Processing OID " + objectType.getOid());
-			}
 
-			objectResult.addContext(OperationResult.CONTEXT_OBJECT, objectType);
+			Objectable objectType = object.asObjectable();
+			objectResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
+
+			if (verbose) {
+				LOGGER.trace("Processing OID {}", objectType.getOid());
+			}
 
 			validateObject(objectType, objectResult);
 
@@ -428,7 +445,7 @@ public class Validator {
             objectResult.recordFatalError(ex);
             return EventResult.skipObject(ex.getMessage());
         }
-		
+
 	}
 
     // this was made public to allow validation of pre-parsed non-prism documents
@@ -471,13 +488,15 @@ public class Validator {
 
 	// BIG checks - checks that create subresults
 
-	void checkBasics(Objectable object, OperationResult objectResult) {
+	private void checkBasics(Objectable object, OperationResult objectResult) {
 		OperationResult subresult = objectResult.createSubresult(OPERATION_RESOURCE_BASICS_CHECK);
-		checkName(object, object.getName(), "name", subresult);
+		if (validateName) {
+			checkName(object, object.getName(), "name", subresult);
+		}
 		subresult.recordSuccessIfUnknown();
 	}
 
-	void checkResource(ResourceType resource, OperationResult objectResult) {
+	private void checkResource(ResourceType resource, OperationResult objectResult) {
 		OperationResult subresult = objectResult.createSubresult(OPERATION_RESOURCE_NAMESPACE_CHECK);
 		checkUri(resource, ResourceTypeUtil.getResourceNamespace(resource), "namespace", subresult);
 		subresult.recordSuccessIfUnknown();
@@ -485,7 +504,7 @@ public class Validator {
 
 	// Small checks - checks that don't create subresults
 
-	void checkName(Objectable object, PolyStringType value, String propertyName, OperationResult subResult) {
+	private void checkName(Objectable object, PolyStringType value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
 		if (value == null) {
@@ -498,7 +517,7 @@ public class Validator {
 		}
 	}
 
-	void checkUri(Objectable object, String value, String propertyName, OperationResult subResult) {
+	private void checkUri(Objectable object, String value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
 		if (StringUtils.isEmpty(value)) {
@@ -517,12 +536,12 @@ public class Validator {
 	}
 
 	void error(String message, Objectable object, OperationResult subResult) {
-		subResult.addContext(OperationResult.CONTEXT_OBJECT, object);
+		subResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
 		subResult.recordFatalError(message);
 	}
 
-	void error(String message, Objectable object, String propertyName, OperationResult subResult) {
-		subResult.addContext(OperationResult.CONTEXT_OBJECT, object);
+	private void error(String message, Objectable object, String propertyName, OperationResult subResult) {
+		subResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
 		subResult.addContext(OperationResult.CONTEXT_ITEM, propertyName);
 		subResult.recordFatalError("<" + propertyName + ">: " + message);
 	}

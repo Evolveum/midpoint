@@ -44,7 +44,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Test validity of the samples in the trunk/samples directory.
- * 
+ *
  * @author Radovan Semancik
  *
  */
@@ -57,13 +57,13 @@ public class TestSamples {
 	public static final String[] CHECK_PATTERNS = new String[]{ ".*.xml" };
 	public static final String OBJECT_RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateObject";
 	private static final String RESULT_OPERATION_NAME = TestSamples.class.getName()+".validateFile";
-	
+
 	@BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
-	
+
 	@Test(enabled = false)
 	public void testSamples() throws FileNotFoundException {
 		testSamplesDirectory(new File(SAMPLES_DIRECTORY_NAME));
@@ -97,7 +97,7 @@ public class TestSamples {
 		}
 		return false;
 	}
-	
+
 	private void validate(File file) throws FileNotFoundException {
 		System.out.println("===> Validating file "+file.getPath());
 
@@ -112,14 +112,14 @@ public class TestSamples {
 			@Override
 			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
 					OperationResult objectResult) {
-				
+
 				// Try to marshall it back. This may detect some JAXB miscofiguration problems.
 				try {
 					String serializedString = PrismTestUtil.serializeObjectToString(object, PrismContext.LANG_XML);
 				} catch (SchemaException e) {
 					objectResult.recordFatalError("Object serialization failed", e);
 				}
-				
+
 				return EventResult.cont();
 			}
 
@@ -127,9 +127,9 @@ public class TestSamples {
 			public void handleGlobalError(OperationResult currentResult) {
 				// no reaction
 			}
-			
+
 		};
-		
+
 		Validator validator = new Validator(PrismTestUtil.getPrismContext());
 		validator.setVerbose(false);
 		validator.setAllowAnyType(true);
@@ -154,9 +154,9 @@ public class TestSamples {
             System.out.println("OK");
             //System.out.println(result.dump());
         }
-        
+
         System.out.println();
-        
+
 	}
-	
+
 }

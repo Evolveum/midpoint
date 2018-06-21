@@ -17,8 +17,6 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 import java.util.List;
@@ -30,17 +28,16 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordHistoryEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -63,7 +60,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	private static final String PASSWORD_NO_HISTORY_POLICY_NAME = "password-policy-no-history.xml";
 	private static final File PASSWORD_NO_HISTORY_POLICY_FILE = new File(BASE_PATH,
 			PASSWORD_NO_HISTORY_POLICY_NAME);
-	
+
 	private static final String PASSWORD1 = "ch4nGedPa33word1";
 	private static final String PASSWORD2 = "ch4nGedPa33word2";
 	private static final String PASSWORD3 = "ch4nGedPa33word3";
@@ -82,14 +79,14 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test000initPasswordPolicyForHistory() throws Exception {
 		final String TEST_NAME = "test000initPasswordPolicyForHistory";
-		initPasswordPolicy(TEST_NAME, PASSWORD_HISTORY_POLICY_OID);
+		initPasswordPolicy(TEST_NAME, 3, PASSWORD_HISTORY_POLICY_OID);
 
 	}
 
 	@Test
 	public void test100CreateUserWithPassword() throws Exception {
 		final String TEST_NAME = "test100CreateUserWithPassword";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		// WHEN
 		addObject(USER_JACK_FILE);
 
@@ -103,8 +100,8 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test101ModifyUserPassword() throws Exception {
 		final String TEST_NAME = "test101ModifyUserPassword";
-		TestUtil.displayTestTile(TEST_NAME);
-		
+		TestUtil.displayTestTitle(TEST_NAME);
+
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -123,9 +120,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 		assertNotNull("No password set for user Jack", passwordType);
 		ProtectedStringType passwordAfterChange = passwordType.getValue();
 		assertNotNull("Password musn't be null", passwordAfterChange);
-		assertEquals("Password doesn't match", PASSWORD1,
-				protector.decryptString(passwordAfterChange));
-
+		assertPasswords(PASSWORD1, passwordAfterChange);
 		assertPasswordHistoryEntries(passwordType,
 				USER_JACK_PASSWORD);
 
@@ -134,14 +129,14 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test102ModifyUserPassword() throws Exception {
 		final String TEST_NAME = "test102ModifyUserPassword";
-		TestUtil.displayTestTile(TEST_NAME);
-		
+		TestUtil.displayTestTitle(TEST_NAME);
+
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		// WHEN
 		modifyUserChangePassword(USER_JACK_OID, PASSWORD2, task, result);
-		
+
 		// THEN
 		PrismObject<UserType> jack = getObject(UserType.class, USER_JACK_OID);
 		assertNotNull("User Jack was not found.", jack);
@@ -154,9 +149,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 		assertNotNull("No password set for user Jack", passwordType);
 		ProtectedStringType passwordAfterChange = passwordType.getValue();
 		assertNotNull("Password musn't be null", passwordAfterChange);
-		assertEquals("Password doesn't match", PASSWORD2,
-				protector.decryptString(passwordAfterChange));
-
+		assertPasswords(PASSWORD2, passwordAfterChange);
 		assertPasswordHistoryEntries(passwordType,
 				USER_JACK_PASSWORD, PASSWORD1);
 
@@ -165,8 +158,8 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test103ModifyUserPasswordAgain() throws Exception {
 		final String TEST_NAME = "test103ModifyUserPasswordAgain";
-		TestUtil.displayTestTile(TEST_NAME);
-		
+		TestUtil.displayTestTitle(TEST_NAME);
+
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -185,13 +178,13 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 		assertNotNull("No password set for user Jack", passwordTypeAfterSecondChnage);
 		ProtectedStringType passwordAfterSecondChange = passwordTypeAfterSecondChnage.getValue();
 		assertNotNull("Password musn't be null", passwordAfterSecondChange);
-		assertEquals("Password doesn't match", PASSWORD3,
-				protector.decryptString(passwordAfterSecondChange));
+
+		assertPasswords(PASSWORD3, passwordAfterSecondChange);
 
 		assertPasswordHistoryEntries(passwordTypeAfterSecondChnage,
 				PASSWORD1, PASSWORD2);
 	}
-	
+
 	@Test
 	public void test111ModifyUserPasswordOldPassword1() throws Exception {
 		doTestModifyUserPasswordExpectFailure("test111ModifyUserPasswordOldPassword1", PASSWORD1);
@@ -206,16 +199,16 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	public void test113ModifyUserPasswordSamePassword3() throws Exception {
 		doTestModifyUserPasswordExpectFailure("test113ModifyUserPasswordSamePassword3", PASSWORD3);
 	}
-	
+
 	public void doTestModifyUserPasswordExpectFailure(final String TEST_NAME, String password) throws Exception {
 		Task task = taskManager.createTaskInstance(TEST_NAME);
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 		OperationResult result = task.getResult();
 
 		try {
 			// WHEN
 			modifyUserChangePassword(USER_JACK_OID, password, task, result);
-			
+
 			fail("Expected PolicyViolationException but didn't get one.");
 		} catch (PolicyViolationException ex) {
 			// this is expected
@@ -228,13 +221,13 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test200initNoHistoryPasswordPolicy() throws Exception {
 		String title = "test200initNoHistoryPasswordPolicy";
-		initPasswordPolicy(title, PASSWORD_NO_HISTORY_POLICY_OID);
+		initPasswordPolicy(title, 0, PASSWORD_NO_HISTORY_POLICY_OID);
 	}
 
 	@Test
 	public void test201deleteUserJack() throws Exception {
 		final String TEST_NAME = "test201deleteUserJack";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// WHEN
 		deleteObject(UserType.class, USER_JACK_OID);
@@ -251,7 +244,7 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test202createUserJackNoPasswordHistory() throws Exception {
 		final String TEST_NAME = "test202createUserJackNoPasswordHistory";
-		TestUtil.displayTestTile(TEST_NAME);
+		TestUtil.displayTestTitle(TEST_NAME);
 
 		// WHEN
 		addObject(USER_JACK_FILE);
@@ -276,7 +269,19 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 	@Test
 	public void test203modifyUserJackPasswordNoPasswordHistory() throws Exception {
 		final String TEST_NAME = "test203modifyUserJackPasswordNoPasswordHistory";
-		TestUtil.displayTestTile(TEST_NAME);
+		modifyUserJackPasswordNoHistory(TEST_NAME);
+
+	}
+
+	@Test
+	public void test204modifyUserJackSamePasswordNoPasswordHistory() throws Exception {
+		final String TEST_NAME = "test204modifyUserJackSamePasswordNoPasswordHistory";
+		modifyUserJackPasswordNoHistory(TEST_NAME);
+
+	}
+
+	private void modifyUserJackPasswordNoHistory(String TEST_NAME) throws Exception{
+		TestUtil.displayTestTitle(TEST_NAME);
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
 
@@ -305,16 +310,24 @@ public class TestPasswordPolicyProcessor extends AbstractLensTest {
 
 	}
 
-	private void initPasswordPolicy(String title, String passwordPolicyOid) throws Exception {
+
+	private void assertPasswords(String password, ProtectedStringType passwordAfterChange) throws SchemaException, EncryptionException {
+		ProtectedStringType protectedStringType = new ProtectedStringType();
+		protectedStringType.setClearValue(password);
+		AssertJUnit.assertTrue("Password doesn't match",
+				protector.compare(protectedStringType, passwordAfterChange));
+	}
+
+	private void initPasswordPolicy(String title, int historyLength, String passwordPolicyOid) throws Exception {
 		display(title);
 		Task task = createTask(title);
 		OperationResult result = task.getResult();
 
-		ObjectReferenceType passwordPolicyRef = ObjectTypeUtil.createObjectRef(passwordPolicyOid,
-				ObjectTypes.PASSWORD_POLICY);		
-		modifyObjectReplaceReference(SecurityPolicyType.class, SECURITY_POLICY_OID,
-				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_PASSWORD_POLICY_REF),
-        		task, result, passwordPolicyRef.asReferenceValue());
+//		ObjectReferenceType passwordPolicyRef = ObjectTypeUtil.createObjectRef(passwordPolicyOid,
+//				ObjectTypes.PASSWORD_POLICY);
+		modifyObjectReplaceProperty(SecurityPolicyType.class, SECURITY_POLICY_OID,
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+        		task, result, historyLength);
 	}
 
 }

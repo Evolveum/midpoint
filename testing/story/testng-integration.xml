@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -28,11 +28,12 @@
             <class name="com.evolveum.midpoint.testing.story.TestScience"/>
             <class name="com.evolveum.midpoint.testing.story.TestUniversity"/>
             <class name="com.evolveum.midpoint.testing.story.TestUnix"/>
+            <class name="com.evolveum.midpoint.testing.story.TestUnixTolerantAux"/>
             <class name="com.evolveum.midpoint.testing.story.TestUuid"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapFlat"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapNested"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapHierarchical"/>
-            <class name="com.evolveum.midpoint.testing.story.TestLdapDeeplyHierarchical"/>
+            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapFlat"/>
+            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapNested"/>
+            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapHierarchical"/>
+            <class name="com.evolveum.midpoint.testing.story.ldaphierarchy.TestLdapDeeplyHierarchical"/>
             <class name="com.evolveum.midpoint.testing.story.TestRetirement"/>
             <class name="com.evolveum.midpoint.testing.story.TestNullAttribute"/>
             <class name="com.evolveum.midpoint.testing.story.TestMachineIntelligence"/>
@@ -40,6 +41,16 @@
             <class name="com.evolveum.midpoint.testing.story.TestEntertainment"/>
             <class name="com.evolveum.midpoint.testing.story.TestStrings"/>
             <class name="com.evolveum.midpoint.testing.story.TestDependencyRename"/>
+            <class name="com.evolveum.midpoint.testing.story.TestPlentyOfAssignments"/>
+            <class name="com.evolveum.midpoint.testing.story.notorious.TestNotoriousRole"/>
+            <class name="com.evolveum.midpoint.testing.story.notorious.TestNotoriousOrg"/>
+            <class name="com.evolveum.midpoint.testing.story.TestDelivery"/>
+            <class name="com.evolveum.midpoint.testing.story.TestLdapVirtualGroup"/>
+            <class name="com.evolveum.midpoint.testing.story.TestMapleLeaf"/>
+            <class name="com.evolveum.midpoint.testing.story.TestNormalizers"/>
+            <class name="com.evolveum.midpoint.testing.story.TestOperationPerf"/>
+            <class name="com.evolveum.midpoint.testing.story.TestReconNullValue"/>
+            <class name="com.evolveum.midpoint.testing.story.TestExistentialIssues"/>
         </classes>
     </test>
 </suite>

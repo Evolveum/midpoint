@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,13 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,7 +49,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,13 +70,23 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 	@Autowired
 	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
+	@Nullable
 	@Autowired(required = false) // missing in some tests
 	private RepositoryService repositoryService;
+
+	@Nullable
+	@Autowired(required = false) // missing in some tests (maybe)
+	private TaskManager taskManager;
+
+	@Nullable
+	@Autowired(required = false) // missing in some tests (maybe)
+	@Qualifier("securityContextManager")
+	private SecurityContextManager securityContextManager;
 
 	@Autowired
 	private PrismContext prismContext;
 
-	private List<AuditService> services = new Vector<AuditService>();
+	private List<AuditService> services = new Vector<>();
 
 	@Override
 	public void audit(AuditEventRecord record, Task task) {
@@ -144,18 +160,35 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 		if (record.getTaskOID() == null && task != null) {
 			record.setTaskOID(task.getOid());
 		}
-		if (record.getTaskOID() == null && task != null) {
-			record.setTaskOID(task.getOid());
-		}
-		if (record.getSessionIdentifier() == null && task != null) {
-			// TODO
+		if (record.getChannel() == null && task != null) {
+			record.setChannel(task.getChannel());
 		}
 		if (record.getInitiator() == null && task != null) {
 			record.setInitiator(task.getOwner());
 		}
 
-		if (record.getHostIdentifier() == null) {
-			// TODO
+		if (record.getNodeIdentifier() == null && taskManager != null) {
+			record.setNodeIdentifier(taskManager.getNodeId());
+		}
+
+		HttpConnectionInformation connInfo = SecurityUtil.getCurrentConnectionInformation();
+		if (connInfo == null && securityContextManager != null) {
+			connInfo = securityContextManager.getStoredConnectionInformation();
+		}
+		if (connInfo != null) {
+			if (record.getSessionIdentifier() == null) {
+				record.setSessionIdentifier(connInfo.getSessionId());
+			}
+			if (record.getRemoteHostAddress() == null) {
+				record.setRemoteHostAddress(connInfo.getRemoteHostAddress());
+			}
+			if (record.getHostIdentifier() == null) {
+				record.setHostIdentifier(connInfo.getLocalHostName());
+			}
+		}
+
+		if (record.getSessionIdentifier() == null && task != null) {
+			record.setSessionIdentifier(task.getTaskIdentifier());
 		}
 
 		if (record.getDeltas() != null) {
@@ -238,7 +271,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
 	@Override
 	public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
-		List<AuditEventRecord> result = new ArrayList<AuditEventRecord>();
+		List<AuditEventRecord> result = new ArrayList<>();
 		for (AuditService service : services) {
 			if (service.supportsRetrieval()) {
 				List<AuditEventRecord> records = service.listRecords(query, params);

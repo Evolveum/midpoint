@@ -22,16 +22,16 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
  *
  */
 public enum AuditEventStage {
-	
+
 	REQUEST,
-	
+
 	EXECUTION;
-	
+
 	public static AuditEventStage toAuditEventStage(AuditEventStageType stage){
 		if (stage == null){
 			return null;
 		}
-		
+
 		switch (stage){
 			case EXECUTION :
 				return AuditEventStage.EXECUTION;
@@ -41,12 +41,12 @@ public enum AuditEventStage {
 				throw new IllegalArgumentException("Unknown audit event stage: " + stage);
 		}
 	}
-	
+
 	public static AuditEventStageType fromAuditEventStage(AuditEventStage stage){
 		if (stage == null){
 			return null;
 		}
-		
+
 		switch (stage){
 			case EXECUTION :
 				return AuditEventStageType.EXECUTION;

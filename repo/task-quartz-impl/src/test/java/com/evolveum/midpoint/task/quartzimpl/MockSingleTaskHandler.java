@@ -38,7 +38,7 @@ import java.util.List;
  *
  */
 public class MockSingleTaskHandler implements TaskHandler {
-	
+
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
     private String MOCK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock";
     private String NS_EXT = "http://myself.me/schemas/whatever";
@@ -64,37 +64,37 @@ public class MockSingleTaskHandler implements TaskHandler {
 	}
 
 	private boolean hasRun = false;
-	
+    private int executions = 0;
+
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.info("MockSingle.run starting (id = " + id + ")");
 
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 
 		runResult.setOperationResult(opResult);
-		
+
 		// TODO
-		progress++;
-		
+		task.incrementProgressAndStoreStatsIfNeeded();
+
 		opResult.recordSuccess();
-		
+
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(progress);
-		
+
 		hasRun = true;
+		executions++;
 
         if ("L1".equals(id)) {
             PrismProperty<Boolean> l1flag = task.getExtensionProperty(L1_FLAG_QNAME);
 
-            if (l1flag == null || l1flag.getRealValue() == false) {
+            if (l1flag == null || !l1flag.getRealValue()) {
 
                 LOGGER.info("L1 handler, first run - scheduling L2 handler");
                 ScheduleType l2Schedule = new ScheduleType();
                 l2Schedule.setInterval(2);
-                task.pushHandlerUri(TestQuartzTaskManagerContract.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, ((TaskQuartzImpl) task).createExtensionDelta(l1FlagDefinition, true));
+                task.pushHandlerUri(AbstractTaskManagerTest.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, ((TaskQuartzImpl) task).createExtensionDelta(l1FlagDefinition, true));
                 try {
                     task.savePendingModifications(opResult);
                 } catch(Exception e) {
@@ -102,64 +102,64 @@ public class MockSingleTaskHandler implements TaskHandler {
                 }
                 runResult.setRunResultStatus(TaskRunResultStatus.RESTART_REQUESTED);
             } else {
-                LOGGER.info("L1 handler, not the first run (progress = " + progress + ", l1Flag = " + l1flag.getRealValue() + "), exiting.");
+                LOGGER.info("L1 handler, not the first run (progress = " + task.getProgress() + ", l1Flag = " + l1flag.getRealValue() + "), exiting.");
             }
         } else if ("L2".equals(id)) {
-            if (progress == 5) {
+            if (task.getProgress() == 5) {
                 LOGGER.info("L2 handler, fourth run - scheduling L3 handler");
-                task.pushHandlerUri(TestQuartzTaskManagerContract.L3_TASK_HANDLER_URI, new ScheduleType(), null);
+                task.pushHandlerUri(AbstractTaskManagerTest.L3_TASK_HANDLER_URI, new ScheduleType(), null);
                 try {
                     task.savePendingModifications(opResult);
                 } catch(Exception e) {
                     throw new SystemException("Cannot schedule L3 handler", e);
                 }
                 runResult.setRunResultStatus(TaskRunResultStatus.RESTART_REQUESTED);
-            } else if (progress < 5) {
-                LOGGER.info("L2 handler, progress = " + progress + ", continuing.");
-            } else if (progress > 5) {
-                LOGGER.info("L2 handler, progress too big, i.e. " + progress + ", exiting.");
+            } else if (task.getProgress() < 5) {
+                LOGGER.info("L2 handler, progress = " + task.getProgress() + ", continuing.");
+            } else if (task.getProgress() > 5) {
+                LOGGER.info("L2 handler, progress too big, i.e. " + task.getProgress() + ", exiting.");
                 try {
-                    ((TaskQuartzImpl) task).finishHandler(opResult);
+                    task.finishHandler(opResult);
                 } catch (Exception e) {
                     throw new SystemException("Cannot finish L2 handler", e);
                 }
             }
         } else if ("L3".equals(id)) {
-            LOGGER.info("L3 handler, simply exiting. Progress = " + progress);
+            LOGGER.info("L3 handler, simply exiting. Progress = " + task.getProgress());
         } else if ("WFS".equals(id)) {
 
             PrismProperty<Boolean> wfsFlag = task.getExtensionProperty(WFS_FLAG_QNAME);
 
-            if (wfsFlag == null || wfsFlag.getRealValue() == false) {
+            if (wfsFlag == null || !wfsFlag.getRealValue()) {
 
                 LOGGER.info("Wait-for-subtasks creating subtasks...");
 
                 Task t1 = task.createSubtask();
-                t1.setHandlerUri(TestQuartzTaskManagerContract.L3_TASK_HANDLER_URI);
+                t1.setHandlerUri(AbstractTaskManagerTest.L3_TASK_HANDLER_URI);
                 taskManager.switchToBackground(t1, opResult);
 
                 Task t2 = task.createSubtask();
-                t2.setHandlerUri(TestQuartzTaskManagerContract.SINGLE_TASK_HANDLER_URI);
+                t2.setHandlerUri(AbstractTaskManagerTest.SINGLE_TASK_HANDLER_URI);
                 taskManager.switchToBackground(t2, opResult);
 
                 try {
                     ArrayList<ItemDelta<?,?>> deltas = new ArrayList<>();
                     deltas.add(((TaskQuartzImpl) task).createExtensionDelta(wfsFlagDefinition, true));
                     runResult = ((TaskQuartzImpl) task).waitForSubtasks(2, deltas, opResult);
-                    runResult.setProgress(1);
+                    runResult.setProgress(1L);
                 } catch (Exception e) {
                     throw new SystemException("WaitForSubtasks failed.", e);
                 }
             } else {
-                LOGGER.info("Wait-for-subtasks seems to finish successfully; progress = " + progress + ", wfsFlag = " + wfsFlag.getRealValue());
+                LOGGER.info("Wait-for-subtasks seems to finish successfully; progress = " + task.getProgress() + ", wfsFlag = " + wfsFlag.getRealValue());
             }
 
         }
-		
+
 		LOGGER.info("MockSingle.run stopping");
 		return runResult;
 	}
-	
+
 	@Override
 	public Long heartbeat(Task task) {
 		// TODO Auto-generated method stub
@@ -168,25 +168,28 @@ public class MockSingleTaskHandler implements TaskHandler {
 	@Override
 	public void refreshStatus(Task task) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	public boolean hasRun() {
 		return hasRun;
 	}
-	
+
 	public void resetHasRun() {
 		hasRun = false;
 	}
 
-    @Override
+	public int getExecutions() {
+		return executions;
+	}
+
+	public void resetExecutions() {
+		executions = 0;
+	}
+
+	@Override
     public String getCategoryName(Task task) {
         return TaskCategory.MOCK;
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
     }
 
     public TaskManagerQuartzImpl getTaskManager() {

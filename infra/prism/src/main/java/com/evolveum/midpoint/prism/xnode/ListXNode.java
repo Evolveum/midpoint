@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
 
 public class ListXNode extends XNode implements List<XNode> {
-	
+
 	private final List<XNode> subnodes = new ArrayList<>();
 
 	@Override
@@ -142,7 +142,7 @@ public class ListXNode extends XNode implements List<XNode> {
 	public List<XNode> subList(int fromIndex, int toIndex) {
 		return subnodes.subList(fromIndex, toIndex);
 	}
-	
+
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
@@ -166,7 +166,7 @@ public class ListXNode extends XNode implements List<XNode> {
 	public String getDesc() {
 		return "list";
 	}
-	
+
 	@Override
 	public String toString() {
 		return "XNode(list:"+subnodes.size()+" elements)";

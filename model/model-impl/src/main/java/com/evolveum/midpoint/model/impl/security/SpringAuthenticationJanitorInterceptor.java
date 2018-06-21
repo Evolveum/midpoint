@@ -32,8 +32,8 @@ import java.util.Set;
 public class SpringAuthenticationJanitorInterceptor implements PhaseInterceptor<SoapMessage> {
 
     private String phase;
-    private Set<String> before = new HashSet<String>();
-    private Set<String> after = new HashSet<String>();
+    private Set<String> before = new HashSet<>();
+    private Set<String> after = new HashSet<>();
     private String id;
 
     public SpringAuthenticationJanitorInterceptor() {

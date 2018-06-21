@@ -2,7 +2,6 @@ package com.evolveum.midpoint.model.impl.security;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -32,7 +31,7 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 			recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
 			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
-		
+
 		Map<String, String> enteredQuestionAnswer = authCtx.getQuestionAnswerMap();
 		boolean allBlank = false;
 		for (String enteredAnswers : enteredQuestionAnswer.values()) {
@@ -40,7 +39,7 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 				allBlank = true;
 			}
 		}
-		
+
 		if (allBlank) {
 			recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
 			throw new BadCredentialsException("web.security.provider.password.encoding");
@@ -61,30 +60,30 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 	protected void validateCredentialNotNull(ConnectionEnvironment connEnv, MidPointPrincipal principal,
 			SecurityQuestionsCredentialsType credential) {
 		List<SecurityQuestionAnswerType> securityQuestionsAnswers = credential.getQuestionAnswer();
-		
+
 		if (securityQuestionsAnswers == null || securityQuestionsAnswers.isEmpty()) {
 			recordAuthenticationFailure(principal, connEnv, "no stored security questions");
 			throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
 		}
-		
+
 	}
 
 	@Override
 	protected boolean passwordMatches(ConnectionEnvironment connEnv, MidPointPrincipal principal,
 			SecurityQuestionsCredentialsType passwordType, SecurityQuestionsAuthenticationContext authCtx) {
-		
+
 		SecurityQuestionsCredentialsPolicyType policy = authCtx.getPolicy();
 		Integer iNumberOfQuestions = policy.getQuestionNumber();
 		int numberOfQuestions = 0;
 		if (iNumberOfQuestions != null){
 			numberOfQuestions = iNumberOfQuestions.intValue();
 		}
-		
+
 		Map<String, String> enteredQuestionsAnswers = authCtx.getQuestionAnswerMap();
 		if (numberOfQuestions > enteredQuestionsAnswers.size()){
 			return false;
-		}		
-		
+		}
+
 		List<SecurityQuestionAnswerType> quetionsAnswers = passwordType.getQuestionAnswer();
 		int matched = 0;
 		for (SecurityQuestionAnswerType questionAnswer : quetionsAnswers){
@@ -95,9 +94,9 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 				}
 			}
 		}
-		
+
 		return matched > 0 && matched >= numberOfQuestions;
-		
+
 	}
 
 	@Override
@@ -110,7 +109,7 @@ public class SecurityQuestionAuthneticationEvaluatorImpl extends AuthenticationE
 		authnCtx.setPolicy(policy);
 		return policy;
 	}
-	
+
 	@Override
 	protected boolean supportsActivation() {
 		return true;

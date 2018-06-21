@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.icf.dummy.connector;
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
@@ -36,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -79,12 +81,12 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
 
 /**
  * Connector for the Dummy Resource.
- * 
+ *
  * Dummy resource is a simple Java object that pretends to be a resource. It has accounts and
  * account schema. It has operations to manipulate accounts, execute scripts and so on
- * almost like a real resource. The purpose is to simulate a real resource with a very 
+ * almost like a real resource. The purpose is to simulate a real resource with a very
  * little overhead. This connector connects the Dummy resource to ICF.
- * 
+ *
  * @see DummyResource
  *
  */
@@ -92,27 +94,29 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
 configurationClass = DummyConfiguration.class)
 public class DummyConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp {
-	
+
 	// We want to see if the ICF framework logging works properly
     private static final Log log = Log.getLog(DummyConnector.class);
     // We also want to see if the libraries that use JUL are logging properly
     private static final java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger(DummyConnector.class.getName());
-    
+
     // Marker used in logging tests
     public static final String LOG_MARKER = "_M_A_R_K_E_R_";
-    
+
     private static final String OBJECTCLASS_ACCOUNT_NAME = "account";
 	private static final String OBJECTCLASS_GROUP_NAME = "group";
 	private static final String OBJECTCLASS_PRIVILEGE_NAME = "privilege";
 	private static final String OBJECTCLASS_ORG_NAME = "org";
-	
+
     /**
      * Place holder for the {@link Configuration} passed into the init() method
      */
     private DummyConfiguration configuration;
-    
+
 	private DummyResource resource;
-	
+
+	private boolean connected = false;
+
 	private static String staticVal;
 
     /**
@@ -132,13 +136,13 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     public void init(Configuration configuration) {
         notNullArgument(configuration, "configuration");
         this.configuration = (DummyConfiguration) configuration;
-        
+
         String instanceName = this.configuration.getInstanceId();
         if (instanceName == null || instanceName.isEmpty()) {
         	instanceName = null;
         }
         resource = DummyResource.getInstance(instanceName);
-        
+
         resource.setCaseIgnoreId(this.configuration.getCaseIgnoreId());
         resource.setCaseIgnoreValues(this.configuration.getCaseIgnoreValues());
         resource.setEnforceUniqueName(this.configuration.isEnforceUniqueName());
@@ -153,6 +157,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		}
 
         resource.setUselessString(this.configuration.getUselessString());
+        if (this.configuration.isRequireUselessString() && StringUtils.isBlank((this.configuration.getUselessString()))) {
+        	throw new ConfigurationException("No useless string");
+        }
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
         if (uselessGuardedString == null) {
         	resource.setUselessGuardedString(null);
@@ -160,13 +167,16 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         	uselessGuardedString.access(chars -> resource.setUselessGuardedString(new String(chars)));
         }
         resource.setMonsterization(this.configuration.isMonsterized());
-        
+        if (connected) {
+			throw new IllegalStateException("Double connect in "+this);
+		}
+		connected = true;
         resource.connect();
-        
+
         if (staticVal == null) {
         	staticVal = this.toString();
         }
-        
+
         log.info("Connected to dummy resource instance {0} ({1} connections open)", resource, resource.getConnectionCount());
     }
 
@@ -176,13 +186,16 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      * @see Connector#dispose()
      */
     public void dispose() {
+    	connected = false;
     	resource.disconnect();
     	log.info("Disconnected from dummy resource instance {0} ({1} connections still open)", resource, resource.getConnectionCount());
     }
-    
+
     @Override
 	public void checkAlive() {
-		// notthig to do. always alive.
+    	if (!connected) {
+			throw new IllegalStateException("checkAlive on non-connected connector instance "+this);
+		}
 	}
 
     /******************
@@ -191,10 +204,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      * Implement the following operations using the contract and
      * description found in the Javadoc for these methods.
      ******************/
-    
+
     /**
      * {@inheritDoc}
-     */    
+     */
 
     /**
      * {@inheritDoc}
@@ -202,47 +215,47 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
         log.info("create::begin attributes {0}", createAttributes);
         validate(objectClass);
-        
+
         DummyObject newObject;
         try {
-        	
+
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 	            // Convert attributes to account
 	            DummyAccount newAccount = convertToAccount(createAttributes);
-	    			
+	
 	            log.ok("Adding dummy account:\n{0}", newAccount.debugDump());
-	            
+
     			resource.addAccount(newAccount);
     			newObject = newAccount;
-	
+
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	            DummyGroup newGroup = convertToGroup(createAttributes);
-	    		
+	
 	            log.ok("Adding dummy group:\n{0}", newGroup.debugDump());
-	            
+
     			resource.addGroup(newGroup);
     			newObject = newGroup;
-	            
+
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	            DummyPrivilege newPriv = convertToPriv(createAttributes);
-	
+
 	            log.ok("Adding dummy privilege:\n{0}", newPriv.debugDump());
-	            
+
     			resource.addPrivilege(newPriv);
     			newObject = newPriv;
-    			
+
 	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
 	            DummyOrg newOrg = convertToOrg(createAttributes);
-	
+
 	            log.ok("Adding dummy org:\n{0}", newOrg.debugDump());
-	            
+
     			resource.addOrg(newOrg);
     			newObject = newOrg;
 
 	        } else {
 	        	throw new ConnectorException("Unknown object class "+objectClass);
 	        }
-	        
+
         } catch (ObjectAlreadyExistsException e) {
 			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 			// The framework should deal with it ... somehow
@@ -256,7 +269,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (ConflictException e) {
 			throw new AlreadyExistsException(e);
 		}
-        
+
         String id;
         if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
         	id = newObject.getName();
@@ -266,7 +279,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
         }
         Uid uid = new Uid(id);
-        
+
         log.info("create::end");
         return uid;
     }
@@ -278,11 +291,11 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         log.info("update::begin");
         validate(objectClass);
         validate(uid);
-        
+
         try {
-        	
+
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
-	
+
 		        final DummyAccount account;
 		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 		        	account = resource.getAccountByUsername(uid.getUidValue(), false);
@@ -297,7 +310,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
 				// we do this before setting attribute values, in case when description itself would be changed
 				resource.changeDescriptionIfNeeded(account);
-		        
+
 		        for (Attribute attr : replaceAttributes) {
 		        	if (attr.is(Name.NAME)) {
 		        		String newName = (String)attr.getValue().get(0);
@@ -308,7 +321,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 						} catch (ObjectAlreadyExistsException e) {
 							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
 						} catch (SchemaViolationException e) {
-							throw new org.identityconnectors.framework.common.exceptions.ConnectorException("Schema exception: " + e.getMessage(), e);
+							throw new org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException("Schema exception: " + e.getMessage(), e);
 						}
 						// We need to change the returned uid here (only if the mode is not set to UUID)
 						if (!(configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID))){
@@ -343,9 +356,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 						}
 		        	}
 		        }
-		        
+
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-	        	
+	
 	        	final DummyGroup group;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 	        		group = resource.getGroupByName(uid.getUidValue(), false);
@@ -357,7 +370,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
-		        
+
 		        for (Attribute attr : replaceAttributes) {
 		        	if (attr.is(Name.NAME)) {
 		        		String newName = (String)attr.getValue().get(0);
@@ -371,16 +384,16 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		// We need to change the returned uid here
 		        		uid = new Uid(newName);
 		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change password on group");
-		        	
+		        		throw new InvalidAttributeValueException("Attempt to change password on group");
+		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
 		        		group.setEnabled(getBooleanNotNull(attr));
-		        		
+		
 		        	} else {
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
 			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		List<Object> newValues = new ArrayList<>(values.size());
 			        		for (Object val: values) {
 			        			newValues.add(StringUtils.upperCase((String)val));
 			        		}
@@ -389,13 +402,13 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			        	try {
 							group.replaceAttributeValues(name, values);
 						} catch (SchemaViolationException e) {
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
-		        
+
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-	        	
+	
 	        	final DummyPrivilege priv;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 	        		priv = resource.getPrivilegeByName(uid.getUidValue(), false);
@@ -407,7 +420,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
-		        
+
 		        for (Attribute attr : replaceAttributes) {
 		        	if (attr.is(Name.NAME)) {
 		        		String newName = (String)attr.getValue().get(0);
@@ -421,23 +434,23 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		// We need to change the returned uid here
 		        		uid = new Uid(newName);
 		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change password on privilege");
-		        	
+		        		throw new InvalidAttributeValueException("Attempt to change password on privilege");
+		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change enable on privilege");
-		        		
+		        		throw new InvalidAttributeValueException("Attempt to change enable on privilege");
+		
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
 							priv.replaceAttributeValues(name, attr.getValue());
 						} catch (SchemaViolationException e) {
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
-		        
+
 	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-	        	
+	
 	        	final DummyOrg org;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 	        		org = resource.getOrgByName(uid.getUidValue(), false);
@@ -449,7 +462,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (org == null) {
 		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
 		        }
-		        
+
 		        for (Attribute attr : replaceAttributes) {
 		        	if (attr.is(Name.NAME)) {
 		        		String newName = (String)attr.getValue().get(0);
@@ -463,26 +476,26 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        		// We need to change the returned uid here
 		        		uid = new Uid(newName);
 		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change password on org");
-		        	
+		        		throw new InvalidAttributeValueException("Attempt to change password on org");
+		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to change enable on org");
-		        		
+		        		throw new InvalidAttributeValueException("Attempt to change enable on org");
+		
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
 							org.replaceAttributeValues(name, attr.getValue());
 						} catch (SchemaViolationException e) {
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
-		        
-		        
+
+
 	        } else {
 	        	throw new ConnectorException("Unknown object class "+objectClass);
 	        }
-	        
+
 		} catch (ConnectException e) {
 	        log.info("update::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
@@ -496,7 +509,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			log.info("update::exception "+e);
 			throw new AlreadyExistsException(e);
 		}
-        
+
         log.info("update::end");
         return uid;
     }
@@ -509,9 +522,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         validate(uid);
 
         try {
-        
+
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
-	        
+
 	        	DummyAccount account;
 		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 		        	account = resource.getAccountByUsername(uid.getUidValue());
@@ -526,18 +539,18 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
 				// we could change the description here, but don't do that not to collide with ADD operation
 				// TODO add the functionality if needed
-		        
+
 		        for (Attribute attr : valuesToAdd) {
-		        	
+		
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
 		        		if (account.getPassword() != null) {
-		        			throw new IllegalArgumentException("Attempt to add value for password while password is already set");
+		        			throw new InvalidAttributeValueException("Attempt to add value for password while password is already set");
 		        		}
 		        		changePassword(account,attr);
-		        		
+		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
-		        		
+		        		throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
+		
 		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
 						account.addAuxiliaryObjectClassNames(attr.getValue());
 
@@ -548,16 +561,15 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(), e);
 						}
 		        	}
 		        }
-		        
+
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-	        	
+	
 	        	DummyGroup group;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 	        		group = resource.getGroupByName(uid.getUidValue());
@@ -569,20 +581,20 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
-		        
+
 		        for (Attribute attr : valuesToAdd) {
-		        	
+		
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on group");
-		        		
+		        		throw new InvalidAttributeValueException("Attempt to change password on group");
+		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
-		        		
+		        		throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
+		
 		        	} else {
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
 			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		List<Object> newValues = new ArrayList<>(values.size());
 			        		for (Object val: values) {
 			        			newValues.add(StringUtils.upperCase((String)val));
 			        		}
@@ -593,16 +605,15 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(), e);
 						}
 		        	}
 		        }
-		        
+
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-	        	
+	
 	        	DummyPrivilege priv;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 	        		priv = resource.getPrivilegeByName(uid.getUidValue());
@@ -614,15 +625,15 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
-		        
+
 		        for (Attribute attr : valuesToAdd) {
-		        	
+		
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on privilege");
-		        		
+		        		throw new InvalidAttributeValueException("Attempt to change password on privilege");
+		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
-		        		
+		        		throw new InvalidAttributeValueException("Attempt to add value for enable attribute");
+		
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
@@ -630,16 +641,15 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
-		    
+
 	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-	        	
+	
 	        	DummyOrg org;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 	        		org = resource.getOrgByName(uid.getUidValue());
@@ -651,15 +661,15 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (org == null) {
 		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
 		        }
-		        
+
 		        for (Attribute attr : valuesToAdd) {
-		        	
+		
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on org");
-		        		
+		        		throw new InvalidAttributeValueException("Attempt to change password on org");
+		
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to add value for enable org");
-		        		
+		        		throw new InvalidAttributeValueException("Attempt to add value for enable org");
+		
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
@@ -667,18 +677,17 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Added attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(), e);
 						}
 		        	}
 		        }
-	        	
+	
 	        } else {
 	        	throw new ConnectorException("Unknown object class "+objectClass);
 	        }
-	        
+
 		} catch (ConnectException e) {
 	        log.info("addAttributeValues::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
@@ -692,7 +701,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			log.info("addAttributeValues::exception "+e);
 			throw new AlreadyExistsException(e);
 		}
-        
+
         return uid;
     }
 
@@ -704,9 +713,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         validate(uid);
 
         try {
-        
+
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
-	        	
+	
 	        	DummyAccount account;
 		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 		        	account = resource.getAccountByUsername(uid.getUidValue());
@@ -726,7 +735,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
 		        		throw new UnsupportedOperationException("Removing password value is not supported");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+		        		throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
 		        	} else if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equalsIgnoreCase(attr.getName())) {
 		        		account.deleteAuxiliaryObjectClassNames(attr.getValue());
 					} else {
@@ -736,16 +745,15 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), account, account.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(), e);
 						}
 		        	}
 		        }
-	        
+
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-	        	
+	
 	        	DummyGroup group;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 	        		group = resource.getGroupByName(uid.getUidValue());
@@ -757,17 +765,17 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
-		        
+
 		        for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on group");
+		        		throw new InvalidAttributeValueException("Attempt to change password on group");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+		        		throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
 		        	} else {
 			        	String name = attr.getName();
 			        	List<Object> values = attr.getValue();
 			        	if (attr.is(DummyGroup.ATTR_MEMBERS_NAME) && values != null && configuration.getUpCaseName()) {
-			        		List<Object> newValues = new ArrayList<Object>(values.size());
+			        		List<Object> newValues = new ArrayList<>(values.size());
 			        		for (Object val: values) {
 			        			newValues.add(StringUtils.upperCase((String)val));
 			        		}
@@ -778,16 +786,15 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), group, group.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
-		        
+
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-	        	
+	
 	        	DummyPrivilege priv;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 	        		priv = resource.getPrivilegeByName(uid.getUidValue());
@@ -799,12 +806,12 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
-		        
+
 		        for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on privilege");
+		        		throw new InvalidAttributeValueException("Attempt to change password on privilege");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+		        		throw new InvalidAttributeValueException("Attempt to remove value from enable attribute");
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
@@ -812,16 +819,15 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), priv, priv.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
-		        
+
 	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-	        	
+	
 	        	DummyOrg org;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 	        		org = resource.getOrgByName(uid.getUidValue());
@@ -833,12 +839,12 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        if (org == null) {
 		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
 		        }
-		        
+
 		        for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-		        		throw new IllegalArgumentException("Attempt to change password on org");
+		        		throw new InvalidAttributeValueException("Attempt to change password on org");
 		        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-		        		throw new IllegalArgumentException("Attempt to remove value from enable org");
+		        		throw new InvalidAttributeValueException("Attempt to remove value from enable org");
 		        	} else {
 			        	String name = attr.getName();
 			        	try {
@@ -846,18 +852,17 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 							log.ok("Removed attribute {0} values {1} from {2}, resulting values: {3}",
 									name, attr.getValue(), org, org.getAttributeValues(name, Object.class));
 						} catch (SchemaViolationException e) {
-							// we cannot throw checked exceptions. But this one looks suitable.
 							// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 							// The framework should deal with it ... somehow
-							throw new IllegalArgumentException(e.getMessage(),e);
+							throw new InvalidAttributeValueException(e.getMessage(),e);
 						}
 		        	}
 		        }
-	        	
+	
 	        } else {
 	        	throw new ConnectorException("Unknown object class "+objectClass);
 	        }
-	        
+
 		} catch (ConnectException e) {
 	        log.info("removeAttributeValues::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
@@ -874,7 +879,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 
         return uid;
     }
-    
+
 	/**
      * {@inheritDoc}
      */
@@ -882,11 +887,11 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         log.info("delete::begin");
         validate(objectClass);
         validate(uid);
-        
+
         String id = uid.getUidValue();
-        
+
         try {
-        	
+
         	if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
         		if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
         			resource.deleteAccountByName(id);
@@ -923,7 +928,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         	} else {
         		throw new ConnectorException("Unknown object class "+objectClass);
         	}
-			
+
 		} catch (ObjectDoesNotExistException e) {
 			// we cannot throw checked exceptions. But this one looks suitable.
 			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
@@ -942,7 +947,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			log.info("delete::exception "+e);
 			throw new AlreadyExistsException(e);
 		}
-        
+
         log.info("delete::end");
     }
 
@@ -951,16 +956,16 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      */
     public Schema schema() {
         log.info("schema::begin");
-        
+
         if (!configuration.getSupportSchema()) {
         	log.info("schema::unsupported operation");
         	throw new UnsupportedOperationException();
         }
 
         SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
-        
+
     	try {
-			
+
     		builder.defineObjectClass(createAccountObjectClass(configuration.getSupportActivation()));
 			builder.defineObjectClass(createGroupObjectClass(configuration.getSupportActivation()));
 			builder.defineObjectClass(createPrivilegeObjectClass());
@@ -968,7 +973,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			for (ObjectClassInfo auxObjectClass : createAuxiliaryObjectClasses()) {
 				builder.defineObjectClass(auxObjectClass);
 			}
-			
+
 		} catch (SchemaViolationException e) {
 			throw new InvalidAttributeValueException(e.getMessage(), e);
 		} catch (ConflictException e) {
@@ -999,41 +1004,41 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			return OBJECTCLASS_GROUP_NAME;
 		}
 	}
-    
-    private ObjectClassInfoBuilder createCommonObjectClassBuilder(String typeName, 
+
+    private ObjectClassInfoBuilder createCommonObjectClassBuilder(String typeName,
     		DummyObjectClass dummyAccountObjectClass, boolean supportsActivation) {
     	ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
     	if (typeName != null) {
     		objClassBuilder.setType(typeName);
     	}
-    	
+
     	buildAttributes(objClassBuilder, dummyAccountObjectClass);
-    	
+
     	if (supportsActivation) {
     		// __ENABLE__ attribute
     		objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
-    		
+
     		if (configuration.getSupportValidity()) {
             	objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE_DATE);
             	objClassBuilder.addAttributeInfo(OperationalAttributeInfos.DISABLE_DATE);
             }
-    		
+
     		objClassBuilder.addAttributeInfo(OperationalAttributeInfos.LOCK_OUT);
     	}
-    	
+
     	if (configuration.isAddConnectorStateAttributes()) {
     		objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_TO_STRING, String.class));
     		objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_STATIC_VAL, String.class));
     		objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(DummyResource.ATTRIBUTE_CONNECTOR_CONFIGURATION_TO_STRING, String.class));
     	}
-        
+
     	// __NAME__ will be added by default
         return objClassBuilder;
     }
-    
+
 	private ObjectClassInfo createAccountObjectClass(boolean supportsActivation) throws SchemaViolationException, ConflictException {
 		// __ACCOUNT__ objectclass
-        
+
         DummyObjectClass dummyAccountObjectClass;
 		try {
 			dummyAccountObjectClass = resource.getAccountObjectClass();
@@ -1044,9 +1049,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (IllegalArgumentException e) {
 			throw new ConnectorException(e.getMessage(), e);
 		} // DO NOT catch IllegalStateException, let it pass
-		
+
 		ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(getAccountObjectClassName(), dummyAccountObjectClass, supportsActivation);
-        
+
         // __PASSWORD__ attribute
 		AttributeInfo passwordAttrInfo;
 		switch (configuration.getPasswordReadabilityMode()) {
@@ -1065,24 +1070,24 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				break;
 		}
         objClassBuilder.addAttributeInfo(passwordAttrInfo);
-        
+
         return objClassBuilder.build();
 	}
-	
+
 	private ObjectClassInfo createGroupObjectClass(boolean supportsActivation) {
 		// __GROUP__ objectclass
-        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(getGroupObjectClassName(), 
+        ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(getGroupObjectClassName(),
         		resource.getGroupObjectClass(), supportsActivation);
-                
+
         return objClassBuilder.build();
 	}
-	
+
 	private ObjectClassInfo createPrivilegeObjectClass() {
         ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(OBJECTCLASS_PRIVILEGE_NAME,
         		resource.getPrivilegeObjectClass(), false);
         return objClassBuilder.build();
 	}
-	
+
 	private ObjectClassInfo createOrgObjectClass() {
         ObjectClassInfoBuilder objClassBuilder = createCommonObjectClassBuilder(OBJECTCLASS_ORG_NAME,
         		resource.getPrivilegeObjectClass(), false);
@@ -1114,7 +1119,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      */
     public Uid authenticate(final ObjectClass objectClass, final String userName, final GuardedString password, final OperationOptions options) {
         log.info("authenticate::begin");
-        Uid uid = null; 
+        Uid uid = null;
         log.info("authenticate::end");
         return uid;
     }
@@ -1128,12 +1133,12 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         log.info("resolveUsername::end");
         return uid;
     }
-    
+
     /**
      * {@inheritDoc}
      */
     public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
-    	
+
         throw new UnsupportedOperationException();
     }
 
@@ -1141,10 +1146,14 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      * {@inheritDoc}
      */
     public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
-        
-        resource.runScript(request.getScriptLanguage(), request.getScriptText(), request.getScriptArguments());
-        
-        return null;
+
+        try {
+			return resource.runScript(request.getScriptLanguage(), request.getScriptText(), request.getScriptArguments());
+        } catch (IllegalArgumentException e) {
+        	throw new ConnectorException(e.getMessage(), e);
+		} catch (FileNotFoundException e) {
+			throw new ConnectorIOException(e.getMessage(), e);
+		}
     }
 
     /**
@@ -1167,10 +1176,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         validate(objectClass);
         validate(query);
         notNull(handler, "Results handled object can't be null.");
-        
+
         Collection<String> attributesToGet = getAttrsToGet(options);
         log.ok("attributesToGet={0}", attributesToGet);
-        
+
         if (configuration.getRequiredBaseContextOrgName() != null && shouldRequireBaseContext(objectClass, query, options)) {
         	if (options == null || options.getContainer() == null) {
         		throw new ConnectorException("No container option while base context is required");
@@ -1181,59 +1190,37 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         			+"' is required, but got '"+container.getUid().getUidValue()+"'");
         	}
         }
-        
+
         try {
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
-	        	
-		        Collection<DummyAccount> accounts = resource.listAccounts();
-		        for (DummyAccount account : accounts) {
-		        	ConnectorObject co = convertToConnectorObject(account, attributesToGet);
-		        	if (matches(query, co)) {
-						co = filterOutAttributesToGet(co, account, attributesToGet, options.getReturnDefaultAttributes());
-		        		handler.handle(co);
-		        	}
-		        }
-		        
+	
+	        	search(objectClass, query, handler, options,
+	        			resource::listAccounts, resource::getAccountByUsername, resource::getAccountById, this::convertToConnectorObject, null);
+
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-	        	
-	        	Collection<DummyGroup> groups = resource.listGroups();
-		        for (DummyGroup group : groups) {
-		        	ConnectorObject co = convertToConnectorObject(group, attributesToGet);
-		        	if (matches(query, co)) {
-		        		if (attributesToGetHasAttribute(attributesToGet, DummyGroup.ATTR_MEMBERS_NAME)) {
-		        			resource.recordGroupMembersReadCount();
-		        		}
-		        		co = filterOutAttributesToGet(co, group, attributesToGet, options.getReturnDefaultAttributes());
-		        		handler.handle(co);
-		        	}
-		        }
-		        
+	
+	        	search(objectClass, query, handler, options,
+	        			resource::listGroups, resource::getGroupByName, resource::getGroupById, this::convertToConnectorObject,
+	        			object -> {
+	        				if (attributesToGetHasAttribute(attributesToGet, DummyGroup.ATTR_MEMBERS_NAME)) {
+			        			resource.recordGroupMembersReadCount();
+			        		}
+	        			});
+	
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-	        	
-	        	Collection<DummyPrivilege> privs = resource.listPrivileges();
-		        for (DummyPrivilege priv : privs) {
-		        	ConnectorObject co = convertToConnectorObject(priv, attributesToGet);
-		        	if (matches(query, co)) {
-		        		co = filterOutAttributesToGet(co, priv, attributesToGet, options.getReturnDefaultAttributes());
-		        		handler.handle(co);
-		        	}
-		        }
-		        
+	
+	        	search(objectClass, query, handler, options,
+	        			resource::listPrivileges, resource::getPrivilegeByName, resource::getPrivilegeById, this::convertToConnectorObject, null);
+	
 	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
-	        	
-	        	Collection<DummyOrg> orgs = resource.listOrgs();
-		        for (DummyOrg org : orgs) {
-		        	ConnectorObject co = convertToConnectorObject(org, attributesToGet);
-		        	if (matches(query, co)) {
-		        		co = filterOutAttributesToGet(co, org, attributesToGet, options.getReturnDefaultAttributes());
-		        		handler.handle(co);
-		        	}
-		        }
-	        	
+	
+	        	search(objectClass, query, handler, options,
+	        			resource::listOrgs, resource::getOrgByName, resource::getOrgById, this::convertToConnectorObject, null);
+	
 	        } else {
 	        	throw new ConnectorException("Unknown object class "+objectClass);
 	        }
-	        
+
 		} catch (ConnectException e) {
 	        log.info("executeQuery::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
@@ -1247,8 +1234,82 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			log.info("executeQuery::exception "+e);
 			throw new AlreadyExistsException(e);
 		}
-        
+
         log.info("executeQuery::end");
+    }
+
+    private <T extends DummyObject> void search(ObjectClass objectClass, Filter query, ResultsHandler handler, OperationOptions options,
+    		Lister<T> lister, Getter<T> nameGetter, Getter<T> idGetter, Converter<T> converter, Consumer<T> recorder) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+    	Collection<String> attributesToGet = getAttrsToGet(options);
+        log.ok("attributesToGet={0}", attributesToGet);
+
+        if (isEqualsFilter(query, Name.NAME) && resource.isEnforceUniqueName()) {
+        	Attribute nameAttribute = ((EqualsFilter)query).getAttribute();
+        	String name = (String)nameAttribute.getValue().get(0);
+        	T object = nameGetter.get(name);
+        	if (object != null) {
+        		handleObject(object, handler, options, attributesToGet, converter, recorder);
+        	}
+        	return;
+        }
+
+        if (isEqualsFilter(query, Uid.NAME)) {
+        	Attribute uidAttribute = ((EqualsFilter)query).getAttribute();
+        	String uid = (String)uidAttribute.getValue().get(0);
+        	T object;
+        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+        		object = nameGetter.get(uid);
+	        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+	        	object = idGetter.get(uid);
+	        } else {
+	        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+	        }
+        	if (object != null) {
+        		handleObject(object, handler, options, attributesToGet, converter, recorder);
+        	}
+        	return;
+        }
+
+        // Brute force: list all, filter out
+    	Collection<T> allObjects = lister.list();
+        for (T object : allObjects) {
+        	ConnectorObject co = converter.convert(object, attributesToGet);
+        	if (matches(query, co)) {
+        		handleConnectorObject(object, co, handler, options, attributesToGet, recorder);
+        	}
+        }
+    }
+
+    private <T extends DummyObject> void handleObject(T object, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet, Converter<T> converter, Consumer<T> recorder) throws SchemaViolationException {
+    	ConnectorObject co = converter.convert(object, attributesToGet);
+    	handleConnectorObject(object, co, handler, options, attributesToGet, recorder);
+    }
+
+    private <T extends DummyObject> void handleConnectorObject(T object, ConnectorObject co, ResultsHandler handler, OperationOptions options, Collection<String> attributesToGet, Consumer<T> recorder) {
+    	if (recorder != null) {
+			recorder.accept(object);
+		}
+		co = filterOutAttributesToGet(co, object, attributesToGet, options.getReturnDefaultAttributes());
+		handler.handle(co);
+	}
+
+	private boolean isEqualsFilter(Filter icfFilter, String icfAttrname) {
+		return icfFilter != null && (icfFilter instanceof EqualsFilter) && icfAttrname.equals(((EqualsFilter)icfFilter).getName());
+	}
+
+    @FunctionalInterface
+    interface Lister<T> {
+    	Collection<T> list() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException;
+    }
+
+    @FunctionalInterface
+    interface Getter<T> {
+    	T get(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException;
+    }
+
+    @FunctionalInterface
+    interface Converter<T extends DummyObject> {
+    	ConnectorObject convert(T object, Collection<String> attributesToGet) throws SchemaViolationException;
     }
 
 	private boolean shouldRequireBaseContext(ObjectClass objectClass, Filter query,
@@ -1290,7 +1351,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
         }
         return cob.build();
 	}
-	
+
     private Filter normalize(Filter filter) {
         if (filter instanceof ContainsFilter) {
             AttributeFilter afilter = (AttributeFilter) filter;
@@ -1332,7 +1393,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
             return filter;
         }
     }
-    
+
     private Attribute normalize(Attribute attr) {
     	if (configuration.getCaseIgnoreValues()) {
         	AttributeBuilder ab = new AttributeBuilder();
@@ -1385,14 +1446,14 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
         log.info("sync::begin");
         validate(objectClass);
-        
+
         Collection<String> attributesToGet = getAttrsToGet(options);
 
         try {
 	        int syncToken = (Integer)token.getValue();
 	        List<DummyDelta> deltas = resource.getDeltasSince(syncToken);
 	        for (DummyDelta delta: deltas) {
-	        	
+	
 	        	Class<? extends DummyObject> deltaObjectClass = delta.getObjectClass();
 	        	if (objectClass.is(ObjectClass.ALL_NAME)) {
 	        		// take all changes
@@ -1407,7 +1468,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	        			continue;
 	        		}
 	        	}
-	        	
+	
 	        	SyncDeltaBuilder deltaBuilder =  new SyncDeltaBuilder();
 	        	if (deltaObjectClass == DummyAccount.class) {
 	        		deltaBuilder.setObjectClass(ObjectClass.ACCOUNT);
@@ -1420,7 +1481,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	        	} else {
 	        		throw new IllegalArgumentException("Unknown delta objectClass "+deltaObjectClass);
 	        	}
-	        	
+	
 	        	SyncDeltaType deltaType;
 	        	if (delta.getType() == DummyDeltaType.ADD || delta.getType() == DummyDeltaType.MODIFY) {
 	        		if (resource.getSyncStyle() == DummySyncStyle.DUMB) {
@@ -1462,9 +1523,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	        		throw new IllegalStateException("Unknown delta type "+delta.getType());
 	        	}
 	        	deltaBuilder.setDeltaType(deltaType);
-	        	
+	
 	        	deltaBuilder.setToken(new SyncToken(delta.getSyncToken()));
-	        	
+	
 	        	Uid uid;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 		        	uid = new Uid(delta.getObjectName());
@@ -1478,12 +1539,12 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
 		        }
 	        	deltaBuilder.setUid(uid);
-	        	
+	
 	        	SyncDelta syncDelta = deltaBuilder.build();
 	        	log.info("sync::handle {0}",syncDelta);
 				handler.handle(syncDelta);
 	        }
-	        
+
 		} catch (ConnectException e) {
 	        log.info("sync::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
@@ -1497,7 +1558,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			log.info("sync::exception "+e);
 			throw new AlreadyExistsException(e);
 		}
-        
+
         log.info("sync::end");
     }
 
@@ -1528,17 +1589,22 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
      */
     public void test() {
         log.info("test::begin");
+
+        if (!connected) {
+			throw new IllegalStateException("Attempt to test non-connected connector instance "+this);
+		}
+
         log.info("Validating configuration.");
         configuration.validate();
-        
+
         // Produce log messages on all levels. The tests may check if they are really logged.
         log.error(LOG_MARKER + " DummyConnectorIcfError");
         log.info(LOG_MARKER + " DummyConnectorIcfInfo");
         log.warn(LOG_MARKER + " DummyConnectorIcfWarn");
         log.ok(LOG_MARKER + " DummyConnectorIcfOk");
-        
+
         log.info("Dummy Connector JUL logger as seen by the connector: " + julLogger + "; classloader " + julLogger.getClass().getClassLoader());
-        
+
         // Same thing using JUL
         julLogger.severe(LOG_MARKER + " DummyConnectorJULsevere");
 		julLogger.warning(LOG_MARKER + " DummyConnectorJULwarning");
@@ -1546,15 +1612,15 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		julLogger.fine(LOG_MARKER + " DummyConnectorJULfine");
 		julLogger.finer(LOG_MARKER + " DummyConnectorJULfiner");
 		julLogger.finest(LOG_MARKER + " DummyConnectorJULfinest");
-        
+
         log.info("Test configuration was successful.");
         log.info("test::end");
     }
-    
+
    private ConnectorObjectBuilder createConnectorObjectBuilderCommon(DummyObject dummyObject,
 		   DummyObjectClass objectClass, Collection<String> attributesToGet, boolean supportActivation) {
 	   ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
-	   
+
 	   if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 		   builder.setUid(dummyObject.getName());
        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
@@ -1562,13 +1628,13 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
        } else {
        		throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
        }
-	   
+
 		builder.addAttribute(Name.NAME, dummyObject.getName());
-		
+
 		for (String name : dummyObject.getAttributeNames()) {
 			DummyAttributeDefinition attrDef = dummyObject.getAttributeDefinition(name);
 			if (attrDef == null) {
-				throw new IllegalArgumentException("Unknown account attribute '"+name+"'");
+				throw new InvalidAttributeValueException("Unknown account attribute '"+name+"'");
 			}
 			if (!attrDef.isReturnedByDefault()) {
 				if (attributesToGet != null && !attributesToGet.contains(name)) {
@@ -1584,23 +1650,23 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 				builder.addAttribute(name, values);
 			}
 		}
-		
+
 		if (supportActivation) {
 			if (attributesToGet == null || attributesToGet.contains(OperationalAttributes.ENABLE_NAME)) {
 				builder.addAttribute(OperationalAttributes.ENABLE_NAME, dummyObject.isEnabled());
 			}
-			
+
 			if (dummyObject.getValidFrom() != null &&
 					(attributesToGet == null || attributesToGet.contains(OperationalAttributes.ENABLE_DATE_NAME))) {
 				builder.addAttribute(OperationalAttributes.ENABLE_DATE_NAME, convertToLong(dummyObject.getValidFrom()));
 			}
-			
+
 			if (dummyObject.getValidTo() != null &&
 					(attributesToGet == null || attributesToGet.contains(OperationalAttributes.DISABLE_DATE_NAME))) {
 				builder.addAttribute(OperationalAttributes.DISABLE_DATE_NAME, convertToLong(dummyObject.getValidTo()));
 			}
 		}
-		
+
 		if (configuration.isAddConnectorStateAttributes()) {
 			builder.addAttribute(DummyResource.ATTRIBUTE_CONNECTOR_TO_STRING, this.toString());
 			builder.addAttribute(DummyResource.ATTRIBUTE_CONNECTOR_STATIC_VAL, staticVal);
@@ -1636,7 +1702,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 	}
 
 	private ConnectorObject convertToConnectorObject(DummyAccount account, Collection<String> attributesToGet) throws SchemaViolationException {
-		
+
 		DummyObjectClass objectClass;
 		try {
 			objectClass = resource.getAccountObjectClass();
@@ -1650,10 +1716,10 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			log.error(e, e.getMessage());
 			throw new AlreadyExistsException(e);
 		}
-		
+
 		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(account, objectClass, attributesToGet, true);
 		builder.setObjectClass(ObjectClass.ACCOUNT);
-		
+
 		// Password is not returned by default (hardcoded ICF specification)
 		if (account.getPassword() != null && attributesToGet != null && attributesToGet.contains(OperationalAttributes.PASSWORD_NAME)) {
 			switch (configuration.getPasswordReadabilityMode()) {
@@ -1671,14 +1737,14 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 					// nothing to do
 			}
 		}
-		
+
 		if (account.isLockout() != null) {
 			builder.addAttribute(OperationalAttributes.LOCK_OUT_NAME, account.isLockout());
 		}
 
         return builder.build();
 	}
-	
+
 	private ConnectorObject convertToConnectorObject(DummyGroup group, Collection<String> attributesToGet) {
 		ConnectorObjectBuilder builder = createConnectorObjectBuilderCommon(group, resource.getGroupObjectClass(),
 				attributesToGet, true);
@@ -1699,7 +1765,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		builder.setObjectClass(new ObjectClass(OBJECTCLASS_ORG_NAME));
         return builder.build();
 	}
-	
+
 	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		log.ok("Create attributes: {0}", createAttributes);
 		String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
@@ -1708,60 +1774,65 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		}
 		log.ok("Username {0}", userName);
 		final DummyAccount newAccount = new DummyAccount(userName);
-		
+
 		Boolean enabled = null;
+		boolean hasPassword = false;
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Uid.NAME)) {
 				throw new IllegalArgumentException("UID explicitly specified in the account attributes");
-				
+
 			} else if (attr.is(Name.NAME)) {
 				// Skip, already processed
 
 			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
 				changePassword(newAccount,attr);
-				
+				hasPassword = true;
+
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
 				enabled = getBoolean(attr);
 				newAccount.setEnabled(enabled);
-				
+
 			} else if (attr.is(OperationalAttributeInfos.ENABLE_DATE.getName())) {
 				if (configuration.getSupportValidity()) {
 					newAccount.setValidFrom(getDate(attr));
 				} else {
-					throw new IllegalArgumentException("ENABLE_DATE specified in the account attributes while not supporting it");
+					throw new InvalidAttributeValueException("ENABLE_DATE specified in the account attributes while not supporting it");
 				}
-				
+
 			} else if (attr.is(OperationalAttributeInfos.DISABLE_DATE.getName())) {
 				if (configuration.getSupportValidity()) {
 					newAccount.setValidTo(getDate(attr));
 				} else {
-					throw new IllegalArgumentException("DISABLE_DATE specified in the account attributes while not supporting it");
+					throw new InvalidAttributeValueException("DISABLE_DATE specified in the account attributes while not supporting it");
 				}
-				
+
 			} else if (attr.is(OperationalAttributeInfos.LOCK_OUT.getName())) {
 				Boolean lockout = getBooleanNotNull(attr);
 				newAccount.setLockout(lockout);
-				
+
 			} else {
 				String name = attr.getName();
 				try {
 					newAccount.replaceAttributeValues(name,attr.getValue());
 				} catch (SchemaViolationException e) {
-					// we cannot throw checked exceptions. But this one looks suitable.
 					// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
 					// The framework should deal with it ... somehow
-					throw new IllegalArgumentException(e.getMessage(),e);
+					throw new InvalidAttributeValueException(e.getMessage(),e);
 				}
 			}
 		}
-		
-		if (configuration.getRequireExplicitEnable() && enabled == null) {
-			throw new IllegalArgumentException("Explicit value for ENABLE attribute was not provided and the connector is set to require it");
+
+		if (!hasPassword) {
+			checkPasswordPolicies(null);
 		}
-		
+
+		if (configuration.getRequireExplicitEnable() && enabled == null) {
+			throw new InvalidAttributeValueException("Explicit value for ENABLE attribute was not provided and the connector is set to require it");
+		}
+
 		return newAccount;
 	}
-	
+
 	private DummyGroup convertToGroup(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		if (configuration.getUpCaseName()) {
@@ -1773,44 +1844,44 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Uid.NAME)) {
 				throw new IllegalArgumentException("UID explicitly specified in the group attributes");
-				
+
 			} else if (attr.is(Name.NAME)) {
 				// Skip, already processed
 
 			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-				throw new IllegalArgumentException("Password specified for a group");
-				
+				throw new InvalidAttributeValueException("Password specified for a group");
+
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
 				enabled = getBooleanNotNull(attr);
 				newGroup.setEnabled(enabled);
-				
+
 			} else if (attr.is(OperationalAttributeInfos.ENABLE_DATE.getName())) {
 				if (configuration.getSupportValidity()) {
 					newGroup.setValidFrom(getDate(attr));
 				} else {
-					throw new IllegalArgumentException("ENABLE_DATE specified in the group attributes while not supporting it");
+					throw new InvalidAttributeValueException("ENABLE_DATE specified in the group attributes while not supporting it");
 				}
-				
+
 			} else if (attr.is(OperationalAttributeInfos.DISABLE_DATE.getName())) {
 				if (configuration.getSupportValidity()) {
 					newGroup.setValidTo(getDate(attr));
 				} else {
-					throw new IllegalArgumentException("DISABLE_DATE specified in the group attributes while not supporting it");
+					throw new InvalidAttributeValueException("DISABLE_DATE specified in the group attributes while not supporting it");
 				}
-				
+
 			} else {
 				String name = attr.getName();
 				try {
 					newGroup.replaceAttributeValues(name,attr.getValue());
 				} catch (SchemaViolationException e) {
-					throw new IllegalArgumentException(e.getMessage(),e);
+					throw new InvalidAttributeValueException(e.getMessage(),e);
 				}
 			}
 		}
 
 		return newGroup;
 	}
-	
+
 	private DummyPrivilege convertToPriv(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, ConflictException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		if (configuration.getUpCaseName()) {
@@ -1821,29 +1892,29 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Uid.NAME)) {
 				throw new IllegalArgumentException("UID explicitly specified in the group attributes");
-				
+
 			} else if (attr.is(Name.NAME)) {
 				// Skip, already processed
 
 			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
-				throw new IllegalArgumentException("Password specified for a privilege");
-				
+				throw new InvalidAttributeValueException("Password specified for a privilege");
+
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
-				throw new IllegalArgumentException("Unsupported ENABLE attribute in privilege");
-				
+				throw new InvalidAttributeValueException("Unsupported ENABLE attribute in privilege");
+
 			} else {
 				String name = attr.getName();
 				try {
 					newPriv.replaceAttributeValues(name,attr.getValue());
 				} catch (SchemaViolationException e) {
-					throw new IllegalArgumentException(e.getMessage(),e);
+					throw new InvalidAttributeValueException(e.getMessage(),e);
 				}
 			}
 		}
 
 		return newPriv;
 	}
-	
+
 	private DummyOrg convertToOrg(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException, ConflictException {
 		String icfName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
 		if (configuration.getUpCaseName()) {
@@ -1854,16 +1925,16 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Uid.NAME)) {
 				throw new IllegalArgumentException("UID explicitly specified in the org attributes");
-				
+
 			} else if (attr.is(Name.NAME)) {
 				// Skip, already processed
 
 			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
 				throw new IllegalArgumentException("Password specified for a org");
-				
+
 			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
 				throw new IllegalArgumentException("Unsupported ENABLE attribute in org");
-				
+
 			} else {
 				String name = attr.getName();
 				try {
@@ -1887,7 +1958,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		}
 		return ((Boolean)object).booleanValue();
 	}
-	
+
 	private boolean getBooleanNotNull(Attribute attr) {
 		if (attr.getValue() == null || attr.getValue().isEmpty()) {
 			throw new IllegalArgumentException("Empty "+attr.getName()+" attribute was provided");
@@ -1898,17 +1969,17 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		}
 		return ((Boolean)object).booleanValue();
 	}
-	
+
 	private Date getDate(Attribute attr) {
 		if (attr.getValue() == null || attr.getValue().isEmpty()) {
 			throw new IllegalArgumentException("Empty date attribute was provided");
 		}
 		Object object = attr.getValue().get(0);
-		
+
 		if (object == null){
 			return null;
 		}
-		
+
 		if (!(object instanceof Long)) {
 			throw new IllegalArgumentException("Date attribute was provided as "+object.getClass().getName()+" while expecting long");
 		}
@@ -1927,18 +1998,29 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 			((GuardedString)passwdObject).access(new Accessor() {
 				@Override
 				public void access(char[] passwdChars) {
-					if (configuration.getMinPasswordLength() != null && passwdChars.length < configuration.getMinPasswordLength()) {
-						throw new InvalidAttributeValueException("Password too short");
-					}
-					passwdArray[0] = new String(passwdChars);
+					String password = new String(passwdChars);
+					checkPasswordPolicies(password);
+					passwdArray[0] = password;
 				}
 			});
 		} else {
 			// empty password => null
+			checkPasswordPolicies(null);
 		}
 		account.setPassword(passwdArray[0]);
 	}
-	
+
+	private void checkPasswordPolicies(String password) {
+		if (configuration.getMinPasswordLength() != null) {
+			if (password == null || password.isEmpty()) {
+				throw new InvalidAttributeValueException("No password");
+			}
+			if (password.length() < configuration.getMinPasswordLength()) {
+				throw new InvalidAttributeValueException("Password too short");
+			}
+		}
+	}
+
 	private boolean attributesToGetHasAttribute(Collection<String> attributesToGet, String attrName) {
 		if (attributesToGet == null) {
 			return true;
@@ -1951,7 +2033,7 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
             throw new IllegalArgumentException("Object class must not be null.");
         }
     }
-    
+
     public void validate(Uid uid) {
     	if (uid == null) {
     		throw new IllegalArgumentException("Uid must not be null.");
@@ -1965,29 +2047,29 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
     		}
     	}
     }
-    
+
 	private void validate(Filter filter) {
 		if (filter == null) {
     		return;
     	}
 		if (nameHintChecksEnabled()) {
 			filter.accept(new FilterVisitor<String,String>() {
-	
+
 				@Override
 				public String visitAndFilter(String p, AndFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitContainsFilter(String p, ContainsFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitContainsAllValuesFilter(String p, ContainsAllValuesFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitEqualsFilter(String p, EqualsFilter filter) {
 					if (filter.getAttribute().is(Uid.NAME)) {
@@ -2001,56 +2083,56 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 					}
 					return null;
 				}
-	
+
 				@Override
 				public String visitExtendedFilter(String p, Filter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitGreaterThanFilter(String p, GreaterThanFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitGreaterThanOrEqualFilter(String p, GreaterThanOrEqualFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitLessThanFilter(String p, LessThanFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitLessThanOrEqualFilter(String p, LessThanOrEqualFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitNotFilter(String p, NotFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitOrFilter(String p, OrFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitStartsWithFilter(String p, StartsWithFilter filter) {
 					return null;
 				}
-	
+
 				@Override
 				public String visitEndsWithFilter(String p, EndsWithFilter filter) {
 					return null;
 				}
-				
+
 			}, null);
 		}
 	}
-	
+
 	private boolean nameHintChecksEnabled() {
 		return configuration.isRequireNameHint() && !resource.isDisableNameHintChecks();
 	}

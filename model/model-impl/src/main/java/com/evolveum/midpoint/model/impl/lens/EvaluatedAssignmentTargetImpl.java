@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
+import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,17 +31,17 @@ import java.util.Collection;
  *
  */
 public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget {
-	
+
 	final PrismObject<? extends FocusType> target;
 	private final boolean evaluateConstructions;
-	private final AssignmentPathImpl assignmentPath;	 // TODO reconsider (maybe we should store only some lightweight information here)
+	@NotNull private final AssignmentPathImpl assignmentPath;	 // TODO reconsider (maybe we should store only some lightweight information here)
 	private final AssignmentType assignment;
 	private Collection<ExclusionPolicyConstraintType> exclusions = null;
 	private final boolean isValid;
 
 	EvaluatedAssignmentTargetImpl(
 			PrismObject<? extends FocusType> target, boolean evaluateConstructions,
-			AssignmentPathImpl assignmentPath, AssignmentType assignment,
+			@NotNull AssignmentPathImpl assignmentPath, AssignmentType assignment,
 			boolean isValid) {
 		this.target = target;
 		this.evaluateConstructions = evaluateConstructions;
@@ -63,6 +66,13 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	}
 
 	@Override
+	public boolean appliesToFocusWithAnyRelation() {
+		EvaluationOrder order = assignmentPath.last().getEvaluationOrder();
+		// TODO check if transitive evaluations are taken into account (they are probably accounted for during assignment evaluation)
+		return order.getSummaryOrder() == 1 || order.getSummaryOrder() == 0 && order.getMatchingRelationOrder(SchemaConstants.ORG_DEPUTY) > 0;
+	}
+
+	@Override
 	public boolean isEvaluateConstructions() {
 		return evaluateConstructions;
 	}
@@ -73,6 +83,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	}
 
 	@Override
+	@NotNull
 	public AssignmentPathImpl getAssignmentPath() {
 		return assignmentPath;
 	}
@@ -86,6 +97,10 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 		return isValid;
 	}
 
+	/**
+	 * Only for legacy exclusions. Not reliable. Do not use if you can avoid it.
+	 * It will get deprecated eventually.
+	 */
 	public Collection<ExclusionPolicyConstraintType> getExclusions() {
 		if (exclusions == null) {
 			exclusions = new ArrayList<>();
@@ -93,12 +108,12 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 			FocusType focusType = target.asObjectable();
 			if (focusType instanceof AbstractRoleType) {
 				AbstractRoleType roleType = (AbstractRoleType)focusType;
-				
+
 				// legacy (very old)
 				for (ExclusionPolicyConstraintType exclusionType: roleType.getExclusion()) {
 					exclusions.add(exclusionType);
 				}
-				
+
 				// legacy
 				PolicyConstraintsType constraints = roleType.getPolicyConstraints();
 				if (constraints != null) {
@@ -108,7 +123,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 				}
 			}
 		}
-		return exclusions; 
+		return exclusions;
 	}
 
 	@Override

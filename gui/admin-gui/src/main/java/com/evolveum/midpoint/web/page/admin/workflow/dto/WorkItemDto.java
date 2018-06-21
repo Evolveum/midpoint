@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
@@ -78,6 +80,7 @@ public class WorkItemDto extends Selectable {
     public static final String F_ESCALATION_LEVEL_INFO = "escalationLevelInfo";
 	public static final String F_ESCALATION_LEVEL_NUMBER = "escalationLevelNumber";
 	public static final String F_ADDITIONAL_INFORMATION = "additionalInformation";
+	public static final String F_TRIGGERS = "triggers";
 
 	public static final String F_OTHER_WORK_ITEMS = "otherWorkItems";
 	public static final String F_RELATED_WORKFLOW_REQUESTS = "relatedWorkflowRequests";
@@ -95,18 +98,21 @@ public class WorkItemDto extends Selectable {
 	public static final String F_CHANGES = "changes";
 
 	public static final String F_REQUESTER_COMMENT = "requesterComment";
+	public static final String F_TASK_OID = "taskOid";
+	public static final String F_IN_STAGE_BEFORE_LAST_ONE = "isInStageBeforeLastOne";
 
 	// workItem may or may not contain resolved taskRef;
     // and this task may or may not contain filled-in workflowContext -> and then requesterRef object
     //
     // Depending on expected use (work item list vs. work item details)
 
-    private WorkItemType workItem;
+    private final WorkItemType workItem;
 	private TaskType taskType;
 	private List<TaskType> relatedTasks;
 	@Deprecated private SceneDto deltas;
 	private TaskChangesDto changes;
 	private String approverComment;
+	private List<EvaluatedTriggerGroupDto> triggers;            // initialized on demand
 
     private ObjectType focus;
 
@@ -121,7 +127,7 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public void prepareDeltaVisualization(String sceneNameKey, PrismContext prismContext,
-			ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws SchemaException {
+			ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
 		TaskType task = getTaskType();
 		if (task == null || task.getWorkflowContext() == null) {
 			return;
@@ -141,7 +147,6 @@ public class WorkItemDto extends Selectable {
 	@Nullable
 	private TaskType getTaskType() {
     	if (taskType == null) {
-			//taskType = WebComponentUtil.getObjectFromReference(workItem.getTaskRef(), TaskType.class);
 			taskType = WfContextUtil.getTask(workItem);
 		}
 		return taskType;
@@ -180,11 +185,15 @@ public class WorkItemDto extends Selectable {
     }
 
     public Date getStartedDate() {
-        return XmlTypeConverter.toDate(getWorkflowContext().getStartTimestamp());		// TODO NPE?
+		WfContextType wfc = getWorkflowContext();
+		return wfc != null ? XmlTypeConverter.toDate(wfc.getStartTimestamp()) : null;
     }
 
     public String getStartedFormattedFull() {
-        return WebComponentUtil.getLocalizedDate(getWorkflowContext().getStartTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE);
+		WfContextType wfc = getWorkflowContext();
+		return wfc != null
+				? WebComponentUtil.getLocalizedDate(wfc.getStartTimestamp(), DateLabelComponent.FULL_MEDIUM_STYLE)
+				: null;
     }
 
     // TODO
@@ -327,6 +336,10 @@ public class WorkItemDto extends Selectable {
 		return task != null ? task.getOid() : null;
 	}
 
+	public boolean isInStageBeforeLastOne() {
+		return WfContextUtil.isInStageBeforeLastOne(getWorkflowContext());
+	}
+
 	// TODO deduplicate
 	public boolean hasHistory() {
 		List<DecisionDto> rv = new ArrayList<>();
@@ -359,11 +372,35 @@ public class WorkItemDto extends Selectable {
 		return number > 0 ? number : null;
 	}
 
+	public List<EvaluatedTriggerGroupDto> getTriggers() {
+    	if (triggers == null) {
+    		triggers = computeTriggers(getWorkflowContext());
+	    }
+	    return triggers;
+	}
+
+	public static List<EvaluatedTriggerGroupDto> computeTriggers(WfContextType wfc) {
+		List<EvaluatedTriggerGroupDto> triggers = new ArrayList<>();
+		if (wfc == null) {
+			return triggers;
+		}
+		EvaluatedTriggerGroupDto.UniquenessFilter uniquenessFilter = new EvaluatedTriggerGroupDto.UniquenessFilter();
+		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = WfContextUtil.getRulesPerStage(wfc);
+		for (int i = 0; i < rulesPerStageList.size(); i++) {
+			Integer stageNumber = i + 1;
+			boolean highlighted = stageNumber.equals(wfc.getStageNumber());
+			EvaluatedTriggerGroupDto group = EvaluatedTriggerGroupDto.initializeFromRules(rulesPerStageList.get(i), highlighted, uniquenessFilter);
+			triggers.add(group);
+		}
+		return triggers;
+	}
+
 	public List<InformationType> getAdditionalInformation() {
 		return workItem.getAdditionalInformation();
 	}
 
 	// Expects that we deal with primary changes of the focus (i.e. not of projections)
+	// Beware: returns the full object; regardless of the security settings
 	public ObjectType getFocus(PageBase pageBase) {
     	if (focus != null) {
     		return focus;
@@ -375,9 +412,8 @@ public class WorkItemDto extends Selectable {
 		}
 		ObjectDeltaType delta = state.getDeltasToProcess().getFocusPrimaryDelta();
 		if (delta.getChangeType() == ChangeTypeType.ADD) {
-			focus = (ObjectType) delta.getObjectToAdd();
-		} else if (delta.getChangeType() != ChangeTypeType.MODIFY) {
-		} else {
+			focus = CloneUtil.clone((ObjectType) delta.getObjectToAdd());
+		} else if (delta.getChangeType() == ChangeTypeType.MODIFY) {
 			String oid = delta.getOid();
 			if (oid == null) {
 				throw new IllegalStateException("No OID in object modify delta: " + delta);
@@ -388,7 +424,8 @@ public class WorkItemDto extends Selectable {
 			Class<? extends ObjectType> clazz = ObjectTypes.getObjectTypeFromTypeQName(delta.getObjectType())
 					.getClassDefinition();
 			Task task = pageBase.createSimpleTask("getObject");
-			PrismObject<?> object = WebModelServiceUtils.loadObject(clazz, oid, pageBase, task, task.getResult());
+			PrismObject<?> object = pageBase.runPrivileged(() ->
+					WebModelServiceUtils.loadObject(clazz, oid, pageBase, task, task.getResult()));
 			if (object != null) {
 				focus = (ObjectType) object.asObjectable();
 				try {
@@ -399,6 +436,8 @@ public class WorkItemDto extends Selectable {
 				}
 				focus = (ObjectType) object.asObjectable();
 			}
+		} else {
+			// DELETE case: nothing to do here
 		}
 		return focus;
 	}

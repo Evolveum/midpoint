@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,12 @@ package com.evolveum.midpoint.prism.lex.json;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.Module;
@@ -43,7 +41,11 @@ import java.io.InputStream;
 import java.io.StringWriter;
 
 public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
-	
+
+	public JsonLexicalProcessor(@NotNull SchemaRegistry schemaRegistry) {
+		super(schemaRegistry);
+	}
+
 	@Override
 	public boolean canRead(@NotNull File file) throws IOException {
 		return file.getName().endsWith(".json");
@@ -53,7 +55,7 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 	public boolean canRead(@NotNull String dataString) {
 		return dataString.startsWith("{");
 	}
-	
+
     @Override
     protected com.fasterxml.jackson.core.JsonParser createJacksonParser(InputStream stream) throws SchemaException, IOException {
         JsonFactory factory = new JsonFactory();
@@ -73,14 +75,14 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 			JsonGenerator generator = factory.createGenerator(out);
 			generator.setPrettyPrinter(new DefaultPrettyPrinter());
 			generator.setCodec(configureMapperForSerialization());
-			
+
 			return generator;
 		} catch (IOException ex){
 			throw new SchemaException("Schema error during serializing to JSON.", ex);
 		}
 
 	}
-	
+
 	private ObjectMapper configureMapperForSerialization(){
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
@@ -89,9 +91,9 @@ public class JsonLexicalProcessor extends AbstractJsonLexicalProcessor {
 		mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
 		return mapper;
 	}
-	
+
 	private Module createSerializerModule(){
-		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa")); 
+		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa"));
 		module.addSerializer(QName.class, new QNameSerializer());
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
 		module.addSerializer(ItemPath.class, new ItemPathSerializer());

@@ -36,7 +36,7 @@ public class CategoryFilterHelper extends BaseHelper {
     private static final Trace LOGGER = TraceManager.getTrace(CategoryFilterHelper.class);
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
     		Task task, OperationResult result) {
 
         if (eventHandlerType.getCategory().isEmpty()) {

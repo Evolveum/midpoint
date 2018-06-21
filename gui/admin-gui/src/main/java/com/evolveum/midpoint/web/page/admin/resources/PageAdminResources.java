@@ -60,7 +60,7 @@ public class PageAdminResources extends PageAdmin {
     private static final String OPERATION_SAVE_SYNC_TASK = DOT_CLASS + "saveSyncTask";
 
     protected static final Trace LOGGER = TraceManager.getTrace(PageAdminResources.class);
-    
+
     public static final String AUTH_CONNECTOR_HOSTS_ALL = AuthorizationConstants.AUTZ_UI_CONNECTOR_HOSTS_ALL_URL;
     public static final String AUTH_CONNECTOR_HOSTS_ALL_LABEL = "PageAdminResources.auth.connectorHostsAll.label";
     public static final String AUTH_CONNECTOR_HOSTS_ALL_DESCRIPTION = "PageAdminResources.auth.connectorHostsAll.description";

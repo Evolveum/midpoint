@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -32,9 +32,12 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +47,9 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @Component
 public class ExpressionHandler {
@@ -54,28 +57,28 @@ public class ExpressionHandler {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-	
+
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
-	
+
 	@Autowired(required = true)
 	private ModelObjectResolver modelObjectResolver;
 
     @Autowired(required = true)
     private PrismContext prismContext;
-	
+
 	private XPathScriptEvaluator xpathEvaluator = null;
-	
+
 	public String evaluateExpression(ShadowType shadow, ExpressionType expressionType,
-			String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expressionType, "Expression must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
 		ResourceType resource = resolveResource(shadow, result);
-		
+
 		ExpressionVariables variables = getDefaultXPathVariables(null, shadow, resource);
-		
+
 		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_STRING, prismContext);
 		Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType,
@@ -97,8 +100,8 @@ public class ExpressionHandler {
 	}
 
 	public boolean evaluateConfirmationExpression(UserType user, ShadowType shadow,
-			ExpressionType expressionType, Task task, OperationResult result) 
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			ExpressionType expressionType, Task task, OperationResult result)
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expressionType, "Expression must not be null.");
@@ -107,10 +110,10 @@ public class ExpressionHandler {
 		ResourceType resource = resolveResource(shadow, result);
 		ExpressionVariables variables = getDefaultXPathVariables(user, shadow, resource);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
-		
+
 		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
-		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
+		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, shortDesc, task, result);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
@@ -153,7 +156,7 @@ public class ExpressionHandler {
 
 	public static ExpressionVariables getDefaultXPathVariables(UserType user,
 			ShadowType shadow, ResourceType resource) {
-		
+
 		ExpressionVariables variables = new ExpressionVariables();
 		if (user != null) {
 			variables.addVariableDefinition(ExpressionConstants.VAR_USER, user.asPrismObject());
@@ -173,15 +176,15 @@ public class ExpressionHandler {
 	// Called from the ObjectResolver.resolve
 	public ObjectType resolveRef(ObjectReferenceType ref, String contextDescription, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		
+
 		Class<? extends ObjectType> type = ObjectType.class;
 		if (ref.getType() != null) {
 			ObjectTypes objectTypeType = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
 			type = objectTypeType.getClassDefinition();
 		}
-		
+
 		return repositoryService.getObject(type, ref.getOid(), null, result).asObjectable();
 
 	}
-		
+
 }

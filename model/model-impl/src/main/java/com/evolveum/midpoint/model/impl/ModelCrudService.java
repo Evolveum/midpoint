@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -56,7 +56,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -77,122 +76,122 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 /**
  * Simple version of model service exposing CRUD-like operations. This is common facade for webservice and REST services.
  * It takes care of all the "details" of externalized obejcts such as applying correct definitions and so on.
- * 
+ *
  * @author Radovan Semancik
  *
  */
 @Component
 public class ModelCrudService {
-	
+
 	String CLASS_NAME_WITH_DOT = ModelCrudService.class.getName() + ".";
 	String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
 	String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
 	String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
 
-	
+
 	private static final Trace LOGGER = TraceManager.getTrace(ModelCrudService.class);
-	
+
 	@Autowired(required = true)
 	ModelService modelService;
 
 	@Autowired
 	TaskService taskService;
-	
+
 	@Autowired(required = true)
 	PrismContext prismContext;
-	
+
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	RepositoryService repository;
-	
+
 	@Autowired(required = true)
 	private Protector protector;
-	
+
 	@Autowired(required = true)
 	private ChangeNotificationDispatcher dispatcher;
 
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return modelService.getObject(clazz, oid, options, task, parentResult);
-	}	
+	}
 
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			SecurityViolationException, ExpressionEvaluationException {
 		return modelService.searchObjects(type, query, options, task, parentResult);
 	}
-	
-	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException{
-		
+
+	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException, ExpressionEvaluationException{
+
 		String oldShadowOid = changeDescription.getOldShadowOid();
 		ResourceEventDescription eventDescription = new ResourceEventDescription();
-		
-			PrismObject<ShadowType> oldShadow = null;
-			LOGGER.trace("resolving old object");
-			if (!StringUtils.isEmpty(oldShadowOid)){
-				oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
-				eventDescription.setOldShadow(oldShadow);
-				LOGGER.trace("old object resolved to: {}", oldShadow.debugDump());
-			} else{
-				LOGGER.trace("Old shadow null");
-			}
-			
-				PrismObject<ShadowType> currentShadow = null;
-				ShadowType currentShadowType = changeDescription.getCurrentShadow();
-				LOGGER.trace("resolving current shadow");
-				if (currentShadowType != null){
-					prismContext.adopt(currentShadowType);
-					currentShadow = currentShadowType.asPrismObject();
-					LOGGER.trace("current shadow resolved to {}", currentShadow.debugDump());
-				}
-				
-				eventDescription.setCurrentShadow(currentShadow);
-				
-				ObjectDeltaType deltaType = changeDescription.getObjectDelta();
-				ObjectDelta delta = null;
-				
-				PrismObject<ShadowType> shadowToAdd = null;
-				if (deltaType != null){
-				
-					delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
-					
-					if (delta.getChangeType() == ChangeType.ADD) {
+
+		PrismObject<ShadowType> oldShadow = null;
+		LOGGER.trace("resolving old object");
+		if (!StringUtils.isEmpty(oldShadowOid)){
+			oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
+			eventDescription.setOldShadow(oldShadow);
+			LOGGER.trace("old object resolved to: {}", oldShadow.debugDump());
+		} else{
+			LOGGER.trace("Old shadow null");
+		}
+
+		PrismObject<ShadowType> currentShadow = null;
+		ShadowType currentShadowType = changeDescription.getCurrentShadow();
+		LOGGER.trace("resolving current shadow");
+		if (currentShadowType != null){
+			prismContext.adopt(currentShadowType);
+			currentShadow = currentShadowType.asPrismObject();
+			LOGGER.trace("current shadow resolved to {}", currentShadow.debugDump());
+		}
+
+		eventDescription.setCurrentShadow(currentShadow);
+
+		ObjectDeltaType deltaType = changeDescription.getObjectDelta();
+		ObjectDelta delta = null;
+
+		PrismObject<ShadowType> shadowToAdd = null;
+		if (deltaType != null){
+
+			delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
+
+			if (delta.getChangeType() == ChangeType.ADD) {
 //						LOGGER.trace("determined ADD change ");
-						if (deltaType.getObjectToAdd() == null){
-							LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
-							throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
+				if (deltaType.getObjectToAdd() == null){
+					LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
+					throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
 //							return handleTaskResult(task);
-						}
-						Object objToAdd = deltaType.getObjectToAdd();
-						if (!(objToAdd instanceof ShadowType)){
-							LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
-							throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
-//							return handleTaskResult(task);
-						}
-						prismContext.adopt((ShadowType)objToAdd);
-						
-						shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
-						LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
-						delta.setObjectToAdd(shadowToAdd);
-					} else {
-						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
-						delta.getModifications().addAll(modifications);
-					} 
 				}
-				Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-				deltas.add(delta);
-				Utils.encrypt(deltas, protector, null, parentResult);
-				eventDescription.setDelta(delta);
-					
-				eventDescription.setSourceChannel(changeDescription.getChannel());
-			
-					dispatcher.notifyEvent(eventDescription, task, parentResult);
-					parentResult.computeStatus();
-					task.setResult(parentResult);
+				Object objToAdd = deltaType.getObjectToAdd();
+				if (!(objToAdd instanceof ShadowType)){
+					LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+					throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+//							return handleTaskResult(task);
+				}
+				prismContext.adopt((ShadowType)objToAdd);
+
+				shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
+				LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
+				delta.setObjectToAdd(shadowToAdd);
+			} else {
+				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+				delta.getModifications().addAll(modifications);
+			}
+		}
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+		deltas.add(delta);
+		Utils.encrypt(deltas, protector, null, parentResult);
+		eventDescription.setDelta(delta);
+
+		eventDescription.setSourceChannel(changeDescription.getChannel());
+
+		dispatcher.notifyEvent(eventDescription, task, parentResult);
+		parentResult.computeStatus();
+		task.setResult(parentResult);
 	}
-	
+
 
 	/**
 	 * <p>
@@ -221,7 +220,7 @@ public class ModelCrudService {
 	 * the underlying schema of the storage system or the schema enforced by the
 	 * implementation.
 	 * </p>
-	 * 
+	 *
 	 * @param object
 	 *            object to create
 	 * @param parentResult
@@ -235,10 +234,10 @@ public class ModelCrudService {
 	 * @throws SchemaException
 	 *             error dealing with resource schema, e.g. created object does
 	 *             not conform to schema
-	 * @throws ExpressionEvaluationException 
+	 * @throws ExpressionEvaluationException
 	 * 				evaluation of expression associated with the object has failed
-	 * @throws CommunicationException 
-	 * @throws ConfigurationException 
+	 * @throws CommunicationException
+	 * @throws ConfigurationException
 	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
 	 * @throws IllegalArgumentException
@@ -247,7 +246,7 @@ public class ModelCrudService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,  
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,
 			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
@@ -255,12 +254,12 @@ public class ModelCrudService {
 		Validate.notNull(parentResult, "Result type must not be null.");
 
 		object.checkConsistence();
-		
+
 		T objectType = object.asObjectable();
 		prismContext.adopt(objectType);
 
 		OperationResult result = parentResult.createSubresult(ADD_OBJECT);
-		result.addParams(new String[] { "object" }, object);
+		result.addParam(OperationResult.PARAM_OBJECT, object);
 
 		Utils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
 
@@ -272,24 +271,24 @@ public class ModelCrudService {
 				LOGGER.trace("Entering addObject with {}", object);
 				LOGGER.trace(object.debugDump());
 			}
-			
+
 			if (options == null) {
 				if (StringUtils.isNotEmpty(objectType.getVersion())) {
 					options = ModelExecuteOptions.createOverwrite();
 				}
 			}
-			
+
 			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
-			
+
 			oid = objectDelta.getOid();
 
 			result.computeStatus();
 			result.cleanupResult();
 
 		} catch (ExpressionEvaluationException | SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ConfigurationException | RuntimeException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
@@ -297,7 +296,7 @@ public class ModelCrudService {
 
 		return oid;
 	}
-	
+
 	/**
 	 * <p>
 	 * Deletes object with specified OID.
@@ -305,7 +304,7 @@ public class ModelCrudService {
 	 * <p>
 	 * Must fail if object with specified OID does not exists. Should be atomic.
 	 * </p>
-	 * 
+	 *
 	 * @param oid
 	 *            OID of object to delete
 	 * @param parentResult
@@ -314,19 +313,16 @@ public class ModelCrudService {
 	 *             specified object does not exist
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
-	 * @throws ConsistencyViolationException
-	 *             sub-operation failed, cannot delete objects as its deletion
-	 *             would lead to inconsistent state
-	 * @throws CommunicationException 
-	 * @throws ConfigurationException 
-	 * @throws PolicyViolationException 
+	 * @throws CommunicationException
+	 * @throws ConfigurationException
+	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
 	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, ModelExecuteOptions options, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
+			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
 		Validate.notNull(clazz, "Class must not be null.");
@@ -334,44 +330,32 @@ public class ModelCrudService {
 		Validate.notNull(parentResult, "Result type must not be null.");
 
 		OperationResult result = parentResult.createSubresult(DELETE_OBJECT);
-		result.addParams(new String[] { "oid" }, oid);
+		result.addParam(OperationResult.PARAM_OID, oid);
 
 		RepositoryCache.enter();
 
 		try {
-			ObjectDelta<T> objectDelta = new ObjectDelta<T>(clazz, ChangeType.DELETE, prismContext);
+			ObjectDelta<T> objectDelta = new ObjectDelta<>(clazz, ChangeType.DELETE, prismContext);
 			objectDelta.setOid(oid);
 
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
-			
+
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			modelService.executeChanges(deltas, options, task, result);
 
 			result.recordSuccess();
 
-		} catch (ObjectNotFoundException ex) {
-			ModelUtils.recordFatalError(result, ex);
+		} catch (ObjectNotFoundException | CommunicationException | RuntimeException | SecurityViolationException ex) {
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
-		} catch (CommunicationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw new SystemException(ex.getMessage(), ex);
-		} catch (ExpressionEvaluationException ex) {
-			ModelUtils.recordFatalError(result, ex);
+		} catch (ObjectAlreadyExistsException | ExpressionEvaluationException ex) {
+			ModelImplUtils.recordFatalError(result, ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			RepositoryCache.exit();
 		}
 	}
-	
+
 	/**
 	 * <p>
 	 * Modifies object using relative change description.
@@ -391,7 +375,7 @@ public class ModelCrudService {
 	 * underlying schema of the storage system or the schema enforced by the
 	 * implementation.
 	 * </p>
-	 * 
+	 *
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @throws ObjectNotFoundException
@@ -400,10 +384,10 @@ public class ModelCrudService {
 	 *             resulting object would violate the schema
 	 * @throws ExpressionEvaluationException
 	 * 				evaluation of expression associated with the object has failed
-	 * @throws CommunicationException 
+	 * @throws CommunicationException
 	 * @throws ObjectAlreadyExistsException
 	 * 				If the account or another "secondary" object already exists and cannot be created
-	 * @throws PolicyViolationException 
+	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
@@ -435,7 +419,7 @@ public class ModelCrudService {
 		// TODO: check definitions, but tolerate missing definitions in <attributes>
 
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
-		result.addCollectionOfSerializablesAsParam("modifications", modifications);
+		result.addArbitraryObjectCollectionAsParam("modifications", modifications);
 
 		RepositoryCache.enter();
 
@@ -446,7 +430,7 @@ public class ModelCrudService {
 			modelService.executeChanges(deltas, options, task, result);
 
             result.computeStatus();
-			
+
         } catch (ExpressionEvaluationException ex) {
 			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
 			result.recordFatalError(ex);
@@ -456,16 +440,16 @@ public class ModelCrudService {
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (SchemaException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} catch (ConfigurationException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} catch (SecurityViolationException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} catch (RuntimeException ex) {
-			ModelUtils.recordFatalError(result, ex);
+			ModelImplUtils.recordFatalError(result, ex);
 			throw ex;
 		} finally {
 			RepositoryCache.exit();
@@ -473,81 +457,77 @@ public class ModelCrudService {
 	}
 
 	public PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException {
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
 		return modelService.findShadowOwner(accountOid, task, parentResult);
 	}
 
 	public List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass,
 			ObjectPaging paging, Task task, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return modelService.listResourceObjects(resourceOid, objectClass, paging, task, parentResult);
 	}
 
 	public void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		modelService.importFromResource(resourceOid, objectClass, task, parentResult);
 	}
 
 	public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
 		return modelService.testResource(resourceOid, task);
 	}
-	
-	
+
+
 	//TASK AREA
-    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        return taskService.suspendTasks(taskOids, waitForStop, parentResult);
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return taskService.suspendTasks(taskOids, waitForStop, operationTask, parentResult);
     }
 
-    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, operationTask, parentResult);
     }
 
-    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.resumeTasks(taskOids, parentResult);
+    public void resumeTasks(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.resumeTasks(taskOids, operationTask, parentResult);
     }
 
-    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.scheduleTasksNow(taskOids, parentResult);
+    public void scheduleTasksNow(Collection<String> taskOids, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.scheduleTasksNow(taskOids, operationTask, parentResult);
     }
 
-    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException {
-        return taskService.getTaskByIdentifier(identifier, options, parentResult);
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, Task operationTask, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException, CommunicationException {
+        return taskService.getTaskByIdentifier(identifier, options, operationTask, parentResult);
     }
 
-    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) throws SchemaException, SecurityViolationException {
-        return taskService.deactivateServiceThreads(timeToWait, parentResult);
+    public boolean deactivateServiceThreads(long timeToWait, Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return taskService.deactivateServiceThreads(timeToWait, operationTask, parentResult);
     }
 
-    public void reactivateServiceThreads(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		taskService.reactivateServiceThreads(parentResult);
+    public void reactivateServiceThreads(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.reactivateServiceThreads(operationTask, parentResult);
     }
 
     public boolean getServiceThreadsActivationState() {
         return taskService.getServiceThreadsActivationState();
     }
 
-    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.stopSchedulers(nodeIdentifiers, parentResult);
+    public void stopSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.stopSchedulers(nodeIdentifiers, operationTask, parentResult);
     }
 
-    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-        return taskService.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        return taskService.stopSchedulersAndTasks(nodeIdentifiers, waitTime, operationTask, parentResult);
     }
 
-    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException {
-		taskService.startSchedulers(nodeIdentifiers, parentResult);
+    public void startSchedulers(Collection<String> nodeIdentifiers, Task operationTask, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.startSchedulers(nodeIdentifiers, operationTask, parentResult);
     }
 
-    public void synchronizeTasks(OperationResult parentResult) throws SchemaException, SecurityViolationException {
-		taskService.synchronizeTasks(parentResult);
+    public void synchronizeTasks(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		taskService.synchronizeTasks(operationTask, parentResult);
     }
 
     public List<String> getAllTaskCategories() {
         return taskService.getAllTaskCategories();
-    }
-
-    public String getHandlerUriForCategory(String category) {
-        return taskService.getHandlerUriForCategory(category);
     }
 
 }

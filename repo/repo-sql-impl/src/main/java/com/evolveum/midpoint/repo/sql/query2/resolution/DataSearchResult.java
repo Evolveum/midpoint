@@ -50,4 +50,12 @@ public class DataSearchResult<T extends JpaDataNodeDefinition> {
     public T getTargetDefinition() {
         return linkDefinition.getTargetDefinition();
     }
+
+	@Override
+	public String toString() {
+		return "DataSearchResult{" +
+				"linkDefinition=" + linkDefinition +
+				", remainder=" + remainder +
+				'}';
+	}
 }

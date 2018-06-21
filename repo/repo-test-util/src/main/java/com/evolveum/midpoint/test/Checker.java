@@ -22,13 +22,14 @@ import com.evolveum.midpoint.util.exception.CommonException;
  *
  */
 public interface Checker {
-	
+
 	/**
 	 * true = done
 	 * false = continue waiting
 	 */
-	public boolean check() throws CommonException;
-	
-	public void timeout();
+	boolean check() throws CommonException;
+
+	default void timeout() {
+	}
 
 }

@@ -8,30 +8,25 @@ and release notes can be found at:
 
 1. Pre-requisities:
 
-    1. Java (JRE) 8
-    2. Apache Tomcat 8.x (or another supported web container)
+    Java (JRE) 8
 
-2. Install Apache Tomcat
+2. Install midPoint
 
-Install Apache Tomcat or another supported web container according to
-the web container documentation.
- 
-3. Deploy midPoint
+Unpack the distribution package to a convenient place (e.g. /opt/midpoint)
 
-Locate the midpoint.war file in the distribution archive in the /war directory.
-Deploy the WAR file according to the web container documentation.
-For Apache Tomcat the deployment is simple copying of the WAR file to webapps
-directory of the Tomcat installation and starting Tomcat.
+3. Start midPoint server
 
-4. Access midPoint GUI
+Use the start.sh (or start.bat) script in the bin directory:
+
+   bin/start.sh
+
+4. Access the GUI
 
 MidPoint web GUI should be accessible few moments after the web container
 starts and the application initialization is done. It is accessible on following
 URL by default:
 
-  http://<hostname>:<port>/midpoint
-
-where <hostname> and <port> are the hostname and port number of the web container.
+  http://localhost:8080/
 
 Login: administrator
-Password: 5ecr3t
+Password 5ecr3t

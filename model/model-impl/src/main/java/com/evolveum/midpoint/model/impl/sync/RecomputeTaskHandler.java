@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,9 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,12 +26,13 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
+import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -53,11 +50,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * The task hander for user recompute.
- * 
+ *
  *  This handler takes care of executing recompute "runs". The task will iterate over all objects of a given type
  *  and recompute their assignments and expressions. This is needed after the expressions are changed,
  *  e.g in resource outbound expressions or in a role definition.
@@ -66,24 +65,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 @Component
-public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<FocusType, AbstractSearchIterativeResultHandler<FocusType>> {
+public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandler<FocusType, AbstractSearchIterativeResultHandler<FocusType>> {
 
 	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-3";
 
-    @Autowired
-	private TaskManager taskManager;
-	
-	@Autowired
-	private PrismContext prismContext;
+    @Autowired private TaskManager taskManager;
+	@Autowired private PrismContext prismContext;
+    @Autowired private ContextFactory contextFactory;
+    @Autowired private Clockwork clockwork;
 
-    @Autowired
-    private ContextFactory contextFactory;
-    
-    @Autowired
-    private Clockwork clockwork;
-    
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTaskHandler.class);
-	
+
 	public RecomputeTaskHandler() {
         super("Recompute", OperationConstants.RECOMPUTE);
 		setLogFinishInfo(true);
@@ -94,11 +86,6 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 	private void initialize() {
 		taskManager.registerHandler(HANDLER_URI, this);
 	}
-	
-	@Override
-	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<FocusType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-		return createQueryFromTask(handler, runResult, task, opResult);
-	}
 
 	protected Class<? extends ObjectType> getType(Task task) {
 		return getTypeFromTask(task, UserType.class);
@@ -107,11 +94,11 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 	@Override
 	protected AbstractSearchIterativeResultHandler<FocusType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
 			OperationResult opResult) {
-		
+
 		AbstractSearchIterativeResultHandler<FocusType> handler = new AbstractSearchIterativeResultHandler<FocusType>(
 				coordinatorTask, RecomputeTaskHandler.class.getName(), "recompute", "recompute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<FocusType> object, Task workerTask, OperationResult result) throws CommonException {
+			protected boolean handleObject(PrismObject<FocusType> object, Task workerTask, OperationResult result) throws CommonException, PreconditionViolationException {
 				recompute(object, getOptions(coordinatorTask), workerTask, result);
 				return true;
 			}
@@ -131,10 +118,10 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
 		LOGGER.trace("ModelExecuteOptions: {}", modelExecuteOptions);
 		return modelExecuteOptions;
 	}
-	
+
 	private void recompute(PrismObject<FocusType> focalObject, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException,
-			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
-			ConfigurationException, PolicyViolationException, SecurityViolationException {
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException,
+			ConfigurationException, PolicyViolationException, SecurityViolationException, PreconditionViolationException {
 		LOGGER.trace("Recomputing object {}", focalObject);
 
 		LensContext<FocusType> syncContext = contextFactory.createRecomputeContext(focalObject, options, task, result);
@@ -150,8 +137,8 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Foc
         return TaskCategory.RECOMPUTATION;
     }
 
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
+	@Override
+	protected String getDefaultChannel() {
+		return SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI;
+	}
 }

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.BooleanUtils;
 
 import java.io.Serializable;
 
@@ -35,7 +36,7 @@ public class ReportDto implements Serializable {
     public static final String F_EXPORT_TYPE = "exportType";
     public static final String F_VIRTUALIZER = "virtualizer";
     public static final String F_VIRTUALIZER_KICKON = "virtualizerKickOn";
-    public static final String F_MAXPAGES = "maxPages"; 
+    public static final String F_MAXPAGES = "maxPages";
     public static final String F_TIMEOUT = "timeout";
 
     private boolean parent;
@@ -71,7 +72,7 @@ public class ReportDto implements Serializable {
 //    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
         this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
         this.templateStyle = reportType.getTemplateStyle();
-        this.parent = reportType.isParent();
+        this.parent = !BooleanUtils.isFalse(reportType.isParent());
         this.virtualizer = reportType.getVirtualizer();
         this.virtualizerKickOn = reportType.getVirtualizerKickOn();
         this.maxPages = reportType.getMaxPages();
@@ -107,8 +108,6 @@ public class ReportDto implements Serializable {
     public PrismObject<ReportType> getObject() {
         if (reportType == null) {
             reportType = new ReportType();
-            //TODO FIXME temporary every new report will be set as parent report
-            reportType.setParent(Boolean.TRUE);
         }
         reportType.setName(new PolyStringType(name));
         reportType.setExport(exportType);
@@ -116,7 +115,7 @@ public class ReportDto implements Serializable {
         reportType.setTemplateStyle(templateStyle);
         reportType.setDescription(description);
         reportType.setVirtualizer(virtualizer);
-        reportType.setVirtualizerKickOn(virtualizerKickOn);        
+        reportType.setVirtualizerKickOn(virtualizerKickOn);
         reportType.setMaxPages(maxPages);
         reportType.setTimeout(timeout);
 

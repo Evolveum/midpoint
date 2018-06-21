@@ -71,7 +71,7 @@ public class DummyTransport implements Transport, DebugDumpable {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
 
         if (!messages.containsKey(name)) {
-            messages.put(name, new ArrayList<Message>());
+            messages.put(name, new ArrayList<>());
         }
         messages.get(name).add(message);
 
@@ -82,6 +82,10 @@ public class DummyTransport implements Transport, DebugDumpable {
 
     public List<Message> getMessages(String transportName) {
         return messages.get(transportName);
+    }
+
+    public Map<String,List<Message>> getMessages() {
+    	return messages;
     }
 
     public void clearMessages() {

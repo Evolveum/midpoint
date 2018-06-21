@@ -19,11 +19,13 @@
     <li wicket:id="item" class="treeview">
         <a wicket:id="link">
             <i wicket:id="icon" class="fa fa-user"></i>
-            &nbsp;<span wicket:id="label">Users</span>
+            <span wicket:id="label">Users</span>
             <wicket:enclosure child="arrow">
-            &nbsp;<i wicket:id="arrow" class="fa fa-angle-left pull-right"></i>
+                <i wicket:id="arrow" class="fa fa-angle-left pull-right"></i>
             </wicket:enclosure>
-            <span class="label pull-right label-primary" wicket:id="bubble"/>
+            <span class="pull-right-container">
+                <span class="label label-primary pull-right" wicket:id="bubble"/>
+            </span>
         </a>
         <ul wicket:id="submenu" class="treeview-menu">
             <li wicket:id="subItem">

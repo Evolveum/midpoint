@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -27,6 +27,8 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -34,6 +36,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 
 /**
  * Primary duty of this class is to be a part of assignment path. (This is what is visible through its interface,
@@ -257,13 +261,33 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	private ObjectType varThisObject;
 
+	private boolean evaluatedForOld;
+
 	AssignmentPathSegmentImpl(ObjectType source, String sourceDescription,
 			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
-			boolean isAssignment) {
+			boolean isAssignment, boolean evaluatedForOld) {
 		this.source = source;
 		this.sourceDescription = sourceDescription;
 		this.assignmentIdi = assignmentIdi;
 		this.isAssignment = isAssignment;
+		this.evaluatedForOld = evaluatedForOld;
+	}
+
+	AssignmentPathSegmentImpl(ObjectType source, String sourceDescription, AssignmentType assignment, boolean isAssignment) {
+		this(source, sourceDescription, createAssignmentIdi(assignment), isAssignment, false);
+	}
+
+	private static ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdi(
+			AssignmentType assignment) {
+		try {
+			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
+			idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignment));
+			idi.recompute();
+			return idi;
+		} catch (SchemaException e) {
+			// should not really occur!
+			throw new SystemException("Couldn't create assignment IDI: " + e.getMessage(), e);
+		}
 	}
 
 	@Override
@@ -275,8 +299,23 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return assignmentIdi;
 	}
 
-	@Override
+	public AssignmentType getAssignment(boolean evaluateOld) {
+		return asContainerable(assignmentIdi.getSingleValue(evaluateOld));
+	}
+
 	public AssignmentType getAssignment() {
+		return getAssignment(evaluatedForOld);
+	}
+
+	public AssignmentType getAssignmentAny() {
+		if (assignmentIdi == null) {
+			return null;
+		}
+		return assignmentIdi.getItemNew() != null ? getAssignment(false) : getAssignment(true);
+	}
+
+	@Override
+	public AssignmentType getAssignmentNew() {
 		if (assignmentIdi == null || assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
 			return null;
 		}
@@ -300,7 +339,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	public void setTarget(ObjectType target) {
 		this.target = target;
 	}
-	
+
 	@Override
 	public ObjectType getSource() {
 		return source;
@@ -361,7 +400,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	public void setOrderOneObject(ObjectType varThisObject) {
 		this.varThisObject = varThisObject;
 	}
-	
+
 	public boolean isProcessMembership() {
 		return processMembership;
 	}
@@ -436,7 +475,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			return XsdTypeMapper.isMatchingMultiplicity(evaluationOrderInt, orderMin, orderMax);
 		}
 	}
-	
+
 	@Override
 	public boolean isDelegation() {
 		return ObjectTypeUtil.isDelegationRelation(relation);
@@ -482,7 +521,14 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("AssignmentPathSegment(");
-		sb.append(evaluationOrder);
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		evaluationOrder.shortDump(sb);
 		if (isMatchingOrder()) {			// here is a side effect but most probably it's harmless
 			sb.append("(match)");
 		}
@@ -525,13 +571,6 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		if (lastEqualOrderSegmentIndex != null) {
 			sb.append(", lastEqualOrder: ").append(lastEqualOrderSegmentIndex);
 		}
-		sb.append(")");
-		return sb.toString();
-	}
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
 	}
 
 	@Override
@@ -563,11 +602,13 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	@NotNull
 	@Override
-	public AssignmentPathSegmentType toAssignmentPathSegmentType() {
+	public AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent) {
 		AssignmentPathSegmentType rv = new AssignmentPathSegmentType();
-		AssignmentType assignment = getAssignment();
+		AssignmentType assignment = getAssignment(evaluatedForOld);			// a bit of hack, but probably ok for now
 		if (assignment != null) {
-			rv.setAssignment(assignment);
+			if (includeAssignmentsContent) {
+				rv.setAssignment(assignment.clone());
+			}
 			rv.setAssignmentId(assignment.getId());
 		}
 		if (source != null) {
@@ -579,6 +620,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			rv.setTargetDisplayName(ObjectTypeUtil.getDisplayName(target));
 		}
 		rv.setMatchingOrder(isMatchingOrder());
+		rv.setIsAssignment(isAssignment);
 		return rv;
 	}
 
@@ -588,5 +630,26 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 
 	public void setLastEqualOrderSegmentIndex(Integer lastEqualOrderSegmentIndex) {
 		this.lastEqualOrderSegmentIndex = lastEqualOrderSegmentIndex;
+	}
+
+	@Override
+	public boolean matches(@NotNull List<OrderConstraintsType> orderConstraints) {
+		return computeMatchingOrder(evaluationOrder, null, orderConstraints);
+	}
+
+	// preliminary implementation; use only to compare segments in paths (pointing to the same target OID)
+	// that are to be checked for equivalency
+	@Override
+	public boolean equivalent(AssignmentPathSegment otherSegment) {
+		if (!ObjectTypeUtil.relationsEquivalent(relation, otherSegment.getRelation())) {
+			return false;
+		}
+		if (target == null && otherSegment.getTarget() == null) {
+			return true;            // TODO reconsider this in general case
+		}
+		if (target == null || otherSegment.getTarget() == null) {
+			return false;
+		}
+		return java.util.Objects.equals(target.getOid(), otherSegment.getTarget().getOid());
 	}
 }

@@ -20,7 +20,7 @@ package com.evolveum.midpoint.schema.result;
  *
  */
 public class OperationResultRunner {
-	
+
 	public static void run(OperationResult result, Runnable runnable) {
 		try {
 			runnable.run();

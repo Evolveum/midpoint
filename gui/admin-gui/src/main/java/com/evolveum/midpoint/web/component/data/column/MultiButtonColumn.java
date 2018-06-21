@@ -29,6 +29,7 @@ import java.util.List;
  *  @author shood
  *  @author mederly
  */
+@Deprecated
 public class MultiButtonColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
     protected MultiButtonPanel panel;
@@ -107,6 +108,9 @@ public class MultiButtonColumn<T extends Serializable> extends AbstractColumn<T,
         StringBuilder sb = new StringBuilder();
         sb.append(DoubleButtonColumn.BUTTON_BASE_CLASS).append(" ");
         sb.append(getButtonColorCssClass(id)).append(" ").append(getButtonSizeCssClass(id));
+        if (!isButtonEnabled(id, getRowModel())) {
+            sb.append(" disabled");
+        }
         return sb.toString();
     }
 

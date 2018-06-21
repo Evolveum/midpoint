@@ -16,33 +16,35 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 
 
 public class PagingConvertor {
 	
 	public static ObjectPaging createObjectPaging(PagingType pagingType){
-		if (pagingType == null){
+		if (pagingType == null) {
 			return null;
 		}
-		
-		QName orderBy = null;
-		if (pagingType.getOrderBy() != null){
-			orderBy = ItemPath.getName(pagingType.getOrderBy().getItemPath().first());
+        if (pagingType.getOrderBy() != null && pagingType.getGroupBy() != null) {
+            return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(),
+                    pagingType.getOrderBy().getItemPath(), toOrderDirection(pagingType.getOrderDirection()), pagingType.getGroupBy().getItemPath());
+        }
+
+		if (pagingType.getOrderBy() != null) {
+			return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(),
+					pagingType.getOrderBy().getItemPath(), toOrderDirection(pagingType.getOrderDirection()));
+
+		} if (pagingType.getGroupBy() != null) {
+            return ObjectPaging.createPaging(pagingType.getGroupBy().getItemPath());
+
+        } else {
+			return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize());
 		}
-		
-		return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(), orderBy, toOrderDirection(pagingType.getOrderDirection()));
-		
 	}
 
-	
 	private static OrderDirection toOrderDirection(OrderDirectionType directionType){
 		if (directionType == null){
 			return null;
@@ -69,7 +71,9 @@ public class PagingConvertor {
 		if (paging.getOrderBy() != null) {
 			pagingType.setOrderBy(new ItemPathType(paging.getOrderBy()));
 		}
-		
+        if (paging.getGroupBy() != null) {
+            pagingType.setGroupBy(new ItemPathType(paging.getGroupBy()));
+        }
 		return pagingType;
 	}
 	

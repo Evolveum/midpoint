@@ -35,16 +35,23 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +61,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -80,7 +86,7 @@ public class InitialDataImport {
     private TaskManager taskManager;
     @Autowired
     private MidpointConfiguration configuration;
-    
+
     public void setModel(ModelService model) {
         Validate.notNull(model, "Model service must not be null.");
         this.model = model;
@@ -103,7 +109,7 @@ public class InitialDataImport {
 
         File[] files = getInitialImportObjects();
         LOGGER.debug("Files to be imported: {}.", Arrays.toString(files));
-        
+
         // We need to provide a fake Spring security context here.
         // We have to fake it because we do not have anything in the repository yet. And to get
         // something to the repository we need a context. Chicken and egg. So we fake the egg.
@@ -145,7 +151,13 @@ public class InitialDataImport {
         }
 
         securityContext.setAuthentication(null);
-        
+
+        try {
+            cleanup();
+        } catch (IOException ex) {
+            LOGGER.error("Couldn't cleanup tmp folder with imported files", ex);
+        }
+
         mainResult.recomputeStatus("Couldn't import objects.");
 
         LOGGER.info("Initial object import finished ({} objects imported, {} errors)", count, errors);
@@ -160,7 +172,7 @@ public class InitialDataImport {
      * @param mainResult
      * @return null if nothing was imported, true if it was success, otherwise false
      */
-    private Boolean importObject(PrismObject object, File file, Task task, OperationResult mainResult) {
+    private <O extends ObjectType> Boolean importObject(PrismObject<O> object, File file, Task task, OperationResult mainResult) {
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
         boolean importObject = true;
@@ -182,6 +194,8 @@ public class InitialDataImport {
         if (!importObject) {
             return null;
         }
+        
+        preImportUpdate(object);
 
         ObjectDelta delta = ObjectDelta.createAddDelta(object);
         try {
@@ -200,7 +214,30 @@ public class InitialDataImport {
         }
     }
 
-    private File getResource(String name) {
+    private <O extends ObjectType> void preImportUpdate(PrismObject<O> object) {
+		if (object.canRepresent(SystemConfigurationType.class)) {
+			SystemConfigurationType systemConfigType = (SystemConfigurationType) object.asObjectable();
+			InternalsConfigurationType internals = systemConfigType.getInternals();
+			if (internals != null) {
+				PolyStringNormalizerConfigurationType normalizerConfig = internals.getPolyStringNormalizer();
+				if (normalizerConfig != null) {
+					try {
+						prismContext.configurePolyStringNormalizer(normalizerConfig);
+						LOGGER.debug("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
+					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+						LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+						throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+					}
+					// PolyString normalizer configuration applied. But we need to re-normalize the imported object
+					// otherwise it would be normalized in a different way than other objects.
+					object.recomputeAllValues();
+				}
+			}
+		}
+		
+	}
+
+	private File getResource(String name) {
         URI path;
         try {
         	LOGGER.trace("getResource: name = {}", name);
@@ -215,96 +252,154 @@ public class InitialDataImport {
         return new File(path);
     }
 
+    private void cleanup() throws IOException {
+        Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp/initial-objects");
+        FileUtils.deleteDirectory(destDir.toFile());
+    }
+
+    /**
+     * @param path jar:file:/<ABSOLUTE_PATH>/midpoint.war!/WEB-INF/classes!/initial-objects
+     * @param tmpDir
+     */
+    private void copyInitialImportObjectsFromFatJar(URL path, File tmpDir) throws IOException, URISyntaxException {
+        String warPath = path.toString().split("!/")[0];
+
+        URI src = URI.create(warPath);
+
+        Map<String, String> env = new HashMap<>();
+        env.put("create", "false");
+        try (FileSystem zipfs = FileSystems.newFileSystem(src, env)) {
+            Path pathInZipfile = zipfs.getPath("/WEB-INF/classes/initial-objects");
+            //TODO: use some well defined directory, e.g. midPoint home
+            final Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp");
+
+            Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>() {
+
+                @Override
+                public FileVisitResult visitFile(Path file,
+                                                 BasicFileAttributes attrs) throws IOException {
+                    String f = file.subpath(2, file.getNameCount()).toString();  // strip /WEB-INF/classes
+                    final Path destFile = Paths.get(destDir.toString(), f);
+                    LOGGER.trace("Extracting file {} to {}", file, destFile);
+                    Files.copy(file, destFile, StandardCopyOption.REPLACE_EXISTING);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir,
+                                                         BasicFileAttributes attrs) throws IOException {
+                    String folder = dir.subpath(2, dir.getNameCount()).toString();  // strip /WEB-INF/classes
+                    final Path dirToCreate = Paths.get(destDir.toString(), folder);
+                    if (Files.notExists(dirToCreate)) {
+                        LOGGER.trace("Creating directory {}", dirToCreate);
+                        Files.createDirectory(dirToCreate);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+    }
+
+    /**
+     * file:/<ABSOLUTE_PATH>/midpoint/WEB-INF/classes/initial-objects/
+     */
+    private void copyInitialImportObjectsFromJar() throws IOException, URISyntaxException {
+        URI src = InitialDataImport.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+        LOGGER.trace("InitialDataImport code location: {}", src);
+        Map<String, String> env = new HashMap<>();
+        env.put("create", "false");
+        URI normalizedSrc = new URI(src.toString().replaceFirst("file:", "jar:file:"));
+        LOGGER.trace("InitialDataImport normalized code location: {}", normalizedSrc);
+        try (FileSystem zipfs = FileSystems.newFileSystem(normalizedSrc, env)) {
+            Path pathInZipfile = zipfs.getPath("/initial-objects");
+            //TODO: use some well defined directory, e.g. midPoint home
+            final Path destDir = Paths.get(configuration.getMidpointHome() + "/tmp");
+            Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>() {
+
+                @Override
+                public FileVisitResult visitFile(Path file,
+                        BasicFileAttributes attrs) throws IOException {
+                    final Path destFile = Paths.get(destDir.toString(), file.toString());
+                    LOGGER.trace("Extracting file {} to {}", file, destFile);
+                    Files.copy(file, destFile, StandardCopyOption.REPLACE_EXISTING);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir,
+                        BasicFileAttributes attrs) throws IOException {
+                    final Path dirToCreate = Paths.get(destDir.toString(), dir.toString());
+                    if (Files.notExists(dirToCreate)) {
+                        LOGGER.trace("Creating directory {}", dirToCreate);
+                        Files.createDirectory(dirToCreate);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+    }
+
+    private File setupInitialObjectsTmpFolder() {
+        File tmpDir = new File(configuration.getMidpointHome()+"/tmp");
+        if (!tmpDir.mkdir()) {
+            LOGGER.warn("Failed to create temporary directory for initial objects {}. Maybe it already exists",
+                    configuration.getMidpointHome()+"/tmp");
+        }
+
+        tmpDir = new File(configuration.getMidpointHome()+"/tmp/initial-objects");
+        if (!tmpDir.mkdir()) {
+            LOGGER.warn("Failed to create temporary directory for initial objects {}. Maybe it already exists",
+                    configuration.getMidpointHome()+"/tmp/initial-objects");
+        }
+
+        return tmpDir;
+    }
+
     private File[] getInitialImportObjects() {
         URL path = InitialDataImport.class.getClassLoader().getResource("initial-objects");
     	String resourceType = path.getProtocol();
 
-        File[] files = null;
         File folder = null;
-        
-        if ("zip".equals(resourceType) || "jar".equals(resourceType)) {
-        	try {
-        		File tmpDir = new File(configuration.getMidpointHome()+"/tmp");
-        		if (!tmpDir.mkdir()) {
-        			LOGGER.warn("Failed to create temporary directory for initial objects {}. Maybe it already exists", configuration.getMidpointHome()+"/tmp");
-        		}
 
-        		tmpDir = new File(configuration.getMidpointHome()+"/tmp/initial-objects");
-        		if (!tmpDir.mkdir()) {
-        			LOGGER.warn("Failed to create temporary directory for initial objects {}. Maybe it already exists", configuration.getMidpointHome()+"/tmp/initial-objects");
-        		}
-        		
-        		//prerequisite: we are expecting that the files are store in the same archive as the source code that is loading it
-	        	URI src = InitialDataImport.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-	        	LOGGER.trace("InitialDataImport code location: {}", src);
-	            Map<String, String> env = new HashMap<>(); 
-	            env.put("create", "false");
-	            URI normalizedSrc = new URI(src.toString().replaceFirst("file:", "jar:file:"));
-	            LOGGER.trace("InitialDataImport normalized code location: {}", normalizedSrc);
-	        	try (FileSystem zipfs = FileSystems.newFileSystem(normalizedSrc, env)) {
-	                Path pathInZipfile = zipfs.getPath("/initial-objects");
-	                //TODO: use some well defined directory, e.g. midPoint home
-	                final Path destDir = Paths.get(configuration.getMidpointHome()+"/tmp");
-	                Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>(){
-	                    @Override
-	                    public FileVisitResult visitFile(Path file,
-	                        BasicFileAttributes attrs) throws IOException {
-	                      final Path destFile = Paths.get(destDir.toString(),
-	                                                      file.toString());
-	                      LOGGER.trace("Extracting file {} to {}", file, destFile);
-	                      Files.copy(file, destFile, StandardCopyOption.REPLACE_EXISTING);
-	                      return FileVisitResult.CONTINUE;
-	                    }
-	               
-	                    @Override
-	                    public FileVisitResult preVisitDirectory(Path dir,
-	                        BasicFileAttributes attrs) throws IOException {
-	                      final Path dirToCreate = Paths.get(destDir.toString(),
-	                                                         dir.toString());
-	                      if(Files.notExists(dirToCreate)){
-	                        LOGGER.trace("Creating directory {}", dirToCreate);
-	                        Files.createDirectory(dirToCreate);
-	                      }
-	                      return FileVisitResult.CONTINUE;
-	                    }
-	                  });
+        try {
+            if (path.toString().split("!/").length == 3) {
+                File tmpDir = setupInitialObjectsTmpFolder();
 
-	                
-	            }
-	        	folder = new File(configuration.getMidpointHome()+"/tmp/initial-objects");
-        	} catch (IOException ex) {
-        		throw new RuntimeException("Failed to copy initial objects file out of the archive to the temporary directory", ex);
-        	} catch (URISyntaxException ex) {
-        		throw new RuntimeException("Failed get URI for the source code bundled with initial objects", ex);
-        	} 
+                copyInitialImportObjectsFromFatJar(path, tmpDir);
+
+                folder = tmpDir;
+            } else if ("zip".equals(resourceType) || "jar".equals(resourceType)) {
+
+                File tmpDir = setupInitialObjectsTmpFolder();
+                copyInitialImportObjectsFromJar();
+
+                folder = tmpDir;
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("Failed to copy initial objects file out of the archive to the temporary directory", ex);
+        } catch (URISyntaxException ex) {
+            throw new RuntimeException("Failed get URI for the source code bundled with initial objects", ex);
         }
-        
+
     	if ("file".equals(resourceType)) {
 	        folder = getResource("initial-objects");
     	}
-    	
-        files = folder.listFiles(new FileFilter() {
 
-            @Override
-            public boolean accept(File pathname) {
-                if (pathname.isDirectory()) {
-                    return false;
-                }
-
-                return true;
+        File[] files = folder.listFiles(pathname -> {
+            if (pathname.isDirectory()) {
+                return false;
             }
-        });
-        Arrays.sort(files, new Comparator<File>() {
 
-            @Override
-            public int compare(File o1, File o2) {
-                int n1 = getNumberFromName(o1);
-                int n2 = getNumberFromName(o2);
-
-                return n1 - n2;
-            }
+            return true;
         });
-	
+
+        Arrays.sort(files, (o1, o2) -> {
+            int n1 = getNumberFromName(o1);
+            int n2 = getNumberFromName(o2);
+
+            return n1 - n2;
+        });
+
         return files;
     }
 

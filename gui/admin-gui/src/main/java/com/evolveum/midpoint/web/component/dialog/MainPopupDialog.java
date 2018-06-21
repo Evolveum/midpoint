@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,13 +31,17 @@ public class MainPopupDialog extends ModalWindow {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_MAIN_POPUP_BODY = "popupBody";
-	
+
 	private boolean initialized;
 
     public MainPopupDialog(String id) {
         super(id);
-
-        setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         showUnloadConfirmation(false);
         setResizable(false);
         setInitialWidth(350);
@@ -61,28 +65,28 @@ public class MainPopupDialog extends ModalWindow {
                 MainPopupDialog.this.close(target);
             }
         });
-        
+
         WebMarkupContainer content = new WebMarkupContainer(getContentId());
         setContent(content);
     }
-    
+
     @Override
     protected void onBeforeRender(){
         super.onBeforeRender();
-     
+
         if(initialized){
             return;
         }
 
-        setBody(new Label(ID_MAIN_POPUP_BODY, new Model<String>("Not initialized")));
+        setBody(new Label(ID_MAIN_POPUP_BODY, new Model<>("Not initialized")));
        initialized = true;
     }
-    
+
     private void setBody(Component component){
     	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
     	content.addOrReplace(component);
     }
-    
+
     public void setBody(Popupable popupable){
     	setTitle(popupable.getTitle());
     	setInitialHeight(popupable.getHeight());

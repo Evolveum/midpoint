@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,15 @@ package com.evolveum.midpoint.prism.marshaller;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -35,13 +38,16 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author semancik
  *
  */
 public class PrismMarshaller {
-	
+
+	private static final Trace LOGGER = TraceManager.getTrace(PrismMarshaller.class);
+
 	@NotNull private final BeanMarshaller beanMarshaller;
 
 	public PrismMarshaller(@NotNull BeanMarshaller beanMarshaller) {
@@ -199,7 +205,7 @@ public class PrismMarshaller {
         } else {
             throw new IllegalArgumentException("Unsupported value type "+itemValue.getClass());
         }
-        if (definition != null && definition.isDynamic() && isInstantiable(definition)) {
+        if (definition != null && (definition.isDynamic() || shouldPutTypeInExportMode(ctx, definition)) && isInstantiable(definition)) {
 			if (xnode.getTypeQName() == null) {
 				xnode.setTypeQName(definition.getTypeName());
 			}
@@ -208,7 +214,22 @@ public class PrismMarshaller {
         return xnode;
     }
 
-    // TODO FIXME first of all, Extension definition should not be marked as dynamic
+	private boolean shouldPutTypeInExportMode(SerializationContext ctx, ItemDefinition definition) {
+		if (!SerializationContext.isSerializeForExport(ctx) || definition == null || !definition.isRuntimeSchema()) {
+			return false;
+		}
+		QName itemName = definition.getName();
+		if (StringUtils.isEmpty(itemName.getNamespaceURI())) {
+			return true;            // ambiguous item name - let's put xsi:type, to be on the safe side
+		}
+		// we assume that all runtime elements which are part of the schema registry are retrievable by element name
+		// (might not be the case for sub-items of custom extension containers! we hope providing xsi:type there will cause no harm)
+		List<ItemDefinition> definitionsInRegistry = getSchemaRegistry()
+				.findItemDefinitionsByElementName(itemName, ItemDefinition.class);
+		return definitionsInRegistry.isEmpty();       // no definition in registry => xsi:type should be put
+	}
+
+	// TODO FIXME first of all, Extension definition should not be marked as dynamic
 	private boolean isInstantiable(ItemDefinition definition) {
 		if (definition.isAbstract()) {
 			return false;
@@ -235,7 +256,7 @@ public class PrismMarshaller {
 		marshalContainerValue(xmap, containerVal, containerDefinition, ctx);
 		return xmap;
 	}
-	
+
 	private <C extends Containerable> void marshalContainerValue(MapXNode xmap, PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
 		Long id = containerVal.getId();
 		if (id != null) {
@@ -349,7 +370,7 @@ public class PrismMarshaller {
         }
         EvaluationTimeType resolutionTime = value.getResolutionTime();
         if (resolutionTime != null) {
-        	xmap.put(createReferenceQName(XNode.KEY_REFERENCE_RESOLUTION_TIME, namespace), 
+        	xmap.put(createReferenceQName(XNode.KEY_REFERENCE_RESOLUTION_TIME, namespace),
         			createPrimitiveXNode(resolutionTime.value(), DOMUtil.XSD_STRING));
         }
         if (value.getTargetName() != null) {
@@ -386,14 +407,37 @@ public class PrismMarshaller {
     //endregion
 
     //region Serializing properties - specific functionality
+    @NotNull
     private <T> XNode serializePropertyValue(@NotNull PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, QName typeNameIfNoDefinition) throws SchemaException {
         @Nullable QName typeName = definition != null ? definition.getTypeName() : typeNameIfNoDefinition;
+        ExpressionWrapper expression = value.getExpression();
+        if (expression != null) {
+        	// Store expression, not the value. In this case the value (if any) is
+        	// a transient product of the expression evaluation.
+        	return createExpressionXNode(expression);
+        }
         T realValue = value.getValue();
         if (realValue instanceof PolyString) {
             return serializePolyString((PolyString) realValue);
         } else if (beanMarshaller.canProcess(typeName)) {
             XNode xnode = beanMarshaller.marshall(realValue);
-            if (realValue.getClass().getPackage() != null) {
+            if (xnode == null) {
+            	// Marshaling attempt may process the expression in raw element
+                expression = value.getExpression();
+                if (expression != null) {
+                	// Store expression, not the value. In this case the value (if any) is
+                	// a transient product of the expression evaluation.
+                	return createExpressionXNode(expression);
+                }
+            	// HACK. Sometimes happens that we have raw value even with a definition
+            	// this is easy to work around
+            	if (value.isRaw()) {
+            		xnode = value.getRawElement().clone();
+            	} else {
+            		throw new SchemaException("Cannot marshall property value "+value+": marshaller returned null");
+            	}
+            }
+            if (realValue != null && realValue.getClass().getPackage() != null) {
 				TypeDefinition typeDef = getSchemaRegistry()
 						.findTypeDefinitionByCompileTimeClass(realValue.getClass(), TypeDefinition.class);
 				if (xnode != null && typeDef != null && !QNameUtil.match(typeDef.getTypeName(), typeName)) {
@@ -408,7 +452,7 @@ public class PrismMarshaller {
         }
     }
 
-    private XNode serializePolyString(PolyString realValue) {
+	private XNode serializePolyString(PolyString realValue) {
         PrimitiveXNode<PolyString> xprim = new PrimitiveXNode<>();
         xprim.setValue(realValue, PolyStringType.COMPLEX_TYPE);
         return xprim;
@@ -440,10 +484,15 @@ public class PrismMarshaller {
 
     @NotNull
     private <T> PrimitiveXNode<T> createPrimitiveXNode(T val, QName type) {
-        PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
+        PrimitiveXNode<T> xprim = new PrimitiveXNode<>();
         xprim.setValue(val, type);
         return xprim;
     }
+
+    @NotNull
+    private XNode createExpressionXNode(@NotNull ExpressionWrapper expression) throws SchemaException {
+		return PrismUtil.serializeExpression(expression, beanMarshaller);
+	}
 
 	@NotNull
 	private SchemaRegistry getSchemaRegistry() {

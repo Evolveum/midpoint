@@ -15,9 +15,9 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -48,7 +48,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 	RepositoryService repositoryService;
 	private PrismContext prismContext;
 
-	SequentialValueExpressionEvaluator(SequentialValueExpressionEvaluatorType sequentialValueEvaluatorType, 
+	SequentialValueExpressionEvaluator(SequentialValueExpressionEvaluatorType sequentialValueEvaluatorType,
 			D outputDefinition, Protector protector, RepositoryService repositoryService, PrismContext prismContext) {
 		this.sequentialValueEvaluatorType = sequentialValueEvaluatorType;
 		this.outputDefinition = outputDefinition;
@@ -58,35 +58,35 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
 	}
 
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
+	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
-        long counter = getSequenceCounter(sequentialValueEvaluatorType.getSequenceRef().getOid(), repositoryService, params.getResult());
-		
+        long counter = getSequenceCounter(sequentialValueEvaluatorType.getSequenceRef().getOid(), repositoryService, context.getResult());
+
 		Object value = ExpressionUtil.convertToOutputValue(counter, outputDefinition, protector);
-                
+
 		Item<V,D> output = outputDefinition.instantiate();
 		if (output instanceof PrismProperty) {
-			PrismPropertyValue<Object> pValue = new PrismPropertyValue<Object>(value);
+			PrismPropertyValue<Object> pValue = new PrismPropertyValue<>(value);
 			((PrismProperty<Object>)output).add(pValue);
 		} else {
 			throw new UnsupportedOperationException("Can only generate values of property, not "+output.getClass());
 		}
-		
+
 		return ItemDelta.toDeltaSetTriple(output, null);
 	}
-	
+
 	public static long getSequenceCounter(String sequenceOid, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
     	LensContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
     	if (ctx == null) {
     		throw new IllegalStateException("No lens context");
     	}
-    	
+
     	Long counter = ctx.getSequenceCounter(sequenceOid);
     	if (counter == null) {
     		counter = repositoryService.advanceSequence(sequenceOid, result);
     		ctx.setSequenceCounter(sequenceOid, counter);
     	}
-    	
+
     	return counter;
     }
 

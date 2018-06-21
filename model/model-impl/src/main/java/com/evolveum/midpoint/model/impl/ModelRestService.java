@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Evolveum
+ * Copyright (c) 2013-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,118 +15,67 @@
  */
 package com.evolveum.midpoint.model.impl;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.configuration.SystemConfiguration;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.cxf.jaxrs.ext.MessageContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.evolveum.midpoint.model.api.ModelCompareOptions;
-import com.evolveum.midpoint.model.api.ModelDiagnosticService;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.ScriptExecutionResult;
-import com.evolveum.midpoint.model.api.ScriptingService;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
 import com.evolveum.midpoint.model.api.validator.Scope;
 import com.evolveum.midpoint.model.api.validator.ValidationResult;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
+import com.evolveum.midpoint.model.impl.rest.Convertor;
+import com.evolveum.midpoint.model.impl.rest.ConvertorInterface;
 import com.evolveum.midpoint.model.impl.rest.PATCH;
+import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.util.RestServiceUtil;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ScriptOutputsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SingleScriptOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LogFileContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptOutputType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.cxf.jaxrs.ext.MessageContext;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.namespace.QName;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author katkav
@@ -157,49 +106,37 @@ public class ModelRestService {
 	public static final String OPERATION_GET_LOG_FILE_CONTENT = CLASS_DOT + "getLogFileContent";
 	public static final String OPERATION_GET_LOG_FILE_SIZE = CLASS_DOT + "getLogFileSize";
 	public static final String OPERATION_VALIDATE_VALUE = CLASS_DOT +  "validateValue";
+	public static final String OPERATION_VALIDATE_VALUE_RPC = CLASS_DOT +  "validateValueRpc";
 	public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
-	
+	public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
+	public static final String OPERATION_EXECUTE_CREDENTIAL_RESET = CLASS_DOT + "executeCredentialReset";
+	public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterEvent";
+
 	private static final String CURRENT = "current";
 	private static final String VALIDATE = "validate";
+
+	@Autowired private ModelCrudService model;
+	@Autowired private ScriptingService scriptingService;
+	@Autowired private ModelService modelService;
+	@Autowired private ModelDiagnosticService modelDiagnosticService;
+	@Autowired private ModelInteractionService modelInteraction;
+	@Autowired private PrismContext prismContext;
+	@Autowired private SecurityHelper securityHelper;
+	@Autowired private ValuePolicyProcessor policyProcessor;
+	@Autowired private TaskManager taskManager;
+	@Autowired private Protector protector;
+	@Autowired private ResourceValidator resourceValidator;
 	
-		@Autowired
-	private ModelCrudService model;
-
-	@Autowired
-	private ScriptingService scriptingService;
-
-	@Autowired
-	private ModelService modelService;
-
-	@Autowired
-	private ModelDiagnosticService modelDiagnosticService;
-
-	@Autowired
-	private ModelInteractionService modelInteraction;
-
-	@Autowired
-	private PrismContext prismContext;
-
-	@Autowired
-	private SecurityHelper securityHelper;
-
-	@Autowired
-	ValuePolicyProcessor policyProcessor;
-	
-	@Autowired
-	private TaskManager taskManager;
-
-	@Autowired
-	private ResourceValidator resourceValidator;
+	@Autowired private CacheDispatcher cacheDispatcher;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 
-	public static final long WAIT_FOR_TASK_STOP = 2000L;
+	private static final long WAIT_FOR_TASK_STOP = 2000L;
 
 	public ModelRestService() {
 		// nothing to do
 	}
-	
+
 	@POST
 	@Path("/{type}/{oid}/generate")
 	@Consumes({"application/xml", "application/json", "application/yaml"})
@@ -212,256 +149,141 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE);
 
 		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
+
 		Response response = null;
-		if (policyItemsDefinition == null) {
-			LOGGER.error("Policy items definition must not be null");
-			parentResult.recordFatalError("Policy items definition must not be null");
-			ResponseBuilder builder = Response.status(Status.BAD_REQUEST).entity(parentResult);
-			return builder.build();
-		}
 		try {
 			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
-
-			
-			PrismObject<ValuePolicyType> valuePolicy = resolvePolicy(object, task, parentResult);
-			
-			boolean executeImmediatelly = false;
-			Collection<PropertyDelta> propertyDeltas = new ArrayList<>();
-			for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition
-					.getPolicyItemDefinition()) {
-
-				generateValue(object, valuePolicy, policyItemDefinition, task, parentResult);
-				
-				if (BooleanUtils.isTrue(policyItemDefinition.isExecute())) {
-					executeImmediatelly = true;
-					PropertyDelta propertyDelta = PropertyDelta.createModificationReplaceProperty(policyItemDefinition.getTarget().getPath().getItemPath(), object.getDefinition(), policyItemDefinition.getValue());
-					propertyDeltas.add(propertyDelta);
-				}
-
-			}
-			
-			if (executeImmediatelly) {
-				model.modifyObject(clazz, oid, propertyDeltas, null, task, parentResult);
-			}
-
-			ResponseBuilder responseBuilder = Response.ok(policyItemsDefinition);
-			response = responseBuilder.build();
+			response = generateValue(object, policyItemsDefinition, task, parentResult);
 		} catch (Exception ex) {
 			parentResult.computeStatus();
 			response = RestServiceUtil.handleException(parentResult, ex);
+
 		}
 
-		parentResult.computeStatus();
 		finishRequest(task);
 		return response;
-
+	
 	}
 	
-	private <O extends ObjectType> PrismObject<ValuePolicyType> resolvePolicy(PrismObject<O> object, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-	
-		PrismObject<ValuePolicyType> valuePolicy = null;
+	@POST
+	@Path("/rpc/generate")
+	@Consumes({"application/xml", "application/json", "application/yaml"})
+	@Produces({"application/xml", "application/json", "application/yaml"})
+	public <O extends ObjectType> Response generateValue(PolicyItemsDefinitionType policyItemsDefinition,
+			@Context MessageContext mc) {
+
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GENERATE_VALUE_RPC);
+
+		Response response = generateValue(null, policyItemsDefinition, task, parentResult);
+		finishRequest(task);
 		
-		if (object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
-			CredentialsPolicyType policy = modelInteraction
-					.getCredentialsPolicy((PrismObject<UserType>) object, task, parentResult);
-
-			if (policy != null) {
-
-				if (policy.getPassword().getPasswordPolicyRef() != null) {
-					valuePolicy = model.getObject(ValuePolicyType.class,
-							policy.getPassword().getPasswordPolicyRef().getOid(), null, task, parentResult);
-				}
-			}
-
+		return response;
+	}
+	
+	private <O extends ObjectType> Response generateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult){
+		Response response;
+		if (policyItemsDefinition == null) {
+			response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", parentResult);
 		} else {
-		
-			SystemConfigurationType systemConfigurationType = modelInteraction
-					.getSystemConfiguration(parentResult);
-			ObjectReferenceType policyRef = systemConfigurationType.getGlobalPasswordPolicyRef();
-			if (policyRef == null) {
-				return null;
-			}
-
-			valuePolicy = model.getObject(ValuePolicyType.class, policyRef.getOid(), null, task, parentResult);
-		}
-		return valuePolicy;
-	}
-	
-	private <O extends ObjectType> void generateValue(PrismObject<O> object, PrismObject<ValuePolicyType> policy, PolicyItemDefinitionType policyItemDefinition, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		
-		PolicyItemTargetType target = policyItemDefinition.getTarget();
-		if (target == null || target.getPath() == null) {
-			LOGGER.error("Target item path must be defined");
-			result.recordFatalError("Target item path must be defined");
-			throw new SchemaException("Target item path must be defined");
-		}
-		
-		ItemPath targetProperty = target.getPath().getItemPath();
-		
-		StringPolicyType stringPolicy = null;
-		if (policyItemDefinition.getValuePolicyRef() != null) {
-			PrismObject<ValuePolicyType> valuePolicy = model.getObject(ValuePolicyType.class, policyItemDefinition.getValuePolicyRef().getOid(), null, task, result);
-			PrismObject<ValuePolicyType> policyOverride = valuePolicy.clone();
-			stringPolicy = policyOverride != null ? policyOverride.asObjectable().getStringPolicy() : null;
-		} else {
-			if (stringPolicy == null) {
-				SystemConfigurationType systemConfiguration = modelInteraction.getSystemConfiguration(result);
-				if (systemConfiguration.getGlobalPasswordPolicyRef() != null) {
-					PrismObject<ValuePolicyType> valuePolicy = model.getObject(ValuePolicyType.class, systemConfiguration.getGlobalPasswordPolicyRef().getOid(), null, task, result);
-					stringPolicy = valuePolicy != null ? valuePolicy.asObjectable().getStringPolicy() : null;
+			try {
+				modelInteraction.generateValue(object, policyItemsDefinition, task, parentResult);
+				parentResult.computeStatusIfUnknown();
+				if (parentResult.isSuccess()) {
+					response = RestServiceUtil.createResponse(Response.Status.OK, policyItemsDefinition, parentResult, true);
+				} else {
+					response = RestServiceUtil.createResponse(Response.Status.BAD_REQUEST, parentResult, parentResult);
 				}
-				 
-			} else {
-				stringPolicy = policy != null ? policy.asObjectable().getStringPolicy() : null;
+
+			} catch (Exception ex) {
+				parentResult.recordFatalError("Failed to generate value, " + ex.getMessage(), ex);
+				response = RestServiceUtil.handleException(parentResult, ex);
 			}
 		}
-		String newValue = policyProcessor.generate(stringPolicy, 10, object, "generating value for" + targetProperty, task, result);
-		policyItemDefinition.setValue(newValue);
+		return response;
 	}
-	
+
 	@POST
 	@Path("/{type}/{oid}/validate")
 	@Consumes({"application/xml", "application/json", "application/yaml"})
 	@Produces({"application/xml", "application/json", "application/yaml"})
 	public <O extends ObjectType> Response validateValue(@PathParam("type") String type, @PathParam("oid") String oid, PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
-		
+
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
 
 		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
 		Response response = null;
-		if (policyItemsDefinition == null) {
-			LOGGER.error("Policy items definition must not be null");
-			parentResult.recordFatalError("Policy items definition must not be null");
-			ResponseBuilder builder = Response.status(Status.BAD_REQUEST).entity(parentResult);
-			return builder.build();
-		}
 		try {
 			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
-
-			PrismObject<ValuePolicyType> valuePolicy = resolvePolicy(object, task, parentResult);
-
-			for (PolicyItemDefinitionType policyItemDefinition : policyItemsDefinition
-					.getPolicyItemDefinition()) {
-				validateValue(object, valuePolicy, policyItemDefinition, task, parentResult);
-			}
-			
-			parentResult.computeStatusIfUnknown();;
-			ResponseBuilder responseBuilder = null;
-			if (parentResult.isAcceptable()) {
-				responseBuilder = Response.ok();
-			} else {
-				responseBuilder = Response.status(Status.CONFLICT).entity(parentResult);
-			}
-			response = responseBuilder.build();
+			response = validateValue(object, policyItemsDefinition, task, parentResult);
 		} catch (Exception ex) {
 			parentResult.computeStatus();
 			response = RestServiceUtil.handleException(parentResult, ex);
-			
 		}
-
 		
 		finishRequest(task);
 		return response;
+	}
+	
+	@POST
+	@Path("/rpc/validate")
+	@Consumes({"application/xml", "application/json", "application/yaml"})
+	@Produces({"application/xml", "application/json", "application/yaml"})
+	public <O extends ObjectType> Response validateValue(PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
 
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
+
+		Response response = validateValue(null, policyItemsDefinition, task, parentResult);
+		finishRequest(task);
+		return response;
 		
 	}
 	
-private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, PrismObject<ValuePolicyType> policy, PolicyItemDefinitionType policyItemDefinition, Task task, OperationResult parentResult) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
-		
-		ValuePolicyType stringPolicy = null;
-		if (policyItemDefinition.getValuePolicyRef() != null) {
-			PrismObject<ValuePolicyType> valuePolicy = model.getObject(ValuePolicyType.class, policyItemDefinition.getValuePolicyRef().getOid(), null, task, parentResult);
-			PrismObject<ValuePolicyType> policyOverride = valuePolicy.clone();
-			stringPolicy = policyOverride != null ? policyOverride.asObjectable() : null;
-		} else {
-			if (policy == null) {
-				SystemConfigurationType systemConfiguration = modelInteraction
-						.getSystemConfiguration(parentResult);
-				if (systemConfiguration.getGlobalPasswordPolicyRef() != null) {
-					PrismObject<ValuePolicyType> valuePolicy = model.getObject(ValuePolicyType.class,
-							systemConfiguration.getGlobalPasswordPolicyRef().getOid(), null, task,
-							parentResult);
-					stringPolicy = valuePolicy != null ? valuePolicy.asObjectable() : null;
-				}
-
-			} else {
-				stringPolicy = policy != null ? policy.asObjectable() : null;
-			}
-		}
-		
-		RawType rawValue = (RawType) policyItemDefinition.getValue();
-		String valueToValidate = null;
-		
-		List<String> valuesToValidate = new ArrayList<>();
-
-		if (rawValue != null) {
-			valueToValidate = rawValue.getParsedRealValue(String.class);
-			valuesToValidate.add(valueToValidate);
-		} else {
-			PolicyItemTargetType target = policyItemDefinition.getTarget();
-			if (target == null || target.getPath() == null) {
-				LOGGER.error("Target item path must be defined");
-				parentResult.recordFatalError("Target item path must be defined");
-				throw new SchemaException("Target item path must be defined");
-			}
-			ItemPath path = target.getPath().getItemPath();
-
-			PrismProperty<T> property = object.findProperty(path);
-			if (property == null || property.isEmpty()) {
-				LOGGER.error("Attribute {} has no value. Nothing to validate.", property);
-				parentResult.recordFatalError("Attribute " + property + " has no value. Nothing to validate");
-				throw new SchemaException("Attribute " + property + " has no value. Nothing to validate");
-			}
-
-			PrismPropertyDefinition<T> itemToValidateDefinition = property.getDefinition();
-			QName definitionName = itemToValidateDefinition.getTypeName();
-			if (!QNameUtil.qNameToUri(definitionName).equals(QNameUtil.qNameToUri(DOMUtil.XSD_STRING))
-					&& !QNameUtil.qNameToUri(definitionName).equals(QNameUtil.qNameToUri(PolyStringType.COMPLEX_TYPE))) {
-				LOGGER.error("Trying to validate string policy on the property of type {} failed. Unsupported type.",
-						itemToValidateDefinition);
-				parentResult.recordFatalError("Trying to validate string policy on the property of type "
-						+ itemToValidateDefinition + " failed. Unsupported type.");
-				throw new SchemaException("Trying to validate string policy on the property of type "
-						+ itemToValidateDefinition + " failed. Unsupported type.");
-			}
-
-			if (itemToValidateDefinition.isSingleValue()) {
-				if (definitionName.equals(PolyStringType.COMPLEX_TYPE)) {
-					valueToValidate = ((PolyString) property.getRealValue()).getOrig();
-
-				} else {
-					valueToValidate = (String) property.getRealValue();
-				}
-				valuesToValidate.add(valueToValidate);
-			} else {
-				if (definitionName.equals(DOMUtil.XSD_STRING)) {
-					valuesToValidate.addAll(property.getRealValues(String.class));
-				} else {
-					for (PolyString val : property.getRealValues(PolyString.class)) {
-						valuesToValidate.add(val.getOrig());
-					}
-				}
-			}
+	private <O extends ObjectType> Response validateValue(PrismObject<O> object, PolicyItemsDefinitionType policyItemsDefinition, Task task, OperationResult parentResult) {
+		Response response;
+		if (policyItemsDefinition == null) {
+			response = createBadPolicyItemsDefinitionResponse("Policy items definition must not be null", parentResult);
+			finishRequest(task);
+			return response;
 			
 		}
 		
-		for (String newValue : valuesToValidate) {
-			OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
-			result.addParam("valueToValidate", newValue);
-			if (!policyProcessor.validateValue(newValue, stringPolicy, object, "validate value for " + object + " value " + valueToValidate, task, result)) {
-				result.recordFatalError("Validation for value " + newValue + " against policy " + stringPolicy + " failed");
-				LOGGER.error("Validation for value {} against policy {} failed", newValue, stringPolicy);
-			}
-			result.computeStatusIfUnknown();
+		if (CollectionUtils.isEmpty(policyItemsDefinition.getPolicyItemDefinition())) {
+			response = createBadPolicyItemsDefinitionResponse("No definitions for items", parentResult);
+			finishRequest(task);
+			return response;
 		}
-		parentResult.computeStatusIfUnknown();
 		
-		return parentResult.isAcceptable();
 		
+			try {
+				modelInteraction.validateValue(object, policyItemsDefinition, task, parentResult);
+
+				parentResult.computeStatusIfUnknown();
+				ResponseBuilder responseBuilder;
+				if (parentResult.isAcceptable()) {
+					response = RestServiceUtil.createResponse(Response.Status.OK, policyItemsDefinition, parentResult, true);
+				} else {
+					responseBuilder = Response.status(Status.CONFLICT).entity(parentResult);
+					response = responseBuilder.build();
+				}
+
+			} catch (Exception ex) {
+				parentResult.computeStatus();
+				response = RestServiceUtil.handleException(parentResult, ex);
+			}
+		
+
+		return response;
+	}
+
+	private Response createBadPolicyItemsDefinitionResponse(String message, OperationResult parentResult) {
+		LOGGER.error(message);
+		parentResult.recordFatalError(message);
+		return Response.status(Status.BAD_REQUEST).entity(parentResult).build();
 	}
 	
-
 	@GET
 	@Path("/users/{id}/policy")
 	public Response getValuePolicyForUser(@PathParam("id") String oid, @Context MessageContext mc) {
@@ -472,16 +294,17 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 
 		Response response;
 		try {
-			
+
 			Collection<SelectorOptions<GetOperationOptions>> options =
 					SelectorOptions.createCollection(GetOperationOptions.createRaw());
 			PrismObject<UserType> user = model.getObject(UserType.class, oid, options, task, parentResult);
 
 			CredentialsPolicyType policy = modelInteraction.getCredentialsPolicy(user, task, parentResult);
 
-			ResponseBuilder builder = Response.ok();
-			builder.entity(policy);
-			response = builder.build();
+			response = RestServiceUtil.createResponse(Response.Status.OK, policy, parentResult);
+//			ResponseBuilder builder = Response.ok();
+//			builder.entity(policy);
+//			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -508,7 +331,7 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
 		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
-		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude);
+		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
 		Response response;
 
 		try {
@@ -531,9 +354,10 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 			}
 			removeExcludes(object, exclude);		// temporary measure until fixed in repo
 
-			ResponseBuilder builder = Response.ok();
-			builder.entity(object);
-			response = builder.build();
+			response = RestServiceUtil.createResponse(Response.Status.OK, object, parentResult);
+//			ResponseBuilder builder = Response.ok();
+//			builder.entity(object);
+//			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -555,19 +379,21 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		Response response;
 
 		try {
-			UserType user = SecurityUtil.getPrincipal().getUser();
-			ResponseBuilder builder = Response.ok();
-			builder.entity(user.asPrismObject());
-			response = builder.build();
+			UserType loggedInUser = SecurityUtil.getPrincipal().getUser();
+			PrismObject<UserType> user = model.getObject(UserType.class, loggedInUser.getOid(), null, task, parentResult);
+			response = RestServiceUtil.createResponse(Response.Status.OK, user, parentResult, true);
+//			ResponseBuilder builder = Response.ok();
+//			builder.entity(user);
+//			response = builder.build();
 			parentResult.recordSuccessIfUnknown();
-		} catch (SecurityViolationException e) {
+		} catch (SecurityViolationException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			response = RestServiceUtil.handleException(parentResult, e);
 		}
 
 		finishRequest(task);
 		return response;
 	}
-	
+
 
 	@POST
 	@Path("/{type}")
@@ -601,15 +427,18 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 
 			if (oid != null) {
 				URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
-				builder = clazz.isAssignableFrom(TaskType.class) ?		// TODO not the other way around?
-						Response.accepted().location(resourceURI) : Response.created(resourceURI);
+				response = clazz.isAssignableFrom(TaskType.class) ?		// TODO not the other way around?
+						RestServiceUtil.createResponse(Response.Status.ACCEPTED, resourceURI, parentResult) : RestServiceUtil.createResponse(Response.Status.CREATED, resourceURI, parentResult);
+//				builder = clazz.isAssignableFrom(TaskType.class) ?		// TODO not the other way around?
+//						Response.accepted().location(resourceURI) : Response.created(resourceURI);
 			} else {
 				// OID might be null e.g. if the object creation is a subject of workflow approval
-				builder = Response.accepted();			// TODO is this ok ?
+//				builder = Response.accepted();			// TODO is this ok ?
+				response = RestServiceUtil.createResponse(Response.Status.ACCEPTED, parentResult);
 			}
 			// (not used currently)
 			//validateIfRequested(object, options, builder, task, parentResult);
-			response = builder.build();
+//			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -618,7 +447,7 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		finishRequest(task);
 		return response;
 	}
-	
+
 	@GET
 	@Path("/{type}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
@@ -630,18 +459,26 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		Class<T> clazz = ObjectTypes.getClassFromRestType(type);
 		Response response;
 		try {
+
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, null, null, DefinitionProcessingOption.ONLY_IF_EXISTS);
 			
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, null, null);
-			List<PrismObject<T>> objects = model.searchObjects(clazz, null, searchOptions, task, parentResult);
+			
+			List<T> objects = new ArrayList<>();
+			ResultHandler<T> handler = new ResultHandler<T>() {
+				
+				@Override
+				public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+					return objects.add(object.asObjectable());
+				}
+			};
+			
+			SearchResultMetadata searchMetadata = modelService.searchObjectsIterative(clazz, null, handler, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
-			if (objects != null){
-				List<ObjectType> list = objects.stream().map(o -> convert(clazz, o, parentResult.createOperationResultType())).collect(Collectors.toList());
-				listType.getObject().addAll(list);
-			}
-			
+			listType.getObject().addAll(objects);
 
-			response = Response.ok().entity(listType).build();
+			response = RestServiceUtil.createResponse(Response.Status.OK, listType, parentResult, true);
+//			response = Response.ok().entity(listType).build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -650,7 +487,7 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		finishRequest(task);
 		return response;
 	}
-	
+
 	private ObjectType convert(Class clazz, PrismObject<? extends ObjectType> o, OperationResultType result) {
 		ObjectType objType = null;
 		try {
@@ -662,8 +499,8 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 			// TODO Auto-generated catch block
 			return objType;
 		}
-		
-		
+
+
 	}
 
 	// currently unused; but potentially useful in future
@@ -706,21 +543,21 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		}
 
 		String oid;
-		ResponseBuilder builder;
+		Response response;
 		try {
 			oid = model.addObject(object, modelExecuteOptions, task, parentResult);
 			LOGGER.debug("returned oid : {}", oid);
 
 			URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
-			builder = clazz.isAssignableFrom(TaskType.class) ?
-					Response.accepted().location(resourceURI) : Response.created(resourceURI);
+			response = clazz.isAssignableFrom(TaskType.class) ?
+					RestServiceUtil.createResponse(Response.Status.ACCEPTED, resourceURI, parentResult) : RestServiceUtil.createResponse(Response.Status.CREATED, resourceURI, parentResult);
 			// (not used currently)
 			//validateIfRequested(object, options, builder, task, parentResult);
 		} catch (Exception ex) {
-			builder = RestServiceUtil.createErrorResponseBuilder(parentResult, ex);
+			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 		parentResult.computeStatus();
-		Response response = RestServiceUtil.createResultHeaders(builder, parentResult).build();
+//		Response response = RestServiceUtil.createResultHeaders(builder, parentResult).build();
 
 		finishRequest(task);
 		return response;
@@ -741,7 +578,7 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		Response response;
 		try {
 			if (clazz.isAssignableFrom(TaskType.class)){
-				model.suspendAndDeleteTasks(MiscUtil.createCollection(id), WAIT_FOR_TASK_STOP, true, parentResult);
+				model.suspendAndDeleteTasks(MiscUtil.createCollection(id), WAIT_FOR_TASK_STOP, true, task, parentResult);
 				parentResult.computeStatus();
 				finishRequest(task);
 				if (parentResult.isSuccess()){
@@ -755,7 +592,8 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 			ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
 
 			model.deleteObject(clazz, id, modelExecuteOptions, task, parentResult);
-			response = Response.noContent().build();
+//			response = Response.noContent().build();
+			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -790,8 +628,10 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 			ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
 			model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, parentResult);
-			response = Response.noContent().build();
+//			response = Response.noContent().build();
+			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
 		} catch (Exception ex) {
+			parentResult.recordFatalError("Could not modify object. " + ex.getMessage(), ex);
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
 
@@ -814,7 +654,8 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		Response response;
 		try {
 			model.notifyChange(changeDescription, parentResult, task);
-			return Response.ok().build();
+			response = RestServiceUtil.createResponse(Response.Status.OK, parentResult);
+//			return Response.ok().build();
 //			String oldShadowOid = changeDescription.getOldShadowOid();
 //			if (oldShadowOid != null){
 //				URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oldShadowOid).build(oldShadowOid);
@@ -845,7 +686,8 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		Response response;
 		try {
 			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
-			response = Response.ok().entity(user).build();
+//			response = Response.ok().entity(user).build();
+			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, user, parentResult);
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -872,7 +714,7 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		Response response;
 		try {
 			ObjectQuery query = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
 			List<PrismObject<? extends ObjectType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
@@ -881,7 +723,8 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 				listType.getObject().add(o.asObjectable());
 			}
 
-			response = Response.ok().entity(listType).build();
+//			response = Response.ok().entity(listType).build();
+			response = RestServiceUtil.createResponse(Response.Status.OK, listType, parentResult, true);
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -892,12 +735,7 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 	}
 
 	private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude) {
-		for (ItemPath path : ItemPath.fromStringList(exclude)) {
-			Item item = object.findItem(path);		// reduce to "removeItem" after fixing that method implementation
-			if (item != null) {
-				object.removeItem(item.getPath(), Item.class);
-			}
-		}
+		object.getValue().removePaths(ItemPath.fromStringList(exclude));
 	}
 
 	@POST
@@ -914,8 +752,10 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		Response response;
 		try {
 			model.importFromResource(resourceOid, objClass, task, parentResult);
-			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
-					.build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
+			response = RestServiceUtil.createResponse(Response.Status.SEE_OTHER, (uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
+					.build(ObjectTypes.TASK.getRestType(), task.getOid())), parentResult);
+//			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
+//			.build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -938,7 +778,8 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		OperationResult testResult = null;
 		try {
 			testResult = model.testResource(resourceOid, task);
-			response = Response.ok(testResult).build();
+			response = RestServiceUtil.createResponse(Response.Status.OK, testResult, parentResult);
+//			response = Response.ok(testResult).build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -961,13 +802,14 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
-			model.suspendTasks(taskOids, WAIT_FOR_TASK_STOP, parentResult);
+			model.suspendTasks(taskOids, WAIT_FOR_TASK_STOP, task, parentResult);
 			parentResult.computeStatus();
-			if (parentResult.isSuccess()){
-				response = Response.noContent().build();
-			} else {
-				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-			}
+			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, task, parentResult);
+//			if (parentResult.isSuccess()){
+//				response = Response.noContent().build();
+//			} else {
+//				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+//			}
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -978,29 +820,29 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 
 //	@DELETE
 //	@Path("tasks/{oid}/suspend")
-    public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
-
-    	Task task = RestServiceUtil.initRequest(mc);
-		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_AND_DELETE_TASKS);
-
-		Response response;
-		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
-		try {
-			model.suspendAndDeleteTasks(taskOids, WAIT_FOR_TASK_STOP, true, parentResult);
-
-			parentResult.computeStatus();
-			if (parentResult.isSuccess()) {
-				response = Response.accepted().build();
-			} else {
-				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-			}
-		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(parentResult, ex);
-		}
-
-		finishRequest(task);
-		return response;
-    }
+//    public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid, @Context MessageContext mc) {
+//
+//    	Task task = RestServiceUtil.initRequest(mc);
+//		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SUSPEND_AND_DELETE_TASKS);
+//
+//		Response response;
+//		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
+//		try {
+//			model.suspendAndDeleteTasks(taskOids, WAIT_FOR_TASK_STOP, true, parentResult);
+//
+//			parentResult.computeStatus();
+//			if (parentResult.isSuccess()) {
+//				response = Response.accepted().build();
+//			} else {
+//				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+//			}
+//		} catch (Exception ex) {
+//			response = RestServiceUtil.handleException(parentResult, ex);
+//		}
+//
+//		finishRequest(task);
+//		return response;
+//    }
 
 	@POST
 	@Path("/tasks/{oid}/resume")
@@ -1012,15 +854,15 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		Response response;
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
 		try {
-			model.resumeTasks(taskOids, parentResult);
+			model.resumeTasks(taskOids, task, parentResult);
 
 			parentResult.computeStatus();
-
-			if (parentResult.isSuccess()) {
-				response = Response.accepted().build();
-			} else {
-				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-			}
+			response = RestServiceUtil.createResponse(Response.Status.ACCEPTED, parentResult);
+//			if (parentResult.isSuccess()) {
+//				response = Response.accepted().build();
+//			} else {
+//				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+//			}
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -1041,15 +883,16 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 
 		Response response;
 		try {
-			model.scheduleTasksNow(taskOids, parentResult);
+			model.scheduleTasksNow(taskOids, task, parentResult);
 
 			parentResult.computeStatus();
 
-			if (parentResult.isSuccess()) {
-				response = Response.accepted().build();
-			} else {
-				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
-			}
+			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
+//			if (parentResult.isSuccess()) {
+//				response = Response.accepted().build();
+//			} else {
+//				response = Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+//			}
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(parentResult, ex);
 		}
@@ -1058,61 +901,51 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		return response;
     }
 
+	public static class ExecuteScriptConvertor implements ConvertorInterface {
+		public ExecuteScriptType convert(@NotNull Object input) {
+			if (input instanceof ExecuteScriptType) {
+				return (ExecuteScriptType) input;
+			} else if (input instanceof ScriptingExpressionType) {
+				return ScriptingExpressionEvaluator.createExecuteScriptCommand((ScriptingExpressionType) input);
+			} else {
+				throw new IllegalArgumentException("Wrong input value: " + input);
+			}
+		}
+	}
+
 	@POST
 	@Path("/rpc/executeScript")
 	//	@Produces({"text/html", "application/xml"})
-	@Consumes({"application/xml" })
-	public <T extends ObjectType> Response executeScript(ScriptingExpressionType scriptingExpression,
-			@QueryParam("asynchronous") Boolean asynchronous,
-			@Context UriInfo uriInfo, @Context MessageContext mc) {
+	@Consumes({"application/xml", MediaType.APPLICATION_JSON, "application/yaml" })
+	public Response executeScript(@Convertor(ExecuteScriptConvertor.class) ExecuteScriptType command,
+			@QueryParam("asynchronous") Boolean asynchronous, @Context UriInfo uriInfo, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_SCRIPT);
 
-		String oid;
 		Response response;
 		try {
-			ResponseBuilder builder;
 			if (Boolean.TRUE.equals(asynchronous)) {
-				scriptingService.evaluateExpression(scriptingExpression, task, result);
+				scriptingService.evaluateExpressionInBackground(command, task, result);
 				URI resourceUri = uriInfo.getAbsolutePathBuilder().path(task.getOid()).build(task.getOid());
-				builder = Response.created(resourceUri);
+				response = RestServiceUtil.createResponse(Response.Status.CREATED, resourceUri, result);
 			} else {
-				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(scriptingExpression, task, result);
-
-				ExecuteScriptsResponseType operationOutput = new ExecuteScriptsResponseType();
-				operationOutput.setResult(result.createOperationResultType());
-				ScriptOutputsType outputs = new ScriptOutputsType();
-				operationOutput.setOutputs(outputs);
-				SingleScriptOutputType output = new SingleScriptOutputType();
-				output.setTextOutput(executionResult.getConsoleOutput());
-				output.setXmlData(prepareXmlData(executionResult.getDataOutput()));
-				outputs.getOutput().add(output);
-
-				builder = Response.ok();
-				builder.entity(operationOutput);
+				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, Collections.emptyMap(),
+						false, task, result);
+				ExecuteScriptResponseType responseData = new ExecuteScriptResponseType()
+						.result(result.createOperationResultType())
+						.output(new ExecuteScriptOutputType()
+								.consoleOutput(executionResult.getConsoleOutput())
+								.dataOutput(ModelWebService.prepareXmlData(executionResult.getDataOutput(), command.getOptions())));
+				response = RestServiceUtil.createResponse(Response.Status.OK, responseData, result);
 			}
-
-			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(result, ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script.", ex);
 		}
-
 		result.computeStatus();
 		finishRequest(task);
 		return response;
-	}
-
-	private ItemListType prepareXmlData(List<PrismValue> output) throws JAXBException, SchemaException {
-		ItemListType itemListType = new ItemListType();
-		if (output != null) {
-			for (PrismValue value : output) {
-				RawType rawType = new RawType(prismContext.xnodeSerializer().root(SchemaConstants.C_VALUE).serialize(value), prismContext);
-				itemListType.getItem().add(rawType);
-			}
-		}
-		return itemListType;
 	}
 
 	@POST
@@ -1132,16 +965,17 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		try {
 			ResponseBuilder builder;
 			List<ItemPath> ignoreItemPaths = ItemPath.fromStringList(restIgnoreItems);
-			final GetOperationOptions getOpOptions = GetOperationOptions.fromRestOptions(restReadOptions);
+			final GetOperationOptions getOpOptions = GetOperationOptions.fromRestOptions(restReadOptions, DefinitionProcessingOption.ONLY_IF_EXISTS);
 			Collection<SelectorOptions<GetOperationOptions>> readOptions =
 					getOpOptions != null ? SelectorOptions.createCollection(getOpOptions) : null;
 			ModelCompareOptions compareOptions = ModelCompareOptions.fromRestOptions(restCompareOptions);
 			CompareResultType compareResult = modelService.compareObject(clientObject, readOptions, compareOptions, ignoreItemPaths, task, result);
 
-			builder = Response.ok();
-			builder.entity(compareResult);
-
-			response = builder.build();
+			response = RestServiceUtil.createResponse(Response.Status.OK, compareResult, result);
+//			builder = Response.ok();
+//			builder.entity(compareResult);
+//
+//			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(result, ex);
 		}
@@ -1163,9 +997,10 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		try {
 			long size = modelDiagnosticService.getLogFileSize(task, result);
 
-			ResponseBuilder builder = Response.ok();
-			builder.entity(String.valueOf(size));
-			response = builder.build();
+			response = RestServiceUtil.createResponse(Response.Status.OK, String.valueOf(size), result);
+//			ResponseBuilder builder = Response.ok();
+//			builder.entity(String.valueOf(size));
+//			response = builder.build();
 		} catch (Exception ex) {
 			response = RestServiceUtil.handleException(result, ex);
 		}
@@ -1194,6 +1029,7 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 			builder.header("CurrentLogFileSize", content.getLogFileSize());
 
 			response = builder.build();
+
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get log file content: fromPosition={}, maxSize={}", ex, fromPosition, maxSize);
 			response = RestServiceUtil.handleException(result, ex);
@@ -1204,6 +1040,48 @@ private <T, O extends ObjectType> boolean validateValue(PrismObject<O> object, P
 		return response;
 	}
 
+	@POST
+	@Path("/users/{oid}/credential")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	public Response executeCredentialReset(@PathParam("oid") String oid, ExecuteCredentialResetRequestType executeCredentialResetRequest, @Context MessageContext mc) {
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = task.getResult().createSubresult(OPERATION_EXECUTE_CREDENTIAL_RESET);
+
+		Response response;
+		try {
+			PrismObject<UserType> user = modelService.getObject(UserType.class, oid, null, task, result);
+			
+			ExecuteCredentialResetResponseType executeCredentialResetResponse = modelInteraction.executeCredentialsReset(user, executeCredentialResetRequest, task, result);
+			response = RestServiceUtil.createResponse(Response.Status.OK, executeCredentialResetResponse, result);
+		} catch (Exception ex) {
+			response = RestServiceUtil.handleException(result, ex);
+		}
+
+		result.computeStatus();
+		finishRequest(task);
+		return response;
+
+	}
+	
+	@POST
+	@Path("/event/{type}")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
+	public Response executeClusterEvent(@PathParam("type") String type, @Context MessageContext mc) {
+		//TODO: task??
+		Task task = RestServiceUtil.initRequest(mc);
+		OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_EVENT);
+		String oid = "";
+		Class clazz = ObjectTypes.getClassFromRestType(type);
+		cacheDispatcher.dispatch(clazz, oid);
+		
+		result.recordSuccess();
+		Response response = RestServiceUtil.createResponse(Response.Status.OK, result);
+		finishRequest(task);
+		return response;
+
+	}
 
 	//    @GET
 //    @Path("tasks/{oid}")

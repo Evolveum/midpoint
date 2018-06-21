@@ -15,8 +15,8 @@
  */
 
 /**
- * GUI API package for various utility classes and interfaces. 
- * 
+ * GUI API package for various utility classes and interfaces.
+ *
  * @author Radovan Semancik
  */
 package com.evolveum.midpoint.gui.api.util;

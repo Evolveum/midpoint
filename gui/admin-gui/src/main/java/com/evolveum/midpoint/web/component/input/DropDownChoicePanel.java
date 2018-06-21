@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -29,39 +30,41 @@ import org.apache.wicket.model.IModel;
  */
 public class DropDownChoicePanel<T> extends InputPanel {
 
-    private static final String ID_INPUT = "input";
+  private static final long serialVersionUID = 1L;
+	private static final String ID_INPUT = "input";
 
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices) {
         this(id, model, choices, false);
     }
 
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, boolean allowNull) {
-        super(id);
-
-        DropDownChoice input = new DropDownChoice(ID_INPUT, model, choices) {
-
-            @Override
-            protected CharSequence getDefaultChoice(String selectedValue) {
-                return getString("DropDownChoicePanel.notDefined");
-            }
-        };
-        input.setNullValid(allowNull);
-        add(input);
+        this(id, model, choices, new ChoiceRenderer(), allowNull);
     }
 
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, IChoiceRenderer<T> renderer) {
         this(id, model, choices, renderer, false);
     }
-    
+
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, IChoiceRenderer<T> renderer,
                                boolean allowNull) {
         super(id);
 
         DropDownChoice<T> input = new DropDownChoice<T>(ID_INPUT, model, choices, renderer) {
 
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            protected CharSequence getDefaultChoice(String selectedValue) {
+                if (allowNull){
+                    return super.getDefaultChoice(selectedValue);
+                } else {
+                    return getString("DropDownChoicePanel.notDefined");
+                }
+            }
+
             @Override
             protected String getNullValidDisplayValue() {
-                return getString("DropDownChoicePanel.notDefined");
+                return DropDownChoicePanel.this.getNullValidDisplayValue();
             }
         };
         input.setNullValid(allowNull);
@@ -69,7 +72,15 @@ public class DropDownChoicePanel<T> extends InputPanel {
     }
 
     @Override
-    public DropDownChoice getBaseFormComponent() {
+    public DropDownChoice<T> getBaseFormComponent() {
         return (DropDownChoice) get("input");
+    }
+
+    public IModel<T> getModel() {
+    	return getBaseFormComponent().getModel();
+    }
+
+    protected String getNullValidDisplayValue() {
+        return getString("DropDownChoicePanel.notDefined");
     }
 }

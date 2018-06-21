@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2015 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -39,6 +39,34 @@
         </appender>
     </logging>
     <notificationConfiguration>
+		<handler>
+			<simpleCaseManagementNotifier>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<showTechnicalInformation>true</showTechnicalInformation>
+				<transport>dummy:caseNotifier</transport>
+			</simpleCaseManagementNotifier>
+		</handler>
+		<handler>
+			<simplePolicyRuleNotifier>
+				<recipientExpression>
+					<value>recipient@evolveum.com</value>
+				</recipientExpression>
+				<transport>dummy:policyRuleNotifier</transport>
+			</simplePolicyRuleNotifier>
+		</handler>
+		<handler>
+            <accountActivationNotifier>
+                <recipientExpression>
+					<script>
+						<code>requestee.getEmailAddress()</code>
+					</script>
+				</recipientExpression>
+                <transport>dummy:accountActivationNotifier</transport>
+                <confirmationMethod>link</confirmationMethod>
+            </accountActivationNotifier>
+        </handler>
         <handler>
             <accountPasswordNotifier>
                 <recipientExpression>
@@ -157,7 +185,7 @@
                 <bodyExpression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
-                        <code>$event.object</code>
+                        <code>$event.object.get(0).value</code>
                     </script>
                 </bodyExpression>
                 <transport>dummy:CustomType2</transport>
@@ -189,6 +217,33 @@
     	</focusSelector>
     </globalPolicyRule>
     <globalPolicyRule>
+    	<name>non-createable-role-disabled</name>
+    	<policyConstraints>
+    		<modification>
+    			<operation>add</operation>
+    		</modification>
+    	</policyConstraints>
+    	<policyActions>
+    		<enforcement/>
+    	</policyActions>
+    	<focusSelector>
+    		<type>RoleType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>description</q:path>
+    				<q:value>Thou shalt not create this role! (disabled)</q:value>
+    			</q:equal>
+    		</filter>
+    	</focusSelector>
+		<condition>
+			<expression>
+				<script>
+					<code>false</code>
+				</script>
+			</expression>
+		</condition>
+    </globalPolicyRule>
+    <globalPolicyRule>
     	<name>immutable-role</name>
     	<policyConstraints>
     		<modification>
@@ -208,7 +263,74 @@
     		</filter>
     	</focusSelector>
     </globalPolicyRule>
-    
+    <globalPolicyRule>  <!-- see TestRbac.test880 -->
+    	<name>immutable-user-from-pluto-selector</name>
+    	<policyConstraints>
+    		<modification>
+    			<operation>modify</operation>
+    		</modification>
+    	</policyConstraints>
+    	<policyActions>
+    		<enforcement/>
+    	</policyActions>
+    	<focusSelector>
+    		<type>UserType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>description</q:path>
+    				<q:value>Came from Pluto</q:value>
+    			</q:equal>
+    		</filter>
+    	</focusSelector>
+    </globalPolicyRule>
+    <globalPolicyRule>	<!-- see TestRbac.test880 -->
+    	<name>immutable-user-from-pluto-condition</name>
+    	<policyConstraints>
+    		<modification>
+    			<operation>modify</operation>
+    		</modification>
+    	</policyConstraints>
+    	<policyActions>
+    		<enforcement/>
+    	</policyActions>
+    	<focusSelector>
+    		<type>UserType</type>
+    	</focusSelector>
+		<condition>
+			<source>
+				<path>description</path>
+			</source>
+			<expression>
+				<script>
+					<code>
+						description == 'Came from Pluto'
+					</code>
+				</script>
+			</expression>
+		</condition>
+    </globalPolicyRule>
+    <globalPolicyRule>
+    	<name>immutable-role-description</name>
+    	<policyConstraints>
+    		<modification>
+    			<operation>modify</operation>
+				<item>description</item>
+    		</modification>
+    	</policyConstraints>
+    	<policyActions>
+    		<enforcement/>
+    	</policyActions>
+    	<focusSelector>
+    		<type>RoleType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>description</q:path>
+    				<q:value>Thou shalt not modify description of this role!</q:value>
+    			</q:equal>
+    		</filter>
+    	</focusSelector>
+    </globalPolicyRule>
+
     <internals>
         <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
     </internals>
@@ -248,6 +370,10 @@
     	</objectForms>
     	<defaultTimezone>Jamaica</defaultTimezone>
     </adminGuiConfiguration>
+    
+    <roleManagement>
+    	<autoassignEnabled>false</autoassignEnabled>
+    </roleManagement>
     
     <mergeConfiguration>
     	<name>default</name>

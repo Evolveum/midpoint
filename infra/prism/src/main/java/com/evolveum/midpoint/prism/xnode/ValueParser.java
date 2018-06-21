@@ -31,7 +31,7 @@ import java.util.Map;
 public interface ValueParser<T> {
 
 	T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException;
-	
+
 	// This has to work even without the type
 	boolean isEmpty();
 

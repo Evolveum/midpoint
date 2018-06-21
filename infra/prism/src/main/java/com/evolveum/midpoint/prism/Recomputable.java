@@ -20,11 +20,11 @@ package com.evolveum.midpoint.prism;
  *
  */
 public interface Recomputable {
-	
+
 	// TODO recompute method
-	
+
 	boolean equalsOriginalValue(Recomputable other);
-	
+
 	/**
 	 * @throws IllegalStateException
 	 */

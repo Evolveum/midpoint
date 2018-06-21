@@ -21,8 +21,15 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.sql.data.common.RTask;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.RetrieveOption;
@@ -33,11 +40,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hibernate.Session;
 import org.hibernate.stat.Statistics;
 import org.springframework.test.annotation.DirtiesContext;
@@ -48,6 +56,8 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
@@ -121,12 +131,24 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void simpleAddGetTest() throws Exception {
         LOGGER.info("===[ simpleAddGetTest ]===");
         final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
-        addGetCompare(OBJECTS_FILE);
+        List<PrismObject<?>> objects = addGetCompare(OBJECTS_FILE);
+
+        boolean foundAtestuserX00003 = false;
+        for (PrismObject<?> object : objects) {
+            // adhoc check whether reference.targetName is preserved
+            if ("atestuserX00003".equals(PolyString.getOrig(object.getName()))) {
+                String personaName = PolyString.getOrig(((UserType) object.asObjectable()).getPersonaRef().get(0).getTargetName());
+                assertEquals("Wrong personaRef.targetName on atestuserX00003", null, personaName);
+                foundAtestuserX00003 = true;
+                break;
+            }
+        }
+        assertTrue("User atestuserX00003 was not found", foundAtestuserX00003);
     }
 
-    private void addGetCompare(File file) throws Exception {
+    private List<PrismObject<?>> addGetCompare(File file) throws Exception {
         List<PrismObject<? extends Objectable>> elements = prismContext.parserFor(file).parseObjects();
-        List<String> oids = new ArrayList<String>();
+        List<String> oids = new ArrayList<>();
 
         OperationResult result = new OperationResult("Simple Add Get Test");
         long time = System.currentTimeMillis();
@@ -136,14 +158,14 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     object.getCompileTimeClass().getSimpleName()});
             oids.add(repositoryService.addObject(object, null, result));
         }
-        LOGGER.info("Time to add objects ({}): {}", new Object[]{elements.size(),
-                (System.currentTimeMillis() - time),});
+        LOGGER.info("Time to add objects ({}): {}", elements.size(), System.currentTimeMillis() - time);
 
+        List<PrismObject<?>> objectsRead = new ArrayList<>();
         int count = 0;
         elements = prismContext.parserFor(file).parseObjects();
         for (int i = 0; i < elements.size(); i++) {
+        	PrismObject object = elements.get(i);
             try {
-                PrismObject object = elements.get(i);
                 object.asObjectable().setOid(oids.get(i));
 
                 Class<? extends ObjectType> clazz = object.getCompileTimeClass();
@@ -158,18 +180,19 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 } else if (AccessCertificationCampaignType.class.equals(clazz)) {
                     o = SelectorOptions.createCollection(AccessCertificationCampaignType.F_CASE,
                             GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                } else if (TaskType.class.equals(clazz)) {
+                    o = SelectorOptions.createCollection(TaskType.F_RESULT,
+                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
                 }
                 PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), o, result);
 
-                LOGGER.info("Old\n{}\nnew\n{}", new Object[]{object.debugDump(3), newObject.debugDump(3)});
+                LOGGER.info("AFTER READ: {}\nOld\n{}\nnew\n{}", object, object.debugDump(3), newObject.debugDump(3));
                 checkContainersSize(newObject, object);
                 System.out.println("OLD: " + object.findProperty(ObjectType.F_NAME).getValue());
                 System.out.println("NEW: " + newObject.findProperty(ObjectType.F_NAME).getValue());
 
+                objectsRead.add(newObject);
                 ObjectDelta delta = object.diff(newObject);
-                if (delta == null) {
-                    continue;
-                }
 
                 count += delta.getModifications().size();
                 if (delta.getModifications().size() > 0) {
@@ -181,21 +204,21 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                             continue;
                         }
                     }
-                    LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1),
-                            delta.getModifications().size(), newObject.toString(), delta.debugDump(3)});
+                    LOGGER.error(">>> {} Found {} changes for {}\n{}", (i + 1),
+                            delta.getModifications().size(), newObject.toString(), delta.debugDump(3));
                     ItemDelta id = (ItemDelta) delta.getModifications().iterator().next();
                     if (id.isReplace()) {
-                        System.out.println(id.getValuesToReplace().iterator().next());
+                        LOGGER.debug("{}", id.getValuesToReplace().iterator().next());
                     }
-                    LOGGER.error("{}", prismContext.serializeObjectToString(newObject, PrismContext.LANG_XML));
+                    LOGGER.error("{}", prismContext.serializerFor(PrismContext.LANG_XML).serialize(newObject));
                 }
-            } catch (Exception ex) {
-                LOGGER.error("Exception occurred", ex);
-                throw ex;
+            } catch (Throwable ex) {
+                LOGGER.error("Exception occurred for {}", object, ex);
+                throw new RuntimeException("Exception during processing of "+object+": "+ex.getMessage(), ex);
             }
         }
-
         AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
+        return objectsRead;
     }
 
     private Integer size(PrismContainerValue value) {
@@ -208,9 +231,9 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     private void checkContainerValuesSize(QName parentName, PrismContainerValue newValue, PrismContainerValue oldValue) {
         LOGGER.info("Checking: " + parentName);
-        AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "'", size(oldValue), size(newValue));
+        AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "' id="+newValue.getId(), size(oldValue), size(newValue));
 
-        List<QName> checked = new ArrayList<QName>();
+        List<QName> checked = new ArrayList<>();
 
         for (Item item : (List<Item>) newValue.getItems()) {
             if (!(item instanceof PrismContainer)) {
@@ -241,7 +264,12 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 newContainer.getElementName(), newContainer.size(), oldContainer.size());
         AssertJUnit.assertEquals(newContainer.size(), oldContainer.size());
 
-        List<Long> checked = new ArrayList<Long>();
+        PrismContainerDefinition def = oldContainer.getDefinition();
+        if (def != null && def.isMultiValue()) {
+        	// Comparison item-by-item is not reliable
+        	return;
+        }
+        List<Long> checked = new ArrayList<>();
         List<PrismContainerValue> newValues = newContainer.getValues();
         for (PrismContainerValue value : newValues) {
             PrismContainerValue oldValue = oldContainer.getValue(value.getId());
@@ -282,7 +310,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         ObjectDelta<UserType> delta = fileUser.diff(repoUser);
         AssertJUnit.assertNotNull(delta);
         LOGGER.info("delta\n{}", delta.debugDump(3));
-        AssertJUnit.assertTrue(delta.isEmpty());
+        assertTrue(delta.isEmpty());
     }
 
     /**
@@ -309,7 +337,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         ObjectDelta<ShadowType> delta = fileAccount.diff(repoAccount);
         AssertJUnit.assertNotNull(delta);
         LOGGER.info("delta\n{}", new Object[]{delta.debugDump(3)});
-        AssertJUnit.assertTrue(delta.isEmpty());
+        assertTrue(delta.isEmpty());
         ShadowType repoShadow = repoAccount.asObjectable();
         AssertJUnit.assertNotNull(repoShadow.getSynchronizationSituation());
         AssertJUnit.assertEquals(SynchronizationSituationType.LINKED, repoShadow.getSynchronizationSituation());
@@ -349,7 +377,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         ReferenceDelta refDelta = ReferenceDelta.createModificationAdd(
                 SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, repoSystemConfig.getDefinition(),
                 PrismReferenceValue.createFromTarget(repoPasswordPolicy));
-        List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+        List<ReferenceDelta> refDeltas = new ArrayList<>();
         refDeltas.add(refDelta);
         repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
         repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
@@ -382,14 +410,14 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         desc = shadowType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
     }
-    
+
     @Test
     public void addGetRoleWithResourceRefFilter() throws Exception{
     	PrismObject<RoleType> role = prismContext.parseObject(new File("src/test/resources/basic/role-resource-filter.xml"));
 
     	System.out.println("role: " + role.debugDump());
     	System.out.println("role: " + role.asObjectable().getInducement().get(0).getConstruction().getResourceRef().getFilter());
-    	
+
         OperationResult result = new OperationResult("sync desc test");
         String oid = repositoryService.addObject(role, null, result);
 
@@ -408,7 +436,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void emtpyIterationToken() throws Exception {
         String token = testIterationToken("");
         AssertJUnit.assertNotNull(token);
-        AssertJUnit.assertTrue(token.equals(""));
+        assertTrue(token.equals(""));
     }
 
     /**
@@ -485,7 +513,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test
     public void test() throws Exception {
         OperationResult result = new OperationResult("asdf");
-        final List<PrismObject> objects = new ArrayList<PrismObject>();
+        final List<PrismObject> objects = new ArrayList<>();
         ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
 
             @Override
@@ -496,7 +524,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         };
 
         repositoryService.searchObjectsIterative(ObjectType.class, null, handler, null, false, result);
-        AssertJUnit.assertTrue(!objects.isEmpty());
+        assertTrue(!objects.isEmpty());
     }
 
     @Test
@@ -540,6 +568,11 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         user = repositoryService.getObject(UserType.class, OID, null, result);
         result.computeStatusIfUnknown();
 
+        PrismContainer pc = user.findContainer(new ItemPath(UserType.F_ASSIGNMENT, 1,
+                AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, PolicyConstraintsType.F_OBJECT_STATE));
+        AssertJUnit.assertNotNull(pc);
+        AssertJUnit.assertNotNull(pc.getValue().getId());
+
         container = user.findContainer(UserType.F_ASSIGNMENT);
         List<Short> xmlShorts = new ArrayList<>();
         for (PrismContainerValue value : (List<PrismContainerValue>) container.getValues()) {
@@ -550,8 +583,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         Session session = open();
         try {
-            Query query = session.createSQLQuery("select id from m_assignment where owner_oid=:oid");
-            query.setString("oid", OID);
+            Query query = session.createNativeQuery("select id from m_assignment where owner_oid=:oid");
+            query.setParameter("oid", OID);
             List<Short> dbShorts = new ArrayList<>();
             for (Number n : (List<Number>) query.list()) {
                 dbShorts.add(n.shortValue());
@@ -586,6 +619,167 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         }
     }
 
+	private final String OID_200 = "70016628-2c41-4a2d-9558-8340014adaab";
+
+	@Test
+    public void test200WatcherAddWithOid() throws Exception {
+        OperationResult result = new OperationResult("test200WatcherAddWithOid");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t200").oid(OID_200);
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID_200);
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 0, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+	@Test
+    public void test201WatcherOverwriteWithOidNoVersion() throws Exception {
+        OperationResult result = new OperationResult("test201WatcherOverwriteWithOidNoVersion");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t200").oid(OID_200);
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID_200);
+        repositoryService.addObject(user.asPrismObject(), RepoAddOptions.createOverwrite(), result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 1, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+	@Test
+    public void test202WatcherOverwriteWithOidNoVersion2() throws Exception {
+        OperationResult result = new OperationResult("test202WatcherOverwriteWithOidNoVersion2");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t200").oid(OID_200);
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID_200);
+        repositoryService.addObject(user.asPrismObject(), RepoAddOptions.createOverwrite(), result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 2, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+	@Test
+    public void test203WatcherOverwriteWithOidAndVersion() throws Exception {
+        OperationResult result = new OperationResult("test203WatcherOverwriteWithOidAndVersion");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t200").oid(OID_200).version("1000");
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID_200);
+        repositoryService.addObject(user.asPrismObject(), RepoAddOptions.createOverwrite(), result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 3, watcher.getExpectedVersion());      // the version is ignored when overwriting
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+    @Test
+    public void test210WatcherAddWithOidAndVersion() throws Exception {
+        OperationResult result = new OperationResult("test210WatcherAddWithOidAndVersion");
+
+        // GIVEN
+        final String OID = "f82cdad5-8748-43c1-b20b-7f679fbc1995";
+        UserType user = new UserType(prismContext).name("t210").oid(OID).version("443");
+
+        // WHEN
+        ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(OID);
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 443, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+    @Test
+    public void test220WatcherAddWithNoOidNorVersion() throws Exception {
+        OperationResult result = new OperationResult("test220WatcherAddWithNoOidNorVersion");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t220");
+
+        // WHEN
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+	    ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(oid);
+	    watcher.setExpectedVersion(user.getVersion());      // the version should be set by repo here
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 0, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+    @Test
+    public void test230WatcherAddWithVersion() throws Exception {
+        OperationResult result = new OperationResult("test230WatcherAddWithVersion");
+
+        // GIVEN
+        UserType user = new UserType(prismContext).name("t230").version("2000");
+
+        // WHEN
+        String oid = repositoryService.addObject(user.asPrismObject(), null, result);
+	    ConflictWatcherImpl watcher = (ConflictWatcherImpl) repositoryService.createAndRegisterConflictWatcher(oid);
+	    watcher.setExpectedVersion(user.getVersion());      // the version should be preserved here
+
+        // THEN
+        assertTrue("watcher is not initialized", watcher.isInitialized());
+        assertFalse("watcher is marked as deleted", watcher.isObjectDeleted());
+        assertEquals("expectedVersion is wrong", 2000, watcher.getExpectedVersion());
+        boolean hasConflict = repositoryService.hasConflict(watcher, result);
+        assertFalse("false conflict reported for " + watcher, hasConflict);
+    }
+
+    @Test
+    public void test300ContainerIds() throws Exception {
+        OperationResult result = new OperationResult("test300ContainerIds");
+
+        // GIVEN
+        UserType user = new UserType(prismContext)
+                .name("t300")
+                .beginAssignment()
+                    .description("a1")
+                .<UserType>end()
+                .beginAssignment()
+                    .description("a2")
+                .end();
+
+        // WHEN
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        // THEN
+        System.out.println(user.asPrismObject().debugDump());
+        assertNotNull(user.getAssignment().get(0).asPrismContainerValue().getId());
+        assertNotNull(user.getAssignment().get(1).asPrismContainerValue().getId());
+    }
+
     @Test
     public void test990AddResourceWithEmptyConnectorConfiguration() throws Exception {
         OperationResult result = new OperationResult("test990AddResourceWithEmptyConnectorConfiguration");
@@ -612,5 +806,76 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(prismResource, fetchedResource);
     }
 
+    /**
+     * MID-3999
+     */
+    @Test(expectedExceptions = SchemaException.class)
+    public void test950AddBinary() throws Exception {
+        final File user = new File(FOLDER_BASE, "./get/user-binary.xml");
+        addGetCompare(user);
+    }
+
+    @Test
+    public void test400AddModifyTask() throws Exception {
+        File file = new File(FOLDER_BASIC, "task.xml");
+        PrismObject<TaskType> task = PrismTestUtil.parseObject(file);
+        TaskType taskType = task.asObjectable();
+        AssertJUnit.assertNotNull(taskType.getResult());
+
+        OperationResult result = new OperationResult("test400AddTask");
+        String oid = repositoryService.addObject(task, null, result);
+
+        Session session = null;
+        try {
+            session = open();
+
+            RTask rTask = session.createQuery("from RTask t where t.oid=:oid", RTask.class)
+                    .setParameter("oid", oid).getSingleResult();
+            AssertJUnit.assertNotNull(rTask.getFullResult());
+            AssertJUnit.assertEquals(ROperationResultStatus.IN_PROGRESS, rTask.getStatus());
+
+            String xml = RUtil.getXmlFromByteArray(rTask.getFullObject(), true);
+            PrismObject<TaskType> obj = PrismTestUtil.parseObject(xml);
+            TaskType objType = obj.asObjectable();
+            AssertJUnit.assertNull(objType.getResult());
+        } finally {
+            close(session);
+        }
+
+        task = repositoryService.getObject(TaskType.class, oid, null, result);
+        taskType = task.asObjectable();
+        AssertJUnit.assertNull(taskType.getResult());
+        AssertJUnit.assertEquals(OperationResultStatusType.IN_PROGRESS, taskType.getResultStatus());
+
+        task = repositoryService.getObject(TaskType.class, oid, SelectorOptions.createCollection(TaskType.F_RESULT,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)), result);
+        taskType = task.asObjectable();
+        AssertJUnit.assertNotNull(taskType.getResult());
+        AssertJUnit.assertEquals(OperationResultStatusType.IN_PROGRESS, taskType.getResultStatus());
+
+        OperationResultType res = new OperationResultType();
+        res.setOperation("asdf");
+        res.setStatus(OperationResultStatusType.FATAL_ERROR);
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+                .item(TaskType.F_RESULT).replace(res)
+                .item(TaskType.F_RESULT_STATUS).replace(res.getStatus())
+                .asItemDeltas();
+        repositoryService.modifyObject(TaskType.class, oid, itemDeltas, result);
+
+        task = repositoryService.getObject(TaskType.class, oid, null, result);
+        taskType = task.asObjectable();
+        AssertJUnit.assertNull(taskType.getResult());
+        AssertJUnit.assertEquals(OperationResultStatusType.FATAL_ERROR, taskType.getResultStatus());
+
+        task = repositoryService.getObject(TaskType.class, oid, SelectorOptions.createCollection(TaskType.F_RESULT,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)), result);
+        taskType = task.asObjectable();
+        AssertJUnit.assertNotNull(taskType.getResult());
+        AssertJUnit.assertEquals(OperationResultStatusType.FATAL_ERROR, taskType.getResultStatus());
+
+        OperationResultType r = taskType.getResult();
+        AssertJUnit.assertEquals("asdf", r.getOperation());
+        AssertJUnit.assertEquals(OperationResultStatusType.FATAL_ERROR, r.getStatus());
+    }
 }
 

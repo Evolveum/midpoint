@@ -35,7 +35,6 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -61,7 +60,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.USER;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.FilterComponents;
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.factorOutQuery;
@@ -251,7 +249,7 @@ public class WorkItemProvider {
 	/**
      * Helper class to carry relevant data from both Task and DelegateTask (to avoid code duplication)
      */
-    private class TaskExtract {
+    private static class TaskExtract {
 
         private String id;
         private String assignee;
@@ -403,8 +401,10 @@ public class WorkItemProvider {
     public WorkItemType taskExtractToWorkItem(TaskExtract task, boolean resolveTask, boolean resolveAssignee,
 			boolean resolveCandidates, boolean fetchAllVariables, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TASK_TO_WORK_ITEM);
-		result.addParams(new String [] { "activitiTaskId", "resolveTask", "resolveAssignee", "resolveCandidates" },
-				task.getId(), resolveTask, resolveAssignee, resolveCandidates);
+		result.addParam("activitiTaskId", task.getId());
+		result.addParam("resolveTask", resolveTask);
+		result.addParam("resolveAssignee", resolveAssignee);
+		result.addParam("resolveCandidates", resolveCandidates);
 		try {
 
 			WorkItemType wi = new WorkItemType(prismContext);
@@ -416,16 +416,16 @@ public class WorkItemProvider {
 			wi.setDeadline(XmlTypeConverter.createXMLGregorianCalendar(task.getDueDate()));
 
 			String taskOid = ActivitiUtil.getRequiredVariable(variables, CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID, String.class, null);
-			com.evolveum.midpoint.task.api.Task mpTask = null;
+			com.evolveum.midpoint.task.api.Task mpTask;
 			try {
 				mpTask = taskManager.getTask(taskOid, result);
+				if (mpTask.getWorkflowContext() == null) {
+					throw new IllegalStateException("No workflow context in task " + mpTask + " that owns " + wi);
+				}
+				mpTask.getWorkflowContext().getWorkItem().add(wi);
 			} catch (ObjectNotFoundException|SchemaException e) {
-				throw new SystemException("Couldn't retrieve owning task for " + wi + ": " + e.getMessage(), e);		// TODO more gentle treatment
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve owning task for {}", e, wi);
 			}
-			if (mpTask.getWorkflowContext() == null) {
-				throw new IllegalStateException("No workflow context in task " + mpTask + " that owns " + wi);
-			}
-			mpTask.getWorkflowContext().getWorkItem().add(wi);
 
 			// assignees
 			wi.getAssigneeRef().addAll(getMidpointAssignees(task));

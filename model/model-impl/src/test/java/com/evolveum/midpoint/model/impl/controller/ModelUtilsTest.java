@@ -25,7 +25,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.model.impl.controller.ModelUtils;
+import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -37,9 +37,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * 
+ *
  * @author lazyman
- * 
+ *
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-test-no-repo.xml" })
 public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
@@ -47,7 +47,7 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller");
 	@Autowired(required = true)
 	private Protector protector;
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -56,23 +56,23 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void validatePagingNull() {
-		ModelUtils.validatePaging(null);
+		ModelImplUtils.validatePaging(null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validatePagingBadOffsetAttribute() {
-		ModelUtils.validatePaging(ObjectPaging.createPaging(-5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
+		ModelImplUtils.validatePaging(ObjectPaging.createPaging(-5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validatePagingBadMaxAttribute() {
-		ModelUtils.validatePaging(ObjectPaging
+		ModelImplUtils.validatePaging(ObjectPaging
 				.createPaging(5, -10, ObjectType.F_NAME, OrderDirection.ASCENDING));
 	}
 
 	@Test
 	public void validatePagingGood() {
-		ModelUtils
+		ModelImplUtils
 				.validatePaging(ObjectPaging
 						.createPaging(5, 10, ObjectType.F_NAME, OrderDirection.ASCENDING));
 	}

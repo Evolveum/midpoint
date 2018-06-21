@@ -1,0 +1,30 @@
+# Evolveum Testing 1 LDAP Schema
+# 
+# Copyright (c) 2017 Evolveum
+#
+
+objectIdentifier Evolveum 1.3.6.1.4.1.45689
+
+objectIdentifier Ldap Evolveum:1
+objectIdentifier Products Ldap:1
+objectIdentifier MidPoint Products:1
+objectIdentifier MidPointObjectClass MidPoint:1
+objectIdentifier MidPointAttributeType MidPoint:2
+objectIdentifier Testing Ldap:4
+objectIdentifier Testing1 Testing:1
+objectIdentifier Testing1ObjectClass Testing1:1
+objectIdentifier Testing1AttributeType Testing1:2
+
+attributetype ( Testing1AttributeType:1
+    NAME 'evoT1Attr1'
+    DESC 'Attribute One'
+    SUP name
+    SINGLE-VALUE )
+
+objectClass ( Testing1ObjectClass:1
+    NAME 'evoT1AuxOc1'
+    DESC 'Testing auxiliary object class'
+    AUXILIARY
+    MAY ( evoT1Attr1 ) )
+
+

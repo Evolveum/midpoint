@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ShadowCacheFactory {
 	
-	protected enum Mode { STANDARD, RECON}
+	public enum Mode { STANDARD, RECON}
 	
 	@Autowired(required = true)
 	private ShadowCacheProvisioner shadowCacheStandard;

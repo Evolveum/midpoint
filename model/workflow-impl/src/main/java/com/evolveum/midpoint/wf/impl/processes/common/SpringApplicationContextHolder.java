@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -39,9 +39,9 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
 
 	private static ApplicationContext context;
 
-	public void setApplicationContext(ApplicationContext ctx) throws BeansException { 
+	public void setApplicationContext(ApplicationContext ctx) throws BeansException {
 		context = ctx;
-    }  
+    }
 
 	public static ApplicationContext getApplicationContext() {
         if (context == null) {
@@ -108,6 +108,10 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
 		return getBean(WfExpressionEvaluationHelper.class);
 	}
 
+	public static WfStageComputeHelper getStageComputeHelper() {
+	    return getBean(WfStageComputeHelper.class);
+    }
+
     public static ExpressionFactory getExpressionFactory() {
 		return getBean(ExpressionFactory.class);
 	}
@@ -117,4 +121,4 @@ public class SpringApplicationContextHolder implements ApplicationContextAware {
     }
 }
 
-  
+

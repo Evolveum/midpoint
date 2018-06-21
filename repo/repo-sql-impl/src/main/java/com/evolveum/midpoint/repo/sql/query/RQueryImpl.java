@@ -28,9 +28,9 @@ import java.util.List;
  */
 public class RQueryImpl implements RQuery {
 
-    private org.hibernate.Query query;
+    private org.hibernate.query.Query query;
 
-    public RQueryImpl(org.hibernate.Query query) {
+    public RQueryImpl(org.hibernate.query.Query query) {
         Validate.notNull(query, "Query must not be null.");
         this.query = query;
     }
@@ -50,7 +50,7 @@ public class RQueryImpl implements RQuery {
         return query.scroll(mode);
     }
 
-    public org.hibernate.Query getQuery() {
+    public org.hibernate.query.Query getQuery() {
         return query;
     }
 }

@@ -56,7 +56,7 @@ public class PageSizePopover extends BasePanel {
         popover.setOutputMarkupId(true);
         add(popover);
 
-        Form form = new Form(ID_FORM);
+        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
         popover.add(form);
 
         AjaxSubmitButton button = new AjaxSubmitButton(ID_BUTTON) {

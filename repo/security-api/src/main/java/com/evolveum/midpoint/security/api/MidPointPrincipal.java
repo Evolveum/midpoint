@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
@@ -37,9 +38,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author semancik
  *
  */
-public class MidPointPrincipal implements UserDetails,  DebugDumpable {
-	
+public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDumpable {
 	private static final long serialVersionUID = 8299738301872077768L;
+	
+	// TODO: user may be switched to FocusType later (MID-4205)
     @NotNull private final UserType user;
     private Collection<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
@@ -47,6 +49,8 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
     private SecurityPolicyType applicableSecurityPolicy;
     // TODO: or a set?
     @NotNull private final Collection<DelegatorWithOtherPrivilegesLimitations> delegatorWithOtherPrivilegesLimitationsCollection = new ArrayList<>();
+    private UserType attorney;
+    private MidPointPrincipal previousPrincipal;
 
     public MidPointPrincipal(@NotNull UserType user) {
         Validate.notNull(user, "User must not be null.");
@@ -124,6 +128,13 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 		return effectiveActivationStatus == ActivationStatusType.ENABLED;
 	}
 
+	/**
+	 * Effective identity that is used to execute all actions.
+	 * Authorizations of this identity will be applied.
+	 * This is usually the logged-in user. However, this may be the
+	 * user on behalf who are the actions executed (donor of power)
+	 * and the real logged-in user may be the attorney.
+	 */
 	@NotNull
 	public UserType getUser() {
         return user;
@@ -151,6 +162,35 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
     public String getOid() {
         return getUser().getOid();
     }
+
+    /**
+     * Real identity of the logged-in user. Used in cases when there is a
+     * difference between logged-in user and the identity that is used to
+     * execute actions and evaluate authorizations.
+     * This may happen when one user (attorney) has switched identity
+     * to another user (donor of power). In that case the identity of the
+     * attorney is in this property. The user that was the target of the
+     * switch is stored in the "user" property.
+     */
+	public UserType getAttorney() {
+		return attorney;
+	}
+
+	public void setAttorney(UserType attorney) {
+		this.attorney = attorney;
+	}
+
+	/**
+	 * Principal that was used before this principal was active. 
+	 * This is used when principals are chained (e.g. attorney)
+	 */
+	public MidPointPrincipal getPreviousPrincipal() {
+		return previousPrincipal;
+	}
+
+	public void setPreviousPrincipal(MidPointPrincipal previousPrincipal) {
+		this.previousPrincipal = previousPrincipal;
+	}
 
 	public AdminGuiConfigurationType getAdminGuiConfiguration() {
 		return adminGuiConfiguration;
@@ -197,14 +237,6 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
-	 */
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
 	 */
 	@Override
@@ -213,13 +245,21 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 		DebugUtil.debugDumpLabelLn(sb, "MidPointPrincipal", indent);
 		DebugUtil.debugDumpWithLabelLn(sb, "User", user.asPrismObject(), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations, indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "Delegators with other privilege limitations", delegatorWithOtherPrivilegesLimitationsCollection, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "Delegators with other privilege limitations", delegatorWithOtherPrivilegesLimitationsCollection, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "Attorney", attorney==null?null:attorney.asPrismObject(), indent + 1);
 		return sb.toString();
 	}
 
 	@Override
 	public String toString() {
-		return "MidPointPrincipal(" + user + ", autz=" + authorizations + ")";
+		StringBuilder sb = new StringBuilder("MidPointPrincipal(");
+		sb.append(user);
+		if (attorney != null) {
+			sb.append(" [").append(attorney).append("]");
+		}
+		sb.append(", autz=").append(authorizations);
+		sb.append(")");
+		return sb.toString();
 	}
 
     public ObjectReferenceType toObjectReference() {
@@ -231,4 +271,12 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable {
         rv.setOid(user.getOid());
         return rv;
     }
+
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(user);
+		if (attorney != null) {
+			sb.append("[").append(attorney).append("]");
+		}
+	}
 }

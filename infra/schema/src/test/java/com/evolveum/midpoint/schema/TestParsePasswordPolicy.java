@@ -46,30 +46,30 @@ import static org.testng.AssertJUnit.assertTrue;
  *
  */
 public class TestParsePasswordPolicy {
-	
+
 	public static final File FILE = new File("src/test/resources/common/password-policy.xml");
-	
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
-	
-	
+
+
 	@Test
 	public void testParsePasswordPolicyFile() throws Exception {
 		System.out.println("===[ testParsePasswordPolicyFile ]===");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		
+
 		// WHEN
 		PrismObject<ValuePolicyType> policy = prismContext.parserFor(FILE).xml().parse();
-		
+
 		// THEN
 		System.out.println("Parsed policy:");
 		System.out.println(policy.debugDump());
-		
+
 		assertPolicy(policy);
 	}
 
@@ -113,9 +113,9 @@ public class TestParsePasswordPolicy {
     }
 
     private void assertPolicy(PrismObject<ValuePolicyType> policy) {
-		
+
 		policy.checkConsistence();
-		
+
 		assertEquals("Wrong oid", "00000000-0000-0000-0000-000000000003", policy.getOid());
 		PrismObjectDefinition<ValuePolicyType> usedDefinition = policy.getDefinition();
 		assertNotNull("No definition", usedDefinition);
@@ -127,16 +127,16 @@ public class TestParsePasswordPolicy {
 
 		assertPropertyValue(policy, "name", PrismTestUtil.createPolyString("Testing Complex Password Policy"));
 		assertPropertyDefinition(policy, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
-		
+
         // TODO...
 	}
-	
+
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
 			int maxOccurs) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
 	}
-	
+
 	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
 		QName propQName = new QName(SchemaConstantsGenerated.NS_COMMON, propName);
 		PrismAsserts.assertPropertyValue(container, propQName, propValue);

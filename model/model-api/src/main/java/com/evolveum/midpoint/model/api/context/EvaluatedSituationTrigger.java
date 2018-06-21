@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedSituationTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicySituationPolicyConstraintType;
@@ -37,8 +38,8 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	@NotNull private final Collection<EvaluatedPolicyRule> sourceRules;
 
 	public EvaluatedSituationTrigger(@NotNull PolicySituationPolicyConstraintType constraint,
-			String message, @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
-		super(PolicyConstraintKindType.SITUATION, constraint, message);
+			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
+		super(PolicyConstraintKindType.SITUATION, constraint, message, shortMessage);
 		this.sourceRules = sourceRules;
 	}
 
@@ -102,10 +103,12 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	}
 
 	@Override
-	public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType(EvaluatedPolicyRule owningRule) {
+	public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
 		EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
-		fillCommonContent(rv, owningRule);
-		sourceRules.forEach(r -> rv.getSourceRule().add(r.toEvaluatedPolicyRuleType()));
+		fillCommonContent(rv);
+		if (!options.isRespectFinalFlag() || !isFinal()) {
+			sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleTypes(rv.getSourceRule(), options));
+		}
 		return rv;
 	}
 }

@@ -25,16 +25,17 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -58,14 +60,19 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,6 +102,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private final boolean loginMode;		// restricted mode, evaluating only authorizations and gui config (TODO name)
 	private final PrismObject<SystemConfigurationType> systemConfiguration;
 	private final MappingEvaluator mappingEvaluator;
+	private final EvaluatedAssignmentTargetCache evaluatedAssignmentTargetCache;
 
 	private AssignmentEvaluator(Builder<F> builder) {
 		repository = builder.repository;
@@ -110,6 +118,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		loginMode = builder.loginMode;
 		systemConfiguration = builder.systemConfiguration;
 		mappingEvaluator = builder.mappingEvaluator;
+		evaluatedAssignmentTargetCache = new EvaluatedAssignmentTargetCache();
 	}
 
 	public RepositoryService getRepository() {
@@ -166,6 +175,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 	public MappingEvaluator getMappingEvaluator() {
 		return mappingEvaluator;
 	}
+	
+	public void reset() {
+		evaluatedAssignmentTargetCache.reset();
+	}
 
 	// This is to reduce the number of parameters passed between methods in this class.
 	// Moreover, it highlights the fact that identity of objects referenced here is fixed for any invocation of the evaluate() method.
@@ -173,32 +186,40 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private class EvaluationContext {
 		private final EvaluatedAssignmentImpl<F> evalAssignment;
 		private final AssignmentPathImpl assignmentPath;
+		// The primary assignment mode tells whether the primary assignment was added, removed or it is unchanged.
+		// The primary assignment is the first assignment in the assignmen path, the assignment that is located in the
+		// focal object.
+		private final PlusMinusZero primaryAssignmentMode;
 		private final boolean evaluateOld;
 		private final Task task;
 		private final OperationResult result;
 		public EvaluationContext(EvaluatedAssignmentImpl<F> evalAssignment,
-				AssignmentPathImpl assignmentPath, boolean evaluateOld, Task task, OperationResult result) {
+				AssignmentPathImpl assignmentPath, PlusMinusZero primaryAssignmentMode, boolean evaluateOld, Task task, OperationResult result) {
 			this.evalAssignment = evalAssignment;
 			this.assignmentPath = assignmentPath;
+			this.primaryAssignmentMode = primaryAssignmentMode;
 			this.evaluateOld = evaluateOld;
 			this.task = task;
 			this.result = result;
 		}
 	}
 
+	/**
+	 * evaluateOld: If true, we take the 'old' value from assignmentIdi. If false, we take the 'new' one.
+	 */
 	public EvaluatedAssignmentImpl<F> evaluate(
 			ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
-			boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			PlusMinusZero primaryAssignmentMode, boolean evaluateOld, ObjectType source, String sourceDescription, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assertSourceNotNull(source, assignmentIdi);
 
 		EvaluationContext ctx = new EvaluationContext(
-				new EvaluatedAssignmentImpl<>(assignmentIdi),
-				new AssignmentPathImpl(),
-				evaluateOld, task, result);
+				new EvaluatedAssignmentImpl<>(assignmentIdi, evaluateOld),
+				new AssignmentPathImpl(prismContext),
+				primaryAssignmentMode, evaluateOld, task, result);
 
-		AssignmentPathSegmentImpl segment = new AssignmentPathSegmentImpl(source, sourceDescription, assignmentIdi, true);
+		AssignmentPathSegmentImpl segment = new AssignmentPathSegmentImpl(source, sourceDescription, assignmentIdi, true, evaluateOld);
 		segment.setEvaluationOrder(getInitialEvaluationOrder(assignmentIdi, ctx));
 		segment.setEvaluationOrderForTarget(EvaluationOrderImpl.ZERO);
 		segment.setValidityOverride(true);
@@ -220,9 +241,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	/**
-	 * @param mode
+	 * @param relativeMode
 	 *
 	 * Where to put constructions and target roles/orgs/services (PLUS/MINUS/ZERO/null; null means "nowhere").
+	 * This is a mode relative to the primary assignment. It does NOT tell whether the assignment as a whole
+	 * is added or removed. It tells whether the part of the assignment that we are processing is to be
+	 * added or removed. This may happen, e.g. if a condition in an existing assignment turns from false to true.
+	 * In that case the primary assignment mode is ZERO, but the relative mode is PLUS.
+	 * The relative mode always starts at ZERO, even for added or removed assignments.
 	 *
 	 * This depends on the status of conditions. E.g. if condition evaluates 'false -> true' (i.e. in old
 	 * state the value is false, and in new state the value is true), then the mode is PLUS.
@@ -248,13 +274,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 	 *
 	 * Note: this parameter could be perhaps renamed to "tripleMode" or "destination" or something like that.
 	 */
-	private void evaluateFromSegment(AssignmentPathSegmentImpl segment, PlusMinusZero mode, EvaluationContext ctx)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+	private void evaluateFromSegment(AssignmentPathSegmentImpl segment, PlusMinusZero relativeMode, EvaluationContext ctx)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("*** Evaluate from segment: {}", segment);
 			LOGGER.trace("*** Evaluation order - standard:   {}, matching: {}", segment.getEvaluationOrder(), segment.isMatchingOrder());
 			LOGGER.trace("*** Evaluation order - for target: {}, matching: {}", segment.getEvaluationOrderForTarget(), segment.isMatchingOrderForTarget());
-			LOGGER.trace("*** mode: {}, process membership: {}", mode, segment.isProcessMembership());
+			LOGGER.trace("*** mode: {}, process membership: {}", relativeMode, segment.isProcessMembership());
 			LOGGER.trace("*** path to source valid: {}, validity override: {}", segment.isPathToSourceValid(), segment.isValidityOverride());
 		}
 
@@ -283,14 +309,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 				evaluateContent = false;
 			} else {
-				PlusMinusZero origMode = mode;
-				mode = PlusMinusZero.compute(mode, modeFromCondition);
+				PlusMinusZero origMode = relativeMode;
+				relativeMode = PlusMinusZero.compute(relativeMode, modeFromCondition);
 				LOGGER.trace("Evaluated condition in assignment {} -> {}: {} + {} = {}", condOld, condNew, origMode,
-						modeFromCondition, mode);
+						modeFromCondition, relativeMode);
 			}
 		}
 
-		boolean isValid = evaluateContent && evaluateSegmentContent(segment, mode, ctx);
+		boolean isValid = evaluateContent && evaluateSegmentContent(segment, relativeMode, ctx);
 
 		ctx.assignmentPath.removeLast(segment);
 		if (ctx.assignmentPath.isEmpty()) {		// direct assignment
@@ -300,8 +326,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	// "content" means "payload + targets" here
 	private <O extends ObjectType> boolean evaluateSegmentContent(AssignmentPathSegmentImpl segment,
-			PlusMinusZero mode, EvaluationContext ctx)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException {
+			PlusMinusZero relativeMode, EvaluationContext ctx)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assert ctx.assignmentPath.last() == segment;
 
@@ -315,20 +341,25 @@ public class AssignmentEvaluator<F extends FocusType> {
 			// It is because we need to collect e.g. assignment policy rules for them.
 			// Also because we could have deltas that disable/enable these assignments.
 			boolean reallyValid = segment.isPathToSourceValid() && isAssignmentValid;
-			if (assignmentType.getConstruction() != null && !loginMode && segment.isMatchingOrder()) {
-				collectConstruction(segment, mode, reallyValid, ctx);
-			}
-			if (assignmentType.getFocusMappings() != null && !loginMode && segment.isMatchingOrder()) {
-				// Here we ignore "reallyValid". It is OK, because reallyValid can be false here only when
-				// evaluating direct assignments; and invalid ones are marked as such via EvaluatedAssignment.isValid.
-				// (This is currently ignored by downstream processing, but that's another story. Will be fixed soon.)
-				if (isNonNegative(mode)) {
-					evaluateFocusMappings(segment, ctx);
+			if (!loginMode && segment.isMatchingOrder()) {
+				if (assignmentType.getConstruction() != null) {
+					collectConstruction(segment, relativeMode, reallyValid, ctx);
+				}
+				if (assignmentType.getPersonaConstruction() != null) {
+					collectPersonaConstruction(segment, relativeMode, reallyValid, ctx);
+				}
+				if (assignmentType.getFocusMappings() != null) {
+					// Here we ignore "reallyValid". It is OK, because reallyValid can be false here only when
+					// evaluating direct assignments; and invalid ones are marked as such via EvaluatedAssignment.isValid.
+					// (This is currently ignored by downstream processing, but that's another story. Will be fixed soon.)
+					if (isNonNegative(relativeMode)) {
+						evaluateFocusMappings(segment, ctx);
+					}
 				}
 			}
 			if (assignmentType.getPolicyRule() != null && !loginMode) {
 				// We can ignore "reallyValid" for the same reason as for focus mappings.
-				if (isNonNegative(mode)) {
+				if (isNonNegative(relativeMode)) {
 					if (segment.isMatchingOrder()) {
 						collectPolicyRule(true, segment, ctx);
 					}
@@ -338,26 +369,57 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 			}
 			if (assignmentType.getTarget() != null || assignmentType.getTargetRef() != null) {
-				List<PrismObject<O>> targets = getTargets(segment, ctx);
-				LOGGER.trace("Targets in {}, assignment ID {}: {}", segment.source, assignmentType.getId(), targets);
-
-				if (isDirectAssignment) {
-					setEvaluatedAssignmentTarget(segment, targets, ctx);
-				}
-
 				QName relation = getRelation(assignmentType);
-				for (PrismObject<O> target : targets) {
-					checkCycle(segment, target, ctx);
-					if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
-						continue;
+				if (loginMode && !ObjectTypeUtil.processRelationOnLogin(relation)) {
+					LOGGER.trace("Skipping processing of assignment target {} because relation {} is configured for login skip", assignmentType.getTargetRef().getOid(), relation);
+					// Skip - to optimize logging-in, we skip all assignments with non-membership/non-delegation relations (e.g. approver, owner, etc)
+					// We want to make this configurable in the future MID-3581
+				} else if (!loginMode && !isChanged(ctx.primaryAssignmentMode) &&
+						!ObjectTypeUtil.processRelationOnRecompute(relation) && !shouldEvaluateAllAssignmentRelationsOnRecompute()) {
+					LOGGER.debug("Skipping processing of assignment target {} because relation {} is configured for recompute skip (mode={})", assignmentType.getTargetRef().getOid(), relation, relativeMode);
+					// Skip - to optimize recompute, we skip all assignments with non-membership/non-delegation relations (e.g. approver, owner, etc)
+					// never skip this if assignment has changed. We want to process this, e.g. to enforce min/max assignee rules
+					// We want to make this configurable in the future MID-3581
+					
+					// Important: but we still want this to be reflected in roleMembershipRef
+					if ((isNonNegative(relativeMode)) && segment.isProcessMembership()) {
+						if (assignmentType.getTargetRef().getOid() != null) {
+							collectMembership(assignmentType.getTargetRef(), relation, ctx);
+						} else {
+							// no OID, so we have to resolve the filter
+							for (PrismObject<ObjectType> targetObject : getTargets(segment, ctx)) {
+								ObjectType target = targetObject.asObjectable();
+								if (target instanceof FocusType) {
+									collectMembership((FocusType) target, relation, ctx);
+								}
+							}
+						}
 					}
-					evaluateSegmentTarget(segment, mode, reallyValid, (FocusType)target.asObjectable(), relation, ctx);
+				} else {
+					List<PrismObject<O>> targets = getTargets(segment, ctx);
+					LOGGER.trace("Targets in {}, assignment ID {}: {}", segment.source, assignmentType.getId(), targets);
+					if (isDirectAssignment) {
+						setEvaluatedAssignmentTarget(segment, targets, ctx);
+					}
+					for (PrismObject<O> target : targets) {
+						if (hasCycle(segment, target, ctx)) {
+							continue;
+						}
+						if (isDelegationToNonDelegableTarget(assignmentType, target, ctx)) {
+							continue;
+						}
+						evaluateSegmentTarget(segment, relativeMode, reallyValid, (FocusType) target.asObjectable(), relation, ctx);
+					}
 				}
 			}
 		} else {
 			LOGGER.trace("Skipping evaluation of assignment {} because it is not valid", assignmentType);
 		}
 		return isAssignmentValid;
+	}
+
+	private boolean shouldEvaluateAllAssignmentRelationsOnRecompute() {
+		return ModelExecuteOptions.isEvaluateAllAssignmentRelationsOnRecompute(lensContext.getOptions());
 	}
 
 	private <O extends ObjectType> boolean isDelegationToNonDelegableTarget(AssignmentType assignmentType, @NotNull PrismObject<O> target,
@@ -377,17 +439,25 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private <O extends ObjectType> void checkCycle(AssignmentPathSegmentImpl segment, @NotNull PrismObject<O> target,
+	// number of times any given target is allowed to occur in the assignment path
+	private static final int MAX_TARGET_OCCURRENCES = 2;
+
+	private <O extends ObjectType> boolean hasCycle(AssignmentPathSegmentImpl segment, @NotNull PrismObject<O> target,
 			EvaluationContext ctx) throws PolicyViolationException {
+		// TODO reconsider this
 		if (target.getOid().equals(segment.source.getOid())) {
 			throw new PolicyViolationException("The "+segment.source+" refers to itself in assignment/inducement");
 		}
 		// removed condition "&& segment.getEvaluationOrder().equals(ctx.assignmentPath.getEvaluationOrder())"
 		// as currently it is always true
 		// TODO reconsider this
-		if (ctx.assignmentPath.containsTarget(target.asObjectable())) {
-			LOGGER.debug("Role cycle detected for target {} in {}", ObjectTypeUtil.toShortString(target), ctx.assignmentPath);
-			throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
+		int count = ctx.assignmentPath.countTargetOccurrences(target.asObjectable());
+		if (count >= MAX_TARGET_OCCURRENCES) {
+			LOGGER.debug("Max # of target occurrences ({}) detected for target {} in {} - stopping evaluation here",
+					MAX_TARGET_OCCURRENCES, ObjectTypeUtil.toShortString(target), ctx.assignmentPath);
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -395,9 +465,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
-		// TODO why "assignmentTypeNew" when we retrieve old one in some situations?
-		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
-		ConstructionType constructionType = assignmentTypeNew.getConstruction();
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
+		ConstructionType constructionType = assignmentType.getConstruction();
 		
 		LOGGER.trace("Preparing construction '{}' in {}", constructionType.getDescription(), segment.source);
 
@@ -414,38 +483,55 @@ public class AssignmentEvaluator<F extends FocusType> {
 		construction.setChannel(channel);
 		construction.setOrderOneObject(segment.getOrderOneObject());
 		construction.setValid(isValid);
+		construction.setRelativityMode(mode);
 		
 		// Do not evaluate the construction here. We will do it in the second pass. Just prepare everything to be evaluated.
 		if (mode == null) {
 			return;				// null mode (i.e. plus + minus) means 'ignore the payload'
 		}
-		switch (mode) {
-			case PLUS:
-				ctx.evalAssignment.addConstructionPlus(construction);
-				break;
-			case ZERO:
-				ctx.evalAssignment.addConstructionZero(construction);
-				break;
-			case MINUS:
-				ctx.evalAssignment.addConstructionMinus(construction);
-				break;
+		ctx.evalAssignment.addConstruction(construction, mode);
+	}
+	
+	private void collectPersonaConstruction(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		assertSourceNotNull(segment.source, ctx.evalAssignment);
+		if (mode == null) {
+			return;				// null mode (i.e. plus + minus) means 'ignore the payload'
 		}
+
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
+		PersonaConstructionType constructionType = assignmentType.getPersonaConstruction();
+		
+		LOGGER.trace("Preparing persona construction '{}' in {}", constructionType.getDescription(), segment.source);
+		
+		PersonaConstruction<F> construction = new PersonaConstruction<>(constructionType, segment.source);
+		// We have to clone here as the path is constantly changing during evaluation
+		construction.setAssignmentPath(ctx.assignmentPath.clone());
+		construction.setFocusOdo(focusOdo);
+		construction.setLensContext(lensContext);
+		construction.setObjectResolver(objectResolver);
+		construction.setPrismContext(prismContext);
+		construction.setOriginType(OriginType.ASSIGNMENTS);
+		construction.setChannel(channel);
+		construction.setValid(isValid);
+		construction.setRelativityMode(mode);
+		
+		ctx.evalAssignment.addPersonaConstruction(construction, mode);
 	}
 	
 	private void evaluateFocusMappings(AssignmentPathSegmentImpl segment, EvaluationContext ctx)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
-		// TODO why "assignmentTypeNew" when we consider also old values?
-		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
-		MappingsType mappingsType = assignmentTypeNew.getFocusMappings();
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
+		MappingsType mappingsType = assignmentType.getFocusMappings();
 		
 		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)",
 				mappingsType.getDescription(), segment.source, mappingsType.getMapping().size());
 		AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
-			Mapping mapping = mappingEvaluator.createFocusMapping(mappingFactory, lensContext, mappingType, segment.source, focusOdo,
+			MappingImpl mapping = mappingEvaluator.createFocusMapping(mappingFactory, lensContext, mappingType, segment.source, focusOdo,
 					assignmentPathVariables, systemConfiguration, now, segment.sourceDescription, ctx.task, ctx.result);
 			if (mapping == null) {
 				continue;
@@ -459,13 +545,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private void collectPolicyRule(boolean focusRule, AssignmentPathSegmentImpl segment, EvaluationContext ctx)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
-		
-		AssignmentType assignmentTypeNew = LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
-		PolicyRuleType policyRuleType = assignmentTypeNew.getPolicyRule();
+
+		AssignmentType assignmentType = getAssignmentType(segment, ctx);
+		PolicyRuleType policyRuleType = assignmentType.getPolicyRule();
 		
 		LOGGER.trace("Collecting {} policy rule '{}' in {}", focusRule ? "focus" : "target", policyRuleType.getName(), segment.source);
 		
-		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, ctx.assignmentPath.clone());
+		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, ctx.assignmentPath.clone(), prismContext);
 
 		if (focusRule) {
 			ctx.evalAssignment.addFocusPolicyRule(policyRule);
@@ -488,7 +574,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	@NotNull
-	private <O extends ObjectType> List<PrismObject<O>> getTargets(AssignmentPathSegmentImpl segment, EvaluationContext ctx) throws SchemaException, ExpressionEvaluationException {
+	private <O extends ObjectType> List<PrismObject<O>> getTargets(AssignmentPathSegmentImpl segment, EvaluationContext ctx) throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
 		if (assignmentType.getTarget() != null) {
 			return Collections.singletonList((PrismObject<O>) assignmentType.getTarget().asPrismObject());
@@ -511,7 +597,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	@NotNull
 	private <O extends ObjectType> List<PrismObject<O>> resolveTargets(AssignmentPathSegmentImpl segment, EvaluationContext ctx)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
 		ObjectReferenceType targetRef = assignmentType.getTargetRef();
 		String oid = targetRef.getOid();
@@ -552,7 +638,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	@NotNull
 	private <O extends ObjectType> List<PrismObject<O>> resolveTargetsFromFilter(Class<O> targetClass,
 			SearchFilterType filter, AssignmentPathSegmentImpl segment,
-			EvaluationContext ctx) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+			EvaluationContext ctx) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException{
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(lensContext, null, ctx.task, ctx.result));
 		try {
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(ctx.result);
@@ -576,27 +662,43 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 		
-	private void evaluateSegmentTarget(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid,
+	private void evaluateSegmentTarget(AssignmentPathSegmentImpl segment, PlusMinusZero relativeMode, boolean isValid,
 			FocusType targetType, QName relation, EvaluationContext ctx)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 		assertSourceNotNull(segment.source, ctx.evalAssignment);
 
 		assert ctx.assignmentPath.last() == segment;
 		
 		segment.setTarget(targetType);
 		segment.setRelation(relation);			// probably not needed
+		
+		if (evaluatedAssignmentTargetCache.canSkip(segment, ctx.primaryAssignmentMode)) {
+			LOGGER.trace("Skipping evaluation of segment {} because it is idempotent and we have seen the target before", segment);
+			InternalMonitor.recordRoleEvaluationSkip(targetType, true);
+			return;
+		}
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Evaluating segment TARGET:\n{}", segment.debugDump(1));
 		}
 
 		checkRelationWithTarget(segment, targetType, relation);
 
-		if (!LensUtil.isFocusValid(targetType, now, activationComputer)) {
-			LOGGER.trace("Skipping evaluation of {} because it is not valid", targetType);
-			return;
+		boolean isTargetValid = LensUtil.isFocusValid(targetType, now, activationComputer);
+		if (!isTargetValid) {
+			isValid = false;
 		}
 		
-		if (targetType instanceof AbstractRoleType) {
+		LOGGER.debug("Evaluating RBAC [{}]", ctx.assignmentPath.shortDumpLazily());
+		InternalMonitor.recordRoleEvaluation(targetType, true);
+		
+		if (isValid) {
+			// Cache it immediately, even before evaluation. So if there is a cycle in the role path
+			// then we can detect it and skip re-evaluation of aggressively idempotent roles.
+			evaluatedAssignmentTargetCache.recordProcessing(segment, ctx.primaryAssignmentMode);
+		}
+		
+		if (isTargetValid && targetType instanceof AbstractRoleType) {
 			MappingType roleCondition = ((AbstractRoleType)targetType).getCondition();
 			if (roleCondition != null) {
 	            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
@@ -610,10 +712,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 							targetType, condOld, condNew);
 					return;
 				}
-				PlusMinusZero origMode = mode;
-				mode = PlusMinusZero.compute(mode, modeFromCondition);
+				PlusMinusZero origMode = relativeMode;
+				relativeMode = PlusMinusZero.compute(relativeMode, modeFromCondition);
 				LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", targetType, condOld, condNew,
-						origMode, modeFromCondition, mode);
+						origMode, modeFromCondition, relativeMode);
 			}
 		}
 		
@@ -621,12 +723,25 @@ public class AssignmentEvaluator<F extends FocusType> {
 				targetType.asPrismObject(),
 				segment.isMatchingOrder(),	// evaluateConstructions: exact meaning of this is to be revised
 				ctx.assignmentPath.clone(),
-				segment.getAssignment(),
+				getAssignmentType(segment, ctx),
 				isValid);
-		ctx.evalAssignment.addRole(evalAssignmentTarget, mode);
-		
-		if ((isNonNegative(mode)) && segment.isProcessMembership()) {
+		ctx.evalAssignment.addRole(evalAssignmentTarget, relativeMode);
+
+		// we need to evaluate assignments also for disabled targets, because of target policy rules
+		// ... but only for direct ones!
+		if (isTargetValid || ctx.assignmentPath.size() == 1) {
+			for (AssignmentType roleAssignment : targetType.getAssignment()) {
+				evaluateAssignment(segment, relativeMode, isValid, ctx, targetType, relation, roleAssignment);
+			}
+		}
+
+		// we need to collect membership also for disabled targets (provided the assignment itself is enabled): MID-4127
+		if ((isNonNegative(relativeMode)) && segment.isProcessMembership()) {
 			collectMembership(targetType, relation, ctx);
+		}
+
+		if (!isTargetValid) {
+			return;
 		}
 
 		// We continue evaluation even if the relation is non-membership and non-delegation.
@@ -634,15 +749,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		if (targetType instanceof AbstractRoleType) {
 			for (AssignmentType roleInducement : ((AbstractRoleType)targetType).getInducement()) {
-				evaluateInducement(segment, mode, isValid, ctx, targetType, roleInducement);
+				evaluateInducement(segment, relativeMode, isValid, ctx, targetType, roleInducement);
 			}
-		}
-		for (AssignmentType roleAssignment : targetType.getAssignment()) {
-			evaluateAssignment(segment, mode, isValid, ctx, targetType, relation, roleAssignment);
 		}
 
 		//boolean matchesOrder = AssignmentPathSegmentImpl.computeMatchingOrder(segment.getEvaluationOrder(), 1, Collections.emptyList());
-		if (segment.isMatchingOrder() && targetType instanceof AbstractRoleType && isNonNegative(mode)) {
+		if (segment.isMatchingOrder() && targetType instanceof AbstractRoleType && isNonNegative(relativeMode)) {
 			for (AuthorizationType authorizationType: ((AbstractRoleType)targetType).getAuthorization()) {
 				Authorization authorization = createAuthorization(authorizationType, targetType.toString());
 				if (!ctx.evalAssignment.getAuthorizations().contains(authorization)) {
@@ -655,9 +767,10 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
 			if (policyConstraints != null) {
-				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType);
+				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType, prismContext);
 			}
 		}
+		
 		LOGGER.trace("Evaluating segment target DONE for {}", segment);
 	}
 
@@ -677,13 +790,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	private void evaluateAssignment(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx,
 			FocusType targetType, QName relation, AssignmentType roleAssignment)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		ObjectType orderOneObject = getOrderOneObject(segment);
 
 		if (ObjectTypeUtil.isDelegationRelation(relation)) {
 			// We have to handle assignments as though they were inducements here.
-			if (!isInducementAllowedByLimitations(segment, roleAssignment)) {
+			if (!isAllowedByLimitations(segment, roleAssignment, ctx)) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Skipping application of delegated assignment {} because it is limited in the delegation",
 							FocusTypeUtil.dumpAssignment(roleAssignment));
@@ -698,11 +811,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			LOGGER.trace("orig EO({}): follow assignment {} {}; new EO({})",
 					segment.getEvaluationOrder().shortDump(), targetType, FocusTypeUtil.dumpAssignment(roleAssignment), nextEvaluationOrder);
 		}
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleAssignmentIdi = new ItemDeltaItem<>();
-		roleAssignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(roleAssignment));
-		roleAssignmentIdi.recompute();
 		String nextSourceDescription = targetType+" in "+segment.sourceDescription;
-		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, nextSourceDescription, roleAssignmentIdi, true);
+		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, nextSourceDescription, roleAssignment, true);
 		nextSegment.setRelation(nextRelation);
 		nextSegment.setEvaluationOrder(nextEvaluationOrder);
 		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTarget);
@@ -721,7 +831,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	private void evaluateInducement(AssignmentPathSegmentImpl segment, PlusMinusZero mode, boolean isValid, EvaluationContext ctx,
 			FocusType targetType, AssignmentType inducement)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		ObjectType orderOneObject = getOrderOneObject(segment);
 
@@ -732,26 +842,23 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			return;
 		}
-		if (!isInducementAllowedByLimitations(segment, inducement)) {
+		if (!isAllowedByLimitations(segment, inducement, ctx)) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Skipping application of inducement {} because it is limited", FocusTypeUtil.dumpAssignment(inducement));
 			}
 			return;
 		}
-		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> roleInducementIdi = new ItemDeltaItem<>();
-		roleInducementIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(inducement));
-		roleInducementIdi.recompute();
 		String subSourceDescription = targetType+" in "+segment.sourceDescription;
-		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, roleInducementIdi, false);
-
+		AssignmentPathSegmentImpl nextSegment = new AssignmentPathSegmentImpl(targetType, subSourceDescription, inducement, false);
+		// note that 'old' and 'new' values for assignment in nextSegment are the same
 		boolean nextIsMatchingOrder = AssignmentPathSegmentImpl.computeMatchingOrder(
-				segment.getEvaluationOrder(), nextSegment.getAssignment());
+				segment.getEvaluationOrder(), nextSegment.getAssignmentNew());
 		boolean nextIsMatchingOrderForTarget = AssignmentPathSegmentImpl.computeMatchingOrder(
-				segment.getEvaluationOrderForTarget(), nextSegment.getAssignment());
+				segment.getEvaluationOrderForTarget(), nextSegment.getAssignmentNew());
 
 		Holder<EvaluationOrder> nextEvaluationOrderHolder = new Holder<>(segment.getEvaluationOrder().clone());
 		Holder<EvaluationOrder> nextEvaluationOrderForTargetHolder = new Holder<>(segment.getEvaluationOrderForTarget().clone());
-		adjustOrder(nextEvaluationOrderHolder, nextEvaluationOrderForTargetHolder, inducement.getOrderConstraint(), inducement.getOrder(), ctx.assignmentPath, nextSegment);
+		adjustOrder(nextEvaluationOrderHolder, nextEvaluationOrderForTargetHolder, inducement.getOrderConstraint(), inducement.getOrder(), ctx.assignmentPath, nextSegment, ctx);
 		nextSegment.setEvaluationOrder(nextEvaluationOrderHolder.getValue(), nextIsMatchingOrder);
 		nextSegment.setEvaluationOrderForTarget(nextEvaluationOrderForTargetHolder.getValue(), nextIsMatchingOrderForTarget);
 
@@ -777,7 +884,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	private void adjustOrder(Holder<EvaluationOrder> evaluationOrderHolder, Holder<EvaluationOrder> targetEvaluationOrderHolder,
 			List<OrderConstraintsType> constraints, Integer order, AssignmentPathImpl assignmentPath,
-			AssignmentPathSegmentImpl nextSegment) {
+			AssignmentPathSegmentImpl nextSegment, EvaluationContext ctx) {
 
 		if (constraints.isEmpty()) {
 			if (order == null || order == 1) {
@@ -833,7 +940,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 									assignmentsSeen, assignmentPath.size() - i, segment.getRelation());
 						}
 					} else {
-						AssignmentType inducement = segment.getAssignment();
+						AssignmentType inducement = segment.getAssignment(ctx.evaluateOld);		// for i>0 returns value regardless of evaluateOld
 						for (OrderConstraintsType constraint : inducement.getOrderConstraint()) {
 							if (constraint.getResetOrder() != null && constraint.getRelation() != null) {
 								LOGGER.debug("Going back {}: an inducement with non-summary resetting constraint found"
@@ -909,29 +1016,45 @@ public class AssignmentEvaluator<F extends FocusType> {
 		refVal.setTargetType(ObjectTypes.getObjectType(targetType.getClass()).getTypeQName());
 		refVal.setRelation(relation);
 		refVal.setTargetName(targetType.getName().toPolyString());
+		
+		collectMembershipRefVal(refVal, targetType.getClass(), relation, targetType, ctx);
+	}
+	
+	private void collectMembership(ObjectReferenceType targetRef, QName relation, EvaluationContext ctx) {
+		PrismReferenceValue refVal = new PrismReferenceValue();
+		refVal.setOid(targetRef.getOid());
+		refVal.setTargetType(targetRef.getType());
+		refVal.setRelation(relation);
+		refVal.setTargetName(targetRef.getTargetName());
+		
+		Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(targetRef.getType()).getClassDefinition();
+		collectMembershipRefVal(refVal, targetClass, relation, targetRef, ctx);
+	}
+	
+	private void collectMembershipRefVal(PrismReferenceValue membershipRefVal, Class<? extends ObjectType> targetClass, QName relation, Object targetDesc, EvaluationContext ctx) {
 
-		if (ctx.assignmentPath.getSegments().stream().anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment()))) {
-			addIfNotThere(ctx.evalAssignment.getDelegationRefVals(), ctx.evalAssignment::addDelegationRefVal, refVal,
-					"delegationRef", targetType);
+		if (ctx.assignmentPath.getSegments().stream().anyMatch(aps -> DeputyUtils.isDelegationAssignment(aps.getAssignment(ctx.evaluateOld)))) {
+			addIfNotThere(ctx.evalAssignment.getDelegationRefVals(), ctx.evalAssignment::addDelegationRefVal, membershipRefVal,
+					"delegationRef", targetDesc);
 		} else {
-			if (targetType instanceof AbstractRoleType) {
-				addIfNotThere(ctx.evalAssignment.getMembershipRefVals(), ctx.evalAssignment::addMembershipRefVal, refVal,
-						"membershipRef", targetType);
+			if (AbstractRoleType.class.isAssignableFrom(targetClass)) {
+				addIfNotThere(ctx.evalAssignment.getMembershipRefVals(), ctx.evalAssignment::addMembershipRefVal, membershipRefVal,
+						"membershipRef", targetDesc);
 			}
 		}
-		if (targetType instanceof OrgType && (ObjectTypeUtil.isDefaultRelation(relation) || ObjectTypeUtil.isManagerRelation(relation))) {
-			addIfNotThere(ctx.evalAssignment.getOrgRefVals(), ctx.evalAssignment::addOrgRefVal, refVal,
-					"orgRef", targetType);
+		if (OrgType.class.isAssignableFrom(targetClass) && (ObjectTypeUtil.isDefaultRelation(relation) || ObjectTypeUtil.isManagerRelation(relation))) {
+			addIfNotThere(ctx.evalAssignment.getOrgRefVals(), ctx.evalAssignment::addOrgRefVal, membershipRefVal,
+					"orgRef", targetDesc);
 		}
 	}
 
 	private void addIfNotThere(Collection<PrismReferenceValue> collection, Consumer<PrismReferenceValue> setter,
-			PrismReferenceValue refVal, String collectionName, FocusType targetType) {
+			PrismReferenceValue refVal, String collectionName, Object targetDesc) {
 		if (!collection.contains(refVal)) {
-			LOGGER.trace("Adding target {} to {}", targetType, collectionName);
+			LOGGER.trace("Adding target {} to {}", targetDesc, collectionName);
 			setter.accept(refVal);
 		} else {
-			LOGGER.trace("Would add target {} to {}, but it's already there", targetType, collectionName);
+			LOGGER.trace("Would add target {} to {}, but it's already there", targetDesc, collectionName);
 		}
 	}
 
@@ -939,6 +1062,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 		// mode == null is also considered negative, because it is a combination of PLUS and MINUS;
 		// so the net result is that for both old and new state there exists an unsatisfied condition on the path.
 		return mode == PlusMinusZero.ZERO || mode == PlusMinusZero.PLUS;
+	}
+	
+	private boolean isChanged(PlusMinusZero mode) {
+		// mode == null is also considered negative, because it is a combination of PLUS and MINUS;
+		// so the net result is that for both old and new state there exists an unsatisfied condition on the path.
+		return mode == PlusMinusZero.PLUS || mode == PlusMinusZero.MINUS;
 	}
 
 	private void checkRelationWithTarget(AssignmentPathSegmentImpl segment, FocusType targetType, QName relation)
@@ -971,9 +1100,28 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return inducementFocusClass.isAssignableFrom(lensContext.getFocusClass());
 	}
 	
-	private boolean isInducementAllowedByLimitations(AssignmentPathSegment segment, AssignmentType roleInducement) {
-		AssignmentSelectorType limitation = segment.getAssignment().getLimitTargetContent();
-		return limitation == null || FocusTypeUtil.selectorMatches(limitation, roleInducement);
+	private boolean isAllowedByLimitations(AssignmentPathSegment segment, AssignmentType nextAssignment, EvaluationContext ctx) {
+		AssignmentType currentAssignment = segment.getAssignment(ctx.evaluateOld);
+		AssignmentSelectorType targetLimitation = currentAssignment.getLimitTargetContent();
+		if (isDeputyDelegation(nextAssignment)) {       // delegation of delegation
+			if (targetLimitation == null) {
+				return false;
+			}
+			return BooleanUtils.isTrue(targetLimitation.isAllowTransitive());
+		} else {
+			// As for the case of targetRef==null: we want to pass target-less assignments (focus mappings, policy rules etc)
+			// from the delegator to delegatee. To block them we should use order constraints (but also for assignments?).
+			return targetLimitation == null || nextAssignment.getTargetRef() == null ||
+					FocusTypeUtil.selectorMatches(targetLimitation, nextAssignment);
+		}
+	}
+	
+	private boolean isDeputyDelegation(AssignmentType assignmentType) {
+		ObjectReferenceType targetRef = assignmentType.getTargetRef();
+		if (targetRef == null) {
+			return false;
+		}
+		return ObjectTypeUtil.isDelegationRelation(targetRef.getRelation());
 	}
 
 	private Authorization createAuthorization(AuthorizationType authorizationType, String sourceDesc) {
@@ -995,7 +1143,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private AssignmentType getAssignmentType(AssignmentPathSegmentImpl segment, EvaluationContext ctx) {
-		return LensUtil.getAssignmentType(segment.getAssignmentIdi(), ctx.evaluateOld);
+		return segment.getAssignment(ctx.evaluateOld);
 	}
 
 	private void checkSchema(AssignmentPathSegmentImpl segment, EvaluationContext ctx) throws SchemaException {
@@ -1028,7 +1176,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			@NotNull List<PrismObject<O>> targets, EvaluationContext ctx) {
 		assert ctx.evalAssignment.getTarget() == null;
 		if (targets.size() > 1) {
-			throw new UnsupportedOperationException("Multiple targets for direct focus assignment are not supported: " + segment.getAssignment());
+			throw new UnsupportedOperationException("Multiple targets for direct focus assignment are not supported: " + segment.getAssignment(ctx.evaluateOld));
 		} else if (!targets.isEmpty()) {
 			ctx.evalAssignment.setTarget(targets.get(0));
 		}
@@ -1036,14 +1184,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	public PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(MappingType condition,
 			AssignmentType sourceAssignment, ObjectType source, AssignmentPathVariables assignmentPathVariables,
-			EvaluationContext ctx) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			EvaluationContext ctx) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 		String desc;
 		if (sourceAssignment == null) {
 			desc = "condition in " + source; 
 		} else {
 			desc = "condition in assignment in " + source;
 		}
-		Mapping.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = mappingFactory.createMappingBuilder();
+		MappingImpl.Builder<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> builder = mappingFactory.createMappingBuilder();
 		builder = builder.mappingType(condition)
 				.contextDescription(desc)
 				.sourceContext(focusOdo)
@@ -1056,7 +1204,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				.rootNode(focusOdo);
         builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 
-		Mapping<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
+		MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
 
 		mappingEvaluator.evaluateMapping(mapping, lensContext, ctx.task, ctx.result);
 		

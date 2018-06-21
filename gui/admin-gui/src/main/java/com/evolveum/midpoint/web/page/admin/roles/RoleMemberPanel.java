@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,23 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import com.evolveum.midpoint.common.SystemConfigurationHolder;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,20 +39,22 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxPanel;
-import com.evolveum.midpoint.web.component.input.ObjectTypeChoiceRenderer;
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -78,35 +78,44 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	private static final String ID_OBJECT_TYPE = "type";
 	private static final String ID_TENANT = "tenant";
 	private static final String ID_PROJECT = "project";
+	private static final String ID_INDIRECT_MEMBERS_CONTAINER = "indirectMembersContainer";
 	private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
 
-	public RoleMemberPanel(String id, IModel<T> model, PageBase pageBase) {
-		super(id, TableId.ROLE_MEMEBER_PANEL, model, pageBase);
+	public RoleMemberPanel(String id, IModel<T> model) {
+		super(id, TableId.ROLE_MEMEBER_PANEL, model);
 	}
-	
-	public RoleMemberPanel(String id, IModel<T> model, List<RelationTypes> relations, PageBase pageBase) {
-		super(id, TableId.ROLE_MEMEBER_PANEL, model, relations, pageBase);
+
+	public RoleMemberPanel(String id, IModel<T> model, List<RelationTypes> relations) {
+		super(id, TableId.ROLE_MEMEBER_PANEL, model, relations);
+	}
+
+	private boolean indirectMembersContainerVisibility() {
+		return isRole() && !isGovernance();
 	}
 
 	protected boolean isRole() {
 		return true;
 	}
 
-	private PrismContext getPrismContext() {
+	protected boolean isGovernance(){
+		return false;
+	}
+
+	protected PrismContext getPrismContext() {
 		return getPageBase().getPrismContext();
 	}
 
-		private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
+	private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
 			IChoiceRenderer<V> renderer) {
-		DropDownChoice<V> listSelect = new DropDownChoice<V>(id, defaultModel,
-				new AbstractReadOnlyModel<List<V>>() {
-					private static final long serialVersionUID = 1L;
+		DropDownChoice<V> listSelect = new DropDownChoice<>(id, defaultModel,
+            new AbstractReadOnlyModel<List<V>>() {
+                private static final long serialVersionUID = 1L;
 
-					@Override
-					public List<V> getObject() {
-						return values;
-					}
-				}, renderer);
+                @Override
+                public List<V> getObject() {
+                    return values;
+                }
+            }, renderer);
 
 		listSelect.add(new OnChangeAjaxBehavior() {
 			private static final long serialVersionUID = 1L;
@@ -127,61 +136,35 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		getMemberTable().refreshTable(WebComponentUtil.qnameToClass(getPrismContext(), type, FocusType.class), target);
 	}
 
-	private List<OrgType> createTenantList() {
-		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext())
-				.item(OrgType.F_TENANT).eq(true)
-				.build();
-		List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
-				new OperationResult("Tenant search"), getPageBase());
-		List<OrgType> orgTypes = new ArrayList<>();
-		for (PrismObject<OrgType> org : orgs) {
-			orgTypes.add(org.asObjectable());
-		}
 
-		return orgTypes;
-	}
-
-	private List<OrgType> createProjectList() {
-		ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPrismContext())
-				.item(OrgType.F_TENANT).eq(true)
-				.or().item(OrgType.F_TENANT).isNull()
-				.build();
-		List<PrismObject<OrgType>> orgs = WebModelServiceUtils.searchObjects(OrgType.class, query,
-				new OperationResult("Tenant search"), getPageBase());
-		List<OrgType> orgTypes = new ArrayList<>();
-		for (PrismObject<OrgType> org : orgs) {
-			orgTypes.add(org.asObjectable());
-		}
-		return orgTypes;
-	}
 
 	private MainObjectListPanel<FocusType> getMemberTable() {
 		return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}
 
-	private AssignmentType createAssignmentToModify() throws SchemaException {
-		AssignmentType assignmentToModify = createAssignmentToModify(null);
+	protected AssignmentType createMemberAssignmentToModify(QName relation) throws SchemaException {
+		AssignmentType assignmentToModify = createAssignmentToModify(relation);
 
-		DropDownChoice<OrgType> tenantChoice = (DropDownChoice<OrgType>) get(ID_TENANT);
-		OrgType tenant = tenantChoice.getModelObject();
-		if (tenant != null) {
-			assignmentToModify.setTenantRef(ObjectTypeUtil.createObjectRef(tenant.getOid(), ObjectTypes.ORG));
+		ChooseTypePanel<OrgType> tenantChoice = (ChooseTypePanel) get(createComponentPath(ID_TENANT));
+		ObjectViewDto<OrgType> tenant = tenantChoice.getModelObject();
+		if (tenant != null && tenant.getObjectType() != null) {
+			assignmentToModify.setTenantRef(ObjectTypeUtil.createObjectRef(tenant.getObjectType().getOid(), ObjectTypes.ORG));
 		}
-		DropDownChoice<OrgType> projectChoice = (DropDownChoice<OrgType>) get(ID_PROJECT);
-		OrgType project = projectChoice.getModelObject();
-		if (project != null) {
-			assignmentToModify.setOrgRef(ObjectTypeUtil.createObjectRef(project.getOid(), ObjectTypes.ORG));
+		ChooseTypePanel<OrgType> projectChoice = (ChooseTypePanel) get(createComponentPath(ID_PROJECT));
+		ObjectViewDto<OrgType> project = projectChoice.getModelObject();
+		if (project != null && project.getObjectType() != null) {
+			assignmentToModify.setOrgRef(ObjectTypeUtil.createObjectRef(project.getObjectType().getOid(), ObjectTypes.ORG));
 		}
 
 		return assignmentToModify;
 	}
 
-	private ObjectQuery getActionQuery(QueryScope scope) {
+	private ObjectQuery getActionQuery(QueryScope scope, List<QName> relations) {
 		switch (scope) {
 			case ALL:
-				return createAllMemberQuery();
+				return createAllMemberQuery(relations);
 			case ALL_DIRECT:
-				return createDirectMemberQuery( );
+				return createDirectMemberQuery(relations);
 			case SELECTED:
 				return createRecomputeQuery();
 		}
@@ -189,23 +172,22 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return null;
 	}
 
-	private ObjectQuery createAllMemberQuery() {
+	protected ObjectQuery createAllMemberQuery(List<QName> relations) {
 		return QueryBuilder.queryFor(FocusType.class, getPrismContext())
-				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-				.ref(createReferenceValuesList()).build();
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(createReferenceValuesList(relations))
+				.build();
 	}
 
-	private List<PrismReferenceValue> createReferenceValuesList() {
+	private List<PrismReferenceValue> createReferenceValuesList(List<QName> relations) {
 		List<PrismReferenceValue> referenceValuesList = new ArrayList<>();
 		if (relations != null && relations.size() > 0){
-			for (RelationTypes relation : relations) {
-				PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
-				rv.setRelation(relation.getRelation());
-				referenceValuesList.add(rv);
+			if (!CollectionUtils.isEmpty(relations)) {
+				for (QName relation : relations) {
+					referenceValuesList.add(createReference(relation).asReferenceValue());
+				}
 			}
 		} else {
-			PrismReferenceValue rv = new PrismReferenceValue(getModelObject().getOid());
-			referenceValuesList.add(rv);
+			referenceValuesList.add(createReference().asReferenceValue());
 		}
 
 		return referenceValuesList;
@@ -229,7 +211,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected void initCustomLayout(Form form) {
+	protected void initCustomLayout(Form form, ModelServiceLocator serviceLocator) {
 
 	}
 
@@ -240,65 +222,130 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		DropDownChoice<QName> typeSelect = createDropDown(ID_OBJECT_TYPE, Model.of(FocusType.COMPLEX_TYPE),
 				allowedTypes, new QNameChoiceRenderer());
 		add(typeSelect);
-		
 
-		DropDownChoice<OrgType> tenant = createDropDown(ID_TENANT, new Model(),
-				createTenantList(), new ObjectTypeChoiceRenderer<OrgType>());
+		ChooseTypePanel<OrgType> tenant = createParameterPanel(ID_TENANT, true);
+
+//			DropDownChoice<OrgType> tenant = createDropDown(ID_TENANT, new Model(),
+//				createTenantList(), new ObjectTypeChoiceRenderer<OrgType>());
 		add(tenant);
 		tenant.add(new VisibleEnableBehaviour() {
+
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				return isRole();
 			}
 		});
-		
-		DropDownChoice<OrgType> project = createDropDown(ID_PROJECT, new Model(),
-				createProjectList(), new ObjectTypeChoiceRenderer<OrgType>());
+
+		ChooseTypePanel<OrgType> project = createParameterPanel(ID_PROJECT, false);
 		add(project);
-		
+
 		project.add(new VisibleEnableBehaviour() {
+
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible() {
 				return isRole();
 			}
 		});
-		
-		CheckBoxPanel includeIndirectMembers = new CheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<Boolean>(false)) {
+
+		WebMarkupContainer indirectMembersContainer = new WebMarkupContainer(ID_INDIRECT_MEMBERS_CONTAINER);
+		indirectMembersContainer.setOutputMarkupId(true);
+		indirectMembersContainer.add(new VisibleBehaviour(this::indirectMembersContainerVisibility));
+		add(indirectMembersContainer);
+
+		IsolatedCheckBoxPanel includeIndirectMembers = new IsolatedCheckBoxPanel(ID_INDIRECT_MEMBERS, new Model<>(false)) {
 			private static final long serialVersionUID = 1L;
 
 			public void onUpdate(AjaxRequestTarget target) {
 				refreshTable(target);
 			}
 		};
-		add(includeIndirectMembers);
-		includeIndirectMembers.add(new VisibleBehaviour(this::isRole));		// TODO shouldn't we hide also the label?
+		indirectMembersContainer.add(includeIndirectMembers);
+
+	}
+
+	private ChooseTypePanel<OrgType> createParameterPanel(String id, boolean isTenant) {
+
+		ChooseTypePanel<OrgType> orgSelector = new ChooseTypePanel<OrgType>(id, Model.of(new ObjectViewDto())) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void executeCustomAction(AjaxRequestTarget target, OrgType object) {
+				refreshTable(target);
+			}
+
+			@Override
+			protected void executeCustomRemoveAction(AjaxRequestTarget target) {
+				refreshTable(target);
+			}
+
+			@Override
+			protected ObjectQuery getChooseQuery() {
+				ObjectFilter tenantFilter = QueryBuilder.queryFor(OrgType.class, getPrismContext()).item(OrgType.F_TENANT).eq(true).buildFilter();
+
+				if (isTenant) {
+					return ObjectQuery.createObjectQuery(tenantFilter);
+				}
+				return ObjectQuery.createObjectQuery(NotFilter.createNot(tenantFilter));
+
+			}
+
+			@Override
+			protected boolean isSearchEnabled() {
+				return true;
+			}
+
+			@Override
+			public Class<OrgType> getObjectTypeClass() {
+				return OrgType.class;
+			}
+
+			@Override
+			protected AttributeAppender getInputStyleClass(){
+				return AttributeAppender.append("class", "col-md-6");
+			}
+
+		};
+
+		return orgSelector;
 
 	}
 
 	@Override
-	protected void addMembersPerformed(QName type, QName relation, List selected, AjaxRequestTarget target) {
+	protected void addMembersPerformed(QName type, List<QName> relation, List selected, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null));
-		ObjectDelta delta = prepareDelta(type, MemberOperation.ADD, operationalTask.getResult());
+		ObjectDelta delta = prepareDelta(type, relation, MemberOperation.ADD, operationalTask.getResult());
 		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
 				TaskCategory.EXECUTE_CHANGES, target);
 
 	}
 
-	private ObjectDelta prepareDelta(QName type, MemberOperation operation, OperationResult result) {
+	private ObjectDelta prepareDelta(QName type, List<QName> relations, MemberOperation operation, OperationResult result) {
 		Class classType = WebComponentUtil.qnameToClass(getPrismContext(), type);
 		ObjectDelta delta = null;
 		try {
 			switch (operation) {
 				case ADD:
-
+					if (relations == null || relations.isEmpty()) {
 					delta = ObjectDelta.createModificationAddContainer(classType, "fakeOid",
-							FocusType.F_ASSIGNMENT, getPrismContext(), createAssignmentToModify());
-
+							FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(null));
+					} else {
+						delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", getPrismContext());
+						
+						for (QName relation : relations) {
+							delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, createAssignmentToModify(relation));
+						}
+						
+						return delta;  
+					}
 					break;
 
 				case REMOVE:
-					delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
-							FocusType.F_ASSIGNMENT, getPrismContext(), createAssignmentToModify());
+					delta = getDeleteAssignmentDelta(relations, classType);
 					break;
 			}
 		} catch (SchemaException e) {
@@ -308,11 +355,27 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		return delta;
 	}
 
+	protected ObjectDelta getDeleteAssignmentDelta(List<QName> relations, Class classType) throws SchemaException {
+		if (relations == null || relations.isEmpty()) {
+			return ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
+					FocusType.F_ASSIGNMENT, getPrismContext(), createMemberAssignmentToModify(null));
+		}
+		
+		ObjectDelta delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", getPrismContext());
+		
+		for (QName relation : relations) {
+			delta.addModificationDeleteContainer(FocusType.F_ASSIGNMENT, createAssignmentToModify(relation));
+		}
+		
+		return delta;  
+		
+	}
+
 	@Override
-	protected void removeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
+	protected void removeMembersPerformed(QueryScope scope, List<QName> relation, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope));
-		ObjectDelta delta = prepareDelta(FocusType.COMPLEX_TYPE, MemberOperation.REMOVE, operationalTask.getResult());
-		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope), delta,
+		ObjectDelta delta = prepareDelta(FocusType.COMPLEX_TYPE, relation, MemberOperation.REMOVE, operationalTask.getResult());
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope, relation), delta,
 				TaskCategory.EXECUTE_CHANGES, target);
 
 	}
@@ -320,36 +383,43 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	@Override
 	protected void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope));
-		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope), null,
+		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE, getActionQuery(scope, null), null,
 				TaskCategory.RECOMPUTATION, target);
 
 	}
 
 	@Override
 	protected ObjectQuery createContentQuery() {
-		boolean indirect = ((CheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS))).getValue();
+		boolean indirect = ((IsolatedCheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS_CONTAINER, ID_INDIRECT_MEMBERS))).getValue();
 
-		return indirect ? createAllMemberQuery() : createDirectMemberQuery();
+		List<QName> relationList = new ArrayList<>();
+		if (relations != null) {
+			for (RelationTypes relation: relations) {
+				relationList.add(relation.getRelation());
+			}
+		}
 		
+		return indirect ? createAllMemberQuery(relationList) : createDirectMemberQuery(relationList);
+
 	}
 
-	private ObjectQuery createDirectMemberQuery() {
+	protected ObjectQuery createDirectMemberQuery(List<QName> relations) {
 		ObjectQuery query;
 
 		String oid = getModelObject().getOid();
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, getPrismContext())
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
-				.ref(createReferenceValuesList());
-		DropDownChoice<OrgType> tenantChoice = (DropDownChoice) get(createComponentPath(ID_TENANT));
-		OrgType tenant = tenantChoice.getModelObject();
-		if (tenant != null) {
-			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(createReference(tenant).asReferenceValue());
+				.ref(createReferenceValuesList(relations));
+		ChooseTypePanel<OrgType> tenantChoice = (ChooseTypePanel) get(createComponentPath(ID_TENANT));
+		ObjectViewDto<OrgType> tenant = tenantChoice.getModelObject();
+		if (tenant != null && tenant.getObjectType() != null) {
+			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(createReference(tenant.getObjectType()).asReferenceValue());
 		}
 
-		DropDownChoice<OrgType> projectChoice = (DropDownChoice) get(createComponentPath(ID_PROJECT));
-		OrgType project = projectChoice.getModelObject();
-		if (project != null) {
-			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(createReference(project).asReferenceValue());
+		ChooseTypePanel<OrgType> projectChoice = (ChooseTypePanel) get(createComponentPath(ID_PROJECT));
+		ObjectViewDto<OrgType> project = projectChoice.getModelObject();
+		if (project != null && project.getObjectType() !=null) {
+			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(createReference(project.getObjectType()).asReferenceValue());
 		}
 
 		query = q.build();
@@ -367,17 +437,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
-		return super.createNewMemberInlineMenuItems();
-	}
-
-	@Override
-	protected List<InlineMenuItem> createRemoveMemberInlineMenuItems() {
-		return super.createRemoveMemberInlineMenuItems();
-	}
-
-	@Override
-	protected List<InlineMenuItem> createMemberRecomputeInlineMenuItems() {
-		return super.createMemberRecomputeInlineMenuItems();
+	protected List<QName> getNewMemberSupportedTypes(){
+		return WebComponentUtil.createFocusTypeList();
 	}
 }

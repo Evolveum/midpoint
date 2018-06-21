@@ -20,13 +20,13 @@ package com.evolveum.icf.dummy.resource;
  *
  */
 public class DummyDelta {
-	
+
 	private int syncToken;
 	private Class<? extends DummyObject> objectClass;
 	private String objectId;
 	private String objectName;
 	private DummyDeltaType type;
-	
+
 	DummyDelta(int syncToken, Class<? extends DummyObject> objectClass, String objectId, String objectName, DummyDeltaType type) {
 		this.syncToken = syncToken;
 		this.objectClass = objectClass;
@@ -38,11 +38,11 @@ public class DummyDelta {
 	public int getSyncToken() {
 		return syncToken;
 	}
-	
+
 	public void setSyncToken(int syncToken) {
 		this.syncToken = syncToken;
 	}
-	
+
 	public Class<? extends DummyObject> getObjectClass() {
 		return objectClass;
 	}
@@ -54,7 +54,7 @@ public class DummyDelta {
 	public String getObjectId() {
 		return objectId;
 	}
-	
+
 	public void setObjectId(String accountId) {
 		this.objectId = accountId;
 	}

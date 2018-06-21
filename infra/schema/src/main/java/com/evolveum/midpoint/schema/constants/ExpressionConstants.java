@@ -26,12 +26,13 @@ public class ExpressionConstants {
 	// Generic variables
 	public static final QName VAR_INPUT = new QName(SchemaConstants.NS_C, "input");
 	public static final QName VAR_OBJECT = new QName(SchemaConstants.NS_C, "object");
-	
+
 	// Variables used in various mappings
-	public static final QName VAR_FOCUS = new QName(SchemaConstants.NS_C, "focus");	
+	public static final QName VAR_FOCUS = new QName(SchemaConstants.NS_C, "focus");
 	public static final QName VAR_PROJECTION = new QName(SchemaConstants.NS_C, "projection");
 	public static final QName VAR_SOURCE = new QName(SchemaConstants.NS_C, "source");
 	public static final QName VAR_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
+	public static final QName VAR_EVALUATED_ASSIGNMENT = new QName(SchemaConstants.NS_C, "evaluatedAssignment");
 	public static final QName VAR_ASSIGNMENT_PATH = new QName(SchemaConstants.NS_C, "assignmentPath");
 	public static final QName VAR_IMMEDIATE_ASSIGNMENT = new QName(SchemaConstants.NS_C, "immediateAssignment");
 	public static final QName VAR_THIS_ASSIGNMENT = new QName(SchemaConstants.NS_C, "thisAssignment");
@@ -44,8 +45,23 @@ public class ExpressionConstants {
 	public static final QName VAR_MODEL_CONTEXT = new QName(SchemaConstants.NS_C, "modelContext");
 	public static final QName VAR_PRISM_CONTEXT = new QName(SchemaConstants.NS_C, "prismContext");
 	public static final QName VAR_CONFIGURATION = new QName(SchemaConstants.NS_C, "configuration");
+	public static final QName VAR_ENTITLEMENT = new QName(SchemaConstants.NS_C, "entitlement");
+	public static final QName VAR_FILE = new QName(SchemaConstants.NS_C, "file");
+	
+	/**
+	 * User that is currently executing the operation.
+	 */
     public static final QName VAR_ACTOR = new QName(SchemaConstants.NS_C, "actor");
+    
+    /**
+     * Subject of an authorization. This is usually the same as actor. But it may be different
+     * in some exotic use cases (e.g. if administrator needs to evaluate authorizations of
+     * a different user.
+     */
+    public static final QName VAR_SUBJECT = new QName(SchemaConstants.NS_C, "subject");
+    
 	public static final QName VAR_VALUE = new QName(SchemaConstants.NS_C, "value");
+	public static final QName VAR_ORGS = new QName(SchemaConstants.NS_C, "orgs");
 
 	public static final QName VAR_TARGET = new QName(SchemaConstants.NS_C, "target");
 
@@ -59,27 +75,27 @@ public class ExpressionConstants {
     public static final QName VAR_ASSIGNED = new QName(SchemaConstants.NS_C, "assigned");
 	public static final QName VAR_FOCUS_EXISTS = new QName(SchemaConstants.NS_C, "focusExists");
 	public static final QName VAR_ADMINISTRATIVE_STATUS = new QName(SchemaConstants.NS_C, "administrativeStatus");
-	
+
 	public static final QName VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION = new QName(SchemaConstants.NS_C, "associationTargetObjectClassDefinition");
-	
+
 	/**
 	 * Numeric value describing the current iteration. It starts with 0 and increments on every iteration.
 	 * Iterations are used to find unique values for an account, to resolve naming conflicts, etc.
 	 */
 	public static final QName VAR_ITERATION = new QName(SchemaConstants.NS_C, "iteration");
-	
+
 	/**
 	 * String value describing the current iteration. It is usually suffix that is appended to the username
 	 * or a similar "extension" of the value. It should have different value for every iteration. The actual
 	 * value is determined by the iteration settings.
 	 */
 	public static final QName VAR_ITERATION_TOKEN = new QName(SchemaConstants.NS_C, "iterationToken");
-	
+
 	// Variables used in object merging expressions
 	public static final QName VAR_SIDE = new QName(SchemaConstants.NS_C, "side");
 	public static final QName VAR_OBJECT_LEFT = new QName(SchemaConstants.NS_C, "objectLeft");
 	public static final QName VAR_OBJECT_RIGHT = new QName(SchemaConstants.NS_C, "objectRight");
-	
+
 	public static final QName OUTPUT_ELEMENT_NAME = new QName(SchemaConstants.NS_C, "output");
 
 	// "case" would collide with java keyword
@@ -88,4 +104,16 @@ public class ExpressionConstants {
 	public static final QName VAR_CAMPAIGN = new QName(SchemaConstants.NS_C, "campaign");
 	public static final QName VAR_REVIEWER_SPECIFICATION = new QName(SchemaConstants.NS_C, "reviewerSpecification");
 
+	public static final QName VAR_CHANNEL = new QName(SchemaConstants.NS_C, "channel");
+	public static final QName VAR_WORKFLOW_CONTEXT = new QName(SchemaConstants.NS_C, "workflowContext");
+	public static final QName VAR_TASK = new QName(SchemaConstants.NS_C, "task");
+	public static final QName VAR_RULE_EVALUATION_CONTEXT = new QName(SchemaConstants.NS_C, "ruleEvaluationContext");
+	public static final QName VAR_STAGE_DEFINITION = new QName(SchemaConstants.NS_C, "stageDefinition");
+
+	public static final QName VAR_OBJECT_DISPLAY_INFORMATION = new QName(SchemaConstants.NS_C, "objectDisplayInformation");
+	public static final QName VAR_TARGET_DISPLAY_INFORMATION = new QName(SchemaConstants.NS_C, "targetDisplayInformation");
+
+	public static final QName VAR_PERFORMER = new QName(SchemaConstants.NS_C, "performer");
+	public static final QName VAR_OUTPUT = new QName(SchemaConstants.NS_C, "output");
+	public static final QName VAR_EVENT = new QName(SchemaConstants.NS_C, "event");
 }

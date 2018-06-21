@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class ResourcesStorage implements PageStorage {
      * DTO used for search in {@link com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts}
      */
 //    private AccountContentSearchDto accountContentSearch;
-    
+
     private ResourceContentSearchDto resourceContentSearch;
 
     /**
@@ -68,7 +68,7 @@ public class ResourcesStorage implements PageStorage {
         this.resourcePaging = resourcePaging;
     }
 
-    
+
     public ObjectPaging getAccountContentPaging() {
         return accountContentPaging;
     }
@@ -76,11 +76,11 @@ public class ResourcesStorage implements PageStorage {
     public void setAccountContentPaging(ObjectPaging accountContentPaging) {
         this.accountContentPaging = accountContentPaging;
     }
-    
+
     public ResourceContentSearchDto getResourceContentSearch() {
 		return resourceContentSearch;
 	}
-    
+
     public void setResourceContentSearch(ResourceContentSearchDto resourceContentSearch) {
 		this.resourceContentSearch = resourceContentSearch;
 	}

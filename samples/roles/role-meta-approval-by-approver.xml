@@ -1,0 +1,54 @@
+<!--
+  ~ Copyright (c) 2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- This is a meta-role. A Role indented to be assigned to other roles.
+     I really mean assigned, not included or induced. -->
+
+<role oid="4ad48d38-158f-11e8-9170-2f75fd7f611c"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Approval by Approver</name>
+    <description>Meta-role that defines "approval by approver" policy. Any object that has this meta-role requires approval by the one of the approvers defined for that object.</description>
+    
+    <inducement>
+        <policyRule>
+            <policyConstraints>
+                <assignment>
+                	<operation>add</operation>
+                </assignment>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <compositionStrategy>
+                        <order>200</order>
+                    </compositionStrategy>
+                    <approvalSchema>
+                        <level>
+                            <name>Role approvers</name>
+                            <approverRelation>approver</approverRelation>
+                            <evaluationStrategy>firstDecides</evaluationStrategy>
+                            <outcomeIfNoApprovers>reject</outcomeIfNoApprovers>
+                        </level>
+                    </approvalSchema>
+                </approval>
+            </policyActions>
+        </policyRule>
+    </inducement>
+    <roleType>policy</roleType>
+</role>

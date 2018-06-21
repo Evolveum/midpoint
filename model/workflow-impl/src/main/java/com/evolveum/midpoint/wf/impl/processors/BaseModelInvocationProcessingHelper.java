@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 
 package com.evolveum.midpoint.wf.impl.processors;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -32,6 +36,7 @@ import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
 import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.joda.time.format.DateTimeFormat;
@@ -42,6 +47,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Locale;
+
+import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 
 /**
  * Helper class intended to facilitate processing of model invocation.
@@ -58,15 +65,18 @@ public class BaseModelInvocationProcessingHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseModelInvocationProcessingHelper.class);
 
-    @Autowired
-    protected WfTaskController wfTaskController;
-
-    @Autowired
-    private WfTaskUtil wfTaskUtil;
+    @Autowired protected WfTaskController wfTaskController;
+	@Autowired private WfTaskUtil wfTaskUtil;
+	@Autowired private LocalizationService localizationService;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
+
+	private static final String APPROVING_AND_EXECUTING_KEY = "ApprovingAndExecuting.";
+	private static final String CREATION_OF_KEY = "CreationOf";
+	private static final String DELETION_OF_KEY = "DeletionOf";
+	private static final String CHANGE_OF_KEY = "ChangeOf";
 
 	/**
      * Creates a root job creation instruction.
@@ -80,18 +90,22 @@ public class BaseModelInvocationProcessingHelper {
      */
     public WfTaskCreationInstruction createInstructionForRoot(ChangeProcessor changeProcessor, ModelContext modelContext, Task taskFromModel, ModelContext contextForRoot, OperationResult result) throws SchemaException {
 
-        WfTaskCreationInstruction instruction;
+        WfTaskCreationInstruction<?, ?> instruction;
         if (contextForRoot != null) {
             instruction = WfTaskCreationInstruction.createModelOnly(changeProcessor, contextForRoot);
         } else {
             instruction = WfTaskCreationInstruction.createEmpty(changeProcessor);
         }
 
-        instruction.setTaskName(determineRootTaskName(modelContext));
+	    LocalizableMessage rootTaskName = determineRootTaskName(modelContext);
+	    String rootTaskNameInDefaultLocale = localizationService.translate(rootTaskName, Locale.getDefault());
+	    instruction.setLocalizableTaskName(rootTaskName);
+	    instruction.setTaskName(rootTaskNameInDefaultLocale);
         instruction.setTaskObject(determineRootTaskObject(modelContext));
         instruction.setTaskOwner(taskFromModel.getOwner());
         instruction.setCreateTaskAsWaiting();
 
+	    instruction.setObjectRef(modelContext, result);
 		instruction.setRequesterRef(getRequester(taskFromModel, result));
         return instruction;
     }
@@ -107,29 +121,28 @@ public class BaseModelInvocationProcessingHelper {
      * Determines the root task name (e.g. "Workflow for adding XYZ (started 1.2.2014 10:34)")
      * TODO allow change processor to influence this name
      */
-    private String determineRootTaskName(ModelContext context) {
-
-        String operation;
+    private LocalizableMessage determineRootTaskName(ModelContext<?> context) {
+        String operationKey;
         if (context.getFocusContext() != null && context.getFocusContext().getPrimaryDelta() != null
 				&& context.getFocusContext().getPrimaryDelta().getChangeType() != null) {
             switch (context.getFocusContext().getPrimaryDelta().getChangeType()) {
-				case ADD: operation = "creation of"; break;
-				case DELETE: operation = "deletion of"; break;
-				case MODIFY: operation = "change of"; break;
+				case ADD: operationKey = CREATION_OF_KEY; break;
+				case DELETE: operationKey = DELETION_OF_KEY; break;
+				case MODIFY: operationKey = CHANGE_OF_KEY; break;
 				default: throw new IllegalStateException();
 			}
         } else {
-            operation = "change of";
+            operationKey = CHANGE_OF_KEY;
         }
-        String name = MiscDataUtil.getFocusObjectName(context);
+	    ObjectType focus = MiscDataUtil.getFocusObjectNewOrOld(context);
+	    DateTimeFormatter formatter = DateTimeFormat.forStyle("MM").withLocale(Locale.getDefault());
+	    String time = formatter.print(System.currentTimeMillis());
 
-		DateTimeFormatter formatter = DateTimeFormat.forStyle("MM").withLocale(Locale.getDefault());
-		String time = formatter.print(System.currentTimeMillis());
-
-//        DateFormat dateFormat = DateFormat.getDateTimeInstance();
-//        String time = dateFormat.format(new Date());
-
-        return "Approving and executing " + operation + " " + name + " (started " + time + ")";
+	    return new LocalizableMessageBuilder()
+		        .key(APPROVING_AND_EXECUTING_KEY + operationKey)
+		        .arg(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
+			    .arg(time)
+		        .build();
     }
 
     /**
@@ -137,17 +150,27 @@ public class BaseModelInvocationProcessingHelper {
      */
     private Task determineParentTaskForRoot(Task taskFromModel) {
 
-        // this is important: if existing task which we have got from model is transient (this is usual case), we create our root task as a task without parent!
-        // however, if the existing task is persistent (perhaps because the model operation executes already in the context of a workflow), we create a subtask
-        // todo think heavily about this; there might be a problem if a transient task from model gets (in the future) persistent
-        // -- in that case, it would not wait for its workflow-related children (but that's its problem, because children could finish even before
-        // that task is switched to background)
+//        // this is important: if existing task which we have got from model is transient (this is usual case), we create our root task as a task without parent!
+//        // however, if the existing task is persistent (perhaps because the model operation executes already in the context of a workflow), we create a subtask
+//        // todo think heavily about this; there might be a problem if a transient task from model gets (in the future) persistent
+//        // -- in that case, it would not wait for its workflow-related children (but that's its problem, because children could finish even before
+//        // that task is switched to background)
+//
+//        if (taskFromModel.isTransient()) {
+//            return null;
+//        } else {
+//            return taskFromModel;
+//        }
 
-        if (taskFromModel.isTransient()) {
-            return null;
-        } else {
-            return taskFromModel;
-        }
+	    /*
+	     *  Let us create all approval tasks as independent ones. This might resolve more issues, for example:
+	     *   - workflow tasks will be displayed on user Tasks tab (MID-4508): currently some of them are not, as they are technically subtasks
+	     *   - background tasks that initiate approvals (e.g. live sync or reconciliation) could end up with lots of subtasks,
+	     *     which makes their displaying take extraordinarily long
+	     *
+	     *  It is to be seen if this will have some negative consequences.
+	     */
+	    return null;
     }
 
     /**
@@ -182,7 +205,7 @@ public class BaseModelInvocationProcessingHelper {
         return rootWfTask;
     }
 
-    public void logJobsBeforeStart(WfTask rootWfTask, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+    public void logJobsBeforeStart(WfTask rootWfTask, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
@@ -226,8 +249,8 @@ public class BaseModelInvocationProcessingHelper {
 		return requester;
 	}
 
-	public ObjectTreeDeltas extractTreeDeltasFromModelContext(ModelContext<?> modelContext) {
-		ObjectTreeDeltas objectTreeDeltas = new ObjectTreeDeltas(modelContext.getPrismContext());
+	public <O extends ObjectType> ObjectTreeDeltas<O> extractTreeDeltasFromModelContext(ModelContext<O> modelContext) {
+		ObjectTreeDeltas<O> objectTreeDeltas = new ObjectTreeDeltas<>(modelContext.getPrismContext());
 		if (modelContext.getFocusContext() != null && modelContext.getFocusContext().getPrimaryDelta() != null) {
 			objectTreeDeltas.setFocusChange(modelContext.getFocusContext().getPrimaryDelta().clone());
 		}

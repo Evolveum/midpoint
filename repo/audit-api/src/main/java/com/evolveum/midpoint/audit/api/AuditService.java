@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016 Evolveum
+ * Copyright (c) 2010-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@ package com.evolveum.midpoint.audit.api;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
@@ -45,19 +43,19 @@ public interface AuditService {
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
     List<AuditEventRecord> listRecords(String query, Map<String, Object> params);
-    
+
     void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler auditResultHandler);
-    
+
     /**
      * Reindex items, e.g. if new columns were created for audit table according to which the search should be possible
      */
     void reindexEntry(AuditEventRecord record);
-    
+
     /**
      * @throws UnsupportedOperationException if object retrieval is not supported
      */
     long countObjects(String query, Map<String, Object> params);
-    
+
     /**
      * Returns true if retrieval of objects from the audit trail is supported.
      * This applies to listRecords, countObjects, reconstructObject and similar
