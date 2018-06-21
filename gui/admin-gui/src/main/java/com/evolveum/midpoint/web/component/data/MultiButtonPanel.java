@@ -40,6 +40,7 @@ import java.util.List;
  * <p>
  * todo rewrite, Overcomplicated code.
  */
+@Deprecated
 public class MultiButtonPanel<T> extends BasePanel<T> {
 	private static final long serialVersionUID = 1L;
 

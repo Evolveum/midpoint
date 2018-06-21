@@ -29,10 +29,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.MultiButtonPanel2;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -40,9 +43,12 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -150,42 +156,43 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 		column = new PropertyColumn(createStringResource("PageCertDefinitions.table.description"), "value.description");
 		columns.add(column);
 
-		column = new MultiButtonColumn<SelectableBean<AccessCertificationDefinitionType>>(new Model(), 3) {
+		column = new AbstractColumn<SelectableBean<AccessCertificationDefinitionType>, String>(new Model<>()) {
 
-			private final String[] captionKeys = {
-					"PageCertDefinitions.button.createCampaign",
-					"PageCertDefinitions.button.showCampaigns",
-					"PageCertDefinitions.button.deleteDefinition"
-			};
-
-			private final DoubleButtonColumn.BUTTON_COLOR_CLASS[] colors = {
-					DoubleButtonColumn.BUTTON_COLOR_CLASS.PRIMARY,
-					DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT,
-					DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER
-			};
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			public String getButtonTitle(int id) {
-				return PageCertDefinitions.this.createStringResource(captionKeys[id]).getString();
-			}
+			public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationDefinitionType>>> cellItem, String componentId,
+									 IModel<SelectableBean<AccessCertificationDefinitionType>> rowModel) {
 
-			@Override
-			public String getButtonColorCssClass(int id) {
-				return colors[id].toString();
-			}
+				cellItem.add(new MultiButtonPanel2<SelectableBean<AccessCertificationDefinitionType>>(componentId, rowModel, 3) {
 
-			@Override
-			public void clickPerformed(int id, AjaxRequestTarget target, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
-				switch (id) {
-					case 0: createCampaignPerformed(target, model.getObject().getValue()); break;
-					case 1: showCampaignsPerformed(target, model.getObject().getValue()); break;
-					case 2: deleteConfirmation(target, model.getObject().getValue()); break;
-				}
-			}
+					private static final long serialVersionUID = 1L;
 
-			@Override
-			public boolean isButtonEnabled(int id, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
-				return id != 0 || !Boolean.TRUE.equals(model.getObject().getValue().isAdHoc());
+					@Override
+					protected AjaxIconButton createButton(int index, String componentId, IModel<SelectableBean<AccessCertificationDefinitionType>> model) {
+						AjaxIconButton btn = null;
+						switch (index) {
+							case 0:
+								btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.createCampaign"),
+										new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.PRIMARY),
+										target -> createCampaignPerformed(target, model.getObject().getValue()));
+								btn.add(new EnableBehaviour(() -> !Boolean.TRUE.equals(model.getObject().getValue().isAdHoc())));
+								break;
+							case 1:
+								btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.showCampaigns"),
+										new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT),
+										target -> showCampaignsPerformed(target, model.getObject().getValue()));
+								break;
+							case 2:
+								btn = buildDefaultButton(componentId, null, createStringResource("PageCertDefinitions.button.deleteDefinition"),
+										new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER),
+										target -> deleteConfirmation(target, model.getObject().getValue()));
+								break;
+						}
+
+						return btn;
+					}
+				});
 			}
 		};
 		columns.add(column);
