@@ -23,13 +23,21 @@
                 <label><wicket:message key="AssignmentPanel.newAssignmentParameters" /></label>
             </div>
         </div>
-        <div wicket:id="relationContainer" class="row">
-            <div class="form-group col-md-12">
-                <div class="col-md-1" >
-                    <div><wicket:message key="AssignmentEditorPanel.relation"/></div>
-                </div>
+        <div class="row">
+            <div wicket:id="kindContainer"  class="form-group col-md-5">
                 <div class="col-md-3" >
-                    <span wicket:id="relation"/>
+                    <div><wicket:message key="TypedAssignablePanel.Kind"/></div>
+                </div>
+                <div class="col-md-6" >
+                    <span wicket:id="kind"/>
+                </div>
+            </div>
+            <div wicket:id="intentContainer"  class="form-group col-md-5">
+                <div class="col-md-3" >
+                    <div><wicket:message key="TypedAssignablePanel.Intent"/></div>
+                </div>
+                <div class="col-md-6" >
+                    <span wicket:id="intent"/>
                 </div>
             </div>
         </div>

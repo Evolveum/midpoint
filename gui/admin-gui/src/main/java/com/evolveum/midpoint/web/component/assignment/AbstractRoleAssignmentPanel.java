@@ -205,15 +205,12 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 			try {
 				newAssignment = definition.instantiate().createNewValue();
 	        	   AssignmentType assignmentType = newAssignment.asContainerable();
-//	        	   if (ResourceType.class.equals(object.getClass())) {
-//	        		   ConstructionType constructionType = new ConstructionType();
-//	        		   constructionType.setResourceRef(ref);
-//	        		   constructionType.setKind(kind);
-//	        		   constructionType.setIntent(intent);
-//	        		   assignmentType.setConstruction(constructionType);
-//	        	   } else {
+
+	        	   if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
+	        		   assignmentType.setConstruction(assignment.getConstruction());
+	        	   } else {
 	        		   assignmentType.setTargetRef(assignment.getTargetRef());
-//	        	   }
+	        	   }
 	        	   createNewAssignmentContainerValueWrapper(newAssignment);
 	        	   refreshTable(target);
 	               reloadSavePreviewButtons(target);

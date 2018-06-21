@@ -8,10 +8,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -41,7 +38,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
     private FocusTypeAssignmentPopupTabPanel orgsTabPanel;
     private FocusTypeAssignmentPopupTabPanel servicesTabPanel;
     private FocusTypeAssignmentPopupTabPanel usersTabPanel;
-    private FocusTypeAssignmentPopupTabPanel resourcesTabPanel;
+    private ResourceTypeAssignmentPopupTabPanel resourcesTabPanel;
 
 
     public AssignmentPopup(String id){
@@ -109,6 +106,22 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                         ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedService, relation);
                         AssignmentType newAssignment = new AssignmentType();
                         newAssignment.setTargetRef(ref);
+                        newAssignmentsList.add(newAssignment);
+                    });
+                }
+                if (resourcesTabPanel != null){
+                    List<ResourceType> selectedResourcces = resourcesTabPanel.getSelectedObjectsList();
+                    String intent = resourcesTabPanel.getIntentValue();
+                    ShadowKindType kind = resourcesTabPanel.getKindValue();
+                    selectedResourcces.forEach(selectedResource -> {
+                        ConstructionType constructionType = new ConstructionType();
+                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedResource);
+                        constructionType.setResourceRef(ref);
+                        constructionType.setKind(kind);
+                        constructionType.setIntent(intent);
+
+                        AssignmentType newAssignment = new AssignmentType();
+                        newAssignment.setConstruction(constructionType);
                         newAssignmentsList.add(newAssignment);
                     });
                 }
@@ -207,21 +220,33 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                     }
                 });
 
-//        tabs.add(
-//                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.RESOURCE"), authorization) {
-//
-//                    private static final long serialVersionUID = 1L;
-//
-//                    @Override
-//                    public WebMarkupContainer createPanel(String panelId) {
-//                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.RESOURCE);
-//                    }
-//
-//                    @Override
-//                    public String getCount() {
-//                        return "0";
-//                    }
-//                });
+        tabs.add(
+                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.RESOURCE"), authorization) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public WebMarkupContainer createPanel(String panelId) {
+                        resourcesTabPanel = new ResourceTypeAssignmentPopupTabPanel(panelId){
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onSelectionPerformed(AjaxRequestTarget target){
+                                super.onSelectionPerformed(target);
+                                tabLabelPanelUpdate(target);
+                            }
+                        };
+                        return resourcesTabPanel;
+                    }
+
+                    @Override
+                    public String getCount() {
+                        if (resourcesTabPanel == null){
+                            return "0";
+                        }
+                        return Integer.toString(resourcesTabPanel.getObjectListPanel().getSelectedObjectsCount());
+                    }
+                });
 
         return tabs;
     }

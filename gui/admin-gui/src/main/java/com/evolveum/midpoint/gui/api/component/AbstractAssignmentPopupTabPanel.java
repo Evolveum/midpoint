@@ -78,7 +78,7 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
 
             @Override
             protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
-                return getObjectSelectCheckBoxEnableModel();
+                return getObjectSelectCheckBoxEnableModel(rowModel);
             }
 
             @Override
@@ -128,7 +128,7 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
         return objectListPanel.getSelectedObjects();
     }
 
-    protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(){
+    protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
         return Model.of(true);
     }
 
