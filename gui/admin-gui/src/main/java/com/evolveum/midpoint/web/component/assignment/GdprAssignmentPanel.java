@@ -100,11 +100,11 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 		return false;
 	}
 
-	@Override
-	protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList,
-			QName relation, ShadowKindType kind, String intent) {
-		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT, kind, intent);
-	}
+//	@Override
+//	protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList,
+//			QName relation, ShadowKindType kind, String intent) {
+//		super.addSelectedAssignmentsPerformed(target, assignmentsList, SchemaConstants.ORG_CONSENT, kind, intent);
+//	}
 
 	protected ObjectQuery createObjectQuery() {
 		return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
