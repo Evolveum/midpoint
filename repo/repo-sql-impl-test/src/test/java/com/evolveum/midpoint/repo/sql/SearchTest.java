@@ -911,4 +911,24 @@ public class SearchTest extends BaseSQLRepoTest {
 		assertEquals("Should find 1 object", 1, cases.size());
 	}
 
+	@Test
+	public void testObjectCollection() throws SchemaException {
+		ObjectQuery query = QueryBuilder.queryFor(ObjectCollectionType.class, prismContext)
+				.item(ObjectType.F_NAME).eqPoly("collection1", "collection1").matchingOrig()
+				.build();
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<ObjectCollectionType>> collections = repositoryService.searchObjects(ObjectCollectionType.class, query, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find 1 object", 1, collections.size());
+	}
+
+	@Test
+	public void testAllObjectCollections() throws SchemaException {
+		OperationResult result = new OperationResult("search");
+		List<PrismObject<ObjectCollectionType>> collections = repositoryService.searchObjects(ObjectCollectionType.class, null, null, result);
+		result.recomputeStatus();
+		assertTrue(result.isSuccess());
+		assertEquals("Should find 1 object", 1, collections.size());
+	}
 }
