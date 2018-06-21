@@ -28,6 +28,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.directory.api.ldap.model.cursor.CursorException;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -817,11 +819,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
-        ResourceAttribute<String> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
-        String createTimestamp = createTimestampAttribute.getRealValue();
-        GeneralizedTime createTimestampGt = new GeneralizedTime(createTimestamp);
-		long createTimestampMillis = createTimestampGt.getCalendar().getTimeInMillis();
+        XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
+		long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
         // LDAP server may be on a different host. Allow for some clock offset.
         TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestampMillis);
 
@@ -1829,11 +1830,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
-        ResourceAttribute<String> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
-        String createTimestamp = createTimestampAttribute.getRealValue();
-        GeneralizedTime createTimestampGt = new GeneralizedTime(createTimestamp);
-		long createTimestampMillis = createTimestampGt.getCalendar().getTimeInMillis();
+        XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
+		long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
         // LDAP server may be on a different host. Allow for some clock offset.
         TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestampMillis);
 

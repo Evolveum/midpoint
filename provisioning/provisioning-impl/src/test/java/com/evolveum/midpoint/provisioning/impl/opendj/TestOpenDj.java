@@ -544,7 +544,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 	}
 
 	protected void assertTimestampType(String attrName, ResourceAttributeDefinition<?> def) {
-		assertEquals("Wrong "+attrName+"type", DOMUtil.XSD_DATETIME, def.getTypeName());
+		assertEquals("Wrong "+attrName+" type", DOMUtil.XSD_DATETIME, def.getTypeName());
 	}
 
 	@Test
