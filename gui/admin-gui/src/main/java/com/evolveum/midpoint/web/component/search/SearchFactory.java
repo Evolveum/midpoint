@@ -226,9 +226,9 @@ public class SearchFactory {
         OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
         try {
             AdminGuiConfigurationType guiConfig = modelServiceLocator.getModelInteractionService().getAdminGuiConfiguration(null, result);
-            GuiObjectListsType objectLists = guiConfig.getObjectLists();
+            GuiObjectListViewsType objectLists = guiConfig.getObjectLists();
             if (objectLists != null && objectLists.getObjectList() != null){
-                for (GuiObjectListType objectList : objectLists.getObjectList()){
+                for (GuiObjectListViewType objectList : objectLists.getObjectList()){
                     if (objectList.getType() != null
                             && type.getSimpleName().equals(objectList.getType().getLocalPart())
                             && objectList.getSearchBoxConfiguration() != null) {
