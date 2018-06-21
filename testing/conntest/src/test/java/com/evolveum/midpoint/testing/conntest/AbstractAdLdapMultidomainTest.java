@@ -819,6 +819,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
+        // MID-4624
         ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
@@ -1830,6 +1831,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
+        // MID-4624
         ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
         XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
