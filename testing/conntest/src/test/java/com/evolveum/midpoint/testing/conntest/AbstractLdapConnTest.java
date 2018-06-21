@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -711,11 +713,12 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_PASSWORD);
 
-        ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
+        ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimestamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
-        Long createTimestamp = createTimestampAttribute.getRealValue();
+        XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
+        long createTimestampMillis = XmlTypeConverter.toMillis(createTimestamp);
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-1000, roundTsUp(tsEnd)+1000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-1000, roundTsUp(tsEnd)+1000, createTimestampMillis);
 
         assertLdapConnectorInstances(1, 2);
 	}
