@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
@@ -31,17 +31,17 @@ import java.util.Objects;
 
 /**
  *
- * @author katkav
+ * @author mederly
  */
 @Entity
-@ForeignKey(name = "fk_function_library")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_function_library_name", columnNames = {"name_norm"}),
+@ForeignKey(name = "fk_object_collection")
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_object_collection_name", columnNames = {"name_norm"}),
         indexes = {
-                @Index(name = "iFunctionLibraryNameOrig", columnList = "name_orig"),
+                @Index(name = "iObjectCollectionNameOrig", columnList = "name_orig"),
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
-public class RFunctionLibrary extends RObject<FunctionLibraryType> {
+public class RObjectCollection extends RObject<ObjectCollectionType> {
 
     private RPolyString nameCopy;
 
@@ -63,12 +63,12 @@ public class RFunctionLibrary extends RObject<FunctionLibraryType> {
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (!(o instanceof RFunctionLibrary))
+        if (!(o instanceof RObjectCollection))
             return false;
         if (!super.equals(o))
             return false;
-        RFunctionLibrary rForm = (RFunctionLibrary) o;
-        return Objects.equals(nameCopy, rForm.nameCopy);
+        RObjectCollection that = (RObjectCollection) o;
+        return Objects.equals(nameCopy, that.nameCopy);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class RFunctionLibrary extends RObject<FunctionLibraryType> {
         return Objects.hash(super.hashCode(), nameCopy);
     }
 
-    public static void copyFromJAXB(FunctionLibraryType jaxb, RFunctionLibrary repo, RepositoryContext repositoryContext,
+    public static void copyFromJAXB(ObjectCollectionType jaxb, RObjectCollection repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));

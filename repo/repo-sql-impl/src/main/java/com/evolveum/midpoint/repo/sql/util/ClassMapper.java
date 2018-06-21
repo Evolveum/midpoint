@@ -69,6 +69,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.FORM, RObjectType.FORM);
         types.put(ObjectTypes.CASE, RObjectType.CASE);
         types.put(ObjectTypes.FUNCTION_LIBRARY, RObjectType.FUNCTION_LIBRARY);
+        types.put(ObjectTypes.OBJECT_COLLECTION, RObjectType.OBJECT_COLLECTION);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {
