@@ -53,6 +53,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 public class ReportFunctions {
 
@@ -458,14 +459,24 @@ public class ReportFunctions {
     }
 
     public List<PrismContainerValue<AccessCertificationWorkItemType>> getCertificationCampaignDecisions(String campaignName, Integer stageNumber)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        return getCertificationCampaignDecisions(campaignName, stageNumber, null);
+    }
+
+    public List<PrismContainerValue<AccessCertificationWorkItemType>> getCertificationCampaignDecisions(String campaignName, Integer stageNumber, Integer iteration)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
         List<AccessCertificationCaseType> cases = getCertificationCampaignCasesAsBeans(campaignName);
         List<AccessCertificationWorkItemType> workItems = new ArrayList<>();
         for (AccessCertificationCaseType aCase : cases) {
             for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-                if (stageNumber == null || java.util.Objects.equals(workItem.getStageNumber(), stageNumber)) {
-                    workItems.add(workItem);
+                if (stageNumber != null && !Objects.equals(workItem.getStageNumber(), stageNumber)) {
+                    continue;
                 }
+                if (iteration != null && defaultIfNull(workItem.getIteration(), 1) != iteration.intValue()) {
+                    continue;
+                }
+                workItems.add(workItem);
             }
         }
         return PrismContainerValue.toPcvList(workItems);
