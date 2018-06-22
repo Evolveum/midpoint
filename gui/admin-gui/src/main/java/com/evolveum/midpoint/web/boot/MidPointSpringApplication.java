@@ -39,9 +39,11 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCustomizerAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryCustomizer;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -103,7 +105,6 @@ import java.time.Duration;
 		HttpMessageConvertersAutoConfiguration.class,
 		PropertyPlaceholderAutoConfiguration.class,
 		SecurityFilterAutoConfiguration.class,
-		EmbeddedWebServerFactoryCustomizerAutoConfiguration.class,
 		MultipartAutoConfiguration.class
 })
 @SpringBootConfiguration
@@ -255,8 +256,14 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     	@Value("${server.servlet.session.timeout}")
     	private int sessionTimeout;
     	
+    	@Autowired 
+    	ServerProperties serverProperties;
+		
     	@Override
     	public void customize(ConfigurableServletWebServerFactory server) {
+    		
+    		ServletWebServerFactoryCustomizer servletWebServerFactoryCustomizer = new ServletWebServerFactoryCustomizer(this.serverProperties);
+        	servletWebServerFactoryCustomizer.customize(server);
     		
     		server.addErrorPages(new ErrorPage(HttpStatus.UNAUTHORIZED,
                   "/error/401"));
@@ -273,9 +280,6 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     		session.setTimeout(Duration.ofMinutes(sessionTimeout));
     		server.setSession(session);
     		
-    		server.setContextPath("/midpoint");
-    		
-          
     		if (server instanceof TomcatServletWebServerFactory) {
     			customizeTomcat((TomcatServletWebServerFactory) server);
     		}            
