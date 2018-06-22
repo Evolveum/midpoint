@@ -79,6 +79,7 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
 
         certificationDefinition = repoAddObjectFromFile(CERT_DEF_FILE,
                 AccessCertificationDefinitionType.class, result).asObjectable();
+	    dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -97,6 +98,8 @@ public class TestCriticalRolesCertification extends AbstractCertificationTest {
         campaign = getCampaignWithCases(campaignOid);
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
+
+        display("dummy transport", dummyTransport);
     }
 
     /*
@@ -126,6 +129,7 @@ jack->CTO                   none (A) -> A
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
+        dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -171,6 +175,8 @@ jack->CTO                   none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, null);
 
         assertPercentComplete(campaign, 83, 83, 0);
+
+	    display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -220,6 +226,7 @@ jack->CTO                   none (A) -> A
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
 		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
+	    dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -247,6 +254,7 @@ jack->CTO                   none (A) -> A
 
         assertPercentComplete(campaignOid, 100, 100, 100);
         assertCasesCount(campaignOid, 6);
+	    display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -258,6 +266,7 @@ jack->CTO                   none (A) -> A
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
 		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
+	    dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -310,6 +319,8 @@ jack->CTO                   none (A) -> A       none (A) -> A
 
         assertPercentComplete(campaignOid, 17, 17, 0);
         assertCasesCount(campaignOid, 6);
+
+	    display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -458,6 +469,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
 		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
+	    dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -483,6 +495,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 2);
 
         assertPercentComplete(campaignOid, 83, 83, 80);
+	    display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -494,6 +507,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
 		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
+	    dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -549,6 +563,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
         assertPercentComplete(campaignOid, 33, 17, 0);
+	    display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -561,6 +576,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         OperationResult result = task.getResult();
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
+	    dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -645,6 +661,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
         assertPercentComplete(campaignOid, 33, 33, 25);
+	    display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -656,6 +673,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
 		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
+	    dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -700,6 +718,8 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseHistoricOutcomes(jackCtoCase, ACCEPT, ACCEPT, NO_RESPONSE);
 
         assertPercentComplete(campaignOid, 33, 33, 25);
+
+	    display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -711,6 +731,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
 		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
+	    dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -766,6 +787,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
         assertPercentComplete(campaignOid, 50, 17, 0);
+	    display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -874,6 +896,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
 		task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
+	    dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -921,6 +944,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseHistoricOutcomes(jackCtoCase, ACCEPT, ACCEPT, NO_RESPONSE, NO_RESPONSE);
 
         assertPercentComplete(campaignOid, 83, 33, 67);
+	    display("dummy transport", dummyTransport);
     }
 
     @Test
@@ -1057,6 +1081,8 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
         display("campaign after reiteration", campaign);
         assertStateStageIteration(campaign, AccessCertificationCampaignStateType.CREATED, 0, 2);
+
+	    display("dummy transport", dummyTransport);
     }
 
 /*
@@ -1103,6 +1129,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         Task task = taskManager.createTaskInstance(TestCriticalRolesCertification.class.getName() + "." + TEST_NAME);
         task.setOwner(userAdministrator.asPrismObject());
         OperationResult result = task.getResult();
+		dummyTransport.clearMessages();
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -1136,6 +1163,8 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 		assertCasesCount(campaignOid, 6);
 
         //assertPercentComplete(campaign, 83, 83, 0);
+
+		display("dummy transport", dummyTransport);
     }
 
 //    @Test
