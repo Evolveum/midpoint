@@ -621,7 +621,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		AdminGuiConfigurationType adminGuiConfig = parentPage.getPrincipal().getAdminGuiConfiguration();
 		if (adminGuiConfig != null && adminGuiConfig.getObjectLists() != null &&
 				adminGuiConfig.getObjectLists().getObjectList() != null){
-			for (GuiObjectListType object : adminGuiConfig.getObjectLists().getObjectList()){
+			for (GuiObjectListViewType object : adminGuiConfig.getObjectLists().getObjectList()){
 				if (object.getType() != null &&
 						!type.getClassDefinition().getSimpleName().equals(object.getType().getLocalPart())){
 					continue;

@@ -34,7 +34,8 @@ public enum RObjectType {
     SERVICE(RService.class, ServiceType.class),
     FORM(RForm.class, FormType.class),
     CASE(RCase.class, CaseType.class),
-    FUNCTION_LIBRARY(RFunctionLibrary.class, FunctionLibraryType.class);
+    FUNCTION_LIBRARY(RFunctionLibrary.class, FunctionLibraryType.class),
+    OBJECT_COLLECTION(RObjectCollection.class, ObjectCollectionType.class);
 
     private Class<? extends RObject> clazz;
     private Class<? extends ObjectType> jaxbClass;

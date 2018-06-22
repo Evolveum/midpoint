@@ -79,5 +79,6 @@ public class RFunctionLibrary extends RObject<FunctionLibraryType> {
     public static void copyFromJAXB(FunctionLibraryType jaxb, RFunctionLibrary repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 	}
 }

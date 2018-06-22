@@ -416,12 +416,12 @@ public final class WebComponentUtil {
 		}
 	}
 
-	public static GuiObjectListType getDefaultGuiObjectListType(PageBase pageBase) {
+	public static GuiObjectListViewType getDefaultGuiObjectListType(PageBase pageBase) {
 	    AdminGuiConfigurationType config = pageBase.getPrincipal().getAdminGuiConfiguration();
 	    if (config == null) {
 	        return null;
 	    }
-	    GuiObjectListsType lists = config.getObjectLists();
+	    GuiObjectListViewsType lists = config.getObjectLists();
 	    if (lists == null) {
 	        return null;
 	    }

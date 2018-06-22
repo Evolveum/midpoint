@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.BooleanUtils;
 
 import java.io.Serializable;
 
@@ -71,7 +72,7 @@ public class ReportDto implements Serializable {
 //    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
         this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
         this.templateStyle = reportType.getTemplateStyle();
-        this.parent = reportType.isParent();
+        this.parent = !BooleanUtils.isFalse(reportType.isParent());
         this.virtualizer = reportType.getVirtualizer();
         this.virtualizerKickOn = reportType.getVirtualizerKickOn();
         this.maxPages = reportType.getMaxPages();

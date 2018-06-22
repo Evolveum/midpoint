@@ -1,6 +1,6 @@
 Status: [![Build Status](https://travis-ci.org/Evolveum/midpoint.svg?branch=master)](https://travis-ci.org/Evolveum/midpoint)
 
-MidPoint 3.8 development branch
+MidPoint 3.9 development branch
 ------------------------------------
 
 General information:
@@ -32,6 +32,7 @@ Other features:
 - Entitlements
 - Support for ConnId and OpenICF connectors
 - Provisioning consistency and error handling
+- Data protection (experimental)
 - Reporting
 - Notifications
 - Local Java APIs, Remote web service interface (SOAP), REST API

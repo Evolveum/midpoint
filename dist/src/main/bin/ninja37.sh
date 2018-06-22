@@ -48,7 +48,7 @@ fi
 
 #cd "$SCRIPT_PATH../lib"
 
-NINJA_JAR=ninja-3.7.2-SNAPSHOT.jar
+NINJA_JAR=ninja-3.7.2.jar
 
 if [ ! -f lib/$NINJA_JAR ] ; then
 	echo "ERROR: $NINJA_JAR is not in /lib directory"

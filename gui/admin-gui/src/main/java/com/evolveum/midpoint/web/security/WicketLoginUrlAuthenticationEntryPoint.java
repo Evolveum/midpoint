@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.security;
 
-import org.apache.wicket.request.http.WebRequest;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
@@ -38,7 +37,7 @@ public class WicketLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticati
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
 
-        if (!isWicketAjaxRequest(request)) {
+        if (!WicketRedirectStrategy.isWicketAjaxRequest(request)) {
             super.commence(request, response, authException);
 
             return;
@@ -48,19 +47,5 @@ public class WicketLoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticati
 
         WicketRedirectStrategy strategy = new WicketRedirectStrategy();
         strategy.sendRedirect(request, response, url);
-    }
-
-    private boolean isWicketAjaxRequest(HttpServletRequest request) {
-        String value = request.getParameter(WebRequest.PARAM_AJAX);
-        if (value != null && "true".equals(value)) {
-            return true;
-        }
-
-        value = request.getHeader(WebRequest.HEADER_AJAX);
-        if (value != null && "true".equals(value)) {
-            return true;
-        }
-
-        return false;
     }
 }

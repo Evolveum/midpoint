@@ -50,7 +50,7 @@ if [ -z "$MIDPOINT_HOME" ] ; then
 fi
 JAVA_OPTS="$JAVA_OPTS
 -Xms2048M
--Xmx2048M
+-Xmx4096M
 -Dpython.cachedir=$MIDPOINT_HOME/tmp
 -Djavax.net.ssl.trustStore=$MIDPOINT_HOME/keystore.jceks
 -Djavax.net.ssl.trustStoreType=jceks

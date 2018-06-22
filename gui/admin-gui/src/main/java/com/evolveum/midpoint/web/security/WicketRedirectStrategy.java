@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.security;
 
+import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.util.time.Time;
 import org.springframework.security.web.DefaultRedirectStrategy;
 
@@ -44,5 +45,19 @@ public class WicketRedirectStrategy extends DefaultRedirectStrategy {
 
         Writer writer = response.getWriter();
         writer.write("<ajax-response><redirect><![CDATA[" + url + "]]></redirect></ajax-response>");
+    }
+
+    public static boolean isWicketAjaxRequest(HttpServletRequest request) {
+        String value = request.getParameter(WebRequest.PARAM_AJAX);
+        if (Boolean.parseBoolean(value)) {
+            return true;
+        }
+
+        value = request.getHeader(WebRequest.HEADER_AJAX);
+        if (Boolean.parseBoolean(value)) {
+            return true;
+        }
+
+        return false;
     }
 }

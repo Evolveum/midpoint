@@ -1,22 +1,55 @@
-midPoint 3.7 "Darwin"
+midPoint 3.8 "Watt"
 ----------------------------------
 
-Release 3.7 is a twenty third midPoint release code-named Darwin.
-The 3.7 release brings new deployment model and numerous gradual improvements.
-There are improvements of identity governance features, improvements of user
-interface and internal improvements.
+Release 3.8 is a twenty sixth midPoint release code-named Watt. 
+The 3.8 release brings major performance and scalability improvements. 
+There are also provisioning, security and user interface improvements.
 
-Release date: 18th December 2017
+Release date: 13th June 2018
 
-Changes with respect to version 3.6.1:
-    Stand-alone deployment based on Spring Boot
+Changes with respect to version 3.7:
     User interface improvements
-    Governance improvements
-    Expression, mapping and bulk action improvements
+        User-friendly policy selection
+        User-friendly entitlement association management
+        GUI support for more complex data in object extension (containers), improved GUI customization (experimental)
+        Simple GUI pages for cases (internal midPoint tickets) contributed by Exclamation Labs
+        Support for custom static web content in midpoint home directory
+        Support for experimental annotation
+        Ability to override experimental and deprecated annotations
+        Minor user experience improvements
+    Data model improvements
+        Full implementation of subType property
+        Properties locality, costCenter, preferredLanguage, locale, timezone, emailAddress and telephoneNumber moved up from UserType to FocusType.
+        Customizable PolyString normalization
     Security improvements
-    Task improvements
+        Password Policy: prohibited projection values
+        Negative item enumeration in authorizations (exceptItem)
+        Expression code requires just execution-phase authorizations, it does not need request-phase authorizations any more
+        Improved password metadata
+    Provisioning
+        Provisioning Propagation
+        Ad-hoc provisioning script execution
+        Improved error handling, especially criticality of ITSM errors
+        Provisioning dependencies may use filter in dependency specification
+    Performance and scalability improvements
+        Optimized database schema for better performance and scalability
+        Autoincrement field for audit record storage
+        Multi-node, partitioned and stateful tasks
+        Audit delta and operation result compression
+        Repository layer cache
     Miscellaneous improvements
+        Improved handling of function library updates
+        Minor mapping improvements
+        Basic data protection features (experimental)
+        Improved SMS gateway support (HTTP POST method)
+        Support for configuration variable in inbound mappings
+        Start scripts for ninja tool (ninja.sh, ninja.bat)
+        Improved documentation
+    Connectors
+        CSV connector supports script execution
+        Active Directory connector supports CredSSP version 5 and 6 (see CVE-2018-0886)
 
-Java 7 environment is no longer supported.
-XPath2 scripting is no longer supported.
-CSVFile Connector is no longer supported.
+Oracle database 11g is no longer supported. It is replaced by Oracle 12c database support.
+Support for PostgreSQL 9.4 and earlier is deprecated. PostgreSQL 8.4.x and earlier is no longer supported.
+MySQL 5.6 and earlier is no longer supported.
+Microsoft SQL 2008 and 2008 R2 are no longer supported. Microsoft SQL Server 2012 support is deprecated.

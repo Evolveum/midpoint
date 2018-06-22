@@ -106,7 +106,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
+import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.AssertJUnit;

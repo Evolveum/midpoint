@@ -30,7 +30,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -43,7 +42,8 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
  */
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
 @Configuration
-@EnableGlobalMethodSecurity(securedEnabled = true)
+//TODO
+//@EnableGlobalMethodSecurity(securedEnabled = true)
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -56,7 +56,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private boolean csrfEnabled;
     @Value("${auth.logout.url:/}")
     private String authLogoutUrl;
-
+    
     @Bean
     public WicketLoginUrlAuthenticationEntryPoint wicketAuthenticationEntryPoint() {
         return new WicketLoginUrlAuthenticationEntryPoint("/login");
