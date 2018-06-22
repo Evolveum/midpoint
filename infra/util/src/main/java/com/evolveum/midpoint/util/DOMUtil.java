@@ -31,14 +31,8 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
+import javax.xml.transform.*;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
@@ -163,42 +157,34 @@ public class DOMUtil {
     // To generate random namespace prefixes
 	private static Random rnd = new Random();
 
-	private static final DocumentBuilderFactory documentBuilderFactory;
 	private static final ThreadLocal<DocumentBuilder> documentBuilderThreadLocal;
-
-	private static final TransformerFactory transformerFactory;
 	private static final ThreadLocal<Transformer> transformerThreadLocal;
 
 	static {
-		try {
-			documentBuilderFactory = DocumentBuilderFactory.newInstance();
-			documentBuilderFactory.setNamespaceAware(true);
-			documentBuilderFactory.setFeature("http://xml.org/sax/features/namespaces", true);
-			// voodoo to turn off reading of DTDs during parsing. This is needed e.g. to pre-parse schemas
-			documentBuilderFactory.setValidating(false);
-			documentBuilderFactory.setFeature("http://xml.org/sax/features/validation", false);
-			documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-			documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		documentBuilderThreadLocal = ThreadLocal.withInitial(() -> {
+			try {
+				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+				documentBuilderFactory.setNamespaceAware(true);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/namespaces", true);
+				// voodoo to turn off reading of DTDs during parsing. This is needed e.g. to pre-parse schemas
+				documentBuilderFactory.setValidating(false);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/validation", false);
+				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+				return documentBuilderFactory.newDocumentBuilder();
+			} catch (ParserConfigurationException e) {
+				throw new RuntimeException(e);
+			}
+		});
 
-            documentBuilderThreadLocal = ThreadLocal.withInitial(() -> {
-                try {
-                    return documentBuilderFactory.newDocumentBuilder();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            });
-		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
-		}
-
-		transformerFactory = TransformerFactory.newInstance();
 		transformerThreadLocal = ThreadLocal.withInitial(() -> {
 			try {
+				TransformerFactory transformerFactory = TransformerFactory.newInstance();
 				Transformer trans = transformerFactory.newTransformer();
 				trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");      // XALAN-specific
 				trans.setParameter(OutputKeys.ENCODING, "utf-8");
 				return trans;
-			} catch (Exception e) {
+			} catch (TransformerConfigurationException e) {
 				throw new RuntimeException(e);
 			}
 		});
