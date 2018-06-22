@@ -38,7 +38,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -198,7 +198,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     }
 
     public boolean isDistinct() {
-        GuiObjectListType def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
+        GuiObjectListViewType def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
         return def == null || def.getDistinct() != DistinctSearchOptionType.NEVER;      // change after other options are added
     }
 
@@ -219,7 +219,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         if (!checkOrderingSettings()) {
             return false;
         }
-        GuiObjectListType def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
+        GuiObjectListViewType def = WebComponentUtil.getDefaultGuiObjectListType((PageBase) component.getPage());
         return def != null && def.isDisableSorting();
     }
 

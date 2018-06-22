@@ -24,7 +24,10 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -52,6 +55,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.Session;
@@ -930,4 +934,57 @@ public class ModifyTest extends BaseSQLRepoTest {
     		PrismAsserts.assertPropertyValue(attr, expectedValues);
     	}
 	}
+
+    @Test
+    public void test210ModifyObjectCollection() throws Exception {
+        final String TEST_NAME = "test210ModifyObjectCollection";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        OperationResult result = new OperationResult("test210ModifyObjectCollection");
+
+        ObjectCollectionType collection = prismContext.createObjectable(ObjectCollectionType.class)
+                .name("collection")
+                .type(UserType.COMPLEX_TYPE);
+        repositoryService.addObject(collection.asPrismObject(), null, result);
+
+        List<ItemDelta<?, ?>> deltas1 = DeltaBuilder.deltaFor(ObjectCollectionType.class, prismContext)
+                .item(ObjectCollectionType.F_NAME).replace(PolyString.fromOrig("collection2"))
+                .asItemDeltas();
+        repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas1, result);
+
+        ItemDelta.applyTo(deltas1, collection.asPrismObject());
+        PrismObject<ObjectCollectionType> afterChange1 = repositoryService
+                .getObject(ObjectCollectionType.class, collection.getOid(), null, result);
+        assertEquals("Objects differ after change 1", collection.asPrismObject(), afterChange1);
+
+        ObjectFilter filter = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_COST_CENTER).eq("100")
+                .buildFilter();
+        SearchFilterType filterBean = QueryJaxbConvertor.createSearchFilterType(filter, prismContext);
+
+        List<ItemDelta<?, ?>> deltas2 = DeltaBuilder.deltaFor(ObjectCollectionType.class, prismContext)
+                .item(ObjectCollectionType.F_DESCRIPTION).replace("description")
+                .item(ObjectCollectionType.F_FILTER).replace(filterBean)
+                .asItemDeltas();
+        repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas2, result);
+
+        ItemDelta.applyTo(deltas2, collection.asPrismObject());
+        PrismObject<ObjectCollectionType> afterChange2 = repositoryService
+                .getObject(ObjectCollectionType.class, collection.getOid(), null, result);
+
+        // it's hard to compare filters, so we have to do the test in a special way
+        PrismObject<ObjectCollectionType> fromRepoWithoutFilter = afterChange2.clone();
+        fromRepoWithoutFilter.asObjectable().setFilter(null);
+        PrismObject<ObjectCollectionType> expectedWithoutFilter = collection.asPrismObject().clone();
+        expectedWithoutFilter.asObjectable().setFilter(null);
+        assertEquals("Objects (without filter) differ after change 2", expectedWithoutFilter, fromRepoWithoutFilter);
+
+        SearchFilterType filterFromRepo = afterChange2.asObjectable().getFilter();
+        SearchFilterType filterExpected = collection.getFilter();
+        ObjectFilter filterFromRepoParsed = QueryJaxbConvertor.createObjectFilter(UserType.class, filterFromRepo, prismContext);
+        ObjectFilter filterExpectedParsed = QueryJaxbConvertor.createObjectFilter(UserType.class, filterExpected, prismContext);
+        //noinspection ConstantConditions
+        assertTrue("Filters differ", filterExpectedParsed.equals(filterFromRepoParsed, false));
+    }
+
 }

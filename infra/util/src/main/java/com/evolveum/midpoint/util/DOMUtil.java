@@ -31,14 +31,8 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
+import javax.xml.transform.*;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
@@ -163,16 +157,37 @@ public class DOMUtil {
     // To generate random namespace prefixes
 	private static Random rnd = new Random();
 
-	private static final DocumentBuilder loader;
+	private static final ThreadLocal<DocumentBuilder> documentBuilderThreadLocal;
+	private static final ThreadLocal<Transformer> transformerThreadLocal;
 
 	static {
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
-			loader = factory.newDocumentBuilder();
-		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
-		}
+		documentBuilderThreadLocal = ThreadLocal.withInitial(() -> {
+			try {
+				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+				documentBuilderFactory.setNamespaceAware(true);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/namespaces", true);
+				// voodoo to turn off reading of DTDs during parsing. This is needed e.g. to pre-parse schemas
+				documentBuilderFactory.setValidating(false);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/validation", false);
+				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
+				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+				return documentBuilderFactory.newDocumentBuilder();
+			} catch (ParserConfigurationException e) {
+				throw new RuntimeException(e);
+			}
+		});
+
+		transformerThreadLocal = ThreadLocal.withInitial(() -> {
+			try {
+				TransformerFactory transformerFactory = TransformerFactory.newInstance();
+				Transformer trans = transformerFactory.newTransformer();
+				trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");      // XALAN-specific
+				trans.setParameter(OutputKeys.ENCODING, "utf-8");
+				return trans;
+			} catch (TransformerConfigurationException e) {
+				throw new RuntimeException(e);
+			}
+		});
 	}
 
     public static String serializeDOMToString(org.w3c.dom.Node node) {
@@ -180,11 +195,9 @@ public class DOMUtil {
 	}
 
 	public static void serializeDOMToFile(org.w3c.dom.Node node, File file) throws TransformerFactoryConfigurationError, TransformerException {
-
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
+		Transformer transformer = transformerThreadLocal.get();
 		Result output = new StreamResult(file);
 		Source input = new DOMSource(node);
-
 		transformer.transform(input, output);
 	}
 
@@ -196,23 +209,17 @@ public class DOMUtil {
 	}
 
 	public static Document getDocument() {
-		return loader.newDocument();
+		return documentBuilderThreadLocal.get().newDocument();
 	}
 
     public static Document getDocument(QName rootElementName) {
-        Document document = loader.newDocument();
+        Document document = documentBuilderThreadLocal.get().newDocument();
         document.appendChild(createElement(document, rootElementName));
         return document;
     }
 
     public static DocumentBuilder createDocumentBuilder() {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setNamespaceAware(true);
-        try {
-            return factory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException("Error creating document builder " + e.getMessage(), e);
-        }
+        return documentBuilderThreadLocal.get();
     }
 
     public static Document parseDocument(String doc) {
@@ -230,28 +237,16 @@ public class DOMUtil {
 
 	public static Document parseFile(File file) {
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
-			DocumentBuilder loader = factory.newDocumentBuilder();
-			return loader.parse(file);
-		} catch (SAXException | IOException | ParserConfigurationException ex) {
+			return documentBuilderThreadLocal.get().parse(file);
+		} catch (SAXException | IOException ex) {
 			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		}
 	}
 
 	public static Document parse(InputStream inputStream) throws IOException {
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
-			factory.setFeature("http://xml.org/sax/features/namespaces", true);
-			// voodoo to turn off reading of DTDs during parsing. This is needed e.g. to pre-parse schemas
-			factory.setValidating(false);
-			factory.setFeature("http://xml.org/sax/features/validation", false);
-			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-			factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-			DocumentBuilder loader = factory.newDocumentBuilder();
-			return loader.parse(inputStream);
-		} catch (SAXException | ParserConfigurationException ex) {
+			return documentBuilderThreadLocal.get().parse(inputStream);
+		} catch (SAXException ex) {
 			throw new IllegalStateException("Error parsing XML document " + ex.getMessage(),ex);
 		}
 	}
@@ -271,21 +266,12 @@ public class DOMUtil {
 
 	public static StringBuffer printDom(Node node, boolean indent, boolean omitXmlDeclaration) {
 		StringWriter writer = new StringWriter();
-		TransformerFactory transfac = TransformerFactory.newInstance();
-		Transformer trans;
-		try {
-			trans = transfac.newTransformer();
-		} catch (TransformerConfigurationException e) {
-			throw new SystemException("Error in XML configuration: "+e.getMessage(),e);
-		}
-		trans.setOutputProperty(OutputKeys.INDENT, (indent ? "yes" : "no"));
-        trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");      // XALAN-specific
-		trans.setParameter(OutputKeys.ENCODING, "utf-8");
-        // Note: serialized XML does not contain xml declaration
-        trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, (omitXmlDeclaration ? "yes" : "no"));
-
 		DOMSource source = new DOMSource(node);
 		try {
+			Transformer trans = transformerThreadLocal.get();
+			trans.setOutputProperty(OutputKeys.INDENT, (indent ? "yes" : "no"));
+			// Note: serialized XML does not contain xml declaration
+			trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, (omitXmlDeclaration ? "yes" : "no"));
 			trans.transform(source, new StreamResult(writer));
 		} catch (TransformerException e) {
 			throw new SystemException("Error in XML transformation: "+e.getMessage(),e);
