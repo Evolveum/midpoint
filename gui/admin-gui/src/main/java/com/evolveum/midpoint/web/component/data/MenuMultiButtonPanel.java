@@ -29,7 +29,7 @@ import java.util.List;
  * @author honchar
  * @author Viliam Repan (lazyman)
  */
-public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPanel2<T> {
+public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPanel<T> {
 
     private static final long serialVersionUID = 1L;
 

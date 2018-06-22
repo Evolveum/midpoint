@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.MultiButtonPanel2;
+import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
@@ -322,7 +322,7 @@ public class PageCertDecisions extends PageAdminCertification {
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> cellItem, String componentId,
                                      IModel<CertWorkItemDto> rowModel) {
 
-                cellItem.add(new MultiButtonPanel2<CertWorkItemDto>(componentId, rowModel, responses + 1) {
+                cellItem.add(new MultiButtonPanel<CertWorkItemDto>(componentId, rowModel, responses + 1) {
 
                     private static final long serialVersionUID = 1L;
 

@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class MultiButtonPanel2<T> extends BasePanel<T> {
+public class MultiButtonPanel<T> extends BasePanel<T> {
 
     private static final long serialVersionUID = 1L;
 
@@ -34,7 +34,7 @@ public class MultiButtonPanel2<T> extends BasePanel<T> {
 
     private int numberOfButtons;
 
-    public MultiButtonPanel2(String id, IModel<T> model, int numberOfButtons) {
+    public MultiButtonPanel(String id, IModel<T> model, int numberOfButtons) {
         super(id, model);
 
         this.numberOfButtons = numberOfButtons;
