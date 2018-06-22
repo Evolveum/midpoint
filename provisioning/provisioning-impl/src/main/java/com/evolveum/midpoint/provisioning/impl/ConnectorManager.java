@@ -202,7 +202,9 @@ public class ConnectorManager {
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
 
 			connector = connectorFactory.createConnectorInstance(connectorType,
-					ResourceTypeUtil.getResourceNamespace(connectorSpec.getResource()), connectorSpec.toString());
+					ResourceTypeUtil.getResourceNamespace(connectorSpec.getResource()),
+					connectorSpec.getResource().getName().toString(),
+					connectorSpec.toString());
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);

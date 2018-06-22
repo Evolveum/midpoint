@@ -220,6 +220,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
 	private String description;
+	private String instanceName; // resource name
 	private boolean caseIgnoreAttributeNames = false;
 	private Boolean legacySchema = null;
 	private boolean supportsReturnDefaultAttributes = false;
@@ -238,12 +239,26 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		connIdConvertor.setIcfNameMapper(connIdNameMapper);
 	}
 
+	/**
+	 * Complex description for development diagnotics, e.g. ConnectorSpec(resource OID....)
+	 */
 	public String getDescription() {
 		return description;
 	}
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	
+	/**
+	 * Simple instance name for system administrator (name of the resource)
+	 */
+	public String getInstanceName() {
+		return instanceName;
+	}
+
+	public void setInstanceName(String instanceName) {
+		this.instanceName = instanceName;
 	}
 
 	public String getSchemaNamespace() {
@@ -294,6 +309,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 							apiConfig.getConfigurationProperties().getProperty(propName).getValue());
 				}
 			}
+			
+			apiConfig.setInstanceName(getInstanceName());
 
 			// Create new connector instance using the transformed configuration
 			connIdConnectorFacade = ConnectorFacadeFactory.getInstance().newInstance(apiConfig);

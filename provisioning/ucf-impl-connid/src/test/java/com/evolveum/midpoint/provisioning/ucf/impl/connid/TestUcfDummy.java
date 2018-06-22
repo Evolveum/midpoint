@@ -194,7 +194,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		TestUtil.displayTestTitle(TEST_NAME);
 
 		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
-				"test connector");
+				"dummy",
+				"description of dummy test connector instance");
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + "." + TEST_NAME);
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
@@ -239,7 +240,8 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		OperationResult result = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
 
 		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
-				"test connector");
+				"dummy",
+				"description of dummy test connector instance");
 		assertNotNull("Failed to instantiate connector", cc);
 
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
@@ -275,7 +277,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
 		OperationResult result = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
 
-		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), "test connector");
+		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+				"dummy",
+				"description of dummy test connector instance");
 		assertNotNull("Failed to instantiate connector", cc);
 
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();

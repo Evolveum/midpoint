@@ -63,6 +63,7 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import org.identityconnectors.framework.spi.Configuration;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.ConnectorClass;
+import org.identityconnectors.framework.spi.InstanceNameAware;
 import org.identityconnectors.framework.spi.PoolableConnector;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
@@ -89,14 +90,21 @@ import com.evolveum.icf.dummy.resource.SchemaViolationException;
  */
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME", configurationClass = DummyConfiguration.class)
 public class DummyConnector extends AbstractDummyConnector implements PoolableConnector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
-        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateDeltaOp {
+        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateDeltaOp, InstanceNameAware {
 
 	// We want to see if the ICF framework logging works properly
     private static final Log log = Log.getLog(DummyConnector.class);
     
+    private String instanceName;
+    
     @Override
+	public void setInstanceName(String instanceName) {
+		this.instanceName = instanceName;
+	}
+
+	@Override
 	public Set<AttributeDelta> updateDelta(final ObjectClass objectClass, final Uid uid, final Set<AttributeDelta> modifications, final OperationOptions options) {
-        log.info("updateDelta::begin");
+        log.info("updateDelta::begin {0}", instanceName);
         validate(objectClass);
         validate(uid);
         
@@ -307,7 +315,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 			throw new AlreadyExistsException(e);
 		}
 
-        log.info("update::end");
+        log.info("update::end {0}", instanceName);
         return sideEffectChanges;
     }
     
