@@ -3,6 +3,7 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
@@ -14,9 +15,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.list.Loop;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
@@ -35,11 +34,14 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
     private static final String ID_FORM = "form";
 
     private FocusTypeAssignmentPopupTabPanel rolesTabPanel;
-    private FocusTypeAssignmentPopupTabPanel orgsTabPanel;
+    private OrgTypeAssignmentPopupTabPanel orgsTabPanel;
+    private OrgTypeAssignmentPopupTabPanel orgTreeViewTabPanel;
     private FocusTypeAssignmentPopupTabPanel servicesTabPanel;
     private FocusTypeAssignmentPopupTabPanel usersTabPanel;
     private ResourceTypeAssignmentPopupTabPanel resourcesTabPanel;
 
+    private List<OrgType> selectedOrgsList = new ArrayList<>();
+    private boolean isOrgTreeView;
 
     public AssignmentPopup(String id){
         super(id);
@@ -89,10 +91,11 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                         newAssignmentsList.add(newAssignment);
                     });
                 }
-                if (orgsTabPanel != null){
-                    List<O> selectedOrgs = orgsTabPanel.getSelectedObjectsList();
-                    QName relation = orgsTabPanel.getRelationValue();
-                    selectedOrgs.forEach(selectedOrg -> {
+                //todo synchronize relation drop down between 2 org tabs
+                if (orgsTabPanel != null || orgTreeViewTabPanel != null){
+                    QName relation = orgsTabPanel != null ? orgsTabPanel.getRelationValue() :
+                            (orgTreeViewTabPanel != null ? orgTreeViewTabPanel.getRelationValue() : SchemaConstants.ORG_DEFAULT);
+                    selectedOrgsList.forEach(selectedOrg -> {
                         ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedOrg, relation);
                         AssignmentType newAssignment = new AssignmentType();
                         newAssignment.setTargetRef(ref);
@@ -135,6 +138,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
     private List<ITab> createAssignmentTabs() {
         List<ITab> tabs = new ArrayList<>();
+        //TODO check authorization for each tab
         VisibleEnableBehaviour authorization = new VisibleEnableBehaviour(){
         };
 
@@ -164,6 +168,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                     }
                 });
 
+        IModel<Boolean> isOrgTreeViewModel = getOrgTreeViewModel();
         tabs.add(
                 new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"), authorization) {
 
@@ -171,7 +176,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        orgsTabPanel = new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ORG){
+                        orgsTabPanel = new OrgTypeAssignmentPopupTabPanel(panelId, isOrgTreeViewModel, selectedOrgsList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -180,17 +185,41 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                             }
 
                         };
+                        orgsTabPanel.setOutputMarkupId(true);
                         return orgsTabPanel;
                     }
 
                     @Override
                     public String getCount() {
-                        if (orgsTabPanel == null){
-                            return "0";
-                        }
-                        return Integer.toString(orgsTabPanel.getObjectListPanel().getSelectedObjectsCount());
+                        return Integer.toString(selectedOrgsList.size());
                     }
                 });
+
+
+        tabs.add(new CountablePanelTab(getPageBase().createStringResource("TypedAssignablePanel.orgTreeView"), authorization) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                orgTreeViewTabPanel = new OrgTypeAssignmentPopupTabPanel(panelId, isOrgTreeViewModel, selectedOrgsList){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){
+                        tabLabelPanelUpdate(target);
+                    }
+
+                };
+                orgTreeViewTabPanel.setOutputMarkupId(true);
+                return orgTreeViewTabPanel;
+            }
+
+            @Override
+            public String getCount() {
+                return Integer.toString(selectedOrgsList.size());
+            }
+        });
 
         tabs.add(
                 new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"), authorization) {
@@ -251,17 +280,35 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
         return tabs;
     }
 
+    private IModel<Boolean> getOrgTreeViewModel(){
+        //the index of the Org Tree panel is 2
+        int orgTreeViewTabIndex = 2;
+        return new IModel<Boolean>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Boolean getObject() {
+                isOrgTreeView = getTabbedPanel() != null && getTabbedPanel().getSelectedTab() == orgTreeViewTabIndex;
+                return isOrgTreeView;
+            }
+
+            @Override
+            public void setObject(Boolean object) {
+                isOrgTreeView = object;
+            }
+
+            @Override
+            public void detach() {
+
+            }
+        };
+    }
+
     private TabbedPanel getTabbedPanel(){
         return (TabbedPanel) get(ID_FORM).get(ID_TABS_PANEL);
     }
 
     private void tabLabelPanelUpdate(AjaxRequestTarget target){
-//        TabbedPanel tabbedPanel = getTabbedPanel();
-//        Loop tabs = tabbedPanel.getTabsPanel();
-//        tabs.forEach(tabPanel -> {
-//            target.add(tabPanel.get(tabbedPanel.getTabLinkPanelId()));
-//        });
-
         target.add(getTabbedPanel());
     }
 

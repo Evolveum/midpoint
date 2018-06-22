@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import org.apache.wicket.model.PropertyModel;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
 	private static final long serialVersionUID = 1L;
@@ -149,7 +151,20 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		List<IColumn<SelectableBean<OrgType>, String>> columns = new ArrayList<>();
 
 		if (selectable) {
-			columns.add(new CheckBoxHeaderColumn<>());
+			columns.add(new CheckBoxHeaderColumn<SelectableBean<OrgType>>() {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<OrgType>> rowModel) {
+					return OrgTreePanel.this.getCheckBoxValueModel(rowModel);
+				}
+
+				@Override
+				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<OrgType>> rowModel) {
+					super.onUpdateRow(target, table, rowModel);
+					onOrgTreeCheckBoxSelectionPerformed(target, rowModel);
+				}
+			});
 		}
 
 		columns.add(new TreeColumn<>(
@@ -426,4 +441,10 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	public int getSelectedTabId(OrgTreeStateStorage storage){
 		return storage.getSelectedTabId();
 	}
+
+	protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<OrgType>> rowModel){
+		return Model.of(rowModel.getObject().isSelected());
+	}
+
+	protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){}
 }
