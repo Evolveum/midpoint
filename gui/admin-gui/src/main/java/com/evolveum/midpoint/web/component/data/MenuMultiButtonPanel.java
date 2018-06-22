@@ -19,52 +19,51 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
 import java.util.List;
 
 /**
- * Created by honchar
- * <p>
- * todo rewrite
+ * @author honchar
+ * @author Viliam Repan (lazyman)
  */
-public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPanel<T> {
-	private static final long serialVersionUID = 1L;
+public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPanel2<T> {
 
-	private static final String ID_INLINE_MENU_PANEL = "inlineMenuPanel";
-    private static final String ID_MENU_ITEM_BODY = "menuItemBody";
-    private static final String ID_MENU_BUTTON_CONTAINER = "menuButtonContainer";
+    private static final long serialVersionUID = 1L;
 
-    public MenuMultiButtonPanel(String id, int buttonsCount, IModel<T> model, IModel<List<InlineMenuItem>> menuItemsModel) {
-        super(id, buttonsCount, model, menuItemsModel);
+    private static final String ID_INLINE_MENU_PANEL = "inlineMenuPanel";
+
+    private IModel<List<InlineMenuItem>> menuItems;
+
+    public MenuMultiButtonPanel(String id, IModel<T> model, int numberOfButtons, IModel<List<InlineMenuItem>> menuItems) {
+        super(id, model, numberOfButtons);
+
+        this.menuItems = menuItems;
     }
 
     @Override
-    protected void initLayout() {
-        super.initLayout();
-        
+    protected void onInitialize() {
+        super.onInitialize();
+
+        initLayout();
+    }
+
+    private void initLayout() {
         DropdownButtonPanel inlineMenu = new DropdownButtonPanel(ID_INLINE_MENU_PANEL,
-				new DropdownButtonDto(null, null, null, menuItemsModel.getObject())) {
-        	private static final long serialVersionUID = 1L;
-        	
-        	@Override
-        	protected String getSpecialButtonClass() {
-        		return "btn-xs btn-default";
-        	}
-        	
-        };
+                new DropdownButtonDto(null, null, null, menuItems.getObject())) {
 
-        inlineMenu.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
-            public boolean isVisible() {
-                return !(numberOfButtons <= 2) || menuItemsModel.getObject().size() > 2;
+            @Override
+            protected String getSpecialButtonClass() {
+                return "btn-xs btn-default";
             }
-        });
+
+        };
         add(inlineMenu);
 
+        inlineMenu.add(new VisibleBehaviour(() -> !(getNumberOfButtons() <= 2) || menuItems.getObject().size() > 2));
     }
 }
