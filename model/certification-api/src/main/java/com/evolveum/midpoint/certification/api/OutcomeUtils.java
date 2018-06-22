@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,9 +58,20 @@ public class OutcomeUtils {
 		return defaultIfNull(value, NO_RESPONSE);
 	}
 
+	@NotNull
+	public static String normalizeToNonNull(String value) {
+		return defaultIfNull(value, SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE);
+	}
+
 	@Nullable
 	public static AccessCertificationResponseType normalizeToNull(AccessCertificationResponseType value) {
 		return value != NO_RESPONSE ? value : null;
+	}
+
+	@SuppressWarnings("unused")
+	@Nullable
+	public static String normalizeToNull(String value) {
+		return SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE.equals(value) ? null : value;
 	}
 
 	public static AccessCertificationResponseType fromUri(String uri) {
@@ -82,6 +92,7 @@ public class OutcomeUtils {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public static List<AccessCertificationResponseType> fromUris(List<String> uris) {
 		return uris.stream()
 				.map(uri -> fromUri(uri))

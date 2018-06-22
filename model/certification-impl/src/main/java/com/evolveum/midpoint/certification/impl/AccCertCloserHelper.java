@@ -165,7 +165,7 @@ public class AccCertCloserHelper {
 			LOGGER.trace("Updating current outcome for case {}", caseId);
 			AccessCertificationResponseType newStageOutcome = computationHelper.computeOutcomeForStage(aCase, campaign, campaign.getStageNumber());
 			String newStageOutcomeUri = toUri(newStageOutcome);
-			String newOverallOutcomeUri = toUri(computationHelper.computeOverallOutcome(aCase, campaign, newStageOutcomeUri));
+			String newOverallOutcomeUri = toUri(computationHelper.computeOverallOutcome(aCase, campaign, campaign.getStageNumber(), newStageOutcome));
 			List<ItemDelta<?, ?>> deltas = new ArrayList<>(
 					DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 							.item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(newStageOutcomeUri)

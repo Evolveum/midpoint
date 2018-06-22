@@ -23,13 +23,14 @@ import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.fromUri;
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.normalizeToNonNull;
@@ -37,6 +38,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortStringLazy
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ALL_MUST_ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_ACCEPT_ACCEPTS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.NO_RESPONSE;
+import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -142,26 +145,20 @@ public class AccCertResponseComputationHelper {
     @NotNull
     public AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
 		OutcomeStrategy strategy = getOverallOutcomeStrategy(campaign);
-		return normalizeToNonNull(strategy.computeOutcome(summarize(getOutcomesFromCompletedStages(aCase))));
+		return normalizeToNonNull(strategy.computeOutcome(summarize(getOutcomesFromCompletedStages(aCase, null, null))));
     }
 
-    // aCase contains outcomes from stages 1..N-1. Outcome from stage N is in currentStageOutcome
+	// aCase contains outcomes from previous (closed) stages. Outcome from the current (not yet closed) stage (additionalStageNumber)
+	// is in additionalStageResponse.
 	@NotNull
-	AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
-			String currentStageOutcome) {
-    	return computeOverallOutcome(aCase, campaign, fromUri(currentStageOutcome));
-	}
-
-	// aCase contains outcomes from stages 1..N-1. Outcome from stage N is in currentStageOutcome
-	@NotNull
-	AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign,
-			AccessCertificationResponseType currentStageOutcome) {
-		List<AccessCertificationResponseType> stageOutcomes = new ArrayList<>(getOutcomesFromCompletedStages(aCase));
-        stageOutcomes.add(currentStageOutcome);
+	AccessCertificationResponseType computeOverallOutcome(AccessCertificationCaseType aCase,
+			AccessCertificationCampaignType campaign, int additionalStageNumber, AccessCertificationResponseType additionalStageOutcome) {
+		List<AccessCertificationResponseType> stageOutcomes = getOutcomesFromCompletedStages(aCase, additionalStageNumber, additionalStageOutcome);
         return normalizeToNonNull(getOverallOutcomeStrategy(campaign).computeOutcome(summarize(stageOutcomes)));
     }
 
-	// see https://wiki.evolveum.com/display/midPoint/On+Certification+Campaigns+Iteration
+    // We take into account _all_ responses relevant to this stage!
+	// See https://wiki.evolveum.com/display/midPoint/On+Certification+Campaigns+Iteration.
 	private List<AccessCertificationResponseType> getResponses(AccessCertificationCaseType aCase, int stageNumber, int iteration) {
 		List<AccessCertificationResponseType> rv = new ArrayList<>();
 		for (AccessCertificationWorkItemType wi : aCase.getWorkItem()) {
@@ -177,18 +174,48 @@ public class AccCertResponseComputationHelper {
 	}
 
 	// see https://wiki.evolveum.com/display/midPoint/On+Certification+Campaigns+Iteration
-	private List<AccessCertificationResponseType> getOutcomesFromCompletedStages(AccessCertificationCaseType aCase) {
-		List<AccessCertificationResponseType> rv = new ArrayList<>();
+	private List<AccessCertificationResponseType> getOutcomesFromCompletedStages(AccessCertificationCaseType aCase,
+			Integer additionalStageNumber, AccessCertificationResponseType additionalStageResponse) {
+    	LOGGER.trace("getOutcomesFromCompletedStages: additionalStageNumber={}, additionalStageResponse={}", additionalStageNumber, additionalStageResponse);
+		SetValuedMap<Integer, AccessCertificationResponseType> allOutcomes = new HashSetValuedHashMap<>();
 		for (CaseEventType event : aCase.getEvent()) {
 			if (event instanceof StageCompletionEventType) {
 				StageCompletionEventType stageCompletionEvent = (StageCompletionEventType) event;
-				AccessCertificationResponseType outcome = normalizeToNonNull(fromUri(stageCompletionEvent.getOutcome()));
-				int iteration = defaultIfNull(stageCompletionEvent.getIteration(), 1);
-				if (outcome != NO_RESPONSE || iteration == aCase.getIteration()) {
-					rv.add(outcome);
+				if (event.getStageNumber() == null) {
+					throw new IllegalStateException("Missing stage number in StageCompletionEventType: " + event);
 				}
+				allOutcomes.put(event.getStageNumber(), normalizeToNonNull(fromUri(stageCompletionEvent.getOutcome())));
 			}
 		}
+		if (additionalStageNumber != null) {
+			allOutcomes.put(additionalStageNumber, normalizeToNonNull(additionalStageResponse));
+		}
+		List<AccessCertificationResponseType> rv = new ArrayList<>();
+		for (Integer stage : allOutcomes.keySet()) {
+			Set<AccessCertificationResponseType> stageOutcomes = allOutcomes.get(stage);
+			addIgnoreNull(rv, extractStageOutcome(stageOutcomes, aCase.getId(), stage));
+		}
 		return rv;
+	}
+
+	AccessCertificationResponseType getStageOutcome(AccessCertificationCaseType aCase, int stageNumber) {
+		Set<AccessCertificationResponseType> stageOutcomes = aCase.getEvent().stream()
+				.filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber)
+				.map(e -> normalizeToNonNull(fromUri(((StageCompletionEventType) e).getOutcome())))
+				.collect(Collectors.toSet());
+		return extractStageOutcome(stageOutcomes, aCase.getId(), stageNumber);
+	}
+
+	private AccessCertificationResponseType extractStageOutcome(Set<AccessCertificationResponseType> stageOutcomes, Long caseId, int stage) {
+		Collection<AccessCertificationResponseType> nonNullOutcomes = CollectionUtils.subtract(stageOutcomes, singleton(NO_RESPONSE));
+		if (nonNullOutcomes.size() > 1) {
+			throw new IllegalStateException("Contradictory outcomes for case " + caseId + " in stage " + stage + ": " + stageOutcomes);
+		} else if (!nonNullOutcomes.isEmpty()) {
+			return nonNullOutcomes.iterator().next();
+		} else if (!stageOutcomes.isEmpty()) {
+			return NO_RESPONSE;
+		} else {
+			return null;
+		}
 	}
 }

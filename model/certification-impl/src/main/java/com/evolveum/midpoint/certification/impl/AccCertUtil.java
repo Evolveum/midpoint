@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.certification.impl;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -27,8 +24,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 @SuppressWarnings("WeakerAccess")
 public class AccCertUtil {
 
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	public static boolean isCaseRelevantForStage(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign) {
-		return aCase.getStageNumber() == campaign.getStageNumber() && aCase.getIteration() == campaign.getIteration();
+	public static int normalizeIteration(Integer iteration) {
+		return defaultIfNull(iteration, 1);
 	}
 }

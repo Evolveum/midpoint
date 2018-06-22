@@ -83,7 +83,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 @Service(value = "certificationManager")
 public class CertificationManagerImpl implements CertificationManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(CertificationManager.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(CertificationManagerImpl.class);
 
     private static final String INTERFACE_DOT = CertificationManager.class.getName() + ".";
     //public static final String CLASS_DOT = CertificationManagerImpl.class.getName() + ".";
@@ -229,7 +229,7 @@ public class CertificationManagerImpl implements CertificationManager {
             final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
-            LOGGER.trace("openNextStage: currentStageNumber={}, stages={}, state={}", currentStageNumber, stages, state);
+            LOGGER.trace("openNextStage: iteration={}, currentStageNumber={}, stages={}, state={}", campaign.getIteration(), currentStageNumber, stages, state);
             if (IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't advance to the next review stage as the stage " + currentStageNumber + " is currently open.");
             } else if (IN_REMEDIATION.equals(state)) {

@@ -358,24 +358,24 @@ public class CertCampaignTypeUtil {
                 .build();
     }
 
-    // some methods, like searchOpenWorkItems, engage their own "openness" filter
-    public static ObjectQuery createOpenWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) throws SchemaException {
-        return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
-                .item(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP).isNull()
-                .and().exists(PrismConstants.T_PARENT)
-                   .ownerId(campaignOid)
-                .build();
-    }
+//    // some methods, like searchOpenWorkItems, engage their own "openness" filter
+//    public static ObjectQuery createOpenWorkItemsForCampaignQuery(String campaignOid, PrismContext prismContext) throws SchemaException {
+//        return QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext)
+//                .item(AccessCertificationWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+//                .and().exists(PrismConstants.T_PARENT)
+//                   .ownerId(campaignOid)
+//                .build();
+//    }
 
-    public static String getStageOutcome(AccessCertificationCaseType aCase, int stageNumber, int iteration) {
-        StageCompletionEventType event = aCase.getEvent().stream()
-                .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber
-                        && e.getIteration() != null && e.getIteration() == iteration)
-                .map(e -> (StageCompletionEventType) e)
-                .findAny().orElseThrow(
-                        () -> new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase));
-        return event.getOutcome();
-    }
+//    public static String getStageOutcome(AccessCertificationCaseType aCase, int stageNumber, int iteration) {
+//        StageCompletionEventType event = aCase.getEvent().stream()
+//                .filter(e -> e instanceof StageCompletionEventType && e.getStageNumber() == stageNumber
+//                        && e.getIteration() != null && e.getIteration() == iteration)
+//                .map(e -> (StageCompletionEventType) e)
+//                .findAny().orElseThrow(
+//                        () -> new IllegalStateException("No outcome registered for stage " + stageNumber + " in case " + aCase));
+//        return event.getOutcome();
+//    }
 
     public static List<AccessCertificationResponseType> getOutcomesToStopOn(List<AccessCertificationResponseType> stopReviewOn, List<AccessCertificationResponseType> advanceToNextStageOn) {
         if (!stopReviewOn.isEmpty()) {

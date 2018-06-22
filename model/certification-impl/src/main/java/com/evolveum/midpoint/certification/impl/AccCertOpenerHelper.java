@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.certification.impl;
 
+import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -59,14 +61,12 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.Objects;
 
-import static com.evolveum.midpoint.certification.api.OutcomeUtils.fromUri;
-import static com.evolveum.midpoint.certification.api.OutcomeUtils.normalizeToNull;
-import static com.evolveum.midpoint.certification.api.OutcomeUtils.toUri;
+import static com.evolveum.midpoint.certification.api.OutcomeUtils.*;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortStringLazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CREATED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
@@ -238,14 +238,14 @@ public class AccCertOpenerHelper {
         int stageNumber = campaign.getStageNumber();
         int newStageNumber = stage.getNumber();
 
-	    LOGGER.trace("getDeltasForStageOpen starting; campaign = {}, stage number = {}, new stage number = {}",
-			    ObjectTypeUtil.toShortStringLazy(campaign), stageNumber, newStageNumber);
+	    LOGGER.trace("getDeltasForStageOpen starting; campaign = {}, stage number = {}, new stage number = {}, iteration = {}",
+			    ObjectTypeUtil.toShortStringLazy(campaign), stageNumber, newStageNumber, campaign.getIteration());
 
 	    ModificationsToExecute rv = new ModificationsToExecute();
         if (stageNumber == 0 && campaign.getIteration() == 1) {
             getDeltasToCreateCases(campaign, stage, handler, rv, workItemsCreatedHolder, task, result);
         } else {
-            getDeltasToAdvanceCases(campaign, stage, rv, workItemsCreatedHolder, task, result);
+            getDeltasToUpdateCases(campaign, stage, rv, workItemsCreatedHolder, task, result);
         }
 		rv.createNewBatch();
         rv.add(createStageAddDelta(stage));
@@ -315,9 +315,9 @@ public class AccCertOpenerHelper {
 
 			workItemsCreatedHolder.setValue(workItemsCreatedHolder.getValue() + _case.getWorkItem().size());
 
-			String currentStageOutcome = toUri(computationHelper.computeOutcomeForStage(_case, campaign, 1));
-			_case.setCurrentStageOutcome(currentStageOutcome);
-			_case.setOutcome(toUri(computationHelper.computeOverallOutcome(_case, campaign, currentStageOutcome)));
+			AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(_case, campaign, 1);
+			_case.setCurrentStageOutcome(toUri(currentStageOutcome));
+			_case.setOutcome(toUri(computationHelper.computeOverallOutcome(_case, campaign, 1, currentStageOutcome)));
 
 			@SuppressWarnings({ "raw", "unchecked" })
 			PrismContainerValue<AccessCertificationCaseType> caseCVal = _case.asPrismContainerValue();
@@ -389,7 +389,8 @@ public class AccCertOpenerHelper {
 							&& Objects.equals(existing.getOriginalAssigneeRef().getOid(), reviewer.getOid())
 							&& existing.getOutput() != null && normalizeToNull(fromUri(existing.getOutput().getOutcome())) != null) {
 						skipCreation = true;
-						LOGGER.trace("Skipping creation of a work item for {}, because the relevant outcome already exists in {}", reviewer, existing);
+						LOGGER.trace("Skipping creation of a work item for {}, because the relevant outcome already exists in {}",
+								PrettyPrinter.prettyPrint(reviewer), existing);
 						break;
 					}
 				}
@@ -409,13 +410,14 @@ public class AccCertOpenerHelper {
 	/**
 	 * Deltas to advance cases to next stage when opening it.
 	 */
-	private void getDeltasToAdvanceCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
+	private void getDeltasToUpdateCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
 			ModificationsToExecute modifications, Holder<Integer> workItemsCreatedHolder,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		int stageToBe = stage.getNumber();
 		int iteration = campaign.getIteration();
-		LOGGER.trace("Advancing reviewers and timestamps for cases in {}; stageToBe = {}, iteration = {}", toShortString(campaign), stageToBe, iteration);
+		LOGGER.trace("Updating cases in {}; current stage = {}, stageToBe = {}, iteration = {}", toShortStringLazy(campaign),
+				campaign.getStageNumber(), stageToBe, iteration);
 		List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), iteration, null, result);
 
 		AccessCertificationReviewerSpecificationType reviewerSpec =
@@ -425,20 +427,29 @@ public class AccCertOpenerHelper {
 		for (AccessCertificationCaseType aCase : caseList) {
 			LOGGER.trace("----------------------------------------------------------------------------------------");
 			LOGGER.trace("Considering case: {}", aCase);
-			if (aCase.getReviewFinishedTimestamp() != null) {
-				LOGGER.trace("Case {} review process has already finished", aCase.getId());
-				continue;
-			}
 			Long caseId = aCase.asPrismContainerValue().getId();
 			assert caseId != null;
+			if (aCase.getReviewFinishedTimestamp() != null) {
+				LOGGER.trace("Case {} review process has already finished", caseId);
+				continue;
+			}
+			AccessCertificationResponseType stageOutcome = computationHelper.getStageOutcome(aCase, stageToBe);
+			if (OutcomeUtils.normalizeToNull(stageOutcome) != null) {
+				LOGGER.trace("Case {} already has an outcome for stage {} - it will not be reviewed in this stage in iteration {}",
+						caseId, stageToBe, iteration);
+				continue;
+			}
+
 			List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(aCase, campaign, reviewerSpec, task, result);
 			List<AccessCertificationWorkItemType> workItems = createWorkItems(reviewers, stageToBe, iteration, aCase);
 			workItemsCreatedHolder.setValue(workItemsCreatedHolder.getValue() + workItems.size());
 			aCase.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(workItems));
 			AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(aCase, campaign, stageToBe);
-			AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(aCase, campaign, currentStageOutcome);
-			LOGGER.trace("Computed: reviewers: {}, workItems: {}, currentStageOutcome: {}, overallOutcome: {}", reviewers,
-					workItems.size(), currentStageOutcome, overallOutcome);
+			AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(aCase, campaign, stageToBe, currentStageOutcome);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Computed: reviewers: {}, workItems: {}, currentStageOutcome: {}, overallOutcome: {}",
+						PrettyPrinter.prettyPrint(reviewers), workItems.size(), currentStageOutcome, overallOutcome);
+			}
 			modifications.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 					.item(F_CASE, caseId, F_WORK_ITEM).add(PrismContainerValue.toPcvList(workItems))
 					.item(F_CASE, caseId, F_CURRENT_STAGE_CREATE_TIMESTAMP).replace(stage.getStartTimestamp())
@@ -455,7 +466,7 @@ public class AccCertOpenerHelper {
 				workItemsCreatedHolder.getValue());
 	}
 
-    // some bureaucracy... stage#, state, start time, triggers
+	// some bureaucracy... stage#, state, start time, triggers
     private List<ItemDelta<?,?>> createDeltasToRecordStageOpen(AccessCertificationCampaignType campaign,
 		    AccessCertificationStageType newStage) throws SchemaException {
 

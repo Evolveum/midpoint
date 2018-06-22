@@ -111,24 +111,15 @@ public class AccCertCaseOperationsHelper {
 				.asItemDeltas();
 		ItemDelta.applyTo(deltaList, campaign.asPrismContainerValue()); // to have data for outcome computation
 
-		String newCurrentOutcome = toUri(computationHelper.computeOutcomeForStage(_case, campaign, campaign.getStageNumber()));
-		if (!ObjectUtils.equals(newCurrentOutcome, _case.getCurrentStageOutcome())) {
-			deltaList.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-					.item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(newCurrentOutcome)
-					.asItemDelta());
-		}
-
-		String newOverallOutcome = toUri(normalizeToNonNull(
-						computationHelper.computeOverallOutcome(_case, campaign, newCurrentOutcome)));
-		if (!ObjectUtils.equals(newOverallOutcome, _case.getOutcome())) {
-			deltaList.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
-					.item(F_CASE, caseId, F_OUTCOME).replace(newOverallOutcome)
-					.asItemDelta());
-		}
+	    AccessCertificationResponseType newCurrentOutcome = computationHelper.computeOutcomeForStage(_case, campaign, campaign.getStageNumber());
+	    AccessCertificationResponseType newOverallOutcome = computationHelper.computeOverallOutcome(_case, campaign, campaign.getStageNumber(), newCurrentOutcome);
+	    deltaList.addAll(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+			    .item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(toUri(newCurrentOutcome))
+			    .item(F_CASE, caseId, F_OUTCOME).replace(toUri(newOverallOutcome))
+			    .asItemDeltas());
 
 		updateHelper.modifyObjectPreAuthorized(AccessCertificationCampaignType.class, campaignOid, deltaList, task, result);
 	}
-
 
     // TODO temporary implementation - should be done somehow in batches in order to improve performance
 	void markCaseAsRemedied(@NotNull String campaignOid, long caseId, Task task, OperationResult parentResult)

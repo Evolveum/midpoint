@@ -643,15 +643,15 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 //		return OutcomeUtils.fromUri(CertCampaignTypeUtil.getStageOutcome(aCase, stageNumber, iteration));
 //	}
 
-	// completedStage - if null, checks the stage outcome in the history list
+	// completedStage - if not null, checks the stage outcome in the history list
 	protected void assertCaseOutcome(List<AccessCertificationCaseType> caseList, String subjectOid, String targetOid,
-			AccessCertificationResponseType stageOutcome, AccessCertificationResponseType overallOutcome, Integer completedStage) {
+			AccessCertificationResponseType expectedStageOutcome, AccessCertificationResponseType expectedOverallOutcome, Integer completedStage) {
         AccessCertificationCaseType aCase = findCase(caseList, subjectOid, targetOid);
-        assertEquals("Wrong stage outcome in " + aCase, OutcomeUtils.toUri(stageOutcome), aCase.getCurrentStageOutcome());
-        assertEquals("Wrong overall outcome in " + aCase, OutcomeUtils.toUri(overallOutcome), aCase.getOutcome());
+        assertEquals("Wrong stage outcome in " + aCase, OutcomeUtils.toUri(expectedStageOutcome), aCase.getCurrentStageOutcome());
+        assertEquals("Wrong overall outcome in " + aCase, OutcomeUtils.toUri(expectedOverallOutcome), aCase.getOutcome());
 
 		if (completedStage != null) {
-			assertHistoricOutcome(aCase, completedStage, aCase.getIteration(), stageOutcome);
+			assertHistoricOutcome(aCase, completedStage, aCase.getIteration(), expectedStageOutcome);
 		}
     }
 

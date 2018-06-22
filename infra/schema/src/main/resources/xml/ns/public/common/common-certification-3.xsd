@@ -841,7 +841,7 @@
 
                         When opening a campaign stage, case's currentStage either advances (if it is transferred to stage being opened)
                         or stays at the existing value (if it is not). It then indicates the last stage this case
-                        took part of.
+                        was reviewed in.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
