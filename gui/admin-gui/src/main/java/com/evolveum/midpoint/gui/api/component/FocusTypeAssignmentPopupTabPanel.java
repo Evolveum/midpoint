@@ -18,12 +18,15 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -70,6 +73,18 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
 
     private DropDownChoicePanel getRelationDropDown(){
         return (DropDownChoicePanel)get(ID_RELATION_CONTAINER).get(ID_RELATION);
+    }
+
+    @Override
+    protected List<AssignmentType> getSelectedAssignmentsList(){
+        List<AssignmentType> assignmentList = new ArrayList<>();
+
+        List<FocusType> selectedObjects = getSelectedObjectsList();
+        QName relation = getRelationValue();
+        selectedObjects.forEach(selectedObject -> {
+            assignmentList.add(ObjectTypeUtil.createAssignmentTo(selectedObject, relation));
+        });
+        return assignmentList;
     }
 
     public QName getRelationValue(){

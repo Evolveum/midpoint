@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -90,7 +91,6 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                if (type.equals(RoleType.COMPLEX_TYPE)) {
                     LOGGER.debug("Loading roles which the current user has right to assign");
                     Task task = AbstractAssignmentPopupTabPanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
                     OperationResult result = task.getResult();
@@ -113,7 +113,6 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
                         query = new ObjectQuery();
                     }
                     query.addFilter(filter);
-                }
                 return query;
             }
 
@@ -144,6 +143,8 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
     protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
         return Model.of(true);
     }
+
+    protected abstract List<AssignmentType> getSelectedAssignmentsList();
 
     protected boolean isObjectListPanelVisible(){
         return true;

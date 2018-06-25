@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,6 +30,8 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -175,24 +178,6 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
                 return availableIntentValues;
             }
         };
-//        intentValueModel = new IModel<String>() {
-//            @Override
-//            public String getObject() {
-//                return intent != null ? intent :
-//                        (intentValues.getObject().size() > 0 ?
-//                                intentValues.getObject().get(0) : "default");
-//            }
-//
-//            @Override
-//            public void setObject(String s) {
-//                intent = s;
-//            }
-//
-//            @Override
-//            public void detach() {
-//
-//            }
-//        };
     }
 
     public String getIntentValue(){
@@ -201,6 +186,19 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
 
     public ShadowKindType getKindValue(){
         return getKindDropDown().getModel().getObject();
+    }
+
+    @Override
+    protected List<AssignmentType> getSelectedAssignmentsList(){
+        List<AssignmentType> assignmentList = new ArrayList<>();
+
+        List<ResourceType> selectedObjects = getSelectedObjectsList();
+        ShadowKindType kind = getKindValue();
+        String intent = getIntentValue();
+        selectedObjects.forEach(selectedObject -> {
+            assignmentList.add(ObjectTypeUtil.createAssignmentWithConstruction(selectedObject.asPrismObject(), kind, intent));
+        });
+        return assignmentList;
     }
 
     @Override
