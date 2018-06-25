@@ -124,7 +124,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
      * Gets the Configuration context for this connector.
      */
     @Override
-    public Configuration getConfiguration() {
+    public DummyConfiguration getConfiguration() {
         return this.configuration;
     }
 
@@ -1188,9 +1188,15 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 	   if (!dummyObject.getAuxiliaryObjectClassNames().isEmpty()) {
 		   builder.addAttribute(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME, dummyObject.getAuxiliaryObjectClassNames());
 	   }
+	   
+	   addAdditionalCommonAttributes(builder, dummyObject);
 
 	   return builder;
    }
+
+	protected void addAdditionalCommonAttributes(ConnectorObjectBuilder builder, DummyObject dummyObject) {
+		// For subclasses
+	}
 
 	private String varyLetterCase(String name) {
 		StringBuilder sb = new StringBuilder(name.length());

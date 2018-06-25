@@ -477,5 +477,13 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
     	sideEffectChanges.add(
     			AttributeDeltaBuilder.build(Uid.NAME, newUidValue));
 	}
+    
+    protected void addAdditionalCommonAttributes(ConnectorObjectBuilder builder, DummyObject dummyObject) {
+    	String connectorInstanceNameAttribute = getConfiguration().getConnectorInstanceNameAttribute();
+    	if (connectorInstanceNameAttribute != null) {
+    		log.info("Putting connectorInstance name into {0}: {1}", connectorInstanceNameAttribute, instanceName);
+    		builder.addAttribute(connectorInstanceNameAttribute, instanceName);
+    	}
+    }
 
 }

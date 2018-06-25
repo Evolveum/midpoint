@@ -47,6 +47,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -324,6 +325,36 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_SCRIPTY_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		"Mr. POLY JACK SPARROW");
+	}
+	
+	/**
+	 * MID-3044
+	 */
+	@Test
+    public void test502GetAccountJackResourceScripty() throws Exception {
+		final String TEST_NAME = "test502GetAccountJackResourceScripty";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 1);
+        String accountOid = getSingleLinkOid(userBefore);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertAttribute(getDummyResourceObject(RESOURCE_DUMMY_SCRIPTY_NAME), accountShadow.asObjectable(), 
+				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME), 
+				"Dummy Resource: Scripty");
 	}
 
 }

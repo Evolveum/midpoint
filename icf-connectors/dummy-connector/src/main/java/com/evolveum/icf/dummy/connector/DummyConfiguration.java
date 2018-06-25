@@ -70,6 +70,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private boolean requireNameHint = false;
 	private boolean monsterized = false;
 	private String pagingStrategy = PAGING_STRATEGY_OFFSET;
+	private String connectorInstanceNameAttribute = null;
 
 	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -391,6 +392,18 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setPagingStrategy(String pagingStrategy) {
 		this.pagingStrategy = pagingStrategy;
+	}
+
+	/**
+	 * Name of the attribute where the connector copies instanceName. So this can be used as assert in the tests.
+	 */
+	@ConfigurationProperty
+	public String getConnectorInstanceNameAttribute() {
+		return connectorInstanceNameAttribute;
+	}
+
+	public void setConnectorInstanceNameAttribute(String connectorInstanceNameAttribute) {
+		this.connectorInstanceNameAttribute = connectorInstanceNameAttribute;
 	}
 
 	/**

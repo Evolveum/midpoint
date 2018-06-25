@@ -15,7 +15,8 @@
   ~ limitations under the License.
   -->
   
-<!-- Resource with an ad-hoc provisioning script in outbound mappings. -->
+<!-- Resource with an ad-hoc provisioning script in outbound mappings.
+     It also puts connector instance name into 'ship' attribute (MID-3044). -->
 
 <resource oid="399f5308-0447-11e8-91e9-a7f9c4100ffb"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -52,6 +53,7 @@
 				<clearValue>whatever</clearValue>
 			</icfi:uselessGuardedString>
 			<icfi:uselessString>USEless</icfi:uselessString>
+			<icfi:connectorInstanceNameAttribute>ship</icfi:connectorInstanceNameAttribute>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>
