@@ -79,12 +79,18 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 				@Override
 				protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<O>> rowModel){
 					IModel<Boolean> model = super.getCheckBoxValueModel(rowModel);
-					if (selectedObjects != null && selectedObjects.size() > 0) {
+					if (selectedObjects != null && rowModel != null) {
+						boolean isInList = false;
 						for (O selectedObject : selectedObjects){
 							if (rowModel.getObject().getValue().getOid().equals(selectedObject.getOid())){
-								model.setObject(true);
+								isInList = true;
 								break;
 							}
+						}
+						if (isInList){
+							model.setObject(true);
+						} else {
+							model.setObject(false);
 						}
 					}
 					return model;

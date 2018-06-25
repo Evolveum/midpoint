@@ -29,6 +29,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,7 +46,11 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     private static final Trace LOGGER = TraceManager.getTrace(FocusTypeAssignmentPopupTabPanel.class);
 
     public FocusTypeAssignmentPopupTabPanel(String id, ObjectTypes type){
-        super(id, type);
+        this(id, type, new ArrayList<>());
+    }
+
+    public FocusTypeAssignmentPopupTabPanel(String id, ObjectTypes type, List<F> selectedObjects){
+        super(id, type, selectedObjects);
     }
 
     @Override

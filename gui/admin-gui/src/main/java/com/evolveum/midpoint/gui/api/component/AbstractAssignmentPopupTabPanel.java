@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -50,10 +51,12 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
     private ObjectTypes type;
+    protected List<O> selectedObjects;
 
-    public AbstractAssignmentPopupTabPanel(String id, ObjectTypes type){
+    public AbstractAssignmentPopupTabPanel(String id, ObjectTypes type, List<O> selectedObjects){
         super(id);
         this.type = type;
+        this.selectedObjects = selectedObjects;
     }
 
     @Override
@@ -64,15 +67,19 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
     }
 
     private PopupObjectListPanel initObjectListPanel(){
-        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)type.getClassDefinition(), true, getPageBase()) {
+        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)type.getClassDefinition(),
+                null, true, getPageBase(), selectedObjects) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdateCheckbox(AjaxRequestTarget target) {
-//                if (type.equals(ObjectTypes.RESOURCE)) {
-//                    target.add(AbstractAssignmentPopupTabPanel.this);
-//                }
+                if (selectedObjects == null){
+                    selectedObjects = new ArrayList<>();
+                }
+                selectedObjects.clear();
+                selectedObjects.addAll(getSelectedObjectsList());
+
                 onSelectionPerformed(target);
             }
 
@@ -111,7 +118,13 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
             }
 
         };
+        listPanel.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
 
+            public boolean isVisible(){
+                return isObjectListPanelVisible();
+            }
+        });
         listPanel.setOutputMarkupId(true);
         return listPanel;
     }
@@ -130,6 +143,10 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
 
     protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
         return Model.of(true);
+    }
+
+    protected boolean isObjectListPanelVisible(){
+        return true;
     }
 
     protected abstract void initParametersPanel();
