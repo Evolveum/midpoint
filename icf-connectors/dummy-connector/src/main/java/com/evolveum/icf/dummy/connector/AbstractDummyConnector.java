@@ -117,10 +117,22 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
     protected DummyResource resource;
 
 	private boolean connected = false;
+	private final int instanceNumber;
 
 	private static String staticVal;
+	
+	private static int instanceCounter = 0;
+	
+    public AbstractDummyConnector() {
+		super();
+		instanceNumber = getNextInstanceNumber();
+	}
 
-    /**
+	public int getInstanceNumber() {
+		return instanceNumber;
+	}
+
+	/**
      * Gets the Configuration context for this connector.
      */
     @Override
@@ -179,6 +191,11 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         }
 
         log.info("Connected to dummy resource instance {0} ({1} connections open)", resource, resource.getConnectionCount());
+    }
+    
+    private static synchronized int getNextInstanceNumber() {
+    	instanceCounter++;
+    	return instanceCounter;
     }
 
     /**
@@ -1195,7 +1212,11 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
    }
 
 	protected void addAdditionalCommonAttributes(ConnectorObjectBuilder builder, DummyObject dummyObject) {
-		// For subclasses
+		String connectorInstanceNumberAttribute = getConfiguration().getConnectorInstanceNumberAttribute();
+    	if (connectorInstanceNumberAttribute != null) {
+    		log.info("Putting connector instance number into {0}: {1}", connectorInstanceNumberAttribute, getInstanceNumber());
+    		builder.addAttribute(connectorInstanceNumberAttribute, getInstanceNumber());
+    	}
 	}
 
 	private String varyLetterCase(String name) {
@@ -1675,4 +1696,11 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		return configuration.isRequireNameHint() && !resource.isDisableNameHintChecks();
 	}
 
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName()+"(resource=" + resource.getInstanceName()
+				+ ", instanceNumber=" + instanceNumber + (connected?", connected":"")+ ")";
+	}
+
+	
 }

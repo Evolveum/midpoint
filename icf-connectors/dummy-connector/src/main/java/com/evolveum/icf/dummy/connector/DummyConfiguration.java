@@ -70,6 +70,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private boolean requireNameHint = false;
 	private boolean monsterized = false;
 	private String pagingStrategy = PAGING_STRATEGY_OFFSET;
+	private String connectorInstanceNumberAttribute = null;
 	private String connectorInstanceNameAttribute = null;
 
 	/**
@@ -392,6 +393,15 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setPagingStrategy(String pagingStrategy) {
 		this.pagingStrategy = pagingStrategy;
+	}
+	
+	@ConfigurationProperty
+	public String getConnectorInstanceNumberAttribute() {
+		return connectorInstanceNumberAttribute;
+	}
+
+	public void setConnectorInstanceNumberAttribute(String connectorInstanceNumberAttribute) {
+		this.connectorInstanceNumberAttribute = connectorInstanceNumberAttribute;
 	}
 
 	/**

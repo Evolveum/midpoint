@@ -81,6 +81,7 @@ import org.identityconnectors.framework.impl.api.local.ObjectPool.Statistics;
 import org.identityconnectors.framework.impl.api.local.operations.ConnectorOperationalContext;
 import org.identityconnectors.framework.spi.Connector;
 import org.identityconnectors.framework.spi.PoolableConnector;
+import org.jfree.util.Log;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -223,7 +224,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	private String instanceName; // resource name
 	private boolean caseIgnoreAttributeNames = false;
 	private Boolean legacySchema = null;
-	private boolean supportsReturnDefaultAttributes = false;
 
 	ConnectorInstanceConnIdImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
 			String schemaNamespace, PrismSchema connectorSchema, Protector protector,
@@ -520,6 +520,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				LOGGER.trace("Connector instance {} does not support schema, skipping", this);
 				// we need to get schema to figure out all the capabilities
 				retrieveResourceSchema(null, result);
+			} else {
+				addBasicReadCapability();
 			}
 		} catch (CommunicationException ex) {
 			result.recordFatalError(ex);
@@ -569,10 +571,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(capCreate));
 		}
 
-		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)){
-			ReadCapabilityType capRead = new ReadCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
-		}
+		// GetApiOp is processed later. We need supported options (from schema) to fully process it.
 
 		if (supportedOperations.contains(UpdateDeltaApiOp.class)) {
 			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
@@ -632,6 +631,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			// The connector does no support schema() operation.
 			icfResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, ex.getMessage());
 			resetResourceSchema();
+			addBasicReadCapability();
 			return;
 		} catch (Throwable ex) {
 			//recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET_SCHEMA, null, ex);
@@ -667,11 +667,23 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (icfSchema == null) {
 			icfResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Null schema returned");
 			resetResourceSchema();
+			addBasicReadCapability();
 			return;
 		}
 
 
 		parseResourceSchema(icfSchema, generateObjectClasses);
+	}
+	
+	private void addBasicReadCapability() {
+		// Still need to add "read" capability. This capability would be added during schema processing,
+		// because it depends on schema options. But if there is no schema we need to add read capability
+		// anyway. We do not want to end up with non-readable resource.
+		Set<Class<? extends APIOperation>> supportedOperations = connIdConnectorFacade.getSupportedOperations();
+		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)){
+			ReadCapabilityType capRead = new ReadCapabilityType();
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
+		}
 	}
 
 	private void parseResourceSchema(org.identityconnectors.framework.common.objects.Schema icfSchema, List<QName> generateObjectClasses) {
@@ -983,6 +995,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		boolean canPageSize = false;
 		boolean canPageOffset = false;
 		boolean canSort = false;
+		boolean supportsReturnDefaultAttributes = false;
 		for (OperationOptionInfo searchOption: icfSchema.getSupportedOptionsByOperation(SearchApiOp.class)) {
 			switch (searchOption.getName()) {
 				case OperationOptions.OP_PAGE_SIZE:
@@ -999,6 +1012,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					break;
 			}
 
+		}
+		
+		Set<Class<? extends APIOperation>> supportedOperations = connIdConnectorFacade.getSupportedOperations();
+		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)){
+			ReadCapabilityType capRead = new ReadCapabilityType();
+			capRead.setReturnDefaultAttributesOption(supportsReturnDefaultAttributes);
+			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
 		}
 
 		if (canPageSize || canPageOffset || canSort) {
@@ -1239,7 +1259,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 		List<String> icfAttrsToGet = new ArrayList<>();
 		if (attributesToReturn.isReturnDefaultAttributes()) {
-			if (supportsReturnDefaultAttributes) {
+			if (supportsReturnDefaultAttributes()) {
 				optionsBuilder.setReturnDefaultAttributes(true);
 			} else {
 				// Add all the attributes that are defined as "returned by default" by the schema
@@ -1281,8 +1301,16 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 		}
 		// Log full list here. ConnId is shortening it and it cannot be seen in logs.
-		LOGGER.trace("Converted attributes ConnId attibutesToGet: {}", icfAttrsToGet);
+		LOGGER.trace("Converted attributes to return: {}\n to ConnId attibutesToGet: {}", attributesToReturn, icfAttrsToGet);
 		optionsBuilder.setAttributesToGet(icfAttrsToGet);
+	}
+
+	private boolean supportsReturnDefaultAttributes() {
+		ReadCapabilityType capability = CapabilityUtil.getCapability(capabilities, ReadCapabilityType.class);
+		if (capability == null) {
+			return false;
+		}
+		return Boolean.TRUE.equals(capability.isReturnDefaultAttributesOption());
 	}
 
 	private boolean passwordReturnedByDefault() {
@@ -3114,7 +3142,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 	@Override
 	public void dispose() {
-		// Nothing to do
+		if (connIdConnectorFacade != null) {
+			LOGGER.debug("Disposing ConnId ConnectorFacade for instance: {}", instanceName);
+			connIdConnectorFacade.dispose();
+			connIdConnectorFacade = null;
+		}
 	}
 
 	private void recordIcfOperationStart(StateReporter reporter, ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDefinition, Uid uid) {

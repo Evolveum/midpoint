@@ -135,12 +135,11 @@ public class ConnectorManager {
 	public ConnectorInstance getConfiguredConnectorInstance(ConnectorSpec connectorSpec, boolean forceFresh, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
-		if (connectorInstanceCache.containsKey(cacheKey)) {
+		ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(cacheKey);
+		if (configuredConnectorInstanceEntry != null) {
 			// Check if the instance can be reused
-			ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(cacheKey);
 
-			if (!forceFresh && configuredConnectorInstanceEntry.connectorOid.equals(connectorSpec.getConnectorOid())
-					&& configuredConnectorInstanceEntry.configuration.equivalent(connectorSpec.getConnectorConfiguration())) {
+			if (!forceFresh && isFresh(configuredConnectorInstanceEntry, connectorSpec)) {
 
 				// We found entry that matches
 				LOGGER.trace(
@@ -151,6 +150,9 @@ public class ConnectorManager {
 				// There is an entry but it does not match. We assume that the
 				// resource configuration has changed
 				// and the old entry is useless now. So remove it.
+				// It is important that the connector instance is disposed before we try to create new one.
+				// E.g. ConnId connector instances are efficiently singletons.
+				configuredConnectorInstanceEntry.connectorInstance.dispose();
 				connectorInstanceCache.remove(cacheKey);
 			}
 
@@ -164,32 +166,69 @@ public class ConnectorManager {
 		// No usable connector in cache. Let's create it.
 		ConnectorInstance configuredConnectorInstance = createConfiguredConnectorInstance(connectorSpec, result);
 
-		// .. and cache it
-		ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
-		cacheEntry.connectorOid = connectorSpec.getConnectorOid();
-		cacheEntry.configuration = connectorSpec.getConnectorConfiguration();
-		cacheEntry.connectorInstance = configuredConnectorInstance;
-		connectorInstanceCache.put(cacheKey, cacheEntry);
+		cacheConfiguredConnector(connectorSpec, configuredConnectorInstance);
 
 		return configuredConnectorInstance;
 	}
-
-	// should only be used by this class and testConnection in Resource manager
-	void cacheConfifuredConnector(ConnectorSpec connectorSpec, ConnectorInstance connectorInstance) {
-			ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
-			if (connectorInstanceCache.containsKey(cacheKey)) {
-				connectorInstanceCache.remove(cacheKey);
-			}
-
-			ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
-			cacheEntry.connectorOid = connectorSpec.getConnectorOid();
-			cacheEntry.configuration = connectorSpec.getConnectorConfiguration();
-			cacheEntry.connectorInstance = connectorInstance;
-			connectorInstanceCache.put(cacheKey, cacheEntry);
+	
+	// Used by the tests. Does not change anything.
+	public ConnectorInstance getConfiguredConnectorInstanceFromCache(ConnectorSpec connectorSpec, boolean forceFresh, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
+		ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(cacheKey);
+		if (configuredConnectorInstanceEntry == null) {
+			return null;
 		}
+		return configuredConnectorInstanceEntry.connectorInstance;
+	}
+
+	private boolean isFresh(ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry, ConnectorSpec connectorSpec) {
+		if (!configuredConnectorInstanceEntry.connectorOid.equals(connectorSpec.getConnectorOid())) {
+			return false;
+		}
+		if (!configuredConnectorInstanceEntry.resourceVersion.equals(connectorSpec.getResource().getVersion())) {
+			return false;
+		}
+		if (!configuredConnectorInstanceEntry.configuration.equivalent(connectorSpec.getConnectorConfiguration())) {
+			return false;
+		}
+		return true;
+	}
 
 	// should only be used by this class and testConnection in Resource manager
-	ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
+	void cacheConfiguredConnector(ConnectorSpec connectorSpec, ConnectorInstance configuredConnectorInstance) {
+		ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
+		cacheEntry.connectorOid = connectorSpec.getConnectorOid();
+		
+		String resourceVersion = connectorSpec.getResource().getVersion();
+		if (resourceVersion == null) {
+			throw new IllegalArgumentException("Resource version is null, cannot cache connector for "+ connectorSpec.getResource());
+		}
+		cacheEntry.resourceVersion = resourceVersion;
+		
+		cacheEntry.configuration = connectorSpec.getConnectorConfiguration();
+		cacheEntry.connectorInstance = configuredConnectorInstance;
+		connectorInstanceCache.put(connectorSpec.getCacheKey(), cacheEntry);
+	}
+
+	/**
+	 * Returns fresh, unconfigured and uncached connector instance. NOT SUITABLE FOR GENERAL USE.
+	 * Should only be used by testConnection in Resource manager.
+	 */
+	ConnectorInstance createFreshConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
+		ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(cacheKey);
+		if (configuredConnectorInstanceEntry != null) {
+			// This may seem redundant. But we want to make sure that old connector instance is disposed
+			// before we try to create new connector instance.
+			configuredConnectorInstanceEntry.connectorInstance.dispose();
+			connectorInstanceCache.remove(cacheKey);
+		}
+		return createConnectorInstance(connectorSpec, result);
+	}
+	
+	private ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 
 		ConnectorType connectorType = getConnectorTypeReadOnly(connectorSpec, result);
@@ -537,6 +576,7 @@ public class ConnectorManager {
 
     private static class ConfiguredConnectorInstanceEntry {
 		public String connectorOid;
+		public String resourceVersion;
 		public PrismContainer<ConnectorConfigurationType> configuration;
 		public ConnectorInstance connectorInstance;
 	}

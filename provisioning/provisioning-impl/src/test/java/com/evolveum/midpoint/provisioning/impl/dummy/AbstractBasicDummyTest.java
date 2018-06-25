@@ -396,9 +396,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		resourceType = resource.asObjectable();
 
 		// THEN
-		result.computeStatus();
-		display("getObject result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		// There may be one parse. Previous test have changed the resource version
 		// Schema for this version will not be re-parsed until getObject is tried
@@ -430,7 +428,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		resource.checkConsistence();
 
 		rememberSchemaMetadata(resource);
-		rememberConnectorInstance(resource);
 
 		assertSteadyResource();
 	}
@@ -755,9 +752,48 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 
+	/**
+	 * Create steady state of the system by invoking test connection again.
+	 * Previous operations may have modified the resource, which may have changed
+	 * resource version which might have interfered with caching.
+	 * @throws Exception
+	 */
 	@Test
-	public void test030ResourceAndConnectorCaching() throws Exception {
-		final String TEST_NAME = "test030ResourceAndConnectorCaching";
+	public void test030ResourceAndConnectorCachingTestConnection() throws Exception {
+		final String TEST_NAME = "test030ResourceAndConnectorCachingTestConnection";
+		displayTestTitle(TEST_NAME);
+		
+		Task task = createTask(TEST_NAME);
+		
+		// WHEN
+		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID, task);
+
+		// THEN
+		display("Test result", testResult);
+		assertSuccess(testResult);
+		
+		// Connector is re-initialized at this point. Test connection in previous test
+		// have updated resource availablility status, which have changed resource version
+		// which have forced connector re-inialization. But this is quite harmless.
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+		// Test connection is forcing schema and capabilities fetch again. But the schema is not used.
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
+		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
+		
+		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,
+				RESOURCE_DUMMY_OID, null, task.getResult());
+		assertResourceVersionIncrement(resourceRepoAfter, 0);
+		
+		rememberConnectorInstance(resource);
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test032ResourceAndConnectorCaching() throws Exception {
+		final String TEST_NAME = "test032ResourceAndConnectorCaching";
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -835,8 +871,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test031ResourceAndConnectorCachingForceFresh() throws Exception {
-		TestUtil.displayTestTitle("test031ResourceAndConnectorCachingForceFresh");
+	public void test034ResourceAndConnectorCachingForceFresh() throws Exception {
+		displayTestTitle("test034ResourceAndConnectorCachingForceFresh");
 
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()

@@ -386,6 +386,17 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="returnDefaultAttributesOption" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								If set to true then the resource supports "return default attributes" option
+								when specifying the list of attributes to return.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>

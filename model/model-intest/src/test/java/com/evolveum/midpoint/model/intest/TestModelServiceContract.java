@@ -174,9 +174,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
 	}
 
-    @Test(enabled = true)
+    @Test
     public void test099ModifyUserAddAccountFailing() throws Exception {
-        TestUtil.displayTestTitle(this, "test099ModifyUserAddAccountFailing");
+    	final String TEST_NAME = "test099ModifyUserAddAccountFailing";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test099ModifyUserAddAccountFailing");
@@ -198,11 +199,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         getDummyResource().setAddBreakMode(BreakMode.UNSUPPORTED);       // hopefully this does not kick consistency mechanism
 
         // WHEN
+        displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertFailure(result);
+        displayThen(TEST_NAME);
+        assertFailure(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
         // Check accountRef
@@ -235,6 +237,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
         checkDummyTransportMessages("simpleUserNotifier-FAILURE", 1);
 
+        // Resource version changes due to availability status changes. Hence connector re-init.
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertSteadyResources();
     }
 
@@ -1643,6 +1647,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
+        // Resource version changes. Hence connector re-init.
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertSteadyResources();
 
         // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
@@ -1722,6 +1728,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
+        // Resource version changes. Hence connector re-init.
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertSteadyResources();
     }
 
@@ -3304,6 +3312,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
+        // Resource version changes. Hence connector re-init.
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertSteadyResources();
     }
 

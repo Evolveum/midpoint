@@ -479,6 +479,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 	}
     
     protected void addAdditionalCommonAttributes(ConnectorObjectBuilder builder, DummyObject dummyObject) {
+    	super.addAdditionalCommonAttributes(builder, dummyObject);
     	String connectorInstanceNameAttribute = getConfiguration().getConnectorInstanceNameAttribute();
     	if (connectorInstanceNameAttribute != null) {
     		log.info("Putting connectorInstance name into {0}: {1}", connectorInstanceNameAttribute, instanceName);

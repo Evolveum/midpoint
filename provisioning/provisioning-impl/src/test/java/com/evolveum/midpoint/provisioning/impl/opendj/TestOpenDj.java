@@ -338,11 +338,13 @@ public class TestOpenDj extends AbstractOpenDjTest {
         assertEquals("Wrong script host type", ProvisioningScriptHostType.CONNECTOR, scriptHost.getType());
 //        assertEquals("Wrong script host language", ....., scriptHost.getLanguage());
 
-        CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilitiesList, CreateCapabilityType.class);
-        assertNotNull("No create capability", capCreate);
-
         ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilitiesList, ReadCapabilityType.class);
         assertNotNull("No read capability", capRead);
+        assertNull("Read capability is caching only", capRead.isCachingOnly());
+        assertTrue("Read capability is not 'return default'", capRead.isReturnDefaultAttributesOption());
+        
+        CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilitiesList, CreateCapabilityType.class);
+        assertNotNull("No create capability", capCreate);
 
         UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList, UpdateCapabilityType.class);
         assertNotNull("No update capability", capUpdate);
@@ -2332,15 +2334,18 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		provisioningService.applyDefinition(ShadowType.class, query, task, result);
 
 		Entry entry = openDJController.addEntryFromLdifFile(ACCOUNT_POSIX_VANHELGEN_LDIF_FILE);
+		display("Added entry", entry);
 
 		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		List<PrismObject<ShadowType>> objListType =
 			provisioningService.searchObjects(ShadowType.class, query, null, null, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		for (PrismObject<ShadowType> objType : objListType) {
 			assertNotNull("Null search result", objType);
 			display("found object", objType);
