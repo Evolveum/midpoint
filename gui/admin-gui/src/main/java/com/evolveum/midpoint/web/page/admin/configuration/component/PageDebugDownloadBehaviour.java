@@ -29,6 +29,9 @@ import org.apache.wicket.util.file.File;
 import org.apache.wicket.util.file.Files;
 
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -99,7 +102,8 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         }
 
         String suffix = isUseZip() ? "zip" : "xml";
-        String fileName = "ExportedData_" + getType().getSimpleName() + "_" + System.currentTimeMillis() + "." + suffix;
+        String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_m_s"));
+        String fileName = "ExportedData_" + getType().getSimpleName() + "_" + currentTime + "." + suffix;
         File file = new File(folder, fileName);
 
         Writer writer = null;
