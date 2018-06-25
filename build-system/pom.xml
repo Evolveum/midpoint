@@ -25,7 +25,7 @@
     <parent>
         <groupId>com.evolveum.midpoint</groupId>
         <artifactId>midpoint</artifactId>
-        <version>3.8-SNAPSHOT</version>
+        <version>3.9-SNAPSHOT</version>
     </parent>
     <pluginRepositories>
         <pluginRepository>
@@ -63,10 +63,10 @@
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <spring.boot.version>1.5.8.e1</spring.boot.version> <!-- can be replaced by a stock version;
+        <spring.boot.version>2.0.1.RELEASE</spring.boot.version> <!-- can be replaced by a stock version;
                 ideally after https://github.com/spring-projects/spring-boot/issues/11367 is resolved but it should be OK even before that -->
-        <spring.version>4.3.14.RELEASE</spring.version>
-        <spring.security.version>4.2.4.RELEASE</spring.security.version>
+        <spring.version>5.0.6.RELEASE</spring.version>
+        <spring.security.version>5.0.6.RELEASE</spring.security.version>
         <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.8.8</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -75,6 +75,7 @@
         <hibernate.version>5.2.12.Final</hibernate.version>
         <h2.version>1.4.193</h2.version>
         <jdbc.postgres>42.2.2</jdbc.postgres>
+        <jdbc.sqlserver>6.4.0.jre8</jdbc.sqlserver>
         <jdbc.mariadb>1.5.5</jdbc.mariadb>
         <jdbc.mysql>6.0.6</jdbc.mysql>
         <wicket.version>7.10.0</wicket.version>
@@ -87,7 +88,7 @@
         <jasper.version>6.5.0</jasper.version>
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.8.0</wro4j.version>
-        <jackson.version>2.8.9</jackson.version>
+        <jackson.version>2.9.5</jackson.version>
         <snakeyaml.version>1.15</snakeyaml.version>
         <surefire.version>2.20.1</surefire.version>
         <reflections.version>0.9.11</reflections.version>
@@ -830,6 +831,11 @@
 				<artifactId>spring-aop</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jcl</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-config</artifactId>
@@ -884,6 +890,11 @@
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
                 <version>${jdbc.postgres}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.sqlserver</groupId>
+                <artifactId>mssql-jdbc</artifactId>
+                <version>${jdbc.sqlserver}</version>
             </dependency>
             <dependency>
                 <groupId>org.mariadb.jdbc</groupId>
@@ -1470,13 +1481,9 @@
 					<!-- it's used for bamboo build to load jdbc libraries which can not 
 						be installed to public maven repository (MS SQL, ORACLE) -->
 					<additionalClasspathElements>
-						<additionalClasspathElement>/opt/jenkins_db_configs/mssqljdbc4.jar</additionalClasspathElement>
 						<additionalClasspathElement>/opt/jenkins_db_configs/ojdbc7.jar</additionalClasspathElement>
 						<!-- used running tests on windows machines -->
-                        <additionalClasspathElement>c:\midpoint\jdbc-drivers\sqljdbc42.jar</additionalClasspathElement>
                         <additionalClasspathElement>c:\midpoint\jdbc-drivers\ojdbc7.jar</additionalClasspathElement>
-						<additionalClasspathElement>c:\Program Files\Microsoft JDBC DRIVER
-							4.0 for SQL Server\sqljdbc_4.0\enu\sqljdbc4.jar</additionalClasspathElement>
 					</additionalClasspathElements>
 				</configuration>
 				<dependencies>

@@ -2,7 +2,7 @@
 
 setlocal
 
-set NINJA_JAR=ninja-3.7.2-SNAPSHOT.jar
+set NINJA_JAR=ninja-3.7.2.jar
 
 set BIN_DIR=%~dp0
 set ROOT_DIR=%BIN_DIR%..

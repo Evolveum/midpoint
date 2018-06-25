@@ -52,6 +52,10 @@ public abstract class PanelTab<T extends ObjectType> extends AbstractTab {
         return panel;
     }
 
+    public WebMarkupContainer getPanel(){
+        return panel;
+    }
+
     public abstract WebMarkupContainer createPanel(String panelId);
 
     @Override

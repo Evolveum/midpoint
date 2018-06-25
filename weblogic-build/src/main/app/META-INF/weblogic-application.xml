@@ -113,6 +113,8 @@ http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.x
 		<package-name>org.aopalliance.intercept.*</package-name>
 		<package-name>org.jboss.logging.*</package-name>
 		<!-- <package-name>org.w3c.dom.*</package-name> -->
+		
+		<package-name>javax.ws.rs.*</package-name>
     </prefer-application-packages>
     <prefer-application-resources>
         <resource-name>META-INF/services/javax.ws.rs.ext.RuntimeDelegate</resource-name>

@@ -899,7 +899,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
         footerContainer.setOutputMarkupId(true);
-        footerContainer.add(getFooterVisibleBehaviour());
+        footerContainer.add(AttributeAppender.append("class", isFooterVisible() ? "main-footer" : "main-footer-invisible"));
         add(footerContainer);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
@@ -915,7 +915,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             public boolean isVisible() {
-                return RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
+                return isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
             }
         });
         footerContainer.add(version);
@@ -1482,6 +1482,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
                 PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
         debugs.getItems().add(menu);
+        
+        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic.new", PageSystemConfigurationNew.class);
 
         MainMenuItem systemItem = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null);
 
@@ -2119,15 +2121,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             public boolean isVisible() {
-                String subscriptionId = getSubscriptionId();
-                if (StringUtils.isEmpty(subscriptionId)) {
-                    return true;
-                }
-                return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
-                        (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
-                                && WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
+                return isFooterVisible();
             }
         };
+    }
+
+    private boolean isFooterVisible(){
+        String subscriptionId = getSubscriptionId();
+        if (StringUtils.isEmpty(subscriptionId)) {
+            return true;
+        }
+        return !WebComponentUtil.isSubscriptionIdCorrect(subscriptionId) ||
+                (SubscriptionType.DEMO_SUBSRIPTION.getSubscriptionType().equals(subscriptionId.substring(0, 2))
+                        && WebComponentUtil.isSubscriptionIdCorrect(subscriptionId));
     }
 
     protected String determineDataLanguage() {

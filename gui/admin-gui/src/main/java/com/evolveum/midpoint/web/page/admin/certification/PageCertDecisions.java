@@ -27,12 +27,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
@@ -310,48 +314,38 @@ public class PageCertDecisions extends PageAdminCertification {
         final AvailableResponses availableResponses = new AvailableResponses(this);
         final int responses = availableResponses.getResponseKeys().size();
 
-        column = new MultiButtonColumn<CertWorkItemDto>(new Model<>(), responses+1) {
+        column = new AbstractColumn<CertWorkItemDto, String>(new Model<>()) {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
-            public String getButtonTitle(int id) {
-                return availableResponses.getTitle(id);
-            }
+            public void populateItem(Item<ICellPopulator<CertWorkItemDto>> cellItem, String componentId,
+                                     IModel<CertWorkItemDto> rowModel) {
 
-            @Override
-            public boolean isButtonEnabled(int id, IModel<CertWorkItemDto> model) {
-                if (id < responses) {
-                    return !decisionEquals(model, availableResponses.getResponseValues().get(id));
-                } else {
-                    return false;
-                }
-            }
+                cellItem.add(new MultiButtonPanel<CertWorkItemDto>(componentId, rowModel, responses + 1) {
 
-            @Override
-            public boolean isButtonVisible(int id, IModel<CertWorkItemDto> model) {
-                if (id < responses) {
-                    return true;
-                } else {
-                    return !availableResponses.isAvailable(model.getObject().getResponse());
-                }
-            }
+                    private static final long serialVersionUID = 1L;
 
-            @Override
-            public String getButtonColorCssClass(int id) {
-                if (id < responses) {
-                    return getDecisionButtonColor(getRowModel(), availableResponses.getResponseValues().get(id));
-                } else {
-                    return BUTTON_COLOR_CLASS.DANGER.toString();
-                }
-            }
+                    @Override
+                    protected AjaxIconButton createButton(int index, String componentId, IModel<CertWorkItemDto> model) {
+                        AjaxIconButton btn;
+                        if (index < responses) {
+                            btn = buildDefaultButton(componentId, null, new Model(availableResponses.getTitle(index)),
+                                    new Model<>("btn btn-sm " + getDecisionButtonColor(model, availableResponses.getResponseValues().get(index))),
+                                    target ->
+                                            recordActionPerformed(target, model.getObject(), availableResponses.getResponseValues().get(index)));
+                            btn.add(new EnableBehaviour(() -> !decisionEquals(model, availableResponses.getResponseValues().get(index))));
+                        } else {
+                            btn = buildDefaultButton(componentId, null, new Model(availableResponses.getTitle(index)),
+                                    new Model<>("btn btn-sm " + BUTTON_COLOR_CLASS.DANGER), null);
+                            btn.setEnabled(false);
+                            btn.add(new VisibleBehaviour(() -> !availableResponses.isAvailable(model.getObject().getResponse())));
+                        }
 
-            @Override
-            public void clickPerformed(int id, AjaxRequestTarget target,
-                                       IModel<CertWorkItemDto> model) {
-                if (id < responses) {      // should be always the case
-                    recordActionPerformed(target, model.getObject(), availableResponses.getResponseValues().get(id));
-                }
+                        return btn;
+                    }
+                });
             }
-
         };
         columns.add(column);
 

@@ -49,7 +49,7 @@ echo Using JAVA_OPTS:       "%JAVA_OPTS%"
 echo Using parameters:      "%*"
 echo.
 echo Starting midPoint.
-start /b %RUN_JAVA% -jar %JAVA_OPTS% -Xms2048M -Xmx2048M -Dpython.cachedir="%MIDPOINT_HOME%\tmp" -Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks" -Djavax.net.ssl.trustStoreType=jceks -Dmidpoint.home="%MIDPOINT_HOME%" "%LIB_DIR%\midpoint.war" %* > "%BOOT_OUT%" 2>&1
+start /b %RUN_JAVA% -jar %JAVA_OPTS% -Xms2048M -Xmx4096M -Dpython.cachedir="%MIDPOINT_HOME%\tmp" -Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks" -Djavax.net.ssl.trustStoreType=jceks -Dmidpoint.home="%MIDPOINT_HOME%" "%LIB_DIR%\midpoint.war" %* > "%BOOT_OUT%" 2>&1
 goto end
 
 :doStop

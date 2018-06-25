@@ -13894,7 +13894,8 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
+                    
+                    <!-- TODO(maybe): objectCollectionRef -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -13971,7 +13972,40 @@
 	</xsd:complexType>
 	<xsd:element name="functionLibrary" type="tns:FunctionLibraryType" substitutionGroup="c:object"/>
 	
-	
+	<xsd:complexType name="ObjectCollectionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Object collection specification.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.9</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		 <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+				<xsd:sequence>
+					<xsd:element name="type" type="xsd:QName" minOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Type of objects that belong to this collection.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+					    <xsd:annotation>
+					        <xsd:documentation>
+					        	Filter that is used to select objects which belong to this collection.
+					        </xsd:documentation>
+					    </xsd:annotation>
+		            </xsd:element>
+		            <!-- TODO: domain (filter or reference to another collection) -->
+		            <!-- TODO: tresholds (actions should be performed by policy rules) -->
+		            <!-- TODO(maybe): default view specification, e.g. default set of columns, search, etc. -->
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="objectCollection" type="tns:ObjectCollectionType" substitutionGroup="c:object"/>
 
 	<xsd:complexType name="InternalsConfigurationType">
         <xsd:annotation>
@@ -14043,12 +14077,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectLists" type="tns:GuiObjectListsType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="objectLists" type="tns:GuiObjectListViewsType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						<p>
 							Specifies the set of pages that are used for displaying lists of objects
       						such as Users, Roles, Orgs, ...
+						</p>
+						<p>
+							Note: name of this element is wrong. It should be objectViews or objectListViews.
 						</p>
 					</xsd:documentation>
 					<xsd:appinfo>
@@ -18479,7 +18516,7 @@
     </xsd:complexType>
     <xsd:element name="sequence" type="tns:SequenceType" />
 
-    <xsd:complexType name="GuiObjectListsType">
+    <xsd:complexType name="GuiObjectListViewsType">
         <xsd:annotation>
         	<xsd:documentation>
         		Specifies the set of pages that are used for displaying lists of objects
@@ -18491,20 +18528,31 @@
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
-				<xsd:element name="default" type="tns:GuiObjectListType" minOccurs="0"/>
-           		<xsd:element name="objectList" type="tns:GuiObjectListType" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element name="default" type="tns:GuiObjectListViewType" minOccurs="0"/>
+           		<xsd:element name="objectList" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
+           			<xsd:annotation>
+           				<xsd:documentation>
+           					Note: in fact name of this element is wrong. It should be objectView or objectListView.
+           				</xsd:documentation>
+           			</xsd:annotation>
+           		</xsd:element>
            		<xsd:element name="includeDefaultLists" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
            			<xsd:annotation>
            				<xsd:documentation>
            					If set to true then all the default lists will be displayed (all users, all roles, ...)
+           					Note: NOT YET IMPLEMENTED. Probably will never get implemented.
+           					Note: in fact name of this element is wrong. It should be includeDefaultViews or includeDefaultListViews.
            				</xsd:documentation>
+           				<xsd:appinfo>
+           					<a:deprecated>true</a:deprecated>
+           				</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
            	</xsd:sequence>	
     </xsd:complexType>
 
 	<!-- Note: ObjectListType already defined in API types -->
-    <xsd:complexType name="GuiObjectListType">
+    <xsd:complexType name="GuiObjectListViewType">
         <xsd:annotation>
         	<xsd:documentation>
         		Specifies the page used to list specific object type or object collection.
@@ -18519,8 +18567,55 @@
        			           add name, label (display name) and menu label for this list.
        			           We will also need a reference to which menu section we want to display it. E.g. We would
        			           like to display role catalog under "roles", even though it is in fact org tree. -->
-       			<xsd:element name="type" type="xsd:QName" minOccurs="1" maxOccurs="1"/>
-       			<!-- TODO: reference to object collection (MID-3517) -->
+       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Symbolic name for this view. It is not really used by the GUI code. It is mostly used for
+       						diagnostics, logging and so on. It may be later used to detect whether a particular view is overriden,
+       						e.g. if view defined in system configuraiton is overridden in the role.
+       					</xsd:documentation>
+       					<xsd:appinfo>
+       						<a:since>3.9</a:since>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Type of displayed objects. It may not be present in case that the type is defined in a referenced object colleciton.
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Reference to object collection that will be used to select objects in this view.
+       						If no collection is specified then it is assumed that all objects of a particular
+       						type has to be displayed (type element above is mandatory in that case).
+       					</xsd:documentation>
+       					<xsd:appinfo>
+       						<a:since>3.9</a:since>
+       						<!-- Reference target type defeinition is NOT here by purpose. Later on we might want
+       						     archetypes (meta-roles), services and orgs to work as implicit collections. Therefore
+       						     this reference may point to various object types. By NOT specifying default ObjectCollectionType
+       						     here we will force everybody to specify it explicitly. So their configuraiton will work in
+       						     future versions when we add support for implicit collections. -->
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Display properties of the view. It is used to display the link in the menu and so on.
+       						Only label is used now. E.g. the CSS properties are ignored.
+       					</xsd:documentation>
+       					<!-- This might be determined from the collection in future midPoint versions.
+       					     In fact the entire definition of a view may be just a reference to collection. -->
+       					<xsd:appinfo>
+       						<a:since>3.9</a:since>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
            		<xsd:element name="searchBoxConfiguration" type="tns:SearchBoxConfigurationType" minOccurs="0" maxOccurs="1"/>
            		<xsd:element name="distinct" type="tns:DistinctSearchOptionType" minOccurs="0" maxOccurs="1" default="auto"/>
            		<xsd:element name="column" type="tns:GuiObjectColumnType" minOccurs="0" maxOccurs="unbounded"/>

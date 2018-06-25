@@ -317,6 +317,7 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 			case VALUE_FALSE:
 			case VALUE_NUMBER_FLOAT:
 			case VALUE_NUMBER_INT:
+			case VALUE_EMBEDDED_OBJECT:             // assuming it's a scalar value e.g. !!binary (TODO)
 				return parseToPrimitive(ctx);
 			case VALUE_NULL:
 				return parseToEmptyPrimitive();

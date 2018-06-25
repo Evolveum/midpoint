@@ -426,8 +426,32 @@ public class WfContextUtil {
 		return getWorkflowContext(workItem).getObjectRef();
 	}
 
+	public static ObjectReferenceType getObjectRef(PrismContainerValue<WorkItemType> workItem) {
+		return getObjectRef(workItem.asContainerable());
+	}
+
 	public static ObjectReferenceType getTargetRef(WorkItemType workItem) {
 		return getWorkflowContext(workItem).getTargetRef();
+	}
+
+	public static ObjectReferenceType getTargetRef(PrismContainerValue<WorkItemType> workItem) {
+		return getTargetRef(workItem.asContainerable());
+	}
+
+	public static ObjectReferenceType getRequesterRef(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getRequesterRef();
+	}
+
+	public static ObjectReferenceType getRequesterRef(PrismContainerValue<WorkItemType> workItem) {
+		return getRequesterRef(workItem.asContainerable());
+	}
+
+	public static XMLGregorianCalendar getStartTimestamp(WorkItemType workItem) {
+		return getWorkflowContext(workItem).getStartTimestamp();
+	}
+
+	public static XMLGregorianCalendar getStartTimestamp(PrismContainerValue<WorkItemType> workItem) {
+		return getStartTimestamp(workItem.asContainerable());
 	}
 
 	public static int getEscalationLevelNumber(AbstractWorkItemType workItem) {

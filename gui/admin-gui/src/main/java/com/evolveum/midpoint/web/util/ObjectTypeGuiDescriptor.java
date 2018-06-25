@@ -81,7 +81,9 @@ public enum ObjectTypeGuiDescriptor {
 
     CASE(ObjectTypes.CASE, "ObjectTypeGuiDescriptor.case", "", ""),             // TODO icons
 
-    FUNCTION_LIBRARY(ObjectTypes.FUNCTION_LIBRARY, "ObjectTypeGuiDescriptor.functionLibrary", "", "");      // TODO icons
+    FUNCTION_LIBRARY(ObjectTypes.FUNCTION_LIBRARY, "ObjectTypeGuiDescriptor.functionLibrary", "", ""),      // TODO icons
+
+    OBJECT_COLLECTION(ObjectTypes.OBJECT_COLLECTION, "ObjectTypeGuiDescriptor.objectCollection", "", "");      // TODO icons
 
     public static final String ERROR_ICON = "silk-error";
     public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";

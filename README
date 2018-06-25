@@ -1,4 +1,4 @@
-MidPoint 3.8 development branch
+MidPoint 3.9 development branch
 ------------------------------------
 
 General information:
@@ -26,6 +26,7 @@ The most important features of midPoint are:
    - Support for ConnId and OpenICF connectors
    - Provisioning consistency and error handling
    - Support for security auditing and reporting
+   - Data protection (experimental)
    - Workflow
    - Reporting
    - Notifications

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -57,7 +58,7 @@ public class CountToolbar extends AbstractToolbar {
         }));
         add(td);
 
-        Label count = new Label(ID_COUNT, createModel());
+        Label count = new Label(ID_COUNT, createModel(this, getTable()));
         count.setRenderBodyOnly(true);
         td.add(count);
 
@@ -78,45 +79,53 @@ public class CountToolbar extends AbstractToolbar {
         td.add(popover);
     }
 
-    private IModel<String> createModel() {
+    private IModel<String> createModel(Component component, IPageable pageable) {
         return new LoadableModel<String>() {
 
             @Override
             protected String load() {
-                long from = 0;
-                long to = 0;
-                long count = 0;
-
-                IPageable pageable = getTable();
-                if (pageable instanceof DataViewBase) {
-                    DataViewBase view = (DataViewBase) pageable;
-
-                    from = view.getFirstItemOffset() + 1;
-                    to = from + view.getItemsPerPage() - 1;
-                    long itemCount = view.getItemCount();
-                    if (to > itemCount) {
-                        to = itemCount;
-                    }
-                    count = itemCount;
-                } else if (pageable instanceof DataTable) {
-                    DataTable table = (DataTable) pageable;
-
-                    from = table.getCurrentPage() * table.getItemsPerPage() + 1;
-                    to = from + table.getItemsPerPage() - 1;
-                    long itemCount = table.getItemCount();
-                    if (to > itemCount) {
-                        to = itemCount;
-                    }
-                    count = itemCount;
-                }
-
-                if (count > 0) {
-                	PageBase.createStringResourceStatic(CountToolbar.this, "CountToolbar.label", new Object[]{from, to, count});
-                }
-
-                return PageBase.createStringResourceStatic(CountToolbar.this, "CountToolbar.noFound").getString();
+                return createCountString(component, pageable);
             }
         };
+    }
+
+    public static String createCountString(Component component, IPageable pageable){
+        long from = 0;
+        long to = 0;
+        long count = 0;
+
+        if (pageable instanceof DataViewBase) {
+            DataViewBase view = (DataViewBase) pageable;
+
+            from = view.getFirstItemOffset() + 1;
+            to = from + view.getItemsPerPage() - 1;
+            long itemCount = view.getItemCount();
+            if (to > itemCount) {
+                to = itemCount;
+            }
+            count = itemCount;
+        } else if (pageable instanceof DataTable) {
+            DataTable table = (DataTable) pageable;
+
+            from = table.getCurrentPage() * table.getItemsPerPage() + 1;
+            to = from + table.getItemsPerPage() - 1;
+            long itemCount = table.getItemCount();
+            if (to > itemCount) {
+                to = itemCount;
+            }
+            count = itemCount;
+        }
+
+        if (count > 0) {
+            if (count == Integer.MAX_VALUE) {
+                return PageBase.createStringResourceStatic(component, "CountToolbar.label.unknownCount",
+                        new Object[] { from, to }).getString();
+            }
+
+            return PageBase.createStringResourceStatic(component, "CountToolbar.label", new Object[]{from, to, count}).getString();
+        }
+
+        return PageBase.createStringResourceStatic(component, "CountToolbar.noFound").getString();
     }
 
     protected void pageSizeChanged(AjaxRequestTarget target) {

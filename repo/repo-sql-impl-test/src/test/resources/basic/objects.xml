@@ -1696,4 +1696,19 @@
 		</operationExecution>
 	</case>
 
+	<objectCollection>
+		<name>collection1</name>
+		<type>UserType</type>
+		<filter>
+			<q:equal>
+				<q:path>subtype</q:path>
+				<q:value>EMP</q:value>
+			</q:equal>
+		</filter>
+	</objectCollection>
+
+	<functionLibrary>
+		<name>fl1</name>
+	</functionLibrary>
+
 </objects>

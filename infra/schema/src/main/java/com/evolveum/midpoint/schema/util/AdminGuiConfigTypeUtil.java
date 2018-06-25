@@ -75,7 +75,7 @@ public class AdminGuiConfigTypeUtil {
 			if (composite.getObjectLists() == null) {
 				composite.setObjectLists(adminGuiConfiguration.getObjectLists().clone());
 			} else {
-				for (GuiObjectListType objectList: adminGuiConfiguration.getObjectLists().getObjectList()) {
+				for (GuiObjectListViewType objectList: adminGuiConfiguration.getObjectLists().getObjectList()) {
 					mergeList(composite.getObjectLists(), objectList);
 				}
 			}
@@ -111,7 +111,7 @@ public class AdminGuiConfigTypeUtil {
 			mergeFeature(composite.getFeature(), feature);
 		}
 		if (composite.getObjectLists() != null && composite.getObjectLists().getObjectList() != null){
-			for (GuiObjectListType objectListType : composite.getObjectLists().getObjectList()){
+			for (GuiObjectListViewType objectListType : composite.getObjectLists().getObjectList()){
 				if (objectListType.getColumn() != null) {
 //					objectListType.getColumn().clear();
 //					objectListType.getColumn().addAll(orderCustomColumns(objectListType.getColumn()));
@@ -185,7 +185,7 @@ public class AdminGuiConfigTypeUtil {
 		return false;
 	}
 
-	private static void mergeList(GuiObjectListsType objectLists, GuiObjectListType newList) {
+	private static void mergeList(GuiObjectListViewsType objectLists, GuiObjectListViewType newList) {
 		// We support only the default object lists now, so simply replace the existing definition with the
 		// latest definition. We will need a more sophisticated merging later.
 		objectLists.getObjectList().removeIf(currentList -> currentList.getType().equals(newList.getType()));
