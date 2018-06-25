@@ -1,202 +1,3 @@
-DROP TABLE m_acc_cert_definition;
-DROP TABLE m_acc_cert_wi_reference;
-DROP TABLE m_acc_cert_wi;
-DROP TABLE m_acc_cert_case;
-DROP TABLE m_acc_cert_campaign;
-DROP TABLE m_assignment_ext_boolean;
-DROP TABLE m_assignment_ext_date;
-DROP TABLE m_assignment_ext_long;
-DROP TABLE m_assignment_ext_poly;
-DROP TABLE m_assignment_ext_reference;
-DROP TABLE m_assignment_ext_string;
-DROP TABLE m_assignment_extension;
-DROP TABLE m_assignment_policy_situation;
-DROP TABLE m_assignment_reference;
-DROP TABLE m_assignment;
--- Don't touch audit tables
--- DROP TABLE m_audit_delta;
--- DROP TABLE m_audit_item;
--- DROP TABLE m_audit_prop_value;
--- DROP TABLE m_audit_ref_value;
--- DROP TABLE m_audit_event;
-DROP TABLE m_case;
-DROP TABLE m_connector_host;
-DROP TABLE m_connector_target_system;
-DROP TABLE m_connector;
-DROP TABLE m_exclusion;
-DROP TABLE m_focus_photo;
-DROP TABLE m_focus_policy_situation;
-DROP TABLE m_form;
-DROP TABLE m_function_library;
-DROP TABLE m_generic_object;
-DROP TABLE m_lookup_table_row;
-DROP TABLE m_lookup_table;
-DROP TABLE m_node;
-DROP TABLE m_object_ext_boolean;
-DROP TABLE m_object_ext_date;
-DROP TABLE m_object_ext_long;
-DROP TABLE m_object_ext_poly;
-DROP TABLE m_object_ext_reference;
-DROP TABLE m_object_ext_string;
-DROP TABLE m_object_template;
-DROP TABLE m_object_text_info;
-DROP TABLE m_operation_execution;
-DROP TABLE m_org_closure;
-DROP TABLE m_org_org_type;
-DROP TABLE m_org;
-DROP TABLE m_reference;
-DROP TABLE m_report;
-DROP TABLE m_report_output;
-DROP TABLE m_resource;
-DROP TABLE m_role;
-DROP TABLE m_security_policy;
-DROP TABLE m_sequence;
-DROP TABLE m_service_type;
-DROP TABLE m_service;
-DROP TABLE m_abstract_role;
-DROP TABLE m_shadow;
-DROP TABLE m_system_configuration;
-DROP TABLE m_task_dependent;
-DROP TABLE m_task;
-DROP TABLE m_trigger;
-DROP TABLE m_user_employee_type;
-DROP TABLE m_user_organization;
-DROP TABLE m_user_organizational_unit;
-DROP TABLE m_value_policy;
-DROP TABLE m_user;
-DROP TABLE m_focus;
-DROP TABLE m_object;
-
-DROP TABLE hibernate_sequence;
-
-GO
-
-CREATE TABLE m_audit_event_NEW (
-  id                BIGINT IDENTITY NOT NULL,
-  attorneyName      NVARCHAR(255) COLLATE database_default,
-  attorneyOid       NVARCHAR(36) COLLATE database_default,
-  channel           NVARCHAR(255) COLLATE database_default,
-  eventIdentifier   NVARCHAR(255) COLLATE database_default,
-  eventStage        INT,
-  eventType         INT,
-  hostIdentifier    NVARCHAR(255) COLLATE database_default,
-  initiatorName     NVARCHAR(255) COLLATE database_default,
-  initiatorOid      NVARCHAR(36) COLLATE database_default,
-  initiatorType     INT,
-  message           NVARCHAR(1024) COLLATE database_default,
-  nodeIdentifier    NVARCHAR(255) COLLATE database_default,
-  outcome           INT,
-  parameter         NVARCHAR(255) COLLATE database_default,
-  remoteHostAddress NVARCHAR(255) COLLATE database_default,
-  result            NVARCHAR(255) COLLATE database_default,
-  sessionIdentifier NVARCHAR(255) COLLATE database_default,
-  targetName        NVARCHAR(255) COLLATE database_default,
-  targetOid         NVARCHAR(36) COLLATE database_default,
-  targetOwnerName   NVARCHAR(255) COLLATE database_default,
-  targetOwnerOid    NVARCHAR(36) COLLATE database_default,
-  targetOwnerType   INT,
-  targetType        INT,
-  taskIdentifier    NVARCHAR(255) COLLATE database_default,
-  taskOID           NVARCHAR(255) COLLATE database_default,
-  timestampValue    DATETIME2
-  -- no primary key for now
-);
-
-CREATE TABLE m_audit_prop_value_NEW (
-  id        BIGINT IDENTITY NOT NULL,
-  name      NVARCHAR(255) COLLATE database_default,
-  record_id BIGINT,
-  value     NVARCHAR(1024) COLLATE database_default
-  -- no primary key for now
-);
-
-CREATE TABLE m_audit_ref_value_NEW (
-  id              BIGINT IDENTITY NOT NULL,
-  name            NVARCHAR(255) COLLATE database_default,
-  oid             NVARCHAR(255) COLLATE database_default,
-  record_id       BIGINT,
-  targetName_norm NVARCHAR(255) COLLATE database_default,
-  targetName_orig NVARCHAR(255) COLLATE database_default,
-  type            NVARCHAR(255) COLLATE database_default
-  -- no primary key for now
-);
-
--- copying tables (can take a long time)
-SET IDENTITY_INSERT m_audit_event_NEW ON;
-INSERT INTO m_audit_event_NEW (id, attorneyName, attorneyOid, channel, eventIdentifier, eventStage, eventType, hostIdentifier,
-                               initiatorName, initiatorOid, initiatorType, message, nodeIdentifier, outcome, parameter, remoteHostAddress,
-                               result, sessionIdentifier, targetName, targetOid, targetOwnerName, targetOwnerOid, targetType,
-                               taskIdentifier, taskOID, timestampValue)
-  SELECT
-    id, attorneyName, attorneyOid, channel, eventIdentifier, eventStage, eventType, hostIdentifier, initiatorName, initiatorOid,
-    initiatorType, message, nodeIdentifier, outcome, parameter, remoteHostAddress, result, sessionIdentifier, targetName, targetOid,
-    targetOwnerName, targetOwnerOid, targetType, taskIdentifier, taskOID, timestampValue
-  FROM m_audit_event;
-SET IDENTITY_INSERT m_audit_event_NEW OFF;
-
-SET IDENTITY_INSERT m_audit_prop_value_NEW ON;
-INSERT INTO m_audit_prop_value_NEW (id, name, record_id, [value])
-  SELECT id, [name], record_id, [value] FROM m_audit_prop_value;
-SET IDENTITY_INSERT m_audit_prop_value_NEW OFF;
-
-SET IDENTITY_INSERT m_audit_ref_value_NEW ON;
-INSERT INTO m_audit_ref_value_NEW (id, name, oid, record_id, targetName_norm, targetName_orig, type)
-  SELECT id, [name], oid, record_id, targetName_norm, targetName_orig, type FROM m_audit_ref_value;
-SET IDENTITY_INSERT m_audit_ref_value_NEW OFF;
-
-ALTER TABLE m_audit_delta DROP CONSTRAINT fk_audit_delta;
-ALTER TABLE m_audit_item DROP CONSTRAINT fk_audit_item;
-
--- renaming new tables to old ones
-DROP TABLE m_audit_prop_value;
-EXEC sp_rename 'm_audit_prop_value_NEW', 'm_audit_prop_value'
-DROP TABLE m_audit_ref_value;
-EXEC sp_rename 'm_audit_ref_value_NEW', 'm_audit_ref_value'
-DROP TABLE m_audit_event;
-EXEC sp_rename 'm_audit_event_NEW', 'm_audit_event'
-
--- restoring indices and foreign key constraints
-ALTER TABLE m_audit_event ADD PRIMARY KEY (id);
-ALTER TABLE m_audit_prop_value ADD PRIMARY KEY (id);
-ALTER TABLE m_audit_ref_value ADD PRIMARY KEY (id);
-
-CREATE INDEX iTimestampValue ON m_audit_event (timestampValue);
-CREATE INDEX iAuditPropValRecordId ON m_audit_prop_value (record_id);
-CREATE INDEX iAuditRefValRecordId ON m_audit_ref_value (record_id);
-
-ALTER TABLE m_audit_delta ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_item ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_prop_value ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-ALTER TABLE m_audit_ref_value ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
-
-ALTER TABLE m_audit_delta ADD deltaBlob VARBINARY(MAX);
-ALTER TABLE m_audit_delta ADD fullResultBlob VARBINARY(MAX);
-
-GO
-
-UPDATE m_audit_delta SET deltaBlob = convert(VARBINARY(MAX), delta) where delta is not null;
-UPDATE m_audit_delta SET fullResultBlob = convert(VARBINARY(MAX), fullResult) where fullResult is not null;
--- This one should be used for SQL Server 2016 and later
--- UPDATE m_audit_delta SET checksum = lower(convert(NVARCHAR(32), hashbytes('MD5', concat(delta, fullResult)), 2));
-
--- The following is for SQL Server 2014 and earlier (but should work also for newer versions)
-UPDATE m_audit_delta SET checksum = lower(convert(NVARCHAR(32), master.sys.fn_repl_hash_binary(cast(concat(delta, fullResult) as varbinary(MAX))), 2));
-
-GO
-
-ALTER TABLE m_audit_delta DROP COLUMN delta;
-ALTER TABLE m_audit_delta DROP COLUMN fullResult;
-
-GO
-
-EXEC sp_rename 'm_audit_delta.deltaBlob', delta, 'COLUMN'
-
-GO
-
-EXEC sp_rename 'm_audit_delta.fullResultBlob', fullResult, 'COLUMN'
-
-GO
-
 CREATE TABLE m_acc_cert_campaign (
   definitionRef_relation  NVARCHAR(157) COLLATE database_default,
   definitionRef_targetOid NVARCHAR(36) COLLATE database_default,
@@ -393,6 +194,73 @@ CREATE TABLE m_assignment_reference (
   targetOid       NVARCHAR(36) COLLATE database_default  NOT NULL,
   targetType      INT,
   PRIMARY KEY (owner_owner_oid, owner_id, reference_type, relation, targetOid)
+);
+CREATE TABLE m_audit_delta (
+  checksum          NVARCHAR(32) COLLATE database_default NOT NULL,
+  record_id         BIGINT                                NOT NULL,
+  delta             VARBINARY(MAX),
+  deltaOid          NVARCHAR(36) COLLATE database_default,
+  deltaType         INT,
+  fullResult        VARBINARY(MAX),
+  objectName_norm   NVARCHAR(255) COLLATE database_default,
+  objectName_orig   NVARCHAR(255) COLLATE database_default,
+  resourceName_norm NVARCHAR(255) COLLATE database_default,
+  resourceName_orig NVARCHAR(255) COLLATE database_default,
+  resourceOid       NVARCHAR(36) COLLATE database_default,
+  status            INT,
+  PRIMARY KEY (record_id, checksum)
+);
+CREATE TABLE m_audit_event (
+  id                BIGINT IDENTITY NOT NULL,
+  attorneyName      NVARCHAR(255) COLLATE database_default,
+  attorneyOid       NVARCHAR(36) COLLATE database_default,
+  channel           NVARCHAR(255) COLLATE database_default,
+  eventIdentifier   NVARCHAR(255) COLLATE database_default,
+  eventStage        INT,
+  eventType         INT,
+  hostIdentifier    NVARCHAR(255) COLLATE database_default,
+  initiatorName     NVARCHAR(255) COLLATE database_default,
+  initiatorOid      NVARCHAR(36) COLLATE database_default,
+  initiatorType     INT,
+  message           NVARCHAR(1024) COLLATE database_default,
+  nodeIdentifier    NVARCHAR(255) COLLATE database_default,
+  outcome           INT,
+  parameter         NVARCHAR(255) COLLATE database_default,
+  remoteHostAddress NVARCHAR(255) COLLATE database_default,
+  result            NVARCHAR(255) COLLATE database_default,
+  sessionIdentifier NVARCHAR(255) COLLATE database_default,
+  targetName        NVARCHAR(255) COLLATE database_default,
+  targetOid         NVARCHAR(36) COLLATE database_default,
+  targetOwnerName   NVARCHAR(255) COLLATE database_default,
+  targetOwnerOid    NVARCHAR(36) COLLATE database_default,
+  targetOwnerType   INT,
+  targetType        INT,
+  taskIdentifier    NVARCHAR(255) COLLATE database_default,
+  taskOID           NVARCHAR(255) COLLATE database_default,
+  timestampValue    DATETIME2,
+  PRIMARY KEY (id)
+);
+CREATE TABLE m_audit_item (
+  changedItemPath NVARCHAR(255) COLLATE database_default NOT NULL,
+  record_id       BIGINT                                 NOT NULL,
+  PRIMARY KEY (record_id, changedItemPath)
+);
+CREATE TABLE m_audit_prop_value (
+  id        BIGINT IDENTITY NOT NULL,
+  name      NVARCHAR(255) COLLATE database_default,
+  record_id BIGINT,
+  value     NVARCHAR(1024) COLLATE database_default,
+  PRIMARY KEY (id)
+);
+CREATE TABLE m_audit_ref_value (
+  id              BIGINT IDENTITY NOT NULL,
+  name            NVARCHAR(255) COLLATE database_default,
+  oid             NVARCHAR(36) COLLATE database_default,
+  record_id       BIGINT,
+  targetName_norm NVARCHAR(255) COLLATE database_default,
+  targetName_orig NVARCHAR(255) COLLATE database_default,
+  type            NVARCHAR(255) COLLATE database_default,
+  PRIMARY KEY (id)
 );
 CREATE TABLE m_case_wi (
   id                            INT                                   NOT NULL,
@@ -744,6 +612,12 @@ CREATE TABLE m_node (
   oid            NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_object_collection (
+  name_norm NVARCHAR(255) COLLATE database_default,
+  name_orig NVARCHAR(255) COLLATE database_default,
+  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
 CREATE TABLE m_object_template (
   name_norm NVARCHAR(255) COLLATE database_default,
   name_orig NVARCHAR(255) COLLATE database_default,
@@ -907,8 +781,16 @@ CREATE INDEX iAssignmentReferenceTargetOid
   ON m_assignment_reference (targetOid);
 CREATE INDEX iAuditDeltaRecordId
   ON m_audit_delta (record_id);
+CREATE INDEX iTimestampValue
+  ON m_audit_event (timestampValue);
+CREATE INDEX iChangedItemPath
+  ON m_audit_item (changedItemPath);
 CREATE INDEX iAuditItemRecordId
   ON m_audit_item (record_id);
+CREATE INDEX iAuditPropValRecordId
+  ON m_audit_prop_value (record_id);
+CREATE INDEX iAuditRefValRecordId
+  ON m_audit_ref_value (record_id);
 CREATE INDEX iCaseWorkItemRefTargetOid
   ON m_case_wi_reference (targetOid);
 
@@ -1040,6 +922,10 @@ CREATE INDEX iNodeNameOrig
   ON m_node (name_orig);
 ALTER TABLE m_node
   ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
+CREATE INDEX iObjectCollectionNameOrig
+  ON m_object_collection (name_orig);
+ALTER TABLE m_object_collection
+  ADD CONSTRAINT uc_object_collection_name UNIQUE (name_norm);
 CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
 ALTER TABLE m_object_template
@@ -1142,6 +1028,14 @@ ALTER TABLE m_assignment_policy_situation
   ADD CONSTRAINT fk_assignment_policy_situation FOREIGN KEY (assignment_oid, assignment_id) REFERENCES m_assignment;
 ALTER TABLE m_assignment_reference
   ADD CONSTRAINT fk_assignment_reference FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_assignment;
+ALTER TABLE m_audit_delta
+  ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
+ALTER TABLE m_audit_item
+  ADD CONSTRAINT fk_audit_item FOREIGN KEY (record_id) REFERENCES m_audit_event;
+ALTER TABLE m_audit_prop_value
+  ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
+ALTER TABLE m_audit_ref_value
+  ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_case_wi
   ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
 ALTER TABLE m_case_wi_reference
@@ -1226,6 +1120,8 @@ ALTER TABLE m_lookup_table_row
   ADD CONSTRAINT fk_lookup_table_owner FOREIGN KEY (owner_oid) REFERENCES m_lookup_table;
 ALTER TABLE m_node
   ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE m_object_collection
+  ADD CONSTRAINT fk_object_collection FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_object_template
   ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_org
@@ -1253,4 +1149,890 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object;
 
-GO
+--# thanks to George Papastamatopoulos for submitting this ... and Marko Lahma for
+--# updating it.
+--#
+--# In your Quartz properties file, you'll need to set
+--# org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.MSSQLDelegate
+--#
+--# you shouse enter your DB instance's name on the next line in place of "enter_db_name_here"
+--#
+--#
+--# From a helpful (but anonymous) Quartz user:
+--#
+--# Regarding this error message:
+--#
+--#     [Microsoft][SQLServer 2000 Driver for JDBC]Can't start a cloned connection while in manual transaction mode.
+--#
+--#
+--#     I added "SelectMethod=cursor;" to my Connection URL in the config file.
+--#     It Seems to work, hopefully no side effects.
+--#
+--#		example:
+--#		"jdbc:microsoft:sqlserver://dbmachine:1433;SelectMethod=cursor";
+--#
+--# Another user has pointed out that you will probably need to use the
+--# JTDS driver
+--#
+--#
+--# USE [enter_db_name_here]
+--# GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[FK_QRTZ_TRIGGERS_QRTZ_JOB_DETAILS]') AND OBJECTPROPERTY(id, N'ISFOREIGNKEY') = 1)
+ALTER TABLE [dbo].[QRTZ_TRIGGERS] DROP CONSTRAINT FK_QRTZ_TRIGGERS_QRTZ_JOB_DETAILS;
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[FK_QRTZ_CRON_TRIGGERS_QRTZ_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISFOREIGNKEY') = 1)
+ALTER TABLE [dbo].[QRTZ_CRON_TRIGGERS] DROP CONSTRAINT FK_QRTZ_CRON_TRIGGERS_QRTZ_TRIGGERS;
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[FK_QRTZ_SIMPLE_TRIGGERS_QRTZ_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISFOREIGNKEY') = 1)
+ALTER TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS] DROP CONSTRAINT FK_QRTZ_SIMPLE_TRIGGERS_QRTZ_TRIGGERS;
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[FK_QRTZ_SIMPROP_TRIGGERS_QRTZ_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISFOREIGNKEY') = 1)
+ALTER TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS] DROP CONSTRAINT FK_QRTZ_SIMPROP_TRIGGERS_QRTZ_TRIGGERS;
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_CALENDARS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_CALENDARS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_CRON_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_CRON_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_BLOB_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_BLOB_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_FIRED_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_FIRED_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_PAUSED_TRIGGER_GRPS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_PAUSED_TRIGGER_GRPS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_SCHEDULER_STATE]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_SCHEDULER_STATE];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_LOCKS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_LOCKS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_JOB_DETAILS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_JOB_DETAILS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_SIMPLE_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_SIMPROP_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS];
+-- GO
+
+IF EXISTS (SELECT * FROM dbo.sysobjects WHERE id = OBJECT_ID(N'[dbo].[QRTZ_TRIGGERS]') AND OBJECTPROPERTY(id, N'ISUSERTABLE') = 1)
+DROP TABLE [dbo].[QRTZ_TRIGGERS];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_CALENDARS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [CALENDAR_NAME] [VARCHAR] (200)  NOT NULL ,
+  [CALENDAR] [IMAGE] NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_CRON_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [CRON_EXPRESSION] [VARCHAR] (120)  NOT NULL ,
+  [TIME_ZONE_ID] [VARCHAR] (80)
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_FIRED_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [ENTRY_ID] [VARCHAR] (95)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [INSTANCE_NAME] [VARCHAR] (200)  NOT NULL ,
+  [FIRED_TIME] [BIGINT] NOT NULL ,
+  [SCHED_TIME] [BIGINT] NOT NULL ,
+  [PRIORITY] [INTEGER] NOT NULL ,
+  [EXECUTION_GROUP] [VARCHAR] (200) NULL ,
+  [STATE] [VARCHAR] (16)  NOT NULL,
+  [JOB_NAME] [VARCHAR] (200)  NULL ,
+  [JOB_GROUP] [VARCHAR] (200)  NULL ,
+  [IS_NONCONCURRENT] [VARCHAR] (1)  NULL ,
+  [REQUESTS_RECOVERY] [VARCHAR] (1)  NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_PAUSED_TRIGGER_GRPS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_SCHEDULER_STATE] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [INSTANCE_NAME] [VARCHAR] (200)  NOT NULL ,
+  [LAST_CHECKIN_TIME] [BIGINT] NOT NULL ,
+  [CHECKIN_INTERVAL] [BIGINT] NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_LOCKS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [LOCK_NAME] [VARCHAR] (40)  NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_JOB_DETAILS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [JOB_NAME] [VARCHAR] (200)  NOT NULL ,
+  [JOB_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [DESCRIPTION] [VARCHAR] (250) NULL ,
+  [JOB_CLASS_NAME] [VARCHAR] (250)  NOT NULL ,
+  [IS_DURABLE] [VARCHAR] (1)  NOT NULL ,
+  [IS_NONCONCURRENT] [VARCHAR] (1)  NOT NULL ,
+  [IS_UPDATE_DATA] [VARCHAR] (1)  NOT NULL ,
+  [REQUESTS_RECOVERY] [VARCHAR] (1)  NOT NULL ,
+  [JOB_DATA] [IMAGE] NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [REPEAT_COUNT] [BIGINT] NOT NULL ,
+  [REPEAT_INTERVAL] [BIGINT] NOT NULL ,
+  [TIMES_TRIGGERED] [BIGINT] NOT NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [STR_PROP_1] [VARCHAR] (512) NULL,
+  [STR_PROP_2] [VARCHAR] (512) NULL,
+  [STR_PROP_3] [VARCHAR] (512) NULL,
+  [INT_PROP_1] [INT] NULL,
+  [INT_PROP_2] [INT] NULL,
+  [LONG_PROP_1] [BIGINT] NULL,
+  [LONG_PROP_2] [BIGINT] NULL,
+  [DEC_PROP_1] [NUMERIC] (13,4) NULL,
+  [DEC_PROP_2] [NUMERIC] (13,4) NULL,
+  [BOOL_PROP_1] [VARCHAR] (1) NULL,
+  [BOOL_PROP_2] [VARCHAR] (1) NULL,
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_BLOB_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [BLOB_DATA] [IMAGE] NULL
+) ON [PRIMARY];
+-- GO
+
+CREATE TABLE [dbo].[QRTZ_TRIGGERS] (
+  [SCHED_NAME] [VARCHAR] (120)  NOT NULL ,
+  [TRIGGER_NAME] [VARCHAR] (200)  NOT NULL ,
+  [TRIGGER_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [JOB_NAME] [VARCHAR] (200)  NOT NULL ,
+  [JOB_GROUP] [VARCHAR] (200)  NOT NULL ,
+  [DESCRIPTION] [VARCHAR] (250) NULL ,
+  [NEXT_FIRE_TIME] [BIGINT] NULL ,
+  [PREV_FIRE_TIME] [BIGINT] NULL ,
+  [PRIORITY] [INTEGER] NULL ,
+  [EXECUTION_GROUP] [VARCHAR] (200) NULL ,
+  [TRIGGER_STATE] [VARCHAR] (16)  NOT NULL ,
+  [TRIGGER_TYPE] [VARCHAR] (8)  NOT NULL ,
+  [START_TIME] [BIGINT] NOT NULL ,
+  [END_TIME] [BIGINT] NULL ,
+  [CALENDAR_NAME] [VARCHAR] (200)  NULL ,
+  [MISFIRE_INSTR] [SMALLINT] NULL ,
+  [JOB_DATA] [IMAGE] NULL
+) ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_CALENDARS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_CALENDARS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [CALENDAR_NAME]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_CRON_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_CRON_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_FIRED_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_FIRED_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [ENTRY_ID]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_PAUSED_TRIGGER_GRPS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_PAUSED_TRIGGER_GRPS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SCHEDULER_STATE] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_SCHEDULER_STATE] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [INSTANCE_NAME]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_LOCKS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_LOCKS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [LOCK_NAME]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_JOB_DETAILS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_JOB_DETAILS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [JOB_NAME],
+    [JOB_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_SIMPLE_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_SIMPROP_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_TRIGGERS] WITH NOCHECK ADD
+  CONSTRAINT [PK_QRTZ_TRIGGERS] PRIMARY KEY  CLUSTERED
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  )  ON [PRIMARY];
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_CRON_TRIGGERS] ADD
+  CONSTRAINT [FK_QRTZ_CRON_TRIGGERS_QRTZ_TRIGGERS] FOREIGN KEY
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) REFERENCES [dbo].[QRTZ_TRIGGERS] (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) ON DELETE CASCADE;
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SIMPLE_TRIGGERS] ADD
+  CONSTRAINT [FK_QRTZ_SIMPLE_TRIGGERS_QRTZ_TRIGGERS] FOREIGN KEY
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) REFERENCES [dbo].[QRTZ_TRIGGERS] (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) ON DELETE CASCADE;
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_SIMPROP_TRIGGERS] ADD
+  CONSTRAINT [FK_QRTZ_SIMPROP_TRIGGERS_QRTZ_TRIGGERS] FOREIGN KEY
+  (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) REFERENCES [dbo].[QRTZ_TRIGGERS] (
+    [SCHED_NAME],
+    [TRIGGER_NAME],
+    [TRIGGER_GROUP]
+  ) ON DELETE CASCADE;
+-- GO
+
+ALTER TABLE [dbo].[QRTZ_TRIGGERS] ADD
+  CONSTRAINT [FK_QRTZ_TRIGGERS_QRTZ_JOB_DETAILS] FOREIGN KEY
+  (
+    [SCHED_NAME],
+    [JOB_NAME],
+    [JOB_GROUP]
+  ) REFERENCES [dbo].[QRTZ_JOB_DETAILS] (
+    [SCHED_NAME],
+    [JOB_NAME],
+    [JOB_GROUP]
+  );
+-- GO;
+
+create table ACT_GE_PROPERTY (
+    NAME_ nvarchar(64),
+    VALUE_ nvarchar(300),
+    REV_ int,
+    primary key (NAME_)
+);
+
+insert into ACT_GE_PROPERTY
+values ('schema.version', '5.22.0.0', 1);
+
+insert into ACT_GE_PROPERTY
+values ('schema.history', 'create(5.22.0.0)', 1);
+
+insert into ACT_GE_PROPERTY
+values ('next.dbid', '1', 1);
+
+create table ACT_GE_BYTEARRAY (
+    ID_ nvarchar(64),
+    REV_ int,
+    NAME_ nvarchar(255),
+    DEPLOYMENT_ID_ nvarchar(64),
+    BYTES_  varbinary(max),
+    GENERATED_ tinyint,
+    primary key (ID_)
+);
+
+create table ACT_RE_DEPLOYMENT (
+    ID_ nvarchar(64),
+    NAME_ nvarchar(255),
+    CATEGORY_ nvarchar(255),
+    TENANT_ID_ nvarchar(255) default '',
+    DEPLOY_TIME_ datetime,
+    primary key (ID_)
+);
+
+create table ACT_RE_MODEL (
+    ID_ nvarchar(64) not null,
+    REV_ int,
+    NAME_ nvarchar(255),
+    KEY_ nvarchar(255),
+    CATEGORY_ nvarchar(255),
+    CREATE_TIME_ datetime,
+    LAST_UPDATE_TIME_ datetime,
+    VERSION_ int,
+    META_INFO_ nvarchar(4000),
+    DEPLOYMENT_ID_ nvarchar(64),
+    EDITOR_SOURCE_VALUE_ID_ nvarchar(64),
+    EDITOR_SOURCE_EXTRA_VALUE_ID_ nvarchar(64),
+    TENANT_ID_ nvarchar(255) default '',
+    primary key (ID_)
+);
+
+create table ACT_RU_EXECUTION (
+    ID_ nvarchar(64),
+    REV_ int,
+    PROC_INST_ID_ nvarchar(64),
+    BUSINESS_KEY_ nvarchar(255),
+    PARENT_ID_ nvarchar(64),
+    PROC_DEF_ID_ nvarchar(64),
+    SUPER_EXEC_ nvarchar(64),
+    ACT_ID_ nvarchar(255),
+    IS_ACTIVE_ tinyint,
+    IS_CONCURRENT_ tinyint,
+    IS_SCOPE_ tinyint,
+    IS_EVENT_SCOPE_ tinyint,
+    SUSPENSION_STATE_ tinyint,
+    CACHED_ENT_STATE_ int,
+    TENANT_ID_ nvarchar(255) default '',
+    NAME_ nvarchar(255),
+    LOCK_TIME_ datetime,
+    primary key (ID_)
+);
+
+create table ACT_RU_JOB (
+    ID_ nvarchar(64) NOT NULL,
+  	REV_ int,
+    TYPE_ nvarchar(255) NOT NULL,
+    LOCK_EXP_TIME_ datetime,
+    LOCK_OWNER_ nvarchar(255),
+    EXCLUSIVE_ bit,
+    EXECUTION_ID_ nvarchar(64),
+    PROCESS_INSTANCE_ID_ nvarchar(64),
+    PROC_DEF_ID_ nvarchar(64),
+    RETRIES_ int,
+    EXCEPTION_STACK_ID_ nvarchar(64),
+    EXCEPTION_MSG_ nvarchar(4000),
+    DUEDATE_ datetime NULL,
+    REPEAT_ nvarchar(255),
+    HANDLER_TYPE_ nvarchar(255),
+    HANDLER_CFG_ nvarchar(4000),
+    TENANT_ID_ nvarchar(255) default '',
+    primary key (ID_)
+);
+
+create table ACT_RE_PROCDEF (
+    ID_ nvarchar(64) not null,
+    REV_ int,
+    CATEGORY_ nvarchar(255),
+    NAME_ nvarchar(255),
+    KEY_ nvarchar(255) not null,
+    VERSION_ int not null,
+    DEPLOYMENT_ID_ nvarchar(64),
+    RESOURCE_NAME_ nvarchar(4000),
+    DGRM_RESOURCE_NAME_ nvarchar(4000),
+    DESCRIPTION_ nvarchar(4000),
+    HAS_START_FORM_KEY_ tinyint,
+    HAS_GRAPHICAL_NOTATION_ tinyint,
+    SUSPENSION_STATE_ tinyint,
+    TENANT_ID_ nvarchar(255) default '',
+    primary key (ID_)
+);
+
+create table ACT_RU_TASK (
+    ID_ nvarchar(64),
+    REV_ int,
+    EXECUTION_ID_ nvarchar(64),
+    PROC_INST_ID_ nvarchar(64),
+    PROC_DEF_ID_ nvarchar(64),
+    NAME_ nvarchar(255),
+    PARENT_TASK_ID_ nvarchar(64),
+    DESCRIPTION_ nvarchar(4000),
+    TASK_DEF_KEY_ nvarchar(255),
+    OWNER_ nvarchar(255),
+    ASSIGNEE_ nvarchar(255),
+    DELEGATION_ nvarchar(64),
+    PRIORITY_ int,
+    CREATE_TIME_ datetime,
+    DUE_DATE_ datetime,
+    CATEGORY_ nvarchar(255),
+    SUSPENSION_STATE_ int,
+    TENANT_ID_ nvarchar(255) default '',
+    FORM_KEY_ nvarchar(255),
+    primary key (ID_)
+);
+
+create table ACT_RU_IDENTITYLINK (
+    ID_ nvarchar(64),
+    REV_ int,
+    GROUP_ID_ nvarchar(255),
+    TYPE_ nvarchar(255),
+    USER_ID_ nvarchar(255),
+    TASK_ID_ nvarchar(64),
+    PROC_INST_ID_ nvarchar(64),
+    PROC_DEF_ID_ nvarchar(64),
+    primary key (ID_)
+);
+
+create table ACT_RU_VARIABLE (
+    ID_ nvarchar(64) not null,
+    REV_ int,
+    TYPE_ nvarchar(255) not null,
+    NAME_ nvarchar(255) not null,
+    EXECUTION_ID_ nvarchar(64),
+    PROC_INST_ID_ nvarchar(64),
+    TASK_ID_ nvarchar(64),
+    BYTEARRAY_ID_ nvarchar(64),
+    DOUBLE_ double precision,
+    LONG_ numeric(19,0),
+    TEXT_ nvarchar(4000),
+    TEXT2_ nvarchar(4000),
+    primary key (ID_)
+);
+
+create table ACT_RU_EVENT_SUBSCR (
+    ID_ nvarchar(64) not null,
+    REV_ int,
+    EVENT_TYPE_ nvarchar(255) not null,
+    EVENT_NAME_ nvarchar(255),
+    EXECUTION_ID_ nvarchar(64),
+    PROC_INST_ID_ nvarchar(64),
+    ACTIVITY_ID_ nvarchar(64),
+    CONFIGURATION_ nvarchar(255),
+    CREATED_ datetime not null,
+    PROC_DEF_ID_ nvarchar(64),
+    TENANT_ID_ nvarchar(255) default '',
+    primary key (ID_)
+);
+
+create table ACT_EVT_LOG (
+    LOG_NR_ numeric(19,0) IDENTITY(1,1),
+    TYPE_ nvarchar(64),
+    PROC_DEF_ID_ nvarchar(64),
+    PROC_INST_ID_ nvarchar(64),
+    EXECUTION_ID_ nvarchar(64),
+    TASK_ID_ nvarchar(64),
+    TIME_STAMP_ datetime not null,
+    USER_ID_ nvarchar(255),
+    DATA_ varbinary(max),
+    LOCK_OWNER_ nvarchar(255),
+    LOCK_TIME_ datetime null,
+    IS_PROCESSED_ tinyint default 0,
+    primary key (LOG_NR_)
+);
+
+create table ACT_PROCDEF_INFO (
+	ID_ nvarchar(64) not null,
+    PROC_DEF_ID_ nvarchar(64) not null,
+    REV_ int,
+    INFO_JSON_ID_ nvarchar(64),
+    primary key (ID_)
+);
+
+create index ACT_IDX_EXEC_BUSKEY on ACT_RU_EXECUTION(BUSINESS_KEY_);
+create index ACT_IDX_TASK_CREATE on ACT_RU_TASK(CREATE_TIME_);
+create index ACT_IDX_IDENT_LNK_USER on ACT_RU_IDENTITYLINK(USER_ID_);
+create index ACT_IDX_IDENT_LNK_GROUP on ACT_RU_IDENTITYLINK(GROUP_ID_);
+create index ACT_IDX_EVENT_SUBSCR_CONFIG_ on ACT_RU_EVENT_SUBSCR(CONFIGURATION_);
+create index ACT_IDX_VARIABLE_TASK_ID on ACT_RU_VARIABLE(TASK_ID_);
+create index ACT_IDX_ATHRZ_PROCEDEF on ACT_RU_IDENTITYLINK(PROC_DEF_ID_);
+create index ACT_IDX_EXECUTION_PROC on ACT_RU_EXECUTION(PROC_DEF_ID_);
+create index ACT_IDX_EXECUTION_PARENT on ACT_RU_EXECUTION(PARENT_ID_);
+create index ACT_IDX_EXECUTION_SUPER on ACT_RU_EXECUTION(SUPER_EXEC_);
+create index ACT_IDX_EXECUTION_IDANDREV on ACT_RU_EXECUTION(ID_, REV_);
+create index ACT_IDX_VARIABLE_BA on ACT_RU_VARIABLE(BYTEARRAY_ID_);
+create index ACT_IDX_VARIABLE_EXEC on ACT_RU_VARIABLE(EXECUTION_ID_);
+create index ACT_IDX_VARIABLE_PROCINST on ACT_RU_VARIABLE(PROC_INST_ID_);
+create index ACT_IDX_IDENT_LNK_TASK on ACT_RU_IDENTITYLINK(TASK_ID_);
+create index ACT_IDX_IDENT_LNK_PROCINST on ACT_RU_IDENTITYLINK(PROC_INST_ID_);
+create index ACT_IDX_TASK_EXEC on ACT_RU_TASK(EXECUTION_ID_);
+create index ACT_IDX_TASK_PROCINST on ACT_RU_TASK(PROC_INST_ID_);
+create index ACT_IDX_EXEC_PROC_INST_ID on ACT_RU_EXECUTION(PROC_INST_ID_);
+create index ACT_IDX_TASK_PROC_DEF_ID on ACT_RU_TASK(PROC_DEF_ID_);
+create index ACT_IDX_EVENT_SUBSCR_EXEC_ID on ACT_RU_EVENT_SUBSCR(EXECUTION_ID_);
+create index ACT_IDX_JOB_EXCEPTION_STACK_ID on ACT_RU_JOB(EXCEPTION_STACK_ID_);
+create index ACT_IDX_INFO_PROCDEF on ACT_PROCDEF_INFO(PROC_DEF_ID_);
+
+alter table ACT_GE_BYTEARRAY
+    add constraint ACT_FK_BYTEARR_DEPL
+    foreign key (DEPLOYMENT_ID_)
+    references ACT_RE_DEPLOYMENT (ID_);
+
+alter table ACT_RE_PROCDEF
+    add constraint ACT_UNIQ_PROCDEF
+    unique (KEY_,VERSION_, TENANT_ID_);
+
+alter table ACT_RU_EXECUTION
+    add constraint ACT_FK_EXE_PARENT
+    foreign key (PARENT_ID_)
+    references ACT_RU_EXECUTION (ID_);
+
+alter table ACT_RU_EXECUTION
+    add constraint ACT_FK_EXE_SUPER
+    foreign key (SUPER_EXEC_)
+    references ACT_RU_EXECUTION (ID_);
+
+alter table ACT_RU_EXECUTION
+    add constraint ACT_FK_EXE_PROCDEF
+    foreign key (PROC_DEF_ID_)
+    references ACT_RE_PROCDEF (ID_);
+
+alter table ACT_RU_IDENTITYLINK
+    add constraint ACT_FK_TSKASS_TASK
+    foreign key (TASK_ID_)
+    references ACT_RU_TASK (ID_);
+
+alter table ACT_RU_IDENTITYLINK
+    add constraint ACT_FK_ATHRZ_PROCEDEF
+    foreign key (PROC_DEF_ID_)
+    references ACT_RE_PROCDEF (ID_);
+
+alter table ACT_RU_IDENTITYLINK
+    add constraint ACT_FK_IDL_PROCINST
+    foreign key (PROC_INST_ID_)
+    references ACT_RU_EXECUTION (ID_);
+
+alter table ACT_RU_TASK
+    add constraint ACT_FK_TASK_EXE
+    foreign key (EXECUTION_ID_)
+    references ACT_RU_EXECUTION (ID_);
+
+alter table ACT_RU_TASK
+    add constraint ACT_FK_TASK_PROCINST
+    foreign key (PROC_INST_ID_)
+    references ACT_RU_EXECUTION (ID_);
+
+alter table ACT_RU_TASK
+  	add constraint ACT_FK_TASK_PROCDEF
+  	foreign key (PROC_DEF_ID_)
+  	references ACT_RE_PROCDEF (ID_);
+
+alter table ACT_RU_VARIABLE
+    add constraint ACT_FK_VAR_EXE
+    foreign key (EXECUTION_ID_)
+    references ACT_RU_EXECUTION (ID_);
+
+alter table ACT_RU_VARIABLE
+    add constraint ACT_FK_VAR_PROCINST
+    foreign key (PROC_INST_ID_)
+    references ACT_RU_EXECUTION(ID_);
+
+alter table ACT_RU_VARIABLE
+    add constraint ACT_FK_VAR_BYTEARRAY
+    foreign key (BYTEARRAY_ID_)
+    references ACT_GE_BYTEARRAY (ID_);
+
+alter table ACT_RU_JOB
+    add constraint ACT_FK_JOB_EXCEPTION
+    foreign key (EXCEPTION_STACK_ID_)
+    references ACT_GE_BYTEARRAY (ID_);
+
+alter table ACT_RU_EVENT_SUBSCR
+    add constraint ACT_FK_EVENT_EXEC
+    foreign key (EXECUTION_ID_)
+    references ACT_RU_EXECUTION(ID_);
+
+alter table ACT_RE_MODEL
+    add constraint ACT_FK_MODEL_SOURCE
+    foreign key (EDITOR_SOURCE_VALUE_ID_)
+    references ACT_GE_BYTEARRAY (ID_);
+
+alter table ACT_RE_MODEL
+    add constraint ACT_FK_MODEL_SOURCE_EXTRA
+    foreign key (EDITOR_SOURCE_EXTRA_VALUE_ID_)
+    references ACT_GE_BYTEARRAY (ID_);
+
+alter table ACT_RE_MODEL
+    add constraint ACT_FK_MODEL_DEPLOYMENT
+    foreign key (DEPLOYMENT_ID_)
+    references ACT_RE_DEPLOYMENT (ID_);
+
+alter table ACT_PROCDEF_INFO
+    add constraint ACT_FK_INFO_JSON_BA
+    foreign key (INFO_JSON_ID_)
+    references ACT_GE_BYTEARRAY (ID_);
+
+alter table ACT_PROCDEF_INFO
+    add constraint ACT_FK_INFO_PROCDEF
+    foreign key (PROC_DEF_ID_)
+    references ACT_RE_PROCDEF (ID_);
+
+alter table ACT_PROCDEF_INFO
+    add constraint ACT_UNIQ_INFO_PROCDEF
+    unique (PROC_DEF_ID_);
+
+create table ACT_HI_PROCINST (
+    ID_ nvarchar(64) not null,
+    PROC_INST_ID_ nvarchar(64) not null,
+    BUSINESS_KEY_ nvarchar(255),
+    PROC_DEF_ID_ nvarchar(64) not null,
+    START_TIME_ datetime not null,
+    END_TIME_ datetime,
+    DURATION_ numeric(19,0),
+    START_USER_ID_ nvarchar(255),
+    START_ACT_ID_ nvarchar(255),
+    END_ACT_ID_ nvarchar(255),
+    SUPER_PROCESS_INSTANCE_ID_ nvarchar(64),
+    DELETE_REASON_ nvarchar(4000),
+    TENANT_ID_ nvarchar(255) default '',
+    NAME_ nvarchar(255),
+    primary key (ID_),
+    unique (PROC_INST_ID_)
+);
+
+create table ACT_HI_ACTINST (
+    ID_ nvarchar(64) not null,
+    PROC_DEF_ID_ nvarchar(64) not null,
+    PROC_INST_ID_ nvarchar(64) not null,
+    EXECUTION_ID_ nvarchar(64) not null,
+    ACT_ID_ nvarchar(255) not null,
+    TASK_ID_ nvarchar(64),
+    CALL_PROC_INST_ID_ nvarchar(64),
+    ACT_NAME_ nvarchar(255),
+    ACT_TYPE_ nvarchar(255) not null,
+    ASSIGNEE_ nvarchar(255),
+    START_TIME_ datetime not null,
+    END_TIME_ datetime,
+    DURATION_ numeric(19,0),
+    TENANT_ID_ nvarchar(255) default '',
+    primary key (ID_)
+);
+
+create table ACT_HI_TASKINST (
+    ID_ nvarchar(64) not null,
+    PROC_DEF_ID_ nvarchar(64),
+    TASK_DEF_KEY_ nvarchar(255),
+    PROC_INST_ID_ nvarchar(64),
+    EXECUTION_ID_ nvarchar(64),
+    NAME_ nvarchar(255),
+    PARENT_TASK_ID_ nvarchar(64),
+    DESCRIPTION_ nvarchar(4000),
+    OWNER_ nvarchar(255),
+    ASSIGNEE_ nvarchar(255),
+    START_TIME_ datetime not null,
+    CLAIM_TIME_ datetime,
+    END_TIME_ datetime,
+    DURATION_ numeric(19,0),
+    DELETE_REASON_ nvarchar(4000),
+    PRIORITY_ int,
+    DUE_DATE_ datetime,
+    FORM_KEY_ nvarchar(255),
+    CATEGORY_ nvarchar(255),
+    TENANT_ID_ nvarchar(255) default '',
+    primary key (ID_)
+);
+
+create table ACT_HI_VARINST (
+    ID_ nvarchar(64) not null,
+    PROC_INST_ID_ nvarchar(64),
+    EXECUTION_ID_ nvarchar(64),
+    TASK_ID_ nvarchar(64),
+    NAME_ nvarchar(255) not null,
+    VAR_TYPE_ nvarchar(100),
+    REV_ int,
+    BYTEARRAY_ID_ nvarchar(64),
+    DOUBLE_ double precision,
+    LONG_ numeric(19,0),
+    TEXT_ nvarchar(4000),
+    TEXT2_ nvarchar(4000),
+    CREATE_TIME_ datetime,
+    LAST_UPDATED_TIME_ datetime,
+    primary key (ID_)
+);
+
+create table ACT_HI_DETAIL (
+    ID_ nvarchar(64) not null,
+    TYPE_ nvarchar(255) not null,
+    PROC_INST_ID_ nvarchar(64),
+    EXECUTION_ID_ nvarchar(64),
+    TASK_ID_ nvarchar(64),
+    ACT_INST_ID_ nvarchar(64),
+    NAME_ nvarchar(255) not null,
+    VAR_TYPE_ nvarchar(255),
+    REV_ int,
+    TIME_ datetime not null,
+    BYTEARRAY_ID_ nvarchar(64),
+    DOUBLE_ double precision,
+    LONG_ numeric(19,0),
+    TEXT_ nvarchar(4000),
+    TEXT2_ nvarchar(4000),
+    primary key (ID_)
+);
+
+create table ACT_HI_COMMENT (
+    ID_ nvarchar(64) not null,
+    TYPE_ nvarchar(255),
+    TIME_ datetime not null,
+    USER_ID_ nvarchar(255),
+    TASK_ID_ nvarchar(64),
+    PROC_INST_ID_ nvarchar(64),
+    ACTION_ nvarchar(255),
+    MESSAGE_ nvarchar(4000),
+    FULL_MSG_ varbinary(max),
+    primary key (ID_)
+);
+
+create table ACT_HI_ATTACHMENT (
+    ID_ nvarchar(64) not null,
+    REV_ integer,
+    USER_ID_ nvarchar(255),
+    NAME_ nvarchar(255),
+    DESCRIPTION_ nvarchar(4000),
+    TYPE_ nvarchar(255),
+    TASK_ID_ nvarchar(64),
+    PROC_INST_ID_ nvarchar(64),
+    URL_ nvarchar(4000),
+    CONTENT_ID_ nvarchar(64),
+    TIME_ datetime,
+    primary key (ID_)
+);
+
+create table ACT_HI_IDENTITYLINK (
+    ID_ nvarchar(64),
+    GROUP_ID_ nvarchar(255),
+    TYPE_ nvarchar(255),
+    USER_ID_ nvarchar(255),
+    TASK_ID_ nvarchar(64),
+    PROC_INST_ID_ nvarchar(64),
+    primary key (ID_)
+);
+
+
+create index ACT_IDX_HI_PRO_INST_END on ACT_HI_PROCINST(END_TIME_);
+create index ACT_IDX_HI_PRO_I_BUSKEY on ACT_HI_PROCINST(BUSINESS_KEY_);
+create index ACT_IDX_HI_ACT_INST_START on ACT_HI_ACTINST(START_TIME_);
+create index ACT_IDX_HI_ACT_INST_END on ACT_HI_ACTINST(END_TIME_);
+create index ACT_IDX_HI_DETAIL_PROC_INST on ACT_HI_DETAIL(PROC_INST_ID_);
+create index ACT_IDX_HI_DETAIL_ACT_INST on ACT_HI_DETAIL(ACT_INST_ID_);
+create index ACT_IDX_HI_DETAIL_TIME on ACT_HI_DETAIL(TIME_);
+create index ACT_IDX_HI_DETAIL_NAME on ACT_HI_DETAIL(NAME_);
+create index ACT_IDX_HI_DETAIL_TASK_ID on ACT_HI_DETAIL(TASK_ID_);
+create index ACT_IDX_HI_PROCVAR_PROC_INST on ACT_HI_VARINST(PROC_INST_ID_);
+create index ACT_IDX_HI_PROCVAR_NAME_TYPE on ACT_HI_VARINST(NAME_, VAR_TYPE_);
+create index ACT_IDX_HI_PROCVAR_TASK_ID on ACT_HI_VARINST(TASK_ID_);
+create index ACT_IDX_HI_ACT_INST_PROCINST on ACT_HI_ACTINST(PROC_INST_ID_, ACT_ID_);
+create index ACT_IDX_HI_ACT_INST_EXEC on ACT_HI_ACTINST(EXECUTION_ID_, ACT_ID_);
+create index ACT_IDX_HI_IDENT_LNK_USER on ACT_HI_IDENTITYLINK(USER_ID_);
+create index ACT_IDX_HI_IDENT_LNK_TASK on ACT_HI_IDENTITYLINK(TASK_ID_);
+create index ACT_IDX_HI_IDENT_LNK_PROCINST on ACT_HI_IDENTITYLINK(PROC_INST_ID_);
+create index ACT_IDX_HI_TASK_INST_PROCINST on ACT_HI_TASKINST(PROC_INST_ID_);
+
+create table ACT_ID_GROUP (
+    ID_ nvarchar(64),
+    REV_ int,
+    NAME_ nvarchar(255),
+    TYPE_ nvarchar(255),
+    primary key (ID_)
+);
+
+create table ACT_ID_MEMBERSHIP (
+    USER_ID_ nvarchar(64),
+    GROUP_ID_ nvarchar(64),
+    primary key (USER_ID_, GROUP_ID_)
+);
+
+create table ACT_ID_USER (
+    ID_ nvarchar(64),
+    REV_ int,
+    FIRST_ nvarchar(255),
+    LAST_ nvarchar(255),
+    EMAIL_ nvarchar(255),
+    PWD_ nvarchar(255),
+    PICTURE_ID_ nvarchar(64),
+    primary key (ID_)
+);
+
+create table ACT_ID_INFO (
+    ID_ nvarchar(64),
+    REV_ int,
+    USER_ID_ nvarchar(64),
+    TYPE_ nvarchar(64),
+    KEY_ nvarchar(255),
+    VALUE_ nvarchar(255),
+    PASSWORD_ varbinary(max),
+    PARENT_ID_ nvarchar(255),
+    primary key (ID_)
+);
+
+alter table ACT_ID_MEMBERSHIP
+    add constraint ACT_FK_MEMB_GROUP
+    foreign key (GROUP_ID_)
+    references ACT_ID_GROUP (ID_);
+
+alter table ACT_ID_MEMBERSHIP
+    add constraint ACT_FK_MEMB_USER
+    foreign key (USER_ID_)
+    references ACT_ID_USER (ID_);
