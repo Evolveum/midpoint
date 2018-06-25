@@ -44,7 +44,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -208,15 +207,20 @@ public class AccCertOpenerHelper {
 
     //region ================================ Stage open ================================
 
+	private class OpeningContext {
+		int casesEnteringStage;
+		int workItemsCreated;
+	}
+
 	void openNextStage(AccessCertificationCampaignType campaign, CertificationHandler handler, Task task,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		boolean skipEmptyStages = campaign.getIteration() > 1;        // TODO make configurable
 		int requestedStageNumber = campaign.getStageNumber() + 1;
 		for (;;) {
-			Holder<Integer> workItemsCreatedHolder = new Holder<>(0);
+			OpeningContext openingContext = new OpeningContext();
 			AccessCertificationStageType stage = createStage(campaign, requestedStageNumber);
-			ModificationsToExecute modifications = getDeltasForStageOpen(campaign, stage, handler, workItemsCreatedHolder, task, result);
-			if (!skipEmptyStages || workItemsCreatedHolder.getValue() != 0) {
+			ModificationsToExecute modifications = getDeltasForStageOpen(campaign, stage, handler, openingContext, task, result);
+			if (!skipEmptyStages || openingContext.casesEnteringStage > 0) {
 				updateHelper.modifyCampaignPreAuthorized(campaign.getOid(), modifications, task, result);
 				afterStageOpen(campaign.getOid(), stage, task, result);       // notifications, bookkeeping, ...
 				return;
@@ -232,7 +236,7 @@ public class AccCertOpenerHelper {
 
 	private ModificationsToExecute getDeltasForStageOpen(AccessCertificationCampaignType campaign,
 			AccessCertificationStageType stage, CertificationHandler handler,
-			Holder<Integer> workItemsCreatedHolder, final Task task, OperationResult result)
+			OpeningContext openingContext, final Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
 
         int stageNumber = campaign.getStageNumber();
@@ -243,9 +247,9 @@ public class AccCertOpenerHelper {
 
 	    ModificationsToExecute rv = new ModificationsToExecute();
         if (stageNumber == 0 && campaign.getIteration() == 1) {
-            getDeltasToCreateCases(campaign, stage, handler, rv, workItemsCreatedHolder, task, result);
+            getDeltasToCreateCases(campaign, stage, handler, rv, openingContext, task, result);
         } else {
-            getDeltasToUpdateCases(campaign, stage, rv, workItemsCreatedHolder, task, result);
+            getDeltasToUpdateCases(campaign, stage, rv, openingContext, task, result);
         }
 		rv.createNewBatch();
         rv.add(createStageAddDelta(stage));
@@ -267,7 +271,7 @@ public class AccCertOpenerHelper {
 	 */
 	private <F extends FocusType> void getDeltasToCreateCases(AccessCertificationCampaignType campaign,
 			AccessCertificationStageType stage,
-			CertificationHandler handler, ModificationsToExecute modifications, Holder<Integer> workItemsCreatedHolder, Task task,
+			CertificationHandler handler, ModificationsToExecute modifications, OpeningContext openingContext, Task task,
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 		String campaignShortName = toShortString(campaign);
 
@@ -313,7 +317,8 @@ public class AccCertOpenerHelper {
 			List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(_case, campaign, reviewerSpec, task, result);
 			_case.getWorkItem().addAll(createWorkItems(reviewers, 1, 1, _case));
 
-			workItemsCreatedHolder.setValue(workItemsCreatedHolder.getValue() + _case.getWorkItem().size());
+			openingContext.workItemsCreated += _case.getWorkItem().size();
+			openingContext.casesEnteringStage++;
 
 			AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(_case, campaign, 1);
 			_case.setCurrentStageOutcome(toUri(currentStageOutcome));
@@ -328,7 +333,7 @@ public class AccCertOpenerHelper {
 
 		LOGGER.trace("Created {} deltas (in {} batches) to create {} cases ({} work items) for campaign {}",
 				modifications.getTotalDeltasCount(), modifications.batches.size(), caseList.size(),
-				workItemsCreatedHolder.getValue(), campaignShortName);
+				openingContext.workItemsCreated, campaignShortName);
 	}
 
 	// create a query to find target objects from which certification cases will be created
@@ -411,7 +416,7 @@ public class AccCertOpenerHelper {
 	 * Deltas to advance cases to next stage when opening it.
 	 */
 	private void getDeltasToUpdateCases(AccessCertificationCampaignType campaign, AccessCertificationStageType stage,
-			ModificationsToExecute modifications, Holder<Integer> workItemsCreatedHolder,
+			ModificationsToExecute modifications, OpeningContext openingContext,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		int stageToBe = stage.getNumber();
@@ -442,7 +447,8 @@ public class AccCertOpenerHelper {
 
 			List<ObjectReferenceType> reviewers = reviewersHelper.getReviewersForCase(aCase, campaign, reviewerSpec, task, result);
 			List<AccessCertificationWorkItemType> workItems = createWorkItems(reviewers, stageToBe, iteration, aCase);
-			workItemsCreatedHolder.setValue(workItemsCreatedHolder.getValue() + workItems.size());
+			openingContext.workItemsCreated += workItems.size();
+			openingContext.casesEnteringStage++;
 			aCase.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(workItems));
 			AccessCertificationResponseType currentStageOutcome = computationHelper.computeOutcomeForStage(aCase, campaign, stageToBe);
 			AccessCertificationResponseType overallOutcome = computationHelper.computeOverallOutcome(aCase, campaign, stageToBe, currentStageOutcome);
@@ -461,9 +467,9 @@ public class AccCertOpenerHelper {
 					.asItemDeltas());
 		}
 
-		LOGGER.debug("Created {} deltas (in {} batches) to advance {} cases for campaign {}; work items created: {}",
-				modifications.getTotalDeltasCount(), modifications.batches.size(), caseList.size(), toShortString(campaign),
-				workItemsCreatedHolder.getValue());
+		LOGGER.debug("Created {} deltas (in {} batches) to advance {} out of {} cases for campaign {}; work items created: {}",
+				modifications.getTotalDeltasCount(), modifications.batches.size(), openingContext.casesEnteringStage,
+				caseList.size(), toShortString(campaign), openingContext.workItemsCreated);
 	}
 
 	// some bureaucracy... stage#, state, start time, triggers
