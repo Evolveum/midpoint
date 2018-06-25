@@ -1474,6 +1474,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
                 PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
         debugs.getItems().add(menu);
+        
+        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic.new", PageSystemConfigurationNew.class);
 
         MainMenuItem systemItem = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null);
 
