@@ -174,7 +174,12 @@ jack->CTO                   none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, null);
 
-        assertPercentComplete(campaign, 83, 83, 0);
+        // complete: 5 of 6 (5 cases have no work items so they are complete)
+        // decided: 5 of 6 (accept because of default)
+        // decisions done: 0 of 1
+        assertPercentCompleteCurrent(campaign, 83, 83, 0);
+        assertPercentCompleteCurrentIteration(campaign, 83, 83, 0);
+        assertPercentCompleteAll(campaign, 83, 83, 0);
 
 	    display("dummy transport", dummyTransport);
     }
@@ -213,7 +218,12 @@ jack->CTO                   none (A) -> A
 
         assertCaseOutcome(caseList, USER_GUYBRUSH_OID, ROLE_COO_OID, ACCEPT, ACCEPT, null);
 
-        assertPercentComplete(campaignOid, 100, 100, 100);
+        // complete: 6 of 6 (5 without WIs, 1 with completed WI)
+        // decided: 6 of 6 (5 without WIs, 1 with completed WI)
+        // decisions done: 1 of 1
+        assertPercentCompleteCurrent(campaignOid, 100, 100, 100);
+        assertPercentCompleteCurrentIteration(campaignOid, 100, 100, 100);
+        assertPercentCompleteAll(campaignOid, 100, 100, 100);
         assertCasesCount(campaignOid, 6);
     }
 
@@ -252,7 +262,9 @@ jack->CTO                   none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, ACCEPT, ACCEPT, 1);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 1);
 
-        assertPercentComplete(campaignOid, 100, 100, 100);
+        assertPercentCompleteCurrent(campaignOid, 100, 100, 100);
+        assertPercentCompleteCurrentIteration(campaignOid, 100, 100, 100);
+        assertPercentCompleteAll(campaignOid, 100, 100, 100);
         assertCasesCount(campaignOid, 6);
 	    display("dummy transport", dummyTransport);
     }
@@ -317,7 +329,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, null);
 
-        assertPercentComplete(campaignOid, 17, 17, 0);
+        assertPercentCompleteAll(campaignOid, 17, 17, 0);
         assertCasesCount(campaignOid, 6);
 
 	    display("dummy transport", dummyTransport);
@@ -428,7 +440,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertNoDecision(jackCeoCase, 2, 1, NO_RESPONSE, false);
         assertNoDecision(jackCtoCase, 2, 1, ACCEPT, false);
 
-        assertPercentComplete(campaignOid, 83, 83, 80);
+        assertPercentCompleteAll(campaignOid, 83, 83, 80);
     }
 
     @Test
@@ -494,7 +506,7 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, 2);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 2);
 
-        assertPercentComplete(campaignOid, 83, 83, 80);
+        assertPercentCompleteAll(campaignOid, 83, 83, 80);
 	    display("dummy transport", dummyTransport);
     }
 
@@ -562,7 +574,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentComplete(campaignOid, 33, 17, 0);
+        assertPercentCompleteAll(campaignOid, 33, 17, 0);
 	    display("dummy transport", dummyTransport);
     }
 
@@ -660,7 +672,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentComplete(campaignOid, 33, 33, 25);
+        assertPercentCompleteAll(campaignOid, 33, 33, 25);
 	    display("dummy transport", dummyTransport);
     }
 
@@ -717,7 +729,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseHistoricOutcomes(jackCeoCase, ACCEPT, NO_RESPONSE);
         assertCaseHistoricOutcomes(jackCtoCase, ACCEPT, ACCEPT, NO_RESPONSE);
 
-        assertPercentComplete(campaignOid, 33, 33, 25);
+        assertPercentCompleteAll(campaignOid, 33, 33, 25);
 
 	    display("dummy transport", dummyTransport);
     }
@@ -786,7 +798,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentComplete(campaignOid, 50, 17, 0);
+        assertPercentCompleteAll(campaignOid, 50, 17, 0);
 	    display("dummy transport", dummyTransport);
     }
 
@@ -884,7 +896,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentComplete(campaignOid, 83, 33, 67);
+        assertPercentCompleteAll(campaignOid, 83, 33, 67);
     }
 
     @Test
@@ -943,7 +955,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseHistoricOutcomes(jackCeoCase, ACCEPT, NO_RESPONSE);
         assertCaseHistoricOutcomes(jackCtoCase, ACCEPT, ACCEPT, NO_RESPONSE, NO_RESPONSE);
 
-        assertPercentComplete(campaignOid, 83, 33, 67);
+        assertPercentCompleteAll(campaignOid, 83, 33, 67);
 	    display("dummy transport", dummyTransport);
     }
 

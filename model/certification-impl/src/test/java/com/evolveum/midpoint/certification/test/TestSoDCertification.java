@@ -190,7 +190,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         campaign = getCampaignWithCases(campaignOid);
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
-        assertPercentComplete(campaign, 100, 100, 100);
+        assertPercentCompleteAll(campaign, 100, 100, 100);
     }
 
     @Test
@@ -276,7 +276,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest2cOid, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest3aOid, ACCEPT, ACCEPT, null);
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest3bOid, ACCEPT, ACCEPT, null);
-        assertPercentComplete(campaign, 0, 100, 0);     // preliminary outcomes for all cases are "ACCEPT"
+        assertPercentCompleteAll(campaign, 0, 100, 0);     // preliminary outcomes for all cases are "ACCEPT"
     }
 
     protected void checkAllCases(Collection<AccessCertificationCaseType> caseList)
@@ -370,7 +370,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         assertCaseOutcome(caseList, USER_JACK_OID, roleATest3bOid, ACCEPT, ACCEPT, null);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentComplete(campaign, 100, 100, 100);
+        assertPercentCompleteAll(campaign, 100, 100, 100);
     }
 
     @Test
@@ -416,7 +416,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
 		assertCaseOutcome(caseList, USER_JACK_OID, roleATest3aOid, ACCEPT, ACCEPT, 1);
 		assertCaseOutcome(caseList, USER_JACK_OID, roleATest3bOid, ACCEPT, ACCEPT, 1);
 
-        assertPercentComplete(campaign, 100, 100, 100);
+        assertPercentCompleteAll(campaign, 100, 100, 100);
     }
 
     @Test
@@ -469,7 +469,7 @@ public class TestSoDCertification extends AbstractCertificationTest {
         PrismObject<AccessCertificationDefinitionType> def = getObject(AccessCertificationDefinitionType.class, certificationDefinition.getOid());
         assertApproximateTime("last campaign closed", new Date(), def.asObjectable().getLastCampaignClosedTimestamp());
 
-        assertPercentComplete(campaign, 100, 100, 100);
+        assertPercentCompleteAll(campaign, 100, 100, 100);
     }
 
 	@Test

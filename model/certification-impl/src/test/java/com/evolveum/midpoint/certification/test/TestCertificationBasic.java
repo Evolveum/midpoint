@@ -206,7 +206,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
-        assertPercentComplete(campaign, 100, 100, 100);      // no cases, no problems
+        assertPercentCompleteAll(campaign, 100, 100, 100);      // no cases, no problems
+        assertPercentCompleteCurrent(campaign, 100, 100, 100);      // no cases, no problems
 
         // delete the campaign to keep other tests working
         login(userAdministrator.asPrismObject());
@@ -240,7 +241,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
-        assertPercentComplete(campaign, 100, 100, 100);      // no cases, no problems
+        assertPercentCompleteAll(campaign, 100, 100, 100);      // no cases, no problems
+        assertPercentCompleteCurrent(campaign, 100, 100, 100);      // no cases, no problems
     }
 
     @Test
@@ -328,7 +330,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         display("campaign in stage 1", campaign);
 
         assertSanityAfterCampaignStart(campaign, certificationDefinition, 7);
-        checkAllCases(campaign.getCase(), campaignOid);
+        checkAllCasesSanity(campaign.getCase(), campaignOid);
         List<AccessCertificationCaseType> caseList = campaign.getCase();
         // no responses -> NO_RESPONSE in all cases
         assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, NO_RESPONSE, NO_RESPONSE, null);
@@ -338,7 +340,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentComplete(campaign, 0, 0, 0);
+        assertPercentCompleteAll(campaign, 0, 0, 0);
+        assertPercentCompleteCurrent(campaign, 0, 0, 0);
     }
 
     @Test
@@ -380,7 +383,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         display("caseList", caseList);
-        checkAllCases(caseList, campaignOid);
+        checkAllCasesSanity(caseList, campaignOid);
     }
 
     @Test(enabled = false)
@@ -404,7 +407,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         display("caseList", caseList);
-        checkAllCases(caseList, campaignOid);
+        checkAllCasesSanity(caseList, campaignOid);
     }
 
     @Test
@@ -472,7 +475,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         display("workItems", workItems);
         assertEquals("Wrong number of certification work items", 7, workItems.size());
-        checkAllWorkItems(workItems);
+        checkAllWorkItemsSanity(workItems);
     }
 
     @Test
@@ -620,7 +623,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         display("workItems", workItems);
         assertEquals("Wrong number of certification cases", 7, workItems.size());
-        checkAllWorkItems(workItems);
+        checkAllWorkItemsSanity(workItems);
     }
 
     @Test
@@ -649,14 +652,15 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
-        checkAllCases(caseList, campaignOid);
+        checkAllCasesSanity(caseList, campaignOid);
 
         superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
         assertEquals("changed case ID", Long.valueOf(id), superuserCase.asPrismContainerValue().getId());
         assertSingleDecision(superuserCase, ACCEPT, "no comment", 1, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteCurrent(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
     @Test
@@ -686,14 +690,15 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
-        checkAllCases(caseList, campaignOid);
+        checkAllCasesSanity(caseList, campaignOid);
 
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         assertEquals("changed case ID", Long.valueOf(id), ceoCase.asPrismContainerValue().getId());
         assertSingleDecision(ceoCase, ACCEPT, "ok", 1, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteCurrent(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
     @Test
@@ -723,7 +728,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
 
         caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
-        checkAllCases(caseList, campaignOid);
+        checkAllCasesSanity(caseList, campaignOid);
 
         ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case", ceoCase.asPrismContainerValue());
@@ -731,11 +736,12 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertSingleDecision(ceoCase, REVOKE, "no way", 1, 1, USER_ADMINISTRATOR_OID, REVOKE, false);
 
         AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-        assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteCurrent(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
     @SuppressWarnings("Duplicates")
-    private void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
+    private void checkAllCasesSanity(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
         assertEquals("Wrong number of certification cases", 7, caseList.size());
         checkCaseSanity(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator);
         checkCaseSanity(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator);
@@ -746,7 +752,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
     }
 
     @SuppressWarnings("Duplicates")
-    private void checkAllWorkItems(Collection<AccessCertificationWorkItemType> workItems) {
+    private void checkAllWorkItemsSanity(Collection<AccessCertificationWorkItemType> workItems) {
         assertEquals("Wrong number of certification work items", 7, workItems.size());
         checkWorkItemSanity(workItems, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator);
         checkWorkItemSanity(workItems, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator);
@@ -820,7 +826,7 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         display("campaign in stage 1", campaign);
         assertSanityAfterStageClose(campaign, certificationDefinition, 1);
         List<AccessCertificationCaseType> caseList = campaign.getCase();
-        checkAllCases(caseList, campaignOid);
+        checkAllCasesSanity(caseList, campaignOid);
         assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, 1);
         assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, 1);
         assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, 1);
@@ -828,7 +834,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, REVOKE, REVOKE, 1);
         assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, 1);
 
-        assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteCurrent(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
     @Test
@@ -899,7 +906,8 @@ public class TestCertificationBasic extends AbstractCertificationTest {
         assertEquals("wrong # of jack's assignments", 3, userJack.getAssignment().size());
         assertEquals("wrong target OID", ORG_EROOT_OID, userJack.getAssignment().get(0).getTargetRef().getOid());
 
-        assertPercentComplete(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteAll(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
+        assertPercentCompleteCurrent(campaign, Math.round(200.0f/7.0f), Math.round(200.0f/7.0f), Math.round(200.0f/7.0f));      // 1 reviewer per case (always administrator)
     }
 
     @Test

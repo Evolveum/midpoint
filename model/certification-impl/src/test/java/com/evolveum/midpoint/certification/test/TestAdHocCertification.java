@@ -98,7 +98,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
 		campaign = getCampaignWithCases(campaign.getOid());
         display("campaign", campaign);
         assertSanityAfterCampaignStart(campaign, assignmentCertificationDefinition, 1);		// beware, maybe not all details would match (in the future) - then adapt this test
-        assertPercentComplete(campaign, 0, 0, 0);      // no cases, no problems
+        assertPercentCompleteAll(campaign, 0, 0, 0);      // no cases, no problems
 		assertCasesCount(campaign.getOid(), 1);
 	}
 
@@ -136,6 +136,6 @@ public class TestAdHocCertification extends AbstractCertificationTest {
 		campaign = getCampaignWithCases(campaign.getOid());
         display("campaign", campaign);
         assertSanityAfterCampaignStart(campaign, modificationCertificationDefinition, 1);		// beware, maybe not all details would match (in the future) - then adapt this test
-        assertPercentComplete(campaign, 0, 0, 0);      // no cases, no problems
+        assertPercentCompleteAll(campaign, 0, 0, 0);      // no cases, no problems
 	}
 }

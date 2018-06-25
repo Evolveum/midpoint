@@ -91,7 +91,7 @@ public class TestEscalation extends AbstractCertificationTest {
         campaign = getObject(AccessCertificationCampaignType.class, campaignOid).asObjectable();
         display("campaign", campaign);
         assertSanityAfterCampaignCreate(campaign, certificationDefinition);
-        assertPercentComplete(campaign, 100, 100, 100);      // no cases, no problems
+        assertPercentCompleteAll(campaign, 100, 100, 100);      // no cases, no problems
 	}
 
     @Test
@@ -155,7 +155,7 @@ public class TestEscalation extends AbstractCertificationTest {
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentComplete(campaign, 0, 0, 0);
+        assertPercentCompleteAll(campaign, 0, 0, 0);
 
         assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
 		display("dummy transport", dummyTransport);
@@ -242,7 +242,7 @@ public class TestEscalation extends AbstractCertificationTest {
 		assertSingleDecision(superuserCase, ACCEPT, "no comment", 1, 1, USER_ADMINISTRATOR_OID, ACCEPT, false);
 
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-		assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
+		assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
 	}
 
 
@@ -298,7 +298,7 @@ public class TestEscalation extends AbstractCertificationTest {
 		assertEquals("Escalation info present even if it shouldn't be", null, superuserWorkItem.getEscalationLevel());
 
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-		assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
+		assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
 
 		AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
 		assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
@@ -365,7 +365,7 @@ public class TestEscalation extends AbstractCertificationTest {
 		assertEquals("Escalation info present even if it shouldn't be", null, superuserWorkItem.getEscalationLevel());
 
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-		assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
+		assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
 
 		AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
 		assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
@@ -468,7 +468,7 @@ public class TestEscalation extends AbstractCertificationTest {
 		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
 		assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-		assertPercentComplete(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), 8 /*TODO*/);
+		assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), 8 /*TODO*/);
 
 		assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
 		display("dummy transport", dummyTransport);
