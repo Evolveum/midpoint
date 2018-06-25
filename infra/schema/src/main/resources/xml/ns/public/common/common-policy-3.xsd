@@ -2031,6 +2031,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="forcedAssignment" type="tns:ObjectReferenceType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Reference to the role, service or org.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="activeAssignments" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
