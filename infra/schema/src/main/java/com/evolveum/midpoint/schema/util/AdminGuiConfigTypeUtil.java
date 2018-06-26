@@ -15,8 +15,12 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -57,8 +61,8 @@ public class AdminGuiConfigTypeUtil {
 		if (adminGuiConfiguration == null) {
 			return;
 		}
-		composite.getAdditionalMenuLink().addAll(adminGuiConfiguration.getAdditionalMenuLink());
-		composite.getUserDashboardLink().addAll(adminGuiConfiguration.getUserDashboardLink());
+		adminGuiConfiguration.getAdditionalMenuLink().stream().forEach(additionalMenuLink -> composite.getAdditionalMenuLink().add(additionalMenuLink.clone()));
+		adminGuiConfiguration.getUserDashboardLink().stream().forEach(userDashboardLink -> composite.getUserDashboardLink().add(userDashboardLink.clone()));
 		if (adminGuiConfiguration.getDefaultTimezone() != null) {
 			composite.setDefaultTimezone(adminGuiConfiguration.getDefaultTimezone());
 		}
@@ -69,14 +73,14 @@ public class AdminGuiConfigTypeUtil {
 			composite.setEnableExperimentalFeatures(adminGuiConfiguration.isEnableExperimentalFeatures());
 		}
 		if (adminGuiConfiguration.getDefaultExportSettings() != null) {
-			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings());
+			composite.setDefaultExportSettings(adminGuiConfiguration.getDefaultExportSettings().clone());
 		}
 		if (adminGuiConfiguration.getObjectLists() != null) {
 			if (composite.getObjectLists() == null) {
 				composite.setObjectLists(adminGuiConfiguration.getObjectLists().clone());
 			} else {
 				for (GuiObjectListViewType objectList: adminGuiConfiguration.getObjectLists().getObjectList()) {
-					mergeList(composite.getObjectLists(), objectList);
+					mergeList(composite.getObjectLists(), objectList.clone());
 				}
 			}
 		}
@@ -85,7 +89,7 @@ public class AdminGuiConfigTypeUtil {
 				composite.setObjectForms(adminGuiConfiguration.getObjectForms().clone());
 			} else {
 				for (ObjectFormType objectForm: adminGuiConfiguration.getObjectForms().getObjectForm()) {
-					joinForms(composite.getObjectForms(), objectForm);
+					joinForms(composite.getObjectForms(), objectForm.clone());
 				}
 			}
 		}
@@ -108,7 +112,7 @@ public class AdminGuiConfigTypeUtil {
 			}
 		}
 		for (UserInterfaceFeatureType feature: adminGuiConfiguration.getFeature()) {
-			mergeFeature(composite.getFeature(), feature);
+			mergeFeature(composite.getFeature(), feature.clone());
 		}
 		if (composite.getObjectLists() != null && composite.getObjectLists().getObjectList() != null){
 			for (GuiObjectListViewType objectListType : composite.getObjectLists().getObjectList()){
