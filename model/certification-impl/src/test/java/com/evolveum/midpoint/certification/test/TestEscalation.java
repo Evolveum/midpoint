@@ -48,10 +48,10 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestEscalation extends AbstractCertificationTest {
 
-    protected static final File CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-eroot-user-assignments-escalations.xml");
-    protected static final String CERT_DEF_OID = "399e117a-baaa-4e59-b845-21bb838cb7bc";
+    private static final File CERT_DEF_FILE = new File(COMMON_DIR, "certification-of-eroot-user-assignments-escalations.xml");
+    //protected static final String CERT_DEF_OID = "399e117a-baaa-4e59-b845-21bb838cb7bc";
 
-    protected AccessCertificationDefinitionType certificationDefinition;
+    private AccessCertificationDefinitionType certificationDefinition;
 
     private String campaignOid;
 
@@ -102,7 +102,8 @@ public class TestEscalation extends AbstractCertificationTest {
         searchWithNoCasesExpected(TEST_NAME);
     }
 
-    protected void searchWithNoCasesExpected(String TEST_NAME) throws Exception {
+    @SuppressWarnings("SameParameterValue")
+    private void searchWithNoCasesExpected(String TEST_NAME) throws Exception {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
@@ -145,7 +146,7 @@ public class TestEscalation extends AbstractCertificationTest {
         display("campaign in stage 1", campaign);
 
         assertSanityAfterCampaignStart(campaign, certificationDefinition, 7);
-        checkAllCases(campaign.getCase(), campaignOid);
+        checkAllCasesSanity(campaign.getCase());
         List<AccessCertificationCaseType> caseList = campaign.getCase();
         // no responses -> NO_RESPONSE in all cases
         assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, NO_RESPONSE, NO_RESPONSE, null);
@@ -181,7 +182,7 @@ public class TestEscalation extends AbstractCertificationTest {
         TestUtil.assertSuccess(result);
 
         display("caseList", caseList);
-        checkAllCases(caseList, campaignOid);
+        checkAllCasesSanity(caseList);
     }
 
     @Test
@@ -207,7 +208,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
         display("workItems", workItems);
         assertEquals("Wrong number of certification work items", 7, workItems.size());
-        checkAllWorkItems(workItems);
+        checkAllWorkItemsSanity(workItems);
     }
 
 	@Test
@@ -235,7 +236,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
 		caseList = queryHelper.searchCases(campaignOid, null, null, result);
 		display("caseList", caseList);
-		checkAllCases(caseList, campaignOid);
+		checkAllCasesSanity(caseList);
 
 		superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 		assertEquals("changed case ID", Long.valueOf(id), superuserCase.asPrismContainerValue().getId());
@@ -272,7 +273,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
 		List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
         display("caseList", caseList);
-        checkAllCases(caseList, campaignOid);
+        checkAllCasesSanity(caseList);
 
 		AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
         display("CEO case after escalation", ceoCase);
@@ -295,12 +296,14 @@ public class TestEscalation extends AbstractCertificationTest {
 		AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 		AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1,
 				USER_ADMINISTRATOR_OID);
+		//noinspection SimplifiedTestNGAssertion
 		assertEquals("Escalation info present even if it shouldn't be", null, superuserWorkItem.getEscalationLevel());
 
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
 		assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
 
 		AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
+		assertNotNull(currentStage);
 		assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
 
 		display("campaign after escalation", campaign);
@@ -337,7 +340,7 @@ public class TestEscalation extends AbstractCertificationTest {
 
 		List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
 		display("caseList", caseList);
-		checkAllCases(caseList, campaignOid);
+		checkAllCasesSanity(caseList);
 
 		AccessCertificationCaseType ceoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);
 		display("CEO case after escalation", ceoCase);
@@ -362,12 +365,14 @@ public class TestEscalation extends AbstractCertificationTest {
 		AccessCertificationCaseType superuserCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID);
 		AccessCertificationWorkItemType superuserWorkItem = CertCampaignTypeUtil.findWorkItem(superuserCase, 1, 1,
 				USER_ADMINISTRATOR_OID);
+		//noinspection SimplifiedTestNGAssertion
 		assertEquals("Escalation info present even if it shouldn't be", null, superuserWorkItem.getEscalationLevel());
 
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
 		assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), Math.round(100.0f/7.0f));      // 1 reviewer per case (always administrator)
 
 		AccessCertificationStageType currentStage = CertCampaignTypeUtil.getCurrentStage(campaign);
+		assertNotNull(currentStage);
 		assertEquals("Wrong new stage escalation level", NEW_ESCALATION_LEVEL, currentStage.getEscalationLevel());
 
 		display("campaign after escalation", campaign);
@@ -435,6 +440,24 @@ public class TestEscalation extends AbstractCertificationTest {
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
 		display("campaign after reiteration", campaign);
 		assertStateStageIteration(campaign, AccessCertificationCampaignStateType.CREATED, 0, 2);
+
+		// current iteration/stage:
+		// - 6 cases (all except admin->super), 0 work items
+		// - so, these cases are all complete but none is decided
+		// - no work items so they are all OK
+		assertPercentCompleteCurrent(campaign, 100, 0, 100);
+
+		// current stage (all iterations):
+		// - 6 cases, 0 work items => the same numbers
+		assertPercentCompleteCurrentStage(campaign, 100, 0, 100);
+
+		// current iteration (all stages) -> the same
+		assertPercentCompleteCurrentIteration(campaign, 100, 0, 100);
+
+		// all stages, all iterations
+		// - 7 cases, 1 complete, 1 decided
+		// - 1 of 7 work items done
+		assertPercentCompleteAll(campaign, 14, 14, 14);
     }
 
 	@Test
@@ -468,13 +491,29 @@ public class TestEscalation extends AbstractCertificationTest {
 		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
 		assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-		assertPercentCompleteAll(campaign, Math.round(100.0f/7.0f), Math.round(100.0f/7.0f), 8 /*TODO*/);
+		// current iteration/stage:
+		// - 6 cases (all except admin->super), 6 work items, no decisions
+		assertPercentCompleteCurrent(campaign, 0, 0, 0);
+
+		// current stage (all iterations):
+		// - 7 cases, 7 work items; one case is complete/decided, one work item is done
+		assertPercentCompleteCurrentStage(campaign, 14, 14, 14);
+
+		// current iteration (all stages)
+		// - 6 cases, 6 work items, no decisions
+		assertPercentCompleteCurrentIteration(campaign, 0, 0, 0);
+
+		// all stages, all iterations
+		// - 7 cases, 1 complete, 1 decided
+		// - 1 of 7 work items done
+		assertPercentCompleteAll(campaign, 14, 14, 14);
 
 		assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
 		display("dummy transport", dummyTransport);
 	}
 
-	protected void checkAllCases(Collection<AccessCertificationCaseType> caseList, String campaignOid) {
+	@SuppressWarnings("Duplicates")
+	private void checkAllCasesSanity(Collection<AccessCertificationCaseType> caseList) {
         assertEquals("Wrong number of certification cases", 7, caseList.size());
         checkCaseSanity(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator);
         checkCaseSanity(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator);
@@ -484,7 +523,8 @@ public class TestEscalation extends AbstractCertificationTest {
         checkCaseSanity(caseList, USER_JACK_OID, ORG_EROOT_OID, userJack);
     }
 
-    protected void checkAllWorkItems(Collection<AccessCertificationWorkItemType> workItems) {
+    @SuppressWarnings("Duplicates")
+    private void checkAllWorkItemsSanity(Collection<AccessCertificationWorkItemType> workItems) {
         assertEquals("Wrong number of certification work items", 7, workItems.size());
         checkWorkItemSanity(workItems, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, userAdministrator);
         checkWorkItemSanity(workItems, USER_ADMINISTRATOR_OID, ROLE_COO_OID, userAdministrator);
@@ -493,6 +533,4 @@ public class TestEscalation extends AbstractCertificationTest {
         checkWorkItemSanity(workItems, USER_JACK_OID, ROLE_CEO_OID, userJack, ORG_GOVERNOR_OFFICE_OID, ORG_SCUMM_BAR_OID, ENABLED);
         checkWorkItemSanity(workItems, USER_JACK_OID, ORG_EROOT_OID, userJack);
     }
-
-
 }

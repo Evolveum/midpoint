@@ -329,7 +329,15 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, null);
 
-        assertPercentCompleteAll(campaignOid, 17, 17, 0);
+        // Current stage:
+	    //  - cases: 6, complete: 1 (no work items), decided: 1 (default outcome)
+	    //  - work items: 0 of 1 done
+        assertPercentCompleteCurrent(campaign, 17, 17, 0);
+        // All stages:
+	    //  - cases: 6, complete: 1 (no work items), decided: 1 (default outcome)
+	    //  - work items: 1/1 + 0/5 = 1/6 = 17%
+        assertPercentCompleteCurrentIteration(campaign, 17, 17, 17);
+        assertPercentCompleteAll(campaign, 17, 17, 17);
         assertCasesCount(campaignOid, 6);
 
 	    display("dummy transport", dummyTransport);
@@ -440,7 +448,15 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertNoDecision(jackCeoCase, 2, 1, NO_RESPONSE, false);
         assertNoDecision(jackCtoCase, 2, 1, ACCEPT, false);
 
-        assertPercentCompleteAll(campaignOid, 83, 83, 80);
+	    // Current stage:
+	    //  - cases: 6, complete: 5 (1x no work items, 4x outcome), decided: 5
+	    //  - work items: 4 of 5 done
+	    assertPercentCompleteCurrent(campaign, 83, 83, 80);
+	    // All stages:
+	    //  - cases: 6, complete: 5 (all except jack->CEO), decided: 5 (all except jack->CEO)
+	    //  - work items: 1/1 + 4/5 = 5/6 = 83%
+	    assertPercentCompleteCurrentIteration(campaign, 83, 83, 83);
+	    assertPercentCompleteAll(campaign, 83, 83, 83);
     }
 
     @Test
@@ -506,7 +522,15 @@ jack->CTO                   none (A) -> A       none (A) -> A
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, 2);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, ACCEPT, ACCEPT, 2);
 
-        assertPercentCompleteAll(campaignOid, 83, 83, 80);
+	    // Current stage:
+	    //  - cases: 6, complete: 5 (1x no work items, 4x outcome), decided: 5
+	    //  - work items: 4 of 5 done
+	    assertPercentCompleteCurrent(campaign, 83, 83, 80);
+	    // All stages:
+	    //  - cases: 6, complete: 5 (all except jack->CEO), decided: 5 (all except jack->CEO)
+	    //  - work items: 1/1 + 4/5 = 5/6 = 83%
+	    assertPercentCompleteCurrentIteration(campaign, 83, 83, 83);
+	    assertPercentCompleteAll(campaign, 83, 83, 83);
 	    display("dummy transport", dummyTransport);
     }
 
@@ -574,7 +598,16 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentCompleteAll(campaignOid, 33, 17, 0);
+	    // Current stage:
+	    //  - cases: 4, complete: 0, decided: 0
+	    //  - work items: 0 of 8 done
+	    assertPercentCompleteCurrent(campaign, 0, 0, 0);
+	    // All stages:
+	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 1 (guybrush->COO)
+	    //  - work items: 1/1 + 4/5 + 0/8 = 5/14 = 36%
+	    assertPercentCompleteCurrentIteration(campaign, 17, 17, 36);
+	    assertPercentCompleteAll(campaign, 17, 17, 36);
+
 	    display("dummy transport", dummyTransport);
     }
 
@@ -672,7 +705,16 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentCompleteAll(campaignOid, 33, 33, 25);
+	    // Current stage:
+	    //  - cases: 4, complete: 0, decided: 1
+	    //  - work items: 2 of 8 done
+	    assertPercentCompleteCurrent(campaign, 0, 25, 25);
+	    // All stages:
+	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
+	    //  - work items: 1/1 + 4/5 + 2/8 = 7/14 = 50%
+	    assertPercentCompleteCurrentIteration(campaign, 17, 33, 50);
+	    assertPercentCompleteAll(campaign, 17, 33, 50);
+
 	    display("dummy transport", dummyTransport);
     }
 
@@ -729,7 +771,15 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseHistoricOutcomes(jackCeoCase, ACCEPT, NO_RESPONSE);
         assertCaseHistoricOutcomes(jackCtoCase, ACCEPT, ACCEPT, NO_RESPONSE);
 
-        assertPercentCompleteAll(campaignOid, 33, 33, 25);
+	    // Current stage:
+	    //  - cases: 4, complete: 0, decided: 1
+	    //  - work items: 2 of 8 done
+	    assertPercentCompleteCurrent(campaign, 0, 25, 25);
+	    // All stages:
+	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
+	    //  - work items: 1/1 + 4/5 + 2/8 = 7/14 = 50%
+	    assertPercentCompleteCurrentIteration(campaign, 17, 33, 50);
+	    assertPercentCompleteAll(campaign, 17, 33, 50);
 
 	    display("dummy transport", dummyTransport);
     }
@@ -798,7 +848,15 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentCompleteAll(campaignOid, 50, 17, 0);
+	    // Current stage:
+	    //  - cases: 3, complete: 0, decided: 0
+	    //  - work items: 0 of 3 done
+	    assertPercentCompleteCurrent(campaign, 0, 0, 0);
+	    // All stages:
+	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 1 (guybrush->COO)
+	    //  - work items: 1/1 + 4/5 + 2/8 + 0/3 = 7/17 = 41%
+	    assertPercentCompleteCurrentIteration(campaign, 17, 17, 41);
+	    assertPercentCompleteAll(campaign, 17, 17, 41);
 	    display("dummy transport", dummyTransport);
     }
 
@@ -896,7 +954,15 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
         assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, NO_RESPONSE, NO_RESPONSE, null);
 
-        assertPercentCompleteAll(campaignOid, 83, 33, 67);
+	    // Current stage:
+	    //  - cases: 3, complete: 2, decided: 1
+	    //  - work items: 2 of 3 done
+	    assertPercentCompleteCurrent(campaign, 67, 33, 67);
+	    // All stages:
+	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
+	    //  - work items: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
+	    assertPercentCompleteCurrentIteration(campaign, 17, 33, 53);
+	    assertPercentCompleteAll(campaign, 17, 33, 53);
     }
 
     @Test
@@ -955,7 +1021,15 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertCaseHistoricOutcomes(jackCeoCase, ACCEPT, NO_RESPONSE);
         assertCaseHistoricOutcomes(jackCtoCase, ACCEPT, ACCEPT, NO_RESPONSE, NO_RESPONSE);
 
-        assertPercentCompleteAll(campaignOid, 83, 33, 67);
+	    // Current stage:
+	    //  - cases: 3, complete: 2, decided: 1
+	    //  - work items: 2 of 3 done
+	    assertPercentCompleteCurrent(campaign, 67, 33, 67);
+	    // All stages:
+	    //  - cases: 6, complete: 1 (only guybrush->COO), decided: 2 (guybrush->COO, admin->COO)
+	    //  - work items: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
+	    assertPercentCompleteCurrentIteration(campaign, 17, 33, 53);
+	    assertPercentCompleteAll(campaign, 17, 33, 53);
 	    display("dummy transport", dummyTransport);
     }
 
@@ -1094,6 +1168,34 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         display("campaign after reiteration", campaign);
         assertStateStageIteration(campaign, AccessCertificationCampaignStateType.CREATED, 0, 2);
 
+/*
+Case                        Stage1              Stage2                           Stage3                                            Stage4
+===============================================================================================================================================
+elaine->CEO                 none (A) -> A       elaine A -> A             | A    elaine:null,administrator:ND -> ND  [STOP] | ND
+guybrush->COO               cheese: A -> A      admin: RV -> RV   [STOP]  | RV
+administrator->COO          none (A) -> A       admin: A -> A             | A    elaine:A,administrator:null -> A           | A    cheese:A -> A | A
+administrator->CEO          none (A) -> A       elaine: A -> A            | A    elaine:NR,administrator:NR -> NR           | NR   cheese:A -> A | NR
+jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
+jack->CTO                   none (A) -> A       none (A) -> A             | A    elaine:null,administrator:null -> NR       | NR   cheese:NR -> NR | NR
+*/
+
+		// current iteration = 2, stage = 0
+	    // there are 3 cases in this iteration/stage: admin->CEO, jack->CEO, jack->CTO and 0 work items (no review stage is opened)
+	    // - among these cases, 100% is complete within iteration/stage (because of no work items!), 0 is decided
+	    // - work items are "all" decided (because there are none)
+	    // TODO ... but these percentages should not be 100%! It is misleading in the reports.
+	    assertPercentCompleteCurrent(campaign, 100, 0, 100);
+	    assertPercentCompleteCurrentStage(campaign, 100, 0, 100);
+
+	    // When observing current iteration (i.e. 2), the above still holds.
+	    assertPercentCompleteCurrentIteration(campaign, 100, 0, 100);
+
+	    // But for the overall picture, we have:
+	    // - 6 cases
+	    //    - among them only 1 (guybrush->COO) is complete (17%)
+	    //    - 2 cases are decided (33%)
+	    // - work items are all from iteration 1: 1/1 + 4/5 + 2/8 + 2/3 = 9/17 = 53%
+	    assertPercentCompleteAll(campaign, 17, 33, 53);
 	    display("dummy transport", dummyTransport);
     }
 
@@ -1171,11 +1273,51 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
 		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
 		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CTO_OID, null, NO_RESPONSE, null);
 
-		//        assertPercentComplete(campaignOid, 17, 17, 0);
+		// current iteration = 2, stage = 2 (stage 1 was skipped because all cases already have outcome for stage 1)
+		// there is 1 case in this iteration/stage: jack->CEO and 1 work item
+		// - it is not complete within iteration/stage neither decided
+		// - 0% of work items are decided
+		assertPercentCompleteCurrent(campaign, 0, 0, 0);
+
+/*
+		But looking through iterations, there are 6 cases:
+
+Case                        Stage1              Stage2 Iteration1
+=================================================================================
+elaine->CEO                 none (A) -> A       elaine A -> A             | A           eventually ND (iter 1)
+guybrush->COO               cheese: A -> A      admin: RV -> RV   [STOP]  | RV
+administrator->COO          none (A) -> A       admin: A -> A             | A           eventually A (iter 1)
+administrator->CEO          none (A) -> A       elaine: A -> A            | A           eventually NR (iter 1)
+jack->CEO                   none (A) -> A       elaine: null -> NR [STOP] | NR
+jack->CTO                   none (A) -> A       none (A) -> A             | A           eventually NR (iter 1)
+
+Case                                            Stage2 Iteration2
+=============================================================
+administrator->CEO                              "A" from iter 1
+jack->CEO                                       elaine
+jack->CTO                                       "A" from iter 1
+
+		Out of them, completed (for stage 2) are: elaine->CEO, guybrush->COO, administrator->COO, administrator->CEO, jack->CTO -> so 83%
+		Decided are: only two (guybrush -> COO, admin -> COO) ... because other ones are no-response because of later stages in iteration 1
+		Work items: created 5+1 (but 1 is overridden), completed 4 i.e. 80%
+ */
+		assertPercentCompleteCurrentStage(campaign, 83, 33, 80);
+
+		// When observing current iteration (i.e. 2), we have
+		// - three cases, 1 work item
+		// - completed: 2 cases (no work items!), decided: 0 cases
+		// - work items decided: 0 of 1
+		assertPercentCompleteCurrentIteration(campaign, 67, 0, 0);
+
+		// But for the overall picture, we have:
+		// - 6 cases
+		//    - among them only 1 (guybrush->COO) is complete (17%)
+		//    - 2 cases are decided (33%)
+		// - work items are all from iteration 1 plus the one created now (but we do not count the original one in iteration 1
+		// that is overridden by it), so: 1/1 + 4/5 + 2/8 + 2/3 + 0/1 - 0/1 = 9/17 = 53%
+		assertPercentCompleteAll(campaign, 17, 33, 53);
+
 		assertCasesCount(campaignOid, 6);
-
-        //assertPercentComplete(campaign, 83, 83, 0);
-
 		display("dummy transport", dummyTransport);
     }
 

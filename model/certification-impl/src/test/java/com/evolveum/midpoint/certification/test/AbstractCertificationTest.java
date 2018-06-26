@@ -686,7 +686,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
 		int casesDecidedPercentage = Math.round(CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesAllIterations(campaign));
 		System.out.println("Cases decided (all stages, all iterations) = " + casesDecidedPercentage + " %");
-		assertEquals("Wrong case complete percentage (all stages, all iterations)", expCasesDecided, casesDecidedPercentage);
+		assertEquals("Wrong case decided percentage (all stages, all iterations)", expCasesDecided, casesDecidedPercentage);
 
 		int decisionsDonePercentage = Math.round(CertCampaignTypeUtil.getWorkItemsCompletedPercentageAllStagesAllIterations(campaign));
 		System.out.println("Decisions completed (all stages, all iterations) = " + decisionsDonePercentage + " %");
@@ -700,7 +700,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
 		int casesDecidedPercentage = Math.round(CertCampaignTypeUtil.getCasesDecidedPercentageCurrStageCurrIteration(campaign));
 		System.out.println("Cases decided (current stage, current iteration) = " + casesDecidedPercentage + " %");
-		assertEquals("Wrong case complete percentage (current stage, current iteration)", expCasesDecided, casesDecidedPercentage);
+		assertEquals("Wrong case decided percentage (current stage, current iteration)", expCasesDecided, casesDecidedPercentage);
 
 		int decisionsDonePercentage = Math.round(CertCampaignTypeUtil.getWorkItemsCompletedPercentageCurrStageCurrIteration(campaign));
 		System.out.println("Decisions completed (current stage, current iteration) = " + decisionsDonePercentage + " %");
@@ -714,11 +714,25 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 
 		int casesDecidedPercentage = Math.round(CertCampaignTypeUtil.getCasesDecidedPercentageAllStagesCurrIteration(campaign));
 		System.out.println("Cases decided (all stages, current iteration) = " + casesDecidedPercentage + " %");
-		assertEquals("Wrong case complete percentage (all stages, current iteration)", expCasesDecided, casesDecidedPercentage);
+		assertEquals("Wrong case decided percentage (all stages, current iteration)", expCasesDecided, casesDecidedPercentage);
 
 		int decisionsDonePercentage = Math.round(CertCampaignTypeUtil.getWorkItemsCompletedPercentageAllStagesCurrIteration(campaign));
 		System.out.println("Decisions completed (all stages, current iteration) = " + decisionsDonePercentage + " %");
 		assertEquals("Wrong decisions complete percentage (all stages, current iteration)", expDecisionsDone, decisionsDonePercentage);
+    }
+
+	protected void assertPercentCompleteCurrentStage(AccessCertificationCampaignType campaign, int expCasesComplete, int expCasesDecided, int expDecisionsDone) {
+		int casesCompletePercentage = Math.round(CertCampaignTypeUtil.getCasesCompletedPercentageCurrStageAllIterations(campaign));
+		System.out.println("Cases completed (current stage, all iterations) = " + casesCompletePercentage + " %");
+		assertEquals("Wrong case complete percentage (current stage, all iterations)", expCasesComplete, casesCompletePercentage);
+
+		int casesDecidedPercentage = Math.round(CertCampaignTypeUtil.getCasesDecidedPercentageCurrStageAllIterations(campaign));
+		System.out.println("Cases decided (current stage, all iterations) = " + casesDecidedPercentage + " %");
+		assertEquals("Wrong case decided percentage (current stage, all iterations)", expCasesDecided, casesDecidedPercentage);
+
+		int decisionsDonePercentage = Math.round(CertCampaignTypeUtil.getWorkItemsCompletedPercentageCurrStageAllIterations(campaign));
+		System.out.println("Decisions completed (current stage, all iterations) = " + decisionsDonePercentage + " %");
+		assertEquals("Wrong decisions complete percentage (current stage, all iterations)", expDecisionsDone, decisionsDonePercentage);
     }
 
 	@SuppressWarnings("unused")
