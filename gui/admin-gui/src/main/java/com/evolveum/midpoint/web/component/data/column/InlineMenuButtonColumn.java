@@ -87,7 +87,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 AjaxIconButton btn = buildDefaultButton(componentId,
                         new Model<>(getButtonIconCss(index, menuItems)),
                         new Model<>(getButtonTitle(index, menuItems)),
-                        new Model<>(getButtonCssClass(index, menuItems) + getButtonColorCssClass(index, menuItems)),
+                        new Model<>(getButtonCssClass(index, menuItems)),
                         target -> {
                             setRowModelToAction(rowModel, menuItems);
                             menuItemClickPerformed(index, target, model, menuItems);
