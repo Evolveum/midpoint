@@ -13711,7 +13711,6 @@
 								DEPRECATED. Use defaultObjectPolicyConfiguration instead.
 							</xsd:documentation>
 							<xsd:appinfo>
-								<a:container/>
 								<a:deprecated>true</a:deprecated>
 							</xsd:appinfo>
 						</xsd:annotation>
@@ -13725,9 +13724,6 @@
 								"universally" during all operations with specified object types - unless it is overridden
 								in other definitions (e.g. in resource or org).
 							</xsd:documentation>
-							<xsd:appinfo>
-								<a:container/>
-							</xsd:appinfo>
 						</xsd:annotation>
                     </xsd:element>
                     
@@ -13895,6 +13891,7 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.6</a:since>
+				<a:container/>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -13998,6 +13995,9 @@
             <xsd:documentation>
                 Various internals configuration elements.
             </xsd:documentation>
+            <xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enableExperimentalCode" type="xsd:boolean" minOccurs="0" default="false">
@@ -14046,6 +14046,9 @@
                 Administration GUI configuration.
                 Note: This complexType is NOT a container. We need to guarantee ordering of some sub-items (e.g. links)
             </xsd:documentation>
+            <xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="additionalMenuLink" type="tns:RichHyperlinkType" minOccurs="0" maxOccurs="unbounded">
@@ -14364,6 +14367,9 @@
                 where a link is used. Which parameter will be used depends on where exactly is the link used and
                 how it is rendered (as an menu item, application launch button, etc.)
             </xsd:documentation>
+            <xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="targetUrl" type="xsd:string" minOccurs="1" maxOccurs="1">
@@ -14776,6 +14782,9 @@
                 Specification of the way how projections are handled on the resource. This defines the ways how
                 assignments are enforced and so on.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0">
@@ -14920,6 +14929,9 @@
                 Configuration of logging levels, categories, log
                 files, etc.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="subSystemLogger" type="tns:SubSystemLoggerConfigurationType" minOccurs="0"
@@ -14976,28 +14988,19 @@
             <xsd:any maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-
-    <xsd:complexType name="ClassLoggerConfigurationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configuration of the logger: the facility that
+    
+    <xsd:complexType name="AbstractLoggerConfigurationType" abstract="true">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Configuration of the logger: the facility that
                 collects log messages from the code.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="level" type="tns:LoggingLevelType">
+    		</xsd:documentation>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="level" type="tns:LoggingLevelType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Logger level
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="package" type="xsd:string" minOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO: packages are OR-ed
-                        TODO: string, wildcards
-                        allowed (* as in java)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -15009,7 +15012,31 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
+    	</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ClassLoggerConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of the logger: the facility that
+                collects log messages from the code.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+			<xsd:extension base="tns:AbstractLoggerConfigurationType">
+		        <xsd:sequence>
+		            <xsd:element name="package" type="xsd:string" minOccurs="1">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        TODO: packages are OR-ed
+		                        TODO: string, wildcards
+		                        allowed (* as in java)
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+		        </xsd:sequence>
+		     </xsd:extension>
+		 </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="SubSystemLoggerConfigurationType">
@@ -15019,32 +15046,21 @@
                 collects log messages from subsystem code.
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="level" type="tns:LoggingLevelType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Logger level
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="component" type="c:LoggingComponentType" minOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO: components are OR-ed
-                        TODO: string, but there should be a way how to determine
-                        list of valid categories. Maybe switch to enum later.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="appender" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Appender name defined in appenders section in
-                        logging configuration
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+        <xsd:complexContent>
+			<xsd:extension base="tns:AbstractLoggerConfigurationType">
+        		<xsd:sequence>
+		            <xsd:element name="component" type="c:LoggingComponentType" minOccurs="1">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        TODO: components are OR-ed
+		                        TODO: string, but there should be a way how to determine
+		                        list of valid categories. Maybe switch to enum later.
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>		            
+        		</xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
 
@@ -16942,6 +16958,9 @@
             <xsd:documentation>
                 Configuration of cleanup intervals and policies for various midPoint subsystems.
             </xsd:documentation>
+            <xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="auditRecords" type="tns:CleanupPolicyType" minOccurs="0"/>
@@ -16957,6 +16976,9 @@
             <xsd:documentation>
                 Configuration of cleanup intervals and policies for a specific subsystem or feature.
             </xsd:documentation>
+            <xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="maxAge" type="xsd:duration" minOccurs="0"/>
@@ -17754,6 +17776,9 @@
             <xsd:documentation>
                 A configuration for profiling features of midPoint.
             </xsd:documentation>
+            <xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
