@@ -48,8 +48,6 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
     private static final String ID_OBJECT_LIST_PANEL = "objectListPanel";
 
     private static final String DOT_CLASS = AbstractAssignmentPopupTabPanel.class.getName();
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractAssignmentPopupTabPanel.class);
-    private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
     private ObjectTypes type;
     protected List<O> selectedObjects;
@@ -91,29 +89,7 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                    LOGGER.debug("Loading roles which the current user has right to assign");
-                    Task task = AbstractAssignmentPopupTabPanel.this.getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
-                    OperationResult result = task.getResult();
-                    ObjectFilter filter = null;
-                    try {
-                        ModelInteractionService mis = AbstractAssignmentPopupTabPanel.this.getPageBase().getModelInteractionService();
-                        RoleSelectionSpecification roleSpec =
-                                mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), task, result);
-                        filter = roleSpec.getFilter();
-                    } catch (Exception ex) {
-                        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-                        result.recordFatalError("Couldn't load available roles", ex);
-                    } finally {
-                        result.recomputeStatus();
-                    }
-                    if (!result.isSuccess() && !result.isHandledError()) {
-                        AbstractAssignmentPopupTabPanel.this.getPageBase().showResult(result);
-                    }
-                    if (query == null){
-                        query = new ObjectQuery();
-                    }
-                    query.addFilter(filter);
-                return query;
+                return AbstractAssignmentPopupTabPanel.this.addFilterToContentQuery(query);
             }
 
         };
@@ -128,9 +104,7 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
         return listPanel;
     }
 
-    protected PopupObjectListPanel getObjectListPanel(){
-        return (PopupObjectListPanel)get(ID_OBJECT_LIST_PANEL);
-    }
+    protected abstract void initParametersPanel();
 
     protected List getSelectedObjectsList(){
         PopupObjectListPanel objectListPanel = getObjectListPanel();
@@ -140,8 +114,18 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
         return objectListPanel.getSelectedObjects();
     }
 
+    protected PopupObjectListPanel getObjectListPanel(){
+        return (PopupObjectListPanel)get(ID_OBJECT_LIST_PANEL);
+    }
+
+    protected void onSelectionPerformed(AjaxRequestTarget target){}
+
     protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
         return Model.of(true);
+    }
+
+    protected ObjectQuery addFilterToContentQuery(ObjectQuery query){
+        return query;
     }
 
     protected abstract List<AssignmentType> getSelectedAssignmentsList();
@@ -149,8 +133,4 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
     protected boolean isObjectListPanelVisible(){
         return true;
     }
-
-    protected abstract void initParametersPanel();
-
-    protected void onSelectionPerformed(AjaxRequestTarget target){}
 }

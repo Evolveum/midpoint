@@ -16,13 +16,17 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -119,6 +123,12 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
         } else {
             return super.getSelectedObjectsList();
         }
+    }
+
+    @Override
+    protected List<AssignmentType> getSelectedAssignmentsList(){
+        isOrgTreeView = true;
+        return super.getSelectedAssignmentsList();
     }
 
     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){}

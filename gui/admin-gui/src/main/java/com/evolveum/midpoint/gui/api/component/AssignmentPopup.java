@@ -231,12 +231,12 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
         return 0;
     }
 
-    private TabbedPanel getTabbedPanel(){
-        return (TabbedPanel) get(ID_FORM).get(ID_TABS_PANEL);
-    }
-
     private void tabLabelPanelUpdate(AjaxRequestTarget target){
         target.add(getTabbedPanel());
+    }
+
+    private TabbedPanel getTabbedPanel(){
+        return (TabbedPanel) get(ID_FORM).get(ID_TABS_PANEL);
     }
 
     protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {
