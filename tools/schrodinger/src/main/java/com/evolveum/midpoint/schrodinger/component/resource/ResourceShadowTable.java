@@ -27,7 +27,7 @@ public class ResourceShadowTable<T> extends TableWithPageRedirect<T> {
     @Override
     public ResourceShadowTable<T> selectCheckboxByName(String name) {
 
-        $(Schrodinger.byAncestorFollowingSiblingElementValue("input", "type", "checkbox", "data-s-id", "1", name))
+        $(Schrodinger.byAncestorFollowingSiblingElementValue("input", "type", "checkbox", "data-s-id", "3", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
         return this;
     }

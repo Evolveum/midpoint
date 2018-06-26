@@ -26,10 +26,10 @@ public class ViewResourcePage extends BasicPage {
     public ResourceAccountsTab<ViewResourcePage> clicAccountsTab() {
 
         $(Schrodinger.byDataResourceKey("schrodinger", "PageResource.tab.content.account")).parent()
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT).click();
 
         SelenideElement tabContent = $(By.cssSelector(".tab-pane.active"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT);
 
         return new ResourceAccountsTab<>(this, tabContent);
     }
