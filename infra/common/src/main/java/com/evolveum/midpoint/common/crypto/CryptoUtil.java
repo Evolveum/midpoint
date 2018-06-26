@@ -30,7 +30,6 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -47,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsGatewayConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -59,62 +59,51 @@ public class CryptoUtil {
 	/**
 	 * Encrypts all encryptable values in the object.
 	 */
-	public static <T extends ObjectType> void encryptValues(final Protector protector, final PrismObject<T> object) throws EncryptionException{
-	    Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable){
-				if (!(visitable instanceof PrismPropertyValue)) {
-					return;
-				}
-				PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-				try {
-					encryptValue(protector, pval);
-				} catch (EncryptionException e) {
-					throw new TunnelException(e);
-				}
-			}
-		};
+	public static <T extends ObjectType> void encryptValues(Protector protector, PrismObject<T> object) throws EncryptionException {
+		encryptValues(protector, object, false);
+	}
+
+	public static <T extends ObjectType> void encryptValues(Protector protector, PrismObject<T> object, boolean skipHashed) throws EncryptionException {
 		try {
-			object.accept(visitor);
+			object.accept(createEncryptingVisitor(protector, skipHashed));
 		} catch (TunnelException e) {
-			EncryptionException origEx = (EncryptionException)e.getCause();
-			throw origEx;
+			throw (EncryptionException) e.getCause();
 		}
 	}
 
 	/**
 	 * Encrypts all encryptable values in delta.
 	 */
-	public static <T extends ObjectType> void encryptValues(final Protector protector, final ObjectDelta<T> delta) throws EncryptionException{
-	    Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable){
- 				if (!(visitable instanceof PrismPropertyValue)) {
-					return;
-				}
-				PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-				try {
-					encryptValue(protector, pval);
-				} catch (EncryptionException e) {
-					throw new TunnelException(e);
-				}
-			}
-		};
+	public static <T extends ObjectType> void encryptValues(Protector protector, ObjectDelta<T> delta) throws EncryptionException {
 		try {
-			delta.accept(visitor);
+			delta.accept(createEncryptingVisitor(protector, false));
 		} catch (TunnelException e) {
-			EncryptionException origEx = (EncryptionException)e.getCause();
-			throw origEx;
+			throw (EncryptionException) e.getCause();
 		}
 	}
 
-	private static <T extends ObjectType> void encryptValue(Protector protector, PrismPropertyValue<?> pval) throws EncryptionException{
+	@NotNull
+	private static Visitor createEncryptingVisitor(Protector protector, boolean skipHashed) {
+		return visitable -> {
+			if (!(visitable instanceof PrismPropertyValue)) {
+				return;
+			}
+			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
+			try {
+				encryptValue(protector, pval, skipHashed);
+			} catch (EncryptionException e) {
+				throw new TunnelException(e);
+			}
+		};
+	}
+
+	private static void encryptValue(Protector protector, PrismPropertyValue<?> pval, boolean skipHashed) throws EncryptionException{
     	Itemable item = pval.getParent();
     	if (item == null) {
     		return;
     	}
     	ItemDefinition itemDef = item.getDefinition();
-    	if (itemDef == null || itemDef.getTypeName() == null) {
+    	if (itemDef == null) {
     		return;
     	}
 
@@ -122,7 +111,7 @@ public class CryptoUtil {
             QName propName = item.getElementName();
             PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
             ProtectedStringType ps = psPval.getValue();
-            encryptProtectedStringType(protector, ps, propName.getLocalPart());
+            encryptProtectedStringType(protector, ps, propName.getLocalPart(), skipHashed);
             if (pval.getParent() == null){
                 pval.setParent(item);
             }
@@ -131,26 +120,31 @@ public class CryptoUtil {
             NotificationConfigurationType ncfg = ((PrismPropertyValue<NotificationConfigurationType>) pval).getValue();
             if (ncfg.getMail() != null) {
                 for (MailServerConfigurationType mscfg : ncfg.getMail().getServer()) {
-                    encryptProtectedStringType(protector, mscfg.getPassword(), "mail server password");
+                    encryptProtectedStringType(protector, mscfg.getPassword(), "mail server password", skipHashed);
                 }
             }
             if (ncfg.getSms() != null) {
                 for (SmsConfigurationType smscfg : ncfg.getSms()) {
                     for (SmsGatewayConfigurationType gwcfg : smscfg.getGateway()) {
-                        encryptProtectedStringType(protector, gwcfg.getPassword(), "sms gateway password");
+                        encryptProtectedStringType(protector, gwcfg.getPassword(), "sms gateway password", skipHashed);
                     }
                 }
             }
         }
     }
 
-    private static void encryptProtectedStringType(Protector protector, ProtectedStringType ps, String propName) throws EncryptionException {
+    private static void encryptProtectedStringType(Protector protector, ProtectedStringType ps, String propName,
+		    boolean skipHashed) throws EncryptionException {
 		if (ps == null) {
 			return;
 		}
 
     	if (ps.isHashed()) {
-    		throw new EncryptionException("Attempt to encrypt hashed value for "+propName);
+			if (skipHashed) {
+				return;
+			} else {
+				throw new EncryptionException("Attempt to encrypt hashed value for " + propName);
+			}
     	}
     	if (ps.getClearValue() != null) {
             try {
@@ -163,18 +157,8 @@ public class CryptoUtil {
 
 	// Checks that everything is encrypted
 	public static <T extends ObjectType> void checkEncrypted(final PrismObject<T> object) {
-	    Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable){
-				if (!(visitable instanceof PrismPropertyValue)) {
-					return;
-				}
-				PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-				checkEncrypted(pval);
-			}
-		};
 		try {
-			object.accept(visitor);
+			object.accept(createCheckingVisitor());
 		} catch (IllegalStateException e) {
 			throw new IllegalStateException(e.getMessage() + " in " + object, e);
 		}
@@ -183,30 +167,32 @@ public class CryptoUtil {
 
 	// Checks that everything is encrypted
 	public static <T extends ObjectType> void checkEncrypted(final ObjectDelta<T> delta) {
-	    Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable){
-				if (!(visitable instanceof PrismPropertyValue)) {
-					return;
-				}
-				PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-				checkEncrypted(pval);
-			}
-		};
 		try {
-			delta.accept(visitor);
+			delta.accept(createCheckingVisitor());
 		} catch (IllegalStateException e) {
 			throw new IllegalStateException(e.getMessage() + " in delta " + delta, e);
 		}
 	}
 
-	private static <T extends ObjectType> void checkEncrypted(PrismPropertyValue<?> pval) {
+
+	@NotNull
+	private static Visitor createCheckingVisitor() {
+		return visitable -> {
+			if (!(visitable instanceof PrismPropertyValue)) {
+				return;
+			}
+			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
+			checkEncrypted(pval);
+		};
+	}
+
+	private static void checkEncrypted(PrismPropertyValue<?> pval) {
     	Itemable item = pval.getParent();
     	if (item == null) {
     		return;
     	}
     	ItemDefinition itemDef = item.getDefinition();
-    	if (itemDef == null || itemDef.getTypeName() == null) {
+    	if (itemDef == null) {
     		return;
     	}
     	if (itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
@@ -239,15 +225,12 @@ public class CryptoUtil {
     }
 
 	public static void checkEncrypted(Collection<? extends ItemDelta> modifications) {
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(Visitable visitable){
-				if (!(visitable instanceof PrismPropertyValue)) {
-					return;
-				}
-				PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-				checkEncrypted(pval);
+		Visitor visitor = visitable -> {
+			if (!(visitable instanceof PrismPropertyValue)) {
+				return;
 			}
+			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
+			checkEncrypted(pval);
 		};
 		for (ItemDelta<?,?> delta: modifications) {
 			try {
@@ -345,15 +328,15 @@ public class CryptoUtil {
 				subresult.recordSuccess();
 			}
             LOGGER.debug("Security self test (algorithmName={}, transformationName={}, keySize={}) success",
-					new Object[] {algorithmName, transformationName, keySize});
+		            algorithmName, transformationName, keySize);
 		} catch (Throwable e) {
 			if (critical) {
 				LOGGER.error("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}-{}",
-						new Object[] {algorithmName, transformationName, keySize, e.getMessage() ,e});
+						algorithmName, transformationName, keySize, e.getMessage(),e);
 				subresult.recordFatalError(e);
 			} else {
 				LOGGER.warn("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}-{} (failure is expected in some cases)",
-						new Object[] {algorithmName, transformationName, keySize, e.getMessage() ,e});
+						algorithmName, transformationName, keySize, e.getMessage(),e);
 				subresult.recordWarning(e);
 			}
 		}
