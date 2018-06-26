@@ -16,17 +16,14 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -50,26 +47,8 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        IModel<List<OrgType>> selectedOrgsModel = new IModel<List<OrgType>>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public List<OrgType> getObject() {
-                return selectedObjects;
-            }
-
-            @Override
-            public void setObject(List<OrgType> orgTypes) {
-                selectedObjects = orgTypes;
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
         OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-                ID_ORG_TREE_VIEW_PANEL, true, getPageBase(), selectedOrgsModel) {
+                ID_ORG_TREE_VIEW_PANEL, true, getPageBase(), selectedObjects) {
             private static final long serialVersionUID = 1L;
 
            @Override

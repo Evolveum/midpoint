@@ -3,8 +3,6 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -17,14 +15,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.StringResourceModel;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by honchar.
  */
-public class AssignmentPopup<O extends ObjectType> extends BasePanel implements Popupable{
+public class AssignmentPopup extends BasePanel implements Popupable{
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TABS_PANEL = "tabsPanel";

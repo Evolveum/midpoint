@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> extends BasePanel {
+public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> extends BasePanel<O> {
 
     private static final long serialVersionUID = 1L;
 
