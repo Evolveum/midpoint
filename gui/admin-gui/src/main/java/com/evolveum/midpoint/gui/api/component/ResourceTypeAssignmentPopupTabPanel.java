@@ -57,7 +57,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     private static final String ID_INTENT = "intent";
 
     private LoadableModel<List<String>> intentValues;
-    private String intentValue = "";
+    private String intentValue;
+    private ShadowKindType kindValue;
 
     private static final String DOT_CLASS = ResourceTypeAssignmentPopupTabPanel.class.getName();
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeAssignmentPopupTabPanel.class);
@@ -75,8 +76,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         add(kindContainer);
 
         DropDownChoicePanel<ShadowKindType> kindSelector = WebComponentUtil.createEnumPanel(ShadowKindType.class, ID_KIND,
-                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), Model.of(ShadowKindType.ACCOUNT),
-                ResourceTypeAssignmentPopupTabPanel.this, false);
+                WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), Model.of(),
+                ResourceTypeAssignmentPopupTabPanel.this, true);
         kindSelector.setOutputMarkupId(true);
         kindSelector.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
             private static final long serialVersionUID = 1L;
@@ -103,24 +104,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         add(intentContainer);
 
         DropDownChoicePanel<String> intentSelector = new DropDownChoicePanel<String>(ID_INTENT,
-                new IModel<String>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject() {
-                        return intentValue;
-                    }
-
-                    @Override
-                    public void setObject(String s) {
-                        intentValue = s;
-                    }
-
-                    @Override
-                    public void detach() {
-
-                    }
-                }, intentValues);
+                Model.of(), intentValues, true);
         intentSelector.getBaseFormComponent().add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
@@ -134,14 +118,6 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         intentSelector.setOutputMarkupPlaceholderTag(true);
         intentContainer.add(intentSelector);
 
-    }
-
-    private DropDownChoicePanel getIntentDropDown(){
-        return (DropDownChoicePanel)get(ID_INTENT_CONTAINER).get(ID_INTENT);
-    }
-
-    private DropDownChoicePanel<ShadowKindType> getKindDropDown(){
-        return (DropDownChoicePanel<ShadowKindType>)get(ID_KIND_CONTAINER).get(ID_KIND);
     }
 
     private void initModels(){
@@ -180,14 +156,6 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         };
     }
 
-    public String getIntentValue(){
-        return intentValue;
-    }
-
-    public ShadowKindType getKindValue(){
-        return getKindDropDown().getModel().getObject();
-    }
-
     @Override
     protected List<AssignmentType> getSelectedAssignmentsList(){
         List<AssignmentType> assignmentList = new ArrayList<>();
@@ -199,6 +167,24 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
             assignmentList.add(ObjectTypeUtil.createAssignmentWithConstruction(selectedObject.asPrismObject(), kind, intent));
         });
         return assignmentList;
+    }
+
+    public ShadowKindType getKindValue(){
+        DropDownChoicePanel<ShadowKindType> kindDropDown = getKindDropDown();
+        return kindDropDown.getModel() != null ? kindDropDown.getModel().getObject() : null;
+    }
+
+    public String getIntentValue(){
+        DropDownChoicePanel<String> intentDropDown = getIntentDropDown();
+        return intentDropDown.getModel() != null ? intentDropDown.getModel().getObject() : null;
+    }
+
+    private DropDownChoicePanel<String> getIntentDropDown(){
+        return (DropDownChoicePanel<String>)get(ID_INTENT_CONTAINER).get(ID_INTENT);
+    }
+
+    private DropDownChoicePanel<ShadowKindType> getKindDropDown(){
+        return (DropDownChoicePanel<ShadowKindType>)get(ID_KIND_CONTAINER).get(ID_KIND);
     }
 
     @Override
