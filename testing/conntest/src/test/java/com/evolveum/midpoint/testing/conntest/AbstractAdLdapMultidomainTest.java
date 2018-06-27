@@ -1332,7 +1332,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         display("Test connection result", testResult);
         TestUtil.assertSuccess("Test connection result", testResult);
 
-        assertLdapConnectorInstances(2);
+        // Test is disposing connector facade and the entire connector pool.
+        // Therefore we are back at 1 instance.
+        assertLdapConnectorInstances(1);
 	}
 
 	@Test
@@ -1366,7 +1368,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(1);
 	}
 
 	@Test
