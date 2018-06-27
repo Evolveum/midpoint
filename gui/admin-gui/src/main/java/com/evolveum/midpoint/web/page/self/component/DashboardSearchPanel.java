@@ -155,7 +155,7 @@ public class DashboardSearchPanel extends BasePanel<T> {
 
     private void performSearch(String searchType, String text) {
         if (SEARCH_TYPES.indexOf(searchType) == USER_INDEX) {
-            setResponsePage(new PageUsers(UsersDto.SearchType.NAME, text));
+            setResponsePage(new PageUsers(text));
         } else if (SEARCH_TYPES.indexOf(searchType) == RESOURCE_INDEX) {
             setResponsePage(new PageResources(text));
         } else if (SEARCH_TYPES.indexOf(searchType) == TASK_INDEX) {
