@@ -241,7 +241,9 @@
 			-->
 			<cap:create/>
 	        <cap:read/>
-	        <cap:update/>
+	        <cap:update>
+	        	<cap:delta>true</cap:delta>
+	        </cap:update>
 	        <cap:delete/>
 	        <cap:countObjects>
 				<cap:simulate>pagedSearchEstimate</cap:simulate>
