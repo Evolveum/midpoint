@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -618,10 +619,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(clazz);
 
-		Collection<? extends ItemDelta> modifications = PropertyDelta
-				.createModificationReplacePropertyCollection(
+		Collection<? extends ItemDelta> modifications = ContainerDelta
+				.createModificationReplaceContainerCollection(
 						path,
-						objectDefinition, syncSettings);
+						objectDefinition, syncSettings.asPrismContainerValue());
 
 		OperationResult result = new OperationResult("Aplying sync settings");
 
