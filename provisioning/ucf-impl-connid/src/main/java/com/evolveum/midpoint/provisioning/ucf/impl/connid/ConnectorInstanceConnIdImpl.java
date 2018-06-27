@@ -1693,7 +1693,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		result.computeStatus();
 
 		Collection<PropertyModificationOperation> sideEffectChanges = new ArrayList<>();
-		if(sideEffect.isEmpty()){
+		if(sideEffect == null || sideEffect.isEmpty()) {
 			return AsynchronousOperationReturnValue.wrap(sideEffectChanges, result);
 		} else { 
 			boolean changeUid = false, changeName = false;
