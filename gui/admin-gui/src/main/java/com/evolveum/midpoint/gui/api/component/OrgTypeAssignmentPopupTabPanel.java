@@ -19,10 +19,10 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,36 +37,18 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
 
     private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
-    private IModel<Boolean> isOrgTreeViewModel;
+    private boolean isOrgTreeView;
 
-    public OrgTypeAssignmentPopupTabPanel(String id, IModel<Boolean> isOrgTreeViewModel, List<OrgType> selectedOrgs){
+    public OrgTypeAssignmentPopupTabPanel(String id, boolean isOrgTreeView, List<OrgType> selectedOrgs){
         super(id, ObjectTypes.ORG, selectedOrgs);
-        this.isOrgTreeViewModel = isOrgTreeViewModel;
+        this.isOrgTreeView = isOrgTreeView;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        IModel<List<OrgType>> selectedOrgsModel = new IModel<List<OrgType>>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public List<OrgType> getObject() {
-                return selectedObjects;
-            }
-
-            @Override
-            public void setObject(List<OrgType> orgTypes) {
-                selectedObjects = orgTypes;
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
         OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-                ID_ORG_TREE_VIEW_PANEL, true, getPageBase(), selectedOrgsModel) {
+                ID_ORG_TREE_VIEW_PANEL, true, getPageBase(), selectedObjects) {
             private static final long serialVersionUID = 1L;
 
            @Override
@@ -102,7 +84,7 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
 
             @Override
             public boolean isVisible(){
-                return isOrgTreeViewModel != null && isOrgTreeViewModel.getObject();
+                return isOrgTreeView;
             }
         });
         add(orgTreePanel);
@@ -111,8 +93,26 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
 
     @Override
     protected boolean isObjectListPanelVisible(){
-        return isOrgTreeViewModel == null || !isOrgTreeViewModel.getObject();
+        return !isOrgTreeView;
+    }
+
+    protected List getSelectedObjectsList(){
+        if (isOrgTreeView){
+            return selectedObjects;
+        } else {
+            return super.getSelectedObjectsList();
+        }
+    }
+
+    @Override
+    protected List<AssignmentType> getSelectedAssignmentsList(){
+        isOrgTreeView = true;
+        return super.getSelectedAssignmentsList();
     }
 
     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){}
+
+    public boolean isOrgTreeView(){
+        return isOrgTreeView;
+    }
 }

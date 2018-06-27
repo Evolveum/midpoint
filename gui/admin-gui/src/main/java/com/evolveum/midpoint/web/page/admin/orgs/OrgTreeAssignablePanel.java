@@ -49,16 +49,16 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 	private static final String ID_ORG_TABS = "orgTabs";
 	private static final String ID_ASSIGN = "assign";
 	private boolean selectable;
-	private IModel<List<OrgType>> selectedOrgsListModel;
+	private List<OrgType> selectedOrgsList;
 
 	public OrgTreeAssignablePanel(String id, boolean selectable, PageBase parentPage) {
 		this(id, selectable, parentPage, null);
 	}
 
-	public OrgTreeAssignablePanel(String id, boolean selectable, PageBase parentPage, IModel<List<OrgType>> selectedOrgsListModel){
+	public OrgTreeAssignablePanel(String id, boolean selectable, PageBase parentPage, List<OrgType> selectedOrgsList){
 		super(id);
 		this.selectable = selectable;
-		this.selectedOrgsListModel = selectedOrgsListModel;
+		this.selectedOrgsList = selectedOrgsList;
 		setParent(parentPage);
 		initLayout();
 	}
@@ -81,8 +81,8 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 							@Override
 							public Boolean load() {
 								boolean isSelected = false;
-								if (selectedOrgsListModel != null && selectedOrgsListModel.getObject() != null) {
-									for (OrgType org : selectedOrgsListModel.getObject())
+								if (selectedOrgsList != null) {
+									for (OrgType org : selectedOrgsList)
 										if (rowModel.getObject().getValue().getOid().equals(org.getOid())){
 											isSelected = true;
 											break;

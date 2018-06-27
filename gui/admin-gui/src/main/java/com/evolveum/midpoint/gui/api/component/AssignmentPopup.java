@@ -3,8 +3,6 @@ package com.evolveum.midpoint.gui.api.component;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -15,17 +13,15 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by honchar.
  */
-public class AssignmentPopup<O extends ObjectType> extends BasePanel implements Popupable{
+public class AssignmentPopup extends BasePanel implements Popupable{
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TABS_PANEL = "tabsPanel";
@@ -33,15 +29,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
     private static final String ID_ASSIGN_BUTTON = "assignButton";
     private static final String ID_FORM = "form";
 
-    private FocusTypeAssignmentPopupTabPanel rolesTabPanel;
-    private OrgTypeAssignmentPopupTabPanel orgsTabPanel;
-    private OrgTypeAssignmentPopupTabPanel orgTreeViewTabPanel;
-    private FocusTypeAssignmentPopupTabPanel servicesTabPanel;
-    private FocusTypeAssignmentPopupTabPanel usersTabPanel;
-    private ResourceTypeAssignmentPopupTabPanel resourcesTabPanel;
-
     private List<OrgType> selectedOrgsList = new ArrayList<>();
-    private boolean isOrgTreeView;
 
     public AssignmentPopup(String id){
         super(id);
@@ -67,7 +55,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-//                TypedAssignablePanel.this.assignButtonClicked(target, new ArrayList<>());
+                AssignmentPopup.this.getPageBase().hideMainPopup(target);
             }
         };
         cancelButton.setOutputMarkupId(true);
@@ -81,55 +69,25 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 List<AssignmentType> newAssignmentsList = new ArrayList<>();
-                if (rolesTabPanel != null){
-                    List<O> selectedRoles = rolesTabPanel.getSelectedObjectsList();
-                    QName relation = rolesTabPanel.getRelationValue();
-                    selectedRoles.forEach(selectedRole -> {
-                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedRole, relation);
-                        AssignmentType newAssignment = new AssignmentType();
-                        newAssignment.setTargetRef(ref);
-                        newAssignmentsList.add(newAssignment);
-                    });
-                }
-                //todo synchronize relation drop down between 2 org tabs
-                if (orgsTabPanel != null || orgTreeViewTabPanel != null){
-                    QName relation = orgsTabPanel != null ? orgsTabPanel.getRelationValue() :
-                            (orgTreeViewTabPanel != null ? orgTreeViewTabPanel.getRelationValue() : SchemaConstants.ORG_DEFAULT);
-                    selectedOrgsList.forEach(selectedOrg -> {
-                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedOrg, relation);
-                        AssignmentType newAssignment = new AssignmentType();
-                        newAssignment.setTargetRef(ref);
-                        newAssignmentsList.add(newAssignment);
-                    });
-                }
-                if (servicesTabPanel != null){
-                    List<O> selectedServices = servicesTabPanel.getSelectedObjectsList();
-                    QName relation = servicesTabPanel.getRelationValue();
-                    selectedServices.forEach(selectedService -> {
-                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedService, relation);
-                        AssignmentType newAssignment = new AssignmentType();
-                        newAssignment.setTargetRef(ref);
-                        newAssignmentsList.add(newAssignment);
-                    });
-                }
-                if (resourcesTabPanel != null){
-                    List<ResourceType> selectedResourcces = resourcesTabPanel.getSelectedObjectsList();
-                    String intent = resourcesTabPanel.getIntentValue();
-                    ShadowKindType kind = resourcesTabPanel.getKindValue();
-                    selectedResourcces.forEach(selectedResource -> {
-                        ConstructionType constructionType = new ConstructionType();
-                        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(selectedResource);
-                        constructionType.setResourceRef(ref);
-                        constructionType.setKind(kind);
-                        constructionType.setIntent(intent);
+                List<AssignmentType> newOrgTypeAssignmentsList = new ArrayList<>();
 
-                        AssignmentType newAssignment = new AssignmentType();
-                        newAssignment.setConstruction(constructionType);
-                        newAssignmentsList.add(newAssignment);
-                    });
-                }
+                tabs.forEach(panelTab -> {
+                    WebMarkupContainer assignmentPanel = ((CountablePanelTab)panelTab).getPanel();
+                    if (assignmentPanel == null){
+                        return;
+                    }
+                    if (assignmentPanel instanceof OrgTypeAssignmentPopupTabPanel){
+                        if (newOrgTypeAssignmentsList.isEmpty()) {
+                            newOrgTypeAssignmentsList.addAll(((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedAssignmentsList());
+                            return;
+                        } else {
+                            return;
+                        }
+                    }
+                    newAssignmentsList.addAll(((AbstractAssignmentPopupTabPanel)assignmentPanel).getSelectedAssignmentsList());
+                });
+                newAssignmentsList.addAll(newOrgTypeAssignmentsList);
                 addPerformed(target, newAssignmentsList);
-
             }
         };
         addButton.setOutputMarkupId(true);
@@ -148,7 +106,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        rolesTabPanel = new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ROLE){
+                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ROLE){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -156,19 +114,14 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                                 tabLabelPanelUpdate(target);
                             }
                         };
-                        return rolesTabPanel;
                     }
 
                     @Override
                     public String getCount() {
-                        if (rolesTabPanel == null){
-                            return "0";
-                        }
-                        return Integer.toString(rolesTabPanel.getObjectListPanel().getSelectedObjectsCount());
+                        return Integer.toString(getTabPanelSelectedCount(getPanel()));
                     }
                 });
 
-        IModel<Boolean> isOrgTreeViewModel = getOrgTreeViewModel();
         tabs.add(
                 new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"), authorization) {
 
@@ -176,7 +129,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        orgsTabPanel = new OrgTypeAssignmentPopupTabPanel(panelId, isOrgTreeViewModel, selectedOrgsList){
+                        return new OrgTypeAssignmentPopupTabPanel(panelId, false, selectedOrgsList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -185,8 +138,6 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                             }
 
                         };
-                        orgsTabPanel.setOutputMarkupId(true);
-                        return orgsTabPanel;
                     }
 
                     @Override
@@ -196,13 +147,13 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                 });
 
 
-        tabs.add(new CountablePanelTab(getPageBase().createStringResource("TypedAssignablePanel.orgTreeView"), authorization) {
+        tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"), authorization) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                orgTreeViewTabPanel = new OrgTypeAssignmentPopupTabPanel(panelId, isOrgTreeViewModel, selectedOrgsList){
+                return new OrgTypeAssignmentPopupTabPanel(panelId, true, selectedOrgsList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -211,8 +162,6 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                     }
 
                 };
-                orgTreeViewTabPanel.setOutputMarkupId(true);
-                return orgTreeViewTabPanel;
             }
 
             @Override
@@ -228,7 +177,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        servicesTabPanel = new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.SERVICE){
+                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.SERVICE){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -237,15 +186,11 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                             }
 
                         };
-                        return servicesTabPanel;
                     }
 
                     @Override
                     public String getCount() {
-                        if (servicesTabPanel == null){
-                            return "0";
-                        }
-                        return Integer.toString(servicesTabPanel.getObjectListPanel().getSelectedObjectsCount());
+                        return Integer.toString(getTabPanelSelectedCount(getPanel()));
                     }
                 });
 
@@ -256,7 +201,7 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        resourcesTabPanel = new ResourceTypeAssignmentPopupTabPanel(panelId){
+                        return new ResourceTypeAssignmentPopupTabPanel(panelId){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -265,51 +210,30 @@ public class AssignmentPopup<O extends ObjectType> extends BasePanel implements 
                                 tabLabelPanelUpdate(target);
                             }
                         };
-                        return resourcesTabPanel;
                     }
 
                     @Override
                     public String getCount() {
-                        if (resourcesTabPanel == null){
-                            return "0";
-                        }
-                        return Integer.toString(resourcesTabPanel.getObjectListPanel().getSelectedObjectsCount());
+                        return Integer.toString(getTabPanelSelectedCount(getPanel()));
                     }
                 });
 
         return tabs;
     }
 
-    private IModel<Boolean> getOrgTreeViewModel(){
-        //the index of the Org Tree panel is 2
-        int orgTreeViewTabIndex = 2;
-        return new IModel<Boolean>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public Boolean getObject() {
-                isOrgTreeView = getTabbedPanel() != null && getTabbedPanel().getSelectedTab() == orgTreeViewTabIndex;
-                return isOrgTreeView;
-            }
-
-            @Override
-            public void setObject(Boolean object) {
-                isOrgTreeView = object;
-            }
-
-            @Override
-            public void detach() {
-
-            }
-        };
-    }
-
-    private TabbedPanel getTabbedPanel(){
-        return (TabbedPanel) get(ID_FORM).get(ID_TABS_PANEL);
+    private int getTabPanelSelectedCount(WebMarkupContainer panel){
+        if (panel != null && panel instanceof FocusTypeAssignmentPopupTabPanel){
+            return ((FocusTypeAssignmentPopupTabPanel) panel).getSelectedObjectsList().size();
+        }
+        return 0;
     }
 
     private void tabLabelPanelUpdate(AjaxRequestTarget target){
         target.add(getTabbedPanel());
+    }
+
+    private TabbedPanel getTabbedPanel(){
+        return (TabbedPanel) get(ID_FORM).get(ID_TABS_PANEL);
     }
 
     protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {

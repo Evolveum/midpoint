@@ -133,7 +133,7 @@
                     <q:equal>
                         <q:matching>stringIgnoreCase</q:matching>
                         <q:path>attributes/ri:login</q:path>
-                        <q:value>admin</q:value>
+                        <q:value>Cheif</q:value>
                     </q:equal>
                 </filter>
             </protected>
@@ -194,7 +194,7 @@
                 <situation>deleted</situation>
                 <synchronize>true</synchronize>
                 <action>
-                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
                 </action>
             </reaction>
             <reaction>
