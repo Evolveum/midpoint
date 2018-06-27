@@ -339,11 +339,11 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 
 		// Change something that's not that important
-		ProjectionPolicyType accountSynchronizationSettingsType = new ProjectionPolicyType();
-		accountSynchronizationSettingsType.setLegalize(true);
+		ProjectionPolicyType projectionPolicyType = new ProjectionPolicyType();
+		projectionPolicyType.setLegalize(true);
 
-		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_DUMMY_OID,
-				ResourceType.F_PROJECTION, prismContext, accountSynchronizationSettingsType);
+		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
+				ResourceType.F_PROJECTION, prismContext, projectionPolicyType);
 
 		// WHEN
 		provisioningService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), null, null, task, result);
@@ -450,11 +450,11 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 
 		// Change something that's not that important
-		ProjectionPolicyType accountSynchronizationSettingsType = new ProjectionPolicyType();
-		accountSynchronizationSettingsType.setLegalize(true);
+		ProjectionPolicyType projectionPolicyType = new ProjectionPolicyType();
+		projectionPolicyType.setLegalize(true);
 
-		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, RESOURCE_DUMMY_OID,
-				ResourceType.F_PROJECTION, prismContext, accountSynchronizationSettingsType);
+		ObjectDelta<ResourceType> objectDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, RESOURCE_DUMMY_OID,
+				ResourceType.F_PROJECTION, prismContext, projectionPolicyType);
 
 		// WHEN
 		repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY_OID, objectDelta.getModifications(), result);
