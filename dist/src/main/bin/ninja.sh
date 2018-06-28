@@ -37,15 +37,17 @@ cd "$PRGDIR/.." >/dev/null
 
 cd "$SCRIPT_PATH/.."
 
-if [ ! -d var ] ; then
-	echo "ERROR: midpoint.home directory desn't exist"
-	exit 1
-else
-	MIDPOINT_HOME=$(cd "$SCRIPT_PATH../var"; pwd)
+# honor MIDPOINT_HOME variable if it exists!
+if [ -z "$MIDPOINT_HOME" ]; then
+	if [ ! -d var ] ; then
+		echo "ERROR: midpoint.home directory desn't exist"
+		exit 1
+	else
+		MIDPOINT_HOME=$(cd "$SCRIPT_PATH../var"; pwd)
+	fi
+
+	[ -z "$MIDPOINT_HOME" ] && MIDPOINT_HOME=`cd "$SCRIPT_PATH../var" >/dev/null; pwd`
 fi
-
-[ -z "$MIDPOINT_HOME" ] && MIDPOINT_HOME=`cd "$SCRIPT_PATH../var" >/dev/null; pwd`
-
 #cd "$SCRIPT_PATH../lib"
 
 if [ ! -f lib/ninja.jar ] ; then

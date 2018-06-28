@@ -39,6 +39,8 @@ public class UsersPageTable<T> extends TableWithPageRedirect<T> {
 
     @Override
     public TableWithPageRedirect<T> selectCheckboxByName(String name) {
+
+        //TODO implement
         return null;
     }
 

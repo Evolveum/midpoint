@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
@@ -69,7 +70,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
@@ -115,14 +115,10 @@ public class PageUsers extends PageAdminUsers {
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
 	public PageUsers() {
-		this(true, null, null);
+		this(null);
 	}
 
-	public PageUsers(boolean clearPagingInSession) {
-		this(clearPagingInSession, null, null);
-	}
-
-	public PageUsers(boolean clearPagingInSession, final UsersDto.SearchType type, final String text) {
+	public PageUsers(final String text) {
 
 		executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
 
@@ -135,11 +131,12 @@ public class PageUsers extends PageAdminUsers {
         if (StringUtils.isNotEmpty(text)){
             initSearch(text);
         }
-        initLayout();
 	}
 
-	public PageUsers(UsersDto.SearchType type, String text) {
-		this(true, type, text);
+	@Override
+	protected void onInitialize(){
+		super.onInitialize();
+		initLayout();
 	}
 
     private void initSearch(String text){
@@ -214,6 +211,19 @@ public class PageUsers extends PageAdminUsers {
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
 				navigateToNext(PageUser.class);
+			}
+
+			@Override
+			protected ObjectQuery createContentQuery() {
+				ObjectQuery contentQuery = super.createContentQuery();
+				ObjectFilter usersViewFilter = getUsersViewFilter();
+				if (usersViewFilter != null){
+					if (contentQuery == null){
+						contentQuery = new ObjectQuery();
+					}
+					contentQuery.addFilter(usersViewFilter);
+				}
+				return contentQuery;
 			}
 		};
 
@@ -677,5 +687,9 @@ public class PageUsers extends PageAdminUsers {
     private boolean isShowConfirmationDialog(ColumnMenuAction action){
 		return action.getRowModel() != null ||
 				getTable().getSelectedObjectsCount() > 0;
+	}
+
+	protected ObjectFilter getUsersViewFilter(){
+    	return null;
 	}
 }
