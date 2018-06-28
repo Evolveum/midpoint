@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.MultiButtonPanel2;
+import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -164,7 +164,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 			public void populateItem(Item<ICellPopulator<SelectableBean<AccessCertificationDefinitionType>>> cellItem, String componentId,
 									 IModel<SelectableBean<AccessCertificationDefinitionType>> rowModel) {
 
-				cellItem.add(new MultiButtonPanel2<SelectableBean<AccessCertificationDefinitionType>>(componentId, rowModel, 3) {
+				cellItem.add(new MultiButtonPanel<SelectableBean<AccessCertificationDefinitionType>>(componentId, rowModel, 3) {
 
 					private static final long serialVersionUID = 1L;
 

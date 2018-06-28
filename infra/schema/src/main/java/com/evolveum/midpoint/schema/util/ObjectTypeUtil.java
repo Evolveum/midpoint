@@ -259,6 +259,17 @@ public class ObjectTypeUtil {
 	}
 
 	@NotNull
+	public static AssignmentType createAssignmentWithConstruction(@NotNull PrismObject<ResourceType> object, ShadowKindType kind, String intent) {
+		AssignmentType assignment = new AssignmentType(object.getPrismContext());
+		ConstructionType construction = new ConstructionType(object.getPrismContext());
+		construction.setResourceRef(createObjectRef(object));
+		construction.setKind(kind);
+		construction.setIntent(intent);
+		assignment.setConstruction(construction);
+		return assignment;
+	}
+
+	@NotNull
 	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull T objectType, QName relation) {
 		return createAssignmentTo((PrismObject<T>) objectType.asPrismObject(), relation);
 	}

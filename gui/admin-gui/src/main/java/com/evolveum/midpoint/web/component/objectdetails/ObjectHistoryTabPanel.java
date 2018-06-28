@@ -21,14 +21,11 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.MultiButtonPanel2;
+import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -46,7 +43,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.MultiButtonColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
@@ -98,7 +94,7 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
                     public void populateItem(Item<ICellPopulator<AuditEventRecordType>> cellItem, String componentId,
                                              IModel<AuditEventRecordType> rowModel) {
 
-                        cellItem.add(new MultiButtonPanel2<AuditEventRecordType>(componentId, rowModel, 2) {
+                        cellItem.add(new MultiButtonPanel<AuditEventRecordType>(componentId, rowModel, 2) {
 
                             private static final long serialVersionUID = 1L;
 
