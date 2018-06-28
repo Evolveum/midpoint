@@ -52,6 +52,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.RetrieveOption.INCLUDE;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_CASE;
 import static java.util.Collections.singletonList;
@@ -323,7 +324,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 			AccessCertificationCaseType aCase = CertCampaignTypeUtil.getCase(workItem);
 			if (aCase != null && aCase.getTargetRef() != null && aCase.getTargetRef().getOid().equals(targetOid) &&
 					aCase.getObjectRef() != null && aCase.getObjectRef().getOid().equals(subjectOid) &&
-					workItem.getIteration() == iteration) {
+					norm(workItem.getIteration()) == iteration) {
 				return workItem;
 			}
 		}
@@ -362,7 +363,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         assertNull("Unexpected end time", campaign.getEndTimestamp());
         assertEquals("wrong # of defined stages", definition.getStageDefinition().size(), campaign.getStageDefinition().size());
         assertEquals("wrong # of stages", expectedStages, campaign.getStage().size());
-        AccessCertificationStageType stage = campaign.getStage().stream().filter(s -> s.getIteration() == iteration && s.getNumber() == 1).findFirst().orElse(null);
+        AccessCertificationStageType stage = campaign.getStage().stream().filter(s -> norm(s.getIteration()) == iteration && s.getNumber() == 1).findFirst().orElse(null);
         assertNotNull("No stage #1 for current iteration", stage);
         assertEquals("wrong stage #", 1, stage.getNumber());
         assertApproximateTime("stage 1 start", new Date(), stage.getStartTimestamp());
@@ -411,7 +412,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 	}
 
 	protected void assertIteration(AccessCertificationCampaignType campaign, int iteration) {
-		assertEquals("Unexpected campaign iteration", iteration, campaign.getIteration());
+		assertEquals("Unexpected campaign iteration", iteration, norm(campaign.getIteration()));
 	}
 
 	protected void assertDefinitionAndOwner(AccessCertificationCampaignType campaign, AccessCertificationDefinitionType certificationDefinition) {
@@ -449,7 +450,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 		List<AccessCertificationWorkItemType> workItems = aCase.getWorkItem().stream()
 				.filter(wi -> ObjectTypeUtil.containsOid(wi.getAssigneeRef(), realReviewerOid))
 				.filter(wi -> wi.getStageNumber() == aCase.getStageNumber())
-				.filter(wi -> wi.getIteration() == aCase.getIteration())
+				.filter(wi -> norm(wi.getIteration()) == norm(aCase.getIteration()))
 				.collect(Collectors.toList());
 		assertEquals("Wrong # of current work items for " + realReviewerOid + " in " + aCase, 1, workItems.size());
 		long id = aCase.asPrismContainerValue().getId();
@@ -504,7 +505,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 				continue;
 			}
 			StageCompletionEventType completionEvent = (StageCompletionEventType) event;
-			if (completionEvent.getStageNumber() == stageNumber && completionEvent.getIteration() == iteration) {   // TODO sure about iteration check?
+			if (completionEvent.getStageNumber() == stageNumber && norm(completionEvent.getIteration()) == iteration) {   // TODO sure about iteration check?
 				assertEquals("Wrong outcome stored for stage #" + stageNumber + " in " + aCase, OutcomeUtils.toUri(outcome), completionEvent.getOutcome());
 				if (found) {
 					fail("Duplicate outcome stored for stage #" + stageNumber + " in " + aCase);
@@ -534,7 +535,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 			if (decidedOnly && WorkItemTypeUtil.getOutcome(workItem) == null) {
 				continue;
 			}
-			if (workItem.getStageNumber() == stageNumber && workItem.getIteration() == iteration) {
+			if (workItem.getStageNumber() == stageNumber && norm(workItem.getIteration()) == iteration) {
 				rv.add(workItem.clone());
 			}
 		}
@@ -544,7 +545,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 	public AccessCertificationWorkItemType getWorkItemsForReviewer(AccessCertificationCaseType _case, int stageNumber,
 			int iteration, String reviewerOid) {
 		for (AccessCertificationWorkItemType workItem : _case.getWorkItem()) {
-			if (workItem.getStageNumber() == stageNumber && workItem.getIteration() == iteration &&
+			if (workItem.getStageNumber() == stageNumber && norm(workItem.getIteration()) == iteration &&
 					ObjectTypeUtil.containsOid(workItem.getAssigneeRef(), reviewerOid)) {
 				return workItem;
 			}
@@ -621,12 +622,12 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         AccessCertificationStageType stage = CertCampaignTypeUtil.getCurrentStage(campaign);
         assertNotNull(stage);
         assertEquals("wrong stage #", stageNumber, stage.getNumber());
-        assertEquals("wrong stage iteration #", iteration, stage.getIteration());
+        assertEquals("wrong stage iteration #", iteration, norm(stage.getIteration()));
         assertApproximateTime("stage start", new Date(), stage.getStartTimestamp());
         assertApproximateTime("stage end", new Date(), stage.getStartTimestamp());
 
 		for (AccessCertificationCaseType aCase : campaign.getCase()) {
-			if (aCase.getStageNumber() != stageNumber || aCase.getIteration() != iteration) {
+			if (aCase.getStageNumber() != stageNumber || norm(aCase.getIteration()) != iteration) {
 				continue;
 			}
 			checkCaseOutcomesSanity(aCase, campaign, stageNumber);
@@ -634,7 +635,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
     }
 
 	private void checkCaseOutcomesSanity(AccessCertificationCaseType aCase, AccessCertificationCampaignType campaign, int stageNumber) {
-		assertEquals("Wrong # of completed stage outcomes", stageNumber, CertCampaignTypeUtil.getCompletedStageEvents(aCase, campaign.getIteration()).size());
+		assertEquals("Wrong # of completed stage outcomes", stageNumber, CertCampaignTypeUtil.getCompletedStageEvents(aCase, norm(campaign.getIteration())).size());
 		AccessCertificationResponseType expectedOverall = computationHelper.computeOverallOutcome(aCase, campaign);
 		assertEquals("Inconsistent overall outcome", OutcomeUtils.toUri(expectedOverall), aCase.getOutcome());
 	}
@@ -651,7 +652,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
         assertEquals("Wrong overall outcome in " + aCase, OutcomeUtils.toUri(expectedOverallOutcome), aCase.getOutcome());
 
 		if (completedStage != null) {
-			assertHistoricOutcome(aCase, completedStage, aCase.getIteration(), expectedStageOutcome);
+			assertHistoricOutcome(aCase, completedStage, norm(aCase.getIteration()), expectedStageOutcome);
 		}
     }
 

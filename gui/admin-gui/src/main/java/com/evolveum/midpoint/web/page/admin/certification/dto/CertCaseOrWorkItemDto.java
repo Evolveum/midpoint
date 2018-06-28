@@ -32,6 +32,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
 /**
  * A common superclass for CertCaseDto + CertWorkItemDto.
  *
@@ -93,7 +95,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
     }
 
     public Integer getIteration() {
-    	return certCase.getIteration();
+    	return norm(certCase.getIteration());
     }
 
     public String getTargetName() {

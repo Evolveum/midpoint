@@ -33,6 +33,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
 /**
  * @author mederly
  */
@@ -77,7 +79,7 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
     }
 
     public Integer getIteration() {
-        return campaign.getIteration();
+        return norm(campaign.getIteration());
     }
 
     public String getDescription() {

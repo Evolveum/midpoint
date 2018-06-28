@@ -64,6 +64,7 @@ import java.util.*;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.*;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortStringLazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
@@ -214,7 +215,7 @@ public class AccCertOpenerHelper {
 
 	void openNextStage(AccessCertificationCampaignType campaign, CertificationHandler handler, Task task,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-		boolean skipEmptyStages = campaign.getIteration() > 1;        // TODO make configurable
+		boolean skipEmptyStages = norm(campaign.getIteration()) > 1;        // TODO make configurable
 		int requestedStageNumber = campaign.getStageNumber() + 1;
 		for (;;) {
 			OpeningContext openingContext = new OpeningContext();
@@ -243,10 +244,10 @@ public class AccCertOpenerHelper {
         int newStageNumber = stage.getNumber();
 
 	    LOGGER.trace("getDeltasForStageOpen starting; campaign = {}, stage number = {}, new stage number = {}, iteration = {}",
-			    ObjectTypeUtil.toShortStringLazy(campaign), stageNumber, newStageNumber, campaign.getIteration());
+			    ObjectTypeUtil.toShortStringLazy(campaign), stageNumber, newStageNumber, norm(campaign.getIteration()));
 
 	    ModificationsToExecute rv = new ModificationsToExecute();
-        if (stageNumber == 0 && campaign.getIteration() == 1) {
+        if (stageNumber == 0 && norm(campaign.getIteration()) == 1) {
             getDeltasToCreateCases(campaign, stage, handler, rv, openingContext, task, result);
         } else {
             getDeltasToUpdateCases(campaign, stage, rv, openingContext, task, result);
@@ -304,7 +305,7 @@ public class AccCertOpenerHelper {
 		AccessCertificationReviewerSpecificationType reviewerSpec =
 				reviewersHelper.findReviewersSpecification(campaign, 1);
 
-		assert campaign.getIteration() == 1;
+		assert norm(campaign.getIteration()) == 1;
 
 		for (AccessCertificationCaseType _case : caseList) {
 			ContainerDelta<AccessCertificationCaseType> caseDelta = ContainerDelta.createDelta(F_CASE,
@@ -420,7 +421,7 @@ public class AccCertOpenerHelper {
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		int stageToBe = stage.getNumber();
-		int iteration = campaign.getIteration();
+		int iteration = norm(campaign.getIteration());
 		LOGGER.trace("Updating cases in {}; current stage = {}, stageToBe = {}, iteration = {}", toShortStringLazy(campaign),
 				campaign.getStageNumber(), stageToBe, iteration);
 		List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), iteration, null, result);
@@ -523,7 +524,7 @@ public class AccCertOpenerHelper {
 
     private AccessCertificationStageType createStage(AccessCertificationCampaignType campaign, int requestedStageNumber) {
         AccessCertificationStageType stage = new AccessCertificationStageType(prismContext);
-        stage.setIteration(campaign.getIteration());
+        stage.setIteration(norm(campaign.getIteration()));
         stage.setNumber(requestedStageNumber);
         stage.setStartTimestamp(clock.currentTimeXMLGregorianCalendar());
 
@@ -568,7 +569,7 @@ public class AccCertOpenerHelper {
 
 		updateHelper.notifyReviewers(campaign, false, task, result);
 
-        if (newStage.getNumber() == 1 && campaign.getIteration() == 1 && campaign.getDefinitionRef() != null) {
+        if (newStage.getNumber() == 1 && norm(campaign.getIteration()) == 1 && campaign.getDefinitionRef() != null) {
             List<ItemDelta<?,?>> deltas = DeltaBuilder.deltaFor(AccessCertificationDefinitionType.class, prismContext)
                     .item(F_LAST_CAMPAIGN_STARTED_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
                     .asItemDeltas();
@@ -592,7 +593,7 @@ public class AccCertOpenerHelper {
 		modifications.add(updateHelper.createTriggerDeleteDelta());
 		modifications.add(updateHelper.createStartTimeDelta(null));
 		modifications.add(updateHelper.createEndTimeDelta(null));
-		int newIteration = campaign.getIteration() + 1;
+		int newIteration = norm(campaign.getIteration()) + 1;
 		modifications.add(DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
 				.item(AccessCertificationCampaignType.F_ITERATION).replace(newIteration)
 				.asItemDelta());

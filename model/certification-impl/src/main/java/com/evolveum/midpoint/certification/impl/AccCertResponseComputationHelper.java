@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.fromUri;
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.normalizeToNonNull;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortStringLazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ALL_MUST_ACCEPT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType.ONE_ACCEPT_ACCEPTS;
@@ -116,7 +117,7 @@ public class AccCertResponseComputationHelper {
     AccessCertificationResponseType computeOutcomeForStage(AccessCertificationCaseType aCase,
 		    AccessCertificationCampaignType campaign, int stageNumber) {
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stageNumber);
-        List<AccessCertificationResponseType> allResponses = getResponses(aCase, stageNumber, campaign.getIteration());
+        List<AccessCertificationResponseType> allResponses = getResponses(aCase, stageNumber, norm(campaign.getIteration()));
 	    AccessCertificationResponseType outcome;
 	    String base;
         if (allResponses.isEmpty()) {
@@ -164,7 +165,7 @@ public class AccCertResponseComputationHelper {
 		for (AccessCertificationWorkItemType wi : aCase.getWorkItem()) {
 			if (wi.getStageNumber() == stageNumber) {
 				AccessCertificationResponseType response = normalizeToNonNull(fromUri(WorkItemTypeUtil.getOutcome(wi)));
-				if (response != AccessCertificationResponseType.NO_RESPONSE || wi.getIteration() == iteration) {
+				if (response != AccessCertificationResponseType.NO_RESPONSE || norm(wi.getIteration()) == iteration) {
 					// i.e. NO_RESPONSE answers from earlier iterations are not taken into account
 					rv.add(response);
 				}

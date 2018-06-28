@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem.TABLE;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 /**
  * @author mederly
@@ -252,7 +253,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 			throw new IllegalArgumentException("No ID for access certification work item: " + workItem);
 		}
 		rWorkItem.setId(idInt);
-		rWorkItem.setIteration(workItem.getIteration());
+		rWorkItem.setIteration(norm(workItem.getIteration()));
 		rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.getAssigneeRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
                 workItem.getAssigneeRef(), context.prismContext, rWorkItem));

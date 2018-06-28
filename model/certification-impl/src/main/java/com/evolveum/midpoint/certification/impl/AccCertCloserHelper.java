@@ -49,6 +49,7 @@ import java.util.*;
 
 import static com.evolveum.midpoint.certification.api.OutcomeUtils.toUri;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortStringLazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CLOSE_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
@@ -155,7 +156,7 @@ public class AccCertCloserHelper {
 			List<AccessCertificationResponseType> outcomesToStopOn,
 			OperationResult result) throws SchemaException {
 		LOGGER.debug("Updating current outcome for cases in {}", toShortStringLazy(campaign));
-		List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), campaign.getIteration(), null, result);
+		List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), norm(campaign.getIteration()), null, result);
 		for (AccessCertificationCaseType aCase : caseList) {
 			long caseId = aCase.getId();
 			if (aCase.getReviewFinishedTimestamp() != null) {

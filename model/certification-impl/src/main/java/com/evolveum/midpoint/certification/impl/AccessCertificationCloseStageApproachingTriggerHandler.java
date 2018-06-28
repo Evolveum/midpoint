@@ -36,6 +36,8 @@ import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
 /**
  * @author mederly
  *
@@ -76,7 +78,7 @@ public class AccessCertificationCloseStageApproachingTriggerHandler implements T
 
 			eventHelper.onCampaignStageDeadlineApproaching(campaign, task, result);
 			List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(),
-					campaign.getIteration(), null, result);
+					norm(campaign.getIteration()), null, result);
 			Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);
 			for (String reviewerOid : reviewers) {
 				List<AccessCertificationCaseType> reviewerCaseList = queryHelper.selectOpenCasesForReviewer(caseList, reviewerOid);

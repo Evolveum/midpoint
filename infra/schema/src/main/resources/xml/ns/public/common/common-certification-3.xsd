@@ -469,7 +469,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="iteration" type="xsd:int" default="1">
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Which iteration this campaign is in. 1 means the regular (first) run;
@@ -527,7 +527,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="iteration" type="xsd:int" default="1">
+            <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Which iteration this stage is part of. 1 means the first (i.e. regular) run.
@@ -845,7 +845,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="iteration" type="xsd:int" default="1">
+            <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         Iteration this case takes part of. Case is "enabled" for a current campaign stage if and only if
@@ -963,7 +963,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="iteration" type="xsd:int" default="1">
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Which iteration this work item is part of. 1 means the first (i.e. regular) run.

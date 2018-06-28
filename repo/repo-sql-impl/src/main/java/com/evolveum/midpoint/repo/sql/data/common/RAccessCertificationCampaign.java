@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
 @Entity
 @Table(name = RAccessCertificationCampaign.TABLE_NAME,
         uniqueConstraints = @UniqueConstraint(name = "uc_acc_cert_campaign_name", columnNames = {"name_norm"}),
@@ -213,7 +215,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         repo.setStart(jaxb.getStartTimestamp());
         repo.setEnd(jaxb.getEndTimestamp());
         repo.setState(RUtil.getRepoEnumValue(jaxb.getState(), RAccessCertificationCampaignState.class));
-        repo.setIteration(jaxb.getIteration());
+        repo.setIteration(norm(jaxb.getIteration()));
         repo.setStageNumber(jaxb.getStageNumber());
     }
 }

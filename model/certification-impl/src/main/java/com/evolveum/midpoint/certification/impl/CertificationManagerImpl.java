@@ -53,6 +53,7 @@ import org.springframework.stereotype.Service;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
 
 /**
@@ -229,7 +230,7 @@ public class CertificationManagerImpl implements CertificationManager {
             final int currentStageNumber = campaign.getStageNumber();
             final int stages = CertCampaignTypeUtil.getNumberOfStages(campaign);
             final AccessCertificationCampaignStateType state = campaign.getState();
-            LOGGER.trace("openNextStage: iteration={}, currentStageNumber={}, stages={}, state={}", campaign.getIteration(), currentStageNumber, stages, state);
+            LOGGER.trace("openNextStage: iteration={}, currentStageNumber={}, stages={}, state={}", norm(campaign.getIteration()), currentStageNumber, stages, state);
             if (IN_REVIEW_STAGE.equals(state)) {
                 result.recordFatalError("Couldn't advance to the next review stage as the stage " + currentStageNumber + " is currently open.");
             } else if (IN_REMEDIATION.equals(state)) {

@@ -31,6 +31,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REMEDIATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
@@ -1259,7 +1260,7 @@ jack->CTO                   none (A) -> A       none (A) -> A             | A   
         assertSanityAfterStageOpen(campaign, certificationDefinition, 2, 2, 5); // stage 1 in iteration 2 was skipped
 
         List<AccessCertificationCaseType> caseList = queryHelper.searchCases(campaignOid, null, null, result);
-		caseList.removeIf(c -> c.getIteration() != 2);
+		caseList.removeIf(c -> norm(c.getIteration()) != 2);
 		assertEquals("Wrong number of certification cases", 3, caseList.size());
 		AccessCertificationCaseType administratorCeoCase = findCase(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID);
 		AccessCertificationCaseType jackCeoCase = findCase(caseList, USER_JACK_OID, ROLE_CEO_OID);

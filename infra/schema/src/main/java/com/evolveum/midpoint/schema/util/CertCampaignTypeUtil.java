@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +42,7 @@ public class CertCampaignTypeUtil {
 
     public static AccessCertificationStageType getCurrentStage(AccessCertificationCampaignType campaign) {
         for (AccessCertificationStageType stage : campaign.getStage()) {
-            if (stage.getNumber() == campaign.getStageNumber() && stage.getIteration() == campaign.getIteration()) {
+            if (stage.getNumber() == campaign.getStageNumber() && norm(stage.getIteration()) == norm(campaign.getIteration())) {
                 return stage;
             }
         }
@@ -66,11 +67,11 @@ public class CertCampaignTypeUtil {
     @NotNull
     public static AccessCertificationStageType findStage(AccessCertificationCampaignType campaign, int stageNumber) {
         for (AccessCertificationStageType stage : campaign.getStage()) {
-            if (stage.getNumber() == stageNumber && stage.getIteration() == campaign.getIteration()) {
+            if (stage.getNumber() == stageNumber && norm(stage.getIteration()) == norm(campaign.getIteration())) {
                 return stage;
             }
         }
-        throw new IllegalStateException("No stage " + stageNumber + " (iteration " + campaign.getIteration() + " in "
+        throw new IllegalStateException("No stage " + stageNumber + " (iteration " + norm(campaign.getIteration()) + " in "
                 + ObjectTypeUtil.toShortString(campaign));
     }
 
@@ -89,7 +90,7 @@ public class CertCampaignTypeUtil {
     public static AccessCertificationWorkItemType findWorkItem(AccessCertificationCaseType _case, int stageNumber, int iteration,
             String reviewerOid) {
         return _case.getWorkItem().stream()
-                .filter(wi -> wi.getStageNumber() == stageNumber && wi.getIteration() == iteration
+                .filter(wi -> wi.getStageNumber() == stageNumber && norm(wi.getIteration()) == iteration
                         && ObjectTypeUtil.containsOid(wi.getAssigneeRef(), reviewerOid))
                 .findFirst().orElse(null);
     }
@@ -173,7 +174,7 @@ public class CertCampaignTypeUtil {
 
     public static float getCasesCompletedPercentageCurrStageCurrIteration(AccessCertificationCampaignType campaign) {
         return getCasesCompletedPercentage(campaign.getCase(),
-                accountForClosingStates(campaign.getStageNumber(), campaign.getState()), campaign.getIteration());
+                accountForClosingStates(campaign.getStageNumber(), campaign.getState()), norm(campaign.getIteration()));
     }
 
     public static float getCasesCompletedPercentageCurrStageAllIterations(AccessCertificationCampaignType campaign) {
@@ -182,7 +183,7 @@ public class CertCampaignTypeUtil {
     }
 
     public static float getCasesCompletedPercentageAllStagesCurrIteration(AccessCertificationCampaignType campaign) {
-        return getCasesCompletedPercentage(campaign.getCase(), null, campaign.getIteration());
+        return getCasesCompletedPercentage(campaign.getCase(), null, norm(campaign.getIteration()));
     }
 
     private static float getCasesCompletedPercentage(List<AccessCertificationCaseType> caseList, Integer stage, Integer iteration) {
@@ -211,14 +212,14 @@ public class CertCampaignTypeUtil {
             Map<String,Integer> reviewersIterations = stagesReviewersIterations.computeIfAbsent(workItem.getStageNumber(), (stage) -> new HashMap<>());
             String reviewer = workItem.getOriginalAssigneeRef().getOid();
             Integer oldIteration = reviewersIterations.get(reviewer);
-            if (oldIteration == null || oldIteration < workItem.getIteration()) {
-                reviewersIterations.put(reviewer, workItem.getIteration());
+            if (oldIteration == null || oldIteration < norm(workItem.getIteration())) {
+                reviewersIterations.put(reviewer, norm(workItem.getIteration()));
             }
         }
         for (Iterator<AccessCertificationWorkItemType> iterator = workItems.iterator(); iterator.hasNext(); ) {
             AccessCertificationWorkItemType workItem = iterator.next();
             int lastIteration = stagesReviewersIterations.get(workItem.getStageNumber()).get(workItem.getOriginalAssigneeRef().getOid());
-            if (workItem.getIteration() < lastIteration) {
+            if (norm(workItem.getIteration()) < lastIteration) {
                 iterator.remove();
             }
         }
@@ -246,7 +247,7 @@ public class CertCampaignTypeUtil {
     }
 
     public static float getCasesDecidedPercentageCurrStageCurrIteration(AccessCertificationCampaignType campaign) {
-        return getCasesDecidedPercentage(campaign.getCase(), campaign.getStageNumber(), campaign.getIteration(), campaign.getState());
+        return getCasesDecidedPercentage(campaign.getCase(), campaign.getStageNumber(), norm(campaign.getIteration()), campaign.getState());
     }
 
     public static float getCasesDecidedPercentageCurrStageAllIterations(AccessCertificationCampaignType campaign) {
@@ -254,7 +255,7 @@ public class CertCampaignTypeUtil {
     }
 
     public static float getCasesDecidedPercentageAllStagesCurrIteration(AccessCertificationCampaignType campaign) {
-        return getCasesDecidedPercentage(campaign.getCase(), null, campaign.getIteration(), null);
+        return getCasesDecidedPercentage(campaign.getCase(), null, norm(campaign.getIteration()), null);
     }
 
     public static float getCasesDecidedPercentage(List<AccessCertificationCaseType> caseList, Integer stage, Integer iteration,
@@ -279,7 +280,7 @@ public class CertCampaignTypeUtil {
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean caseMatches(AccessCertificationCaseType aCase, Integer stage, Integer iteration) {
-        if (iteration != null && iteration.intValue() != aCase.getIteration()) {
+        if (iteration != null && iteration != norm(aCase.getIteration())) {
             return false;
         }
         return stage == null || stage == aCase.getStageNumber()
@@ -288,7 +289,7 @@ public class CertCampaignTypeUtil {
 
     private static boolean workItemMatches(AccessCertificationWorkItemType workItem, Integer stage, Integer iteration) {
         return (stage == null || stage.intValue() == workItem.getStageNumber().intValue())
-                && (iteration == null || iteration.intValue() == workItem.getIteration()); // TODO .intValue
+                && (iteration == null || iteration == norm(workItem.getIteration()));
     }
 
     // what % of work items is complete?
@@ -298,7 +299,7 @@ public class CertCampaignTypeUtil {
 
     public static float getWorkItemsCompletedPercentageCurrStageCurrIteration(AccessCertificationCampaignType campaign) {
         return getWorkItemsCompletedPercentage(campaign.getCase(),
-                accountForClosingStates(campaign.getStageNumber(), campaign.getState()), campaign.getIteration());
+                accountForClosingStates(campaign.getStageNumber(), campaign.getState()), norm(campaign.getIteration()));
     }
 
     public static float getWorkItemsCompletedPercentageCurrStageAllIterations(AccessCertificationCampaignType campaign) {
@@ -307,7 +308,7 @@ public class CertCampaignTypeUtil {
     }
 
     public static float getWorkItemsCompletedPercentageAllStagesCurrIteration(AccessCertificationCampaignType campaign) {
-        return getWorkItemsCompletedPercentage(campaign.getCase(), null, campaign.getIteration());
+        return getWorkItemsCompletedPercentage(campaign.getCase(), null, norm(campaign.getIteration()));
     }
 
     public static float getWorkItemsCompletedPercentage(List<AccessCertificationCaseType> caseList, Integer stage, Integer iteration) {
@@ -538,7 +539,7 @@ public class CertCampaignTypeUtil {
     public static List<StageCompletionEventType> getCompletedStageEvents(AccessCertificationCaseType aCase, int iteration) {
         return aCase.getEvent().stream()
                 .filter(e -> e instanceof StageCompletionEventType)
-                .filter(e -> e.getIteration() != null && e.getIteration() == iteration)
+                .filter(e -> norm(e.getIteration()) == iteration)
                 .map(e -> (StageCompletionEventType) e)
                 .collect(toList());
     }
@@ -548,7 +549,7 @@ public class CertCampaignTypeUtil {
         return aCase.getEvent().stream()
                 .filter(e -> e instanceof StageCompletionEventType)
                 .filter(e -> stage == null || e.getStageNumber() != null && e.getStageNumber() == stage.intValue())
-                .filter(e -> iteration == null || e.getIteration() != null && e.getIteration() == iteration.intValue())
+                .filter(e -> iteration == null || norm(e.getIteration()) == iteration)
                 .map(e -> (StageCompletionEventType) e)
                 .collect(toList());
     }
@@ -597,5 +598,9 @@ public class CertCampaignTypeUtil {
 			}
         }
         return oids;
+    }
+
+    public static int norm(Integer iteration) {
+        return ObjectUtils.defaultIfNull(iteration, 1);
     }
 }

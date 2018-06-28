@@ -50,10 +50,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.resolveItemsNamed;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 public class ReportFunctions {
 
@@ -473,7 +473,7 @@ public class ReportFunctions {
                 if (stageNumber != null && !Objects.equals(workItem.getStageNumber(), stageNumber)) {
                     continue;
                 }
-                if (iteration != null && defaultIfNull(workItem.getIteration(), 1) != iteration.intValue()) {
+                if (iteration != null && norm(workItem.getIteration()) != iteration) {
                     continue;
                 }
                 workItems.add(workItem);

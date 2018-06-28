@@ -49,6 +49,7 @@ import org.springframework.stereotype.Component;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static java.util.Collections.singleton;
 
 /**
@@ -198,7 +199,7 @@ public class AccCertUpdateHelper {
 	//endregion
 
 	void notifyReviewers(AccessCertificationCampaignType campaign, boolean unansweredOnly, Task task, OperationResult result) throws SchemaException {
-		List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), campaign.getIteration(), null, result);
+		List<AccessCertificationCaseType> caseList = queryHelper.getAllCurrentIterationCases(campaign.getOid(), norm(campaign.getIteration()), null, result);
 		Collection<String> reviewers = CertCampaignTypeUtil.getActiveReviewers(caseList);
 		for (String reviewerOid : reviewers) {
 			List<AccessCertificationCaseType> cases = queryHelper.getOpenCasesForReviewer(campaign, reviewerOid, result);

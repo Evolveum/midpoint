@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 /**
  * @author mederly
@@ -95,7 +96,7 @@ public class CertCampaignDto extends Selectable {
     }
 
     public Integer getIteration() {
-        return campaign.getIteration();
+        return norm(campaign.getIteration());
     }
 
     public int getNumberOfStages() {

@@ -50,6 +50,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.toShortString;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -113,7 +114,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
 		PrismObject<SystemConfigurationType> systemConfigurationObject;
 		try {
 			campaign = helper.getCampaign(campaignOid, null, task, opResult);
-			caseList = queryHelper.getAllCurrentIterationCases(campaignOid, campaign.getIteration(), null, opResult);
+			caseList = queryHelper.getAllCurrentIterationCases(campaignOid, norm(campaign.getIteration()), null, opResult);
 			systemConfigurationObject = objectCache.getSystemConfiguration(opResult);
 		} catch (ObjectNotFoundException|SchemaException e) {
 			opResult.computeStatus();
