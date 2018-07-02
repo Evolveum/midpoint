@@ -344,4 +344,6 @@ public interface ModelInteractionService {
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 	
 	public void clearCaches();
+	
+	void refreshPrincipal(String oid);
 }
