@@ -176,6 +176,7 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         return currentStageOutcome;
     }
 
+    @Column(nullable = false)
     public Integer getIteration() {
         return iteration;
     }

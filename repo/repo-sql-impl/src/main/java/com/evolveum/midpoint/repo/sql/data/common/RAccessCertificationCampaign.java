@@ -123,6 +123,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         return state;
     }
 
+    @Column(nullable = false)
     public Integer getIteration() {
         return iteration;
     }

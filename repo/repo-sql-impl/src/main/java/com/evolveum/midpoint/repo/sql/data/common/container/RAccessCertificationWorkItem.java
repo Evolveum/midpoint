@@ -128,7 +128,7 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		this.id = id;
 	}
 
-	@Column
+	@Column(nullable = false)
 	public Integer getIteration() {
 		return iteration;
 	}
