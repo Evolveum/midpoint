@@ -583,15 +583,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
-		PrismObjectDefinition<ResourceType> objectDefinition = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(ResourceType.class);
-
 		ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(Boolean.valueOf(legalize));
-		ItemDelta deleteAssigmentEnforcement = PropertyDelta
-				.createModificationDeleteProperty(new ItemPath(ResourceType.F_PROJECTION),
-						objectDefinition.findPropertyDefinition(ResourceType.F_PROJECTION), syncSettings);
+		ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = ContainerDelta
+				.createModificationDelete(new ItemPath(ResourceType.F_PROJECTION), ResourceType.class, prismContext,
+						syncSettings.clone());
 
 		Collection<ItemDelta> modifications = new ArrayList<>();
 		modifications.add(deleteAssigmentEnforcement);
