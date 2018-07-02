@@ -523,6 +523,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_SAIL_URL = QNameUtil.qNameToUri(AUTZ_SAIL_QNAME);
 	protected static final QName AUTZ_DRINK_QNAME = new QName(NS_TEST_AUTZ, "drink");
 	protected static final String AUTZ_DRINK_URL = QNameUtil.qNameToUri(AUTZ_DRINK_QNAME);
+	protected static final QName AUTZ_APPARATE_QNAME = new QName(NS_TEST_AUTZ, "apparate");
+	protected static final String AUTZ_APPARATE_URL = QNameUtil.qNameToUri(AUTZ_APPARATE_QNAME);
+	protected static final QName AUTZ_GAMBLE_QNAME = new QName(NS_TEST_AUTZ, "gamble");
+	protected static final String AUTZ_GAMBLE_URL = QNameUtil.qNameToUri(AUTZ_GAMBLE_QNAME);
 
 	protected static final String NOTIFIER_ACCOUNT_PASSWORD_NAME = "accountPasswordNotifier";
 	protected static final String NOTIFIER_USER_PASSWORD_NAME = "userPasswordNotifier";

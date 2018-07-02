@@ -38,6 +38,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -48,15 +49,21 @@ import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.*;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -124,6 +131,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     private static final String PROP_DEFAULT = ".default";
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
+    
+    
 
     static {
         SchemaDebugUtil.initialize();
@@ -202,7 +211,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     @Override
     public Class<? extends PageBase> getHomePage() {
-        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+    	if (WebModelServiceUtils.isPostAuthenticationEnabled(getTaskManager(), getModelInteractionService())) {
+    		return PagePostAuthentication.class;
+    	}
+    	
+    	if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
                 AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
             return PageDashboard.class;
         } else {

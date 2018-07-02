@@ -21,4 +21,7 @@
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Headmaster</name>
     <roleType>dataProcessingBasis</roleType>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#apparate</action>
+    </authorization>
 </role>
