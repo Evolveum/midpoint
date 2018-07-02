@@ -1708,5 +1708,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		cacheRegistry.clearAllCaches();
 	}
 	
+	@Override
+	public void refreshPrincipal(String name) {
+		try {
+			MidPointPrincipal principal = userProfileService.getPrincipal(name);
+			securityContextManager.setupPreAuthenticatedSecurityContext(principal);
+		} catch (ObjectNotFoundException | SchemaException e) {
+			LOGGER.error("Cannot refresh authentication for user identified with" + name);
+			//TODO: how to handle?
+		}
+		
+		
+	}
+	
 
 }
