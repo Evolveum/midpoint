@@ -633,7 +633,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	private boolean isCustomColumnsListConfigured(){
-		return getGuiObjectColumnTypeList() != null;
+		List<GuiObjectColumnType> columnList = getGuiObjectColumnTypeList();
+		return columnList != null && !columnList.isEmpty();
 	}
 
 	private String getItemDisplayName(GuiObjectColumnType column){

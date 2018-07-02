@@ -105,10 +105,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.users.*;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicies;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
@@ -177,6 +174,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private static final String DOT_CLASS = PageBase.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
+    private static final String OPERATION_LOAD_USERS_VIEW_COLLECTION_REF = DOT_CLASS + "loadUsersViewCollectionRef";
     private static final String OPERATION_LOAD_WORK_ITEM_COUNT = DOT_CLASS + "loadWorkItemCount";
     private static final String OPERATION_LOAD_CERT_WORK_ITEM_COUNT = DOT_CLASS + "loadCertificationWorkItemCount";
 
@@ -1740,6 +1738,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.users.new",
                 "PageAdmin.menu.top.users.edit", PageUser.class, true);
 
+        addUsersViewMenuItems(item.getItems());
+
         return item;
     }
 
@@ -1881,6 +1881,51 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageService.class, true);
 
         return item;
+    }
+
+    private void addUsersViewMenuItems(List<MenuItem> menu){
+        List<GuiObjectListViewType> objectListViews = getObjectViewsList();
+        if (objectListViews == null){
+            return;
+        }
+        objectListViews.forEach(objectListView -> {
+                if (objectListView.getType() != null && !objectListView.getType().equals(UserType.COMPLEX_TYPE)){
+                    return;
+                }
+                ObjectReferenceType collectionRef = objectListView.getCollectionRef();
+                if (collectionRef == null){
+                    return;
+                }
+                OperationResult result = new OperationResult(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
+                Task task = createSimpleTask(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
+                PrismObject<? extends ObjectType> collectionObject = WebModelServiceUtils.resolveReferenceNoFetch(collectionRef, this, task, result);
+                if (collectionObject == null){
+                    return;
+                }
+                if (collectionObject.getValue().asObjectable() instanceof ObjectCollectionType) {
+                    ObjectCollectionType collectionValue = (ObjectCollectionType) collectionObject.getValue().asObjectable();
+                    if (!collectionValue.getType().equals(UserType.COMPLEX_TYPE)) {
+                        return;
+                    }
+                    DisplayType viewDisplayType = objectListView.getDisplay();
+
+                    PageParameters pageParameters = new PageParameters();
+                    pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
+
+                    MenuItem userViewMenu = new MenuItem(viewDisplayType != null && StringUtils.isNotEmpty(viewDisplayType.getLabel()) ?
+                            createStringResource(viewDisplayType.getLabel()) : createStringResource("MenuItem.noName"), PageUsersView.class,
+                            pageParameters, null);
+                    menu.add(userViewMenu);
+                }
+        });
+    }
+
+    private List<GuiObjectListViewType> getObjectViewsList(){
+        GuiObjectListViewsType objectListViews = getAdminGuiConfiguration().getObjectLists();
+        if (objectListViews == null){
+            return null;
+        }
+        return objectListViews.getObjectList();
     }
 
     public PrismObject<UserType> loadUserSelf() {

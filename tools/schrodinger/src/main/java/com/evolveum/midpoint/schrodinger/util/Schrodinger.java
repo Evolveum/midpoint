@@ -178,9 +178,9 @@ public class Schrodinger {
 
         if (ancestorAttr != null) {
             xpathBuilder.append("@").append(ancestorAttr).append("=\"").append(ancestorAttrValue)
-                    .append("\" and following-sibling::*[descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]")
+                    .append("\" and following-sibling::*[descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]")
                     .append(" or following-sibling::*[").append("@").append(ancestorAttr).append("=\"").append(ancestorAttrValue)
-                    .append("\" and descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]");
+                    .append("\" and descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]]");
         } else {
             xpathBuilder.append("following-sibling::*[descendant-or-self::*[contains(.,\"" + ancestorEnclosedText + "\")]]]]");
         }

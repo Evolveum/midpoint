@@ -43,7 +43,6 @@ public class PrismForm<T> extends Component<T> {
         SelenideElement property = findProperty(name);
 
         ElementsCollection values = property.$$(By.className("prism-property-value"));
-        System.out.println("Value size: " + values.size());
         if (values.size() == 1) {
             values.first().$(By.className("form-control")).setValue(value);
         }
@@ -180,7 +179,7 @@ public class PrismForm<T> extends Component<T> {
 
         } else {
             element = $(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/.."))
-                    .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).parent();
+                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT).parent();
         }
 
         return element;
