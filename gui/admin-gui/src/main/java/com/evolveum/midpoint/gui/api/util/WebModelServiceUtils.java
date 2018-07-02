@@ -778,14 +778,19 @@ public class WebModelServiceUtils {
     		String OPERATION_LOAD_FLOW_POLICY = WebModelServiceUtils.class.getName() + ".loadFlowPolicy";
     		Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
     		OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
-    		RegistrationsPolicyType registrationPolicyType = null;
+    		RegistrationsPolicyType registrationPolicyType;
 			try {
 				registrationPolicyType = modelInteractionService.getFlowPolicy(user.asPrismObject(), task, parentResult);
+				if (registrationPolicyType == null) {
+					return false;
+				}
 				SelfRegistrationPolicyType postAuthenticationPolicy = registrationPolicyType.getPostAuthentication();
+				if (postAuthenticationPolicy == null) {
+					return false;
+				}
 	    		String requiredLifecycleState = postAuthenticationPolicy.getRequiredLifecycleState();
 	    		if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(user.getLifecycleState())) {
 	    			return true; 
-	    			 
 	    		}
 			} catch (ObjectNotFoundException | SchemaException e) {
 				LoggingUtils.logException(LOGGER, "Cannot determine post authentication policies", e);
