@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
@@ -251,18 +252,18 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		add(progressPanel);
 	}
 
-	protected abstract FocusSummaryPanel<O> createSummaryPanel();
+	protected abstract ObjectSummaryPanel<O> createSummaryPanel();
 
 	protected void initLayoutSummaryPanel() {
 
-		FocusSummaryPanel<O> summaryPanel = createSummaryPanel();
+		ObjectSummaryPanel<O> summaryPanel = createSummaryPanel();
 		summaryPanel.setOutputMarkupId(true);
 
 		setSummaryPanelVisibility(summaryPanel);
 		add(summaryPanel);
 	}
 
-    protected void setSummaryPanelVisibility(FocusSummaryPanel<O> summaryPanel){
+    protected void setSummaryPanelVisibility(ObjectSummaryPanel<O> summaryPanel){
         summaryPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 

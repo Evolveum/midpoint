@@ -160,5 +160,6 @@ public class GuiStyleConstants {
 	public static final String CLASS_POLICY_RULES_ICON_COLORED = "fa fa-balance-scale"; //TODO
 
 	public static final String CLASS_VALUE_POLICY_ICON = "fa fa-asterisk";
+	public static final String CLASS_SYSTEM_CONFIGURATION_ICON = "fa fa-cog";
 
 }

@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -15,10 +14,13 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
-	<body>
-		<wicket:extend>
-   	    <wicket:child />
-</wicket:extend>
-	</body>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+	<wicket:panel>
+		<div class="row">
+			<div class="col-md-12">
+				<div wicket:id="loggingConfiguration" />
+			</div>
+		</div>
+	</wicket:panel>
 </html>

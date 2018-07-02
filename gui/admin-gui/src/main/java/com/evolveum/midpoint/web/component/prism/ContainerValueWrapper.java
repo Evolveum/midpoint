@@ -811,6 +811,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
 				pathList.add(((ContainerWrapper<C>) wrapper).getName());
 			}
+
 		}
 		return pathList;
 	}
