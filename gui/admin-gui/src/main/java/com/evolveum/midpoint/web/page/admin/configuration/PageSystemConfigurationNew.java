@@ -420,13 +420,13 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 //		};
 //		mainForm.add(cancel);
 //	}
-
-
-	private TabbedPanel<ITab> getTabPanel() {
-		return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
-	}
-
-
+//
+//
+//	private TabbedPanel<ITab> getTabPanel() {
+//		return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
+//	}
+//
+//
 //	private void savePerformed(AjaxRequestTarget target) {
 //		OperationResult result = new OperationResult(TASK_UPDATE_SYSTEM_CONFIG);
 //		Task task = createSimpleTask(TASK_UPDATE_SYSTEM_CONFIG);

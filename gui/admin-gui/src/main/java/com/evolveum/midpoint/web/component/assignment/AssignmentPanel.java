@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -64,7 +65,7 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.AssignmentListDataProvider;
+import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -91,9 +92,11 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected boolean assignmentDetailsVisible;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
+	private IModel<ContainerWrapper<AssignmentType>> model;
 
 	public AssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
 		super(id, assignmentContainerWrapperModel);
+		this.model = assignmentContainerWrapperModel;
 	}
 
 	protected abstract void initPaging();
@@ -107,9 +110,82 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	
 	private void initLayout() {
 
-		initListPanel();
+		
+		MultivalueContainerListPanel panel = new MultivalueContainerListPanel<AssignmentType>(ID_ASSIGNMENTS, model) {
 
-		initDetailsPanel();
+			@Override
+			protected void initPaging() {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			protected boolean enableActionNewObject() {
+				// TODO Auto-generated method stub
+				return false;
+			}
+
+			@Override
+			protected ObjectQuery createQuery() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> createColumns() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			protected void createCustomLayout(WebMarkupContainer assignmentsContainer) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			protected void createDetailsPanel(WebMarkupContainer assignmentsContainer) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			protected String getAuthirizationForRemoveAction() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			protected String getAuthirizationForAddAction() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			protected TableId getTableId() {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			protected int getItemsPerPage() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+		};
+		
+		add(panel);
+		
+		
+//		initListPanel();
+//
+//		initDetailsPanel();
 
 		setOutputMarkupId(true);
 
@@ -166,7 +242,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	private BoxedTablePanel<ContainerValueWrapper<AssignmentType>> initAssignmentTable() {
 
-		AssignmentListDataProvider assignmentsProvider = new AssignmentListDataProvider(this, new PropertyModel<>(getModel(), "values")) {
+		ContainerListDataProvider assignmentsProvider = new ContainerListDataProvider(this, new PropertyModel<>(getModel(), "values")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -360,8 +436,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		details.add(cancelButton);
 	}
 
-	protected AssignmentListDataProvider getAssignmentListProvider() {
-		return (AssignmentListDataProvider) getAssignmentTable().getDataTable().getDataProvider();
+	protected ContainerListDataProvider getAssignmentListProvider() {
+		return (ContainerListDataProvider) getAssignmentTable().getDataTable().getDataProvider();
 	}
 
 	protected BoxedTablePanel<ContainerValueWrapper<AssignmentType>> getAssignmentTable() {
@@ -372,7 +448,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	private List<ContainerValueWrapper<AssignmentType>> getSelectedAssignments() {
 		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignemntTable = getAssignmentTable();
-		AssignmentListDataProvider assignmentProvider = (AssignmentListDataProvider) assignemntTable.getDataTable()
+		ContainerListDataProvider<AssignmentType> assignmentProvider = (ContainerListDataProvider<AssignmentType>) assignemntTable.getDataTable()
 				.getDataProvider();
 		return assignmentProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
 	}
