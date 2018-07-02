@@ -117,16 +117,16 @@
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations-java5</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-			<exclusions>
-                <exclusion>
-                    <groupId>org.javassist</groupId>
-                    <artifactId>javassist</artifactId>
-                </exclusion>
-			</exclusions>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.hibernate</groupId>-->
+            <!--<artifactId>hibernate-core</artifactId>-->
+			<!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<groupId>org.javassist</groupId>-->
+                    <!--<artifactId>javassist</artifactId>-->
+                <!--</exclusion>-->
+			<!--</exclusions>-->
+        <!--</dependency>-->
         <!-- this one is needed to get SQL configuration from the repository -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
