@@ -25,6 +25,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -47,7 +49,6 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -70,16 +71,18 @@ public class PagePostAuthentication extends PageAbstractFlow {
 	private static final String DOT_CLASS = PagePostAuthentication.class.getName() + ".";
 	
 	private static final String OPERATION_LOAD_WRAPPER = DOT_CLASS + "loadWrapper";
-	
-	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_WRAPPER_CONTENT = "wrapperContent";
 
 	private IModel<UserType> userModel;
 	private ObjectWrapper<UserType> objectWrapper;
 	
+	//TODO: where is the correct palce?
+	@SpringBean(name = "userDetailsService")
+	private UserProfileService userProfileService;
+	
+	
 	public PagePostAuthentication(PageParameters pageParameters) {
 		super(pageParameters);
-		// TODO Auto-generated constructor stub
 	}
 	
 	@Override
@@ -158,22 +161,27 @@ public class PagePostAuthentication extends PageAbstractFlow {
 		result.computeStatus();
 		
 		if (result.isAcceptable()) {
-			OperationResult lifecycleResult = runPrivileged(() -> {
+			runPrivileged(() -> {
 				ObjectDelta<UserType> lifecycleDelta = ObjectDelta.createModificationDeleteProperty(UserType.class,
 						userModel.getObject().getOid(), UserType.F_LIFECYCLE_STATE, getPrismContext(),
 						getPostAuthenticationConfiguration().getRequiredLifecycleState());
 				OperationResult opResult = new OperationResult(OPERATION_SAVE_USER);
 				Task task = createAnonymousTask(OPERATION_SAVE_USER);
 				WebModelServiceUtils.save(lifecycleDelta, opResult, task, PagePostAuthentication.this);
-				result.recordSuccessIfUnknown();
-				return result;
+				opResult.recordSuccessIfUnknown();
+				return opResult;
 			});
 		}
+		
+		result.computeStatus();
 		
 		if (!result.isAcceptable()) {
 			showResult(result);
 			target.add(PagePostAuthentication.this);
 		} else {
+			MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+			getModelInteractionService().refreshPrincipal(principal.getUsername());
+			
 			navigateToNext(getMidpointApplication().getHomePage());
 		}
 		
