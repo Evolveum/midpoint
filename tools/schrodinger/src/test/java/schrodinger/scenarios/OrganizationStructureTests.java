@@ -10,6 +10,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import schrodinger.TestBase;
 
+import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
@@ -18,10 +19,11 @@ import java.io.IOException;
  */
 public class OrganizationStructureTests extends TestBase {
 
+    private static File CSV_TARGET_FILE;
+
     private static final File CSV_RESOURCE_ADVANCED_SYNC = new File("../../samples/resources/csv/resource-csv-groups.xml");
 
-    private static final File CSV_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-groups.csv");
-    private static final File CSV_TARGET_FILE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\midpoint-advanced-sync.csv"); //TODO change hard coded path to local web container
+    private static final File CSV_INITIAL_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-groups.csv");
     private static final File ORG_ACCOUNT_INDUCEMENT_FILE = new File("./src/test/resources/org-account-inducement.xml");
     private static final File ORG_MONKEY_ISLAND_SOURCE_FILE = new File("../../samples/org/org-monkey-island-simple.xml");
 
@@ -39,14 +41,18 @@ public class OrganizationStructureTests extends TestBase {
     private static final String IMPORT_ORG_STRUCT_DEPENDENCY = "importOrgStructure";
     private static final String ASSIGN_ORG_UNIT_DEPENDENCY = "assignOrgUnit";
 
+    private static final String DIRECTORY_CURRENT_TEST = "organizationStructureTests";
+    private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
 
-    @BeforeSuite
-    private void init() throws IOException {
-        FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
-    }
 
     @Test
-    public void importOrgStructure(){
+    public void importOrgStructure() throws IOException, ConfigurationException {
+
+        initTestDirectory(DIRECTORY_CURRENT_TEST);
+
+        CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
+        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
+
         ImportObjectPage importPage = basicPage.importObject();
         Assert.assertTrue(
                 importPage
@@ -118,7 +124,7 @@ public class OrganizationStructureTests extends TestBase {
         importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
         importObject(USER_TEST_RAPHAEL_FILE);
 
-        changeResourceFilePath();
+       changeResourceFilePath();
 
          ListUsersPage users = basicPage.listUsers();
             users
@@ -146,7 +152,7 @@ public class OrganizationStructureTests extends TestBase {
                 .clickSave()
                     .feedback()
                     .isSuccess();
-    }
+   }
 
     public void changeResourceFilePath(){
         ListResourcesPage listResourcesPage = basicPage.listResources();
