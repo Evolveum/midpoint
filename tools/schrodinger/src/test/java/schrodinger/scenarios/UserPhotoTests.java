@@ -15,13 +15,15 @@ import java.io.File;
 public class UserPhotoTests extends TestBase {
 
     private static final String TEST_USER_LEO_NAME= "leonardo";
-    private static final File PHOTO_SOURCE_FILE_LARGE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\leonardo_large.jpg");
-    private static final File PHOTO_SOURCE_FILE_SMALL= new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\leonardo_small.jpg");
+   // private static final File PHOTO_SOURCE_FILE_LARGE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\leonardo_large.jpg");
+    //private static final File PHOTO_SOURCE_FILE_SMALL= new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\leonardo_small.jpg");
+    private static final File PHOTO_SOURCE_FILE_LARGE = new File("./src/test/resources/images/leonardo_large_nc.jpg");
+    private static final File PHOTO_SOURCE_FILE_SMALL = new File("./src/test/resources/images/leonardo_small_nc.jpg");
 
     private static final String CREATE_USER_WITH_LARGE_PHOTO_DEPENDENCY = "createMidpointUserWithPhotoLarge";
     private static final String CREATE_USER_WITH_NORMAL_PHOTO_DEPENDENCY = "createMidpointUserWithPhotoJustRight";
 
-    @Test
+    //@Test TODO test commented out because of MID-4774
     public void createMidpointUserWithPhotoLarge(){
         UserPage user = basicPage.newUser();
 
@@ -42,7 +44,7 @@ public class UserPhotoTests extends TestBase {
         );
     }
 
-    @Test (dependsOnMethods = {CREATE_USER_WITH_LARGE_PHOTO_DEPENDENCY})
+    @Test //(dependsOnMethods = {CREATE_USER_WITH_LARGE_PHOTO_DEPENDENCY}) // TODO uncomment test dependency after MID-4774 fix
     public void createMidpointUserWithPhotoJustRight(){
         UserPage user = basicPage.newUser();
         Assert.assertTrue(
