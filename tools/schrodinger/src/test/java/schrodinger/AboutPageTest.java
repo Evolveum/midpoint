@@ -15,6 +15,9 @@ public class AboutPageTest extends TestBase {
     private static final String CONNID_VERSION_EXPECTED = "1.4.3.11"; // Static value, should be changed each version change.
     private static final String REINDEX_REPO_TASK_CATEGORY_EXPECTED = "Utility";
     private static final String REINDEX_REPO_TASK_DISPLAY_NAME_EXPECTED = "Reindex repository objects";
+
+    private static final String PROPERTY_NAME_XMX = "-Xmx";
+
     private AboutPage aboutPage;
 
     @BeforeMethod
@@ -94,5 +97,23 @@ public class AboutPageTest extends TestBase {
                         .summary()
                         .fetchDisplayName()
                 , REINDEX_REPO_TASK_DISPLAY_NAME_EXPECTED);
+    }
+
+    @Test
+    public void checkJVMPropertiesMidpointHome(){
+
+        Assert.assertTrue(
+        !aboutPage.getJVMproperty(TestBase.PROPERTY_NAME_MIDPOINT_HOME).isEmpty()
+    );
+
+    }
+
+    @Test
+    public void checkJVMPropertiesXmx(){
+
+        Assert.assertTrue(
+                !aboutPage.getJVMproperty(PROPERTY_NAME_XMX).isEmpty()
+        );
+
     }
 }

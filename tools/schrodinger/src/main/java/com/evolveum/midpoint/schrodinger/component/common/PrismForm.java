@@ -179,7 +179,7 @@ public class PrismForm<T> extends Component<T> {
 
         } else {
             element = $(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/.."))
-                    .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT).parent();
+                    .parent().waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT);
         }
 
         return element;

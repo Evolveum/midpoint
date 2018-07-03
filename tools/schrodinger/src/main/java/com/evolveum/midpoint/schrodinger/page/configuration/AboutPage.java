@@ -6,12 +6,21 @@ import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
+//import com.evolveum.midpoint.util.logging.Trace;
+//import com.evolveum.midpoint.util.logging.TraceManager;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class AboutPage extends BasicPage {
+
+    // public static Trace LOGGER = TraceManager.getTrace(AboutPage.class);
 
     public AboutPage repositorySelfTest() {
         $(Schrodinger.byDataResourceKey("PageAbout.button.testRepository")).click();
@@ -67,10 +76,56 @@ public class AboutPage extends BasicPage {
         return $(Schrodinger.bySchrodingerDataId("provisioningDetailValue")).parent().getText();
     }
 
+    public List<String> getJVMproperties() {
+        SelenideElement jvmProperties = $(Schrodinger.byDataId("jvmProperties"));
+        String jvmPropertiesText = jvmProperties.getText();
+
+        List<String> listOfProperties = new ArrayList<>();
+        if (jvmPropertiesText != null && !jvmPropertiesText.isEmpty()) {
+            String[] properties = jvmPropertiesText.split("\\r?\\n");
+
+            listOfProperties = Arrays.asList(properties);
+
+        } else {
+            // LOGGER.info("JVM properties not found";
+
+        }
+
+        return listOfProperties;
+    }
+
+    public String getJVMproperty(String property) {
+
+        List<String> listOfProperties = getJVMproperties();
+
+        if (property != null && !property.isEmpty()) {
+
+            for (String keyPair : listOfProperties) {
+
+                String[] pairs = keyPair.split("\\=");
+
+                if (pairs != null && pairs.length > 1) {
+                    if (pairs[0].equals(property)) {
+                        return pairs[1];
+                    }
+                } else if (pairs.length == 1) {
+                    if (pairs[0].contains(property)) {
+                        return pairs[0];
+                    }
+
+                }
+            }
+        }
+
+        return "";
+    }
+
+
     public FeedbackBox<AboutPage> feedback() {
         SelenideElement feedback = $(By.cssSelector("div.feedbackContainer"));
 
         return new FeedbackBox<>(this, feedback);
     }
+
 }
 

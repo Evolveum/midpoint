@@ -56,6 +56,13 @@ JAVA_OPTS="$JAVA_OPTS
 -Djavax.net.ssl.trustStoreType=jceks
 -Dmidpoint.home=$MIDPOINT_HOME"
 
+# apply setenv.sh if it exists. This can be used for -Dmidpoint.nodeId etc.
+# the script can either append or overwrite JAVA_OPTS
+if [ -r "$SCRIPT_PATH/setenv.sh" ]; then
+	echo "Applying setenv.sh from $SCRIPT_PATH directory."
+	. "$SCRIPT_PATH/setenv.sh"
+fi
+
 if [ -z "$BOOT_OUT" ] ; then  
   BOOT_OUT="$SCRIPT_PATH"../var/log/midpoint.out
 fi
