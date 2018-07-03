@@ -325,18 +325,16 @@ public class ObjectUpdater {
 
     public <T extends ObjectType> Object deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
-        LOGGER_PERFORMANCE.debug("> delete object {}, oid={}", new Object[]{type.getSimpleName(), oid});
+        LOGGER_PERFORMANCE.debug("> delete object {}, oid={}", type.getSimpleName(), oid);
         Session session = null;
         OrgClosureManager.Context closureContext = null;
         try {
             session = baseHelper.beginTransaction();
 
-            closureContext = closureManager.onBeginTransactionDelete(session, type, oid);
-
-            Class clazz = ClassMapper.getHQLTypeClass(type);
+            Class<?> clazz = ClassMapper.getHQLTypeClass(type);
 
             CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaQuery cq = cb.createQuery(clazz);
+            CriteriaQuery<?> cq = cb.createQuery(clazz);
             cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
 
             Query query = session.createQuery(cq);
@@ -345,14 +343,16 @@ public class ObjectUpdater {
                 throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
                         + "' was not found.", null, oid);
             }
+            Class<? extends ObjectType> actualType = ClassMapper.getObjectTypeForHQLType(object.getClass()).getClassDefinition();
 
-            closureManager.updateOrgClosure(null, null, session, oid, type, OrgClosureManager.Operation.DELETE, closureContext);
+            closureContext = closureManager.onBeginTransactionDelete(session, actualType, oid);
+            closureManager.updateOrgClosure(null, null, session, oid, actualType, OrgClosureManager.Operation.DELETE, closureContext);
 
             session.delete(object);
-            if (LookupTableType.class.equals(type)) {
+            if (LookupTableType.class.equals(actualType)) {
                 lookupTableHelper.deleteLookupTableRows(session, oid);
             }
-            if (AccessCertificationCampaignType.class.equals(type)) {
+            if (AccessCertificationCampaignType.class.equals(actualType)) {
                 caseHelper.deleteCertificationCampaignCases(session, oid);
             }
 
