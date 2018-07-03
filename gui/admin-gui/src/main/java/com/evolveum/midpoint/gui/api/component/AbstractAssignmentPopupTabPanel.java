@@ -41,96 +41,15 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> extends BasePanel<O> {
+public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> extends AbstractPopupTabPanel<O> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_OBJECT_LIST_PANEL = "objectListPanel";
-
     private static final String DOT_CLASS = AbstractAssignmentPopupTabPanel.class.getName();
 
-    private ObjectTypes type;
-    protected List<O> selectedObjects;
-
-    public AbstractAssignmentPopupTabPanel(String id, ObjectTypes type, List<O> selectedObjects){
-        super(id);
-        this.type = type;
-        this.selectedObjects = selectedObjects;
-    }
-
-    @Override
-    protected void onInitialize(){
-        super.onInitialize();
-        add(initObjectListPanel());
-        initParametersPanel();
-    }
-
-    private PopupObjectListPanel initObjectListPanel(){
-        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)type.getClassDefinition(),
-                null, true, getPageBase(), selectedObjects) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdateCheckbox(AjaxRequestTarget target) {
-                if (selectedObjects == null){
-                    selectedObjects = new ArrayList<>();
-                }
-                selectedObjects.clear();
-                selectedObjects.addAll(getSelectedObjectsList());
-
-                onSelectionPerformed(target);
-            }
-
-            @Override
-            protected IModel<Boolean> getCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
-                return getObjectSelectCheckBoxEnableModel(rowModel);
-            }
-
-            @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                return AbstractAssignmentPopupTabPanel.this.addFilterToContentQuery(query);
-            }
-
-        };
-        listPanel.add(new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            public boolean isVisible(){
-                return isObjectListPanelVisible();
-            }
-        });
-        listPanel.setOutputMarkupId(true);
-        return listPanel;
-    }
-
-    protected abstract void initParametersPanel();
-
-    protected List getSelectedObjectsList(){
-        PopupObjectListPanel objectListPanel = getObjectListPanel();
-        if (objectListPanel == null){
-            return new ArrayList();
-        }
-        return objectListPanel.getSelectedObjects();
-    }
-
-    protected PopupObjectListPanel getObjectListPanel(){
-        return (PopupObjectListPanel)get(ID_OBJECT_LIST_PANEL);
-    }
-
-    protected void onSelectionPerformed(AjaxRequestTarget target){}
-
-    protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
-        return Model.of(true);
-    }
-
-    protected ObjectQuery addFilterToContentQuery(ObjectQuery query){
-        return query;
+    public AbstractAssignmentPopupTabPanel(String id, ObjectTypes type){
+        super(id, type);
     }
 
     protected abstract List<AssignmentType> getSelectedAssignmentsList();
-
-    protected boolean isObjectListPanelVisible(){
-        return true;
-    }
 }
