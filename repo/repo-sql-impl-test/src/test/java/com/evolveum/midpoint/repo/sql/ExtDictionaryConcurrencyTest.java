@@ -75,7 +75,7 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
 //            executors.execute(new SelectWorker(this));
 //        }
 
-        for (int i = 1; i <= 1000; i++) {
+        for (int i = 1; i <= 300; i++) {
             List<Future> futures = new ArrayList<>();
             for (Worker worker : workers) {
                 worker.setIndex(i);
@@ -162,7 +162,7 @@ public class ExtDictionaryConcurrencyTest extends BaseSQLRepoTest {
                 AssertJUnit.assertEquals(attribute + index, ps);
             } catch (Exception ex) {
                 LOGGER.error("Exception", ex);
-
+                ex.printStackTrace();
                 AssertJUnit.fail(ex.getMessage());
             } finally {
                 result.computeStatus();
