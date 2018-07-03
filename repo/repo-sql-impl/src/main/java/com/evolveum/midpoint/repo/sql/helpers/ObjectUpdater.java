@@ -60,7 +60,6 @@ import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import java.lang.reflect.Method;
-import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -149,7 +148,7 @@ public class ObjectUpdater {
                 throw new AssertionError("shouldn't be here");
             }
 
-            handleConstraintViolationException(session, constEx, result);
+            handleConstraintViolationSerializableException(session, constEx, result);
             baseHelper.rollbackTransaction(session, constEx, result, true);
 
             LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
@@ -179,20 +178,12 @@ public class ObjectUpdater {
     }
 
     private ConstraintViolationException findConstraintViolationException(PersistenceException ex) {
-        if (ex instanceof ConstraintViolationException) {
-            return (ConstraintViolationException) ex;
-        }
-
-        if (ex.getCause() instanceof ConstraintViolationException) {
-            return (ConstraintViolationException) ex.getCause();
-        }
-
-        return null;
+    	return ExceptionUtil.findException(ex, ConstraintViolationException.class);
     }
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
 			String originalOid, Session session, OrgClosureManager.Context closureContext, OperationResult result)
-            throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
+            throws SchemaException, DtoTranslationException {
 
         PrismObject<T> oldObject = null;
 
@@ -492,7 +483,7 @@ public class ObjectUpdater {
         } catch (PersistenceException ex) {
             ConstraintViolationException constEx = findConstraintViolationException(ex);
 	        if (constEx != null) {
-		        handleConstraintViolationException(session, constEx, result);
+		        handleConstraintViolationSerializableException(session, constEx, result);
 		        baseHelper.rollbackTransaction(session, constEx, result, true);
 		        LOGGER.debug("Constraint violation occurred (will be rethrown as ObjectAlreadyExistsException).", constEx);
 		        // we don't know if it's only name uniqueness violation, or something else,
@@ -532,50 +523,11 @@ public class ObjectUpdater {
         baseHelper.cleanupSessionAndResult(session, result);
     }
 
-    private void handleConstraintViolationException(Session session, ConstraintViolationException ex, OperationResult result) {
-
-        // BRUTAL HACK - in PostgreSQL, concurrent changes in parentRefOrg sometimes cause the following exception
-        // "duplicate key value violates unique constraint "XXXX". This is *not* an ObjectAlreadyExistsException,
-        // more likely it is a serialization-related one.
-        //
-        // TODO: somewhat generalize this approach - perhaps by retrying all operations not dealing with OID/name uniqueness
-        //
-        // see MID-4698
-
-        SQLException sqlException = baseHelper.findSqlException(ex);
-        if (sqlException != null) {
-            SQLException nextException = sqlException.getNextException();
-            LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", ex, sqlException, nextException);
-            String[] okStrings = new String[] {
-                    "Violation of PRIMARY KEY constraint 'PK__m_org_cl__",
-                    "Violation of PRIMARY KEY constraint 'PK__m_refere__",
-                    "Violation of PRIMARY KEY constraint 'PK__m_assign__",
-                    "Violation of PRIMARY KEY constraint 'PK__m_operat__",
-                    "is not present in table \"m_ext_item\"",
-                    "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
-                    "duplicate key value violates unique constraint \"m_reference_pkey\"",
-                    "duplicate key value violates unique constraint \"m_assignment_pkey\"",
-                    "duplicate key value violates unique constraint \"m_operation_execution_pkey\""     // TODO resolve more intelligently (and completely!)
-            };
-            String msg1;
-            if (sqlException.getMessage() != null) {
-                msg1 = sqlException.getMessage();
-            } else {
-                msg1 = "";
-            }
-            String msg2;
-            if (nextException != null && nextException.getMessage() != null) {
-                msg2 = nextException.getMessage();
-            } else {
-                msg2 = "";
-            }
-            for (String okString : okStrings) {
-                if (msg1.contains(okString) || msg2.contains(okString)) {
-                    baseHelper.rollbackTransaction(session, ex, result, false);
-                    throw new SerializationRelatedException(ex);
-                }
-            }
-        }
+    private void handleConstraintViolationSerializableException(Session session, ConstraintViolationException ex, OperationResult result) {
+    	if (baseHelper.isSerializationRelatedConstraintViolationException(ex)) {
+		    baseHelper.rollbackTransaction(session, ex, result, false);
+		    throw new SerializationRelatedException(ex);
+	    }
     }
 
     public <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, PrismIdentifierGenerator<T> idGenerator)
@@ -596,6 +548,10 @@ public class ObjectUpdater {
             SerializationRelatedException serializationException = ExceptionUtil.findCause(ex, SerializationRelatedException.class);
             if (serializationException != null) {
                 throw serializationException;
+            }
+            ConstraintViolationException cve = ExceptionUtil.findCause(ex, ConstraintViolationException.class);
+            if (cve != null && baseHelper.isSerializationRelatedConstraintViolationException(cve)) {
+                throw cve;
             }
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {
