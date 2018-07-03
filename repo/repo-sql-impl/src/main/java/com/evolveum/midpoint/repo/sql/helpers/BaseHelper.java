@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import com.evolveum.midpoint.repo.sql.*;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.*;
+import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.LockAcquisitionException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +36,7 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
+import java.util.regex.Pattern;
 
 import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_EXP_THRESHOLD;
 import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_MAX_RETRIES;
@@ -98,7 +99,7 @@ public class BaseHelper {
 		if (readOnly) {
 			// we don't want to flush changes during readonly transactions (they should never occur,
 			// but if they occur transaction commit would still fail)
-			session.setFlushMode(FlushMode.MANUAL);
+			session.setHibernateFlushMode(FlushMode.MANUAL);
 
 			LOGGER.trace("Marking transaction as read only.");
 			session.doWork(connection -> connection.createStatement().execute("SET TRANSACTION READ ONLY"));
@@ -110,16 +111,12 @@ public class BaseHelper {
 		return repositoryFactory.getSqlConfiguration();
 	}
 
-	public void rollbackTransaction(Session session) {
-		rollbackTransaction(session, null, null, false);
-	}
-
-	public void rollbackTransaction(Session session, Throwable ex, OperationResult result, boolean fatal) {
+	void rollbackTransaction(Session session, Throwable ex, OperationResult result, boolean fatal) {
 		String message = ex != null ? ex.getMessage() : "null";
 		rollbackTransaction(session, ex, message, result, fatal);
 	}
 
-	public void rollbackTransaction(Session session, Throwable ex, String message, OperationResult result,
+	void rollbackTransaction(Session session, Throwable ex, String message, OperationResult result,
 			boolean fatal) {
 		if (StringUtils.isEmpty(message) && ex != null) {
 			message = ex.getMessage();
@@ -258,6 +255,10 @@ public class BaseHelper {
 			return false;
 		}
 
+		if (isSerializationRelatedConstraintViolationException(ex)) {
+			return true;
+		}
+
 		// these error codes / SQL states we consider related to locking:
 		//  code 50200 [table timeout lock in H2, 50200 is LOCK_TIMEOUT_1 error code]
 		//  code 40001 [DEADLOCK_1 in H2]
@@ -298,14 +299,89 @@ public class BaseHelper {
 				|| sqlException.getErrorCode() == 3960;         // Snapshot isolation transaction aborted due to update conflict.
 	}
 
-	public SQLException findSqlException(Throwable ex) {
-		while (ex != null) {
-			if (ex instanceof SQLException) {
-				return (SQLException) ex;
-			}
-			ex = ex.getCause();
+	private static final Pattern[] okPatterns = new Pattern[] {
+			Pattern.compile(".*Duplicate entry '.*' for key 'iExtItemDefinition'.*"),               // MySQL
+			Pattern.compile(".*ORA-00001:.*\\.IEXTITEMDEFINITION\\).*")                             // Oracle
+	};
+
+	private static final String[] okStrings = new String[] {
+		"Unique index or primary key violation: \"IEXTITEMDEFINITION",              // H2
+		"Violation of UNIQUE KEY constraint 'iExtItemDefinition'",                  // SQL Server
+		"duplicate key value violates unique constraint \"iextitemdefinition\"",    // PostgreSQL
+
+		// SQL Server
+		"Violation of PRIMARY KEY constraint 'PK__m_org_cl__",
+		"Violation of PRIMARY KEY constraint 'PK__m_refere__",
+		"Violation of PRIMARY KEY constraint 'PK__m_assign__",
+		"Violation of PRIMARY KEY constraint 'PK__m_operat__",
+
+		// ???
+		"is not present in table \"m_ext_item\"",
+
+		// PostgreSQL
+		"duplicate key value violates unique constraint \"m_org_closure_pkey\"",
+		"duplicate key value violates unique constraint \"m_reference_pkey\"",
+		"duplicate key value violates unique constraint \"m_assignment_pkey\"",
+		"duplicate key value violates unique constraint \"m_operation_execution_pkey\""     // TODO resolve more intelligently (and completely!)
+	};
+
+	boolean isSerializationRelatedConstraintViolationException(Throwable ex) {
+
+		ConstraintViolationException cve = ExceptionUtil.findException(ex, ConstraintViolationException.class);
+		if (cve == null) {
+			return false;
 		}
-		return null;
+
+		// BRUTAL HACK - serialization-related issues sometimes manifest themselves as ConstraintViolationException.
+		//
+		// For PostgreSQL and Microsoft SQL Server this happens mainly when automatically generated identifiers are to be
+		// persisted (presumably because of their optimistic approach to serialization isolation).
+		//
+		// The "solution" provided here is not complete, as it does not recognize all places where IDs are generated.
+		//
+		// Moreover:
+		//
+		// For all databases the serialization issues can occur when m_ext_item records are created in parallel: see
+		// ExtDictionaryConcurrencyTest but with "synchronized" keyword removed from state-changing ExtItemDictionary methods.
+		// The solution is to check for ConstraintViolationExceptions related to iExtItemDefinition and treat these as
+		// serialization-related issues.
+		//
+		// TODO: somewhat generalize this approach
+		//
+		// see MID-4698
+
+		SQLException sqlException = findSqlException(cve);
+		if (sqlException != null) {
+			SQLException nextException = sqlException.getNextException();
+			LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", ex, sqlException, nextException);
+			String msg1;
+			if (sqlException.getMessage() != null) {
+				msg1 = sqlException.getMessage().trim();
+			} else {
+				msg1 = "";
+			}
+			String msg2;
+			if (nextException != null && nextException.getMessage() != null) {
+				msg2 = nextException.getMessage().trim();
+			} else {
+				msg2 = "";
+			}
+			for (String okString : okStrings) {
+				if (msg1.contains(okString) || msg2.contains(okString)) {
+					return true;
+				}
+			}
+			for (Pattern okPattern : okPatterns) {
+				if (okPattern.matcher(msg1).matches() || okPattern.matcher(msg2).matches()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private SQLException findSqlException(Throwable ex) {
+		return ExceptionUtil.findException(ex, SQLException.class);
 	}
 
 	private boolean exceptionContainsText(Throwable ex, String text) {
