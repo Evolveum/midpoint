@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createEnumResourceKey;
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 /**
  * @author mederly
@@ -43,6 +44,7 @@ public class CertCampaignDto extends Selectable {
     public static final String F_DESCRIPTION = "description";
     public static final String F_OWNER_NAME = "ownerName";
     public static final String F_CURRENT_STATE = "currentState";
+    public static final String F_ITERATION = "iteration";
     public static final String F_NUMBER_OF_STAGES = "numberOfStages";
     public static final String F_CAMPAIGN_START = "campaignStart";
     public static final String F_CAMPAIGN_END = "campaignEnd";
@@ -91,6 +93,10 @@ public class CertCampaignDto extends Selectable {
 
     public String getCurrentState() {
         return currentStateName;
+    }
+
+    public Integer getIteration() {
+        return norm(campaign.getIteration());
     }
 
     public int getNumberOfStages() {

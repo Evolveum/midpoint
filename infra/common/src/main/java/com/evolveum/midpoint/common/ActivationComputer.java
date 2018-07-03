@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.LifecyleUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
@@ -51,19 +54,14 @@ public class ActivationComputer {
 		this.clock = clock;
 	}
 
-	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType) {
-		return getEffectiveStatus(lifecycleStatus, activationType, getValidityStatus(activationType));
+	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, LifecycleStateModelType stateModel) {
+		return getEffectiveStatus(lifecycleStatus, activationType, getValidityStatus(activationType), stateModel);
 	}
 
-	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, TimeIntervalStatusType validityStatus) {
-
-		if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(lifecycleStatus)) {
-			return ActivationStatusType.ARCHIVED;
-		}
-
-		if (lifecycleStatus != null &&
-				!lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) && !lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
-			return ActivationStatusType.DISABLED;
+	public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, TimeIntervalStatusType validityStatus, LifecycleStateModelType stateModel) {
+		ActivationStatusType forcedLifecycleActivationStatus = getForcedLifecycleActivationStatus(lifecycleStatus, stateModel);
+		if (forcedLifecycleActivationStatus != null) {
+			return forcedLifecycleActivationStatus;
 		}
 
 		if (activationType == null) {
@@ -112,21 +110,12 @@ public class ActivationComputer {
 		return status;
 	}
 
-	public void computeEffective(String lifecycleStatus, ActivationType activationType) {
-		computeEffective(lifecycleStatus, activationType, clock.currentTimeXMLGregorianCalendar());
+	public void computeEffective(String lifecycleStatus, ActivationType activationType, LifecycleStateModelType stateModel) {
+		computeEffective(lifecycleStatus, activationType, clock.currentTimeXMLGregorianCalendar(), stateModel);
 	}
 
-	public void computeEffective(String lifecycleStatus, ActivationType activationType, XMLGregorianCalendar referenceTime) {
-		ActivationStatusType effectiveStatus = null;
-
-		if (lifecycleStatus != null &&
-				!lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) && !lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
-			effectiveStatus = ActivationStatusType.DISABLED;
-		}
-
-		if (SchemaConstants.LIFECYCLE_ARCHIVED.equals(lifecycleStatus)) {
-			effectiveStatus = ActivationStatusType.ARCHIVED;
-		}
+	public void computeEffective(String lifecycleStatus, ActivationType activationType, XMLGregorianCalendar referenceTime, LifecycleStateModelType stateModel) {
+		ActivationStatusType effectiveStatus = getForcedLifecycleActivationStatus(lifecycleStatus, stateModel);
 
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (effectiveStatus == null && administrativeStatus != null) {
@@ -155,30 +144,52 @@ public class ActivationComputer {
 		activationType.setValidityStatus(validityStatus);
 	}
 
-	public boolean isActive(String lifecycleStatus, ActivationType activationType) {
-		if (activationType == null) {
+	public boolean lifecycleHasActiveAssignments(String lifecycleStatus, LifecycleStateModelType stateModel) {
+		LifecycleStateType stateDefinition = LifecyleUtil.findStateDefinition(stateModel, lifecycleStatus);
+		if (stateDefinition == null) {
+			return defaultLifecycleHasActiveAssignments(lifecycleStatus, stateModel);
+		}
+		Boolean activeAssignments = stateDefinition.isActiveAssignments();
+		if (activeAssignments == null) {
+			return defaultLifecycleHasActiveAssignments(lifecycleStatus, stateModel);
+		}
+		return activeAssignments;
+	}
+	
+	private boolean defaultLifecycleHasActiveAssignments(String lifecycleStatus, LifecycleStateModelType stateModel) {
+		ActivationStatusType forcedLifecycleActivationStatus = getForcedLifecycleActivationStatus(lifecycleStatus, stateModel);
+		if (forcedLifecycleActivationStatus == null) {
 			return true;
 		}
-		ActivationStatusType effectiveStatus = activationType.getEffectiveStatus();
-		if (effectiveStatus == null) {
-			computeEffective(lifecycleStatus, activationType);
-			effectiveStatus = activationType.getEffectiveStatus();
+		switch (forcedLifecycleActivationStatus) {
+			case ENABLED:
+				return true;
+			case DISABLED:
+				return false;
+			case ARCHIVED:
+				return false;
+			default:
+				throw new IllegalStateException("Unknown forced activation "+forcedLifecycleActivationStatus);
 		}
-		if (effectiveStatus == null) {
-			return false;
-		}
-		return effectiveStatus == ActivationStatusType.ENABLED;
-	}
-
-	public boolean lifecycleHasActiveAssignments(String lifecycleStatus) {
-		return lifecycleIsActive(lifecycleStatus);
 	}
 
 
-	public boolean lifecycleIsActive(String lifecycleStatus) {
-		if (lifecycleStatus == null) {
-			return true;
+	public ActivationStatusType getForcedLifecycleActivationStatus(String lifecycleStatus, LifecycleStateModelType stateModel) {
+		LifecycleStateType stateDefinition = LifecyleUtil.findStateDefinition(stateModel, lifecycleStatus);
+		if (stateDefinition == null) {
+			return getHardcodedForcedLifecycleActivationStatus(lifecycleStatus);
 		}
-		return lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED);
+		return stateDefinition.getForcedActivationStatus(); 
+	}
+
+
+	private ActivationStatusType getHardcodedForcedLifecycleActivationStatus(String lifecycleStatus) {
+		if (lifecycleStatus == null || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
+			return null;
+		} else if (lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ARCHIVED)) {
+			return ActivationStatusType.ARCHIVED;
+		} else {
+			return ActivationStatusType.DISABLED;
+		}
 	}
 }

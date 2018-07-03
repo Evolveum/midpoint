@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -583,15 +584,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void deleteResourceAssigmentPolicy(String oid, AssignmentPolicyEnforcementType policy, boolean legalize) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException{
-		PrismObjectDefinition<ResourceType> objectDefinition = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(ResourceType.class);
-
 		ProjectionPolicyType syncSettings = new ProjectionPolicyType();
         syncSettings.setAssignmentPolicyEnforcement(policy);
         syncSettings.setLegalize(Boolean.valueOf(legalize));
-		ItemDelta deleteAssigmentEnforcement = PropertyDelta
-				.createModificationDeleteProperty(new ItemPath(ResourceType.F_PROJECTION),
-						objectDefinition.findPropertyDefinition(ResourceType.F_PROJECTION), syncSettings);
+		ContainerDelta<ProjectionPolicyType> deleteAssigmentEnforcement = ContainerDelta
+				.createModificationDelete(new ItemPath(ResourceType.F_PROJECTION), ResourceType.class, prismContext,
+						syncSettings.clone());
 
 		Collection<ItemDelta> modifications = new ArrayList<>();
 		modifications.add(deleteAssigmentEnforcement);
@@ -618,10 +616,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismObjectDefinition<?> objectDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(clazz);
 
-		Collection<? extends ItemDelta> modifications = PropertyDelta
-				.createModificationReplacePropertyCollection(
+		Collection<? extends ItemDelta> modifications = ContainerDelta
+				.createModificationReplaceContainerCollection(
 						path,
-						objectDefinition, syncSettings);
+						objectDefinition, syncSettings.asPrismContainerValue());
 
 		OperationResult result = new OperationResult("Aplying sync settings");
 

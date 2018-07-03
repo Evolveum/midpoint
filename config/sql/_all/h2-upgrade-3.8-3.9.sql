@@ -12,3 +12,7 @@ ALTER TABLE m_object_collection
 
 ALTER TABLE m_object_collection
   ADD CONSTRAINT fk_object_collection FOREIGN KEY (oid) REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_campaign ADD COLUMN iteration INTEGER DEFAULT 1 NOT NULL;
+ALTER TABLE m_acc_cert_case ADD COLUMN iteration INTEGER DEFAULT 1 NOT NULL;
+ALTER TABLE m_acc_cert_wi ADD COLUMN iteration INTEGER DEFAULT 1 NOT NULL;

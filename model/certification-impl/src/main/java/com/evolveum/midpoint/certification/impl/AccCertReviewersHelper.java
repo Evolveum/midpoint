@@ -63,30 +63,29 @@ public class AccCertReviewersHelper {
 	@Autowired private PrismContext prismContext;
 	@Autowired private AccCertExpressionHelper expressionHelper;
 
-    public AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign,
-                                                                                   int stage, Task task, OperationResult result) {
+    AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign, int stage) {
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage);
         return stageDef.getReviewerSpecification();
     }
 
-    public List<ObjectReferenceType> getReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
-                                      AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    List<ObjectReferenceType> getReviewersForCase(AccessCertificationCaseType _case, AccessCertificationCampaignType campaign,
+		    AccessCertificationReviewerSpecificationType reviewerSpec, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (reviewerSpec == null) {
             return Collections.emptyList();     // TODO issue a warning here?
         }
 
 		List<ObjectReferenceType> reviewers = new ArrayList<>();
 		if (Boolean.TRUE.equals(reviewerSpec.isUseTargetOwner())) {
-            cloneAndMerge(reviewers, getTargetObjectOwners(_case, task, result));
+            cloneAndMerge(reviewers, getTargetObjectOwners(_case, result));
         }
         if (Boolean.TRUE.equals(reviewerSpec.isUseTargetApprover())) {
-            cloneAndMerge(reviewers, getTargetObjectApprovers(_case, task, result));
+            cloneAndMerge(reviewers, getTargetObjectApprovers(_case, result));
         }
         if (Boolean.TRUE.equals(reviewerSpec.isUseObjectOwner())) {
-            cloneAndMerge(reviewers, getObjectOwners(_case, task, result));
+            cloneAndMerge(reviewers, getObjectOwners(_case, result));
         }
         if (Boolean.TRUE.equals(reviewerSpec.isUseObjectApprover())) {
-            cloneAndMerge(reviewers, getObjectApprovers(_case, task, result));
+            cloneAndMerge(reviewers, getObjectApprovers(_case, result));
         }
         if (reviewerSpec.getUseObjectManager() != null) {
             cloneAndMerge(reviewers, getObjectManagers(_case, reviewerSpec.getUseObjectManager(), task, result));
@@ -100,17 +99,17 @@ public class AccCertReviewersHelper {
 					.evaluateRefExpressionChecked(reviewerExpression, variables, "reviewer expression", task, result);
 			cloneAndMerge(reviewers, refList);
 		}
-		resolveRoleReviewers(reviewers, task, result);
+		resolveRoleReviewers(reviewers, result);
         if (reviewers.isEmpty()) {
             cloneAndMerge(reviewers, reviewerSpec.getDefaultReviewerRef());
         }
         cloneAndMerge(reviewers, reviewerSpec.getAdditionalReviewerRef());
-		resolveRoleReviewers(reviewers, task, result);
+		resolveRoleReviewers(reviewers, result);
 
 		return reviewers;
     }
 
-	private void resolveRoleReviewers(List<ObjectReferenceType> reviewers, Task task, OperationResult result)
+	private void resolveRoleReviewers(List<ObjectReferenceType> reviewers, OperationResult result)
 			throws SchemaException {
     	List<ObjectReferenceType> resolved = new ArrayList<>();
 		for (Iterator<ObjectReferenceType> iterator = reviewers.iterator(); iterator.hasNext(); ) {
@@ -119,7 +118,7 @@ public class AccCertReviewersHelper {
 					QNameUtil.match(reviewer.getType(), OrgType.COMPLEX_TYPE) ||
 					QNameUtil.match(reviewer.getType(), ServiceType.COMPLEX_TYPE)) {
 				iterator.remove();
-				resolved.addAll(getMembers(reviewer, task, result));
+				resolved.addAll(getMembers(reviewer, result));
 			}
 		}
 		for (ObjectReferenceType ref : resolved) {
@@ -129,7 +128,7 @@ public class AccCertReviewersHelper {
 		}
 	}
 
-	private List<ObjectReferenceType> getMembers(ObjectReferenceType abstractRoleRef, Task task, OperationResult result)
+	private List<ObjectReferenceType> getMembers(ObjectReferenceType abstractRoleRef, OperationResult result)
 			throws SchemaException {
 		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
 				.item(UserType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleRef.getOid())
@@ -150,6 +149,7 @@ public class AccCertReviewersHelper {
         }
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean containsOid(List<ObjectReferenceType> reviewers, String oid) {
         for (ObjectReferenceType reviewer : reviewers) {
             if (reviewer.getOid().equals(oid)) {
@@ -159,7 +159,8 @@ public class AccCertReviewersHelper {
         return false;
     }
 
-    private Collection<ObjectReferenceType> getObjectManagers(AccessCertificationCaseType _case, ManagerSearchType managerSearch, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private Collection<ObjectReferenceType> getObjectManagers(AccessCertificationCaseType _case, ManagerSearchType managerSearch,
+		    Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
         try {
             ObjectReferenceType objectRef = _case.getObjectRef();
@@ -193,13 +194,14 @@ public class AccCertReviewersHelper {
         }
     }
 
-    protected List<ObjectReferenceType> getTargetObjectOwners(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private List<ObjectReferenceType> getTargetObjectOwners(AccessCertificationCaseType _case, OperationResult result)
+		    throws SchemaException, ObjectNotFoundException {
         if (_case.getTargetRef() == null) {
             return null;
         }
         ObjectType target = resolveReference(_case.getTargetRef(), ObjectType.class, result);
         if (target instanceof AbstractRoleType) {
-			return getAssignees((AbstractRoleType) target, SchemaConstants.ORG_OWNER, task, result);
+			return getAssignees((AbstractRoleType) target, SchemaConstants.ORG_OWNER, result);
         } else if (target instanceof ResourceType) {
             return ResourceTypeUtil.getOwnerRef((ResourceType) target);
         } else {
@@ -207,7 +209,7 @@ public class AccCertReviewersHelper {
         }
     }
 
-	private List<ObjectReferenceType> getAssignees(AbstractRoleType role, QName relation, Task task, OperationResult result)
+	private List<ObjectReferenceType> getAssignees(AbstractRoleType role, QName relation, OperationResult result)
 			throws SchemaException {
     	List<ObjectReferenceType> rv = new ArrayList<>();
 		if (SchemaConstants.ORG_OWNER.equals(relation)) {
@@ -229,25 +231,27 @@ public class AccCertReviewersHelper {
 		return rv;
 	}
 
-	protected List<ObjectReferenceType> getObjectOwners(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private List<ObjectReferenceType> getObjectOwners(AccessCertificationCaseType _case, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
         if (_case.getObjectRef() == null) {
             return null;
         }
         ObjectType object = resolveReference(_case.getObjectRef(), ObjectType.class, result);
         if (object instanceof AbstractRoleType) {
-			return getAssignees((AbstractRoleType) object, SchemaConstants.ORG_OWNER, task, result);
+			return getAssignees((AbstractRoleType) object, SchemaConstants.ORG_OWNER, result);
         } else {
             return null;
         }
     }
 
-    private Collection<ObjectReferenceType> getTargetObjectApprovers(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Collection<ObjectReferenceType> getTargetObjectApprovers(AccessCertificationCaseType _case,
+		    OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (_case.getTargetRef() == null) {
             return null;
         }
         ObjectType target = resolveReference(_case.getTargetRef(), ObjectType.class, result);
         if (target instanceof AbstractRoleType) {
-			return getAssignees((AbstractRoleType) target, SchemaConstants.ORG_APPROVER, task, result);
+			return getAssignees((AbstractRoleType) target, SchemaConstants.ORG_APPROVER, result);
         } else if (target instanceof ResourceType) {
             return ResourceTypeUtil.getApproverRef((ResourceType) target);
         } else {
@@ -255,22 +259,26 @@ public class AccCertReviewersHelper {
         }
     }
 
-    private Collection<ObjectReferenceType> getObjectApprovers(AccessCertificationCaseType _case, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Collection<ObjectReferenceType> getObjectApprovers(AccessCertificationCaseType _case,
+		    OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (_case.getObjectRef() == null) {
             return null;
         }
         ObjectType object = resolveReference(_case.getObjectRef(), ObjectType.class, result);
         if (object instanceof AbstractRoleType) {
-			return getAssignees((AbstractRoleType) object, SchemaConstants.ORG_APPROVER, task, result);
+			return getAssignees((AbstractRoleType) object, SchemaConstants.ORG_APPROVER, result);
         } else {
             return null;
         }
     }
 
-    private ObjectType resolveReference(ObjectReferenceType objectRef, Class<? extends ObjectType> defaultObjectTypeClass, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    @SuppressWarnings("SameParameterValue")
+    private ObjectType resolveReference(ObjectReferenceType objectRef, Class<? extends ObjectType> defaultObjectTypeClass,
+		    OperationResult result) throws SchemaException, ObjectNotFoundException {
         final Class<? extends ObjectType> objectTypeClass;
         if (objectRef.getType() != null) {
-            objectTypeClass = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectRef.getType());
+	        //noinspection unchecked
+	        objectTypeClass = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(objectRef.getType());
             if (objectTypeClass == null) {
                 throw new SchemaException("No object class found for " + objectRef.getType());
             }
@@ -280,6 +288,4 @@ public class AccCertReviewersHelper {
         PrismObject<? extends ObjectType> object = repositoryService.getObject(objectTypeClass, objectRef.getOid(), null, result);
         return object.asObjectable();
     }
-
-
 }

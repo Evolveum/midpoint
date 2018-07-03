@@ -21,11 +21,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +36,7 @@ public class AccCertEventHelper implements AccessCertificationEventListener {
 
     private Set<AccessCertificationEventListener> listeners = new HashSet<>();
 
+    @SuppressWarnings("WeakerAccess")
     public void registerEventListener(AccessCertificationEventListener listener) {
         listeners.add(listener);
     }
@@ -92,20 +91,4 @@ public class AccCertEventHelper implements AccessCertificationEventListener {
             listener.onReviewDeadlineApproaching(reviewerOrDeputyRef, actualReviewerRef, cases, campaign, task, result);
         }
     }
-
-    // returns reviewers for non-closed work items
-    public Collection<String> getCurrentActiveReviewers(List<AccessCertificationCaseType> caseList) {
-        Set<String> oids = new HashSet<>();
-        for (AccessCertificationCaseType aCase : caseList) {
-			for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-				if (workItem.getCloseTimestamp() == null) {
-					for (ObjectReferenceType reviewerRef : workItem.getAssigneeRef()) {
-						oids.add(reviewerRef.getOid());
-					}
-				}
-			}
-        }
-        return oids;
-    }
-
 }

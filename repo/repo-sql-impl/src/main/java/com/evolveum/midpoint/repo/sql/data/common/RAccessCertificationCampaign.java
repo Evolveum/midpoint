@@ -35,7 +35,10 @@ import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 
 @Entity
 @Table(name = RAccessCertificationCampaign.TABLE_NAME,
@@ -59,6 +62,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
     private XMLGregorianCalendar start;
     private XMLGregorianCalendar end;
     private RAccessCertificationCampaignState state;
+    private Integer iteration;
     private Integer stageNumber;
 
     @JaxbName(localPart = "name")
@@ -119,6 +123,11 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         return state;
     }
 
+    @Column(nullable = false)
+    public Integer getIteration() {
+        return iteration;
+    }
+
     public Integer getStageNumber() {
         return stageNumber;
     }
@@ -151,41 +160,38 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         this.state = state;
     }
 
+    public void setIteration(Integer iteration) {
+        this.iteration = iteration;
+    }
+
     public void setStageNumber(Integer stageNumber) {
         this.stageNumber = stageNumber;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof RAccessCertificationCampaign)) return false;
-        if (!super.equals(o)) return false;
-
-        RAccessCertificationCampaign that = (RAccessCertificationCampaign) o;
-
-        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
-        if (definitionRef != null ? !definitionRef.equals(that.definitionRef) : that.definitionRef != null)
+        if (this == o)
+            return true;
+        if (!(o instanceof RAccessCertificationCampaign))
             return false;
-        if (ownerRefCampaign != null ? !ownerRefCampaign.equals(that.ownerRefCampaign) : that.ownerRefCampaign
-                != null) return false;
-        if (handlerUri != null ? !handlerUri.equals(that.handlerUri) : that.handlerUri != null) return false;
-        if (start != null ? !start.equals(that.start) : that.start != null) return false;
-        if (end != null ? !end.equals(that.end) : that.end != null) return false;
-        if (state != that.state) return false;
-        return !(stageNumber != null ? !stageNumber.equals(that.stageNumber) : that.stageNumber != null);
-
+        if (!super.equals(o))
+            return false;
+        RAccessCertificationCampaign that = (RAccessCertificationCampaign) o;
+        return Objects.equals(nameCopy, that.nameCopy) &&
+                Objects.equals(definitionRef, that.definitionRef) &&
+                Objects.equals(ownerRefCampaign, that.ownerRefCampaign) &&
+                Objects.equals(handlerUri, that.handlerUri) &&
+                Objects.equals(start, that.start) &&
+                Objects.equals(end, that.end) &&
+                state == that.state &&
+                Objects.equals(iteration, that.iteration) &&
+                Objects.equals(stageNumber, that.stageNumber);
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
-        result = 31 * result + (handlerUri != null ? handlerUri.hashCode() : 0);
-        result = 31 * result + (start != null ? start.hashCode() : 0);
-        result = 31 * result + (end != null ? end.hashCode() : 0);
-        result = 31 * result + (state != null ? state.hashCode() : 0);
-        result = 31 * result + (stageNumber != null ? stageNumber.hashCode() : 0);
-        return result;
+        return Objects.hash(super.hashCode(), nameCopy, definitionRef, ownerRefCampaign, handlerUri, start, end, state, iteration,
+                stageNumber);
     }
 
     public static void copyFromJAXB(AccessCertificationCampaignType jaxb, RAccessCertificationCampaign repo,
@@ -210,6 +216,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
         repo.setStart(jaxb.getStartTimestamp());
         repo.setEnd(jaxb.getEndTimestamp());
         repo.setState(RUtil.getRepoEnumValue(jaxb.getState(), RAccessCertificationCampaignState.class));
+        repo.setIteration(norm(jaxb.getIteration()));
         repo.setStageNumber(jaxb.getStageNumber());
     }
 }

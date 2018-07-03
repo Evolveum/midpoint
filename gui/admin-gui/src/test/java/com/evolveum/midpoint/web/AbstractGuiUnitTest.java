@@ -16,8 +16,11 @@
 
 package com.evolveum.midpoint.web;
 
+import java.util.Locale;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -86,6 +89,16 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 			@Override
 			public ExpressionFactory getExpressionFactory() {
 				return null;
+			}
+
+			@Override
+			public LocalizationService getLocalizationService() {
+				return null;
+			}
+
+			@Override
+			public Locale getLocale() {
+				return Locale.US;
 			}
 		};
 	}

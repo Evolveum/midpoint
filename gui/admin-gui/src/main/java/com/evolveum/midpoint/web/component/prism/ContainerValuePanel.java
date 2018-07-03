@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import java.util.List;
 
+import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -27,6 +28,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.validation.validator.EmailAddressValidator;
+import org.apache.wicket.validation.validator.RangeValidator;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
@@ -73,6 +76,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 			protected void onButtonClick(AjaxRequestTarget target) {
 				addOrReplaceProperties(model, form, isPanelVisible, true);
 				target.add(ContainerValuePanel.this);
+				target.add(getPageBase().getFeedbackPanel());
 			}
 
 			@Override
@@ -97,7 +101,6 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
         });
         add(header);
         header.setOutputMarkupId(true);
-
         addOrReplaceProperties(model, form, isPanelVisible, false);
     }
 

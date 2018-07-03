@@ -31,11 +31,11 @@ import java.util.stream.Collectors;
  */
 public class ModificationsToExecute {
 
-	public static final int BATCH_SIZE = 50;
+	private static final int BATCH_SIZE = 50;
 
-	public final List<List<ItemDelta<?, ?>>> batches = new ArrayList<>();
+	final List<List<ItemDelta<?, ?>>> batches = new ArrayList<>();
 
-	public List<ItemDelta<?, ?>> getLastBatch() {
+	private List<ItemDelta<?, ?>> getLastBatch() {
 		return batches.get(batches.size() - 1);
 	}
 
@@ -57,11 +57,11 @@ public class ModificationsToExecute {
 		getLastBatch().addAll(deltas);
 	}
 
-	public void createNewBatch() {
+	void createNewBatch() {
 		batches.add(new ArrayList<>());
 	}
 
-	public int getTotalDeltasCount() {
+	int getTotalDeltasCount() {
 		int rv = 0;
 		for (List<ItemDelta<?, ?>> batch : batches) {
 			rv += batch.size();
@@ -69,7 +69,7 @@ public class ModificationsToExecute {
 		return rv;
 	}
 
-	public List<ItemDelta<?, ?>> getAllDeltas() {
+	List<ItemDelta<?, ?>> getAllDeltas() {
 		return batches.stream().flatMap(Collection::stream).collect(Collectors.toList());
 	}
 }
