@@ -26,28 +26,43 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.LifecyleUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
@@ -144,7 +159,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		assignmentEvaluator.reset();
 	}
 
-	public DeltaSetTriple<EvaluatedAssignmentImpl<F>> processAllAssignments() throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+	public DeltaSetTriple<EvaluatedAssignmentImpl<F>> processAllAssignments() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
@@ -156,7 +171,12 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDump());
 
         SmartAssignmentCollection<F> assignmentCollection = new SmartAssignmentCollection<>();
-        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta);
+        
+        Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(focusContext.getLifecycleModel(),
+        		getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(), 
+        		prismContext, task, result);
+        
+        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDump(1));
@@ -175,6 +195,12 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
         }
 
         return evaluatedAssignmentTriple;
+	}
+	
+	private String getNewObjectLifecycleState(LensFocusContext<F> focusContext) {
+		PrismObject<F> focusNew = focusContext.getObjectNew();
+        F focusTypeNew = focusNew.asObjectable();
+        return focusTypeNew.getLifecycleState();
 	}
 
     private void processAssignment(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,

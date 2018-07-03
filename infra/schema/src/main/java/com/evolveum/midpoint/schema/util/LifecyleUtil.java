@@ -15,9 +15,25 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author semancik
@@ -39,5 +55,39 @@ public class LifecyleUtil {
 		}
 		return null;
 	}
+	
+	public static ObjectFilter getForcedAssignmentFilter(LifecycleStateModelType lifecycleModel, String targetLifecycleState, PrismContext prismContext) throws SchemaException {
+		LifecycleStateType stateDefinition = findStateDefinition(lifecycleModel, targetLifecycleState);
+		if (stateDefinition == null) {
+			return null;
+		}
+		
+        SearchFilterType filter = stateDefinition.getForcedAssignment();
+        if (filter == null) {
+        	return null;
+        }
+        
+        ObjectFilter objectFilter = QueryConvertor.parseFilter(filter, RoleType.class, prismContext);
+        return objectFilter;
+	}
+	
+//	public static <T extends AbstractRoleType> Collection<T> getListOfForcedRoles(LifecycleStateModelType lifecycleModel, 
+//			String targetLifecycleState, PrismContext prismContext, ObjectResolver resolver, Task task, OperationResult result)  {
+//        ObjectFilter filter = getForcedAssignmentFilter(lifecycleModel, targetLifecycleState, prismContext);
+//        	
+//        if (filter == null) {
+//        	return null;
+//        }
+//        	
+//        Collection<T> forcedRoles = new HashSet<>();
+//        ResultHandler<T> handler = (object, parentResult)  -> {
+//        	return forcedRoles.add(object.asObjectable());
+//        };
+//			
+//        	
+//        resolver.searchIterative(AbstractRoleType.class, 
+//       		ObjectQuery.createObjectQuery(filter), null, handler, task, result);
+//        
+//	}
 
 }
