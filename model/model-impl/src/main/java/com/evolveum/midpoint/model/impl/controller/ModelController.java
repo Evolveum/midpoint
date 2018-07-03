@@ -2081,18 +2081,23 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	@Override
+	public void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		getCertificationManagerChecked().reiterateCampaign(campaignOid, task, result);
+	}
+
+	@Override
 	public void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		getCertificationManagerChecked().startRemediation(campaignOid, task, result);
 	}
 
 	@Override
-	public void closeCurrentStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		getCertificationManagerChecked().closeCurrentStage(campaignOid, stageNumber, task, parentResult);
+	public void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		getCertificationManagerChecked().closeCurrentStage(campaignOid, task, parentResult);
 	}
 
 	@Override
-	public void openNextStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		getCertificationManagerChecked().openNextStage(campaignOid, stageNumber, task, parentResult);
+	public void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+		getCertificationManagerChecked().openNextStage(campaignOid, task, parentResult);
 	}
 
 	@Override

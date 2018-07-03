@@ -77,13 +77,11 @@ public interface AccessCertificationService {
      * If the stage being opened is the first stage, certification cases will be generated for the campaign,
      * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
      * to cases, based again on the definition (reviewer specification in stage definition and handler).
-     *
      * @param campaignOid Certification campaign OID.
-     * @param stageNumber Stage that has to be open. This has to be the stage after the current one (or the first one).
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void openNextStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+    void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
      * Opens the next stage in the certification campaign.
@@ -91,13 +89,11 @@ public interface AccessCertificationService {
      * If the stage being opened is the first stage, certification cases will be generated for the campaign,
      * depending on the certification definition (scope and handler). In all stages, reviewers will be assigned
      * to cases, based again on the definition (reviewer specification in stage definition and handler).
-     *
      * @param campaignOid Certification campaign OID.
-     * @param stageNumber Stage that has to be closed. This has to be the current stage.
      * @param task Task in context of which all operations will take place.
      * @param parentResult Result for the operations.
      */
-    void closeCurrentStage(String campaignOid, int stageNumber, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
+    void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
     /**
      * Starts the remediation phase for the campaign.
@@ -117,6 +113,11 @@ public interface AccessCertificationService {
      * @param result 
      */
     void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
+
+    /**
+     * Reiterates a closed campaign.
+     */
+    void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**
      * TODO update description

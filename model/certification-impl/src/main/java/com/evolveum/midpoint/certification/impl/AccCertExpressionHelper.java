@@ -28,13 +28,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,24 +50,22 @@ public class AccCertExpressionHelper {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(AccCertExpressionHelper.class);
 
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private PrismContext prismContext;
+    @Autowired private ExpressionFactory expressionFactory;
 
-    @Autowired
-    private ExpressionFactory expressionFactory;
+//    public <T> List<T> evaluateExpressionChecked(Class<T> resultClass, ExpressionType expressionType, ExpressionVariables expressionVariables,
+//                                                  String shortDesc, Task task, OperationResult result) {
+//
+//        try {
+//            return evaluateExpression(resultClass, expressionType, expressionVariables, shortDesc, task, result);
+//        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+//            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
+//            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
+//            throw new SystemException(e);
+//        }
+//    }
 
-    public <T> List<T> evaluateExpressionChecked(Class<T> resultClass, ExpressionType expressionType, ExpressionVariables expressionVariables,
-                                                  String shortDesc, Task task, OperationResult result) {
-
-        try {
-            return evaluateExpression(resultClass, expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
-            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
-            throw new SystemException(e);
-        }
-    }
-
+    @SuppressWarnings("SameParameterValue")
     private <T> List<T> evaluateExpression(Class<T> resultClass, ExpressionType expressionType, ExpressionVariables expressionVariables,
             String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -94,12 +86,11 @@ public class AccCertExpressionHelper {
         return retval;
     }
 
-    public List<ObjectReferenceType> evaluateRefExpressionChecked(ExpressionType expressionType,
-			ExpressionVariables expressionVariables, String shortDesc, Task task, OperationResult result) {
-
+    List<ObjectReferenceType> evaluateRefExpressionChecked(ExpressionType expressionType,
+            ExpressionVariables expressionVariables, String shortDesc, Task task, OperationResult result) {
         try {
             return evaluateRefExpression(expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (CommonException|RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -128,17 +119,17 @@ public class AccCertExpressionHelper {
         return retval;
     }
 
-    public boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
-                                                       String shortDesc, Task task, OperationResult result) {
-
-        try {
-            return evaluateBooleanExpression(expressionType, expressionVariables, shortDesc, task, result);
-        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
-            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
-            throw new SystemException(e);
-        }
-    }
+//    public boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables,
+//                                                       String shortDesc, Task task, OperationResult result) {
+//
+//        try {
+//            return evaluateBooleanExpression(expressionType, expressionVariables, shortDesc, task, result);
+//        } catch (ObjectNotFoundException|SchemaException|ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+//            LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
+//            result.recordFatalError("Couldn't evaluate " + shortDesc, e);
+//            throw new SystemException(e);
+//        }
+//    }
 
     public boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc,
 			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {

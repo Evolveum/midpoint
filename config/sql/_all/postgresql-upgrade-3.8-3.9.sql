@@ -12,3 +12,7 @@ ALTER TABLE IF EXISTS m_object_collection
 
 ALTER TABLE IF EXISTS m_object_collection
   ADD CONSTRAINT fk_object_collection FOREIGN KEY (oid) REFERENCES m_object;
+
+ALTER TABLE m_acc_cert_campaign ADD COLUMN iteration INT4 DEFAULT 1 NOT NULL;
+ALTER TABLE m_acc_cert_case ADD COLUMN iteration INT4 DEFAULT 1 NOT NULL;
+ALTER TABLE m_acc_cert_wi ADD COLUMN iteration INT4 DEFAULT 1 NOT NULL;

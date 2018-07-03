@@ -49,15 +49,30 @@ public class SqlRepositoryConfiguration {
 
 	public enum Database {
 
-    	// we might include other dialects if needed (but the ones listed here are the recommended ones)
-        H2(DRIVER_H2, H2Dialect.class.getName()),
-		MYSQL(DRIVER_MYSQL, MidPointMySQLDialect.class.getName()),
-		POSTGRESQL(DRIVER_POSTGRESQL, MidPointPostgreSQLDialect.class.getName()),
-		SQLSERVER(DRIVER_SQLSERVER, UnicodeSQLServer2008Dialect.class.getName()),
-		ORACLE(DRIVER_ORACLE, MidPointOracleDialect.class.getName()),
-		MARIADB(DRIVER_MARIADB, MidPointMySQLDialect.class.getName());
+		// order is important! (the first value is the default)
+        H2(DRIVER_H2,
+			        H2Dialect.class.getName()),
+		MYSQL(DRIVER_MYSQL,
+				MidPointMySQLDialect.class.getName(),
+				org.hibernate.dialect.MySQLDialect.class.getName(),
+				org.hibernate.dialect.MySQLInnoDBDialect.class.getName()),
+		POSTGRESQL(DRIVER_POSTGRESQL,
+				MidPointPostgreSQLDialect.class.getName(),
+				org.hibernate.dialect.PostgreSQLDialect.class.getName(),
+				org.hibernate.dialect.PostgresPlusDialect.class.getName()),
+		SQLSERVER(DRIVER_SQLSERVER,
+				UnicodeSQLServer2008Dialect.class.getName(),
+				org.hibernate.dialect.SQLServerDialect.class.getName()),
+		ORACLE(DRIVER_ORACLE,
+				MidPointOracleDialect.class.getName(),
+				org.hibernate.dialect.OracleDialect.class.getName(),
+				org.hibernate.dialect.Oracle9Dialect.class.getName(),
+				org.hibernate.dialect.Oracle8iDialect.class.getName(),
+				org.hibernate.dialect.Oracle9iDialect.class.getName(),
+				org.hibernate.dialect.Oracle10gDialect.class.getName()),
+		MARIADB(DRIVER_MARIADB,
+				MidPointMySQLDialect.class.getName());
 
-        // order is important! (the first value is the default)
 		@NotNull List<String> drivers;
 		@NotNull List<String> dialects;
 

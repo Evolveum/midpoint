@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.schrodinger.component;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.DropDown;
@@ -19,8 +20,17 @@ public class FocusSetAssignmentsModal<T> extends ModalBox<T> {
     }
 
     public FocusSetAssignmentsModal<T> selectType(String option) {
-        $(By.name("mainPopup:content:popupBody:type:input"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).selectOption(option);
+        SelenideElement tabElement = $(Schrodinger.byElementValue("a", "class", "tab-label", option))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT);
+
+        String classActive = tabElement.attr("class");
+
+        tabElement.click();
+        if (!classActive.contains("active")) {
+            $(Schrodinger.byElementValue("a", "class", "tab-label", option))
+                    .waitUntil(Condition.attribute("class", classActive + " active"), MidPoint.TIMEOUT_DEFAULT).exists();
+        }
+
 
         return this;
     }

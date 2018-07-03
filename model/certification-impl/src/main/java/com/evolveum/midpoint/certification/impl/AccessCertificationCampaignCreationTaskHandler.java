@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * The task handler for automatic campaign start.
@@ -93,7 +93,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             campaignOid = campaign.getOid();
             task.recordIterativeOperationStart(campaignName, campaignName, AccessCertificationCampaignType.COMPLEX_TYPE, campaignOid);
 
-            certificationManager.openNextStage(campaign.getOid(), 1, task, opResult);
+            certificationManager.openNextStage(campaign.getOid(), task, opResult);
             LOGGER.info("Campaign {} was started.", ObjectTypeUtil.toShortString(campaign));
 
             task.recordIterativeOperationEnd(campaignName, campaignName, AccessCertificationCampaignType.COMPLEX_TYPE, campaignOid, started, null);
@@ -103,7 +103,7 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             runResult.setProgress(task.getProgress()+1);
             return runResult;
 
-        } catch (Exception e) {     // TODO better error handling
+        } catch (CommonException | RuntimeException e) {
             if (campaignOid != null) {
                 task.recordIterativeOperationEnd(campaignName, campaignName, AccessCertificationCampaignType.COMPLEX_TYPE, campaignOid, started, e);
             }
@@ -112,16 +112,6 @@ public class AccessCertificationCampaignCreationTaskHandler implements TaskHandl
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
         }
-	}
-
-	@Override
-	public Long heartbeat(Task task) {
-		return null;	// not to reset progress information
-	}
-
-	@Override
-	public void refreshStatus(Task task) {
-		// Do nothing. Everything is fresh already.
 	}
 
     @Override

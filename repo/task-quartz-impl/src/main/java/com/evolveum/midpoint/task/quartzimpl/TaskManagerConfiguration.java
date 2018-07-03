@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.*;
+
 /**
  * Task Manager configuration, derived from "taskManager" section of midPoint config,
  * SQL repository configuration (if present), and some system properties.
@@ -153,7 +155,7 @@ public class TaskManagerConfiguration {
     private String dataSource;
     private boolean createQuartzTables;
 
-    private String hibernateDialect;
+    private Database database;
     private boolean databaseIsEmbedded;
 
     /*
@@ -173,7 +175,7 @@ public class TaskManagerConfiguration {
       */
     private boolean midPointTestMode = false;
 
-    public static final List<String> KNOWN_KEYS = Arrays.asList(
+    private static final List<String> KNOWN_KEYS = Arrays.asList(
             "midpoint.home",
             STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY,
             THREADS_CONFIG_ENTRY,
@@ -211,13 +213,14 @@ public class TaskManagerConfiguration {
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
         Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
-        checkAllowedKeys(c, KNOWN_KEYS);
+        checkAllowedKeys(c);
     }
 
     // todo copied from WfConfiguration -- refactor
-    private void checkAllowedKeys(Configuration c, List<String> knownKeys) throws TaskManagerConfigurationException {
-        Set<String> knownKeysSet = new HashSet<>(knownKeys);
+    private void checkAllowedKeys(Configuration c) throws TaskManagerConfigurationException {
+        Set<String> knownKeysSet = new HashSet<>(TaskManagerConfiguration.KNOWN_KEYS);
 
+        //noinspection unchecked
         Iterator<String> keyIterator = c.getKeys();
         while (keyIterator.hasNext())  {
             String keyName = keyIterator.next();
@@ -307,29 +310,21 @@ public class TaskManagerConfiguration {
                 WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT);
     }
 
-    private static final Map<String,String> schemas = new HashMap<>();
-    private static final Map<String,String> delegates = new HashMap<>();
+    private static final Map<Database, String> schemas = new HashMap<>();
+    private static final Map<Database, String> delegates = new HashMap<>();
 
-    static void addDbInfo(String dialect, String schema, String delegate) {
-        schemas.put(dialect, schema);
-        delegates.put(dialect, delegate);
+    private static void addDbInfo(Database database, String schema, String delegate) {
+        schemas.put(database, schema);
+        delegates.put(database, delegate);
     }
 
     static {
-        addDbInfo("org.hibernate.dialect.H2Dialect", "tables_h2.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo("org.hibernate.dialect.PostgreSQLDialect", "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
-        addDbInfo("org.hibernate.dialect.PostgresPlusDialect", "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
-        addDbInfo("com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect", "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
-        addDbInfo("org.hibernate.dialect.MySQLDialect", "tables_mysql.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo("org.hibernate.dialect.MySQLInnoDBDialect", "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo("com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect", "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo("org.hibernate.dialect.OracleDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo("org.hibernate.dialect.Oracle9Dialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo("org.hibernate.dialect.Oracle8iDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo("org.hibernate.dialect.Oracle9iDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo("org.hibernate.dialect.Oracle10gDialect", "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        addDbInfo("org.hibernate.dialect.SQLServerDialect", "tables_sqlServer.sql", "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
-        addDbInfo("com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect", "tables_sqlServer.sql", "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
+        addDbInfo(Database.H2, "tables_h2.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo(Database.MYSQL, "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo(Database.MARIADB, "tables_mysql_innodb.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        addDbInfo(Database.POSTGRESQL, "tables_postgres.sql", "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
+        addDbInfo(Database.ORACLE, "tables_oracle.sql", "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");    // todo shouldn't we use OracleDelegate?
+        addDbInfo(Database.SQLSERVER, "tables_sqlServer.sql", "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
     }
 
     void setJdbcJobStoreInformation(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig, String defaultJdbcUrlPrefix) {
@@ -340,10 +335,14 @@ public class TaskManagerConfiguration {
 
         String explicitJdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, null);
         if (explicitJdbcUrl == null) {
-            if (sqlConfig.isEmbedded()) {
-                jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
+            if (sqlConfig != null) {
+                if (sqlConfig.isEmbedded()) {
+                    jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
+                } else {
+                    jdbcUrl = sqlConfig.getJdbcUrl();
+                }
             } else {
-                jdbcUrl = sqlConfig.getJdbcUrl();
+                jdbcUrl = null;
             }
         } else {
             jdbcUrl = explicitJdbcUrl;
@@ -362,15 +361,16 @@ public class TaskManagerConfiguration {
         jdbcUser = c.getString(JDBC_USER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
         jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 
-        hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
+        database = sqlConfig != null ? sqlConfig.getDatabase() : null;
 
-        String defaultSqlSchemaFile = schemas.get(hibernateDialect);
-        String defaultDriverDelegate = delegates.get(hibernateDialect);
+        String defaultSqlSchemaFile = schemas.get(database);
+        String defaultDriverDelegate = delegates.get(database);
 
         sqlSchemaFile = c.getString(SQL_SCHEMA_FILE_CONFIG_ENTRY, defaultSqlSchemaFile);
         jdbcDriverDelegateClass = c.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
 
         createQuartzTables = c.getBoolean(CREATE_QUARTZ_TABLES_CONFIG_ENTRY, CREATE_QUARTZ_TABLES_DEFAULT);
+        databaseIsEmbedded = sqlConfig != null && sqlConfig.isEmbedded();
     }
 
     /**
@@ -405,9 +405,9 @@ public class TaskManagerConfiguration {
         }
         if (StringUtils.isEmpty(jdbcDriverDelegateClass)) {
             throw new TaskManagerConfigurationException("JDBC driver delegate class must be specified (either explicitly or "
-                    + "through one of supported Hibernate dialects). It seems that the currently specified dialect ("
-                    + hibernateDialect + ") is not among supported dialects (" + delegates.keySet() + "). "
-                    + "Please check " + TaskManagerConfiguration.class.getName() + " class or specify driver delegate explicitly.");
+                    + "through specifying a database type). It seems that the currently specified database ("
+                    + database + ") is not among supported ones (" + delegates.keySet() + "). "
+                    + "Please check your repository configuration or specify driver delegate explicitly.");
         }
         notEmpty(sqlSchemaFile, "SQL schema file must be specified (either explicitly or through one of supported Hibernate dialects).");
     }
@@ -430,6 +430,7 @@ public class TaskManagerConfiguration {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void mustBeFalse(boolean condition, String message) throws TaskManagerConfigurationException {
         if (condition) {
             throw new TaskManagerConfigurationException(message);
@@ -492,10 +493,12 @@ public class TaskManagerConfiguration {
         return jmxConnectTimeout;
     }
 
+    @SuppressWarnings("unused")
     public boolean isStopOnInitializationFailure() {
         return stopOnInitializationFailure;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public boolean isDatabaseIsEmbedded() {
         return databaseIsEmbedded;
     }
@@ -508,6 +511,7 @@ public class TaskManagerConfiguration {
         return nodeRegistrationCycleTime;
     }
 
+    @SuppressWarnings("unused")
     public int getQuartzNodeRegistrationCycleTime() {
         return quartzNodeRegistrationCycleTime;
     }
@@ -548,6 +552,7 @@ public class TaskManagerConfiguration {
         return createQuartzTables;
     }
 
+    @SuppressWarnings("unused")
     public void setCreateQuartzTables(boolean createQuartzTables) {
         this.createQuartzTables = createQuartzTables;
     }
@@ -556,7 +561,8 @@ public class TaskManagerConfiguration {
         return dataSource;
     }
 
-	public boolean isSchedulerInitiallyStopped() {
+	@SuppressWarnings("WeakerAccess")
+    public boolean isSchedulerInitiallyStopped() {
 		return schedulerInitiallyStopped;
 	}
 

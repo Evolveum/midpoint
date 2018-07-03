@@ -37,9 +37,7 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDto;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertWorkItemDtoProvider;
-import com.evolveum.midpoint.web.page.admin.certification.dto.SearchingUtils;
+import com.evolveum.midpoint.web.page.admin.certification.dto.*;
 import com.evolveum.midpoint.web.page.admin.certification.helpers.AvailableResponses;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -238,6 +236,10 @@ public class PageCertDecisions extends PageAdminCertification {
 				}
 			};
 		}
+        columns.add(column);
+
+        column = new PropertyColumn<>(createStringResource("PageCertDecisions.table.iteration"),
+                CertCaseOrWorkItemDto.F_ITERATION);
         columns.add(column);
 
         column = new AbstractColumn<CertWorkItemDto, String>(

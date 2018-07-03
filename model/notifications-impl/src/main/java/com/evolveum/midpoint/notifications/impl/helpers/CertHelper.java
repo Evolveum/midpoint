@@ -39,6 +39,8 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
+
 /**
  * @author mederly
  */
@@ -58,19 +60,20 @@ public class CertHelper {
     public String formatState(AccessCertificationEvent event) {
         AccessCertificationCampaignType campaign = event.getCampaign();
 
+        String i = norm(campaign.getIteration()) > 1 ? " (iteration " + norm(campaign.getIteration()) + ")" : "";
         switch(campaign.getState()) {
             case CREATED:
-                return "Created";
+                return "Created" + i;
             case IN_REVIEW_STAGE:
-                return "In review stage " + formatStage(campaign);
+                return "In review stage " + formatStage(campaign) + i;
             case REVIEW_STAGE_DONE:
-                return "Done review stage " + formatStage(campaign);
+                return "Done review stage " + formatStage(campaign) + i;
             case IN_REMEDIATION:
-                return "Remediation in progress";
+                return "Remediation in progress" + i;
             case CLOSED:
-                return "Closed";
+                return "Closed + i";
             default:
-                return "";      // should not occur
+                return "" + i;      // should not occur
         }
     }
 
