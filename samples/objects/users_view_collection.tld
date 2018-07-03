@@ -24,8 +24,8 @@
     <type>c:UserType</type>
     <filter>
         <q:equal>
-            <q:path>fullName</q:path>
-            <q:value>enduser</q:value>
+            <q:path>subtype</q:path>
+            <q:value>EMP</q:value>
         </q:equal>
     </filter>
 </objectCollection>
