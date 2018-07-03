@@ -873,6 +873,9 @@ public class AssignmentProcessor {
 		XMLGregorianCalendar nextRecomputeTime = null;
 
 		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignments) {
+			if (ea.isVirtual()) {
+				continue;
+			}
 			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
 			for (MappingImpl<V,D> mapping: focusMappings) {
 
@@ -916,7 +919,7 @@ public class AssignmentProcessor {
 			return;	// could be if the "assignments" step is skipped
 		}
 		for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
-			if (evalAssignment.isValid()) {
+			if (evalAssignment.isValid() && !evalAssignment.isVirtual()) {
 				addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
 				addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
 			}

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -48,13 +49,16 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.LifecyleUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -325,15 +329,55 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 		}
 
-		boolean isValid = evaluateContent && evaluateSegmentContent(segment, relativeMode, ctx);
+		boolean isVirtual = isForcedAssignment(segment, ctx);
+		ctx.evalAssignment.setVirtual(isVirtual);
+		boolean isValid = (evaluateContent && evaluateSegmentContent(segment, relativeMode, ctx)) || isVirtual;
+		
 
 		ctx.assignmentPath.removeLast(segment);
 		if (ctx.assignmentPath.isEmpty()) {		// direct assignment
 			ctx.evalAssignment.setValid(isValid);
 		}
 	}
-
-	// "content" means "payload + targets" here
+	
+	private boolean isForcedAssignment(AssignmentPathSegmentImpl segment, EvaluationContext ctx) {
+		
+		F focusNew = focusOdo.getNewObject().asObjectable();
+    	Collection<AbstractRoleType> forcedRoles = new HashSet<>();
+    	try {
+			ObjectFilter filter = LifecyleUtil.getForcedAssignmentFilter(focusStateModel, focusNew.getLifecycleState(), prismContext);
+			if (filter == null) {
+				return false;
+			}
+			
+			ResultHandler<AbstractRoleType> handler = (object, result) -> {
+				return forcedRoles.add(object.asObjectable());
+			};
+			objectResolver.searchIterative(AbstractRoleType.class, ObjectQuery.createObjectQuery(filter), null, handler, ctx.task, ctx.result);
+		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException
+				| SecurityViolationException | ExpressionEvaluationException e) {
+			LOGGER.error("Cannot search for forced roles", e);
+		}
+		
+		for (AbstractRoleType forcedRole : forcedRoles) {
+			ObjectFilter filterTargetRef = QueryBuilder.queryFor(AssignmentType.class, prismContext)
+					.item(AssignmentType.F_TARGET_REF).ref(forcedRole.getOid()).buildFilter();
+			AssignmentType assignmentType = getAssignmentType(segment, ctx);
+			try {
+				if (filterTargetRef.match(assignmentType.asPrismContainerValue(), null)) {
+					return true;
+				}
+			} catch (SchemaException e) {
+				LOGGER.error("Cannot evaluate filter {} for assignemnt {}", filterTargetRef, assignmentType);
+				continue;
+			}
+		}
+		
+		return false;
+		
+	}
+    
+   	// "content" means "payload + targets" here
 	private <O extends ObjectType> boolean evaluateSegmentContent(AssignmentPathSegmentImpl segment,
 			PlusMinusZero relativeMode, EvaluationContext ctx)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -343,7 +387,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		final boolean isDirectAssignment = ctx.assignmentPath.size() == 1;
 
 		AssignmentType assignmentType = getAssignmentType(segment, ctx);
-		boolean isAssignmentValid = LensUtil.isAssignmentValid(focusOdo.getNewObject().asObjectable(), assignmentType, now, activationComputer, focusStateModel);
+		
+		boolean isAssignmentValid = LensUtil.isAssignmentValid(focusOdo.getNewObject().asObjectable(), assignmentType, 
+				now, activationComputer, focusStateModel);
 		if (isAssignmentValid || segment.isValidityOverride()) {
 			// Note: validityOverride is currently the same as "isDirectAssignment" - which is very probably OK.
 			// Direct assignments are visited even if they are not valid (i.e. effectively disabled).
