@@ -31,10 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,6 +57,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType.F_REVIEW_FINISHED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType.F_LAST_CAMPAIGN_CLOSED_TIMESTAMP;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageType.F_END_TIMESTAMP;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 /**
@@ -96,7 +94,7 @@ public class AccCertCloserHelper {
 		ModificationsToExecute modifications = new ModificationsToExecute();
 		modifications.add(updateHelper.createStageNumberDelta(lastStageNumber + 1));
 		modifications.add(updateHelper.createStateDelta(CLOSED));
-		modifications.add(updateHelper.createTriggerDeleteDelta());
+		modifications.add(updateHelper.createTriggerReplaceDelta(createTriggersForCampaignClose(campaign)));
 		modifications.add(updateHelper.createEndTimeDelta(now));
 		createWorkItemsCloseDeltas(campaign, modifications, now, result);
 
@@ -111,6 +109,27 @@ public class AccCertCloserHelper {
 					.asItemDeltas();
 			updateHelper.modifyObjectPreAuthorized(AccessCertificationDefinitionType.class, campaign.getDefinitionRef().getOid(), definitionDeltas, task, result);
 		}
+	}
+
+	@NotNull
+	private Collection<TriggerType> createTriggersForCampaignClose(AccessCertificationCampaignType campaign) {
+		if (campaign.getReiterationDefinition() == null || campaign.getReiterationDefinition().getStartsAfter() == null) {
+			return emptySet();
+		}
+		if (limitReached(campaign, campaign.getReiterationDefinition().getLimitWhenAutomatic())
+			|| limitReached(campaign, campaign.getReiterationDefinition().getLimit())) {
+			return emptySet();
+		}
+		TriggerType trigger = new TriggerType(prismContext);
+		XMLGregorianCalendar triggerTime = clock.currentTimeXMLGregorianCalendar();
+		triggerTime.add(campaign.getReiterationDefinition().getStartsAfter());
+		trigger.setTimestamp(triggerTime);
+		trigger.setHandlerUri(AccessCertificationCampaignReiterationTriggerHandler.HANDLER_URI);
+		return singleton(trigger);
+	}
+
+	private boolean limitReached(AccessCertificationCampaignType campaign, Integer limit) {
+		return limit != null && norm(campaign.getIteration()) >= limit;
 	}
 
 	private void createWorkItemsCloseDeltas(AccessCertificationCampaignType campaign, ModificationsToExecute modifications,

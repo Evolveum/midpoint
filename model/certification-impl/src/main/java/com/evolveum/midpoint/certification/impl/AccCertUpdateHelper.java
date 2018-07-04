@@ -143,6 +143,12 @@ public class AccCertUpdateHelper {
         return ContainerDelta.createModificationReplace(ObjectType.F_TRIGGER, generalHelper.getCampaignObjectDefinition());
     }
 
+    List<ItemDelta<?, ?>> createTriggerReplaceDelta(Collection<TriggerType> triggers) throws SchemaException {
+		return DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
+				.item(AccessCertificationCampaignType.F_TRIGGER).replaceRealValues(triggers)
+				.asItemDeltas();
+    }
+
 
     //endregion
 

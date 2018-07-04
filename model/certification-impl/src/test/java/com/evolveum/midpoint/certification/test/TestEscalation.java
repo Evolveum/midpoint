@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType.ACCEPT;
@@ -37,6 +38,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType.ENABLED;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Very simple certification test.
@@ -408,13 +410,13 @@ public class TestEscalation extends AbstractCertificationTest {
 		TestUtil.assertSuccess(result);
 
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-		display("campaign after escalation", campaign);
+		display("campaign after remediation", campaign);
 		assertStateAndStage(campaign, AccessCertificationCampaignStateType.IN_REMEDIATION, 2);
     }
 
 	@Test
-	public void test200Reiteration() throws Exception {
-		final String TEST_NAME = "test200Reiteration";
+	public void test140Close() throws Exception {
+		final String TEST_NAME = "test140Close";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
@@ -429,8 +431,8 @@ public class TestEscalation extends AbstractCertificationTest {
 		TestUtil.displayWhen(TEST_NAME);
 
         clock.resetOverride();
-        certificationManager.closeCampaign(campaignOid, true, task, result);
-        certificationManager.reiterateCampaign(campaignOid, task, result);
+        clock.overrideDuration("P16D");
+		certificationManager.closeCampaign(campaignOid, true, task, result);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -438,41 +440,30 @@ public class TestEscalation extends AbstractCertificationTest {
 		TestUtil.assertSuccess(result);
 
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
-		display("campaign after reiteration", campaign);
-		assertStateStageIteration(campaign, AccessCertificationCampaignStateType.CREATED, 0, 2);
-
-		// current iteration/stage:
-		// - 6 cases (all except admin->super), 0 work items
-		// - so, these cases are all complete but none is decided
-		// - no work items so they are all OK
-		assertPercentCompleteCurrent(campaign, 100, 0, 100);
-
-		// current stage (all iterations):
-		// - 6 cases, 0 work items => the same numbers
-		assertPercentCompleteCurrentStage(campaign, 100, 0, 100);
-
-		// current iteration (all stages) -> the same
-		assertPercentCompleteCurrentIteration(campaign, 100, 0, 100);
-
-		// all stages, all iterations
-		// - 7 cases, 1 complete, 1 decided
-		// - 1 of 7 work items done
-		assertPercentCompleteAll(campaign, 14, 14, 14);
+		display("campaign after close", campaign);
+		assertStateAndStage(campaign, AccessCertificationCampaignStateType.CLOSED, 2);
+		assertEquals("Wrong # of triggers", 1, campaign.getTrigger().size());           // reiterate
     }
 
 	@Test
-	public void test210OpenFirstStage() throws Exception {
-		final String TEST_NAME = "test210OpenFirstStage";
+	public void test200AutomaticReiteration() throws Exception {
+		final String TEST_NAME = "test200AutomaticReiteration";
 		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
 
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
 		task.setOwner(userAdministrator.asPrismObject());
 		OperationResult result = task.getResult();
 
+		dummyTransport.clearMessages();
+
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		certificationService.openNextStage(campaignOid, task, result);
+
+        clock.resetOverride();
+		clock.overrideDuration("P18D");          // campaign ends at P16D, reiteration scheduled to P17D
+		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -482,7 +473,7 @@ public class TestEscalation extends AbstractCertificationTest {
 		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
 		display("campaign in stage 1", campaign);
 
-		assertSanityAfterCampaignStart(campaign, certificationDefinition, 7, 2, 2);
+		assertSanityAfterCampaignStart(campaign, certificationDefinition, 7, 2, 2, new Date(clock.currentTimeMillis()));
 		List<AccessCertificationCaseType> caseList = campaign.getCase();
 		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);  // from iteration 1
 		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, null);
@@ -510,6 +501,197 @@ public class TestEscalation extends AbstractCertificationTest {
 
 		assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
 		display("dummy transport", dummyTransport);
+    }
+
+	@Test
+	public void test300Close() throws Exception {
+		final String TEST_NAME = "test300Close";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		dummyTransport.clearMessages();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		clock.resetOverride();
+		clock.overrideDuration("P19D");         // +1 day relative to previous test
+		certificationManager.closeCampaign(campaignOid, true, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		display("campaign after close", campaign);
+		assertStateAndStage(campaign, AccessCertificationCampaignStateType.CLOSED, 2);
+		assertEquals("Wrong # of triggers", 0, campaign.getTrigger().size());           // no more automated reiterations
+	}
+
+	@Test
+	public void test310ManualReiteration() throws Exception {
+		final String TEST_NAME = "test310ManualReiteration";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		dummyTransport.clearMessages();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		clock.resetOverride();
+		clock.overrideDuration("P20D");          // +1 day relative to previous test
+		certificationManager.reiterateCampaign(campaignOid, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		display("campaign after reiteration", campaign);
+		assertStateStageIteration(campaign, AccessCertificationCampaignStateType.CREATED, 0, 3);
+
+		// current iteration/stage:
+		// - 6 cases (all except admin->super), 0 work items
+		// - so, these cases are all complete but none is decided
+		// - no work items so they are all OK
+		assertPercentCompleteCurrent(campaign, 100, 0, 100);
+
+		// current stage (all iterations):
+		// - 6 cases, 0 work items => the same numbers
+		assertPercentCompleteCurrentStage(campaign, 100, 0, 100);
+
+		// current iteration (all stages) -> the same
+		assertPercentCompleteCurrentIteration(campaign, 100, 0, 100);
+
+		// all stages, all iterations
+		// - 7 cases, 1 complete, 1 decided
+		// - 1 of 7 work items done
+		assertPercentCompleteAll(campaign, 14, 14, 14);
+	}
+
+	@Test
+	public void test320OpenFirstStage() throws Exception {
+		final String TEST_NAME = "test320OpenFirstStage";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		certificationService.openNextStage(campaignOid, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		display("campaign in stage 1", campaign);
+
+		assertSanityAfterCampaignStart(campaign, certificationDefinition, 7, 3, 3, new Date(clock.currentTimeMillis()));
+		List<AccessCertificationCaseType> caseList = campaign.getCase();
+		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_SUPERUSER_OID, ACCEPT, ACCEPT, null);  // from iteration 1
+		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_COO_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_ADMINISTRATOR_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_JACK_OID, ROLE_CEO_OID, NO_RESPONSE, NO_RESPONSE, null);
+		assertCaseOutcome(caseList, USER_JACK_OID, ORG_EROOT_OID, NO_RESPONSE, NO_RESPONSE, null);
+
+		// current iteration/stage:
+		// - 6 cases (all except admin->super), 6 work items, no decisions
+		assertPercentCompleteCurrent(campaign, 0, 0, 0);
+
+		// current stage (all iterations):
+		// - 7 cases, 7 work items; one case is complete/decided, one work item is done
+		assertPercentCompleteCurrentStage(campaign, 14, 14, 14);
+
+		// current iteration (all stages)
+		// - 6 cases, 6 work items, no decisions
+		assertPercentCompleteCurrentIteration(campaign, 0, 0, 0);
+
+		// all stages, all iterations
+		// - 7 cases, 1 complete, 1 decided
+		// - 1 of 7 work items done
+		assertPercentCompleteAll(campaign, 14, 14, 14);
+
+		assertEquals("Wrong # of triggers", 2, campaign.getTrigger().size());           // completion + timed-action
+		display("dummy transport", dummyTransport);
+	}
+
+	@Test
+	public void test400Close() throws Exception {
+		final String TEST_NAME = "test300Close";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		dummyTransport.clearMessages();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		clock.resetOverride();
+		clock.overrideDuration("P21D");         // +1 day relative to previous test
+		certificationManager.closeCampaign(campaignOid, true, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		AccessCertificationCampaignType campaign = getCampaignWithCases(campaignOid);
+		display("campaign after close", campaign);
+		assertStateAndStage(campaign, AccessCertificationCampaignStateType.CLOSED, 2);
+		assertEquals("Wrong # of triggers", 0, campaign.getTrigger().size());           // no more automated reiterations
+	}
+
+	@Test
+	public void test410ManualReiterationUnavailable() throws Exception {
+		final String TEST_NAME = "test410ManualReiterationUnavailable";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(getUserFromRepo(USER_ADMINISTRATOR_OID));
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestEscalation.class.getName() + "." + TEST_NAME);
+		task.setOwner(userAdministrator.asPrismObject());
+		OperationResult result = task.getResult();
+
+		dummyTransport.clearMessages();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		clock.resetOverride();
+		clock.overrideDuration("P22D");          // +1 day relative to previous test
+		try {
+			certificationManager.reiterateCampaign(campaignOid, task, result);
+			fail("unexpected success");
+		} catch (IllegalStateException e) {
+			// THEN
+			System.err.println("got expected exception: " + e.getMessage());
+			e.printStackTrace();
+			assertTrue("wrong exception message", e.getMessage().contains("maximum number of iterations (3) was reached"));
+		}
 	}
 
 	@SuppressWarnings("Duplicates")

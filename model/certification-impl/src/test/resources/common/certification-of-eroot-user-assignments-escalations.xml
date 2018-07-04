@@ -37,6 +37,11 @@
     <remediationDefinition>
         <style>reportOnly</style>
     </remediationDefinition>
+    <reiterationDefinition>
+        <startsAfter>P1D</startsAfter>
+        <limitWhenAutomatic>2</limitWhenAutomatic>
+        <limit>3</limit>
+    </reiterationDefinition>
     <stageDefinition>
         <number>1</number>
         <duration>P14D</duration>
