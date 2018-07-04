@@ -64,7 +64,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeAssignmentPopupTabPanel.class);
 
     public ResourceTypeAssignmentPopupTabPanel(String id){
-        super(id, ObjectTypes.RESOURCE, new ArrayList<>());
+        super(id, ObjectTypes.RESOURCE);
     }
 
     @Override

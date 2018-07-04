@@ -56,11 +56,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
     public FocusTypeAssignmentPopupTabPanel(String id, ObjectTypes type){
-        this(id, type, new ArrayList<>());
-    }
-
-    public FocusTypeAssignmentPopupTabPanel(String id, ObjectTypes type, List<F> selectedObjects){
-        super(id, type, selectedObjects);
+        super(id, type);
     }
 
     @Override
@@ -82,7 +78,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     protected List<AssignmentType> getSelectedAssignmentsList(){
         List<AssignmentType> assignmentList = new ArrayList<>();
 
-        List<FocusType> selectedObjects = getSelectedObjectsList();
+        List<F> selectedObjects = getSelectedObjectsList();
         QName relation = getRelationValue();
         selectedObjects.forEach(selectedObject -> {
             assignmentList.add(ObjectTypeUtil.createAssignmentTo(selectedObject, relation));
