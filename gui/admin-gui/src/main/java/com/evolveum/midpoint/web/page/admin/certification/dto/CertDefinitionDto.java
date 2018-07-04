@@ -58,6 +58,9 @@ public class CertDefinitionDto implements Serializable {
     public static final String F_XML = "xml";
     public static final String F_OWNER = "owner";
     public static final String F_REMEDIATION_STYLE = "remediationStyle";
+    public static final String F_AUTOMATIC_ITERATION_AFTER = "automaticIterationAfter";
+    public static final String F_AUTOMATIC_ITERATION_LIMIT = "automaticIterationLimit";
+    public static final String F_OVERALL_ITERATION_LIMIT = "overallIterationLimit";
     public static final String F_SCOPE_DEFINITION = "scopeDefinition";
     public static final String F_STAGE_DEFINITION = "stageDefinition";
     public static final String F_LAST_STARTED = "lastStarted";
@@ -71,6 +74,9 @@ public class CertDefinitionDto implements Serializable {
     private final DefinitionScopeDto definitionScopeDto;
     @NotNull private final List<StageDefinitionDto> stageDefinition;
     private AccessCertificationRemediationStyleType remediationStyle;
+    private String automaticIterationAfter;
+    private Integer automaticIterationLimit;
+    private Integer overallIterationLimit;
     private List<AccessCertificationResponseType> revokeOn;
     private AccessCertificationCaseOutcomeStrategyType outcomeStrategy;
     //private List<AccessCertificationResponseType> stopReviewOn, advanceToNextStageOn;
@@ -94,6 +100,12 @@ public class CertDefinitionDto implements Serializable {
         } else {
             remediationStyle = AccessCertificationRemediationStyleType.AUTOMATED;           // TODO consider the default...
             revokeOn = new ArrayList<>();
+        }
+        AccessCertificationReiterationDefinitionType reiteration = definition.getReiterationDefinition();
+        if (reiteration != null) {
+            automaticIterationAfter = reiteration.getStartsAfter() != null ? reiteration.getStartsAfter().toString() : null;
+            automaticIterationLimit = reiteration.getLimitWhenAutomatic();
+            overallIterationLimit = reiteration.getLimit();
         }
         if (definition.getReviewStrategy() != null) {
             outcomeStrategy = definition.getReviewStrategy().getOutcomeStrategy();
@@ -164,6 +176,22 @@ public class CertDefinitionDto implements Serializable {
         } else {
             definition.setRemediationDefinition(null);
         }
+        if (automaticIterationAfter != null || automaticIterationLimit != null || overallIterationLimit != null) {
+            Duration startsAfter;
+            try {
+                startsAfter = XmlTypeConverter.createDuration(automaticIterationAfter);
+            } catch (IllegalArgumentException e) {
+                // TODO better validation
+                throw new IllegalArgumentException("Couldn't parse automatic reiteration time interval ('" + automaticIterationAfter + "')", e);
+            }
+            definition.setReiterationDefinition(
+                    new AccessCertificationReiterationDefinitionType(prismContext)
+                            .startsAfter(startsAfter)
+                            .limitWhenAutomatic(automaticIterationLimit)
+                            .limit(overallIterationLimit));
+        } else {
+            definition.setReiterationDefinition(null);
+        }
         if (outcomeStrategy != null) {
             if (definition.getReviewStrategy() == null) {
                 definition.setReviewStrategy(new AccessCertificationCaseReviewStrategyType());
@@ -219,6 +247,30 @@ public class CertDefinitionDto implements Serializable {
 
     public void setRemediationStyle(AccessCertificationRemediationStyleType remediationStyle) {
         this.remediationStyle = remediationStyle;
+    }
+
+    public String getAutomaticIterationAfter() {
+        return automaticIterationAfter;
+    }
+
+    public void setAutomaticIterationAfter(String value) {
+        this.automaticIterationAfter = value;
+    }
+
+    public Integer getAutomaticIterationLimit() {
+        return automaticIterationLimit;
+    }
+
+    public void setAutomaticIterationLimit(Integer automaticIterationLimit) {
+        this.automaticIterationLimit = automaticIterationLimit;
+    }
+
+    public Integer getOverallIterationLimit() {
+        return overallIterationLimit;
+    }
+
+    public void setOverallIterationLimit(Integer overallIterationLimit) {
+        this.overallIterationLimit = overallIterationLimit;
     }
 
     private DefinitionScopeDto createDefinitionScopeDto(AccessCertificationScopeType scopeTypeObj, PrismContext prismContext) {

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationRemediationStyleType;
@@ -28,10 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationR
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -59,6 +57,9 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 	//	private static final String ID_OWNER_INPUT = "ownerInput";
 	private static final String ID_OWNER_REF_CHOOSER = "ownerRefChooser";
 	private static final String ID_REMEDIATION = "remediation";
+	private static final String ID_AUTOMATIC_ITERATION_AFTER = "automaticIterationAfter";
+	private static final String ID_AUTOMATIC_ITERATION_LIMIT = "automaticIterationLimit";
+	private static final String ID_OVERALL_ITERATION_LIMIT = "overallIterationLimit";
 	private static final String ID_OUTCOME_STRATEGY = "outcomeStrategy";
 	private static final String ID_OUTCOME_STRATEGY_HELP = "outcomeStrategyHelp";
 	private static final String ID_STOP_REVIEW_ON = "stopReviewOn";
@@ -107,6 +108,20 @@ public class DefinitionBasicPanel extends BasePanel<CertDefinitionDto> {
 		}, WebComponentUtil.createReadonlyModelFromEnum(AccessCertificationRemediationStyleType.class),
 				new EnumChoiceRenderer<>(this));
 		add(remediation);
+
+		final TextField<String> automaticIterationAfterField = new TextField<>(ID_AUTOMATIC_ITERATION_AFTER,
+				new PropertyModel<>(getModel(), CertDefinitionDto.F_AUTOMATIC_ITERATION_AFTER));
+		add(automaticIterationAfterField);
+
+		final TextField<Integer> automaticIterationLimitField = new TextField<>(ID_AUTOMATIC_ITERATION_LIMIT,
+				new PropertyModel<>(getModel(), CertDefinitionDto.F_AUTOMATIC_ITERATION_LIMIT));
+		automaticIterationLimitField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		add(automaticIterationLimitField);
+
+		final TextField<Integer> overallIterationLimitField = new TextField<>(ID_OVERALL_ITERATION_LIMIT,
+				new PropertyModel<>(getModel(), CertDefinitionDto.F_OVERALL_ITERATION_LIMIT));
+		overallIterationLimitField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		add(overallIterationLimitField);
 
 		DropDownChoice outcomeStrategy =
 				new DropDownChoice<>(ID_OUTCOME_STRATEGY,
