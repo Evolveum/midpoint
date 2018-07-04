@@ -164,6 +164,7 @@ public class ExpressionHandler {
 
 		if (shadow != null) {
 			variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadow.asPrismObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadow.asPrismObject());
 		}
 
 		if (resource != null) {
