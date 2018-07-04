@@ -209,9 +209,13 @@ public class BaseHelper {
 			LOGGER.trace("Waiting: attempt = " + attempt + ", waitTimeInterval = 0.." + waitTimeInterval + ", waitTime = " + waitTime);
 		}
 
-		if (LOGGER.isDebugEnabled()) {
+		if (attempt >= SqlRepositoryServiceImpl.MAIN_LOG_WARN_THRESHOLD) {
+			LOGGER.warn("A serialization-related problem occurred when {} object with oid '{}', retrying after "
+							+ "{} ms (this was attempt {} of {})\n{}: {}", operation, oid, waitTime,
+					attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage());
+		} else {
 			LOGGER.debug("A serialization-related problem occurred when {} object with oid '{}', retrying after "
-					+ "{} ms (this was attempt {} of {})\n{}: {}", operation, oid, waitTime,
+							+ "{} ms (this was attempt {} of {})\n{}: {}", operation, oid, waitTime,
 					attempt, LOCKING_MAX_ATTEMPTS, ex.getClass().getSimpleName(), ex.getMessage());
 		}
 
