@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -65,8 +66,8 @@ public class AccCertQueryHelper {
 		return repositoryService.searchContainers(AccessCertificationCaseType.class, newQuery, options, result);
     }
 
-    public List<AccessCertificationCaseType> getAllCurrentIterationCases(String campaignOid, int iteration,
-			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    List<AccessCertificationCaseType> getAllCurrentIterationCases(String campaignOid, int iteration,
+		    Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 	    ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
 			    .ownerId(campaignOid)
 			    .and().item(AccessCertificationCaseType.F_ITERATION).eq(iteration)
@@ -189,4 +190,12 @@ public class AccCertQueryHelper {
         }
         return rv;
     }
+
+	boolean hasNoResponseCases(String campaignOid, OperationResult result) {
+		ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCaseType.class, prismContext)
+				.ownerId(campaignOid)
+				.and().item(AccessCertificationCaseType.F_OUTCOME).eq(SchemaConstants.MODEL_CERTIFICATION_OUTCOME_NO_RESPONSE)
+				.build();
+		return repositoryService.countContainers(AccessCertificationCaseType.class, query, null, result) > 0;
+	}
 }

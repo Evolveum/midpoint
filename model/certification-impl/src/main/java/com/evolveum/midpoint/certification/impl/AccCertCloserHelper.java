@@ -94,7 +94,7 @@ public class AccCertCloserHelper {
 		ModificationsToExecute modifications = new ModificationsToExecute();
 		modifications.add(updateHelper.createStageNumberDelta(lastStageNumber + 1));
 		modifications.add(updateHelper.createStateDelta(CLOSED));
-		modifications.add(updateHelper.createTriggerReplaceDelta(createTriggersForCampaignClose(campaign)));
+		modifications.add(updateHelper.createTriggerReplaceDelta(createTriggersForCampaignClose(campaign, result)));
 		modifications.add(updateHelper.createEndTimeDelta(now));
 		createWorkItemsCloseDeltas(campaign, modifications, now, result);
 
@@ -112,7 +112,7 @@ public class AccCertCloserHelper {
 	}
 
 	@NotNull
-	private Collection<TriggerType> createTriggersForCampaignClose(AccessCertificationCampaignType campaign) {
+	private Collection<TriggerType> createTriggersForCampaignClose(AccessCertificationCampaignType campaign, OperationResult result) {
 		if (campaign.getReiterationDefinition() == null || campaign.getReiterationDefinition().getStartsAfter() == null) {
 			return emptySet();
 		}
@@ -120,12 +120,17 @@ public class AccCertCloserHelper {
 			|| limitReached(campaign, campaign.getReiterationDefinition().getLimit())) {
 			return emptySet();
 		}
-		TriggerType trigger = new TriggerType(prismContext);
-		XMLGregorianCalendar triggerTime = clock.currentTimeXMLGregorianCalendar();
-		triggerTime.add(campaign.getReiterationDefinition().getStartsAfter());
-		trigger.setTimestamp(triggerTime);
-		trigger.setHandlerUri(AccessCertificationCampaignReiterationTriggerHandler.HANDLER_URI);
-		return singleton(trigger);
+		if (queryHelper.hasNoResponseCases(campaign.getOid(), result)) {
+			TriggerType trigger = new TriggerType(prismContext);
+			XMLGregorianCalendar triggerTime = clock.currentTimeXMLGregorianCalendar();
+			triggerTime.add(campaign.getReiterationDefinition().getStartsAfter());
+			trigger.setTimestamp(triggerTime);
+			trigger.setHandlerUri(AccessCertificationCampaignReiterationTriggerHandler.HANDLER_URI);
+			return singleton(trigger);
+		} else {
+			LOGGER.debug("Campaign {} has no no-response cases, skipping creation of reiteration trigger", toShortStringLazy(campaign));
+			return emptySet();
+		}
 	}
 
 	private boolean limitReached(AccessCertificationCampaignType campaign, Integer limit) {
