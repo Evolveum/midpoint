@@ -14164,6 +14164,21 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="assignmentApprovalRequestLimit" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							How many assignment approvals (add/delete/modify) can be requested via any given operation?
+							EXPERIMENTAL. TEMPORARY. Just to validate the concept.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.3</a:since>
+						<a:since>3.8.1</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -124,6 +124,17 @@ public class AdminGuiConfigTypeUtil {
 
 		if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
 			composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
+		}
+
+		if (adminGuiConfiguration.getAssignmentApprovalRequestLimit() != null) {
+			if (composite.getAssignmentApprovalRequestLimit() != null) {
+				// the greater value wins (so it is possible to give an exception to selected users)
+				composite.setAssignmentApprovalRequestLimit(Math.max(
+						adminGuiConfiguration.getAssignmentApprovalRequestLimit(),
+						composite.getAssignmentApprovalRequestLimit()));
+			} else {
+				composite.setAssignmentApprovalRequestLimit(adminGuiConfiguration.getAssignmentApprovalRequestLimit());
+			}
 		}
 	}
 
