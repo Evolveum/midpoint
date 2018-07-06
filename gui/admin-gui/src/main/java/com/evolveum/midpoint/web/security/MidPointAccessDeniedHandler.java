@@ -16,13 +16,11 @@
 
 package com.evolveum.midpoint.web.security;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
-import org.springframework.security.web.csrf.MissingCsrfTokenException;
+import org.springframework.security.web.csrf.CsrfException;
 
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,35 +40,19 @@ public class MidPointAccessDeniedHandler implements AccessDeniedHandler {
             return;
         }
 
-        // handle invalid csrf token exception gracefully when user tries to log in/out with expired exception
-        if (isLoginLogoutRequest(request) && (accessDeniedException instanceof MissingCsrfTokenException)) {
-            response.sendRedirect(request.getContextPath());
+        if (accessDeniedException instanceof CsrfException) {
+            // handle invalid csrf token exception gracefully when user tries to log in/out with expired exception
+            // handle session timeout for ajax cases -> redirect to base context (login)
+            if (WicketRedirectStrategy.isWicketAjaxRequest(request)) {
+                WicketRedirectStrategy redirect = new WicketRedirectStrategy();
+                redirect.sendRedirect(request, response, request.getContextPath());
+            } else {
+                response.sendRedirect(request.getContextPath());
+            }
+
             return;
         }
 
         defaultHandler.handle(request, response, accessDeniedException);
-    }
-
-    private boolean isLoginLogoutRequest(HttpServletRequest req) {
-        if (!"post".equalsIgnoreCase(req.getMethod())) {
-            return false;
-        }
-
-        String uri = req.getRequestURI();
-        return createUri(req, "/j_spring_security_logout").equals(uri)
-                || createUri(req, "/spring_security_login").equals(uri);
-    }
-
-    private String createUri(HttpServletRequest req, String uri) {
-        StringBuilder sb = new StringBuilder();
-
-        ServletContext ctx = req.getServletContext();
-        String ctxPath = ctx.getContextPath();
-        if (StringUtils.isNotEmpty(ctxPath)) {
-            sb.append(ctxPath);
-        }
-        sb.append(uri);
-
-        return sb.toString();
     }
 }
