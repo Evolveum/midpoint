@@ -58,8 +58,7 @@ public class ValueSetDefinition {
 
 	public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException {
 		ExpressionType conditionType = setDefinitionType.getCondition();
-		condition =  ExpressionUtil.createCondition(conditionType, expressionFactory,
-				shortDesc, task, result);
+		condition = ExpressionUtil.createCondition(conditionType, expressionFactory, shortDesc, task, result);
 	}
 
 	public <IV extends PrismValue> boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
