@@ -495,6 +495,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		ValueSetDefinitionType rangetSetDefType = mappingType.getTarget().getSet();
 		ValueSetDefinition setDef = new ValueSetDefinition(rangetSetDefType, name, "range of "+name.getLocalPart()+" in "+getMappingContextDescription(), task, result);
 		setDef.init(expressionFactory);
+		setDef.setAdditionalVariables(variables);
 		for (V originalValue : originalTargetValues) {
 			if (!setDef.contains(originalValue)) {
 				continue;
@@ -905,6 +906,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		if (domainSetType != null) {
 			ValueSetDefinition setDef = new ValueSetDefinition(domainSetType, name, "domain of "+name.getLocalPart()+" in "+getMappingContextDescription(), task, result);
 			setDef.init(expressionFactory);
+			setDef.setAdditionalVariables(variables);
 			try {
 
 				if (itemOld != null) {
