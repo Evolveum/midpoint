@@ -531,6 +531,7 @@ public class ActivationProcessor {
 
 			// Variable: shadow
 			builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject());
+			builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject());
 
 			// Variable: resource
 			builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());

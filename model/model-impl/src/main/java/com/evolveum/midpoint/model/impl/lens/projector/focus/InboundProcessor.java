@@ -753,9 +753,9 @@ public class InboundProcessor {
     	ExpressionVariables variables = new ExpressionVariables();
     	variables.addVariableDefinition(ExpressionConstants.VAR_USER, focusNew);
     	variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusNew);
-		variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew);
     	variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
     	variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
+    	variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew);
     	variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
     	variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
     	variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
