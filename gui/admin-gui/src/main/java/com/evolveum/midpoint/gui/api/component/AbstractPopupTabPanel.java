@@ -35,8 +35,8 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
 
     private static final String ID_OBJECT_LIST_PANEL = "objectListPanel";
 
-    private ObjectTypes type;
-//    protected List<O> selectedObjects;
+    protected ObjectTypes type;
+    protected List<O> preSelectedObjects = new ArrayList<>();
 
     public AbstractPopupTabPanel(String id, ObjectTypes type){
         super(id);
@@ -59,12 +59,8 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
 
             @Override
             protected void onUpdateCheckbox(AjaxRequestTarget target) {
-                List<O> preselectedObjects = getPreselectedObjects();
-                if (preselectedObjects == null){
-                    preselectedObjects = new ArrayList<>();
-                }
-                preselectedObjects.clear();
-                preselectedObjects.addAll(getSelectedObjectsList());
+                getPreselectedObjects().clear();
+                getPreselectedObjects().addAll(getSelectedObjectsList());
 
                 onSelectionPerformed(target);
             }
@@ -94,7 +90,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     protected abstract void initParametersPanel();
 
     protected List<O> getPreselectedObjects(){
-        return new ArrayList<>();
+        return preSelectedObjects;
     }
 
     protected List<O> getSelectedObjectsList(){

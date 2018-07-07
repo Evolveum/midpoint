@@ -231,8 +231,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     private int getTabPanelSelectedCount(WebMarkupContainer panel){
-        if (panel != null && panel instanceof FocusTypeAssignmentPopupTabPanel){
-            return ((FocusTypeAssignmentPopupTabPanel) panel).getSelectedObjectsList().size();
+        if (panel != null && panel instanceof AbstractAssignmentPopupTabPanel){
+            return ((AbstractAssignmentPopupTabPanel) panel).getSelectedObjectsList().size();
         }
         return 0;
     }
