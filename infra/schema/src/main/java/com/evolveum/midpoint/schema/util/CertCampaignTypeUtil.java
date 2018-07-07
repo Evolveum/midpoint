@@ -603,4 +603,10 @@ public class CertCampaignTypeUtil {
     public static int norm(Integer iteration) {
         return ObjectUtils.defaultIfNull(iteration, 1);
     }
+
+    public static boolean isReiterable(AccessCertificationCampaignType campaign) {
+        return campaign.getState() == AccessCertificationCampaignStateType.CLOSED &&
+                (campaign.getReiterationDefinition() == null || campaign.getReiterationDefinition().getLimit() == null
+                        || norm(campaign.getIteration()) < campaign.getReiterationDefinition().getLimit());
+    }
 }

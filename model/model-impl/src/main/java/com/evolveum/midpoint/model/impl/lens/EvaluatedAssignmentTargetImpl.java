@@ -67,8 +67,16 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 
 	@Override
 	public boolean appliesToFocusWithAnyRelation() {
+		// TODO clean up this method
+		if (appliesToFocus()) {
+			// This covers any indirectly assigned targets, like user -> org -> parent-org -> root-org -(I)-> role
+			// And directly assigned membership relations as well.
+			return true;
+		}
+		// And this covers any directly assigned non-membership relations (like approver or owner).
+		// Actually I think these should be also covered by appliesToFocus() i.e. their isMatchingOrder should be true.
+		// But for some reason it is currently not so.
 		EvaluationOrder order = assignmentPath.last().getEvaluationOrder();
-		// TODO check if transitive evaluations are taken into account (they are probably accounted for during assignment evaluation)
 		return order.getSummaryOrder() == 1 || order.getSummaryOrder() == 0 && order.getMatchingRelationOrder(SchemaConstants.ORG_DEPUTY) > 0;
 	}
 

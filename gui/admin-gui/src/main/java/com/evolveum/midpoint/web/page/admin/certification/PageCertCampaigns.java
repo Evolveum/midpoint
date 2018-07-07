@@ -555,7 +555,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 				}) {
 			@Override
 			public IModel<Boolean> getVisible() {
-				return new ReadOnlyModel<>(() -> dto.getState() == AccessCertificationCampaignStateType.CLOSED);
+				return new ReadOnlyModel<>(dto::isReiterable);
 			}
 		});
 		dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.delete"),
@@ -1034,7 +1034,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 						}
 						break;
 					case OPERATION_REITERATE_CAMPAIGN:
-						if (campaign.getState() == AccessCertificationCampaignStateType.CLOSED) {
+						if (item.isReiterable()) {
 							acs.reiterateCampaign(campaign.getOid(), task, result);
 							processed++;
 						}

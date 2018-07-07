@@ -98,12 +98,12 @@ public class OrgClosureConcurrencyTest extends AbstractOrgClosureTest {
         return configuration;
     }
 
-    @Test(enabled = true) public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
-    @Test(enabled = true) public void test150CheckClosure() throws Exception { _test150CheckClosure(); }
-    @Test(enabled = true) public void test200AddRemoveLinksSeq() throws Exception { _test200AddRemoveLinksMT(false); }
-    @Test(enabled = true) public void test201AddRemoveLinksRandom() throws Exception { _test200AddRemoveLinksMT(true); }
-    @Test(enabled = true) public void test300AddRemoveNodesSeq() throws Exception { _test300AddRemoveNodesMT(false); }
-    @Test(enabled = true) public void test301AddRemoveNodesRandom() throws Exception { _test300AddRemoveNodesMT(true); }
+    @Test public void test100LoadOrgStructure() throws Exception { _test100LoadOrgStructure(); }
+    @Test public void test150CheckClosure() throws Exception { _test150CheckClosure(); }
+    @Test public void test200AddRemoveLinksSeq() throws Exception { _test200AddRemoveLinksMT(false); }
+    @Test public void test201AddRemoveLinksRandom() throws Exception { _test200AddRemoveLinksMT(true); }
+    @Test public void test300AddRemoveNodesSeq() throws Exception { _test300AddRemoveNodesMT(false); }
+    @Test public void test301AddRemoveNodesRandom() throws Exception { _test300AddRemoveNodesMT(true); }
 
     /**
      * We randomly select a set of links to be removed.

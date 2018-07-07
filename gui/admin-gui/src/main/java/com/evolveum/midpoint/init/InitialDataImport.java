@@ -91,11 +91,21 @@ public class InitialDataImport {
         Validate.notNull(model, "Model service must not be null.");
         this.model = model;
     }
+    
+    public void setPrismContext(PrismContext prismContext) {
+    	Validate.notNull(prismContext, "Prism context must not be null.");
+		this.prismContext = prismContext;
+	}
 
     public void setTaskManager(TaskManager taskManager) {
         Validate.notNull(taskManager, "Task manager must not be null.");
         this.taskManager = taskManager;
     }
+    
+    public void setConfiguration(MidpointConfiguration configuration) {
+    	Validate.notNull(configuration, "Midpoint configuration must not be null.");
+		this.configuration = configuration;
+	}
 
     public void init() throws SchemaException {
         LOGGER.info("Starting initial object import (if necessary).");

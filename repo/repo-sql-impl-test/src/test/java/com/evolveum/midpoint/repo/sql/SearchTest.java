@@ -45,6 +45,8 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.*;
 
+import static com.evolveum.midpoint.repo.api.RepoModifyOptions.createExecuteIfNoChanges;
+import static java.util.Collections.emptySet;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
@@ -58,11 +60,20 @@ public class SearchTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchTest.class);
 
+    private String beforeConfigOid;
+
     @BeforeClass
     public void beforeClass() throws Exception {
         super.beforeClass();
 
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+
+        OperationResult result = new OperationResult("add objects");
+        PrismObject<UserType> beforeConfig = prismContext.createObjectable(UserType.class)
+                .name("before-config")
+                .description("tralala")
+                .asPrismObject();
+        beforeConfigOid = repositoryService.addObject(beforeConfig, null, result);
 
 		FullTextSearchConfigurationType fullTextConfig = new FullTextSearchConfigurationType();
 		FullTextSearchIndexedItemsConfigurationType entry = new FullTextSearchIndexedItemsConfigurationType();
@@ -75,7 +86,6 @@ public class SearchTest extends BaseSQLRepoTest {
 		List<PrismObject<? extends Objectable>> objects = prismContext.parserFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
         objects.addAll(prismContext.parserFor(new File(FOLDER_BASIC, "objects-2.xml")).parseObjects());
 
-        OperationResult result = new OperationResult("add objects");
         for (PrismObject object : objects) {
             repositoryService.addObject(object, null, result);
         }
@@ -118,7 +128,7 @@ public class SearchTest extends BaseSQLRepoTest {
         result.recomputeStatus();
 
         assertTrue(result.isSuccess());
-        assertEquals(3, objects.size());
+        assertEquals(4, objects.size());
     }
 
     @Test
@@ -773,7 +783,23 @@ public class SearchTest extends BaseSQLRepoTest {
 				distinct, 1);
 	}
 
-	private Collection<SelectorOptions<GetOperationOptions>> distinct() {
+    @Test
+    public void reindex() throws Exception {
+
+        OperationResult result = new OperationResult("reindex");
+
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                        .fullText("tralala")
+                        .build(),
+                false, 0);
+        repositoryService.modifyObject(UserType.class, beforeConfigOid, emptySet(), createExecuteIfNoChanges(), result);
+        assertUsersFound(QueryBuilder.queryFor(UserType.class, prismContext)
+                        .fullText("tralala")
+                        .build(),
+                false, 1);
+    }
+
+    private Collection<SelectorOptions<GetOperationOptions>> distinct() {
 		return SelectorOptions.createCollection(GetOperationOptions.createDistinct());
 	}
 

@@ -134,6 +134,7 @@ public class AccCertOpenerHelper {
 
         newCampaign.setScopeDefinition(definition.getScopeDefinition());
         newCampaign.setRemediationDefinition(definition.getRemediationDefinition());
+        newCampaign.setReiterationDefinition(definition.getReiterationDefinition());
 
         newCampaign.getStageDefinition().addAll(CloneUtil.cloneCollectionMembers(definition.getStageDefinition()));
         CertCampaignTypeUtil.checkStageDefinitionConsistency(newCampaign.getStageDefinition());
@@ -586,6 +587,11 @@ public class AccCertOpenerHelper {
 		LOGGER.info("Reiterating campaign {}", ObjectTypeUtil.toShortString(campaign));
 		if (campaign.getState() != CLOSED) {
 			throw new IllegalStateException("Campaign is not in CLOSED state");
+		}
+		if (campaign.getReiterationDefinition() != null && campaign.getReiterationDefinition().getLimit() != null
+				&& norm(campaign.getIteration()) >= campaign.getReiterationDefinition().getLimit()) {
+			throw new IllegalStateException("Campaign cannot be reiterated: maximum number of iterations ("
+				+ campaign.getReiterationDefinition().getLimit() + ") was reached.");
 		}
 		ModificationsToExecute modifications = new ModificationsToExecute();
 		modifications.add(updateHelper.createStageNumberDelta(0));

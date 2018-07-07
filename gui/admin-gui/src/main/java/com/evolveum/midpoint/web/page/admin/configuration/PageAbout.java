@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,20 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.AllFilter;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -29,9 +41,11 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -41,11 +55,20 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.page.login.PageSelfRegistration;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -56,7 +79,10 @@ import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -77,6 +103,9 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_SUBMIT_REINDEX = DOT_CLASS + "submitReindex";
     private static final String OPERATION_CLEANUP_ACTIVITI_PROCESSES = DOT_CLASS + "cleanupActivitiProcesses";
     private static final String OPERATION_GET_PROVISIONING_DIAG = DOT_CLASS + "getProvisioningDiag";
+    private static final String OPERATION_DELETE_ALL_OBJECTS = DOT_CLASS + "deleteAllObjects";
+    private static final String OPERATION_DELETE_TASK = DOT_CLASS + "deleteTask";
+    private static final String POST_INIT = DOT_CLASS + "postInit";
 
     private static final String ID_BUILD = "build";
     private static final String ID_REVISION = "revision";
@@ -102,6 +131,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_PROVISIONING_DETAIL_VALUE = "provisioningDetailValue";
     private static final String ID_JVM_PROPERTIES = "jvmProperties";
     private static final String ID_CLEAR_CSS_JS_CACHE = "clearCssJsCache";
+    private static final String ID_FACTORY_DEFAULT = "factoryDefault";
 
     private static final String[] PROPERTIES = new String[]{"file.separator", "java.class.path",
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
@@ -283,6 +313,16 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(clearCssJsCache);
+        
+        AjaxButton factoryDefault = new AjaxButton(ID_FACTORY_DEFAULT,
+                createStringResource("PageAbout.button.factoryDefault")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+            	showMainPopup(getDeleteAllObjectsConfirmationPanel(), target);
+            }
+        };
+        add(factoryDefault);
     }
 
     private RepositoryDiag loadRepoDiagModel() {
@@ -399,6 +439,98 @@ public class PageAbout extends PageAdminConfiguration {
 
         target.add(getFeedbackPanel());
     }
+    
+    private Popupable getDeleteAllObjectsConfirmationPanel() {
+		return new ConfirmationPanel(getMainPopupBodyId(), createStringResource("PageAbout.message.deleteAllObjects")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				ModalWindow modalWindow = findParent(ModalWindow.class);
+				if (modalWindow != null) {
+					modalWindow.close(target);
+					resetStateToInitialConfig(target);
+				}
+			}
+
+			@Override
+			public boolean getLabelEscapeModelStrings() {
+				return false;
+			}
+		};
+	}
+    
+    private void resetStateToInitialConfig(AjaxRequestTarget target) {
+    	OperationResult result = new OperationResult(OPERATION_DELETE_ALL_OBJECTS);
+		String taskOid = null;
+		String taskName = "Delete all objects";
+		
+		TypeFilter nodeFilter = TypeFilter.createType(NodeType.COMPLEX_TYPE, new AllFilter());
+		final ObjectFilter taskFilter = QueryBuilder.queryFor(TaskType.class, getPrismContext())
+                .item(TaskType.F_NAME).eq(taskName).buildFilter();
+		NotFilter notNodeFilter = new NotFilter(nodeFilter);
+		NotFilter notTaskFilter = new NotFilter(taskFilter);
+		
+		try {
+			QName type = ObjectType.COMPLEX_TYPE;
+			taskOid = deleteObjectsAsync(type, ObjectQuery.createObjectQuery(AndFilter.createAnd(notTaskFilter, notNodeFilter)), true,
+					taskName, result);
+			
+		} catch (Exception ex) {
+			result.recomputeStatus();
+			result.recordFatalError("Couldn't delete all objects.", ex);
+
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete all objects", ex);
+		}
+		
+		final String taskOidToRemoving = taskOid;
+		
+		try {
+			while(!getTaskManager().getTask(taskOid, result).isClosed()) {}
+			InitialDataImport initialDataImport = new InitialDataImport();
+			initialDataImport.setModel(getModelService());
+			initialDataImport.setTaskManager(getTaskManager());
+			initialDataImport.setPrismContext(getPrismContext());
+			initialDataImport.setConfiguration(getMidpointConfiguration());
+			initialDataImport.init();
+			
+			getModelService().postInit(result);
+			
+		} catch (Exception ex) {
+			result.recomputeStatus();
+			result.recordFatalError("Couldn't import initial objects.", ex);
+
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
+		}
+		
+		runPrivileged(new Producer<Object>() {
+
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public Object run() {
+				Task task = createAnonymousTask(OPERATION_DELETE_TASK);
+				OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
+				ObjectDelta<TaskType> delta = ObjectDelta.createDeleteDelta(TaskType.class, taskOidToRemoving, getPrismContext());
+				Collection<ObjectDelta<? extends ObjectType>> deltaCollection = new ArrayList<ObjectDelta<? extends ObjectType>>() {{add(delta);}};
+				try {
+					getModelService().executeChanges(deltaCollection, null, task, result);
+				} catch (Exception ex) {
+					result.recomputeStatus();
+					result.recordFatalError("Couldn't delete task.", ex);
+		
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task", ex);
+				} 
+				result.computeStatus();
+				return null;
+			}
+
+		});
+		
+		showResult(result);
+		target.add(getFeedbackPanel());
+    }
+
 
     private void cleanupActivitiProcessesPerformed(AjaxRequestTarget target) {
 		Task task = getTaskManager().createTaskInstance(OPERATION_CLEANUP_ACTIVITI_PROCESSES);

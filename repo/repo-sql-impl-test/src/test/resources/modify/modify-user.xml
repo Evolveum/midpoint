@@ -19,7 +19,7 @@
       xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
-    <name>modifyUser</name>
+    <name>modifyUser0</name>
     <fullName>
         <t:orig>Test UserX00002</t:orig>
         <t:norm>test userx00002</t:norm>

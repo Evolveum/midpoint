@@ -21,12 +21,12 @@
         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <oid>f65963e3-9d47-4b18-aaf3-bfc98bdfa000</oid>
-    <modification>
+    <itemDelta>
         <t:modificationType>add</t:modificationType>
         <t:path>c:linkRef</t:path>
         <t:value>
             <oid>1234567890aaa</oid>
         </t:value>
-    </modification>
+    </itemDelta>
 </objectModification>
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,16 +15,11 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -61,8 +56,8 @@ public class AdminGuiConfigTypeUtil {
 		if (adminGuiConfiguration == null) {
 			return;
 		}
-		adminGuiConfiguration.getAdditionalMenuLink().stream().forEach(additionalMenuLink -> composite.getAdditionalMenuLink().add(additionalMenuLink.clone()));
-		adminGuiConfiguration.getUserDashboardLink().stream().forEach(userDashboardLink -> composite.getUserDashboardLink().add(userDashboardLink.clone()));
+		adminGuiConfiguration.getAdditionalMenuLink().forEach(additionalMenuLink -> composite.getAdditionalMenuLink().add(additionalMenuLink.clone()));
+		adminGuiConfiguration.getUserDashboardLink().forEach(userDashboardLink -> composite.getUserDashboardLink().add(userDashboardLink.clone()));
 		if (adminGuiConfiguration.getDefaultTimezone() != null) {
 			composite.setDefaultTimezone(adminGuiConfiguration.getDefaultTimezone());
 		}
@@ -129,27 +124,26 @@ public class AdminGuiConfigTypeUtil {
 		if (adminGuiConfiguration.getFeedbackMessagesHook() != null) {
 			composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
 		}
+
+		if (adminGuiConfiguration.getAssignmentApprovalRequestLimit() != null) {
+			if (composite.getAssignmentApprovalRequestLimit() != null) {
+				// the greater value wins (so it is possible to give an exception to selected users)
+				composite.setAssignmentApprovalRequestLimit(Math.max(
+						adminGuiConfiguration.getAssignmentApprovalRequestLimit(),
+						composite.getAssignmentApprovalRequestLimit()));
+			} else {
+				composite.setAssignmentApprovalRequestLimit(adminGuiConfiguration.getAssignmentApprovalRequestLimit());
+			}
+		}
 	}
 
 	private static void joinForms(ObjectFormsType objectForms, ObjectFormType newForm) {
-		Iterator<ObjectFormType> iterator = objectForms.getObjectForm().iterator();
-		while (iterator.hasNext()) {
-			ObjectFormType currentForm = iterator.next();
-			if (isTheSameObjectForm(currentForm, newForm)) {
-				iterator.remove();
-			}
-		}
+		objectForms.getObjectForm().removeIf(currentForm -> isTheSameObjectForm(currentForm, newForm));
 		objectForms.getObjectForm().add(newForm.clone());
 	}
 
 	private static void joinObjectDetails(GuiObjectDetailsSetType objectDetailsSet, GuiObjectDetailsPageType newObjectDetails) {
-		Iterator<GuiObjectDetailsPageType> iterator = objectDetailsSet.getObjectDetailsPage().iterator();
-		while (iterator.hasNext()) {
-			GuiObjectDetailsPageType currentDetails = iterator.next();
-			if (isTheSameObjectType(currentDetails, newObjectDetails)) {
-				iterator.remove();
-			}
-		}
+		objectDetailsSet.getObjectDetailsPage().removeIf(currentDetails -> isTheSameObjectType(currentDetails, newObjectDetails));
 		objectDetailsSet.getObjectDetailsPage().add(newObjectDetails.clone());
 	}
 
@@ -310,13 +304,12 @@ public class AdminGuiConfigTypeUtil {
 		if (customColumns == null || customColumns.size() == 0){
 			return new ArrayList<>();
 		}
-		List<GuiObjectColumnType> customColumnsList = new ArrayList<>();
-		customColumnsList.addAll(customColumns);
+		List<GuiObjectColumnType> customColumnsList = new ArrayList<>(customColumns);
 		List<String> previousColumnValues = new ArrayList<>();
 		previousColumnValues.add(null);
 		previousColumnValues.add("");
 
-		Map<String, String> columnRefsMap = new HashedMap();
+		Map<String, String> columnRefsMap = new HashMap<>();
 		for (GuiObjectColumnType column : customColumns){
 			columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
 		}
@@ -339,13 +332,8 @@ public class AdminGuiConfigTypeUtil {
 				index++;
 			}
 			if (index - sortFrom > 1){
-				Collections.sort(customColumnsList.subList(sortFrom, index - 1), new Comparator<GuiObjectColumnType>() {
-
-					@Override
-					public int compare(GuiObjectColumnType o1, GuiObjectColumnType o2) {
-						return String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
-					}
-				});
+				customColumnsList.subList(sortFrom, index - 1)
+						.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
 			}
 			previousColumnValues.clear();
 			previousColumnValues.addAll(temp);

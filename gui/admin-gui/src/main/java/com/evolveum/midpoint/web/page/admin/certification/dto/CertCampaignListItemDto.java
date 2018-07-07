@@ -149,4 +149,8 @@ public class CertCampaignListItemDto extends Selectable implements InlineMenuabl
     public AccessCertificationCampaignType getCampaign() {
         return campaign;
     }
+
+    public boolean isReiterable() {
+        return CertCampaignTypeUtil.isReiterable(campaign);
+    }
 }

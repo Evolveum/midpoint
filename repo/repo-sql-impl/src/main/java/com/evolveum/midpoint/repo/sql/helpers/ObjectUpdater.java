@@ -384,7 +384,8 @@ public class ObjectUpdater {
             Collection<? extends ItemDelta> lookupTableModifications = lookupTableHelper.filterLookupTableModifications(type, modifications);
             Collection<? extends ItemDelta> campaignCaseModifications = caseHelper.filterCampaignCaseModifications(type, modifications);
 
-            if (!modifications.isEmpty() || RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
+            boolean reindex = RepoModifyOptions.isExecuteIfNoChanges(modifyOptions);
+            if (!modifications.isEmpty() || reindex) {
 
                 // JpegPhoto (RFocusPhoto) is a special kind of entity. First of all, it is lazily loaded, because photos are really big.
                 // Each RFocusPhoto naturally belongs to one RFocus, so it would be appropriate to set orphanRemoval=true for focus-photo
@@ -420,38 +421,43 @@ public class ObjectUpdater {
                     originalObject = prismObject.clone();
                 }
 
-                // old implementation start
-//                ItemDelta.applyTo(modifications, prismObject);
-//                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
-//                // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
-//                // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
-//                boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
-//
-//                // merge and update object
-//                LOGGER.trace("Translating JAXB to data type.");
-//                ObjectTypeUtil.normalizeAllRelations(prismObject);
-//                RObject rObject = createDataObjectFromJAXB(prismObject, PrismIdentifierGenerator.Operation.MODIFY);
-//                rObject.setVersion(rObject.getVersion() + 1);
-//
-//                updateFullObject(rObject, prismObject);
-//                LOGGER.trace("Starting merge.");
-//                session.merge(rObject);
-                // old implementation end
+                boolean shouldPhotoBeRemoved;
+                if (reindex) {
+                    // old implementation start
+                    ItemDelta.applyTo(modifications, prismObject);
+                    LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+                    // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
+                    // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
+                    shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
 
-                // new implementation start
-                RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, session);
+                    // merge and update object
+                    LOGGER.trace("Translating JAXB to data type.");
+                    ObjectTypeUtil.normalizeAllRelations(prismObject);
+                    PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
+                    RObject rObject = createDataObjectFromJAXB(prismObject, idGenerator);
+                    rObject.setVersion(rObject.getVersion() + 1);
 
-				LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
-                // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
-                // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
-                boolean shouldPhotoBeRemoved = containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
+                    updateFullObject(rObject, prismObject);
+                    LOGGER.trace("Starting merge.");
+                    session.merge(rObject);
+                    // old implementation end
+                } else {
+                    // new implementation start
+                    RObject rObject = objectDeltaUpdater.modifyObject(type, oid, modifications, prismObject, session);
 
-                updateFullObject(rObject, prismObject);
+                    LOGGER.trace("OBJECT after:\n{}", prismObject.debugDumpLazily());
+                    // Continuing the photo treatment: should we remove the (now obsolete) focus photo?
+                    // We have to test prismObject at this place, because updateFullObject (below) removes photo property from the prismObject.
+                    shouldPhotoBeRemoved =
+                            containsFocusPhotoModification && ((FocusType) prismObject.asObjectable()).getJpegPhoto() == null;
 
-                LOGGER.trace("Starting save.");
-                session.save(rObject);
-                LOGGER.trace("Save finished.");
-                // new implementation end
+                    updateFullObject(rObject, prismObject);
+
+                    LOGGER.trace("Starting save.");
+                    session.save(rObject);
+                    LOGGER.trace("Save finished.");
+                    // new implementation end
+                }
 
                 if (closureManager.isEnabled()) {
                     closureManager.updateOrgClosure(originalObject, modifications, session, oid, type, OrgClosureManager.Operation.MODIFY, closureContext);
