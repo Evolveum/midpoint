@@ -3006,7 +3006,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void suspendTask(String taskOid) throws CommonException {
 		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".suspendTask");
-		Task task = taskManager.getTaskWithResult(taskOid, result);
+		Task task = taskManager.getTask(taskOid, result);
 		LOGGER.info("Suspending task {}", taskOid);
 		taskManager.suspendTask(task, 3000, result);
 	}
