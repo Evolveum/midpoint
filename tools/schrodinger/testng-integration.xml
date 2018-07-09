@@ -15,5 +15,10 @@
   ~ limitations under the License.
   -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="integration" parallel="false" verbose="1">
+<suite name="unit" parallel="false" verbose="1">
+<test name="Schrodinger" preserve-order="true" parallel="false" verbose="10" enabled="true">
+        <classes>
+            <class name="schrodinger.scenarios.UserPhotoTests"/>
+        </classes>
+    </test>
 </suite>
