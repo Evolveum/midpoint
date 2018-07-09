@@ -69,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
@@ -84,9 +85,15 @@ public class TestServiceAccounts extends AbstractStoryTest {
 
 	private static final String ACCOUNT_RUM_STORAGE_DUMMY_USERNAME = "rum-storage";
 	private static final String ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME = "Rum Storage Application";
+	
+	private static final String ACCOUNT_MAGAZINE_DUMMY_USERNAME = "magazine";
+	private static final String ACCOUNT_MAGAZINE_DUMMY_FULLNAME = "Gunpowder magazine";
 
-	private static final File TASK_LIVE_SYNC_DUMMY_FILE = new File(TEST_DIR, "task-dumy-livesync.xml");
+	private static final File TASK_LIVE_SYNC_DUMMY_FILE = new File(TEST_DIR, "task-dummy-livesync.xml");
 	private static final String TASK_LIVE_SYNC_DUMMY_OID = "474eb3ac-837e-11e8-8cf8-6bd4fe328f30";
+	
+	private static final File TASK_RECONCILE_DUMMY_FILE = new File(TEST_DIR, "task-dummy-reconcile.xml");
+	private static final String TASK_RECONCILE_DUMMY_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -97,8 +104,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
 	}
 
 	@Test
-	public void test050StartSyncTask() throws Exception {
-		final String TEST_NAME = "test050StartSyncTask";
+	public void test100StartSyncTask() throws Exception {
+		final String TEST_NAME = "test100StartSyncTask";
 		displayTestTitle(TEST_NAME);
 		
 		assertUsers(getNumberOfUsers());
@@ -119,8 +126,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
 	}
 	
 	@Test
-	public void test100AddServiceAccountSync() throws Exception {
-		final String TEST_NAME = "test100AddServiceAccountSync";
+	public void test101AddServiceAccountSync() throws Exception {
+		final String TEST_NAME = "test101AddServiceAccountSync";
 		displayTestTitle(TEST_NAME);
 		
 		// Preconditions
@@ -155,8 +162,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
 	 * MID-4522
 	 */
 	@Test
-	public void test109DeleteServiceAccountSync() throws Exception {
-		final String TEST_NAME = "test109DeleteServiceAccountSync";
+	public void test108DeleteServiceAccountSync() throws Exception {
+		final String TEST_NAME = "test108DeleteServiceAccountSync";
 		displayTestTitle(TEST_NAME);
 		
 		// Preconditions
@@ -176,6 +183,120 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		PrismObject<ServiceType> serviceRumAfter = findServiceByUsername(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME);
 		display("Service rum after", serviceRumAfter);
 		assertNull("Unexpected rum service", serviceRumAfter);
+	}
+	
+	public void test109StopLivesyncTask() throws Exception {
+		final String TEST_NAME = "test109StopLivesyncTask";
+		displayTestTitle(TEST_NAME);
+		
+		// Preconditions
+		assertServices(1);
+
+		// WHEN
+        displayWhen(TEST_NAME);
+
+        suspendTask(TASK_LIVE_SYNC_DUMMY_OID);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		assertTaskExecutionStatus(TASK_LIVE_SYNC_DUMMY_OID, TaskExecutionStatusType.SUSPENDED);
+	}
+	
+	@Test
+	public void test120StartReconTask() throws Exception {
+		final String TEST_NAME = "test120StartReconTask";
+		displayTestTitle(TEST_NAME);
+		
+		assertUsers(getNumberOfUsers());
+		assertServices(0);
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        importObjectFromFile(TASK_RECONCILE_DUMMY_FILE);
+
+		// THEN
+		displayThen(TEST_NAME);
+		
+		waitForTaskStart(TASK_RECONCILE_DUMMY_OID, true);
+		
+		assertServices(0);
+		assertUsers(getNumberOfUsers());
+	}
+	
+	@Test
+	public void test121AddServiceAccountRecon() throws Exception {
+		final String TEST_NAME = "test121AddServiceAccountRecon";
+		displayTestTitle(TEST_NAME);
+		
+		// Preconditions
+		assertServices(0);
+
+        DummyAccount account = new DummyAccount(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
+				ACCOUNT_MAGAZINE_DUMMY_FULLNAME);
+
+		// WHEN
+        displayWhen(TEST_NAME);
+
+		getDummyResource().addAccount(account);
+
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID, true);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertServices(1);
+		PrismObject<ServiceType> serviceRumAfter = findServiceByUsername(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
+		display("Service magazine after", serviceRumAfter);
+		assertNotNull("No magazine service", serviceRumAfter);
+		PrismAsserts.assertPropertyValue(serviceRumAfter, ServiceType.F_NAME, createPolyString(ACCOUNT_MAGAZINE_DUMMY_USERNAME));
+		PrismAsserts.assertPropertyValue(serviceRumAfter, ServiceType.F_DESCRIPTION, ACCOUNT_MAGAZINE_DUMMY_FULLNAME);
+	}
+	
+	/**
+	 * MID-4522
+	 */
+	@Test
+	public void test128DeleteServiceAccountRecon() throws Exception {
+		final String TEST_NAME = "test128DeleteServiceAccountRecon";
+		displayTestTitle(TEST_NAME);
+		
+		// Preconditions
+		assertServices(1);
+
+		// WHEN
+        displayWhen(TEST_NAME);
+
+		getDummyResource().deleteAccountByName(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
+
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_OID, true);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertServices(0);
+		PrismObject<ServiceType> serviceRumAfter = findServiceByUsername(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
+		display("Service rum after", serviceRumAfter);
+		assertNull("Unexpected rum service", serviceRumAfter);
+	}
+	
+	public void test129StopReconTask() throws Exception {
+		final String TEST_NAME = "test129StopReconTask";
+		displayTestTitle(TEST_NAME);
+		
+		// Preconditions
+		assertServices(1);
+
+		// WHEN
+        displayWhen(TEST_NAME);
+
+        suspendTask(TASK_RECONCILE_DUMMY_OID);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		assertTaskExecutionStatus(TASK_RECONCILE_DUMMY_OID, TaskExecutionStatusType.SUSPENDED);
 	}
 	
 }

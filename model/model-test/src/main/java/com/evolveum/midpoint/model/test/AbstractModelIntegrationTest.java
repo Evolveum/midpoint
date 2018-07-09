@@ -3132,6 +3132,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throw new IllegalStateException("Task " + task + " cannot be restarted, because its state is: " + task.getExecutionStatus());
 		}
 	}
+	
+	protected void suspendTask(String taskOid) throws CommonException {
+		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".suspendTask");
+		Task task = taskManager.getTaskWithResult(taskOid, result);
+		LOGGER.info("Suspending task {}", taskOid);
+		taskManager.suspendTask(task, 3000, result);
+	}
+	
+	protected void assertTaskExecutionStatus(String taskOid, TaskExecutionStatusType expectedExecutionStatus) throws ObjectNotFoundException, SchemaException {
+		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".assertTaskExecutionStatus");
+		Task task =  taskManager.getTask(taskOid, result);
+		assertEquals("Wrong executionStatus in "+task, expectedExecutionStatus, task.getExecutionStatus());
+	}
 
 	protected void setSecurityContextUser(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance("get administrator");
