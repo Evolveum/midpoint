@@ -49,6 +49,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestMapleLeaf"/>
             <class name="com.evolveum.midpoint.testing.story.TestReconNullValue"/>
             <class name="com.evolveum.midpoint.testing.story.TestServiceAccounts"/>
+            <class name="com.evolveum.midpoint.testing.story.TestLimitedResources"/>
         </classes>
     </test>
 </suite>
