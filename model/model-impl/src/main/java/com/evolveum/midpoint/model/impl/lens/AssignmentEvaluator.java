@@ -331,6 +331,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		boolean isVirtual = isForcedAssignment(segment, ctx);
 		ctx.evalAssignment.setVirtual(isVirtual);
+		segment.setValidityOverride(isVirtual);
 		boolean isValid = (evaluateContent && evaluateSegmentContent(segment, relativeMode, ctx)) || isVirtual;
 		
 
