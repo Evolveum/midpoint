@@ -208,6 +208,22 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-cas</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jasig.cas.client</groupId>
+            <artifactId>cas-client-core</artifactId>
+            <version>3.4.1</version> <!-- move to 3.5.0 -->
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.jasig.cas.client</groupId>-->
+            <!--<artifactId>cas-client-integration-tomcat-v85</artifactId>-->
+            <!--<version>3.5.0</version>-->
+            <!--<scope>runtime</scope>-->
+        <!--</dependency>-->
+        <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
             <version>0.32</version>
