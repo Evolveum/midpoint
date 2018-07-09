@@ -48,15 +48,14 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
@@ -112,7 +111,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 		return null;
 	}
 
-    @Test(expectedExceptions = SystemException.class, enabled = false)
+    @Test(expectedExceptions = ObjectAlreadyExistsException.class)
     public void test010ModifyWithExistingName() throws Exception {
     	final String TEST_NAME = "test010ModifyWithExistingName";
     	TestUtil.displayTestTitle(TEST_NAME);
@@ -123,13 +122,13 @@ public class ModifyTest extends BaseSQLRepoTest {
         //add first user
         PrismObject<UserType> user = prismContext.parseObject(userFile);
         user.setOid(null);
-        user.setPropertyRealValue(ObjectType.F_NAME, "existingName");
+        user.asObjectable().setName(PolyStringType.fromOrig("existingName"));
         repositoryService.addObject(user, null, result);
 
         //add second user
         user = prismContext.parseObject(userFile);
         user.setOid(null);
-        user.setPropertyRealValue(ObjectType.F_NAME, "otherName");
+        user.asObjectable().setName(PolyStringType.fromOrig("otherName"));
         String oid = repositoryService.addObject(user, null, result);
 
         //modify second user name to "existingName"
@@ -137,29 +136,25 @@ public class ModifyTest extends BaseSQLRepoTest {
                 new File(TEST_DIR, "change-name.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
         modification.setOid(oid);
-        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
-                UserType.class, prismContext);
+        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification, UserType.class, prismContext);
 
         repositoryService.modifyObject(UserType.class, oid, deltas, result);
     }
 
-    @Test(expectedExceptions = ObjectNotFoundException.class, enabled = false)
+    @Test(expectedExceptions = ObjectNotFoundException.class)
     public void test020ModifyNotExistingUser() throws Exception {
     	final String TEST_NAME = "test020ModifyNotExistingUser";
     	TestUtil.displayTestTitle(TEST_NAME);
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
-                new File(TEST_DIR, "change-add.xml"),
-                ObjectModificationType.COMPLEX_TYPE);
+                MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
 
-        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
-                UserType.class, prismContext);
-
+        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification, UserType.class, prismContext);
         OperationResult result = new OperationResult("MODIFY");
         repositoryService.modifyObject(UserType.class, "1234", deltas, getModifyOptions(), result);
     }
 
-    @Test(enabled = false) // MID-3483
+    @Test
     public void test030ModifyUserOnNonExistingAccountTest() throws Exception {
     	final String TEST_NAME = "test030ModifyUserOnNonExistingAccountTest";
     	TestUtil.displayTestTitle(TEST_NAME);
@@ -195,7 +190,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue("User is not equivalent.", userOld.equivalent(userNew));
     }
 
-    @Test(enabled=false) // MID-3483
+    @Test
     public void test031ModifyUserOnExistingAccountTest() throws Exception {
     	final String TEST_NAME = "test031ModifyUserOnExistingAccountTest";
     	TestUtil.displayTestTitle(TEST_NAME);
@@ -217,9 +212,10 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
 
-        ObjectDeltaType objectDeltaType = PrismTestUtil.parseAnyValue(MODIFY_USER_ADD_LINK);
-        ObjectDelta<Objectable> objectDelta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
-        Collection<? extends ItemDelta<?, ?>> deltas = objectDelta.getModifications();
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
+                MODIFY_USER_ADD_LINK, ObjectModificationType.COMPLEX_TYPE);
+        Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
+                UserType.class, prismContext);
 
         // WHEN
         repositoryService.modifyObject(UserType.class, oid, deltas, getModifyOptions(), result);
@@ -342,6 +338,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(openDjResource, null, parentResult);
 
         PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR + "/user.xml"));
+        repositoryService.deleteObject(UserType.class, "f65963e3-9d47-4b18-aaf3-bfc98bdfa000", parentResult);       // from earlier test
         repositoryService.addObject(user, null, parentResult);
 
         PrismObject<RoleType> roleCsv = prismContext.parseObject(new File(TEST_DIR + "/role-csv.xml"));
@@ -402,13 +399,15 @@ public class ModifyTest extends BaseSQLRepoTest {
     /**
      * Modify account metadata. Make sure that no unrelated item has changed.
      */
-    @Test(enabled = false) // MID-3484
+    @Test
     public void test120ModifyAccountMetadata() throws Exception {
     	final String TEST_NAME = "test120ModifyAccountMetadata";
     	TestUtil.displayTestTitle(TEST_NAME);
 
     	// GIVEN
         OperationResult parentResult = new OperationResult(TEST_NAME);
+
+        repositoryService.deleteObject(ShadowType.class, "1234567890", parentResult);       // from earlier test
 
         PrismObject<ShadowType> shadowBefore = prismContext.parseObject(ACCOUNT_FILE);
 
@@ -425,6 +424,10 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismProperty<String> attrBazBefore = new PrismProperty<>(new QName(MidPointConstants.NS_RI, "baz"), prismContext);
         PrismPropertyDefinitionImpl<String> attrBazDefBefore = new PrismPropertyDefinitionImpl<>(attrBazQName, DOMUtil.XSD_STRING, prismContext);
         attrBazDefBefore.setMaxOccurs(-1);
+        // Unless marked as dynamic, the repo XML object will not have xsi:type (and so the repo will parse them as raw when
+        // fetching). Normally, the provisioning module is responsible for applying the definition ... but we have
+        // no provisioning available here.
+        attrBazDefBefore.setDynamic(true);
         attrBazBefore.setDefinition(attrBazDefBefore);
         attrBazBefore.addRealValue("BaZ1");
         attrBazBefore.addRealValue("BaZ2");

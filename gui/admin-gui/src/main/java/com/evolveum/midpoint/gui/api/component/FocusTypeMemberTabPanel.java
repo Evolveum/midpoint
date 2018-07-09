@@ -16,24 +16,20 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 
@@ -44,18 +40,13 @@ import java.util.List;
 /**
  * Created by honchar
  */
-public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends AbstractAssignmentPopupTabPanel<F>{
-
+public class FocusTypeMemberTabPanel<F extends FocusType> extends AbstractPopupTabPanel<F>{
     private static final long serialVersionUID = 1L;
 
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
 
-    private static final String DOT_CLASS = FocusTypeAssignmentPopupTabPanel.class.getName();
-    private static final Trace LOGGER = TraceManager.getTrace(FocusTypeAssignmentPopupTabPanel.class);
-    private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
-
-    public FocusTypeAssignmentPopupTabPanel(String id, ObjectTypes type){
+    public FocusTypeMemberTabPanel(String id, ObjectTypes type){
         super(id, type);
     }
 
@@ -67,23 +58,31 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
 
         DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER),
-                FocusTypeAssignmentPopupTabPanel.this, false);
+                FocusTypeMemberTabPanel.this, false);
         relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relationSelector.setOutputMarkupId(true);
         relationSelector.setOutputMarkupPlaceholderTag(true);
         relationContainer.add(relationSelector);
     }
 
-    @Override
-    protected List<AssignmentType> getSelectedAssignmentsList(){
-        List<AssignmentType> assignmentList = new ArrayList<>();
+    protected ObjectDelta getMemberDelta(){
+        ObjectDelta delta = null;
+        try {
+            Class classType = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName());
+            delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", getPageBase().getPrismContext());
+            AssignmentType newAssignment = new AssignmentType();
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject());
+            ref.setRelation(getRelationValue());
+            newAssignment.setTargetRef(ref);
 
-        List<F> selectedObjects = getSelectedObjectsList();
-        QName relation = getRelationValue();
-        selectedObjects.forEach(selectedObject -> {
-            assignmentList.add(ObjectTypeUtil.createAssignmentTo(selectedObject, relation));
-        });
-        return assignmentList;
+            getPageBase().getPrismContext().adopt(newAssignment);
+            delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, newAssignment);
+
+        } catch (SchemaException e) {
+            //TODO
+        }
+
+        return delta;
     }
 
     public QName getRelationValue(){
@@ -99,30 +98,12 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         return (DropDownChoicePanel)get(ID_RELATION_CONTAINER).get(ID_RELATION);
     }
 
-    @Override
-    protected ObjectQuery addFilterToContentQuery(ObjectQuery query){
-        LOGGER.debug("Loading roles which the current user has right to assign");
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
-        OperationResult result = task.getResult();
-        ObjectFilter filter = null;
-        try {
-            ModelInteractionService mis = getPageBase().getModelInteractionService();
-            RoleSelectionSpecification roleSpec =
-                    mis.getAssignableRoleSpecification(SecurityUtils.getPrincipalUser().getUser().asPrismObject(), task, result);
-            filter = roleSpec.getFilter();
-        } catch (Exception ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load available roles", ex);
-            result.recordFatalError("Couldn't load available roles", ex);
-        } finally {
-            result.recomputeStatus();
-        }
-        if (!result.isSuccess() && !result.isHandledError()) {
-            getPageBase().showResult(result);
-        }
-        if (query == null){
-            query = new ObjectQuery();
-        }
-        query.addFilter(filter);
-        return query;
+    protected ObjectQuery createInOidMemberQuery(){
+        List<F> selectedObjects = getSelectedObjectsList();
+        List<String> oids = new ArrayList<>();
+        selectedObjects.forEach(selectedObject -> {
+            oids.add(selectedObject.getOid());
+        });
+        return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
     }
 }

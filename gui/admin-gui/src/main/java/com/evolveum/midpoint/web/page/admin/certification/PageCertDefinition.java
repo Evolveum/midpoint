@@ -256,7 +256,7 @@ public class PageCertDefinition extends PageAdminCertification {
 				LOGGER.trace("Access definition delta:\n{}", delta.debugDump());
 			}
 			delta.normalize();
-			if (delta != null && !delta.isEmpty()) {
+			if (!delta.isEmpty()) {
 				getPrismContext().adopt(delta);
 				ModelExecuteOptions options = new ModelExecuteOptions();
 				options.setRaw(true);

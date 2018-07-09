@@ -51,6 +51,9 @@
 						<script>
 							<code>
 								import com.evolveum.midpoint.schema.constants.*
+								if (focus == null || configuration == null) {
+									throw new AssertionError("No 'focus' or 'configuration' variable present")	// MID-4760
+								}
 								input.targetRef != null &amp;&amp; input.targetRef.relation == SchemaConstants.ORG_MANAGER
 							</code>
 						</script>

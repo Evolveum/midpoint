@@ -898,46 +898,6 @@ public class PageDebugList extends PageAdminConfiguration {
 		target.add(getFeedbackPanel());
 	}
 
-	private String deleteObjectsAsync(QName type, ObjectQuery objectQuery, boolean raw, String taskName,
-			OperationResult result)
-					throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-
-		Task task = createSimpleTask(result.getOperation());
-		task.setHandlerUri(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
-
-		if (objectQuery == null) {
-			objectQuery = new ObjectQuery();
-		}
-
-		QueryType query = QueryJaxbConvertor.createQueryType(objectQuery, getPrismContext());
-
-		PrismPropertyDefinition queryDef = new PrismPropertyDefinitionImpl(
-				SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, QueryType.COMPLEX_TYPE, getPrismContext());
-		PrismProperty<QueryType> queryProp = queryDef.instantiate();
-		queryProp.setRealValue(query);
-		task.setExtensionProperty(queryProp);
-
-		PrismPropertyDefinition typeDef = new PrismPropertyDefinitionImpl(
-				SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, DOMUtil.XSD_QNAME, getPrismContext());
-		PrismProperty<QName> typeProp = typeDef.instantiate();
-		typeProp.setRealValue(type);
-		task.setExtensionProperty(typeProp);
-
-		PrismPropertyDefinition rawDef = new PrismPropertyDefinitionImpl(
-				SchemaConstants.MODEL_EXTENSION_OPTION_RAW, DOMUtil.XSD_BOOLEAN, getPrismContext());
-		PrismProperty<Boolean> rawProp = rawDef.instantiate();
-		rawProp.setRealValue(raw);
-		task.setExtensionProperty(rawProp);
-
-		task.setName(taskName);
-		task.savePendingModifications(result);
-
-		TaskManager taskManager = getTaskManager();
-		taskManager.switchToBackground(task, result);
-		result.setBackgroundTaskOid(task.getOid());
-		return task.getOid();
-	}
-
 	private static class SearchFragment extends Fragment {
 
 		public SearchFragment(String id, String markupId, MarkupContainer markupProvider,

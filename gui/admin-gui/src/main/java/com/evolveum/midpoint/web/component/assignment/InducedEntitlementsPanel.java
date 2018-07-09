@@ -127,11 +127,6 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
-    protected Class getDefaultNewAssignmentFocusType(){
-        return ResourceType.class;
-    }
-
-    @Override
     protected boolean isRelationVisible() {
         return false;
     }

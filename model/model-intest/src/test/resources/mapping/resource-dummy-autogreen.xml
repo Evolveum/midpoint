@@ -112,12 +112,14 @@
 				            <condition>
 				                <script>
 				                    <code>
-				                         import com.evolveum.midpoint.schema.constants.*
-				                         import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-				                         
-				                         
-				                         
-				                        if (assignment.target != null) {
+				                        import com.evolveum.midpoint.schema.constants.*
+			                         	import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+										if (projection == null || configuration == null) {
+											throw new AssertionError("No 'projection' or 'configuration' variable present")	// MID-4760
+										}
+
+										if (assignment.target != null) {
 				                        	log.info("### (title) target roleType " + assignment.target.roleType)
 				                        	inRange = 'auto'.equals(assignment.target.roleType)
 				                        	log.info("########## (title) inRange: " + inRange)

@@ -177,19 +177,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                    super.addPerformed(target, newAssignmentsList);
                    addSelectedAssignmentsPerformed(target, newAssignmentsList);
                }
-
-//               @Override
-//               protected List<ObjectTypes> getObjectTypesList(){
-//                   return AbstractRoleAssignmentPanel.this.getObjectTypesList();
-//               }
-
            };
            popupPanel.setOutputMarkupId(true);
            getPageBase().showMainPopup(popupPanel, target);
-    }
-
-    protected Class getDefaultNewAssignmentFocusType(){
-        return RoleType.class;
     }
 
     protected void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList){

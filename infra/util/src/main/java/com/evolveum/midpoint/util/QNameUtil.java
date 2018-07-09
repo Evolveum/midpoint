@@ -272,20 +272,17 @@ public class QNameUtil {
 		return found;
 	}
 
-	public static boolean matchAny(QName a, Collection<QName> col) {
-		if (resolveNs(a, col) == null){
+	public static boolean matchAny(QName nameToFind, Collection<QName> names) {
+		// we no longer use resolveNs any more here, as the 'names' can contain duplicate qnames (resolveNs would complain on it)
+		if (names == null) {
 			return false;
 		}
-		return true;
-//		if (col == null) {
-//			return false;
-//		}
-//		for (QName b: col) {
-//			if (match(a, b)) {
-//				return true;
-//			}
-//		}
-//		return false;
+		for (QName name : names) {
+			if (match(nameToFind, name)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public static Collection<QName> createCollection(QName... qnames) {

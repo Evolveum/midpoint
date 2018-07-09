@@ -39,8 +39,8 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
 
     private boolean isOrgTreeView;
 
-    public OrgTypeAssignmentPopupTabPanel(String id, boolean isOrgTreeView, List<OrgType> selectedOrgs){
-        super(id, ObjectTypes.ORG, selectedOrgs);
+    public OrgTypeAssignmentPopupTabPanel(String id, boolean isOrgTreeView){
+        super(id, ObjectTypes.ORG);
         this.isOrgTreeView = isOrgTreeView;
     }
 
@@ -48,17 +48,18 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
     protected void onInitialize() {
         super.onInitialize();
         OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-                ID_ORG_TREE_VIEW_PANEL, true, getPageBase(), selectedObjects) {
+                ID_ORG_TREE_VIEW_PANEL, true, getPageBase(), getPreselectedObjects()) {
             private static final long serialVersionUID = 1L;
 
            @Override
             protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
                 if (rowModel != null && rowModel.getObject() != null) {
-                    if (selectedObjects == null) {
-                        selectedObjects = new ArrayList<>();
+                    List<OrgType> preselectedObjects = getPreselectedObjects();
+                    if (preselectedObjects == null) {
+                        preselectedObjects = new ArrayList<>();
                     }
                     boolean isAlreadyInList = false;
-                    Iterator<OrgType> it = selectedObjects.iterator();
+                    Iterator<OrgType> it = preselectedObjects.iterator();
                     while (it.hasNext()){
                         OrgType org = it.next();
                         if (org.getOid().equals(rowModel.getObject().getValue().getOid())) {
@@ -67,7 +68,7 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
                         }
                     }
                     if (!isAlreadyInList){
-                        selectedObjects.add(rowModel.getObject().getValue());
+                        preselectedObjects.add(rowModel.getObject().getValue());
                     }
                 }
                 OrgTypeAssignmentPopupTabPanel.this.onOrgTreeCheckBoxSelectionPerformed(target);
@@ -98,7 +99,7 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
 
     protected List getSelectedObjectsList(){
         if (isOrgTreeView){
-            return selectedObjects;
+            return getPreselectedObjects();
         } else {
             return super.getSelectedObjectsList();
         }

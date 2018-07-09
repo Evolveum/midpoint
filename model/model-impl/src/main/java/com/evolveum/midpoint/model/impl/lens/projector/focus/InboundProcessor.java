@@ -735,7 +735,7 @@ public class InboundProcessor {
     		ItemDelta<V,D> attributeAPrioriDelta,
             PrismObject<F> focusNew, 
             VariableProducer<V> variableProducer, Map<ItemDefinition, List<MappingImpl<?,?>>> mappingsToTarget,
-            Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException, CommunicationException {
+            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
 
     	if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
@@ -755,6 +755,7 @@ public class InboundProcessor {
     	variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusNew);
     	variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
     	variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
+    	variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew);
     	variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
     	variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
     	variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue());
@@ -1359,6 +1360,7 @@ public class InboundProcessor {
 				PrismObject<ShadowType> accountNew = projContext.getObjectNew();
 				builder = builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew)
 						.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew)
+						.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew)
 						.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource())
 						.valuePolicyResolver(createStringPolicyResolver(context, task, opResult))
 						.originType(OriginType.INBOUND)

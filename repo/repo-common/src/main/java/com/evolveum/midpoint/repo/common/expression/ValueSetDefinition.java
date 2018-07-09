@@ -45,6 +45,7 @@ public class ValueSetDefinition {
 	private Task task;
 	private OperationResult result;
 	private QName additionalVariableName;
+	private ExpressionVariables additionalVariables;
 	private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
 
 	public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, QName additionalVariableName, String shortDesc, Task task, OperationResult result) {
@@ -58,8 +59,11 @@ public class ValueSetDefinition {
 
 	public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException {
 		ExpressionType conditionType = setDefinitionType.getCondition();
-		condition =  ExpressionUtil.createCondition(conditionType, expressionFactory,
-				shortDesc, task, result);
+		condition = ExpressionUtil.createCondition(conditionType, expressionFactory, shortDesc, task, result);
+	}
+
+	public void setAdditionalVariables(ExpressionVariables additionalVariables) {
+		this.additionalVariables = additionalVariables;
 	}
 
 	public <IV extends PrismValue> boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -82,6 +86,9 @@ public class ValueSetDefinition {
 		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value);
 		if (additionalVariableName != null) {
 			variables.addVariableDefinition(additionalVariableName, value);
+		}
+		if (additionalVariables != null) {
+			variables.addVariableDefinitions(additionalVariables, variables.keySet());
 		}
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = condition.evaluate(context);
