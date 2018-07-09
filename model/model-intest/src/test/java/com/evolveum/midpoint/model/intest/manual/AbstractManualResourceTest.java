@@ -695,7 +695,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	public void test100AssignWillRoleOne() throws Exception {
 		// The count will be checked only after propagation was run, so we can address both direct and grouping cases
 		rememberCounter(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
+		
 		assignWillRoleOne("test100AssignWillRoleOne", USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+		
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertSteadyResources();
 	}
 
 	@Test
@@ -774,14 +778,18 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		// The count is checked only after propagation was run, so we can address both direct and grouping cases
-		assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
+		assertTest103Counters();
 		
 		assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTING);
 		
 		assertSteadyResources();
 	}
 	
+	protected void assertTest103Counters() {
+		// The count is checked only after propagation was run, so we can address both direct and grouping cases
+		assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
+	}
+
 	@Test
 	public void test104RecomputeWill() throws Exception {
 		final String TEST_NAME = "test104RecomputeWill";
@@ -2080,8 +2088,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
 		assertAccountWillAfterAssign(TEST_NAME, expectedFullName, executionStage);
-		
-		assertSteadyResources();
 	}
 
 	protected void assertAccountWillAfterAssign(final String TEST_NAME, String expectedFullName, PendingOperationExecutionStatusType executionStage) throws Exception {

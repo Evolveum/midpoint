@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -168,6 +169,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         
+        // First use of the resource
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertSteadyResources();
 	}
 
@@ -394,6 +397,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Group @orange", dummyGroupAtOrange);
         assertNoGroupMembers(dummyGroupAtOrange);
         
+        // First use of the resource
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertSteadyResources();
     }
 
