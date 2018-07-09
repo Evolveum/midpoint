@@ -919,7 +919,7 @@ public class AssignmentProcessor {
 			return;	// could be if the "assignments" step is skipped
 		}
 		for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
-			if (evalAssignment.isValid() && !evalAssignment.isVirtual()) {
+			if (evalAssignment.isValid()) {
 				addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
 				addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
 			}
