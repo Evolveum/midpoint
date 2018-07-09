@@ -1,14 +1,12 @@
-package schrodinger.scenarios;
+package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
-import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import schrodinger.TestBase;
 
 import javax.naming.ConfigurationException;
 import java.io.File;

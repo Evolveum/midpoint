@@ -1,6 +1,7 @@
-package schrodinger;
+package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
+import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

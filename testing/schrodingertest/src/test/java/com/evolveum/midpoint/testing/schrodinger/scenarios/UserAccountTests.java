@@ -1,4 +1,4 @@
-package schrodinger.scenarios;
+package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.self.HomePage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;

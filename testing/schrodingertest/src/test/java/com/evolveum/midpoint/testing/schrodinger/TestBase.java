@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package schrodinger;
+package com.evolveum.midpoint.testing.schrodinger;
 
 import com.codeborne.selenide.testng.BrowserPerClass;
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;

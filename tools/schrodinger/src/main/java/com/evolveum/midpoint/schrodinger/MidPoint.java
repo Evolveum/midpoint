@@ -22,7 +22,7 @@ public class MidPoint {
     public static long TIMEOUT_MEDIUM = 6000;
     public static long TIMEOUT_LONG = 60000;
 
-    private static final String SCHRODINGER_PROPERTIES = "./src/test/resources/configuration/schrodinger.properties";
+    private static final String SCHRODINGER_PROPERTIES = "../../testing/schrodingertest/src/test/resources/configuration/schrodinger.properties";
 
     private String webDriver;
     private String webdriverLocation;
@@ -69,7 +69,7 @@ public class MidPoint {
             webdriverLocation = schrodingerProperties.getProperty("webdriverLocation");
 
         } catch (IOException e) {
-            throw new IOException("An exception was thrown during Schrodinger initialization" + e.getLocalizedMessage());
+            throw new IOException("An exception was thrown during Schrodinger initialization " + e.getLocalizedMessage());
         }
     }
 }
