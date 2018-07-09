@@ -114,6 +114,14 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 
 		importSystemTasks(initResult);
 	}
+	
+	protected int getNumberOfUsers() {
+		return 2; // Administrator, jack
+	}
+	
+	protected int getNumberOfRoles() {
+		return 1; // Superuser role
+	}
 
 	protected File getSystemConfigurationFile() {
 		return SYSTEM_CONFIGURATION_FILE;
