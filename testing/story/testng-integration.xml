@@ -48,6 +48,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestLdapVirtualGroup"/>
             <class name="com.evolveum.midpoint.testing.story.TestMapleLeaf"/>
             <class name="com.evolveum.midpoint.testing.story.TestReconNullValue"/>
+            <class name="com.evolveum.midpoint.testing.story.TestServiceAccounts"/>
         </classes>
     </test>
 </suite>
