@@ -10,6 +10,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -62,12 +63,18 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 				GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
 			private static final long serialVersionUID = 1L;
 
+			
 			@Override
-            public void onClick(AjaxRequestTarget target) {
+					protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
 				wrapper.setShowMetadata(!wrapper.isShowMetadata());
 				onButtonClick(target);
-            }
+					}
+			
+			@Override
+					protected void onError(AjaxRequestTarget target, Form<?> form) {
+						target.add(getPageBase().getFeedbackPanel());
+					}
 
 			@Override
 			public boolean isOn() {
@@ -103,9 +110,14 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			private static final long serialVersionUID = 1L;
 
 			@Override
-            public void onClick(AjaxRequestTarget target) {
+					protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				onShowEmptyClick(target);
-            }
+					}
+			
+@Override
+		protected void onError(AjaxRequestTarget target, Form<?> form) {
+	target.add(getPageBase().getFeedbackPanel());
+		}
 
 			
 			@Override
@@ -123,7 +135,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
         	private static final long serialVersionUID = 1L;
 
         	@Override
-            public void onClick(AjaxRequestTarget target) {
+        	protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 	        		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
 	        		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
 	        		containerValueWrapper.sort();
@@ -145,10 +157,15 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
         	private static final long serialVersionUID = 1L;
 
         	@Override
-            public void onClick(AjaxRequestTarget target) {
+        	protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				isChildContainersSelectorPanelVisible = true;
 				target.add(PrismContainerValueHeaderPanel.this);
             }
+        	
+        	@Override
+    		protected void onError(AjaxRequestTarget target, Form<?> form) {
+    	target.add(getPageBase().getFeedbackPanel());
+    		}
 
         	@Override
 			public boolean isOn() {
@@ -216,12 +233,17 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void onClick(AjaxRequestTarget target) {
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				ContainerValueWrapper containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
 				containerValueWrapper.setStatus(ValueStatus.DELETED);
 				target.add(PrismContainerValueHeaderPanel.this);
 				PrismContainerValueHeaderPanel.this.reloadParentContainerPanel(target);
 			}
+			
+			@Override
+    		protected void onError(AjaxRequestTarget target, Form<?> form) {
+    	target.add(getPageBase().getFeedbackPanel());
+    		}
 
 			@Override
 			public boolean isOn() {

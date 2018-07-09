@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.UserComputer;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -151,8 +153,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         }
 
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-
-    	userComputer.recompute(user);
+        LifecycleStateModelType lifecycleModel = getLifecycleModel(user, systemConfiguration);
+    	
+		userComputer.recompute(user, lifecycleModel);
         MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
         initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
         return principal;
@@ -168,6 +171,17 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			LOGGER.warn("No system configuration: {}", e.getMessage(), e);
 		} 
         return systemConfiguration;
+    }
+    
+    private LifecycleStateModelType getLifecycleModel(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) {
+    	if (systemConfiguration == null) {
+    		return null;
+    	}
+		try {
+			return ModelUtils.determineLifecycleModel(user, systemConfiguration.asObjectable());
+		} catch (ConfigurationException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
     }
 
     @Override
@@ -203,9 +217,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         OperationResult result = task.getResult();
 
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(userType.asPrismObject(), systemConfiguration, task, result));
-
+        
 		if (!userType.getAssignment().isEmpty()) {
-			LensContext<UserType> lensContext = new LensContextPlaceholder<>(userType.asPrismObject(), prismContext);
+			LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
 			AssignmentEvaluator.Builder<UserType> builder =
 					new AssignmentEvaluator.Builder<UserType>()
 							.repository(repositoryService)
@@ -265,6 +279,29 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         principal.setAdminGuiConfiguration(AdminGuiConfigTypeUtil.compileAdminGuiConfiguration(adminGuiConfigurations, systemConfiguration));
 	}
 
+	private LensContext<UserType> createAuthenticationLensContext(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
+		LensContext<UserType> lensContext = new LensContextPlaceholder<>(user, prismContext);
+		if (systemConfiguration != null) {
+			ObjectPolicyConfigurationType policyConfigurationType = determineObjectPolicyConfiguration(user, systemConfiguration);
+			lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
+		}
+		return lensContext;
+	}
+
+	private ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
+		ObjectPolicyConfigurationType policyConfigurationType;
+		try {
+			policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(user, systemConfiguration.asObjectable());
+		} catch (ConfigurationException e) {
+			throw new SchemaException(e.getMessage(), e);
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
+					FocusTypeUtil.determineSubTypes(user), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+		}
+		
+		return policyConfigurationType;
+	}
 	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
 		if (sourceCollection == null) {
 			return;
@@ -356,7 +393,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			return null;
 		}
 		if (owner.canRepresent(UserType.class)) {
-			userComputer.recompute((PrismObject<UserType>)owner);
+			PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+	        LifecycleStateModelType lifecycleModel = getLifecycleModel((PrismObject<UserType>)owner, systemConfiguration);
+			userComputer.recompute((PrismObject<UserType>)owner, lifecycleModel);
 		}
 		return owner;
 	}

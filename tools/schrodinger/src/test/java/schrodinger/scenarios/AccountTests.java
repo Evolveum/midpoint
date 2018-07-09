@@ -11,6 +11,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import schrodinger.TestBase;
 
+import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
@@ -19,10 +20,11 @@ import java.io.IOException;
  */
 public class AccountTests extends TestBase {
 
+    private static File CSV_TARGET_FILE;
+
     private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resources/csv/resource-csv-username.xml");
 
-    protected static final File CSV_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-username.csv");
-    protected static final File CSV_TARGET_FILE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\midpoint.csv"); //TODO change hard coded path to local web container
+    protected static final File CSV_INITIAL_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-username.csv");
 
     protected static final String CSV_SOURCE_OLDVALUE = "target/midpoint.csv";
 
@@ -43,14 +45,18 @@ public class AccountTests extends TestBase {
     protected static final String TEST_USER_MIKE_LAST_NAME_OLD= "di Lodovico Buonarroti Simoni";
     protected static final String TEST_USER_MIKE_LAST_NAME_NEW= "di Lodovico Buonarroti Simoni Il Divino";
 
+    private static final String DIRECTORY_CURRENT_TEST = "accountTests";
+    private static final String FILE_RESOUCE_NAME = "midpoint-accounttests.csv";
 
-    @BeforeSuite
-    private void init() throws IOException {
-        FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
-    }
 
     @Test(priority = 1, groups = TEST_GROUP_BEFORE_USER_DELETION)
-    public void createMidpointUser(){
+    public void createMidpointUser() throws IOException, ConfigurationException {
+
+        initTestDirectory(DIRECTORY_CURRENT_TEST);
+
+        CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
+        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
+
         UserPage user = basicPage.newUser();
 
         Assert.assertTrue(user.selectTabBasic()
@@ -75,6 +81,7 @@ public class AccountTests extends TestBase {
                 importPage
                 .getObjectsFromFile()
                 .chooseFile(CSV_RESOURCE_MEDIUM)
+                .checkOverwriteExistingObject()
                 .clickImport()
                     .feedback()
                     .isSuccess()

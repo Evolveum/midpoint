@@ -26,7 +26,6 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
 
-
 import static com.codeborne.selenide.Selenide.$;
 
 /**
@@ -60,21 +59,13 @@ public class Table<T> extends Component<T> {
     }
 
     public boolean currentTableContains(String name) {
-// Small time out period, might be a problem if table loads for a long time
-// TODO Catching the exception in such way might be a problem, find solution with wait+pooling interval
 
-
-//        FluentWait wait = MidPoint.waitWithIgnoreMissingElement();
-//        Boolean isPresent = (Boolean) wait.until(new Function() {
-//            @Nullable
-//            @Override
-//            public Boolean apply(@Nullable Object o) {
-//
-//                return $(Schrodinger.byElementValue("Span", name)).is(Condition.visible);
-//            }
-//        });
-
-        return $(Schrodinger.byElementValue("Span", name)).is(Condition.visible);
+        // TODO replate catch Throwable with some less generic error
+        try {
+            return $(Schrodinger.byElementValue("Span", name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM).is(Condition.visible);
+        } catch (Throwable t) {
+            return false;
+        }
 
     }
 

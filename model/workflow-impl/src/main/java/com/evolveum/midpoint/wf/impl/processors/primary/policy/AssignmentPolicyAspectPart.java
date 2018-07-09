@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.processors.primary.policy;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,10 +88,11 @@ public class AssignmentPolicyAspectPart {
 	@Autowired protected ItemApprovalProcessInterface itemApprovalProcessInterface;
 	@Autowired protected BaseConfigurationHelper baseConfigurationHelper;
 	@Autowired protected LocalizationService localizationService;
+	@Autowired protected ModelInteractionService modelInteractionService;
 
 	void extractAssignmentBasedInstructions(ObjectTreeDeltas<?> objectTreeDeltas, PrismObject<UserType> requester,
 			List<PcpChildWfTaskCreationInstruction<?>> instructions, ModelInvocationContext ctx, OperationResult result)
-			throws SchemaException {
+			throws SchemaException, ObjectNotFoundException {
 
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext).getEvaluatedAssignmentTriple();
 		LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
@@ -97,6 +100,7 @@ public class AssignmentPolicyAspectPart {
 			return;
 		}
 
+		int instructionsBefore = instructions.size();
 		for (EvaluatedAssignment<?> assignmentAdded : evaluatedAssignmentTriple.getPlusSet()) {
 			addIgnoreNull(instructions,
 					createInstructionFromAssignment(assignmentAdded, PLUS, objectTreeDeltas, requester, ctx, result));
@@ -108,6 +112,15 @@ public class AssignmentPolicyAspectPart {
 		for (EvaluatedAssignment<?> assignmentModified : evaluatedAssignmentTriple.getZeroSet()) {
 			addIgnoreNull(instructions,
 					createInstructionFromAssignment(assignmentModified, PlusMinusZero.ZERO, objectTreeDeltas, requester, ctx, result));
+		}
+		int instructionsAdded = instructions.size() - instructionsBefore;
+		LOGGER.trace("Assignment-related approval instructions: {}", instructionsAdded);
+		AdminGuiConfigurationType adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(ctx.taskFromModel, result);
+		Integer limit = adminGuiConfiguration.getAssignmentApprovalRequestLimit();
+		LOGGER.trace("Allowed approval instructions: {}", limit);
+		if (limit != null && instructionsAdded > limit) {
+			// TODO think about better error reporting
+			throw new IllegalStateException("Assignment approval request limit (" + limit + ") exceeded: you are trying to submit " + instructionsAdded + " requests");
 		}
 	}
 

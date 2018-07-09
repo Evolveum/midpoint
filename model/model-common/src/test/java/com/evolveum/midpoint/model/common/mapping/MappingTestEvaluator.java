@@ -234,6 +234,7 @@ public class MappingTestEvaluator {
     	builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
     	builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account.asPrismObject());
     	builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account.asPrismObject());
+    	builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, account.asPrismObject());
 
     	ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
 			ItemPath outputPath;

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.notifications.api.events.CertCampaignEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.helpers.CertHelper;
@@ -44,9 +43,6 @@ public class SimpleCampaignNotifier extends GeneralNotifier {
     private static final Trace LOGGER = TraceManager.getTrace(SimpleCampaignNotifier.class);
 
     @Autowired
-    private MidpointFunctions midpointFunctions;
-
-    @Autowired
     private CertHelper certHelper;
 
     @PostConstruct
@@ -60,11 +56,8 @@ public class SimpleCampaignNotifier extends GeneralNotifier {
             LOGGER.trace("SimpleCampaignNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
             return false;
         }
-        if (event.isAdd() || event.isDelete()) {        // general modifications are not supported
-            return true;
-        } else {
-            return false;
-        }
+        // general modifications are not supported
+        return event.isAdd() || event.isDelete();
     }
 
     @Override

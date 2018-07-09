@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,7 +59,6 @@ public class CertificationHook implements ChangeHook {
 
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired private CertificationManagerImpl certificationManager;
-	@Autowired private AccCertUpdateHelper updateHelper;
 
 	@PostConstruct
     public void init() {
@@ -70,7 +68,7 @@ public class CertificationHook implements ChangeHook {
 
 	@Override
 	public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
-			@NotNull OperationResult result) throws PolicyViolationException {
+			@NotNull OperationResult result) {
 		if (context.getState() != ModelState.FINAL) {
             return HookOperationMode.FOREGROUND;
         }

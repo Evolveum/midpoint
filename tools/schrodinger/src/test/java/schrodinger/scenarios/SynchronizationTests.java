@@ -6,10 +6,10 @@ import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import schrodinger.TestBase;
 
+import javax.naming.ConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
@@ -18,10 +18,11 @@ import java.io.IOException;
  */
 public class SynchronizationTests extends TestBase {
 
+    private static File CSV_TARGET_FILE;
+
     private static final File CSV_SOURCE_FILE = new File("./src/test/resources/midpoint-gorups-authoritative.csv");
     private static final File CSV_INITIAL_SOURCE_FILE = new File("./src/test/resources/midpoint-gorups-authoritative-initial.csv");
     private static final File CSV_UPDATED_SOURCE_FILE = new File("./src/test/resources/midpoint-gorups-authoritative-updated.csv");
-    private static final File CSV_TARGET_FILE = new File("C:\\Users\\matus\\Documents\\apache-tomcat-8.5.16\\target\\midpoint-advanced-sync.csv"); //TODO change hard coded path to local web container
     private static final File RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE = new File("./src/test/resources/resource-csv-groups-authoritative.xml");
 
     protected static final String RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME = "CSV (target with groups) authoritative";
@@ -35,32 +36,23 @@ public class SynchronizationTests extends TestBase {
     private static final String LINKED_USER_ACCOUNT_DELETED = "alreadyLinkedResourceAccountDeleted";
     private static final String RESOURCE_ACCOUNT_CREATED_WHEN_UNREACHABLE = "resourceAccountCreatedWhenResourceUnreachable";
 
-    @BeforeSuite
-    private void init() throws IOException {
-        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
-    }
+    private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
+    private static final String DIRECTORY_CURRENT_TEST = "synchronizationTests";
 
     @Test
-    public void setUpResourceAndSynchronizationTask(){
+    public void setUpResourceAndSynchronizationTask() throws ConfigurationException, IOException {
+
+        initTestDirectory(DIRECTORY_CURRENT_TEST);
+
+        CSV_TARGET_FILE = new File(CSV_TARGET_DIR, FILE_RESOUCE_NAME);
+        FileUtils.copyFile(CSV_INITIAL_SOURCE_FILE,CSV_TARGET_FILE);
+
         importObject(RESOURCE_CSV_GROUPS_AUTHORITATIVE_FILE,true);
         importObject(OrganizationStructureTests.USER_TEST_RAPHAEL_FILE,true);
 
-         ListResourcesPage listResourcesPage = basicPage.listResources();
+        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(), true);
 
-        Assert.assertTrue(
-                listResourcesPage
-                        .table()
-                            .clickByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-                                .clickEditResourceConfiguration()
-                                    .form()
-                                    .changeAttributeValue("File path" ,AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath())
-                                .and()
-                            .and()
-                                .clickSaveAndTestConnection()
-                                    .isTestSuccess()
-        );
-
-        listResourcesPage = basicPage.listResources();
+        ListResourcesPage listResourcesPage = basicPage.listResources();
         listResourcesPage
                 .table()
                     .clickByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
@@ -77,8 +69,8 @@ public class SynchronizationTests extends TestBase {
                                 .clickSave()
                                     .feedback()
                                     .isSuccess();
-
     }
+
 
     @Test (dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
     public void newResourceAccountUserCreated() throws IOException {
@@ -162,9 +154,8 @@ public class SynchronizationTests extends TestBase {
         FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
         Selenide.sleep(3000);
 
-
-             usersPage = basicPage.listUsers();
-      Assert.assertTrue(
+        usersPage = basicPage.listUsers();
+        Assert.assertTrue(
               usersPage
                 .table()
                     .search()
@@ -176,7 +167,7 @@ public class SynchronizationTests extends TestBase {
                       .selectTabProjections()
                         .table()
                         .currentTableContains(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-      );
+        );
 
     }
 
@@ -187,7 +178,7 @@ public class SynchronizationTests extends TestBase {
         Selenide.sleep(3000);
 
         ListUsersPage usersPage = basicPage.listUsers();
-     Assert.assertTrue(
+        Assert.assertTrue(
             usersPage
                     .table()
                         .search()
@@ -199,7 +190,7 @@ public class SynchronizationTests extends TestBase {
                         .selectTabBasic()
                             .form()
                                 .compareAttibuteValue("Given name","Donato")
-     );
+        );
     }
 
     @Test (dependsOnMethods = {LINKED_USER_ACCOUNT_MODIFIED})
@@ -221,11 +212,11 @@ public class SynchronizationTests extends TestBase {
         );
     }
 
-    @Test //(dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
+    @Test (dependsOnMethods = {RESOURCE_AND_SYNC_TASK_SETUP_DEPENDENCY})
     public void resourceAccountDeleted(){
 
         ListUsersPage usersPage = basicPage.listUsers();
-    Assert.assertFalse(
+        Assert.assertFalse(
         usersPage
                 .table()
                         .search()
@@ -237,10 +228,10 @@ public class SynchronizationTests extends TestBase {
                             .selectTabProjections()
                                 .table()
                                 .currentTableContains(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-    );
+        );
 
         ListResourcesPage resourcesPage = basicPage.listResources();
-    Assert.assertFalse(
+        Assert.assertFalse(
            resourcesPage
                     .table()
                         .search()
@@ -259,10 +250,11 @@ public class SynchronizationTests extends TestBase {
                         .and()
                         .clickSearchInResource()
                             .table()
-                            .currentTableContains("raphael"));
+                            .currentTableContains("raphael")
+        );
 
         usersPage = basicPage.listUsers();
-         Assert.assertFalse(
+        Assert.assertFalse(
                          usersPage
                     .table()
                         .search()
@@ -274,7 +266,7 @@ public class SynchronizationTests extends TestBase {
                             .selectTabProjections()
                                 .table()
                                 .currentTableContains(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-         );
+        );
     }
 
 
@@ -282,26 +274,13 @@ public class SynchronizationTests extends TestBase {
 @Test (dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
     public void resourceAccountCreatedWhenResourceUnreachable() throws IOException {
 
-    ListResourcesPage listResourcesPage = basicPage.listResources();
-
-        Assert.assertTrue(
-                listResourcesPage
-                        .table()
-                            .clickByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-                                .clickEditResourceConfiguration()
-                                    .form()
-                                    .changeAttributeValue("File path" ,AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath()+"corr")
-                                .and()
-                            .and()
-                                .clickSaveAndTestConnection()
-                                    .isTestFailure()
-        );
+        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath()+"err", false);
 
         FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
 
         Selenide.sleep(3000);
 
-    ListUsersPage usersPage = basicPage.listUsers();
+        ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertFalse(
                 usersPage
                     .table()
@@ -313,22 +292,9 @@ public class SynchronizationTests extends TestBase {
                     .currentTableContains(TEST_USER_DON_NAME)
         );
 
-        listResourcesPage = basicPage.listResources();
+        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(), true);
 
-        Assert.assertTrue(
-                listResourcesPage
-                        .table()
-                            .clickByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-                                .clickEditResourceConfiguration()
-                                    .form()
-                                    .changeAttributeValue("File path" ,AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath())
-                                .and()
-                            .and()
-                                .clickSaveAndTestConnection()
-                                    .isTestSuccess()
-        );
-
-    ListTasksPage  tasksPage = basicPage.listTasks();
+        ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage
             .table()
                 .clickByName("LiveSyncTest")
@@ -377,34 +343,12 @@ public class SynchronizationTests extends TestBase {
                     .isSuccess()
         );
 
-        ListResourcesPage listResourcesPage = basicPage.listResources();
-
-        Assert.assertTrue(
-                listResourcesPage
-                        .table()
-                            .clickByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-                                .clickEditResourceConfiguration()
-                                    .form()
-                                    .changeAttributeValue("File path" ,AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath()+"corr")
-                                .and()
-                            .and()
-                                .clickSaveAndTestConnection()
-                                    .isTestFailure()
-        );
+        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME ,AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath()+"err",false);
 
         FileUtils.copyFile(CSV_SOURCE_FILE,CSV_TARGET_FILE);
-        Assert.assertTrue(
-                listResourcesPage
-                        .table()
-                            .clickByName(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
-                                .clickEditResourceConfiguration()
-                                    .form()
-                                    .changeAttributeValue("File path" ,AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath())
-                                .and()
-                            .and()
-                                .clickSaveAndTestConnection()
-                                    .isTestSuccess()
-        );
+
+        changeResourceFilePath(RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME ,AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath(),true);
+
 
         ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage
@@ -430,4 +374,37 @@ public class SynchronizationTests extends TestBase {
         );
 
     }
+
+      public void changeResourceFilePath(String resourceName,String oldValue, String newValue, Boolean shouldBeSuccess){
+        ListResourcesPage listResourcesPage = basicPage.listResources();
+
+        if(shouldBeSuccess){
+            Assert.assertTrue(
+                    listResourcesPage
+                        .table()
+                            .clickByName(resourceName)
+                                .clickEditResourceConfiguration()
+                                    .form()
+                                    .changeAttributeValue("File path",oldValue, newValue)
+                                .and()
+                            .and()
+                                .clickSaveAndTestConnection()
+                                .isTestSuccess()
+            );
+          }else{
+            Assert.assertTrue(
+                    listResourcesPage
+                        .table()
+                            .clickByName(resourceName)
+                                .clickEditResourceConfiguration()
+                                    .form()
+                                    .changeAttributeValue("File path",oldValue, newValue)
+                                .and()
+                            .and()
+                                .clickSaveAndTestConnection()
+                                .isTestFailure()
+            );
+        }
+      }
+
 }

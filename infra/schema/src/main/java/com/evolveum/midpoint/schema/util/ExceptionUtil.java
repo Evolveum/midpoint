@@ -105,4 +105,15 @@ public class ExceptionUtil {
 		}
 		return null;
 	}
+
+	public static <T extends Throwable> T findException(Throwable throwable, Class<T> clazz) {
+		while (throwable != null) {
+			if (clazz.isAssignableFrom(throwable.getClass())) {
+				//noinspection unchecked
+				return (T) throwable;
+			}
+			throwable = throwable.getCause();
+		}
+		return null;
+	}
 }

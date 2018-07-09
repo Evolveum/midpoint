@@ -186,13 +186,7 @@ public class ModifyUser extends BaseSQLRepoTest {
         repositoryService.getObject(UserType.class, userBigOid, null, new OperationResult("asdf"));
     }
 
-    /**
-     * This test fails with java.lang.IllegalStateException: An entity copy was already assigned to a different entity.
-     * It's ok to fail, but it should fail somehow differently.
-     *
-     * todo improve later [lazyman]
-     */
-    @Test(enabled = false)
+    @Test
     public void test070ModifyBigUser() throws Exception {
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(FOLDER_BASIC, "t004.xml"), ObjectModificationType.COMPLEX_TYPE);

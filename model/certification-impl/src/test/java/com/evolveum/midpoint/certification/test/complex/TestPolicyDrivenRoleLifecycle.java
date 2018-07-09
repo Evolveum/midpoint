@@ -406,9 +406,9 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 //
 //		campaign = getCampaignWithCases(campaign.getOid());
 //        display("campaign", campaign);
-//        assertAfterCampaignStart(campaign, assignmentCertificationDefinition, 1);		// beware, maybe not all details would match (in the future) - then adapt this test
+//        assertSanityAfterCampaignStart(campaign, assignmentCertificationDefinition, 1);		// beware, maybe not all details would match (in the future) - then adapt this test
 //        assertPercentComplete(campaign, 0, 0, 0);      // no cases, no problems
-//		assertCases(campaign.getOid(), 1);
+//		assertCasesCount(campaign.getOid(), 1);
 //	}
 //
 //    @Test
@@ -445,7 +445,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 //
 //		campaign = getCampaignWithCases(campaign.getOid());
 //        display("campaign", campaign);
-//        assertAfterCampaignStart(campaign, modificationCertificationDefinition, 1);		// beware, maybe not all details would match (in the future) - then adapt this test
+//        assertSanityAfterCampaignStart(campaign, modificationCertificationDefinition, 1);		// beware, maybe not all details would match (in the future) - then adapt this test
 //        assertPercentComplete(campaign, 0, 0, 0);      // no cases, no problems
 //	}
 }

@@ -85,6 +85,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="reiterationDefinition" type="tns:AccessCertificationReiterationDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the manual or automatic reiteration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="stageDefinition" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -120,8 +130,7 @@
                     <xsd:element name="lastCampaignStartedTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                When the last campaign of this type was started?
-                                CURRENTLY NOT USED.
+                                When the last campaign of this type was started (in its first iteration)?
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -129,7 +138,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 When the last campaign of this type was closed? Deletion is not recorded in this attribute.
-                                CURRENTLY NOT USED.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -442,6 +450,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="reiterationDefinition" type="tns:AccessCertificationReiterationDefinitionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of the manual or automatic reiteration.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="stageDefinition" type="tns:AccessCertificationStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -469,6 +487,17 @@
                             <xsd:documentation>
                                 When this campaign has finished.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Which iteration this campaign is in. 1 means the regular (first) run;
+                                2 means first repetition, etc.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="state" type="tns:AccessCertificationCampaignStateType" minOccurs="0">
@@ -518,7 +547,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="number" type="xsd:int" minOccurs="1">
+            <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Which iteration this stage is part of. 1 means the first (i.e. regular) run.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="number" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -813,7 +852,7 @@
                 </xsd:annotation>
             </xsd:element>
             -->
-            <xsd:element name="stageNumber" type="xsd:int" minOccurs="1" maxOccurs="1">
+            <xsd:element name="stageNumber" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
                         The number of current stage in which this case is.
@@ -822,14 +861,22 @@
 
                         When opening a campaign stage, case's currentStage either advances (if it is transferred to stage being opened)
                         or stays at the existing value (if it is not). It then indicates the last stage this case
-                        took part of.
+                        was reviewed in.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Iteration this case takes part of. Case is "enabled" for a current campaign stage if and only if
+                        case.iteration == campaign.iteration (beware of null comparison).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="workItem" type="tns:AccessCertificationWorkItemType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Work items for this stage. Some might be completed; however, they remains here until the stage is closed.
+                        Work items for this stage. Some might be completed. Work items are not deleted.
                     </xsd:documentation>
                     <xsd:appinfo>
 						<a:since>3.6</a:since>
@@ -854,7 +901,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="currentStageOutcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+            <xsd:element name="currentStageOutcome" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Currently valid outcome, relevant to the current stage. It is recomputed on each reviewer's
@@ -863,11 +910,22 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+            <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The outcome, taking into account all closed stages plus current stage (if any).
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reviewFinishedTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When was the review process for this case finished (for the current iteration)?
+                        This value is cleared for cases entering the next iteration.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="remediedTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -918,11 +976,21 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkItemType">
                 <xsd:sequence>
-                    <xsd:element name="outputChangeTimestamp" type="xsd:dateTime" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="outputChangeTimestamp" type="xsd:dateTime" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 When the decision was made or changed.
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0" default="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Which iteration this work item is part of. 1 means the first (i.e. regular) run.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>3.9</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -1145,6 +1213,45 @@
                     <xsd:documentation>
                         What (final) outcomes cause actual remediation (e.g. deletion of an assignment) if automated remediation is configured?
                         The default is "revoke". But more can be specified here, e.g. noResponse.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AccessCertificationReiterationDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="startsAfter" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How long after campaign is closed should automatic reiteration start?
+                        The default is that reiteration starts only manually.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="limitWhenAutomatic" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many iterations are allowed for automatic start? After reaching the specified number of iterations
+                        (irrespective of how they were started) automatic reiteration mechanism will be disabled for this
+                        campaign.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="limit" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many iterations are allowed in total? After reaching the specified number of iterations
+                        no new iterations can be opened.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

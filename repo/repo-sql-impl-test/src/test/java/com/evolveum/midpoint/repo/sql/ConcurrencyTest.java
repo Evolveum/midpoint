@@ -68,7 +68,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     //private static final long WAIT_TIME = 60000;
     //private static final long WAIT_STEP = 500;
 
-    @Test(enabled = true)
+    @Test
     public void test001TwoWriters_OneAttributeEach__NoReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
@@ -85,7 +85,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         concurrencyUniversal("Test1", 30000L, 500L, mts, null);
     }
 
-    @Test(enabled = true)
+    @Test
     public void test002FourWriters_OneAttributeEach__NoReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
@@ -98,7 +98,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         concurrencyUniversal("Test2", 60000L, 500L, mts, null);
     }
 
-    @Test(enabled = true)
+    @Test
     public void test003OneWriter_TwoAttributes__OneReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
@@ -126,7 +126,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         concurrencyUniversal("Test3", 60000L, 0L, mts, checker);
     }
 
-    @Test(enabled = true)
+    @Test
     public void test004TwoWriters_TwoAttributesEach__OneReader() throws Exception {
 
         PropertyModifierThread[] mts = new PropertyModifierThread[]{
@@ -458,7 +458,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = true)
+    @Test
     public void test010SearchIterative() throws Exception {
 
         String name = "Test10";

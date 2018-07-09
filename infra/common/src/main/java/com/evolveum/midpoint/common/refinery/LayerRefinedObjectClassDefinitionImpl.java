@@ -672,6 +672,16 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public Collection<TypeDefinition> getStaticSubTypes() {
 		return emptySet();          // not supported for now (this type itself is not statically defined)
 	}
+	
+	@Override
+	public <A> A getAnnotation(QName qname) {
+		return refinedObjectClassDefinition.getAnnotation(qname);
+	}
+
+	@Override
+	public <A> void setAnnotation(QName qname, A value) {
+		refinedObjectClassDefinition.setAnnotation(qname, value);
+	}
 
 	@Override
 	public Integer getInstantiationOrder() {

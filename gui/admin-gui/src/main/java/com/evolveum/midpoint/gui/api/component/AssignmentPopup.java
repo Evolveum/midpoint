@@ -129,12 +129,17 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new OrgTypeAssignmentPopupTabPanel(panelId, false, selectedOrgsList){
+                        return new OrgTypeAssignmentPopupTabPanel(panelId, false){
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target){
                                 tabLabelPanelUpdate(target);
+                            }
+
+                            @Override
+                            protected List<OrgType> getPreselectedObjects(){
+                                return selectedOrgsList;
                             }
 
                         };
@@ -153,7 +158,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new OrgTypeAssignmentPopupTabPanel(panelId, true, selectedOrgsList){
+                return new OrgTypeAssignmentPopupTabPanel(panelId, true){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -161,6 +166,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                         tabLabelPanelUpdate(target);
                     }
 
+                    @Override
+                    protected List<OrgType> getPreselectedObjects(){
+                        return selectedOrgsList;
+                    }
                 };
             }
 
@@ -222,8 +231,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     private int getTabPanelSelectedCount(WebMarkupContainer panel){
-        if (panel != null && panel instanceof FocusTypeAssignmentPopupTabPanel){
-            return ((FocusTypeAssignmentPopupTabPanel) panel).getSelectedObjectsList().size();
+        if (panel != null && panel instanceof AbstractAssignmentPopupTabPanel){
+            return ((AbstractAssignmentPopupTabPanel) panel).getSelectedObjectsList().size();
         }
         return 0;
     }

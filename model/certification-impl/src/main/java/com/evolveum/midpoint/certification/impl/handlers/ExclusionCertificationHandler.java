@@ -42,7 +42,7 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
 
     public static final String URI = AccessCertificationApiConstants.EXCLUSION_HANDLER_URI;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ExclusionCertificationHandler.class);
+    //private static final transient Trace LOGGER = TraceManager.getTrace(ExclusionCertificationHandler.class);
 
     @PostConstruct
     public void init() {
@@ -57,11 +57,8 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
     // converts assignments to cases
     @Override
     public <F extends FocusType> Collection<? extends AccessCertificationCaseType> createCasesForObject(PrismObject<F> objectPrism,
-            AccessCertificationCampaignType campaign, Task task, OperationResult parentResult)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-
+            AccessCertificationCampaignType campaign, Task task, OperationResult parentResult) {
 		F focus = objectPrism.asObjectable();
-
         List<AccessCertificationCaseType> caseList = new ArrayList<>();
 		for (AssignmentType assignment : focus.getAssignment()) {
 			if (assignment.getPolicySituation().contains(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION)) {

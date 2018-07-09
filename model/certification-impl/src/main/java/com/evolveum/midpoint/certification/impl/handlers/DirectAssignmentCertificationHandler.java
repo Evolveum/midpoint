@@ -53,7 +53,7 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
 
     public static final String URI = AccessCertificationApiConstants.DIRECT_ASSIGNMENT_HANDLER_URI;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(DirectAssignmentCertificationHandler.class);
+    //private static final transient Trace LOGGER = TraceManager.getTrace(DirectAssignmentCertificationHandler.class);
 
     @PostConstruct
     public void init() {
@@ -133,7 +133,10 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
                 .stream().anyMatch(r -> ObjectTypeUtil.relationMatches(r, assignmentRelation));
     }
 
-    private boolean itemSelectionExpressionAccepts(AssignmentType assignment, boolean isInducement, ObjectType object, AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    @SuppressWarnings("unused")
+    private boolean itemSelectionExpressionAccepts(AssignmentType assignment, boolean isInducement, ObjectType object,
+            AccessCertificationCampaignType campaign, Task task, OperationResult result) throws ExpressionEvaluationException,
+            ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         AccessCertificationObjectBasedScopeType scope = null;
         if (campaign.getScopeDefinition() instanceof AccessCertificationObjectBasedScopeType) {
             scope = (AccessCertificationObjectBasedScopeType) (campaign.getScopeDefinition());

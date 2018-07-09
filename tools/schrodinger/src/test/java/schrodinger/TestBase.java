@@ -21,13 +21,17 @@ import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.LoginPage;
+import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
+import javax.naming.ConfigurationException;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 /**
@@ -41,13 +45,16 @@ public abstract class TestBase {
     public static final String USERNAME = "administrator";
     public static final String PASSWORD = "5ecr3t";
 
+    public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
+
     private static final Logger LOG = LoggerFactory.getLogger(TestBase.class);
+    protected static File CSV_TARGET_DIR;
 
     protected MidPoint midPoint;
     protected BasicPage basicPage;
 
     @BeforeClass
-    public void beforeClass() {
+    public void beforeClass() throws IOException {
         LOG.info("Starting tests in class {}", getClass().getName());
 
         EnvironmentConfiguration config = new EnvironmentConfiguration();
@@ -74,11 +81,11 @@ public abstract class TestBase {
         LOG.info("Finished test {}.{}", method.getDeclaringClass().getName(), method.getName());
     }
 
-    protected void importObject(File source,Boolean overrideExistingObject) {
+    protected void importObject(File source, Boolean overrideExistingObject) {
 
         ImportObjectPage importPage = basicPage.importObject();
 
-        if(overrideExistingObject){
+        if (overrideExistingObject) {
             importPage
                     .checkOverwriteExistingObject();
         }
@@ -93,7 +100,47 @@ public abstract class TestBase {
     }
 
     protected void importObject(File source) {
-        importObject(source,false);
+        importObject(source, false);
+    }
+
+
+    protected String fetchMidpointHome() throws ConfigurationException {
+
+        AboutPage aboutPage = basicPage.aboutPage();
+        String homeDir = aboutPage.getJVMproperty(PROPERTY_NAME_MIDPOINT_HOME);
+
+        if (homeDir != null && !homeDir.isEmpty()) {
+
+            return homeDir;
+        } else {
+
+            LOG.error("Midpoint home parameter is empty!");
+            throw new ConfigurationException("Midpoint home parameter is empty ,please add the -Dmidpoint.home parameter to the jvm configuration");
+
+        }
+
+    }
+
+    protected File initTestDirectory(String dir) throws ConfigurationException, IOException {
+
+        String home = fetchMidpointHome();
+        File parentDir = new File(home, "schrodinger");
+        parentDir.mkdir();
+        CSV_TARGET_DIR = new File(parentDir, dir);
+
+        if (CSV_TARGET_DIR.mkdir()) {
+
+            return CSV_TARGET_DIR;
+        } else {
+            if (CSV_TARGET_DIR.exists()) {
+
+                FileUtils.cleanDirectory(CSV_TARGET_DIR);
+                return CSV_TARGET_DIR;
+            } else {
+
+                throw new IOException("Creation of directory \"" + CSV_TARGET_DIR.getName() + "\" unsuccessful");
+            }
+        }
     }
 
 }

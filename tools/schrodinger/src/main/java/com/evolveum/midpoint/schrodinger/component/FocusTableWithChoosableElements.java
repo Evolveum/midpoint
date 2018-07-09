@@ -26,14 +26,7 @@ public class FocusTableWithChoosableElements<T> extends AbstractTable<T> {
 
     @Override
     public AbstractTable<T> selectCheckboxByName(String name) {
-        SelenideElement parent = $(Schrodinger.byElementValue(null, "data-s-id", "cell", name))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).parent();
-
-        String row = parent.getAttribute("data-s-id").toString();
-
-        System.out.println("The Parent + " + parent.innerHtml() + "                    The row" + row);
-
-        parent.$(Schrodinger.byElementAttributeValue("input", "name", constructCheckBoxIdBasedOnRow(row)))
+        $(Schrodinger.byAncestorFollowingSiblingElementValue("input", "type", "checkbox", "data-s-id", "3", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
         return this;

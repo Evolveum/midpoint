@@ -23,13 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,15 +44,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertifi
 @Component
 public class AccessCertificationCloseStageTriggerHandler implements TriggerHandler {
 
-	public static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-3";
+	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/close-stage/handler-3";
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationCloseStageTriggerHandler.class);
 
-	@Autowired
-	private TriggerHandlerRegistry triggerHandlerRegistry;
-
-	@Autowired
-	private CertificationManager certificationManager;
+	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
+	@Autowired private CertificationManager certificationManager;
 
 	@PostConstruct
 	private void initialize() {
@@ -84,15 +75,15 @@ public class AccessCertificationCloseStageTriggerHandler implements TriggerHandl
 			}
 
 			int currentStageNumber = campaign.getStageNumber();
-			certificationManager.closeCurrentStage(campaign.getOid(), currentStageNumber, task, result);
+			certificationManager.closeCurrentStage(campaign.getOid(), task, result);
 			if (currentStageNumber < CertCampaignTypeUtil.getNumberOfStages(campaign)) {
 				LOGGER.info("Automatically opening next stage of {}", ObjectTypeUtil.toShortString(campaign));
-				certificationManager.openNextStage(campaign.getOid(), currentStageNumber + 1, task, result);
+				certificationManager.openNextStage(campaign.getOid(), task, result);
 			} else {
 				LOGGER.info("Automatically starting remediation for {}", ObjectTypeUtil.toShortString(campaign));
 				certificationManager.startRemediation(campaign.getOid(), task, result);
 			}
-		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+		} catch (CommonException | RuntimeException e) {
 			LoggingUtils.logException(LOGGER, "Couldn't close current campaign and possibly advance to the next one", e);
 		}
 	}

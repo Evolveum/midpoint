@@ -451,6 +451,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 				extraRelations.removeIf(r -> QNameUtil.match(r, orderConstraint.getRelation()));
 			}
 		}
+		// TODO this is to be reconsidered -- why do we consider assignment of relation e.g. approver non-matching?
 		if (!extraRelations.isEmpty()) {
 			rv = false;
 		}

@@ -18,12 +18,22 @@ if "%MIDPOINT_HOME%" == "" (
     if not exist var\log mkdir var\log
     set "MIDPOINT_HOME=%BIN_DIR%..\var"
 )
-echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
 
 if not exist "%BIN_DIR%midpoint.bat" (
     echo Error: The midpoint.bat file is not in bin directory or is not accessible.
     goto end
 )
+
+set JAVA_OPTS=-Xms2048M -Xmx4096M -Dpython.cachedir="%MIDPOINT_HOME%\tmp" -Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks" -Djavax.net.ssl.trustStoreType=jceks %JAVA_OPTS%
+
+if not exist "%BIN_DIR%setenv.bat" goto :noSetEnv
+echo Applying %BIN_DIR%setenv.bat
+echo.
+
+call "%BIN_DIR%setenv.bat"
+
+:noSetEnv
+echo Using MIDPOINT_HOME:   "%MIDPOINT_HOME%"
 
 if not exist "%LIB_DIR%\midpoint.war" (
     echo Error: The midpoint.war is not in the lib directory
@@ -49,7 +59,7 @@ echo Using JAVA_OPTS:       "%JAVA_OPTS%"
 echo Using parameters:      "%*"
 echo.
 echo Starting midPoint.
-start /b %RUN_JAVA% -jar %JAVA_OPTS% -Xms2048M -Xmx4096M -Dpython.cachedir="%MIDPOINT_HOME%\tmp" -Djavax.net.ssl.trustStore="%MIDPOINT_HOME%\keystore.jceks" -Djavax.net.ssl.trustStoreType=jceks -Dmidpoint.home="%MIDPOINT_HOME%" "%LIB_DIR%\midpoint.war" %* > "%BOOT_OUT%" 2>&1
+start /b "midPoint" "%RUN_JAVA%" -jar %JAVA_OPTS% -Dmidpoint.home="%MIDPOINT_HOME%" "%LIB_DIR%\midpoint.war" %* > "%BOOT_OUT%" 2>&1
 goto end
 
 :doStop

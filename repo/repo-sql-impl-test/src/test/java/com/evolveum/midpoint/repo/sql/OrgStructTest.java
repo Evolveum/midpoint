@@ -461,34 +461,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)          // users are not in the closure any more
-    public void test004modifyOrgStructAddUser() throws Exception {
-        Session session = open();
-        try {
-            OperationResult opResult = new OperationResult("test004modifyOrgStructAddUser");
-
-            //test modification of org ref in another org type..
-            ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_ADD_USER_FILENAME),
-                    ObjectModificationType.COMPLEX_TYPE);
-
-            ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
-
-            repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
-
-            LOGGER.info("==>after modify - add user to org<==");
-            List<ROrgClosure> orgClosure = getOrgClosureByDescendant(ELAINE_OID, session);
-            AssertJUnit.assertEquals(7, orgClosure.size());
-
-            LOGGER.info("==============CLOSURE TABLE==========");
-
-            for (ROrgClosure o : orgClosure) {
-                LOGGER.info("=> A: {}, D: {}", o.getAncestor(), o.getDescendant());
-            }
-        } finally {
-            close(session);
-        }
-    }
-
     @Test
     public void test005deleteOrg() throws Exception {
         OperationResult opResult = new OperationResult("test005deleteOrg");
