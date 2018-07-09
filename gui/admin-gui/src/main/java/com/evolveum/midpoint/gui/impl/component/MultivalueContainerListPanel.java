@@ -17,7 +17,6 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,7 +39,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
@@ -48,8 +46,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 /**
@@ -64,14 +61,15 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
 	private static final String ID_ITEMS_TABLE = "itemsTable";
 	public static final String ID_ITEMS_DETAILS = "itemsDetails";
-	public static final String ID_ITEM_DETAILS = "itemtDetails";
+	public static final String ID_ITEM_DETAILS = "itemDetails";
+	public static final String ID_SEARCH_ITEM_PANEL = "search";
 
 	public static final String ID_DETAILS = "details";
 
 	private final static String ID_DONE_BUTTON = "doneButton";
 	private final static String ID_CANCEL_BUTTON = "cancelButton";
 
-	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
 	protected boolean itemDetailsVisible;
 	private List<ContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
@@ -100,12 +98,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	}
 
 	private void initListPanel() {
-		WebMarkupContainer assignmentsContainer = new WebMarkupContainer(ID_ITEMS);
-		assignmentsContainer.setOutputMarkupId(true);
-		add(assignmentsContainer);
+		WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS);
+		itemsContainer.setOutputMarkupId(true);
+		add(itemsContainer);
 
-		BoxedTablePanel<ContainerValueWrapper<C>> assignmentTable = initAssignmentTable();
-		assignmentsContainer.add(assignmentTable);
+		BoxedTablePanel<ContainerValueWrapper<C>> itemTable = initAssignmentTable();
+		itemsContainer.add(itemTable);
 
 		AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ITEM_BUTTON, new Model<>("fa fa-plus"),
 				createStringResource("MainObjectListPanel.newObject")) {
@@ -114,7 +112,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				newAssignmentClickPerformed(target);
+				newAssignmentPerformed(target);
 			}
 		};
 
@@ -126,11 +124,14 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 				return enableActionNewObject();
 			}
 		});
-		assignmentsContainer.add(newObjectIcon);
+		itemsContainer.add(newObjectIcon);
+		
+		WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_ITEM_PANEL);
+		itemsContainer.add(searchContainer);
+		createSearch(searchContainer);
+		createCustomLayout(itemsContainer);
 
-		createCustomLayout(assignmentsContainer);
-
-		assignmentsContainer.add(new VisibleEnableBehaviour() {
+		itemsContainer.add(new VisibleEnableBehaviour() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -142,6 +143,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 	}
 	
+	protected abstract void createSearch(WebMarkupContainer searchContainer);
+	
 	protected abstract boolean enableActionNewObject();
 
 	private BoxedTablePanel<ContainerValueWrapper<C>> initAssignmentTable() {
@@ -151,7 +154,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 			@Override
 			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-				getAssignmentsStorage().setPaging(paging);
+				getPageStorage().setPaging(paging);
 			}
 
 			@Override
@@ -176,7 +179,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 			@Override
 			public int getItemsPerPage() {
 				return getPageBase().getSessionStorage().getUserProfile().getTables()
-						.get(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
+						.get(getTableId());
 			}
 
 			@Override
@@ -193,28 +196,24 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 		};
 		itemTable.setOutputMarkupId(true);
-		itemTable.setCurrentPage(getAssignmentsStorage().getPaging());
+		itemTable.setCurrentPage(getPageStorage().getPaging());
 		return itemTable;
 
 	}
 	
-	protected List<ContainerValueWrapper<C>> postSearch(List<ContainerValueWrapper<C>> assignments) {
-		return assignments;
-	}
+	protected abstract List<ContainerValueWrapper<C>> postSearch(List<ContainerValueWrapper<C>> items);
 
-	protected AssignmentsTabStorage getAssignmentsStorage() {
-		return getPageBase().getSessionStorage().getAssignmentsTabStorage();
-	}
+	protected abstract PageStorage getPageStorage();
 
 	protected abstract ObjectQuery createQuery();
 
 	protected abstract List<IColumn<ContainerValueWrapper<C>, String>> createColumns();
 	
-	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
+	protected abstract void newAssignmentPerformed(AjaxRequestTarget target);
 
-	protected abstract void createCustomLayout(WebMarkupContainer assignmentsContainer);
+	protected abstract void createCustomLayout(WebMarkupContainer itemsContainer);
 	
-	protected abstract void createDetailsPanel(WebMarkupContainer assignmentsContainer);
+	protected abstract void createDetailsPanel(WebMarkupContainer itemsContainer);
 
 	private void initDetailsPanel() {
 		WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
@@ -259,38 +258,33 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		details.add(cancelButton);
 	}
 
-	protected ContainerListDataProvider getAssignmentListProvider() {
-		return (ContainerListDataProvider) getAssignmentTable().getDataTable().getDataProvider();
-	}
+//	protected ContainerListDataProvider getAssignmentListProvider() {
+//		return (ContainerListDataProvider) getAssignmentTable().getDataTable().getDataProvider();
+//	}
 
-	protected BoxedTablePanel<ContainerValueWrapper<C>> getAssignmentTable() {
+	public BoxedTablePanel<ContainerValueWrapper<C>> getItemTable() {
 		return (BoxedTablePanel<ContainerValueWrapper<C>>) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
 	}
 
-	protected abstract String getAuthirizationForRemoveAction();
-	
-	protected abstract String getAuthirizationForAddAction();
-	
 	protected abstract TableId getTableId();
 
 	protected abstract int getItemsPerPage();
 
-	protected void refreshTable(AjaxRequestTarget target) {
+	public void refreshTable(AjaxRequestTarget target) {
 		target.add(getItemContainer().addOrReplace(initAssignmentTable()));
 	}
 
-	protected ContainerValueWrapper<C> createNewAssignmentContainerValueWrapper(PrismContainerValue<C> newAssignment) {
+	protected ContainerValueWrapper<C> createNewItemContainerValueWrapper(PrismContainerValue<C> newItem) {
 		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
-		Task task = getPageBase().createSimpleTask("Creating new assignment");
-		ContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
+		Task task = getPageBase().createSimpleTask("Creating new item");
+		ContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newItem,
                 getModelObject().getObjectStatus(), ValueStatus.ADDED, getModelObject().getPath(), task);
 		valueWrapper.setShowEmpty(true, false);
 		getModelObject().getValues().add(valueWrapper);
 		return valueWrapper;
 	}
 
-	protected WebMarkupContainer getItemContainer() {
+	public WebMarkupContainer getItemContainer() {
 		return (WebMarkupContainer) get(ID_ITEMS);
 	}
-
 }

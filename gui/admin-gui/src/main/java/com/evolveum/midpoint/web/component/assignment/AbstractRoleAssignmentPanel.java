@@ -271,17 +271,17 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         };
     }
 
-    protected void initPaging(){
-        getAssignmentsStorage().setPaging(ObjectPaging.createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
+    protected void initCustomPaging(){
+    	getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 
 	@Override
-	protected TableId getTableId() {
+	protected TableId getCustomTableId() {
 		return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
 	}
 
 	@Override
-	protected int getItemsPerPage() {
+	protected int getCustomItemsPerPage() {
 		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
 	}
 

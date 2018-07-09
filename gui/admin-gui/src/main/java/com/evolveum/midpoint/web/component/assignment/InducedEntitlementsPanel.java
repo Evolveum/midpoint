@@ -48,17 +48,17 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
-    protected void initPaging() {
-        getInducedEntitlementsTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
+    protected void initCustomPaging() {
+        getInducedEntitlementsTabStorage().setPaging(ObjectPaging.createPaging(0, getCustomItemsPerPage()));
     }
 
     @Override
-    protected UserProfileStorage.TableId getTableId() {
+    protected UserProfileStorage.TableId getCustomTableId() {
         return UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE;
     }
 
     @Override
-    protected int getItemsPerPage() {
+    protected int getCustomItemsPerPage() {
         return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE);
     }
 
@@ -200,7 +200,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
-    protected List<ContainerValueWrapper<AssignmentType>> postSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
+    protected List<ContainerValueWrapper<AssignmentType>> customPostSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
         List<ContainerValueWrapper<AssignmentType>> filteredAssignments = new ArrayList<>();
         if (assignments == null){
             return filteredAssignments;
