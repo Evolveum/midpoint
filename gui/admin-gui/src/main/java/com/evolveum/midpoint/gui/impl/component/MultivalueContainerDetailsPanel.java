@@ -21,6 +21,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -111,14 +112,14 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
 
 		add(getBasicContainerValuePanel(ID_BASIC_PANEL));
 		
-		WebMarkupContainer specificContainers = new WebMarkupContainer(ID_SPECIFIC_CONTAINERS);
-		specificContainers.setOutputMarkupId(true);
-		add(specificContainers);
+//		WebMarkupContainer specificContainers = new WebMarkupContainer(ID_SPECIFIC_CONTAINERS);
+//		specificContainers.setOutputMarkupId(true);
+//		add(specificContainers);
 		
-		createSpecificContainers(specificContainers);
+		add(getSpecificContainers(ID_SPECIFIC_CONTAINERS));
     }
     
-    protected abstract void createSpecificContainers(WebMarkupContainer specificContainers);
+    protected abstract Fragment getSpecificContainers(String contentAreaId);
     
     protected <O extends ObjectType> ContainerValuePanel<C> getBasicContainerValuePanel(String idPanel){
     	Form form = new Form<>("form");

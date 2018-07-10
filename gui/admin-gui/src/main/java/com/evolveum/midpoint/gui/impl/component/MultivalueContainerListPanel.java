@@ -131,9 +131,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		});
 		itemsContainer.add(newObjectIcon);
 		
-		itemsContainer.add(getSearchPanel(ID_SEARCH_ITEM_PANEL));
-		//createCustomLayout(itemsContainer);
-
+		Fragment searchContainer = getSearchPanel(ID_SEARCH_ITEM_PANEL);
+		itemsContainer.add(searchContainer);
 		itemsContainer.add(new VisibleEnableBehaviour() {
 
 			private static final long serialVersionUID = 1L;
@@ -214,8 +213,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	
 	protected abstract void newAssignmentPerformed(AjaxRequestTarget target);
 
-	protected abstract void createCustomLayout(WebMarkupContainer itemsContainer);
-	
 	protected abstract void createDetailsPanel(WebMarkupContainer itemsContainer);
 
 	private void initDetailsPanel() {

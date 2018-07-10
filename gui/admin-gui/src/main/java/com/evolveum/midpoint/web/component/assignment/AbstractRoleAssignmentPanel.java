@@ -59,6 +59,8 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -73,7 +75,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_SEARCH_FRAGMENT = "searchFragment";
     private static final String ID_RELATION = "relation";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
@@ -85,7 +86,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
     protected Fragment getCustomSearchPanel(String contentAreaId){
-    	Fragment searchContainer = new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, this);
+    	Fragment searchContainer = new Fragment(contentAreaId, AssignmentPanel.ID_SEARCH_FRAGMENT, this);
 
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
          
@@ -324,10 +325,10 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		return relationValue == null ? PrismConstants.Q_ANY : relationValue.getRelation();
 	}
 
-	@Override
-	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-		return new AbstractRoleAssignmentDetailsPanel(idAssignmentDetails, form, model);
-	}
+//	@Override
+//	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
+//		return new AbstractRoleAssignmentDetailsPanel(idAssignmentDetails, form, model);
+//	}
 
     private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
 	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
@@ -354,4 +355,10 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	protected List<ObjectTypes> getObjectTypesList(){
         return WebComponentUtil.createAssignableTypesList();
     }
+
+	@Override
+	protected Fragment getCustomSpecificContainers(String contentAreaId) {
+		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+		return specificContainers;
+	}
 }

@@ -78,6 +78,9 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_ASSIGNMENTS = "assignments";
+	protected static final String ID_SEARCH_FRAGMENT = "searchFragment";
+	protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
+	private final static String ID_ACTIVATION_PANEL = "activationPanel";
 //	private static final String ID_NEW_ASSIGNMENT_BUTTON = "newAssignmentButton";
 //	private static final String ID_ASSIGNMENTS_TABLE = "assignmentsTable";
 //	private static final String ID_ASSIGNMENTS_DETAILS = "assignmentsDetails";
@@ -140,12 +143,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			protected void newAssignmentPerformed(AjaxRequestTarget target) {
 				newAssignmentClickPerformed(target);				
-			}
-
-			@Override
-			protected void createCustomLayout(WebMarkupContainer assignmentsContainer) {
-//				initCustomLayout(assignmentsContainer);
-				
 			}
 
 			@Override
@@ -374,9 +371,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
 
-	protected Fragment getCustomSearchPanel(String contentAreaId) {
-		return null;
-	}
+	protected abstract Fragment getCustomSearchPanel(String contentAreaId);
 
 	private void initDetailsPanel(WebMarkupContainer details) {
 
@@ -403,11 +398,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					}
 
 					@Override
-					protected void createSpecificContainers(WebMarkupContainer specificContainers) {
-						createCustomSpecificContainers(specificContainers);
-					}
-					
-					@Override
 					protected QName getRelationForDisplayNamePanel() {
 						AssignmentType assignment = item.getModelObject().getContainerValue().getValue();
 						if (assignment.getTargetRef() != null) {
@@ -433,6 +423,19 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 						ItemPath assignmentPath = getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
 						return getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
 					}
+
+					@Override
+					protected  Fragment getSpecificContainers(String contentAreaId) {
+						Fragment specificContainers = getCustomSpecificContainers(contentAreaId);
+						
+						ItemPath assignmentPath = getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
+						ContainerWrapper<ActivationType> activationModel = item.getModelObject().findContainerWrapper(AssignmentType.F_ACTIVATION);
+						LOGGER.info("XXXXXXXXXXXXXXXXXXXXXX model: " + activationModel);
+						PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel(ID_ACTIVATION_PANEL, Model.of(activationModel), true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), getPageBase());
+						specificContainers.add(acitvationContainer);
+						
+						return specificContainers;
+					}
 				
 				};
 				item.add(detailsPanel);
@@ -447,6 +450,20 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		details.add(assignmentDetailsView);
 
 	}
+	
+	private ItemVisibility getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
+    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)).equivalent(pathToCheck)) {
+    		return ItemVisibility.HIDDEN;
+    	}
+    	
+    	if (assignmentPath.append(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)).equivalent(pathToCheck)) {
+    		return ItemVisibility.HIDDEN;
+    	}
+    	
+    	return ItemVisibility.AUTO;
+    }
+	
+	protected abstract Fragment getCustomSpecificContainers(String contentAreaId);
 	
 	private ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
 		
@@ -524,7 +541,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected void createCustomSpecificContainers(WebMarkupContainer specificContainers) {
 		
 	}
-	protected abstract AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model);
+//	protected abstract AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model);
 
 	private List<ContainerValueWrapper<AssignmentType>> getSelectedAssignments() {
 		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignemntTable = this.multivalueContainerListPanel.getItemTable();

@@ -122,10 +122,10 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         return query;
     }
 
-    @Override
-    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-        return new InducedEntitlementDetailsPanel(idAssignmentDetails, form, model);
-    }
+//    @Override
+//    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
+//        return new InducedEntitlementDetailsPanel(idAssignmentDetails, form, model);
+//    }
 
     @Override
     protected boolean isRelationVisible() {

@@ -63,8 +63,8 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
         return false;
     }
 
-    @Override
-    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-        return new InducementDetailsPanel(idAssignmentDetails, form, model);
-    }
+//    @Override
+//    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
+//        return new InducementDetailsPanel(idAssignmentDetails, form, model);
+//    }
 }

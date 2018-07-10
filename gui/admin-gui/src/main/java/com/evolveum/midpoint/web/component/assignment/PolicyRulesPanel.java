@@ -30,6 +30,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -148,9 +149,21 @@ public class PolicyRulesPanel extends AssignmentPanel {
                 .build();
     }
 
+//	@Override
+//	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
+//		return new PolicyRuleDetailsPanel(idAssignmentDetails, form, model);
+//	}
+
 	@Override
-	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-		return new PolicyRuleDetailsPanel(idAssignmentDetails, form, model);
+	protected Fragment getCustomSearchPanel(String contentAreaId){
+		Fragment searchContainer = new Fragment(contentAreaId, AssignmentPanel.ID_SEARCH_FRAGMENT, this);
+    	searchContainer.setVisible(false);
+    	return searchContainer;
 	}
 
+	@Override
+	protected Fragment getCustomSpecificContainers(String contentAreaId) {
+		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+		return specificContainers;
+	}
 }
