@@ -306,14 +306,6 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 	private LensContext<UserType> createAuthenticationLensContext(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
 		LensContext<UserType> lensContext = new LensContextPlaceholder<>(user, prismContext);
-		if (systemConfiguration != null) {
-			ObjectPolicyConfigurationType policyConfigurationType = determineObjectPolicyConfiguration(user, systemConfiguration);
-			lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
-		}
-		return lensContext;
-	}
-
-	private ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
 		ObjectPolicyConfigurationType policyConfigurationType;
 		try {
 			policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(user, systemConfiguration.asObjectable());
@@ -324,9 +316,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
 					FocusTypeUtil.determineSubTypes(user), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
 		}
-		
-		return policyConfigurationType;
+        lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
+		return lensContext;
 	}
+
 	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
 		if (sourceCollection == null) {
 			return;
