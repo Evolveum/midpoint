@@ -873,6 +873,9 @@ public class AssignmentProcessor {
 		XMLGregorianCalendar nextRecomputeTime = null;
 
 		for (EvaluatedAssignmentImpl<F> ea: evaluatedAssignments) {
+			if (ea.isVirtual()) {
+				continue;
+			}
 			Collection<MappingImpl<V,D>> focusMappings = (Collection)ea.getFocusMappings();
 			for (MappingImpl<V,D> mapping: focusMappings) {
 

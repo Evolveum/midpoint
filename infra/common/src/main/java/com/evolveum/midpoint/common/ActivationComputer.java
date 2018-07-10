@@ -19,7 +19,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.LifecyleUtil;
+import com.evolveum.midpoint.schema.util.LifecycleUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
@@ -145,7 +145,7 @@ public class ActivationComputer {
 	}
 
 	public boolean lifecycleHasActiveAssignments(String lifecycleStatus, LifecycleStateModelType stateModel) {
-		LifecycleStateType stateDefinition = LifecyleUtil.findStateDefinition(stateModel, lifecycleStatus);
+		LifecycleStateType stateDefinition = LifecycleUtil.findStateDefinition(stateModel, lifecycleStatus);
 		if (stateDefinition == null) {
 			return defaultLifecycleHasActiveAssignments(lifecycleStatus, stateModel);
 		}
@@ -175,7 +175,7 @@ public class ActivationComputer {
 
 
 	public ActivationStatusType getForcedLifecycleActivationStatus(String lifecycleStatus, LifecycleStateModelType stateModel) {
-		LifecycleStateType stateDefinition = LifecyleUtil.findStateDefinition(stateModel, lifecycleStatus);
+		LifecycleStateType stateDefinition = LifecycleUtil.findStateDefinition(stateModel, lifecycleStatus);
 		if (stateDefinition == null) {
 			return getHardcodedForcedLifecycleActivationStatus(lifecycleStatus);
 		}

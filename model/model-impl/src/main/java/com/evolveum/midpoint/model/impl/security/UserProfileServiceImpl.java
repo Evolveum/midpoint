@@ -40,16 +40,20 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.LifecycleUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
@@ -86,6 +90,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -139,6 +144,12 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
         return getPrincipal(user, null, result);
     }
+	
+	@Override
+	public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+		return getPrincipal(getUserByOid(oid, result).asPrismObject());
+	}
 
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
@@ -243,9 +254,23 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
+			Collection<AssignmentType> collectedAssignments = new HashSet<>();
+			collectedAssignments.addAll(userType.getAssignment());
+			
+			try {
+				Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(), 
+						userType.getLifecycleState(), objectResolver, prismContext, task, result);
+				if (forcedAssignments != null) {
+					collectedAssignments.addAll(forcedAssignments);
+				}
+			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
+					| ExpressionEvaluationException e1) {
+				LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", userType.getLifecycleState(), e1);
+			}
+			
 			try {
 				RepositoryCache.enter();
-				for (AssignmentType assignmentType: userType.getAssignment()) {
+				for (AssignmentType assignmentType: collectedAssignments) {
 					try {
 						ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
 						assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));

@@ -83,6 +83,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	@NotNull private final Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = new ArrayList<>();
 
 	private PrismObject<?> target;
+	private boolean virtual;
 	private boolean isValid;
 	private boolean wasValid;
 	private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
@@ -284,6 +285,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		this.target = target;
 	}
 
+	public boolean isVirtual() {
+		return virtual;
+	}
+	
+	public void setVirtual(boolean virtual) {
+		this.virtual = virtual;
+	}
+	
 	/* (non-Javadoc)
          * @see com.evolveum.midpoint.model.impl.lens.EvaluatedAssignment#isValid()
          */
@@ -458,7 +467,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "evaluatedOld", evaluatedOld, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "isVirtual", virtual, indent + 1);
         if (forceRecon) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);

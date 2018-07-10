@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -99,31 +99,6 @@
                             <includes>**/*.xsd,**/*.dtd,**/*.wsdl,META-INF/*</includes>
                             <excludes>xml/ns/test/**,xml/ns/private/**,prism/**</excludes>
                             <outputDirectory>${project.basedir}/target/schemadist</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.1</version>
-                <executions>
-                    <execution>
-                        <id>copy-model</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.evolveum.midpoint.tools</groupId>
-                                    <artifactId>ninja</artifactId>
-                                    <version>3.7.2</version>
-                                    <type>jar</type>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>target/lib</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>

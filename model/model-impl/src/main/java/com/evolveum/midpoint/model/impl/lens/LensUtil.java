@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -36,6 +37,10 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.*;
@@ -61,6 +66,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.expression.Expression;
@@ -73,7 +79,9 @@ import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -81,6 +89,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
@@ -555,14 +564,37 @@ public class LensUtil {
     /**
      * Used for assignments and similar objects that do not have separate lifecycle.
      */
-    public static boolean isAssignmentValid(FocusType focus, AssignmentType assignmentType, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
+    public static boolean isAssignmentValid(FocusType focus, AssignmentType assignmentType, XMLGregorianCalendar now, 
+    		ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
     	String focusLifecycleState = focus.getLifecycleState();
-		if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel)) {
+    
+    	if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel)) {
 			return false;
 		}
 		return isValid(assignmentType.getLifecycleState(), assignmentType.getActivation(), now, activationComputer, focusStateModel);
 	}
-
+    
+    public static <R extends AbstractRoleType> Collection<AssignmentType> getForcedAssignments(LifecycleStateModelType lifecycleModel, String targetLifecycle, 
+    		ObjectResolver objectResolver, PrismContext prismContext, Task task, OperationResult result) throws SchemaException, 
+    ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    	VirtualAssignmenetSpecification<R> virtualAssignmenetSpecification = LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, targetLifecycle, prismContext);
+        
+        Collection<AssignmentType> forcedAssignments = new HashSet<>();
+        if (virtualAssignmenetSpecification != null) {
+        
+	        ResultHandler<R> handler = (object, parentResult)  -> {
+	        	AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object);
+				return forcedAssignments.add(assignment);
+	        };
+				
+	        objectResolver.searchIterative(virtualAssignmenetSpecification.getType(), 
+	       		ObjectQuery.createObjectQuery(virtualAssignmenetSpecification.getFilter()), null, handler, task, result);
+	        
+        }
+        
+        return forcedAssignments;
+    }
+    
 	public static boolean isFocusValid(FocusType focus, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
 		return isValid(focus.getLifecycleState(), focus.getActivation(), now, activationComputer, focusStateModel);
 	}
