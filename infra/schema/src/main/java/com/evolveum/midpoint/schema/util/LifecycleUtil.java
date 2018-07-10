@@ -20,11 +20,15 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,13 +37,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualAssignmentSpecificationType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author semancik
  *
  */
-public class LifecyleUtil {
+public class LifecycleUtil {
 	
 	public static LifecycleStateType findStateDefinition(LifecycleStateModelType lifecycleStateModel, String targetLifecycleState) {
 		if (lifecycleStateModel == null) {
@@ -56,20 +61,40 @@ public class LifecyleUtil {
 		return null;
 	}
 	
-	public static ObjectFilter getForcedAssignmentFilter(LifecycleStateModelType lifecycleModel, String targetLifecycleState, PrismContext prismContext) throws SchemaException {
-		LifecycleStateType stateDefinition = findStateDefinition(lifecycleModel, targetLifecycleState);
+	public static <R extends AbstractRoleType> VirtualAssignmenetSpecification<R> getForcedAssignmentSpecification(LifecycleStateModelType lifecycleStateModel, 
+			String targetLifecycleState, PrismContext prismContext) throws SchemaException {
+		LifecycleStateType stateDefinition = findStateDefinition(lifecycleStateModel, targetLifecycleState);
 		if (stateDefinition == null) {
 			return null;
 		}
 		
-        SearchFilterType filter = stateDefinition.getForcedAssignment();
+        VirtualAssignmentSpecificationType virtualAssignmentSpecificationType = stateDefinition.getForcedAssignment();
+        if (virtualAssignmentSpecificationType == null) {
+        	return null;
+        }
+        
+        SearchFilterType filter = virtualAssignmentSpecificationType.getFilter();
         if (filter == null) {
         	return null;
         }
         
-        ObjectFilter objectFilter = QueryConvertor.parseFilter(filter, RoleType.class, prismContext);
-        return objectFilter;
+        QName targetType = virtualAssignmentSpecificationType.getTargetType();
+        Class<R> targetClass = (Class<R>) AbstractRoleType.class;
+        if (targetType != null) {
+        	targetClass = (Class<R>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(targetType);
+        }
+        	
+        VirtualAssignmenetSpecification<R> virtualAssignmenetSpecification = new VirtualAssignmenetSpecification();
+        virtualAssignmenetSpecification.setType(targetClass);
+        
+        
+        ObjectFilter objectFilter = QueryConvertor.parseFilter(filter, targetClass, prismContext);
+        virtualAssignmenetSpecification.setFilter(objectFilter);
+        
+        return virtualAssignmenetSpecification;
 	}
+	
+	
 	
 //	public static <T extends AbstractRoleType> Collection<T> getListOfForcedRoles(LifecycleStateModelType lifecycleModel, 
 //			String targetLifecycleState, PrismContext prismContext, ObjectResolver resolver, Task task, OperationResult result)  {

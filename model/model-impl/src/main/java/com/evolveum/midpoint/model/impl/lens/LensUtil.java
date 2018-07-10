@@ -81,6 +81,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -573,21 +574,21 @@ public class LensUtil {
 		return isValid(assignmentType.getLifecycleState(), assignmentType.getActivation(), now, activationComputer, focusStateModel);
 	}
     
-    public static Collection<AssignmentType> getForcedAssignments(LifecycleStateModelType lifecycleModel, String targetLifecycle, 
+    public static <R extends AbstractRoleType> Collection<AssignmentType> getForcedAssignments(LifecycleStateModelType lifecycleModel, String targetLifecycle, 
     		ObjectResolver objectResolver, PrismContext prismContext, Task task, OperationResult result) throws SchemaException, 
     ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-    	ObjectFilter filter = LifecyleUtil.getForcedAssignmentFilter(lifecycleModel, targetLifecycle, prismContext);
+    	VirtualAssignmenetSpecification<R> virtualAssignmenetSpecification = LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, targetLifecycle, prismContext);
         
         Collection<AssignmentType> forcedAssignments = new HashSet<>();
-        if (filter != null) {
+        if (virtualAssignmenetSpecification != null) {
         
-	        ResultHandler<AbstractRoleType> handler = (object, parentResult)  -> {
+	        ResultHandler<R> handler = (object, parentResult)  -> {
 	        	AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object);
 				return forcedAssignments.add(assignment);
 	        };
 				
-	        objectResolver.searchIterative(AbstractRoleType.class, 
-	       		ObjectQuery.createObjectQuery(filter), null, handler, task, result);
+	        objectResolver.searchIterative(virtualAssignmenetSpecification.getType(), 
+	       		ObjectQuery.createObjectQuery(virtualAssignmenetSpecification.getFilter()), null, handler, task, result);
 	        
         }
         

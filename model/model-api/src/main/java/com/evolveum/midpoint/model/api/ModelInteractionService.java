@@ -345,5 +345,5 @@ public interface ModelInteractionService {
 	
 	public void clearCaches();
 	
-	void refreshPrincipal(String oid);
+	void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException;
 }
