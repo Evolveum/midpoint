@@ -42,17 +42,17 @@ import java.util.stream.Collectors;
 /**
  * @author katkav
  */
-public class ContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<ContainerValueWrapper<C>> {
+public class MultivalueContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<ContainerValueWrapper<C>> {
 
     private IModel<List<ContainerValueWrapper<C>>> model;
 
 	private boolean sortable;			// just to ensure backward compatibility with existing usages
 
-    public ContainerListDataProvider(Component component, IModel<List<ContainerValueWrapper<C>>> model) {
+    public MultivalueContainerListDataProvider(Component component, IModel<List<ContainerValueWrapper<C>>> model) {
 		this(component, model, false);
 	}
 
-    public ContainerListDataProvider(Component component, IModel<List<ContainerValueWrapper<C>>> model, boolean sortable) {
+    public MultivalueContainerListDataProvider(Component component, IModel<List<ContainerValueWrapper<C>>> model, boolean sortable) {
         super(component);
 
         Validate.notNull(model);

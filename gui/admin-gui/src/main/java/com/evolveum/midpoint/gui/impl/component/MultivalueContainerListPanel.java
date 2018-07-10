@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -44,7 +46,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
+import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -72,14 +74,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
 	protected boolean itemDetailsVisible;
-	private List<ContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
 	
 	public MultivalueContainerListPanel(String id, IModel<ContainerWrapper<C>> model) {
 		super(id, model);
 	}
 	
-	protected abstract void initPaging();
-
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
@@ -95,6 +94,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 		setOutputMarkupId(true);
 
+	}
+	
+	protected abstract void initPaging();
+	
+	public void setItemDetailsVisible(boolean itemDetailsVisible) {
+		this.itemDetailsVisible = itemDetailsVisible;
 	}
 
 	private void initListPanel() {
@@ -126,10 +131,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		});
 		itemsContainer.add(newObjectIcon);
 		
-		WebMarkupContainer searchContainer = new WebMarkupContainer(ID_SEARCH_ITEM_PANEL);
-		itemsContainer.add(searchContainer);
-		createSearch(searchContainer);
-		createCustomLayout(itemsContainer);
+		itemsContainer.add(getSearchPanel(ID_SEARCH_ITEM_PANEL));
+		//createCustomLayout(itemsContainer);
 
 		itemsContainer.add(new VisibleEnableBehaviour() {
 
@@ -143,13 +146,13 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 	}
 	
-	protected abstract void createSearch(WebMarkupContainer searchContainer);
+	protected abstract Fragment getSearchPanel(String contentAreaId);
 	
 	protected abstract boolean enableActionNewObject();
 
 	private BoxedTablePanel<ContainerValueWrapper<C>> initAssignmentTable() {
 
-		ContainerListDataProvider containersProvider = new ContainerListDataProvider(this, new PropertyModel<>(getModel(), "values")) {
+		MultivalueContainerListDataProvider containersProvider = new MultivalueContainerListDataProvider(this, new PropertyModel<>(getModel(), "values")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

@@ -32,6 +32,8 @@ import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -39,6 +41,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -46,6 +49,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -69,6 +73,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
 	private static final long serialVersionUID = 1L;
 
+	private static final String ID_SEARCH_FRAGMENT = "searchFragment";
     private static final String ID_RELATION = "relation";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
@@ -79,9 +84,11 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     	super(id, assignmentContainerWrapperModel);
     }
 
-    protected void initCustomLayout(WebMarkupContainer assignmentsContainer){
+    protected Fragment getCustomSearchPanel(String contentAreaId){
+    	Fragment searchContainer = new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, this);
 
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
+         
         relationContainer.setOutputMarkupId(true);
         relationContainer.add(new VisibleEnableBehaviour() {
 
@@ -93,7 +100,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             }
 
         });
-        assignmentsContainer.addOrReplace(relationContainer);
+        searchContainer.addOrReplace(relationContainer);
 
     	DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class),
@@ -136,7 +143,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 showAllAssignments(ajaxRequestTarget);
             }
         };
-        assignmentsContainer.addOrReplace(showAllAssignmentsButton);
+        searchContainer.addOrReplace(showAllAssignmentsButton);
         showAllAssignmentsButton.setOutputMarkupId(true);
         showAllAssignmentsButton.add(new VisibleEnableBehaviour(){
 
@@ -146,6 +153,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 return showAllAssignmentsVisible();
             }
         });
+        return searchContainer;
     }
 
     private DropDownChoicePanel<RelationTypes> getRelationPanel() {
@@ -318,7 +326,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
 	@Override
 	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
+		return new AbstractRoleAssignmentDetailsPanel(idAssignmentDetails, form, model);
 	}
 
     private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){

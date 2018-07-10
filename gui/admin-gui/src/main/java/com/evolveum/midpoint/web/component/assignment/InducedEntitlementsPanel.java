@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -123,7 +124,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-        return new InducedEntitlementDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
+        return new InducedEntitlementDetailsPanel(idAssignmentDetails, form, model);
     }
 
     @Override

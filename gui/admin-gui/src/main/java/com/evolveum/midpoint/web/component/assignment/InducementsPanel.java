@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -64,6 +65,6 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
 
     @Override
     protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-        return new InducementDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
+        return new InducementDetailsPanel(idAssignmentDetails, form, model);
     }
 }
