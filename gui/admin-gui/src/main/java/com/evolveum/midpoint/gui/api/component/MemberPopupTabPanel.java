@@ -15,39 +15,47 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar
  */
-public class FocusTypeMemberTabPanel<F extends FocusType> extends AbstractPopupTabPanel<F>{
+public abstract class MemberPopupTabPanel<O extends ObjectType> extends AbstractPopupTabPanel<O>{
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(MemberPopupTabPanel.class);
 
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_RELATION = "relation";
 
-    public FocusTypeMemberTabPanel(String id, ObjectTypes type){
+    private PageBase pageBase;
+
+    public MemberPopupTabPanel(String id, ObjectTypes type){
         super(id, type);
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
+        pageBase = getPageBase();
     }
 
     @Override
@@ -58,32 +66,34 @@ public class FocusTypeMemberTabPanel<F extends FocusType> extends AbstractPopupT
 
         DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER),
-                FocusTypeMemberTabPanel.this, false);
+                MemberPopupTabPanel.this, false);
         relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relationSelector.setOutputMarkupId(true);
         relationSelector.setOutputMarkupPlaceholderTag(true);
         relationContainer.add(relationSelector);
     }
 
-    protected ObjectDelta getMemberDelta(){
+    protected ObjectDelta prepareDelta(){
         ObjectDelta delta = null;
         try {
-            Class classType = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName());
-            delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", getPageBase().getPrismContext());
+            Class classType = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), type.getTypeQName());
+            delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", pageBase.getPrismContext());
             AssignmentType newAssignment = new AssignmentType();
-            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getModelObject());
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getAbstractRoleTypeObject());
             ref.setRelation(getRelationValue());
             newAssignment.setTargetRef(ref);
 
-            getPageBase().getPrismContext().adopt(newAssignment);
+            pageBase.getPrismContext().adopt(newAssignment);
             delta.addModificationAddContainer(FocusType.F_ASSIGNMENT, newAssignment);
 
         } catch (SchemaException e) {
-            //TODO
+            LoggingUtils.logUnexpectedException(LOGGER, "Failed to prepare delta for adding a member operation ", e);
         }
 
         return delta;
     }
+
+    protected abstract AbstractRoleType getAbstractRoleTypeObject();
 
     public QName getRelationValue(){
         DropDownChoicePanel<RelationTypes> relationPanel = getRelationDropDown();
@@ -96,14 +106,5 @@ public class FocusTypeMemberTabPanel<F extends FocusType> extends AbstractPopupT
 
     private DropDownChoicePanel getRelationDropDown(){
         return (DropDownChoicePanel)get(ID_RELATION_CONTAINER).get(ID_RELATION);
-    }
-
-    protected ObjectQuery createInOidMemberQuery(){
-        List<F> selectedObjects = getSelectedObjectsList();
-        List<String> oids = new ArrayList<>();
-        selectedObjects.forEach(selectedObject -> {
-            oids.add(selectedObject.getOid());
-        });
-        return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
     }
 }

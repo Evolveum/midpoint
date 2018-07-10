@@ -14,13 +14,9 @@
   ~ limitations under the License.
   -->
 
-<wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <form wicket:id="form">
-        <div wicket:id="tabsPanel"/>
-
-        <p align="right">
-            <a class="btn btn-default btn-sm" wicket:id="cancelButton"/>
-            <a class="btn btn-default btn-sm" wicket:id="assignButton"/>
-        </p>
-    </form>
-</wicket:panel>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="orgTreeViewPanel"></div>
+</wicket:extend>
+</html>
