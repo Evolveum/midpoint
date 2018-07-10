@@ -422,9 +422,9 @@
                 A configuration for user notifications. It defines how should be notifications created in various
                 situations, e.g. when an account is created or removed.
             </xsd:documentation>
-            <!--<xsd:appinfo>-->
-            <!--<a:container/>-->
-            <!--</xsd:appinfo>-->
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
