@@ -467,7 +467,8 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		DebugUtil.debugDumpWithLabelLn(sb, "assignment new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "evaluatedOld", evaluatedOld, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
-		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "isVirtual", virtual, indent + 1);
         if (forceRecon) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);

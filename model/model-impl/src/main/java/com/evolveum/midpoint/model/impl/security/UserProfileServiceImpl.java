@@ -50,7 +50,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.LifecyleUtil;
+import com.evolveum.midpoint.schema.util.LifecycleUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -144,6 +144,12 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
         return getPrincipal(user, null, result);
     }
+	
+	@Override
+	public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+		return getPrincipal(getUserByOid(oid, result).asPrismObject());
+	}
 
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {

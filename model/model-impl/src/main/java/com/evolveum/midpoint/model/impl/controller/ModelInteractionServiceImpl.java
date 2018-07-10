@@ -1709,13 +1709,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 	
 	@Override
-	public void refreshPrincipal(String name) {
+	public void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException {
 		try {
-			MidPointPrincipal principal = userProfileService.getPrincipal(name);
+			MidPointPrincipal principal = userProfileService.getPrincipalByOid(oid);
 			securityContextManager.setupPreAuthenticatedSecurityContext(principal);
 		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.error("Cannot refresh authentication for user identified with" + name);
-			//TODO: how to handle?
+			LOGGER.error("Cannot refresh authentication for user identified with" + oid);
+			throw e;
 		}
 		
 		

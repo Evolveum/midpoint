@@ -52,13 +52,14 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.LifecyleUtil;
+import com.evolveum.midpoint.schema.util.LifecycleUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -330,7 +331,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 
 		boolean isVirtual = isForcedAssignment(segment, ctx);
-		ctx.evalAssignment.setVirtual(isVirtual);
+		
 		segment.setValidityOverride(isVirtual);
 		boolean isValid = (evaluateContent && evaluateSegmentContent(segment, relativeMode, ctx)) || isVirtual;
 		
@@ -338,29 +339,33 @@ public class AssignmentEvaluator<F extends FocusType> {
 		ctx.assignmentPath.removeLast(segment);
 		if (ctx.assignmentPath.isEmpty()) {		// direct assignment
 			ctx.evalAssignment.setValid(isValid);
+			ctx.evalAssignment.setVirtual(isVirtual);
 		}
+		
+		LOGGER.info("evalAssignment isVirtual {} ", ctx.evalAssignment.isVirtual());
 	}
 	
-	private boolean isForcedAssignment(AssignmentPathSegmentImpl segment, EvaluationContext ctx) {
+	private <R extends AbstractRoleType> boolean isForcedAssignment(AssignmentPathSegmentImpl segment, EvaluationContext ctx) {
 		
 		F focusNew = focusOdo.getNewObject().asObjectable();
-    	Collection<AbstractRoleType> forcedRoles = new HashSet<>();
+    	Collection<R> forcedRoles = new HashSet<>();
     	try {
-			ObjectFilter filter = LifecyleUtil.getForcedAssignmentFilter(focusStateModel, focusNew.getLifecycleState(), prismContext);
-			if (filter == null) {
+			VirtualAssignmenetSpecification<R> virtualAssignmenetSpecification = LifecycleUtil.getForcedAssignmentSpecification(focusStateModel, focusNew.getLifecycleState(), prismContext);
+			if (virtualAssignmenetSpecification == null) {
 				return false;
 			}
 			
-			ResultHandler<AbstractRoleType> handler = (object, result) -> {
+			ResultHandler<R> handler = (object, result) -> {
 				return forcedRoles.add(object.asObjectable());
 			};
-			objectResolver.searchIterative(AbstractRoleType.class, ObjectQuery.createObjectQuery(filter), null, handler, ctx.task, ctx.result);
+			objectResolver.searchIterative(virtualAssignmenetSpecification.getType(), 
+					ObjectQuery.createObjectQuery(virtualAssignmenetSpecification.getFilter()), null, handler, ctx.task, ctx.result);
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException
 				| SecurityViolationException | ExpressionEvaluationException e) {
 			LOGGER.error("Cannot search for forced roles", e);
 		}
 		
-		for (AbstractRoleType forcedRole : forcedRoles) {
+		for (R forcedRole : forcedRoles) {
 			ObjectFilter filterTargetRef = QueryBuilder.queryFor(AssignmentType.class, prismContext)
 					.item(AssignmentType.F_TARGET_REF).ref(forcedRole.getOid()).buildFilter();
 			AssignmentType assignmentType = getAssignmentType(segment, ctx);
