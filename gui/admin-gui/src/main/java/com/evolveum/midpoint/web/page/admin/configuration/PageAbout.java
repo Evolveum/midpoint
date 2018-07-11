@@ -81,6 +81,7 @@ import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.namespace.QName;
 
@@ -446,11 +447,7 @@ public class PageAbout extends PageAdminConfiguration {
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					resetStateToInitialConfig(target);
-				}
+				resetStateToInitialConfig(target);
 			}
 
 			@Override
@@ -486,7 +483,32 @@ public class PageAbout extends PageAdminConfiguration {
 		final String taskOidToRemoving = taskOid;
 		
 		try {
-			while(!getTaskManager().getTask(taskOid, result).isClosed()) {}
+			while(!getTaskManager().getTask(taskOid, result).isClosed()) {TimeUnit.SECONDS.sleep(5);}
+			
+			runPrivileged(new Producer<Object>() {
+
+				private static final long serialVersionUID = 1L;
+				
+				@Override
+				public Object run() {
+					Task task = createAnonymousTask(OPERATION_DELETE_TASK);
+					OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
+					ObjectDelta<TaskType> delta = ObjectDelta.createDeleteDelta(TaskType.class, taskOidToRemoving, getPrismContext());
+					Collection<ObjectDelta<? extends ObjectType>> deltaCollection = new ArrayList<ObjectDelta<? extends ObjectType>>() {{add(delta);}};
+					try {
+						getModelService().executeChanges(deltaCollection, null, task, result);
+					} catch (Exception ex) {
+						result.recomputeStatus();
+						result.recordFatalError("Couldn't delete task.", ex);
+			
+						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task", ex);
+					} 
+					result.computeStatus();
+					return null;
+				}
+
+			});
+			
 			InitialDataImport initialDataImport = new InitialDataImport();
 			initialDataImport.setModel(getModelService());
 			initialDataImport.setTaskManager(getTaskManager());
@@ -503,29 +525,7 @@ public class PageAbout extends PageAdminConfiguration {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
 		}
 		
-		runPrivileged(new Producer<Object>() {
-
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public Object run() {
-				Task task = createAnonymousTask(OPERATION_DELETE_TASK);
-				OperationResult result = new OperationResult(OPERATION_DELETE_TASK);
-				ObjectDelta<TaskType> delta = ObjectDelta.createDeleteDelta(TaskType.class, taskOidToRemoving, getPrismContext());
-				Collection<ObjectDelta<? extends ObjectType>> deltaCollection = new ArrayList<ObjectDelta<? extends ObjectType>>() {{add(delta);}};
-				try {
-					getModelService().executeChanges(deltaCollection, null, task, result);
-				} catch (Exception ex) {
-					result.recomputeStatus();
-					result.recordFatalError("Couldn't delete task.", ex);
 		
-					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task", ex);
-				} 
-				result.computeStatus();
-				return null;
-			}
-
-		});
 		
 		showResult(result);
 		target.add(getFeedbackPanel());

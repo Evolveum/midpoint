@@ -130,7 +130,6 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
                 }){
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                getPageBase().hideMainPopup(target);
                 deleteConfirmedPerformed(target);
             }
         };
