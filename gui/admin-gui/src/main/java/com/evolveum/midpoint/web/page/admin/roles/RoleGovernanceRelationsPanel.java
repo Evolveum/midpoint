@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseMembersPopup;
+import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -187,6 +189,22 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 		getPageBase().showMainPopup(relatioNSelectionPanel, target);
 
 	}
+
+    protected void addMembers(final QName relation, AjaxRequestTarget target) {
+
+        ChooseMembersPopup browser = new ChooseMembersPopup(getPageBase().getMainPopupBodyId()) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected RoleType getAssignmentTargetRefObject(){
+                return RoleGovernanceRelationsPanel.this.getModelObject();
+            }
+        };
+        browser.setOutputMarkupId(true);
+
+        getPageBase().showMainPopup(browser, target);
+
+    }
 
     @Override
     protected ObjectQuery createAllMemberQuery(List<QName> relations) {

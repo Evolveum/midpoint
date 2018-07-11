@@ -156,6 +156,12 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 				return principal;
 			}
 
+			@Override
+			public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException {
+				MidPointPrincipal principal = userProfileService.getPrincipalByOid(oid);
+				addFakeAuthorization(principal);
+				return principal;
+			}
 		};
 	}
 

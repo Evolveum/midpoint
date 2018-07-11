@@ -97,6 +97,13 @@ public class UserProfileServiceMock implements UserProfileService, UserDetailsSe
     }
 
     @Override
+    public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException {
+    	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
+    	UserType user = getUserByOid(oid, result);
+    	return getPrincipal(user.asPrismObject());
+    }
+    
+    @Override
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	return getPrincipal(user, null, result);

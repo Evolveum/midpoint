@@ -48,7 +48,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.LifecyleUtil;
+import com.evolveum.midpoint.schema.util.LifecycleUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -120,7 +120,7 @@ public class FocusLifecycleProcessor {
     		startLifecycleState = SchemaConstants.LIFECYCLE_ACTIVE;
     	}
     	
-    	LifecycleStateType startStateType = LifecyleUtil.findStateDefinition(lifecycleStateModel, startLifecycleState);
+    	LifecycleStateType startStateType = LifecycleUtil.findStateDefinition(lifecycleStateModel, startLifecycleState);
     	if (startStateType == null) {
     		LOGGER.trace("Skipping lifecycle processing because there is no specification for lifecycle state {}", startLifecycleState);
 			return;
@@ -167,7 +167,7 @@ public class FocusLifecycleProcessor {
 
 	private <F extends FocusType> void executeEntryActions(LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
 			String targetLifecycleState, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
-		LifecycleStateType stateType = LifecyleUtil.findStateDefinition(lifecycleStateModel, targetLifecycleState);
+		LifecycleStateType stateType = LifecycleUtil.findStateDefinition(lifecycleStateModel, targetLifecycleState);
 		if (stateType == null) {
 			return;
 		}
@@ -176,7 +176,7 @@ public class FocusLifecycleProcessor {
 	
 	private <F extends FocusType> void executeExitActions(LensContext<F> context, LifecycleStateModelType lifecycleStateModel,
 			String targetLifecycleState, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
-		LifecycleStateType stateType = LifecyleUtil.findStateDefinition(lifecycleStateModel, targetLifecycleState);
+		LifecycleStateType stateType = LifecycleUtil.findStateDefinition(lifecycleStateModel, targetLifecycleState);
 		if (stateType == null) {
 			return;
 		}

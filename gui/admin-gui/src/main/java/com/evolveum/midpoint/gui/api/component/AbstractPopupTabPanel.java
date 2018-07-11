@@ -119,4 +119,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         return true;
     }
 
+    public ObjectTypes getType() {
+        return type;
+    }
 }

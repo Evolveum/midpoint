@@ -39,7 +39,9 @@ import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by honchar
@@ -75,8 +77,8 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     @Override
-    protected List<AssignmentType> getSelectedAssignmentsList(){
-        List<AssignmentType> assignmentList = new ArrayList<>();
+    protected Set<AssignmentType> getSelectedAssignmentsList(){
+        Set<AssignmentType> assignmentList = new HashSet<>();
 
         List<F> selectedObjects = getSelectedObjectsList();
         QName relation = getRelationValue();

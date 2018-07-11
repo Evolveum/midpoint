@@ -37,6 +37,7 @@ import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by honchar.
@@ -51,5 +52,5 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
         super(id, type);
     }
 
-    protected abstract List<AssignmentType> getSelectedAssignmentsList();
+    protected abstract Set<AssignmentType> getSelectedAssignmentsList();
 }
