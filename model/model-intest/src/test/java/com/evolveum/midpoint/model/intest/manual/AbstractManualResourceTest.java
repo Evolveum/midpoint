@@ -698,7 +698,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		assignWillRoleOne("test100AssignWillRoleOne", USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 		
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0, 1);
         assertSteadyResources();
 	}
 
@@ -778,18 +778,14 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		assertTest103Counters();
+		assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0, 1);
 		
 		assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTING);
 		
 		assertSteadyResources();
 	}
 	
-	protected void assertTest103Counters() {
-		// The count is checked only after propagation was run, so we can address both direct and grouping cases
-		assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
-	}
-
 	@Test
 	public void test104RecomputeWill() throws Exception {
 		final String TEST_NAME = "test104RecomputeWill";

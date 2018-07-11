@@ -1042,7 +1042,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
-        display("Users after reconciliation (broken resource)", users);
+        display("Users after reconciliation (broken resource account)", users);
 
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 1, 0);
 

@@ -423,6 +423,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		return status;
 	}
+	
+	private void validateConnectorFacade(OperationResult result) {
+		if (connIdConnectorFacade == null) {
+			result.recordFatalError("Attempt to use unconfigured connector");
+			throw new IllegalStateException("Attempt to use unconfigured connector "
+					+ connectorType);
+		}
+	}
 
 	@Override
 	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult) throws CommunicationException,
@@ -433,11 +441,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		result.addContext("connector", connectorType);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryConnIdImpl.class);
 
-		if (connIdConnectorFacade == null) {
-			result.recordFatalError("Attempt to use unconfigured connector");
-			throw new IllegalStateException("Attempt to use unconfigured connector "
-					+ ObjectTypeUtil.toShortString(connectorType));
-		}
+		validateConnectorFacade(parentResult);
 
 		setResourceSchema(resourceSchema);
 		this.capabilities = capabilities;
@@ -2347,6 +2351,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				+ ".search");
 		result.addArbitraryObjectAsParam("objectClass", objectClassDefinition);
 		result.addContext("connector", connectorType);
+		
+		validateConnectorFacade(result);
 
 		if (objectClassDefinition == null) {
 			result.recordFatalError("Object class not defined");
@@ -2505,7 +2511,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		// create result for it
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".search");
 		icfResult.addArbitraryObjectAsParam("objectClass", icfObjectClass);
-		icfResult.addContext("connector", connIdConnectorFacade.getClass());
 
 		SearchResult connIdSearchResult;
 		try {

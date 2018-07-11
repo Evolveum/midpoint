@@ -1253,7 +1253,15 @@ public class ResourceObjectConverter {
 							try {
 								shadow = postProcessResourceObjectRead(ctx, shadow, fetchAssociations, objResult);
 							} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException e) {
+								if (objResult.isUnknown()) {
+									objResult.recordFatalError(e);
+								}
 								throw new TunnelException(e);
+							} catch (Throwable t) {
+								if (objResult.isUnknown()) {
+									objResult.recordFatalError(t);
+								}
+								throw t;
 							}
 							Validate.notNull(shadow, "null shadow");
 							boolean doContinue;

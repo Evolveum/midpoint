@@ -934,7 +934,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			completeObject = completeObject(type, object, options, task, objResult);
 
-		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+		} catch (Throwable e) {
 			LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", object, e.getMessage(), e);
 			objResult.recordFatalError(e);
 			object.asObjectable().setFetchResult(objResult.createOperationResultType());
@@ -1009,12 +1009,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				metadata = getShadowCache(Mode.STANDARD).searchObjectsIterative(query, options, (ResultHandler<ShadowType>)handler, true, task, result);
 
 				result.computeStatus();
+				result.cleanupResult();
 
-			} catch (ConfigurationException | CommunicationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
+			} catch (Throwable e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 				throw e;
-			} finally {
-				result.cleanupResult();
 			}
 
 		} else {
@@ -1032,11 +1031,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				result.computeStatus();
 				result.recordSuccessIfUnknown();
-
-			} catch (SchemaException | RuntimeException | Error e) {
-				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
-			} finally {
 				result.cleanupResult();
+
+			} catch (Throwable e) {
+				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			}
 		}
 		
@@ -1091,7 +1089,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		List<ConnectorOperationalStatus> stats;
 		try {
 			stats = resourceManager.getConnectorOperationalStatus(resource, result);
-		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException ex) {
+		} catch (Throwable ex) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Getting operations status from connector for resource "+resourceOid+" failed: "+ex.getMessage(), ex);
 			throw ex;
 		}
@@ -1131,7 +1129,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	        result.recordSuccessIfUnknown();
 			result.cleanupResult();
 
-		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (Throwable e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw e;
 		}
@@ -1159,7 +1157,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.computeStatus();
 			result.recordSuccessIfUnknown();
 
-		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (Throwable e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw e;
 		} finally {
@@ -1198,7 +1196,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.computeStatus();
 			result.recordSuccessIfUnknown();
 
-		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (Throwable e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw e;
 		} finally {

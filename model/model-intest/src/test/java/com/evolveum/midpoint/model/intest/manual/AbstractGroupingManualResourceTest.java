@@ -169,13 +169,6 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
         assertSteadyResources();
 	}
 	
-	@Override
-	protected void assertTest103Counters() {
-		super.assertTest103Counters();
-		// First use of the resoruce
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
-	}
-	
 	/**
 	 * disable - do not run propagation yet 
 	 * (do not wait for delta to expire, we want several deltas at once so we can test grouping).

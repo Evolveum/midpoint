@@ -186,9 +186,6 @@ public class ConnectorManager {
 		if (!configuredConnectorInstanceEntry.connectorOid.equals(connectorSpec.getConnectorOid())) {
 			return false;
 		}
-		if (!configuredConnectorInstanceEntry.resourceVersion.equals(connectorSpec.getResource().getVersion())) {
-			return false;
-		}
 		if (!configuredConnectorInstanceEntry.configuration.equivalent(connectorSpec.getConnectorConfiguration())) {
 			return false;
 		}
@@ -204,7 +201,6 @@ public class ConnectorManager {
 		if (resourceVersion == null) {
 			throw new IllegalArgumentException("Resource version is null, cannot cache connector for "+ connectorSpec.getResource());
 		}
-		cacheEntry.resourceVersion = resourceVersion;
 		
 		cacheEntry.configuration = connectorSpec.getConnectorConfiguration();
 		cacheEntry.connectorInstance = configuredConnectorInstance;
@@ -576,7 +572,6 @@ public class ConnectorManager {
 
     private static class ConfiguredConnectorInstanceEntry {
 		public String connectorOid;
-		public String resourceVersion;
 		public PrismContainer<ConnectorConfigurationType> configuration;
 		public ConnectorInstance connectorInstance;
 	}
