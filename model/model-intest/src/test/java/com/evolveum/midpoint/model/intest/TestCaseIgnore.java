@@ -136,7 +136,7 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);

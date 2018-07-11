@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -237,8 +237,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
         checkDummyTransportMessages("simpleUserNotifier-FAILURE", 1);
 
-        // Resource version changes due to availability status changes. Hence connector re-init.
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertSteadyResources();
     }
 
@@ -1647,8 +1646,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
-        // Resource version changes. Hence connector re-init.
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertSteadyResources();
 
         // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
@@ -1728,8 +1726,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
-        // Resource version changes. Hence connector re-init.
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertSteadyResources();
     }
 
@@ -3312,8 +3309,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
-        // Resource version changes. Hence connector re-init.
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertSteadyResources();
     }
 

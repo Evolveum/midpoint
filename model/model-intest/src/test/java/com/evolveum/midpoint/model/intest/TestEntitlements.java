@@ -169,8 +169,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         
-        // First use of the resource
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertSteadyResources();
 	}
 
@@ -397,8 +396,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Group @orange", dummyGroupAtOrange);
         assertNoGroupMembers(dummyGroupAtOrange);
         
-        // First use of the resource
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertSteadyResources();
     }
 
