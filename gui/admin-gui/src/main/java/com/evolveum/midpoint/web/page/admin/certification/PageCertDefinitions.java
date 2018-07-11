@@ -269,11 +269,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 				createDeleteConfirmString()) {
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					deleteDefinitionPerformed(target, singleDelete);
-				}
+				deleteDefinitionPerformed(target, singleDelete);
 			}
 		};
 	}

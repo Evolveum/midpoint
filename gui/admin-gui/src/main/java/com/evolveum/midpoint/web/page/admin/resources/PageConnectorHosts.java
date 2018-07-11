@@ -210,7 +210,6 @@ public class PageConnectorHosts extends PageAdminResources {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				((PageBase) getPage()).hideMainPopup(target);
 				deleteHostConfirmedPerformed(target);
 			}
 		};

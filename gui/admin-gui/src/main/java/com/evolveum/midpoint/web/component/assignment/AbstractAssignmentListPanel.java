@@ -77,19 +77,15 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                ModalWindow modalWindow = findParent(ModalWindow.class);
-                if (modalWindow != null) {
-                    modalWindow.close(target);
-                    List<AssignmentEditorDto> assignmentsListToDelete;
-                    if (dto != null){
-                        assignmentsListToDelete = new ArrayList<>();
-                        assignmentsListToDelete.add(dto);
-                    } else {
-                        assignmentsListToDelete = getSelectedAssignments();
-                    }
-                    deleteAssignmentConfirmedPerformed(target, assignmentsListToDelete);
-                    reloadMainFormButtons(target);
+            	List<AssignmentEditorDto> assignmentsListToDelete;
+                if (dto != null){
+                	assignmentsListToDelete = new ArrayList<>();
+                    assignmentsListToDelete.add(dto);
+                } else {
+                    assignmentsListToDelete = getSelectedAssignments();
                 }
+                deleteAssignmentConfirmedPerformed(target, assignmentsListToDelete);
+                reloadMainFormButtons(target);
             }
         };
     }

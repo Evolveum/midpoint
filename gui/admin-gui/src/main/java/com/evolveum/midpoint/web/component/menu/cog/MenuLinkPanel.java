@@ -140,11 +140,7 @@ public class MenuLinkPanel extends Panel {
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                ModalWindow modalWindow = findParent(ModalWindow.class);
-                if (modalWindow != null) {
-                    modalWindow.close(target);
-                    menuItem.getAction().onClick(target);
-                }
+            	menuItem.getAction().onClick(target);
             }
         };
         ((PageBase)getPage()).showMainPopup(dialog, target);

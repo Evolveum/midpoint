@@ -338,7 +338,6 @@ public class PageResources extends PageAdminResources {
                         "pageResources.message.deleteResourcesConfirm", true)){
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                ((PageBase)getPage()).hideMainPopup(target);
                 deleteResourceConfirmedPerformed(target);
             }
         };
