@@ -13,6 +13,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -24,6 +25,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -126,6 +128,20 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 //    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
 //        return new InducedEntitlementDetailsPanel(idAssignmentDetails, form, model);
 //    }
+    
+    @Override
+	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
+		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+		specificContainers.add(getConstructionAssociationPanel(modelObject));
+		return specificContainers;
+	}
+    
+    private ConstructionAssociationPanel getConstructionAssociationPanel(ContainerValueWrapper<AssignmentType> modelObject) {
+    	ContainerWrapper<ConstructionType> constructionContainer = modelObject.findContainerWrapper(modelObject.getPath().append((AssignmentType.F_CONSTRUCTION)));
+        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, Model.of(constructionContainer));
+        constructionDetailsPanel.setOutputMarkupId(true);
+        return constructionDetailsPanel;
+    }
 
     @Override
     protected boolean isRelationVisible() {

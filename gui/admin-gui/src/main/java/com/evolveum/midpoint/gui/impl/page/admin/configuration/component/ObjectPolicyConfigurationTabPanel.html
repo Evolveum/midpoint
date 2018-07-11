@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2013 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,14 +13,17 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:panel>
-    <div wicket:id="displayName"/>
-    <div class="container-fluid prism-object" wicket:id="basicPanel" />
-    <div wicket:id="specificContainersPanel" />
-    <!-- <div class="container-fluid prism-object" wicket:id="activationPanel" /> -->
- </wicket:panel>
-</body>
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+	<wicket:panel>
+		<div wicket:id="objectsPolicy">
+		</div>
+		<wicket:fragment wicket:id="searchFragment">
+    	</wicket:fragment>
+    	<!-- <wicket:fragment wicket:id="specificContainersFragment">
+           <div class="container-fluid prism-object" wicket:id="activationPanel" />
+           <div wicket:id="specificContainers" />
+    	</wicket:fragment> -->
+	</wicket:panel>
 </html>

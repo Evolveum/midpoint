@@ -46,6 +46,11 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.LoggingConfigPanelNew;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.NotificationConfigPanelNew;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.OneContainerConfigurationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigPanelNew;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
@@ -75,6 +80,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.component.prism.PrismValuePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.ReadOnlyPrismObjectFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -211,7 +217,10 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new OneContainerConfigurationPanel<ObjectPolicyConfigurationType>(panelId, modelWrapp, SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION);
+				ContainerWrapperFromObjectWrapperModel<ObjectPolicyConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(modelWrapp, 
+						new ItemPath(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION));
+				return new ObjectPolicyConfigurationTabPanel(panelId, model);
+//				return new OneContainerConfigurationPanel<ObjectPolicyConfigurationType>(panelId, modelWrapp, SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION);
 			}
 		});
 		

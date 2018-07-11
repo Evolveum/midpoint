@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.evolveum.midpoint.gui.impl.session.ObjectPoliciesTabStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -51,6 +52,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_ASSIGNMENTS_TAB = "assignmentsTab";
     public static final String KEY_INDUCEMENTS_TAB = "inducementsTab";
     public static final String KEY_INDUCED_ENTITLEMENTS_TAB = "inducedEntitlementsTab";
+    public static final String KEY_OBJECT_POLICIES_TAB = "objectPoliciesTab";
 
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
@@ -178,6 +180,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(KEY_INDUCED_ENTITLEMENTS_TAB, new AssignmentsTabStorage());
         }
         return (AssignmentsTabStorage)pageStorageMap.get(KEY_INDUCED_ENTITLEMENTS_TAB);
+	}
+    
+    public ObjectPoliciesTabStorage getObjectPoliciesConfigurationTabStorage() {
+        if (pageStorageMap.get(KEY_OBJECT_POLICIES_TAB) == null) {
+            pageStorageMap.put(KEY_OBJECT_POLICIES_TAB, new ObjectPoliciesTabStorage());
+        }
+        return (ObjectPoliciesTabStorage)pageStorageMap.get(KEY_OBJECT_POLICIES_TAB);
 	}
 
     private String getContentStorageKey(ShadowKindType kind, String searchMode) {

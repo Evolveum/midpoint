@@ -85,8 +85,8 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         ASSIGNMENTS_TAB_TABLE,
         INDUCEMENTS_TAB_TABLE,
         INDUCED_ENTITLEMENTS_TAB_TABLE,
-        POLICY_RULES_TAB_TABLE
-
+        POLICY_RULES_TAB_TABLE,
+        OBJECT_POLICIES_TAB_TABLE
     }
 
     private Map<TableId, Integer> tables = new HashMap<>();

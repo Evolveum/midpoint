@@ -66,6 +66,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -81,6 +82,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected static final String ID_SEARCH_FRAGMENT = "searchFragment";
 	protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
 	private final static String ID_ACTIVATION_PANEL = "activationPanel";
+	protected static final String ID_SPECIFIC_CONTAINER = "specificContainers";
 //	private static final String ID_NEW_ASSIGNMENT_BUTTON = "newAssignmentButton";
 //	private static final String ID_ASSIGNMENTS_TABLE = "assignmentsTable";
 //	private static final String ID_ASSIGNMENTS_DETAILS = "assignmentsDetails";
@@ -95,11 +97,9 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	private MultivalueContainerListPanel<AssignmentType> multivalueContainerListPanel;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
-	private IModel<ContainerWrapper<AssignmentType>> model;
 
 	public AssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
 		super(id, assignmentContainerWrapperModel);
-		this.model = assignmentContainerWrapperModel;
 	}
 
 	@Override
@@ -110,7 +110,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	
 	private void initLayout() {
 		
-		this.multivalueContainerListPanel = new MultivalueContainerListPanel<AssignmentType>(ID_ASSIGNMENTS, model) {
+		this.multivalueContainerListPanel = new MultivalueContainerListPanel<AssignmentType>(ID_ASSIGNMENTS, getModel()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -399,7 +399,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 					@Override
 					protected QName getRelationForDisplayNamePanel() {
-						AssignmentType assignment = item.getModelObject().getContainerValue().getValue();
+						AssignmentType assignment = getModelObject().getContainerValue().getValue();
 						if (assignment.getTargetRef() != null) {
 							return assignment.getTargetRef().getRelation();
 						} else {
@@ -409,7 +409,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					
 					@Override
 					protected IModel<String> getKindIntentLabelModelForDisplayNamePanel() {
-						AssignmentType assignment = item.getModelObject().getContainerValue().getValue();
+						AssignmentType assignment = getModelObject().getContainerValue().getValue();
 						if (assignment.getConstruction() != null){
 							return createStringResource("DisplayNamePanel.kindIntentLabel", assignment.getConstruction().getKind(),
 									assignment.getConstruction().getIntent());
@@ -419,18 +419,17 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					
 					@Override
 					protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
-						PrismContainerValue<AssignmentType> prismContainerValue = item.getModelObject().getContainerValue();
+						PrismContainerValue<AssignmentType> prismContainerValue = getModelObject().getContainerValue();
 						ItemPath assignmentPath = getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
 						return getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
 					}
 
 					@Override
 					protected  Fragment getSpecificContainers(String contentAreaId) {
-						Fragment specificContainers = getCustomSpecificContainers(contentAreaId);
+						Fragment specificContainers = getCustomSpecificContainers(contentAreaId, getModelObject());
 						
 						ItemPath assignmentPath = getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
-						ContainerWrapper<ActivationType> activationModel = item.getModelObject().findContainerWrapper(AssignmentType.F_ACTIVATION);
-						LOGGER.info("XXXXXXXXXXXXXXXXXXXXXX model: " + activationModel);
+						ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType> activationModel = new ContainerWrapperFromObjectWrapperModel<>(((PageAdminObjectDetails<FocusType>)getPageBase()).getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
 						PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel(ID_ACTIVATION_PANEL, Model.of(activationModel), true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), getPageBase());
 						specificContainers.add(acitvationContainer);
 						
@@ -463,7 +462,34 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
     	return ItemVisibility.AUTO;
     }
 	
-	protected abstract Fragment getCustomSpecificContainers(String contentAreaId);
+	protected abstract Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject);
+	
+	protected PrismContainerPanel getPolicyRuleContainerPanel(ContainerValueWrapper<AssignmentType> modelObject) {
+		Form form = new Form<>("form");
+		ItemPath assignmentPath = modelObject.getPath();
+		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER,
+				getPolicyRuleContainerModel(modelObject), false, form,
+				itemWrapper -> getPolicyRuleContainersItemsVisibility(itemWrapper, assignmentPath), getPageBase());
+		constraintsContainerPanel.setOutputMarkupId(true);
+		return constraintsContainerPanel;
+	}
+	
+	protected ItemVisibility getPolicyRuleContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
+			return ItemVisibility.AUTO;
+		}
+		List<ItemPath> pathsToHide = new ArrayList<>();
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF));
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS));
+		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_STRENGTH));
+		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
+			return ItemVisibility.AUTO;
+		} else {
+			return ItemVisibility.HIDDEN;
+		}
+	}
+	
+	protected abstract IModel<ContainerWrapper> getPolicyRuleContainerModel(ContainerValueWrapper<AssignmentType> modelObject);
 	
 	private ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
 		

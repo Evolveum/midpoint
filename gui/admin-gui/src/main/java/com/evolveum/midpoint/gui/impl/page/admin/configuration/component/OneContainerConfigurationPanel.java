@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration.component;
+package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import javax.xml.namespace.QName;
 

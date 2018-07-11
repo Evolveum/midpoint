@@ -1477,6 +1477,8 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON;
 		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON;
+		} else if (QNameUtil.match(SystemConfigurationType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
 		} else {
 			return "";
 		}

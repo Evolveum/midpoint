@@ -23,6 +23,8 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
 /**

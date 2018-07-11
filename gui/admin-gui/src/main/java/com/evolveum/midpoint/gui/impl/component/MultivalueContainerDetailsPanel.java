@@ -66,7 +66,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     private final static String ID_DISPLAY_NAME = "displayName";
 //    private final static String ID_ACTIVATION_PANEL = "activationPanel";
     private final static String ID_BASIC_PANEL = "basicPanel";
-    protected final static String ID_SPECIFIC_CONTAINERS = "specificContainers";
+    protected final static String ID_SPECIFIC_CONTAINERS_PANEL = "specificContainersPanel";
 
     public MultivalueContainerDetailsPanel(String id, IModel<ContainerValueWrapper<C>> assignmentModel){
         super(id, assignmentModel);
@@ -116,7 +116,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
 //		specificContainers.setOutputMarkupId(true);
 //		add(specificContainers);
 		
-		add(getSpecificContainers(ID_SPECIFIC_CONTAINERS));
+		add(getSpecificContainers(ID_SPECIFIC_CONTAINERS_PANEL));
     }
     
     protected abstract Fragment getSpecificContainers(String contentAreaId);

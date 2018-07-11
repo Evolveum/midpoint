@@ -357,8 +357,39 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
 	@Override
-	protected Fragment getCustomSpecificContainers(String contentAreaId) {
+	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
 		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+		specificContainers.add(getPolicyRuleContainerPanel(modelObject));
 		return specificContainers;
+	}
+	
+	@Override
+	protected IModel<ContainerWrapper> getPolicyRuleContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
+		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+			ContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(),
+					AssignmentType.F_CONSTRUCTION));
+
+			constructionWrapper.setAddContainerButtonVisible(true);
+			constructionWrapper.setShowEmpty(true, false);
+			if (constructionWrapper != null && constructionWrapper.getValues() != null) {
+				constructionWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
+			}
+			ContainerWrapper associationWrapper = constructionWrapper.findContainerWrapper(constructionWrapper.getPath().append(ConstructionType.F_ASSOCIATION));
+			if (associationWrapper != null) {
+				associationWrapper.setRemoveContainerButtonVisible(true);
+			}
+			return Model.of(constructionWrapper);
+		}
+		
+		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+			ContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(),
+					AssignmentType.F_PERSONA_CONSTRUCTION));
+			if (personasWrapper != null && personasWrapper.getValues() != null) {
+				personasWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
+			}
+
+			return Model.of(personasWrapper);
+		}
+		return Model.of();
 	}
 }
