@@ -61,6 +61,10 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 	public static final File ROLE_GAMBLER_FILE = new File(TEST_DIR, "role-gambler.xml");
 	protected static final String ROLE_GAMBLER_OID = "2bb2fb86-034e-11e8-9cf3-77abfc7aafec";
 	
+	//no subtype, forced in draft state
+	public static final File ROLE_CROUPIER_FILE = new File(TEST_DIR, "role-croupier.xml");
+	protected static final String ROLE_CROUPIER_OID = "a7b8de9a-20a1-84f6-b452-01254a1256e3";
+	
 	public static final String SUBTYPE_EMPLOYEE = "employee";
 	private static final Object USER_JACK_TELEPHONE_NUMBER = "12345654321";
 
@@ -73,6 +77,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_HEADMASTER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CARETAKER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_GAMBLER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CROUPIER_FILE, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
     }
@@ -189,6 +194,8 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         // considered active. Their authorizations should be applied to principal.
         assertAuthorized(principal, AUTZ_GAMBLE_URL);
         assertAuthorized(principal, AUTZ_APPARATE_URL);
+        // Forced assignment as specified in proposed lifecycle model
+        assertAuthorized(principal, AUTZ_CROUPIER_URL);
 	}
     
     /**
@@ -214,6 +221,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 3);
+        assertRoleMembershipRefs(userAfter, 4);
         assertLifecycleState(userAfter, null);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
         assertEffectiveActivation(userAfter, ActivationStatusType.ENABLED);
@@ -235,6 +243,8 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
         assertAuthorized(principal, AUTZ_GAMBLE_URL);
         assertAuthorized(principal, AUTZ_APPARATE_URL);
+     // Forced assignment not specified for active lifecycle state
+        assertNotAuthorized(principal, AUTZ_CROUPIER_URL);
 	}
     
     private void assertTelephoneNumber(PrismObject<UserType> user, Object expectedTelephoneNumber) {
@@ -265,6 +275,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 4);
+        assertRoleMembershipRefs(userAfter, 5);
         assertLifecycleState(userAfter, null);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
     }
@@ -289,6 +300,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 3);
+        assertRoleMembershipRefs(userAfter, 4);
         assertLifecycleState(userAfter, null);
         assertTelephoneNumber(userAfter, USER_JACK_TELEPHONE_NUMBER);
     }
@@ -345,6 +357,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after", userAfter);
         assertAssignments(userAfter, 3);
+        assertRoleMembershipRefs(userAfter, 0);
         assertLifecycleState(userAfter, SchemaConstants.LIFECYCLE_ARCHIVED);
         assertTelephoneNumber(userAfter, null);
     }

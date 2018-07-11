@@ -821,6 +821,9 @@ public class FocusProcessor {
 		}
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		for (EvaluatedAssignmentImpl<?> evaluatedAssignment: zeroSet) {
+			if (evaluatedAssignment.isVirtual()) {
+				continue;
+			}
 			AssignmentType assignmentType = evaluatedAssignment.getAssignmentType();
 			ActivationType currentActivationType = assignmentType.getActivation();
 			ActivationStatusType expectedEffectiveStatus = activationComputer.getEffectiveStatus(assignmentType.getLifecycleState(), currentActivationType, null);

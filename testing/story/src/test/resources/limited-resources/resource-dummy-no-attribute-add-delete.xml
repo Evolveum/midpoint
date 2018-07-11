@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="5098fa64-8386-11e8-b2e2-83ada4418787"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+		  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource: No attribute add/delete</name>
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>no-attribute-add-delete</icfi:instanceId>
+			<icfi:uselessGuardedString>
+				<clearValue>whatever</clearValue>
+			</icfi:uselessGuardedString>
+			<icfi:uselessString>USEless</icfi:uselessString>
+		</icfc:configurationProperties>
+		
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<outbound>
+				    <strength>strong</strength>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<outbound>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:title</ref>
+				<tolerant>true</tolerant>
+			</attribute>
+			<attribute>
+				<ref>ri:location</ref>
+				<displayName>Location</displayName>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>
+							$user/locality
+						</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:ship</ref>
+				<displayName>Ship</displayName>
+			</attribute>
+			<attribute>
+				<ref>ri:weapon</ref>
+				<displayName>Weapon</displayName>
+				<!-- MID-4607 -->
+				<outbound>
+               		<strength>strong</strength>               		
+					<source>
+						<path>$focus/organizationalUnit</path>
+					</source>
+             		<expression>
+						<allowEmptyValues>true</allowEmptyValues>
+						<script>
+							<code>
+								if (organizationalUnit != null)
+									return "Spirit of " + organizationalUnit
+	                            return null;
+							</code>
+						</script>
+					</expression>
+               </outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:drink</ref>
+				<displayName>Drink</displayName>
+				<tolerant>false</tolerant>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<displayName>Quote</displayName>
+				<tolerant>false</tolerant>
+			</attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <displayName>Gossip</displayName>
+                <tolerant>true</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:water</ref>
+                <limitations>
+                	<ignore>true</ignore>
+                </limitations>
+            </attribute>
+            
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+                        
+            <activation>
+            	<existence>
+            		<outbound/>
+            	</existence>
+            	<administrativeStatus>
+            		<outbound/>
+            	</administrativeStatus>
+            	<lockoutStatus>
+            		<outbound/>
+            	</lockoutStatus>
+            </activation>
+            
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+            
+		</objectType>
+				
+	</schemaHandling>
+	
+	<capabilities>
+		<configured>
+			<cap:addRemoveAttributeValues>
+				<cap:enabled>false</cap:enabled>
+			</cap:addRemoveAttributeValues>
+		</configured>
+	</capabilities>
+
+</resource>

@@ -476,12 +476,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		OperationResult parentResult = operationalTask.getResult();
 
 		try {
-			ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
-					? ModelExecuteOptions.createReconcile()		// This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
-					: null;
-			TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type,
-					memberQuery, delta, options, category, getPageBase());
-			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
+			WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, delta, category, parentResult, getPageBase());
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(parentResult.getOperation(), e);
 			LoggingUtils.logUnexpectedException(LOGGER,

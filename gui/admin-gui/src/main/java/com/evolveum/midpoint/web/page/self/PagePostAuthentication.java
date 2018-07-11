@@ -33,9 +33,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -49,17 +51,18 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-@PageDescriptor(urls = {@Url(mountUrl = "/self/postAuthentication")}, 
+@PageDescriptor(urls = {@Url(mountUrl = "/self/postAuthentication", matchUrlForSecurity="/self/postAuthentication")}, 
 		action = {
-		        @AuthorizationAction(actionUri = PageSelf.AUTH_SELF_ALL_URI,
-		                label = PageSelf.AUTH_SELF_ALL_LABEL,
-		                description = PageSelf.AUTH_SELF_ALL_DESCRIPTION)
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_POST_AUTHENTICATION_URL,
+						label = "PagePostAuthentication.auth.postAuthentication.label",
+						description = "PagePostAuthentication.auth.postAuthentication.description"),
 		}
 		)
 public class PagePostAuthentication extends PageAbstractFlow {
@@ -75,11 +78,6 @@ public class PagePostAuthentication extends PageAbstractFlow {
 
 	private IModel<UserType> userModel;
 	private ObjectWrapper<UserType> objectWrapper;
-	
-	//TODO: where is the correct palce?
-	@SpringBean(name = "userDetailsService")
-	private UserProfileService userProfileService;
-	
 	
 	public PagePostAuthentication(PageParameters pageParameters) {
 		super(pageParameters);
@@ -174,15 +172,19 @@ public class PagePostAuthentication extends PageAbstractFlow {
 		}
 		
 		result.computeStatus();
-		
+		showResult(result, true);
 		if (!result.isAcceptable()) {
-			showResult(result);
 			target.add(PagePostAuthentication.this);
 		} else {
 			MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-			getModelInteractionService().refreshPrincipal(principal.getUsername());
+			try {
+				getModelInteractionService().refreshPrincipal(principal.getOid());
+				navigateToNext(getMidpointApplication().getHomePage());
+			} catch (ObjectNotFoundException | SchemaException e) {
+				LOGGER.error("Errpr while refreshing user: ", e);
+				target.add(PagePostAuthentication.this);
+			}
 			
-			navigateToNext(getMidpointApplication().getHomePage());
 		}
 		
 		target.add(getFeedbackPanel());

@@ -541,11 +541,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					deleteAccountConfirmedPerformed(target, getSelectedProjections(projectionModel));
-				}
+				deleteAccountConfirmedPerformed(target, getSelectedProjections(projectionModel));
 			}
 		};
 		return dialog;

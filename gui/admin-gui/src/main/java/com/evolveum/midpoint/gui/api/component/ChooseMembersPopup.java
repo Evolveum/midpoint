@@ -17,7 +17,17 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -30,23 +40,26 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by honchar.
+ * Created by honchar
  */
-public class AssignmentPopup extends BasePanel implements Popupable{
+public abstract class ChooseMembersPopup<O extends ObjectType, T extends AbstractRoleType> extends BasePanel<O> implements Popupable {
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(ChooseMembersPopup.class);
 
     private static final String ID_TABS_PANEL = "tabsPanel";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
-    private static final String ID_ASSIGN_BUTTON = "assignButton";
+    private static final String ID_ADD_BUTTON = "addButton";
     private static final String ID_FORM = "form";
 
     private List<OrgType> selectedOrgsList = new ArrayList<>();
 
-    public AssignmentPopup(String id){
+    public ChooseMembersPopup(String id){
         super(id);
     }
 
@@ -70,39 +83,30 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                AssignmentPopup.this.getPageBase().hideMainPopup(target);
+                ChooseMembersPopup.this.getPageBase().hideMainPopup(target);
             }
         };
         cancelButton.setOutputMarkupId(true);
         form.add(cancelButton);
 
-        AjaxButton addButton = new AjaxButton(ID_ASSIGN_BUTTON,
+        AjaxButton addButton = new AjaxButton(ID_ADD_BUTTON,
                 createStringResource("userBrowserDialog.button.addButton")) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<AssignmentType> newAssignmentsList = new ArrayList<>();
-//                List<AssignmentType> newOrgTypeAssignmentsList = new ArrayList<>();
-
                 tabs.forEach(panelTab -> {
-                    WebMarkupContainer assignmentPanel = ((CountablePanelTab)panelTab).getPanel();
-                    if (assignmentPanel == null){
+                    WebMarkupContainer tabPanel = ((CountablePanelTab)panelTab).getPanel();
+                    if (tabPanel == null){
                         return;
                     }
-//                    if (assignmentPanel instanceof OrgTypeAssignmentPopupTabPanel){
-//                        if (newOrgTypeAssignmentsList.isEmpty()) {
-//                            newOrgTypeAssignmentsList.addAll(((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedAssignmentsList());
-//                            return;
-//                        } else {
-//                            return;
-//                        }
-//                    }
-                    newAssignmentsList.addAll(((AbstractAssignmentPopupTabPanel)assignmentPanel).getSelectedAssignmentsList());
+
+                    MemberPopupTabPanel memberPanel = (MemberPopupTabPanel) tabPanel;
+                    executeMemberOperation(memberPanel.getType().getTypeQName(), createInOidQuery(memberPanel.getSelectedObjectsList()),
+                           memberPanel.prepareDelta(), target);
                 });
-//                newAssignmentsList.addAll(newOrgTypeAssignmentsList);
-                addPerformed(target, newAssignmentsList);
+                ChooseMembersPopup.this.getPageBase().hideMainPopup(target);
             }
         };
         addButton.setOutputMarkupId(true);
@@ -111,31 +115,36 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
     private List<ITab> createAssignmentTabs() {
         List<ITab> tabs = new ArrayList<>();
-        //TODO check authorization for each tab
+        //TODO should we have any authorization here?
         VisibleEnableBehaviour authorization = new VisibleEnableBehaviour(){
         };
 
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"), authorization) {
 
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new MemberPopupTabPanel(panelId, ObjectTypes.ROLE){
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ROLE){
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target){
-                                tabLabelPanelUpdate(target);
-                            }
-                        };
+                    protected void onSelectionPerformed(AjaxRequestTarget target){
+                        tabLabelPanelUpdate(target);
                     }
 
                     @Override
-                    public String getCount() {
-                        return Integer.toString(getTabPanelSelectedCount(getPanel()));
+                    protected T getAbstractRoleTypeObject(){
+                        return ChooseMembersPopup.this.getAssignmentTargetRefObject();
                     }
-                });
+                };
+            }
+
+            @Override
+            public String getCount() {
+                return Integer.toString(getTabPanelSelectedCount(getPanel()));
+            }
+        });
 
         tabs.add(
                 new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"), authorization) {
@@ -144,12 +153,17 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new OrgTypeAssignmentPopupTabPanel(panelId, false){
+                        return new MemberPopupTabPanel(panelId, ObjectTypes.ORG){
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target){
                                 tabLabelPanelUpdate(target);
+                            }
+
+                            @Override
+                            protected T getAbstractRoleTypeObject(){
+                                return ChooseMembersPopup.this.getAssignmentTargetRefObject();
                             }
 
                             @Override
@@ -173,8 +187,13 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new OrgTypeAssignmentPopupTabPanel(panelId, true){
+                return new OrgTreeMemberPopupTabPanel(panelId){
                     private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected T getAbstractRoleTypeObject(){
+                        return ChooseMembersPopup.this.getAssignmentTargetRefObject();
+                    }
 
                     @Override
                     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){
@@ -201,38 +220,19 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.SERVICE){
+                        return new MemberPopupTabPanel(panelId, ObjectTypes.SERVICE){
                             private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected T getAbstractRoleTypeObject(){
+                                return ChooseMembersPopup.this.getAssignmentTargetRefObject();
+                            }
 
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target){
                                 tabLabelPanelUpdate(target);
                             }
 
-                        };
-                    }
-
-                    @Override
-                    public String getCount() {
-                        return Integer.toString(getTabPanelSelectedCount(getPanel()));
-                    }
-                });
-
-        tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.RESOURCE"), authorization) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new ResourceTypeAssignmentPopupTabPanel(panelId){
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target){
-                                super.onSelectionPerformed(target);
-                                tabLabelPanelUpdate(target);
-                            }
                         };
                     }
 
@@ -246,8 +246,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     private int getTabPanelSelectedCount(WebMarkupContainer panel){
-        if (panel != null && panel instanceof AbstractAssignmentPopupTabPanel){
-            return ((AbstractAssignmentPopupTabPanel) panel).getSelectedObjectsList().size();
+        if (panel != null && panel instanceof MemberPopupTabPanel){
+            return ((MemberPopupTabPanel) panel).getSelectedObjectsList().size();
         }
         return 0;
     }
@@ -260,9 +260,34 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         return (TabbedPanel) get(ID_FORM).get(ID_TABS_PANEL);
     }
 
-    protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {
-        getPageBase().hideMainPopup(target);
+    protected ObjectQuery createInOidQuery(List<ObjectType> selectedObjectsList){
+        List<String> oids = new ArrayList<>();
+        for (Object selectable : selectedObjectsList) {
+            oids.add(((ObjectType) selectable).getOid());
+        }
+
+        return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
     }
+
+    protected void executeMemberOperation(QName type, ObjectQuery memberQuery,
+                                          ObjectDelta delta, AjaxRequestTarget target) {
+
+        Task operationalTask = getPageBase().createSimpleTask("add members");
+        OperationResult parentResult = operationalTask.getResult();
+
+        try {
+            WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, delta, TaskCategory.EXECUTE_CHANGES, parentResult, getPageBase());
+        } catch (SchemaException e) {
+            parentResult.recordFatalError(parentResult.getOperation(), e);
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Failed to execute operation " + parentResult.getOperation(), e);
+            target.add(getPageBase().getFeedbackPanel());
+        }
+
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    protected abstract T getAssignmentTargetRefObject();
 
     public int getWidth(){
         return 900;

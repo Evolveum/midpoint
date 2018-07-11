@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -544,6 +545,17 @@ public final class WebComponentUtil {
 		}
 
 		return task;
+
+	}
+
+	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
+											  ObjectDelta delta, String category, OperationResult parentResult, PageBase pageBase) throws SchemaException{
+		ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
+				? ModelExecuteOptions.createReconcile()		// This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
+				: null;
+		TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type,
+				memberQuery, delta, options, category, pageBase);
+		WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
 
 	}
 

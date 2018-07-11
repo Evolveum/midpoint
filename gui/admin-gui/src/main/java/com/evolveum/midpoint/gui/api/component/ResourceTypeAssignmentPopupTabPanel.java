@@ -42,7 +42,9 @@ import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by honchar
@@ -157,8 +159,8 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     }
 
     @Override
-    protected List<AssignmentType> getSelectedAssignmentsList(){
-        List<AssignmentType> assignmentList = new ArrayList<>();
+    protected Set<AssignmentType> getSelectedAssignmentsList(){
+        Set<AssignmentType> assignmentList = new HashSet<>();
 
         List<ResourceType> selectedObjects = getSelectedObjectsList();
         ShadowKindType kind = getKindValue();

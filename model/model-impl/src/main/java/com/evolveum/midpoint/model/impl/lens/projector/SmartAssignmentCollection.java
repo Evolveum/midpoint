@@ -49,20 +49,22 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 	private Map<SmartAssignmentKey,SmartAssignmentElement> aMap = null;
 	private Map<Long,SmartAssignmentElement> idMap;
 
-	public void collect(PrismObject<F> objectCurrent, PrismObject<F> objectOld, ContainerDelta<AssignmentType> assignmentDelta) throws SchemaException {
+	public void collect(PrismObject<F> objectCurrent, PrismObject<F> objectOld, ContainerDelta<AssignmentType> assignmentDelta, Collection<AssignmentType> forcedAssignments) throws SchemaException {
 		PrismContainer<AssignmentType> assignmentContainerCurrent = null;
 		if (objectCurrent != null) {
 			assignmentContainerCurrent = objectCurrent.findContainer(FocusType.F_ASSIGNMENT);
 		}
 
 		if (aMap == null) {
-			int initialCapacity = computeInitialCapacity(assignmentContainerCurrent, assignmentDelta);
+			int initialCapacity = computeInitialCapacity(assignmentContainerCurrent, assignmentDelta, forcedAssignments);
 			aMap = new HashMap<>(initialCapacity);
 			idMap = new HashMap<>(initialCapacity);
 		}
 
 		collectAssignments(assignmentContainerCurrent, Mode.CURRENT);
-
+		
+		collectAssignments(forcedAssignments, Mode.CURRENT);
+		
 		if (objectOld != null) {
 			collectAssignments(objectOld.findContainer(FocusType.F_ASSIGNMENT), Mode.OLD);
 		}
@@ -78,7 +80,16 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 			collectAssignment(assignmentCVal, mode);
 		}
 	}
-
+	
+	private void collectAssignments(Collection<AssignmentType> forcedAssignments, Mode mode) throws SchemaException {
+		if (forcedAssignments == null) {
+			return;
+		}
+		for (AssignmentType assignment : forcedAssignments) {
+			collectAssignment(assignment.asPrismContainerValue(), mode);
+		}
+	}
+ 
 	private void collectAssignments(ContainerDelta<AssignmentType> assignmentDelta) throws SchemaException {
 		if (assignmentDelta == null) {
 			return;
@@ -158,13 +169,17 @@ public class SmartAssignmentCollection<F extends FocusType> implements Iterable<
 		return aMap.get(key);
 	}
 
-	private int computeInitialCapacity(PrismContainer<AssignmentType> assignmentContainerCurrent, ContainerDelta<AssignmentType> assignmentDelta) {
+	private int computeInitialCapacity(PrismContainer<AssignmentType> assignmentContainerCurrent, ContainerDelta<AssignmentType> assignmentDelta, Collection<AssignmentType> forcedAssignments) {
 		int capacity = 0;
 		if (assignmentContainerCurrent != null) {
 			capacity += assignmentContainerCurrent.size();
 		}
 		if (assignmentDelta != null) {
 			capacity += assignmentDelta.size();
+		}
+		
+		if (forcedAssignments != null) {
+			capacity += forcedAssignments.size();
 		}
 		return capacity;
 	}
