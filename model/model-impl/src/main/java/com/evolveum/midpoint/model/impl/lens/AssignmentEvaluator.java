@@ -331,10 +331,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 
 		boolean isVirtual = isForcedAssignment(segment, ctx);
+		if (ctx.assignmentPath.isEmpty() && isVirtual) {
+			segment.setValidityOverride(isVirtual);
+		}
 		
-		segment.setValidityOverride(isVirtual);
 		boolean isValid = (evaluateContent && evaluateSegmentContent(segment, relativeMode, ctx)) || isVirtual;
-		
 
 		ctx.assignmentPath.removeLast(segment);
 		if (ctx.assignmentPath.isEmpty()) {		// direct assignment
