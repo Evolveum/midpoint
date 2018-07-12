@@ -709,6 +709,15 @@ public class ObjectTypeUtil {
 	public static boolean isDefaultRelation(QName relation) {
 		return relation == null || QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT);
 	}
+	
+	public static RelationDefinitionType findRelationDefinition(List<RelationDefinitionType> relationDefinitions, QName qname) {
+		for (RelationDefinitionType relation: relationDefinitions) {
+			if (QNameUtil.match(qname, relation.getRef())) {
+				return relation;
+			}
+		}
+		return null;
+	}
 
 	// We want to make this configurable in the future MID-3581
 	public static boolean processRelationOnLogin(QName relation) {
