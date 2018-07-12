@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseMembersPopup;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -73,16 +76,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.model.Model;
 
 public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extends BasePanel<T> {
@@ -300,7 +293,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						addMembers(null, target);
+						addMembers(target);
 					}
 				}));
 		return newMemberMenuItems;
@@ -423,19 +416,16 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, this);
 	}
 
-	protected void addMembers(final QName relation, AjaxRequestTarget target) {
+	protected void addMembers(AjaxRequestTarget target) {
 
-		List<QName> types = getNewMemberSupportedTypes();
+//		List<QName> types = getNewMemberSupportedTypes();
 
-		ObjectBrowserPanel<ObjectType> browser = new ObjectBrowserPanel(getPageBase().getMainPopupBodyId(),
-				UserType.class, types, true, getPageBase()) {
+		ChooseMembersPopup browser = new ChooseMembersPopup(getPageBase().getMainPopupBodyId()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void addPerformed(AjaxRequestTarget target, QName type, List selected) {
-				AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
-				AbstractRoleMemberPanel.this.addMembersPerformed(type, Arrays.asList(relation), selected, target);
-
+			protected T getAssignmentTargetRefObject(){
+				return AbstractRoleMemberPanel.this.getModelObject();
 			}
 		};
 		browser.setOutputMarkupId(true);

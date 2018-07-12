@@ -31,7 +31,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceRelationsPanel;
+import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -109,7 +109,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 		relationsList.add(RelationTypes.OWNER);
 		relationsList.add(RelationTypes.MANAGER);
 
-		return new RoleGovernanceRelationsPanel(panelId, new Model<>(getObject().asObjectable()), relationsList);
+		return new RoleGovernanceMemberPanel(panelId, new Model<>(getObject().asObjectable()), relationsList);
 	}
 
 

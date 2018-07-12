@@ -41,10 +41,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by honchar
@@ -159,14 +156,14 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     }
 
     @Override
-    protected Set<AssignmentType> getSelectedAssignmentsList(){
-        Set<AssignmentType> assignmentList = new HashSet<>();
+    protected Map<String, AssignmentType> getSelectedAssignmentsMap(){
+        Map<String, AssignmentType> assignmentList = new HashMap<>();
 
         List<ResourceType> selectedObjects = getSelectedObjectsList();
         ShadowKindType kind = getKindValue();
         String intent = getIntentValue();
         selectedObjects.forEach(selectedObject -> {
-            assignmentList.add(ObjectTypeUtil.createAssignmentWithConstruction(selectedObject.asPrismObject(), kind, intent));
+            assignmentList.put(selectedObject.getOid(), ObjectTypeUtil.createAssignmentWithConstruction(selectedObject.asPrismObject(), kind, intent));
         });
         return assignmentList;
     }

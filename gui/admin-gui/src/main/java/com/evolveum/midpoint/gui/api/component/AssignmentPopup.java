@@ -30,8 +30,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.StringResourceModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by honchar.
@@ -83,26 +82,22 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<AssignmentType> newAssignmentsList = new ArrayList<>();
-//                List<AssignmentType> newOrgTypeAssignmentsList = new ArrayList<>();
+                Map<String, AssignmentType> selectedAssignmentsMap = new HashMap<>();
 
                 tabs.forEach(panelTab -> {
                     WebMarkupContainer assignmentPanel = ((CountablePanelTab)panelTab).getPanel();
                     if (assignmentPanel == null){
                         return;
                     }
-//                    if (assignmentPanel instanceof OrgTypeAssignmentPopupTabPanel){
-//                        if (newOrgTypeAssignmentsList.isEmpty()) {
-//                            newOrgTypeAssignmentsList.addAll(((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedAssignmentsList());
-//                            return;
-//                        } else {
-//                            return;
-//                        }
-//                    }
-                    newAssignmentsList.addAll(((AbstractAssignmentPopupTabPanel)assignmentPanel).getSelectedAssignmentsList());
+
+                    (((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedAssignmentsMap()).forEach((k, v) ->
+                            selectedAssignmentsMap.putIfAbsent((String)k, (AssignmentType) v));
+
+
                 });
-//                newAssignmentsList.addAll(newOrgTypeAssignmentsList);
-                addPerformed(target, newAssignmentsList);
+                List assignments = new ArrayList<>();
+                assignments.addAll(Arrays.asList(selectedAssignmentsMap.values().toArray()));
+                addPerformed(target, assignments);
             }
         };
         addButton.setOutputMarkupId(true);
@@ -144,7 +139,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new OrgTypeAssignmentPopupTabPanel(panelId, false){
+                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ORG){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -173,7 +168,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new OrgTypeAssignmentPopupTabPanel(panelId, true){
+                return new OrgTreeAssignmentPopupTabPanel(panelId){
                     private static final long serialVersionUID = 1L;
 
                     @Override

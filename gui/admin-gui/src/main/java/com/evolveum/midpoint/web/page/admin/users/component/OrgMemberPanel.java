@@ -405,7 +405,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							OrgMemberPanel.this.addMembers(SchemaConstants.ORG_MANAGER, target);
+							OrgMemberPanel.this.addMembers(target);
 						}
 					}));
 		}

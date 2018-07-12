@@ -37,6 +37,7 @@ import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -52,5 +53,5 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
         super(id, type);
     }
 
-    protected abstract Set<AssignmentType> getSelectedAssignmentsList();
+    protected abstract Map<String, AssignmentType> getSelectedAssignmentsMap();
 }

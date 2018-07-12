@@ -88,9 +88,9 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
     }
 
 //    @Override
-//    protected List<AssignmentType> getSelectedAssignmentsList(){
+//    protected List<AssignmentType> getSelectedAssignmentsMap(){
 //        isOrgTreeView = true;
-//        return super.getSelectedAssignmentsList();
+//        return super.getSelectedAssignmentsMap();
 //    }
 
     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){}

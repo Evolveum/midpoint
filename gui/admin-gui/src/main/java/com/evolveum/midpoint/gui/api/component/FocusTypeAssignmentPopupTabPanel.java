@@ -34,14 +34,12 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by honchar
@@ -77,15 +75,15 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     @Override
-    protected Set<AssignmentType> getSelectedAssignmentsList(){
-        Set<AssignmentType> assignmentList = new HashSet<>();
+    protected Map<String, AssignmentType> getSelectedAssignmentsMap(){
+        Map<String, AssignmentType> assignmentsMap = new HashedMap();
 
         List<F> selectedObjects = getSelectedObjectsList();
         QName relation = getRelationValue();
         selectedObjects.forEach(selectedObject -> {
-            assignmentList.add(ObjectTypeUtil.createAssignmentTo(selectedObject, relation));
+            assignmentsMap.put(selectedObject.getOid(), ObjectTypeUtil.createAssignmentTo(selectedObject, relation));
         });
-        return assignmentList;
+        return assignmentsMap;
     }
 
     public QName getRelationValue(){

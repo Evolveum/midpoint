@@ -41,7 +41,6 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     public AbstractPopupTabPanel(String id, ObjectTypes type){
         super(id);
         this.type = type;
-//        this.selectedObjects = selectedObjects;
     }
 
     @Override
