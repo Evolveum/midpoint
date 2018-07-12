@@ -605,11 +605,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					closeSelectedCampaignsConfirmedPerformed(target);
-				}
+				closeSelectedCampaignsConfirmedPerformed(target);
 			}
 
 			@Override
@@ -625,11 +621,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					reiterateSelectedCampaignsConfirmedPerformed(target);
-				}
+				reiterateSelectedCampaignsConfirmedPerformed(target);
 			}
 
 			@Override
@@ -653,11 +645,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					deleteSelectedCampaignsConfirmedPerformed(target);
-				}
+				deleteSelectedCampaignsConfirmedPerformed(target);
 			}
 
 			@Override
@@ -732,11 +720,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					closeStageConfirmedPerformed(target, relevantCampaign);
-				}
+				closeStageConfirmedPerformed(target, relevantCampaign);
 			}
 
 			@Override
@@ -761,11 +745,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					closeCampaignConfirmedPerformed(target, relevantCampaign);
-				}
+				closeCampaignConfirmedPerformed(target, relevantCampaign);
 			}
 
 			@Override
@@ -780,11 +760,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					reiterateCampaignConfirmedPerformed(target, relevantCampaign);
-				}
+				reiterateCampaignConfirmedPerformed(target, relevantCampaign);
 			}
 
 			@Override
@@ -805,11 +781,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					deleteCampaignConfirmedPerformed(target);
-				}
+				deleteCampaignConfirmedPerformed(target);
 			}
 
 			@Override

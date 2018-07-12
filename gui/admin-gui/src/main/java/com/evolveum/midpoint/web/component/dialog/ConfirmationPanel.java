@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxButton;
 
 import org.apache.wicket.Component;
@@ -81,6 +82,7 @@ public class ConfirmationPanel extends Panel implements Popupable {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
+				((PageBase) getPage()).hideMainPopup(target);
 				yesPerformed(target);
 			}
 		};
@@ -104,10 +106,7 @@ public class ConfirmationPanel extends Panel implements Popupable {
 	}
 
 	public void noPerformed(AjaxRequestTarget target) {
-		ModalWindow modalWindow = findParent(ModalWindow.class);
-		if (modalWindow != null) {
-			modalWindow.close(target);
-		}
+		((PageBase) getPage()).hideMainPopup(target);
 	}
 
 	/**
