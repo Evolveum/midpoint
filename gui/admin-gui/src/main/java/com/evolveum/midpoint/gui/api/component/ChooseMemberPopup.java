@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -47,10 +48,10 @@ import java.util.List;
 /**
  * Created by honchar
  */
-public abstract class ChooseMembersPopup<O extends ObjectType, T extends AbstractRoleType> extends BasePanel<O> implements Popupable {
+public abstract class ChooseMemberPopup<O extends ObjectType, T extends AbstractRoleType> extends BasePanel<O> implements Popupable {
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(ChooseMembersPopup.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ChooseMemberPopup.class);
 
     private static final String ID_TABS_PANEL = "tabsPanel";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
@@ -59,7 +60,7 @@ public abstract class ChooseMembersPopup<O extends ObjectType, T extends Abstrac
 
     private List<OrgType> selectedOrgsList = new ArrayList<>();
 
-    public ChooseMembersPopup(String id){
+    public ChooseMemberPopup(String id, List<RelationTypes> availableRelationList){
         super(id);
     }
 
@@ -83,7 +84,7 @@ public abstract class ChooseMembersPopup<O extends ObjectType, T extends Abstrac
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ChooseMembersPopup.this.getPageBase().hideMainPopup(target);
+                ChooseMemberPopup.this.getPageBase().hideMainPopup(target);
             }
         };
         cancelButton.setOutputMarkupId(true);
@@ -106,14 +107,14 @@ public abstract class ChooseMembersPopup<O extends ObjectType, T extends Abstrac
                     executeMemberOperation(memberPanel.getType().getTypeQName(), createInOidQuery(memberPanel.getSelectedObjectsList()),
                            memberPanel.prepareDelta(), target);
                 });
-                ChooseMembersPopup.this.getPageBase().hideMainPopup(target);
+                ChooseMemberPopup.this.getPageBase().hideMainPopup(target);
             }
         };
         addButton.setOutputMarkupId(true);
         form.add(addButton);
     }
 
-    private List<ITab> createAssignmentTabs() {
+    protected List<ITab> createAssignmentTabs() {
         List<ITab> tabs = new ArrayList<>();
         //TODO should we have any authorization here?
         VisibleEnableBehaviour authorization = new VisibleEnableBehaviour(){
@@ -135,7 +136,7 @@ public abstract class ChooseMembersPopup<O extends ObjectType, T extends Abstrac
 
                     @Override
                     protected T getAbstractRoleTypeObject(){
-                        return ChooseMembersPopup.this.getAssignmentTargetRefObject();
+                        return ChooseMemberPopup.this.getAssignmentTargetRefObject();
                     }
                 };
             }
@@ -163,7 +164,7 @@ public abstract class ChooseMembersPopup<O extends ObjectType, T extends Abstrac
 
                             @Override
                             protected T getAbstractRoleTypeObject(){
-                                return ChooseMembersPopup.this.getAssignmentTargetRefObject();
+                                return ChooseMemberPopup.this.getAssignmentTargetRefObject();
                             }
 
                             @Override
@@ -192,7 +193,7 @@ public abstract class ChooseMembersPopup<O extends ObjectType, T extends Abstrac
 
                     @Override
                     protected T getAbstractRoleTypeObject(){
-                        return ChooseMembersPopup.this.getAssignmentTargetRefObject();
+                        return ChooseMemberPopup.this.getAssignmentTargetRefObject();
                     }
 
                     @Override
@@ -225,7 +226,7 @@ public abstract class ChooseMembersPopup<O extends ObjectType, T extends Abstrac
 
                             @Override
                             protected T getAbstractRoleTypeObject(){
-                                return ChooseMembersPopup.this.getAssignmentTargetRefObject();
+                                return ChooseMemberPopup.this.getAssignmentTargetRefObject();
                             }
 
                             @Override

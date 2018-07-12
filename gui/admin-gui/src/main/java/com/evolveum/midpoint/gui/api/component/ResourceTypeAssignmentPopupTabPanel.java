@@ -126,26 +126,23 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
             @Override
             protected List<String> load() {
                 List<String> availableIntentValues = new ArrayList<>();
-                PopupObjectListPanel resourcesListPanel = getObjectListPanel();
-                if (resourcesListPanel != null) {
-                    List<ResourceType> selectedResources = resourcesListPanel.getSelectedObjects();
-                    if (selectedResources != null && selectedResources.size() > 0) {
-                        ResourceType selectedResource = selectedResources.get(0);
+                List<ResourceType> selectedResources = ResourceTypeAssignmentPopupTabPanel.this.getSelectedObjectsList();
+                if (selectedResources != null && selectedResources.size() > 0) {
+                    ResourceType selectedResource = selectedResources.get(0);
 
-                        try {
-                            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(selectedResource.asPrismObject());
-                            if (refinedSchema != null) {
-                                ShadowKindType kind = (ShadowKindType) getKindDropDown().getBaseFormComponent().getModelObject();
-                                List<? extends RefinedObjectClassDefinition> definitions = refinedSchema.getRefinedDefinitions(kind);
-                                for (RefinedObjectClassDefinition def : definitions) {
-                                    availableIntentValues.add(def.getIntent());
-                                }
+                    try {
+                        RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(selectedResource.asPrismObject());
+                        if (refinedSchema != null) {
+                            ShadowKindType kind = (ShadowKindType) getKindDropDown().getBaseFormComponent().getModelObject();
+                            List<? extends RefinedObjectClassDefinition> definitions = refinedSchema.getRefinedDefinitions(kind);
+                            for (RefinedObjectClassDefinition def : definitions) {
+                                availableIntentValues.add(def.getIntent());
                             }
-                        } catch (SchemaException ex) {
-                            LOGGER.error("Cannot get refined resource schema for resource {}. {}", selectedResource.getName().getOrig(), ex.getLocalizedMessage());
                         }
-
+                    } catch (SchemaException ex) {
+                        LOGGER.error("Cannot get refined resource schema for resource {}. {}", selectedResource.getName().getOrig(), ex.getLocalizedMessage());
                     }
+
                 }
                 if (availableIntentValues.size() > 0){
                     intentValue = availableIntentValues.get(0);

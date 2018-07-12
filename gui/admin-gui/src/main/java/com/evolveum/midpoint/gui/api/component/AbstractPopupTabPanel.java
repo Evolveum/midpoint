@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -50,7 +51,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         initParametersPanel();
     }
 
-    private PopupObjectListPanel initObjectListPanel(){
+    private Component initObjectListPanel(){
         PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)type.getClassDefinition(),
                 null, true, getPageBase(), getPreselectedObjects()) {
 
@@ -93,15 +94,15 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     }
 
     protected List<O> getSelectedObjectsList(){
-        PopupObjectListPanel objectListPanel = getObjectListPanel();
+        PopupObjectListPanel objectListPanel = (PopupObjectListPanel)getObjectListPanel();
         if (objectListPanel == null){
             return new ArrayList();
         }
         return objectListPanel.getSelectedObjects();
     }
 
-    protected PopupObjectListPanel getObjectListPanel(){
-        return (PopupObjectListPanel)get(ID_OBJECT_LIST_PANEL);
+    protected Component getObjectListPanel(){
+        return get(ID_OBJECT_LIST_PANEL);
     }
 
     protected void onSelectionPerformed(AjaxRequestTarget target){}
