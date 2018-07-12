@@ -15,11 +15,12 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.schema.constants.RelationTypes;
+
 /**
  * Created by honchar
  */
 
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;

@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
