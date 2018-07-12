@@ -403,7 +403,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			}
 		}
         menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<Boolean>(true),
-                new Model<Boolean>(true), false, createEditColumnAction(), 1, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
+                new Model<Boolean>(true), false, createEditColumnAction(), isUnassignMenuAdded ? 1 : 0, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
                 DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString()));
 		return menuItems;
 	}
