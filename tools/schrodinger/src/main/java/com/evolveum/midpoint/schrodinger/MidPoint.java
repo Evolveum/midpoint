@@ -24,6 +24,10 @@ public class MidPoint {
 
     private static final String SCHRODINGER_PROPERTIES = "../../testing/schrodingertest/src/test/resources/configuration/schrodinger.properties";
 
+    private String username;
+    private String password;
+
+    private String baseUrl;
     private String webDriver;
     private String webdriverLocation;
 
@@ -36,8 +40,10 @@ public class MidPoint {
     }
 
     private void init() throws IOException {
-        environment.validate();
         fetchProperties();
+        environment.baseUrl(baseUrl);
+        environment.validate();
+
 
         System.setProperty(webDriver, webdriverLocation);
         System.setProperty("selenide.browser", environment.getDriver().name().toLowerCase());
@@ -67,9 +73,23 @@ public class MidPoint {
 
             webDriver = schrodingerProperties.getProperty("webdriver");
             webdriverLocation = schrodingerProperties.getProperty("webdriverLocation");
+            username = schrodingerProperties.getProperty("username");
+            password = schrodingerProperties.getProperty("password");
+            baseUrl = schrodingerProperties.getProperty("base_url");
+
 
         } catch (IOException e) {
             throw new IOException("An exception was thrown during Schrodinger initialization " + e.getLocalizedMessage());
         }
+    }
+
+    public String getPassword(){
+
+        return this.password;
+    }
+
+    public String getUsername(){
+
+        return this.username;
     }
 }

@@ -40,10 +40,10 @@ import java.lang.reflect.Method;
 @Listeners({BrowserPerClass.class})
 public abstract class TestBase {
 
-    public static final String BASE_URL = "http://localhost:8080/midpoint";
+    //public static final String BASE_URL = "http://localhost:8080/midpoint";
 
-    public static final String USERNAME = "administrator";
-    public static final String PASSWORD = "5ecr3t";
+    //public static final String USERNAME = "administrator";
+    //public static final String PASSWORD = "5ecr3t";
 
     public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
 
@@ -53,17 +53,27 @@ public abstract class TestBase {
     protected MidPoint midPoint;
     protected BasicPage basicPage;
 
+
     @BeforeClass
     public void beforeClass() throws IOException {
         LOG.info("Starting tests in class {}", getClass().getName());
 
-        EnvironmentConfiguration config = new EnvironmentConfiguration();
-        config.baseUrl(BASE_URL);
+        //config.baseUrl(BASE_URL);
 
+        if (midPoint !=null){
+
+        }else{
+
+        EnvironmentConfiguration config = new EnvironmentConfiguration();
         midPoint = new MidPoint(config);
 
+        }
+
         LoginPage login = midPoint.login();
-        basicPage = login.login(USERNAME, PASSWORD);
+
+
+        basicPage = login.login(midPoint.getUsername(),midPoint.getPassword());
+
     }
 
     @AfterClass

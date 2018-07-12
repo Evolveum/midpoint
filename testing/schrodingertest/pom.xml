@@ -21,12 +21,16 @@
             <artifactId>commons-io</artifactId>
             <version>2.6</version>
         </dependency>
-        <dependency>
+       <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
             <artifactId>schrodinger</artifactId>
             <version>3.9-SNAPSHOT</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.codeborne</groupId>
             <artifactId>selenide</artifactId>
@@ -51,6 +55,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -66,6 +75,18 @@
                 </exclusion>
             </exclusions>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint</groupId>
+            <artifactId>midpoint-war-layout</artifactId>
+            <version>${project.version}</version>
+
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-compress</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -128,10 +149,46 @@
                 <artifactId>guava</artifactId>
                 <version>23.0</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
     <!--possibly obsolete end -->
 
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>${spring.boot.version}</version>
+
+            <configuration>
+                <mainClass>com.evolveum.midpoint.web.boot.MidPointSpringApplication</mainClass>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>pre-integration-test</id>
+                    <goals>
+                        <goal>start</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>post-integration-test</id>
+                    <goals>
+                        <goal>stop</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <dependencies>
+                <dependency>
+                    <groupId>com.evolveum.midpoint.gui</groupId>
+                    <artifactId>admin-gui</artifactId>
+                    <version>${project.version}</version>
+                    <type>war</type>
+                </dependency>
+            </dependencies>
+        </plugin>
+    </plugins>
+</build>
 
 </project>
