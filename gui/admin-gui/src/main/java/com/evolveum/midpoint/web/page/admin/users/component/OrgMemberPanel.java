@@ -448,6 +448,11 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName(), ObjectType.class), target);
 	}
 
+	@Override
+	protected List<RelationTypes> getAvailableRelationList(){
+		return Arrays.asList(RelationTypes.MANAGER);
+	}
+
 	protected void refreshSearch() {
 		getMemberTable().resetSearchModel();
 	}

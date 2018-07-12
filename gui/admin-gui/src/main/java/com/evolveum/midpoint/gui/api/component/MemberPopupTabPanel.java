@@ -27,13 +27,17 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by honchar
@@ -47,9 +51,11 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     private static final String ID_RELATION = "relation";
 
     private PageBase pageBase;
+    private List<RelationTypes> availableRelationList = new ArrayList<>();
 
-    public MemberPopupTabPanel(String id, ObjectTypes type){
+    public MemberPopupTabPanel(String id, ObjectTypes type, List<RelationTypes> availableRelationList){
         super(id, type);
+        this.availableRelationList = availableRelationList;
     }
 
     @Override
@@ -62,15 +68,32 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     protected void initParametersPanel(){
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
         relationContainer.setOutputMarkupId(true);
+        relationContainer.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return CollectionUtils.isNotEmpty(availableRelationList);
+            }
+
+            @Override
+            public boolean isEnabled(){
+                return CollectionUtils.isNotEmpty(availableRelationList) && availableRelationList.size() > 1;
+            }
+        });
         add(relationContainer);
 
-        DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
-                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER),
-                MemberPopupTabPanel.this, false);
+        DropDownChoicePanel<RelationTypes> relationSelector =  new DropDownChoicePanel<RelationTypes> (ID_RELATION,
+                Model.of(getDefaultRelationValue()), Model.ofList(availableRelationList),
+                WebComponentUtil.getEnumChoiceRenderer(MemberPopupTabPanel.this), false);
         relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relationSelector.setOutputMarkupId(true);
         relationSelector.setOutputMarkupPlaceholderTag(true);
         relationContainer.add(relationSelector);
+    }
+
+    private RelationTypes getDefaultRelationValue(){
+        return CollectionUtils.isNotEmpty(availableRelationList) ? availableRelationList.get(0) : RelationTypes.MEMBER;
     }
 
     protected ObjectDelta prepareDelta(){

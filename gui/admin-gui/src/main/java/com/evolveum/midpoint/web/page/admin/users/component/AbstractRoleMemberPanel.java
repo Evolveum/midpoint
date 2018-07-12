@@ -22,9 +22,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.ChooseMembersPopup;
+import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -34,7 +33,6 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -49,7 +47,6 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -418,9 +415,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected void addMembers(AjaxRequestTarget target) {
 
-//		List<QName> types = getNewMemberSupportedTypes();
-
-		ChooseMembersPopup browser = new ChooseMembersPopup(getPageBase().getMainPopupBodyId()) {
+		ChooseMemberPopup browser = new ChooseMemberPopup(getPageBase().getMainPopupBodyId(), getAvailableRelationList()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -432,6 +427,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		getPageBase().showMainPopup(browser, target);
 
+	}
+
+	protected List<RelationTypes> getAvailableRelationList(){
+		return Arrays.asList(RelationTypes.values());
 	}
 
 	protected List<QName> getNewMemberSupportedTypes(){
