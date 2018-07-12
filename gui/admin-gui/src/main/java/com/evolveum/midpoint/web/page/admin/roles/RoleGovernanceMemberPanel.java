@@ -123,6 +123,11 @@ public class RoleGovernanceMemberPanel extends RoleMemberPanel<RoleType> {
 		return unassignMenuItems;
 	}
 
+	@Override
+    protected List<RelationTypes> getAvailableRelationList(){
+        return Arrays.asList(RelationTypes.MANAGER, RelationTypes.APPROVER, RelationTypes.OWNER);
+    }
+
     @Override
     protected ObjectQuery createAllMemberQuery(List<QName> relations) {
         return super.createDirectMemberQuery(relations);

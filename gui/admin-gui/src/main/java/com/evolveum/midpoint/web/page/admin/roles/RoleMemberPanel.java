@@ -64,10 +64,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMemberPanel<T> {
 
@@ -439,5 +436,10 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	@Override
 	protected List<QName> getNewMemberSupportedTypes(){
 		return WebComponentUtil.createFocusTypeList();
+	}
+
+	@Override
+	protected List<RelationTypes> getAvailableRelationList(){
+		return Arrays.asList(RelationTypes.MEMBER);
 	}
 }

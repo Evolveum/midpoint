@@ -43,6 +43,7 @@ import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -59,9 +60,11 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     private static final String ID_FORM = "form";
 
     private List<OrgType> selectedOrgsList = new ArrayList<>();
+    private List<RelationTypes> availableRelationList;
 
     public ChooseMemberPopup(String id, List<RelationTypes> availableRelationList){
         super(id);
+        this.availableRelationList = availableRelationList;
     }
 
     @Override
@@ -126,7 +129,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel(panelId, ObjectTypes.ROLE){
+                return new MemberPopupTabPanel(panelId, ObjectTypes.ROLE, availableRelationList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -154,7 +157,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel(panelId, ObjectTypes.ORG){
+                        return new MemberPopupTabPanel(panelId, ObjectTypes.ORG, availableRelationList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -188,7 +191,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new OrgTreeMemberPopupTabPanel(panelId){
+                return new OrgTreeMemberPopupTabPanel(panelId, availableRelationList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -221,7 +224,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel(panelId, ObjectTypes.SERVICE){
+                        return new MemberPopupTabPanel(panelId, ObjectTypes.SERVICE, availableRelationList){
                             private static final long serialVersionUID = 1L;
 
                             @Override

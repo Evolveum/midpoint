@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -413,9 +414,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected void addMembers(AjaxRequestTarget target) {
 
-//		List<QName> types = getNewMemberSupportedTypes();
-
-		ChooseMemberPopup browser = new ChooseMemberPopup(getPageBase().getMainPopupBodyId(), null) {
+		ChooseMemberPopup browser = new ChooseMemberPopup(getPageBase().getMainPopupBodyId(), getAvailableRelationList()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -427,6 +426,10 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 		getPageBase().showMainPopup(browser, target);
 
+	}
+
+	protected List<RelationTypes> getAvailableRelationList(){
+		return Arrays.asList(RelationTypes.values());
 	}
 
 	protected List<QName> getNewMemberSupportedTypes(){

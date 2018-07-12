@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -23,6 +24,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,8 +36,8 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
 
     private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
-    public OrgTreeMemberPopupTabPanel(String id){
-        super(id, ObjectTypes.ORG);
+    public OrgTreeMemberPopupTabPanel(String id, List<RelationTypes> availableRelationList){
+        super(id, ObjectTypes.ORG, availableRelationList);
     }
 
     @Override
