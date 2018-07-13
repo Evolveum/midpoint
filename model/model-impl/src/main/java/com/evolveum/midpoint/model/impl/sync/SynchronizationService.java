@@ -32,8 +32,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author mederly
  */
 public interface SynchronizationService extends ResourceObjectChangeListener {
-	ObjectSynchronizationType determineSynchronizationPolicy(ResourceType resourceType,
-			PrismObject<? extends ShadowType> currentShadow, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result) throws
+	
+	public ObjectSynchronizationDiscriminatorType determineObjectSynchronizationDiscriminatorType(ResourceType resourceType, PrismObject<ShadowType> applicableShadow,
+			PrismObject<SystemConfigurationType> configuration, String sourceChannel, Task task, OperationResult subResult) 
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, 
+					ConfigurationException, SecurityViolationException;
+	
+	ObjectSynchronizationType determineSynchronizationPolicy(ResourceType resourceType, PrismObject<? extends ShadowType> currentShadow, 
+			PrismObject<SystemConfigurationType> configuration, ObjectSynchronizationDiscriminatorType synchronizationDiscriminator, Task task, OperationResult result) throws
 			SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	<F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadow, PrismObject<F> focus,

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -56,6 +57,20 @@ public class SynchronizationUtils {
 		Validate.notNull(shadowObjectClass, "No objectClass in currentShadow");
 		
 		return isPolicyApplicable(shadowObjectClass, currentShadowType.getKind(), currentShadowType.getIntent(), synchronizationPolicy, resource);
+		
+	}
+	
+	public static boolean isPolicyApplicable(ObjectSynchronizationDiscriminatorType synchronizationDiscriminator,
+			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource)
+					throws SchemaException {
+		ShadowKindType kind = synchronizationDiscriminator.getKind();
+		String intent = synchronizationDiscriminator.getIntent();
+		if (kind == null && intent == null) {
+			throw new SchemaException(
+					"Illegal state, object synchronization discriminator type must have kind/intent specified. Current values are: kind="
+							+ kind + ", intent=" + intent);
+		}
+		return isPolicyApplicable(null, synchronizationDiscriminator.getKind(), synchronizationDiscriminator.getIntent(), synchronizationPolicy, resource);
 		
 	}
 

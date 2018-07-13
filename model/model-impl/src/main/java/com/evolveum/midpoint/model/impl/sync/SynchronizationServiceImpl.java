@@ -43,6 +43,9 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -60,6 +63,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -86,6 +90,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationDividerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -120,6 +126,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	@Autowired private Clockwork clockwork;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private PrismContext prismContext;
 	
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -154,8 +161,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			ResourceType resourceType = change.getResource().asObjectable();
 			PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(subResult);
 
+			ObjectSynchronizationDiscriminatorType synchronizationDiscriminator = determineObjectSynchronizationDiscriminatorType(resourceType, applicableShadow, configuration, change.getSourceChannel(), task, subResult);
+			
 			ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType,
-					applicableShadow, configuration, task, subResult);
+					applicableShadow, configuration, synchronizationDiscriminator, task, subResult);
 
 			if (LOGGER.isTraceEnabled()) {
 				String policyDesc = null;
@@ -227,7 +236,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 						focusType, Utils.getPolicyDesc(synchronizationPolicy));
 			}
 
-			SynchronizationSituation situation = determineSituation(focusType, change, synchronizationPolicy,
+			SynchronizationSituation situation = determineSituation(synchronizationDiscriminator, focusType, change, synchronizationPolicy,
 					configuration.asObjectable(), task, subResult);
 			if (logDebug) {
 				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', currentOwner={}, correlatedOwner={}",
@@ -265,7 +274,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			}
 
 			// must be here, because when the reaction has no action, the
-			// situation will be not set.
+			// situation won't be set.
 			PrismObject<ShadowType> newCurrentShadow = saveSyncMetadata(
 					currentShadow, situation, change, synchronizationPolicy, task,
 					parentResult);
@@ -296,6 +305,25 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			task.markObjectActionExecutedBoundary();
 		}
 		LOGGER.debug("SYNCHRONIZATION: DONE for {}", currentShadow);
+	}
+
+	public ObjectSynchronizationDiscriminatorType determineObjectSynchronizationDiscriminatorType(ResourceType resourceType, PrismObject<ShadowType> applicableShadow,
+			PrismObject<SystemConfigurationType> configuration, String sourceChannel, Task task, OperationResult subResult) 
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, 
+					ConfigurationException, SecurityViolationException {
+		
+		SynchronizationType synchronizationType = resourceType.getSynchronization();
+		if (synchronizationType == null) {
+			return null;
+		}
+		
+		ObjectSynchronizationDividerType divider = synchronizationType.getObjectSynchronizationDivider();
+		if (divider == null) {
+			return null;
+		}
+		
+		return evaluateSynchronizationDivision(divider, applicableShadow, resourceType.asPrismObject(), configuration, task, subResult);
+		
 	}
 
 	private List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(PrismObject<ShadowType> currentShadow, String intent) {
@@ -382,7 +410,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	@Override
 	public ObjectSynchronizationType determineSynchronizationPolicy(ResourceType resourceType,
 			PrismObject<? extends ShadowType> currentShadow,
-			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
+			PrismObject<SystemConfigurationType> configuration, 
+			ObjectSynchronizationDiscriminatorType synchronizationDiscriminator,
+			Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		SynchronizationType synchronization = resourceType.getSynchronization();
@@ -390,7 +420,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			return null;
 		}
 		for (ObjectSynchronizationType objectSynchronization : synchronization.getObjectSynchronization()) {
-			if (isPolicyApplicable(currentShadow, objectSynchronization, resourceType.asPrismObject(),
+			if (isPolicyApplicable(synchronizationDiscriminator, currentShadow, objectSynchronization, resourceType.asPrismObject(),
 					configuration, task, result)) {
 				return objectSynchronization;
 			}
@@ -398,11 +428,16 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return null;
 	}
 
-	private boolean isPolicyApplicable(PrismObject<? extends ShadowType> currentShadow,
+	private boolean isPolicyApplicable(ObjectSynchronizationDiscriminatorType synchronizationDiscriminator, PrismObject<? extends ShadowType> currentShadow,
 			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource,
 			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+		if (synchronizationDiscriminator != null) {
+			return SynchronizationUtils.isPolicyApplicable(synchronizationDiscriminator, synchronizationPolicy, resource);
+		}
+		
+		
 		if (!SynchronizationUtils.isPolicyApplicable(currentShadow, synchronizationPolicy, resource)) {
 			return false;
 		}
@@ -426,6 +461,29 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		try {
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
 			PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
+					conditionExpressionType, expressionFactory, desc, task, result);
+			return evaluateCondition.getValue();
+		} finally {
+			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+		}
+	}
+	
+	private ObjectSynchronizationDiscriminatorType evaluateSynchronizationDivision(ObjectSynchronizationDividerType synchronizationDividerType,
+			PrismObject<? extends ShadowType> currentShadow, PrismObject<ResourceType> resource,
+			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		if (synchronizationDividerType.getExpression() == null) {
+			return null;
+		}
+		ExpressionType conditionExpressionType = synchronizationDividerType.getExpression();
+		String desc = "syncrhonization divider type ";
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, null,
+				resource, configuration, null);
+		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, "");
+		try {
+			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
+			PrismContainerDefinition<ObjectSynchronizationDiscriminatorType> discriminatorDef = prismContext.getSchemaRegistry().findContainerDefinitionByType(ObjectSynchronizationDiscriminatorType.COMPLEX_TYPE);
+			PrismContainerValue<ObjectSynchronizationDiscriminatorType> evaluateCondition = ExpressionUtil.evaluateExpression(variables, discriminatorDef, 
 					conditionExpressionType, expressionFactory, desc, task, result);
 			return evaluateCondition.getValue();
 		} finally {
@@ -499,17 +557,23 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	 * should be changed because otherwise we can't find
 	 * {@link SynchronizationSituationType#DISPUTED} situation
 	 */
-	private <F extends FocusType> SynchronizationSituation determineSituation(Class<F> focusType,
+	private <F extends FocusType> SynchronizationSituation<F> determineSituation(ObjectSynchronizationDiscriminatorType discriminator, Class<F> focusType,
 			ResourceObjectShadowChangeDescription change, ObjectSynchronizationType synchronizationPolicy,
 			SystemConfigurationType configurationType, Task task, OperationResult result) {
 
 		OperationResult subResult = result.createSubresult(CHECK_SITUATION);
 		LOGGER.trace("Determining situation for resource object shadow.");
 
-		SynchronizationSituation situation;
+		SynchronizationSituation<F> situation;
 		try {
 			String shadowOid = getOidFromChange(change);
 			Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
+			
+			situation = determineSituationFromDiscriminator(discriminator);
+			if (situation != null) {
+				return situation;
+			}
+			
 			PrismObject<F> owner = repositoryService.searchShadowOwner(shadowOid,
 					SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), subResult);
 
@@ -560,6 +624,23 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 		return change.getObjectDelta().getOid();
 	}
+	
+	private <F extends FocusType> SynchronizationSituation<F> determineSituationFromDiscriminator(ObjectSynchronizationDiscriminatorType discriminator) {
+		
+		if (discriminator == null) {
+			return null;
+		}
+		F owner = (F) discriminator.getOwner();
+		if (discriminator.getSynchronizationSituation() == null && owner == null) {
+			return null;
+		}
+		
+		//TODO: probably naive, but will see later :)
+		// e.g there can be probably case, that we have owner, but we want the objectSynchronization part let decide 
+		// in which situation we are.. etc.
+		return new SynchronizationSituation<F>(owner, owner, discriminator.getSynchronizationSituation());
+		
+	}
 
 	/**
 	 * Tries to match specified focus and shadow. Return true if it matches,
@@ -571,8 +652,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
 					throws ConfigurationException, SchemaException, ObjectNotFoundException,
 					ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+		ObjectSynchronizationDiscriminatorType synchronizationDiscriminator = determineObjectSynchronizationDiscriminatorType(
+				resourceType, shadow, configuration, null, task, result);
 		ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, shadow,
-				configuration, task, result);
+				configuration, synchronizationDiscriminator, task, result);
 		Class<F> focusClass;
 		// TODO is this correct? The problem is that synchronizationPolicy can
 		// be null...
