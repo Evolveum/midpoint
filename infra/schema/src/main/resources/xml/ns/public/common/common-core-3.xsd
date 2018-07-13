@@ -9460,6 +9460,7 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="objectSynchronization" type="tns:ObjectSynchronizationType" minOccurs="0" maxOccurs="unbounded"/>
+        	<xsd:element name="objectSynchronizationDivider" type="tns:ObjectSynchronizationDividerType" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -9717,13 +9718,12 @@
         			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="ownerRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+        	<xsd:element name="owner" type="tns:FocusType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
         				The owner of the resource object if known.
         			</xsd:documentation>
         			<xsd:appinfo>
-        				<a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
         				<a:since>3.9</a:since>
         			</xsd:appinfo>
         		</xsd:annotation>
