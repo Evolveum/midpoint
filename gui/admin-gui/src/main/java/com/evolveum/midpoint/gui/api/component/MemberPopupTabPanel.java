@@ -28,11 +28,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal.LimitationsEditorDialog;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
@@ -51,11 +51,11 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     private static final String ID_RELATION = "relation";
 
     private PageBase pageBase;
-    private List<RelationTypes> availableRelationList = new ArrayList<>();
+    private List<RelationTypes> supportedRelationList = new ArrayList<>();
 
-    public MemberPopupTabPanel(String id, ObjectTypes type, List<RelationTypes> availableRelationList){
-        super(id, type);
-        this.availableRelationList = availableRelationList;
+    public MemberPopupTabPanel(String id, List<RelationTypes> supportedRelationList){
+        super(id);
+        this.supportedRelationList = supportedRelationList;
     }
 
     @Override
@@ -65,7 +65,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     }
 
     @Override
-    protected void initParametersPanel(){
+    protected void initParametersPanel(Fragment parametersPanel){
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
         relationContainer.setOutputMarkupId(true);
         relationContainer.add(new VisibleEnableBehaviour(){
@@ -73,18 +73,18 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
 
             @Override
             public boolean isVisible(){
-                return CollectionUtils.isNotEmpty(availableRelationList);
+                return CollectionUtils.isNotEmpty(supportedRelationList);
             }
 
             @Override
             public boolean isEnabled(){
-                return CollectionUtils.isNotEmpty(availableRelationList) && availableRelationList.size() > 1;
+                return CollectionUtils.isNotEmpty(supportedRelationList) && supportedRelationList.size() > 1;
             }
         });
-        add(relationContainer);
+        parametersPanel.add(relationContainer);
 
         DropDownChoicePanel<RelationTypes> relationSelector =  new DropDownChoicePanel<RelationTypes> (ID_RELATION,
-                Model.of(getDefaultRelationValue()), Model.ofList(availableRelationList),
+                Model.of(getDefaultRelationValue()), Model.ofList(supportedRelationList),
                 WebComponentUtil.getEnumChoiceRenderer(MemberPopupTabPanel.this), false);
         relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relationSelector.setOutputMarkupId(true);
@@ -93,13 +93,13 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     }
 
     private RelationTypes getDefaultRelationValue(){
-        return CollectionUtils.isNotEmpty(availableRelationList) ? availableRelationList.get(0) : RelationTypes.MEMBER;
+        return CollectionUtils.isNotEmpty(supportedRelationList) ? supportedRelationList.get(0) : RelationTypes.MEMBER;
     }
 
     protected ObjectDelta prepareDelta(){
         ObjectDelta delta = null;
         try {
-            Class classType = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), type.getTypeQName());
+            Class classType = WebComponentUtil.qnameToClass(pageBase.getPrismContext(), getObjectType().getTypeQName());
             delta =  ObjectDelta.createEmptyModifyDelta(classType, "fakeOid", pageBase.getPrismContext());
             AssignmentType newAssignment = new AssignmentType();
             ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getAbstractRoleTypeObject());

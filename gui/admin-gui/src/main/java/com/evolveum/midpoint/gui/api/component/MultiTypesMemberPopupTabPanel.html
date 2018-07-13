@@ -14,8 +14,16 @@
   ~ limitations under the License.
   -->
 
-<wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <wicket:child />
-    <div wicket:id="objectListPanel" />
-    <div wicket:id="parametersPanel" />
-</wicket:panel>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div class="form-inline">
+        <div wicket:id="typeSelectPanel" class="form-group" style="padding: 5px 0px 5px 0px">
+            <label>
+                <wicket:message key="roleMemberPanel.type"/>
+            </label>
+            <select class="form-control input-sm" wicket:id="type"/>
+        </div>
+    </div>
+</wicket:extend>
+</html>

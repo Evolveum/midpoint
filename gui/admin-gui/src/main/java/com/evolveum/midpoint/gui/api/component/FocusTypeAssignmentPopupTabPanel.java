@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
@@ -60,10 +61,10 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     @Override
-    protected void initParametersPanel(){
+    protected void initParametersPanel(Fragment parametersPanel){
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
         relationContainer.setOutputMarkupId(true);
-        add(relationContainer);
+        parametersPanel.add(relationContainer);
 
         DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER),
@@ -124,5 +125,10 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         }
         query.addFilter(filter);
         return query;
+    }
+
+    @Override
+    protected ObjectTypes getObjectType(){
+        return ObjectTypes.FOCUS_TYPE;
     }
 }

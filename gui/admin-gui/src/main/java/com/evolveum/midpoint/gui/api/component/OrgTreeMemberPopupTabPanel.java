@@ -37,7 +37,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
     private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
     public OrgTreeMemberPopupTabPanel(String id, List<RelationTypes> availableRelationList){
-        super(id, ObjectTypes.ORG, availableRelationList);
+        super(id, availableRelationList);
     }
 
     @Override
@@ -89,11 +89,10 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
         return getPreselectedObjects();
     }
 
-//    @Override
-//    protected List<AssignmentType> getSelectedAssignmentsMap(){
-//        isOrgTreeView = true;
-//        return super.getSelectedAssignmentsMap();
-//    }
+    @Override
+    protected ObjectTypes getObjectType(){
+        return ObjectTypes.ORG;
+    }
 
     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){}
 }
