@@ -341,11 +341,21 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     protected abstract T getAssignmentTargetRefObject();
 
     public int getWidth(){
-        return 900;
+        return 80;
     }
 
     public int getHeight(){
-        return 1200;
+        return 80;
+    }
+
+    @Override
+    public String getWidthUnit(){
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "%";
     }
 
     public StringResourceModel getTitle(){

@@ -29,6 +29,8 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.ClientProperties;
+import org.apache.wicket.protocol.http.WebSession;
 
 import java.util.*;
 
@@ -275,11 +277,21 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     public int getWidth(){
-        return 900;
+        return 80;
     }
 
     public int getHeight(){
-        return 1200;
+        return 80;
+    }
+
+    @Override
+    public String getWidthUnit(){
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "%";
     }
 
     public StringResourceModel getTitle(){

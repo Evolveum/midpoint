@@ -504,6 +504,16 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 	}
 
 	@Override
+	public String getWidthUnit(){
+		return "px";
+	}
+
+	@Override
+	public String getHeightUnit(){
+		return "px";
+	}
+
+	@Override
 	public StringResourceModel getTitle() {
 		return PageBase.createStringResourceStatic(TypedAssignablePanel.this, "TypedAssignablePanel.selectObjects");
 	}

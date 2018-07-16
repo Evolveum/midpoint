@@ -63,6 +63,16 @@ public class ChooseFocusTypeDialogPanel extends BasePanel implements Popupable{
 	}
 
 	@Override
+	public String getWidthUnit(){
+		return "px";
+	}
+
+	@Override
+	public String getHeightUnit(){
+		return "px";
+	}
+
+	@Override
 	public StringResourceModel getTitle() {
 		return new StringResourceModel("ChooseFocusTypeDialogPanel.chooseType");
 	}

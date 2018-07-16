@@ -733,6 +733,16 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 	}
 
 	@Override
+	public String getWidthUnit(){
+		return "px";
+	}
+
+	@Override
+	public String getHeightUnit(){
+		return "px";
+	}
+
+	@Override
 	public StringResourceModel getTitle() {
 		return new StringResourceModel("OperationResultPanel.result");
 	}

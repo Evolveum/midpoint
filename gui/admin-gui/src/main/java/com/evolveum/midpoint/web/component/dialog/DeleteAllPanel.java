@@ -351,6 +351,16 @@ public class DeleteAllPanel extends Panel  implements Popupable{
     }
 
     @Override
+    public String getWidthUnit(){
+        return "px";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "px";
+    }
+
+    @Override
     public StringResourceModel getTitle() {
         return createStringResource("pageDebugList.dialog.title.deleteAll");
     }
