@@ -101,6 +101,10 @@
                <groupId>org.springframework.boot</groupId>
                <artifactId>spring-boot-maven-plugin</artifactId>
                <version>${spring.boot.version}</version>
+               <configuration>
+                   <fork>true</fork>
+                   <skip>false</skip>
+               </configuration>
                <executions>
                    <execution>
                        <goals>
@@ -110,6 +114,18 @@
                            <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
                        </configuration>
                    </execution>
+                   <!--<execution>-->
+                       <!--<id>pre-integration-test</id>-->
+                       <!--<goals>-->
+                           <!--<goal>start</goal>-->
+                       <!--</goals>-->
+                   <!--</execution>-->
+                   <!--<execution>-->
+                       <!--<id>post-integration-test</id>-->
+                       <!--<goals>-->
+                           <!--<goal>stop</goal>-->
+                       <!--</goals>-->
+                   <!--</execution>-->
                </executions>
                <dependencies>
                    <dependency>
@@ -119,6 +135,25 @@
                    </dependency>
                </dependencies>
            </plugin>
+           <!--<plugin>-->
+                   <!--<groupId>org.apache.maven.plugins</groupId>-->
+                   <!--<artifactId>maven-failsafe-plugin</artifactId>-->
+               <!--<configuration>-->
+                   <!--<includes>-->
+                       <!--<include>**/IT*.java</include>-->
+                       <!--<include>**/*IT.java</include>-->
+                       <!--<include>**/*ITCase.java</include>-->
+                   <!--</includes>-->
+               <!--</configuration>-->
+               <!--<executions>-->
+                   <!--<execution>-->
+                       <!--<goals>-->
+                           <!--<goal>integration-test</goal>-->
+                           <!--<goal>verify</goal>-->
+                       <!--</goals>-->
+                   <!--</execution>-->
+               <!--</executions>-->
+           <!--</plugin>-->
        </plugins>
     </build>
 

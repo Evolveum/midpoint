@@ -74,6 +74,15 @@
                 <artifactId>wrapper-maven-plugin</artifactId>
                 <version>0.0.4</version>
             </plugin>
+
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+		<version>2.0.1.RELEASE</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>

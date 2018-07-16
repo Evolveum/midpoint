@@ -76,7 +76,7 @@
             </exclusions>
             <scope>test</scope>
         </dependency>
-        <dependency>
+       <!-- <dependency>
             <groupId>com.evolveum.midpoint</groupId>
             <artifactId>midpoint-war-layout</artifactId>
             <version>${project.version}</version>
@@ -87,8 +87,17 @@
                     <artifactId>commons-compress</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency> -->
+
+       <dependency>
+        <groupId>com.evolveum.midpoint.gui</groupId>
+        <artifactId>admin-gui</artifactId>
+        <version>3.9-SNAPSHOT</version>
+        <type>war</type>
+       </dependency>
     </dependencies>
+
+
 
     <!--possibly some obsolete begin -->
     <dependencyManagement>
@@ -155,40 +164,63 @@
 
     <!--possibly obsolete end -->
 
-<build>
-    <plugins>
-        <plugin>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-maven-plugin</artifactId>
-            <version>${spring.boot.version}</version>
+<!--<build>-->
+    <!--<plugins>-->
+        <!--<plugin>-->
+            <!--<groupId>org.springframework.boot</groupId>-->
+            <!--<artifactId>spring-boot-maven-plugin</artifactId>-->
+            <!--<version>${spring.boot.version}</version>-->
+            <!--<executions>-->
+                <!--<execution>-->
+                    <!--<goals>-->
+                        <!--<goal>run</goal>-->
+                    <!--</goals>-->
+                    <!--<configuration>-->
+                        <!--<includes>-->
+                            <!--<include>-->
+                                <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
+                                <!--<artifactId>admin-gui</artifactId>-->
+                            <!--</include>-->
+                        <!--</includes>-->
+                        <!--<mainClass>com.evolveum.midpoint.web.boot.MidPointSpringApplication</mainClass>-->
+                        <!--<startClass>com.evolveum.midpoint.web.boot.MidPointSpringApplication</startClass>-->
+                    <!--</configuration>-->
+                <!--</execution>-->
+            <!--</executions>-->
+            <!--<dependencies>-->
+                <!--<dependency>-->
+                    <!--<groupId>com.evolveum.midpoint</groupId>-->
+                    <!--<artifactId>midpoint-war-layout</artifactId>-->
+                    <!--<version>${project.version}</version>-->
+                <!--</dependency>-->
+                <!--<dependency>-->
+                    <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
+                    <!--<artifactId>admin-gui</artifactId>-->
+                    <!--<version>3.9-SNAPSHOT</version>-->
+                    <!--<type>war</type>-->
+                <!--</dependency>-->
+            <!--</dependencies>-->
+        <!--</plugin>-->
+    <!--</plugins>-->
+<!--</build>-->
 
-            <configuration>
-                <mainClass>com.evolveum.midpoint.web.boot.MidPointSpringApplication</mainClass>
-            </configuration>
-            <executions>
-                <execution>
-                    <id>pre-integration-test</id>
-                    <goals>
-                        <goal>start</goal>
-                    </goals>
-                </execution>
-                <execution>
-                    <id>post-integration-test</id>
-                    <goals>
-                        <goal>stop</goal>
-                    </goals>
-                </execution>
-            </executions>
-            <dependencies>
-                <dependency>
-                    <groupId>com.evolveum.midpoint.gui</groupId>
-                    <artifactId>admin-gui</artifactId>
-                    <version>${project.version}</version>
-                    <type>war</type>
-                </dependency>
-            </dependencies>
-        </plugin>
-    </plugins>
-</build>
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
 
 </project>
