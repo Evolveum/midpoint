@@ -84,6 +84,8 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
         supportedTypes.remove(ObjectTypes.ORG);
         supportedTypes.remove(ObjectTypes.FOCUS_TYPE);
         supportedTypes.remove(ObjectTypes.ABSTRACT_ROLE);
+        supportedTypes.remove(ObjectTypes.NODE);
+        supportedTypes.remove(ObjectTypes.SHADOW);
 
         return supportedTypes;
     }

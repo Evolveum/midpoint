@@ -407,7 +407,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							OrgMemberPanel.this.addMembers(target);
+							OrgMemberPanel.this.addMembers(target, Arrays.asList(RelationTypes.MANAGER));
 						}
 					}));
 		}
@@ -448,27 +448,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		getMemberTable().clearCache();
 		getMemberTable().refreshTable(WebComponentUtil
 				.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName(), ObjectType.class), target);
-	}
-
-	protected void addMembers(AjaxRequestTarget target) {
-
-		ChooseMemberForOrgPopup browser = new ChooseMemberForOrgPopup(getPageBase().getMainPopupBodyId(), getAvailableRelationList()) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected OrgType getAssignmentTargetRefObject(){
-				return OrgMemberPanel.this.getModelObject();
-			}
-		};
-		browser.setOutputMarkupId(true);
-
-		getPageBase().showMainPopup(browser, target);
-
-	}
-
-	@Override
-	protected List<RelationTypes> getAvailableRelationList(){
-		return Arrays.asList(RelationTypes.MANAGER);
 	}
 
 	protected void refreshSearch() {
@@ -513,30 +492,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return delta;
 	}
 
-	@Override
-	protected void addMembersPerformed(QName type, List<QName> relation, List selected, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, false));
-		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, relation, operationalTask.getResult(),
-				target);
-		if (delta == null) {
-			return;
-		}
-		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
-				TaskCategory.EXECUTE_CHANGES, target);
-
-	}
-
-	protected void addManagersPerformed(QName type, List selected, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, true));
-		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, Arrays.asList(SchemaConstants.ORG_MANAGER),
-				operationalTask.getResult(), target);
-		if (delta == null) {
-			return;
-		}
-		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
-				TaskCategory.EXECUTE_CHANGES, target);
-
-	}
 
 	protected void removeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
 

@@ -312,15 +312,6 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 	}
 
-	@Override
-	protected void addMembersPerformed(QName type, List<QName> relation, List selected, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null));
-		ObjectDelta delta = prepareDelta(type, relation, MemberOperation.ADD, operationalTask.getResult());
-		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
-				TaskCategory.EXECUTE_CHANGES, target);
-
-	}
-
 	private ObjectDelta prepareDelta(QName type, List<QName> relations, MemberOperation operation, OperationResult result) {
 		Class classType = WebComponentUtil.qnameToClass(getPrismContext(), type);
 		ObjectDelta delta = null;
@@ -431,11 +422,6 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		} else {
 			return ObjectQuery.createObjectQuery(TypeFilter.createType(objectType, query.getFilter()));
 		}
-	}
-
-	@Override
-	protected List<QName> getNewMemberSupportedTypes(){
-		return WebComponentUtil.createFocusTypeList();
 	}
 
 	@Override

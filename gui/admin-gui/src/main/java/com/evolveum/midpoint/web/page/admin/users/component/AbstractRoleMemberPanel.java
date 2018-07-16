@@ -108,8 +108,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	private LoadableModel<List<String>> managerRelationObjectsModel;
 	protected LoadableModel<List<String>> memberRelationObjectsModel;
 
-	private boolean areModelsInitialized = false;
-
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model) {
 		this(id, tableId, model, new ArrayList<>());
 	}
@@ -178,7 +176,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
-				AbstractRoleMemberPanel.this.createFocusMemberPerformed(null, target);
+				AbstractRoleMemberPanel.this.addMembers(target, getAvailableRelationList());
 			}
 
 			@Override
@@ -290,7 +288,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						addMembers(target);
+						addMembers(target, getAvailableRelationList());
 					}
 				}));
 		return newMemberMenuItems;
@@ -413,9 +411,9 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, this);
 	}
 
-	protected void addMembers(AjaxRequestTarget target) {
+	protected void addMembers(AjaxRequestTarget target, List<RelationTypes> availableRelationList) {
 
-		ChooseMemberPopup browser = new ChooseMemberPopup(getPageBase().getMainPopupBodyId(), getAvailableRelationList()) {
+		ChooseMemberPopup browser = new ChooseMemberPopup(getPageBase().getMainPopupBodyId(), availableRelationList) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -430,30 +428,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 
 	protected List<RelationTypes> getAvailableRelationList(){
-		return Arrays.asList(RelationTypes.values());
+		return Arrays.asList(RelationTypes.MEMBER, RelationTypes.MANAGER, RelationTypes.APPROVER, RelationTypes.OWNER);
 	}
-
-	protected List<QName> getNewMemberSupportedTypes(){
-		List<QName> types = WebComponentUtil.createObjectTypeList();
-		types.remove(NodeType.COMPLEX_TYPE);
-		types.remove(ShadowType.COMPLEX_TYPE);
-		return types;
-	}
-
-	protected ObjectQuery createQueryForAdd(List selected) {
-		List<String> oids = new ArrayList<>();
-		for (Object selectable : selected) {
-			if (selectable instanceof ObjectType) {
-				oids.add(((ObjectType) selectable).getOid());
-			}
-
-		}
-
-		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
-	}
-
-	protected abstract void addMembersPerformed(QName type, List<QName> relation, List selected,
-			AjaxRequestTarget target);
 
 	protected abstract void removeMembersPerformed(QueryScope scope, List<QName> relation, AjaxRequestTarget target);
 
