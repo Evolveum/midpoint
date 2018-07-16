@@ -60,4 +60,13 @@ public class AsynchronousOperationResult implements ShortDumpable {
 			sb.append(operationResult.getStatus());
 		}
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("AsynchronousOperationResult(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+	
 }

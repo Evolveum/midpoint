@@ -6033,6 +6033,9 @@
         				Postpone the operation in case that an error is encountered. The operation
         				will be re-tried later (consistency mechanism).
         			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:deprecated>true</a:deprecated>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
@@ -10215,6 +10218,9 @@
 							<xsd:documentation>
 								Result describing if shadow was successfully processed, or not. If not, the errors should  be saved.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
      				<xsd:element name="objectChange" type="t:ObjectDeltaType" minOccurs="0">
@@ -10234,6 +10240,9 @@
 							<xsd:documentation>
 								Description of number of attempts made for the resolving account consistency issues. 
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
      				<xsd:element name="failedOperationType" type="tns:FailedOperationTypeType" minOccurs="0">
@@ -10245,7 +10254,7 @@
 							</xsd:documentation>
 							 <xsd:appinfo>
 		                    	<a:displayName>ShadowType.failedOperationType</a:displayName>
-		                    	<a:emphasized>true</a:emphasized>
+								<a:deprecated>true</a:deprecated>
 		                    </xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -10471,6 +10480,7 @@
      		</xsd:documentation>
      		<xsd:appinfo>
       			<a:deprecated>true</a:deprecated>
+      			<a:plannedRemoval>4.0</a:plannedRemoval>
       		</xsd:appinfo>
      	</xsd:annotation>
      </xsd:element>
@@ -10652,6 +10662,21 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="lastAttemptTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The timestamp of last operation attempt (star of operation).
+    						During normal (positive) flow it is the same as operationStartTimestamp.
+    						But this timestamp will change if the operation fails and
+    						it is re-tried.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.9</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
 			<xsd:element name="completionTimestamp" type="xsd:dateTime" minOccurs="0">
     			<xsd:annotation>
     				<xsd:documentation>
@@ -10685,7 +10710,9 @@
     					<p>
     						Operation result status. This property specifies result of operation execution.
     						If execution status is present and set to anything else than "completed" then
-    						resultStatus may be empty.
+    						resultStatus may be empty. If result status is present in "executing" state
+    						then it means that execution was already attempted but it was not completed
+    						yet (e.g. there was an error and we will be retrying the operation).
     					</p>
     					<p>  
     						Legacy meaning: If no execution status is present then resultStatus
@@ -10713,6 +10740,16 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="attemptNumber" type="xsd:int" minOccurs="0" default="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of a current attempt at operation execution. Starts at 1.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
     		<!-- TODO operation type? E.g. distinguish between manual connector and consistency mechanism? Or is that implicit? -->
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>

@@ -32,7 +32,6 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
-import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory.Mode;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -57,14 +56,9 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceEventListenerImpl.class);
 
-	@Autowired(required = true)
-	private ShadowCacheFactory shadowCacheFactory;
-
-	@Autowired(required = true)
-	private ProvisioningContextFactory provisioningContextFactory;
-
-	@Autowired
-	private ChangeNotificationDispatcher notificationManager;
+	@Autowired private ShadowCache shadowCache;
+	@Autowired private ProvisioningContextFactory provisioningContextFactory;
+	@Autowired private ChangeNotificationDispatcher notificationManager;
 
 	@PostConstruct
 	public void registerForResourceObjectChangeNotifications() {
@@ -75,12 +69,6 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 	public void unregisterForResourceObjectChangeNotifications() {
 		notificationManager.unregisterNotificationListener(this);
 	}
-
-	private ShadowCache getShadowCache(ShadowCacheFactory.Mode mode){
-		return shadowCacheFactory.getShadowCache(mode);
-	}
-
-
 
 	@Override
 	public String getName() {
@@ -107,8 +95,6 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
 		shadow = eventDescription.getShadow();
 
-		ShadowCache shadowCache = getShadowCache(Mode.STANDARD);
-
 		ProvisioningContext ctx = provisioningContextFactory.create(shadow, task, parentResult);
 		ctx.assertDefinition();
 
@@ -133,7 +119,6 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
 	private void applyDefinitions(ResourceEventDescription eventDescription,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		ShadowCache shadowCache = getShadowCache(Mode.STANDARD);
 		if (eventDescription.getCurrentShadow() != null){
 			shadowCache.applyDefinition(eventDescription.getCurrentShadow(), parentResult);
 		}

@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -100,6 +101,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");
 	protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	protected static final String ACCOUNT_MORGAN_NAME = "morgan";
+	protected static final String ACCOUNT_MORGAN_FULLNAME = "Captain Morgan";
 	protected static final String ACCOUNT_MORGAN_PASSWORD = "sh1verM3T1mb3rs";
 
 	protected static final File ACCOUNT_LECHUCK_FILE = new File(TEST_DIR, "account-lechuck.xml");
@@ -394,5 +396,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected void assertEntitlementPriv(PrismObject<ShadowType> account, String entitlementOid) {
 		assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
 	}
+	
+	protected void checkRepoAccountShadow(PrismObject<ShadowType> shadowFromRepo) {
+		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+	}
+
 
 }

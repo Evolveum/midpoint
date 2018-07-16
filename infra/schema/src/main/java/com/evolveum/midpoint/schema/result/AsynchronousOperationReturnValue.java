@@ -40,5 +40,20 @@ public class AsynchronousOperationReturnValue<T> extends AsynchronousOperationRe
 		ret.setReturnValue(returnValue);
 		return ret;
 	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
+		super.shortDump(sb);
+		sb.append(": ");
+		sb.append(returnValue);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("AsynchronousOperationReturnValue(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
 
 }

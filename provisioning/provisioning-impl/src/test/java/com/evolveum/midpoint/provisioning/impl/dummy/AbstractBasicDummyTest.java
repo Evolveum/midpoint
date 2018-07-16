@@ -1360,10 +1360,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		dummyResource.assertNoConnections();
 	}
 
-	protected void checkRepoAccountShadow(PrismObject<ShadowType> shadowFromRepo) {
-		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
-	}
-
 	protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result,
 			XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
 		checkAccountShadow(shadow, result, true, startTs, endTs);
@@ -1373,7 +1369,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 		assertEquals("Unexpected number of attributes", 6, attributes.size());
 	}
-
 
 	/**
 	 * We do not know what the timestamp should be

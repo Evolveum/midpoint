@@ -798,23 +798,26 @@ public class ShadowManager {
 		return repoShadow;
 	}
 	
-	public String addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException, EncryptionException {
+	public void addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd, 
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, 
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException, EncryptionException {
 		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
 		if (consistency == null) {
-			return null;
+			return;
 		}
 		if (!BooleanUtils.isTrue(consistency.isUseProposedShadows())) {
-			return null;
+			return;
 		}
 		
-		PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, shadow);
+		PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, shadowToAdd);
 		repoShadow.asObjectable().setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
-		addPendingOperationAdd(repoShadow, shadow, PendingOperationExecutionStatusType.REQUESTED, null, task.getTaskIdentifier());
+		opState.setExecutionStatus(PendingOperationExecutionStatusType.REQUESTED);
+		addPendingOperationAdd(repoShadow, shadowToAdd, opState, task.getTaskIdentifier());
 		
 		ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
 		String oid = repositoryService.addObject(repoShadow, null, result);
 		LOGGER.trace("Proposed shadow added to the repository: {}", repoShadow);
-		return oid;
+		opState.setExistingShadowOid(oid);
 	}
 	
 	// Called when there is an provisioing error and proposed shadow is already created
@@ -858,7 +861,7 @@ public class ShadowManager {
 		// (e.g. in case that the add operation failed). If proposed shadow is present do modify instead of add.
 		
 		PrismObject<ShadowType> resourceShadow = shadowToAdd;
-		if (opState.wasStarted()) {
+		if (opState.wasStarted() && opState.getAsyncResult().getReturnValue() != null) {
 			resourceShadow = opState.getAsyncResult().getReturnValue();
 		}
 		
@@ -871,7 +874,9 @@ public class ShadowManager {
 					"Error while creating account shadow object to save in the reposiotory. Shadow is null.");
 		}
 
-		addPendingOperationAdd(repoShadow, resourceShadow, opState);
+		if (!opState.isCompleted()) {
+			addPendingOperationAdd(repoShadow, resourceShadow, opState, null);
+		}
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Adding repository shadow\n{}", repoShadow.debugDump(1));
@@ -940,8 +945,7 @@ public class ShadowManager {
 			
 			PrismContainerDefinition<PendingOperationType> containerDefinition = proposedShadow.getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
 			ContainerDelta<PendingOperationType> pendingOperationDelta =containerDefinition.createEmptyDelta(new ItemPath(ShadowType.F_PENDING_OPERATION));
-			pendingOperationDelta.addValuesToAdd(createPendingOperationAdd(proposedShadow, resourceShadow, 
-					opState.getExecutionStatus(), opState.getResultStatusType(), opState.getAsynchronousOperationReference()).asPrismContainerValue());
+			pendingOperationDelta.addValuesToAdd(createPendingOperationAdd(proposedShadow, resourceShadow, opState, null).asPrismContainerValue());
 			shadowChanges.add(pendingOperationDelta);
 						
 		}
@@ -967,45 +971,39 @@ public class ShadowManager {
 	private void addPendingOperationAdd(
 			PrismObject<ShadowType> repoShadow,
 			PrismObject<ShadowType> resourceShadow,
-			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState)
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, String asyncOperationReference)
 					throws SchemaException {
-		if (opState.isCompleted()) {
-			return;
-		}
-		addPendingOperationAdd(repoShadow, resourceShadow,  
-				opState.getExecutionStatus(),
-				opState.getResultStatusType(),
-				opState.getAsynchronousOperationReference());
-	}
-	
-	private void addPendingOperationAdd(
-			PrismObject<ShadowType> repoShadow, 
-			PrismObject<ShadowType> resourceShadow,
-			PendingOperationExecutionStatusType executionStatus,
-			OperationResultStatusType resultStatus, 
-			String asyncOperationReference)
-					throws SchemaException {
+		
 		ShadowType repoShadowType = repoShadow.asObjectable();
-		repoShadowType.getPendingOperation().add(createPendingOperationAdd(repoShadow, resourceShadow, executionStatus, resultStatus, asyncOperationReference));
+		repoShadowType.getPendingOperation().add(createPendingOperationAdd(repoShadow, resourceShadow, opState, asyncOperationReference));
 		repoShadowType.setExists(false);
 	}
-	
+		
 	private PendingOperationType createPendingOperationAdd(
 			PrismObject<ShadowType> repoShadow, 
 			PrismObject<ShadowType> resourceShadow,
-			PendingOperationExecutionStatusType executionStatus,
-			OperationResultStatusType resultStatus, 
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, 
 			String asyncOperationReference) 
 					throws SchemaException {
 		ObjectDelta<ShadowType> addDelta = resourceShadow.createAddDelta();
 		ObjectDeltaType addDeltaType = DeltaConvertor.toObjectDeltaType(addDelta);
 		PendingOperationType pendingOperation = new PendingOperationType();
 		pendingOperation.setDelta(addDeltaType);
-		pendingOperation.setRequestTimestamp(clock.currentTimeXMLGregorianCalendar());
-		pendingOperation.setExecutionStatus(executionStatus);
-		pendingOperation.setResultStatus(resultStatus);
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		pendingOperation.setRequestTimestamp(now);
+		if (PendingOperationExecutionStatusType.EXECUTING.equals(opState.getExecutionStatus())) {
+			pendingOperation.setOperationStartTimestamp(now);
+		}
+		pendingOperation.setExecutionStatus(opState.getExecutionStatus());
+		pendingOperation.setResultStatus(opState.getResultStatusType());
+		if (opState.getAttemptNumber() != null) {
+			pendingOperation.setAttemptNumber(opState.getAttemptNumber());
+			pendingOperation.setLastAttemptTimestamp(now);
+		}
 		if (asyncOperationReference != null) {
 			pendingOperation.setAsynchronousOperationReference(asyncOperationReference);
+		} else {
+			pendingOperation.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
 		}
 		return pendingOperation;
 	}

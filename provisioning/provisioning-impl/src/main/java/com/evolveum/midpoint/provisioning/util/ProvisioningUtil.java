@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,35 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
+import static java.util.Collections.emptyList;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
-import com.evolveum.midpoint.common.refinery.*;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
@@ -36,7 +59,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -47,8 +69,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefiniti
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -67,6 +89,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
@@ -79,54 +102,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static java.util.Collections.emptyList;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 public class ProvisioningUtil {
 
 	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
-
-	public static List<ItemDelta<?, ?>> createShadowCleanupAndReconciliationDeltas(PrismObject<ShadowType> currentShadow,
-			PrismObject<ShadowType> repoShadowBefore, PrismContext prismContext) throws SchemaException {
-		List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
-
-		S_ItemEntry i = DeltaBuilder.deltaFor(ShadowType.class, prismContext);
-		ShadowType repo = repoShadowBefore.asObjectable();
-		if (repo.getAttemptNumber() != null) {
-			i = i.item(ShadowType.F_ATTEMPT_NUMBER).replace();
-		}
-		if (repo.getFailedOperationType() != null) {
-			i = i.item(ShadowType.F_FAILED_OPERATION_TYPE).replace();
-		}
-		if (repo.getObjectChange() != null) {
-			i = i.item(ShadowType.F_OBJECT_CHANGE).replace();
-		}
-		if (repo.getResult() != null) {
-			i = i.item(ShadowType.F_RESULT).replace();
-		}
-		if (repo.getCredentials() != null) {
-			i = i.item(ShadowType.F_CREDENTIALS).replace();
-		}
-		itemDeltas.addAll(i.asItemDeltas());
-		itemDeltas.addAll(ProvisioningUtil.createShadowAttributesReconciliationDeltas(currentShadow, repoShadowBefore, getPrismContext()));
-		itemDeltas.addAll(ProvisioningUtil.createShadowActivationCleanupDeltas(repo, getPrismContext()));
-		return itemDeltas;
-	}
 
 	public static PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition(
 			PrismContext prismContext) {
@@ -682,5 +664,38 @@ public class ProvisioningUtil {
 	
 	public static boolean isCompleted(OperationResultStatusType statusType) {
 		 return statusType != null && statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
+	}
+	
+	public static boolean hasPendingAddOperation(PrismObject<ShadowType> shadow) {
+		for (PendingOperationType pendingOperation: shadow.asObjectable().getPendingOperation()) {
+			if (isPendingAddOperation(pendingOperation)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isPendingAddOperation(PendingOperationType pendingOperation) {
+		return ChangeTypeType.ADD.equals(pendingOperation.getDelta().getChangeType()) && 
+				!PendingOperationExecutionStatusType.COMPLETED.equals(pendingOperation.getExecutionStatus());
+	}
+	
+	/**
+	 * Explicitly check the capability of the resource (primary connector), not capabilities of additional connectors
+	 */
+	public static boolean isPrimaryCachingOnly(ResourceType resource) {
+		ReadCapabilityType readCapabilityType = CapabilityUtil.getEffectiveCapability(resource.getCapabilities(), ReadCapabilityType.class);
+		if (readCapabilityType == null) {
+			return false;
+		}
+		if (!CapabilityUtil.isCapabilityEnabled(readCapabilityType)) {
+			return false;
+		}
+		return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
+	}
+	
+	public static boolean isFuturePointInTime(Collection<SelectorOptions<GetOperationOptions>> options) {
+		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
+		return PointInTimeType.FUTURE.equals(pit);
 	}
 }

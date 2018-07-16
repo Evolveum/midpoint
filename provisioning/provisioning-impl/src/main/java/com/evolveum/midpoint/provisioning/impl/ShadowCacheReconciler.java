@@ -52,67 +52,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 
-@Component
 public class ShadowCacheReconciler extends ShadowCache {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCacheReconciler.class);
-
-	@Override
-	public String afterAddOnResource(ProvisioningContext ctx, 
-			PrismObject<ShadowType> shadowToAdd, 
-			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
-		AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResult = opState.getAsyncResult();
-		if (addResult == null) {
-			return opState.getExistingShadowOid();
-		}
-		PrismObject<ShadowType> shadow = addResult.getReturnValue();
-		cleanShadowInRepository(shadow, parentResult);
-		opState.setExistingShadowOid(shadow.getOid());  // hack: MID-4542
-		return shadowManager.addNewActiveRepositoryShadow(ctx, shadowToAdd, opState, parentResult);
-	}
-
-	@Override
-	public void afterModifyOnResource(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
-			Collection<? extends ItemDelta> modifications,
-			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-			XMLGregorianCalendar now,
-			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException {
-		LOGGER.trace("Modified shadow is reconciled. Start to clean up account after successful reconciliation.");
-		try {
-			cleanShadowInRepository(shadow, parentResult);
-		} catch (ObjectAlreadyExistsException ex) {
-			//should be never thrown
-			throw new SystemException("While modifying object in the repository got exception: " + ex.getMessage(), ex);
-		}
-		LOGGER.trace("Shadow cleaned up successfully.");
-		shadowManager.modifyShadow(ctx, shadow, modifications, opState, now, parentResult);
-	}
-	
-	private void cleanShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
-		PrismObject<ShadowType> repoShadowBefore = getRepositoryService().getObject(ShadowType.class, shadow.getOid(), null, parentResult);
-		List<ItemDelta<?, ?>> itemDeltas =
-				ProvisioningUtil.createShadowCleanupAndReconciliationDeltas(shadow, repoShadowBefore, getPrismContext());
-
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Cleaning up repository shadow:\n{}\nThe current object is:\n{}\nAnd computed deltas are:\n{}",
-					repoShadowBefore.debugDumpLazily(), shadow.debugDumpLazily(), DebugUtil.debugDumpLazily(itemDeltas));
-		}
-		
-		try {
-			ConstraintsChecker.onShadowModifyOperation(itemDeltas);
-			getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, parentResult);
-		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Couldn't clean-up shadow: schema violation: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			parentResult.recordFatalError("Couldn't clean-up shadow: shadow already exists: " + ex.getMessage(), ex);
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Couldn't clean-up shadow: shadow not found: " + ex.getMessage(), ex);
-			throw ex;
-		}
-	}
 
 	@Override
 	public Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {

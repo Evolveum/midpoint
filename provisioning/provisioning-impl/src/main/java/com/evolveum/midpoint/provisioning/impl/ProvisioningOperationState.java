@@ -31,6 +31,7 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 	private A asyncResult;
 	private PendingOperationExecutionStatusType executionStatus;
 	private String existingShadowOid;
+	private Integer attemptNumber;
 	
 	public A getAsyncResult() {
 		return asyncResult;
@@ -54,6 +55,14 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 	
 	public void setExistingShadowOid(String existingShadowOid) {
 		this.existingShadowOid = existingShadowOid;
+	}
+
+	public Integer getAttemptNumber() {
+		return attemptNumber;
+	}
+
+	public void setAttemptNumber(Integer attemptNumber) {
+		this.attemptNumber = attemptNumber;
 	}
 
 	/**
@@ -116,12 +125,15 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 	@Override
 	public String toString() {
 		return "ProvisioningOperationState(asyncResult=" + asyncResult + ", executionStatus="
-				+ executionStatus + ", existingShadowOid=" + existingShadowOid + ")";
+				+ executionStatus + ", existingShadowOid=" + existingShadowOid + ", attemptNumber="+attemptNumber+")";
 	}
 
 	@Override
 	public void shortDump(StringBuilder sb) {
 		sb.append(executionStatus);
+		if (attemptNumber != null) {
+			sb.append(", attempt #").append(attemptNumber);
+		}
 		if (asyncResult != null) {
 			sb.append(":");
 			asyncResult.shortDump(sb);

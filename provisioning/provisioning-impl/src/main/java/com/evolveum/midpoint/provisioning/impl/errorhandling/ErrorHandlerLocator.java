@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.consistency.impl;
+package com.evolveum.midpoint.provisioning.impl.errorhandling;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -30,40 +29,17 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 @Component
-public class ErrorHandlerFactory {
+public class ErrorHandlerLocator {
 	
-	@Autowired(required=true)
-	CommunicationExceptionHandler communicationExceptionHandler;
+	@Autowired CommunicationExceptionHandler communicationExceptionHandler;
+	@Autowired SchemaExceptionHandler schemaExceptionHandler;
+	@Autowired ObjectNotFoundHandler objectNotFoundHandler;
+	@Autowired ObjectAlreadyExistHandler objectAlreadyExistsHandler;
+	@Autowired GenericErrorHandler genericErrorHandler;
+	@Autowired ConfigurationExceptionHandler configurationExceptionHandler;
+	@Autowired SecurityViolationHandler securityViolationHandler;
 	
-	@Autowired(required=true)
-	SchemaExceptionHandler schemaExceptionHandler;
-	
-	@Autowired(required=true)
-	ObjectNotFoundHandler objectNotFoundHandler;
-	
-	@Autowired(required=true)
-	ObjectAlreadyExistHandler objectAlreadyExistsHandler;
-	
-	@Autowired(required=true)
-	GenericErrorHandler genericErrorHandler;
-	
-	@Autowired(required=true)
-	ConfigurationExceptionHandler configurationExceptionHandler;
-	
-	@Autowired(required=true)
-	SecurityViolationHandler securityViolationHandler;
-	
-	
-//	public CommunicationExceptionHandler getCommunicationExceptionHandler() {
-//		return communicationExceptionHandler;
-//	}
-//	public void setCommunicationExceptionHandler(CommunicationExceptionHandler communicationExceptionHandler) {
-//		this.communicationExceptionHandler = communicationExceptionHandler;
-//	}
-	
-	
-	
-	public ErrorHandler createErrorHandler(Throwable ex) {
+	public ErrorHandler locateErrorHandler(Throwable ex) {
 		if (ex instanceof CommunicationException){
 			return communicationExceptionHandler;
 		}
