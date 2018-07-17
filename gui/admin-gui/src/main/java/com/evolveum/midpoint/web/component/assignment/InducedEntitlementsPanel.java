@@ -52,16 +52,16 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected void initCustomPaging() {
-        getInducedEntitlementsTabStorage().setPaging(ObjectPaging.createPaging(0, getCustomItemsPerPage()));
+        getInducedEntitlementsTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
     }
 
     @Override
-    protected UserProfileStorage.TableId getCustomTableId() {
+    protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE;
     }
 
     @Override
-    protected int getCustomItemsPerPage() {
+    protected int getItemsPerPage() {
         return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE);
     }
 
@@ -123,11 +123,6 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         }
         return query;
     }
-
-//    @Override
-//    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-//        return new InducedEntitlementDetailsPanel(idAssignmentDetails, form, model);
-//    }
     
     @Override
 	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {

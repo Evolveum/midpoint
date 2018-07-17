@@ -33,7 +33,6 @@ import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -50,6 +49,7 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -68,7 +68,6 @@ import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvi
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
-import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -83,19 +82,9 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
 	private final static String ID_ACTIVATION_PANEL = "activationPanel";
 	protected static final String ID_SPECIFIC_CONTAINER = "specificContainers";
-//	private static final String ID_NEW_ASSIGNMENT_BUTTON = "newAssignmentButton";
-//	private static final String ID_ASSIGNMENTS_TABLE = "assignmentsTable";
-//	private static final String ID_ASSIGNMENTS_DETAILS = "assignmentsDetails";
-//	private static final String ID_ASSIGNMENT_DETAILS = "assignmentDetails";
-//
-//	private static final String ID_DETAILS = "details";
-//
-//	private final static String ID_DONE_BUTTON = "doneButton";
-//	private final static String ID_CANCEL_BUTTON = "cancelButton";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
 
-	private MultivalueContainerListPanel<AssignmentType> multivalueContainerListPanel;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
 
 	public AssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
@@ -110,7 +99,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	
 	private void initLayout() {
 		
-		this.multivalueContainerListPanel = new MultivalueContainerListPanel<AssignmentType>(ID_ASSIGNMENTS, getModel()) {
+		MultivalueContainerListPanel<AssignmentType> multivalueContainerListPanel = new MultivalueContainerListPanel<AssignmentType>(ID_ASSIGNMENTS, getModel(), getTableId(),
+				getItemsPerPage(), getAssignmentsTabStorage()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -141,24 +131,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			}
 
 			@Override
-			protected void newAssignmentPerformed(AjaxRequestTarget target) {
+			protected void newItemPerformed(AjaxRequestTarget target) {
 				newAssignmentClickPerformed(target);				
-			}
-
-			@Override
-			protected void createDetailsPanel(WebMarkupContainer assignmentsContainer) {
-				initDetailsPanel(assignmentsContainer);
-				
-			}
-
-			@Override
-			protected TableId getTableId() {
-				return getCustomTableId();
-			}
-
-			@Override
-			protected int getItemsPerPage() {
-				return getCustomItemsPerPage();
 			}
 
 			@Override
@@ -173,20 +147,16 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			}
 
 			@Override
-			protected PageStorage getPageStorage() {
-				return getAssignmentsTabStorage();
+			protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel(
+					ListItem<ContainerValueWrapper<AssignmentType>> item) {
+				return createMultivalueContainerDetailsPanel(item);
 			}
+
 		};
 		
 		add(multivalueContainerListPanel);
 		
-		
-//		initListPanel();
-//
-//		initDetailsPanel();
-//
 		setOutputMarkupId(true);
-
 	}
 	
 	protected abstract void initCustomPaging();
@@ -194,111 +164,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected AssignmentsTabStorage getAssignmentsTabStorage(){
         return getParentPage().getSessionStorage().getAssignmentsTabStorage();
     }
-	
-//	private void initListPanel() {
-//		WebMarkupContainer assignmentsContainer = new WebMarkupContainer(ID_ASSIGNMENTS);
-//		assignmentsContainer.setOutputMarkupId(true);
-//		add(assignmentsContainer);
-//
-//		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignmentTable = initAssignmentTable();
-//		assignmentsContainer.add(assignmentTable);
-//
-//		AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ASSIGNMENT_BUTTON, new Model<>("fa fa-plus"),
-//				createStringResource("MainObjectListPanel.newObject")) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				newAssignmentClickPerformed(target);
-//			}
-//		};
-//
-//		newObjectIcon.add(new VisibleEnableBehaviour() {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public boolean isVisible() {
-//				try {
-//					return getParentPage().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI,
-//							AuthorizationPhaseType.REQUEST, getFocusObject(),
-//							null, null, null);
-//				} catch (Exception ex){
-//					return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
-//				}
-//			}
-//		});
-//		assignmentsContainer.add(newObjectIcon);
-//
-//		initCustomLayout(assignmentsContainer);
-//
-//		assignmentsContainer.add(new VisibleEnableBehaviour() {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public boolean isVisible() {
-//				return !assignmentDetailsVisible;
-//			}
-//		});
-//
-//	}
-
-//	private BoxedTablePanel<ContainerValueWrapper<AssignmentType>> initAssignmentTable() {
-//
-//		ContainerListDataProvider assignmentsProvider = new ContainerListDataProvider(this, new PropertyModel<>(getModel(), "values")) {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-//				getAssignmentsStorage().setPaging(paging);
-//			}
-//
-//			@Override
-//			public ObjectQuery getQuery() {
-//				return createObjectQuery();
-//			}
-//			
-//			@Override
-//			protected List<ContainerValueWrapper<AssignmentType>> searchThroughList() {
-//				List<ContainerValueWrapper<AssignmentType>> resultList = super.searchThroughList();
-//				return postSearch(resultList);
-//			}
-//
-//		};
-//
-//		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = initBasicColumns();
-//		List<InlineMenuItem> menuActionsList = getAssignmentMenuActions();
-//		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
-//
-//		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignmentTable = new BoxedTablePanel<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_TABLE,
-//				assignmentsProvider, columns, getCustomTableId(), getCustomItemsPerPage()) {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public int getItemsPerPage() {
-//				return getPageBase().getSessionStorage().getUserProfile().getTables()
-//						.get(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
-//			}
-//
-//			@Override
-//			protected Item<ContainerValueWrapper<AssignmentType>> customizeNewRowItem(Item<ContainerValueWrapper<AssignmentType>> item,
-//																					  IModel<ContainerValueWrapper<AssignmentType>> model) {
-//				item.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
-//							@Override
-//							public String getObject() {
-//								return AssignmentsUtil.createAssignmentStatusClassModel(model.getObject());
-//							}
-//						}));
-//				return item;
-//			}
-//
-//		};
-//		assignmentTable.setOutputMarkupId(true);
-//		assignmentTable.setCurrentPage(getAssignmentsStorage().getPaging());
-//		return assignmentTable;
-//
-//	}
 	
 	protected List<ContainerValueWrapper<AssignmentType>> customPostSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
 		return assignments;
@@ -348,7 +213,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                assignmentDetailsPerformed(target, rowModel);
+            	getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
             }
         });
 
@@ -372,82 +237,73 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
 
 	protected abstract Fragment getCustomSearchPanel(String contentAreaId);
-
-	private void initDetailsPanel(WebMarkupContainer details) {
-
-		ListView<ContainerValueWrapper<AssignmentType>> assignmentDetailsView = new ListView<ContainerValueWrapper<AssignmentType>>(MultivalueContainerListPanel.ID_ITEMS_DETAILS,
-				new AbstractReadOnlyModel<List<ContainerValueWrapper<AssignmentType>>>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public List<ContainerValueWrapper<AssignmentType>> getObject() {
-						return detailsPanelAssignmentsList;
-					}
-				}) {
+	
+	private MultivalueContainerDetailsPanel<AssignmentType> createMultivalueContainerDetailsPanel(
+			ListItem<ContainerValueWrapper<AssignmentType>> item) {
+		MultivalueContainerDetailsPanel<AssignmentType> detailsPanel = new  MultivalueContainerDetailsPanel<AssignmentType>(MultivalueContainerListPanel.ID_ITEM_DETAILS, item.getModel()) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<ContainerValueWrapper<AssignmentType>> item) {
-				Form form = this.findParent(Form.class);
-				MultivalueContainerDetailsPanel<AssignmentType> detailsPanel = new  MultivalueContainerDetailsPanel<AssignmentType>(MultivalueContainerListPanel.ID_ITEM_DETAILS, item.getModel()) {
-
-					@Override
-					protected IModel createDisplayNameModel() {
-						return getDisplayModel(item.getModelObject().getContainerValue().getValue());
-					}
-
-					@Override
-					protected QName getRelationForDisplayNamePanel() {
-						AssignmentType assignment = getModelObject().getContainerValue().getValue();
-						if (assignment.getTargetRef() != null) {
-							return assignment.getTargetRef().getRelation();
-						} else {
-							return null;
-						}
-					}
-					
-					@Override
-					protected IModel<String> getKindIntentLabelModelForDisplayNamePanel() {
-						AssignmentType assignment = getModelObject().getContainerValue().getValue();
-						if (assignment.getConstruction() != null){
-							return createStringResource("DisplayNamePanel.kindIntentLabel", assignment.getConstruction().getKind(),
-									assignment.getConstruction().getIntent());
-						}
-						return Model.of();
-					}
-					
-					@Override
-					protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
-						PrismContainerValue<AssignmentType> prismContainerValue = getModelObject().getContainerValue();
-						ItemPath assignmentPath = getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
-						return getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
-					}
-
-					@Override
-					protected  Fragment getSpecificContainers(String contentAreaId) {
-						Fragment specificContainers = getCustomSpecificContainers(contentAreaId, getModelObject());
-						
-						ItemPath assignmentPath = getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
-						ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType> activationModel = new ContainerWrapperFromObjectWrapperModel<>(((PageAdminObjectDetails<FocusType>)getPageBase()).getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-						PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel(ID_ACTIVATION_PANEL, Model.of(activationModel), true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), getPageBase());
-						specificContainers.add(acitvationContainer);
-						
-						return specificContainers;
-					}
-				
-				};
-				item.add(detailsPanel);
-				detailsPanel.setOutputMarkupId(true);
-
+			protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+				PrismContainerValue<AssignmentType> prismContainerValue = item.getModelObject().getContainerValue();
+				ItemPath assignmentPath = item.getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
+				return getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
 			}
-			
 
+			@Override
+			protected  Fragment getSpecificContainers(String contentAreaId) {
+				Fragment specificContainers = getCustomSpecificContainers(contentAreaId, item.getModelObject());
+				Form form = this.findParent(Form.class);
+				
+				ItemPath assignmentPath = item.getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
+				ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType>(((PageAdminObjectDetails<FocusType>)getPageBase()).getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
+				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, Model.of(activationModel), true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), getPageBase());
+				specificContainers.add(acitvationContainer);
+				
+				return specificContainers;
+			}
+
+			@Override
+			protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
+				IModel<AssignmentType> displayNameModel = getDisplayModel(item.getModelObject().getContainerValue().getValue());
+				return new DisplayNamePanel<AssignmentType>(displayNamePanelId, displayNameModel) {
+		    		
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected QName getRelation() {
+			    		return getRelationForDisplayNamePanel(item.getModelObject());
+					}
+
+					@Override
+					protected IModel<String> getKindIntentLabelModel() {
+						return getKindIntentLabelModelForDisplayNamePanel(item.getModelObject());
+					}
+
+				};
+			}
+		
 		};
+		return detailsPanel;
+	}
 
-		assignmentDetailsView.setOutputMarkupId(true);
-		details.add(assignmentDetailsView);
-
+	private QName getRelationForDisplayNamePanel(ContainerValueWrapper<AssignmentType> modelObject) {
+		AssignmentType assignment = modelObject.getContainerValue().getValue();
+		if (assignment.getTargetRef() != null) {
+			return assignment.getTargetRef().getRelation();
+		} else {
+			return null;
+		}
+	}
+	
+	private IModel<String> getKindIntentLabelModelForDisplayNamePanel(ContainerValueWrapper<AssignmentType> modelObject) {
+		AssignmentType assignment = modelObject.getContainerValue().getValue();
+		if (assignment.getConstruction() != null){
+			return createStringResource("DisplayNamePanel.kindIntentLabel", assignment.getConstruction().getKind(),
+					assignment.getConstruction().getIntent());
+		}
+		return Model.of();
 	}
 	
 	private ItemVisibility getActivationVisibileItems(ItemPath pathToCheck, ItemPath assignmentPath) {
@@ -464,17 +320,17 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	
 	protected abstract Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject);
 	
-	protected PrismContainerPanel getPolicyRuleContainerPanel(ContainerValueWrapper<AssignmentType> modelObject) {
+	protected PrismContainerPanel getSpecificContainerPanel(ContainerValueWrapper<AssignmentType> modelObject) {
 		Form form = new Form<>("form");
 		ItemPath assignmentPath = modelObject.getPath();
-		PrismContainerPanel<PolicyRuleType> constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER,
-				getPolicyRuleContainerModel(modelObject), false, form,
-				itemWrapper -> getPolicyRuleContainersItemsVisibility(itemWrapper, assignmentPath), getPageBase());
+		PrismContainerPanel constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER,
+				getSpecificContainerModel(modelObject), false, form,
+				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath), getPageBase());
 		constraintsContainerPanel.setOutputMarkupId(true);
 		return constraintsContainerPanel;
 	}
 	
-	protected ItemVisibility getPolicyRuleContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+	protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
 		if (ContainerWrapper.class.isAssignableFrom(itemWrapper.getClass())){
 			return ItemVisibility.AUTO;
 		}
@@ -489,7 +345,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		}
 	}
 	
-	protected abstract IModel<ContainerWrapper> getPolicyRuleContainerModel(ContainerValueWrapper<AssignmentType> modelObject);
+	protected abstract IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject);
 	
 	private ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, PrismContainerValue<AssignmentType> prismContainerValue) {
 		
@@ -527,7 +383,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
     	}
     }
 	
-	private <C extends Containerable> IModel getDisplayModel(AssignmentType assignment){
+	private <C extends Containerable> IModel<C> getDisplayModel(AssignmentType assignment){
 		final AbstractReadOnlyModel<C> displayNameModel = new AbstractReadOnlyModel<C>() {
 
     		private static final long serialVersionUID = 1L;
@@ -556,29 +412,9 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		return displayNameModel;
 	}
 
-//	protected ContainerListDataProvider getAssignmentListProvider() {
-//		return (ContainerListDataProvider) getAssignmentTable().getDataTable().getDataProvider();
-//	}
-
-//	protected BoxedTablePanel<ContainerValueWrapper<AssignmentType>> getAssignmentTable() {
-//		return (BoxedTablePanel<ContainerValueWrapper<AssignmentType>>) get(createComponentPath(ID_ASSIGNMENTS, ID_ASSIGNMENTS_TABLE));
-//	}
-
-	protected void createCustomSpecificContainers(WebMarkupContainer specificContainers) {
-		
-	}
-//	protected abstract AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model);
-
-	private List<ContainerValueWrapper<AssignmentType>> getSelectedAssignments() {
-		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignemntTable = this.multivalueContainerListPanel.getItemTable();
-		MultivalueContainerListDataProvider<AssignmentType> assignmentProvider = (MultivalueContainerListDataProvider<AssignmentType>) assignemntTable.getDataTable()
-				.getDataProvider();
-		return assignmentProvider.getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
-	}
-
 	private List<InlineMenuItem> getAssignmentMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
-		PrismObject obj = getFocusObject();
+		PrismObject obj = getMultivalueContainerListPanel().getFocusObject();
 		boolean isUnassignMenuAdded = false;
 		try {
 			boolean isUnassignAuthorized = getParentPage().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI,
@@ -586,7 +422,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					null, null, null);
 			if (isUnassignAuthorized) {
 				menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
-						new Model<>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
+						new Model<>(true), false, getMultivalueContainerListPanel().createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
 						DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 				isUnassignMenuAdded = true;
 			}
@@ -595,104 +431,27 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			LOGGER.error("Couldn't check unassign authorization for the object: {}, {}", obj.getName(), ex.getLocalizedMessage());
 			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)){
 				menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
-						new Model<>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
+						new Model<>(true), false, getMultivalueContainerListPanel().createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
 						DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 				isUnassignMenuAdded = true;
 			}
 		}
 		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<>(true),
-            new Model<>(true), false, createEditColumnAction(), isUnassignMenuAdded ? 1 : 0, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
+            new Model<>(true), false, getMultivalueContainerListPanel().createEditColumnAction(), isUnassignMenuAdded ? 1 : 0, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
 				DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString()));
 		return menuItems;
 	}
 
-	private ColumnMenuAction<ContainerValueWrapper<AssignmentType>> createDeleteColumnAction() {
-		return new ColumnMenuAction<ContainerValueWrapper<AssignmentType>>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				if (getRowModel() == null) {
-					deleteAssignmentPerformed(target, getSelectedAssignments());
-				} else {
-					List<ContainerValueWrapper<AssignmentType>> toDelete = new ArrayList<>();
-					toDelete.add(getRowModel().getObject());
-					deleteAssignmentPerformed(target, toDelete);
-				}
-			}
-		};
+	protected MultivalueContainerListPanel<AssignmentType> getMultivalueContainerListPanel() {
+		return ((MultivalueContainerListPanel<AssignmentType>)get(ID_ASSIGNMENTS));
 	}
 
-	private ColumnMenuAction<ContainerValueWrapper<AssignmentType>> createEditColumnAction() {
-		return new ColumnMenuAction<ContainerValueWrapper<AssignmentType>>() {
-			private static final long serialVersionUID = 1L;
+	protected abstract TableId getTableId();
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				if (getRowModel() == null) {
-					assignmentDetailsPerformed(target, getSelectedAssignments());
-				} else {
-					assignmentDetailsPerformed(target, getRowModel());
-				}
-			}
-		};
-	}
-
-	protected void assignmentDetailsPerformed(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-		this.multivalueContainerListPanel.setItemDetailsVisible(true);
-		detailsPanelAssignmentsList.clear();
-		detailsPanelAssignmentsList.add(rowModel.getObject());
-		rowModel.getObject().setSelected(false);
-		target.add(multivalueContainerListPanel);
-	}
-
-	protected void assignmentDetailsPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<AssignmentType>> rowModel) {
-		this.multivalueContainerListPanel.setItemDetailsVisible(true);
-		detailsPanelAssignmentsList.clear();
-		detailsPanelAssignmentsList.addAll(rowModel);
-		rowModel.forEach(assignmentTypeContainerValueWrapper -> {
-			assignmentTypeContainerValueWrapper.setSelected(false);
-		});
-		target.add(multivalueContainerListPanel);
-	}
-
-	protected abstract TableId getCustomTableId();
-
-	protected abstract int getCustomItemsPerPage();
-
-	protected void refreshTable(AjaxRequestTarget target) {
-		this.multivalueContainerListPanel.refreshTable(target);
-	}
-
-	protected void deleteAssignmentPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<AssignmentType>> toDelete) {
-		if (toDelete == null){
-			return;
-		}
-		toDelete.forEach(value -> {
-			if (value.getStatus() == ValueStatus.ADDED) {
-				ContainerWrapper wrapper = multivalueContainerListPanel.getModelObject();
-				wrapper.getValues().remove(value);
-			} else {
-				value.setStatus(ValueStatus.DELETED);
-			}
-			value.setSelected(false);
-		});
-		refreshTable(target);
-		reloadSavePreviewButtons(target);
-	}
-
-	protected ContainerValueWrapper<AssignmentType> createNewAssignmentContainerValueWrapper(PrismContainerValue<AssignmentType> newAssignment) {
-		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
-		Task task = getPageBase().createSimpleTask("Creating new assignment");
-		ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(getModelObject(), newAssignment,
-                getModelObject().getObjectStatus(), ValueStatus.ADDED, getModelObject().getPath(), task);
-		valueWrapper.setShowEmpty(true, false);
-		getModelObject().getValues().add(valueWrapper);
-		return valueWrapper;
-	}
+	protected abstract int getItemsPerPage();
 
 	protected WebMarkupContainer getAssignmentContainer() {
-		return this.multivalueContainerListPanel.getItemContainer();
+		return getMultivalueContainerListPanel().getItemContainer();
 	}
 
 	protected PageBase getParentPage() {
@@ -746,24 +505,15 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		} else {
 			return AssignmentsUtil.createActivationTitleModel(WebModelServiceUtils
 							.getAssignmentEffectiveStatus(lifecycleStatus, activation, getPageBase()),
-					validFrom, validTo, multivalueContainerListPanel);
+					validFrom, validTo, getMultivalueContainerListPanel());
 		}
 
 	}
 
-
-	protected void reloadSavePreviewButtons(AjaxRequestTarget target){
-		FocusMainPanel mainPanel = this.multivalueContainerListPanel.findParent(FocusMainPanel.class);
-		if (mainPanel != null) {
-			mainPanel.reloadSavePreviewButtons(target);
-		}
-	}
-
-	private PrismObject getFocusObject(){
-		FocusMainPanel mainPanel = this.multivalueContainerListPanel.findParent(FocusMainPanel.class);
-		if (mainPanel != null) {
-			return mainPanel.getObjectWrapper().getObject();
-		}
-		return null;
-	}
+//	protected void reloadSavePreviewButtons(AjaxRequestTarget target){
+//		FocusMainPanel mainPanel = getMultivalueContainerListPanel().findParent(FocusMainPanel.class);
+//		if (mainPanel != null) {
+//			mainPanel.reloadSavePreviewButtons(target);
+//		}
+//	}
 }

@@ -127,7 +127,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-            	refreshTable(target);
+            	getMultivalueContainerListPanel().refreshTable(target);
             }
         });
         relation.setOutputMarkupId(true);
@@ -175,7 +175,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         pageBase.showMainPopup(assignmentsDialog, target);
     }
 
-       @Override
+    @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
            AssignmentPopup popupPanel = new AssignmentPopup(getPageBase().getMainPopupBodyId()) {
 
@@ -210,9 +210,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	        	   } else {
 	        		   assignmentType.setTargetRef(assignment.getTargetRef());
 	        	   }
-	        	   createNewAssignmentContainerValueWrapper(newAssignment);
-	        	   refreshTable(target);
-	               reloadSavePreviewButtons(target);
+	        	   getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModel());
+	        	   getMultivalueContainerListPanel().refreshTable(target);
+	        	   getMultivalueContainerListPanel().reloadSavePreviewButtons(target);
 			} catch (SchemaException e) {
 				getSession().error("Cannot create new assignment " + e.getMessage());
 				target.add(getPageBase().getFeedbackPanel());
@@ -285,12 +285,12 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
 	@Override
-	protected TableId getCustomTableId() {
+	protected TableId getTableId() {
 		return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
 	}
 
 	@Override
-	protected int getCustomItemsPerPage() {
+	protected int getItemsPerPage() {
 		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
 	}
 
@@ -325,11 +325,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		return relationValue == null ? PrismConstants.Q_ANY : relationValue.getRelation();
 	}
 
-//	@Override
-//	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-//		return new AbstractRoleAssignmentDetailsPanel(idAssignmentDetails, form, model);
-//	}
-
     private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
 	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
 	        return Model.of("");
@@ -359,24 +354,24 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	@Override
 	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
 		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
-		specificContainers.add(getPolicyRuleContainerPanel(modelObject));
+		specificContainers.add(getSpecificContainerPanel(modelObject));
 		return specificContainers;
 	}
 	
 	@Override
-	protected IModel<ContainerWrapper> getPolicyRuleContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
+	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
 			ContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(),
 					AssignmentType.F_CONSTRUCTION));
 
-			constructionWrapper.setAddContainerButtonVisible(true);
+//			constructionWrapper.setAddContainerButtonVisible(true);
 			constructionWrapper.setShowEmpty(true, false);
 			if (constructionWrapper != null && constructionWrapper.getValues() != null) {
 				constructionWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
 			}
 			ContainerWrapper associationWrapper = constructionWrapper.findContainerWrapper(constructionWrapper.getPath().append(ConstructionType.F_ASSOCIATION));
 			if (associationWrapper != null) {
-				associationWrapper.setRemoveContainerButtonVisible(true);
+//				associationWrapper.setRemoveContainerButtonVisible(true);
 			}
 			return Model.of(constructionWrapper);
 		}

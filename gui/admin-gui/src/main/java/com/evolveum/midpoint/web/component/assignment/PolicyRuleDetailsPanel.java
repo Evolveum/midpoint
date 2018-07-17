@@ -45,7 +45,7 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 					((ContainerValueWrapper)value).getItems().forEach(
 							constraintContainerItem -> {
 								if (constraintContainerItem instanceof ContainerWrapper && ((ContainerWrapper) constraintContainerItem).getItemDefinition().isMultiValue()){
-									((ContainerWrapper) constraintContainerItem).setRemoveContainerButtonVisible(true);
+//									((ContainerWrapper) constraintContainerItem).setRemoveContainerButtonVisible(true);
 								}
 							}
 					));
@@ -55,7 +55,7 @@ public class PolicyRuleDetailsPanel<F extends FocusType> extends AbstractAssignm
 	private void setAddContainerButtonVisibility(ContainerWrapper<PolicyRuleType> policyRulesContainer){
 		ContainerWrapper constraintsContainer = policyRulesContainer.findContainerWrapper(new ItemPath(policyRulesContainer.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
 		constraintsContainer.setShowEmpty(true, false);
-		constraintsContainer.setAddContainerButtonVisible(true);
+//		constraintsContainer.setAddContainerButtonVisible(true);
 	}
 
 	@Override

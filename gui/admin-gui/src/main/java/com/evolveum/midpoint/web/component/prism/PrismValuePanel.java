@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.input.*;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -42,6 +43,7 @@ import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -107,6 +109,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 	private Form form;
 	private String valueCssClass;
 	private String inputCssClass;
+	private QName objectTypeValue = null;
 
 	public PrismValuePanel(String id, IModel<ValueWrapper> valueWrapperModel, IModel<String> labelModel, Form form,
 			String valueCssClass, String inputCssClass) {
@@ -477,7 +480,12 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 						getModel().getObject().isReadonly());
 			} else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
 				panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
-
+			} else if (DOMUtil.XSD_QNAME.equals(valueType)) {
+				DropDownChoicePanel<QName> panelDropDown = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
+						Model.ofList(WebComponentUtil.createObjectTypeList()), new QNameObjectTypeChoiceRenderer(), false);
+				panelDropDown.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+				panelDropDown.setOutputMarkupId(true);
+				return panelDropDown;
 			} else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
 				InputPanel inputPanel;
 				PrismPropertyDefinition def = property.getDefinition();

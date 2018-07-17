@@ -42,17 +42,17 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
     
     @Override
     protected void initCustomPaging() {
-        getInducementsTabStorage().setPaging(ObjectPaging.createPaging(0, getCustomItemsPerPage()));
+        getInducementsTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
 
     }
 
     @Override
-    protected UserProfileStorage.TableId getCustomTableId() {
+    protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.INDUCEMENTS_TAB_TABLE;
     }
 
     @Override
-    protected int getCustomItemsPerPage() {
+    protected int getItemsPerPage() {
         return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCEMENTS_TAB_TABLE);
     }
 
@@ -64,9 +64,4 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
     protected boolean showAllAssignmentsVisible(){
         return false;
     }
-
-//    @Override
-//    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-//        return new InducementDetailsPanel(idAssignmentDetails, form, model);
-//    }
 }

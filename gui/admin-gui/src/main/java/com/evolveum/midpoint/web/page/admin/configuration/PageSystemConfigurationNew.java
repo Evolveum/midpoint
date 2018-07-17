@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.configuration.component.*;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
@@ -72,6 +73,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -148,24 +150,72 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 	private boolean initialized;
 
 	public PageSystemConfigurationNew() {
-		this(null);
+		initialize(null);
 	}
-
+	
 	public PageSystemConfigurationNew(PageParameters parameters) {
-		
-		modelWrapp = new LoadableModel<ObjectWrapper<SystemConfigurationType>>(false) {
-
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			protected ObjectWrapper<SystemConfigurationType> load() {
-				return loadSystemConfigurationAsWrapperObject();
-			}
-			
-		};
-
-		initLayout();
+        getPageParameters().overwriteWith(parameters);
+		initialize(null);
 	}
+	
+	public PageSystemConfigurationNew(final PrismObject<SystemConfigurationType> userToEdit) {
+        initialize(userToEdit);
+    }
+	
+	public PageSystemConfigurationNew(final PrismObject<SystemConfigurationType> unitToEdit, boolean isNewObject)  {
+        initialize(unitToEdit, isNewObject);
+    }
+	
+	@Override
+	protected void initializeModel(final PrismObject<SystemConfigurationType> objectToEdit, boolean isNewObject, boolean isReadonly) {
+		modelWrapp = new LoadableModel<ObjectWrapper<SystemConfigurationType>>(false) {
+			
+						private static final long serialVersionUID = 1L;
+						
+						@Override
+						protected ObjectWrapper<SystemConfigurationType> load() {
+							return loadSystemConfigurationAsWrapperObject();
+						}
+						
+					};
+		super.initializeModel(modelWrapp.getObject().getObject(), false, isReadonly);
+		
+		
+//		projectionModel = new LoadableModel<List<FocusSubwrapperDto<ShadowType>>>(false) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			protected List<FocusSubwrapperDto<ShadowType>> load() {
+//				return loadShadowWrappers();
+//			}
+//		};
+//
+//        delegatedToMeModel= new LoadableModel<List<AssignmentEditorDto>>(false) {
+//
+//        	private static final long serialVersionUID = 1L;
+//            @Override
+//            protected List<AssignmentEditorDto> load() {
+//                return loadDelegatedToMe();
+//            }
+//        };
+
+    }
+
+//	public PageSystemConfigurationNew(PageParameters parameters) {
+//		
+//		modelWrapp = new LoadableModel<ObjectWrapper<SystemConfigurationType>>(false) {
+//
+//			private static final long serialVersionUID = 1L;
+//			
+//			@Override
+//			protected ObjectWrapper<SystemConfigurationType> load() {
+//				return loadSystemConfigurationAsWrapperObject();
+//			}
+//			
+//		};
+//
+//		initLayout();
+//	}
 
 	private ObjectWrapper<SystemConfigurationType> loadSystemConfigurationAsWrapperObject() {
 		Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
@@ -207,7 +257,7 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new SystemConfigPanelNew(panelId, modelWrapp);
+				return new SystemConfigPanelNew(panelId, getObjectModel());
 			}
 		});
 		
@@ -217,9 +267,10 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				ContainerWrapperFromObjectWrapperModel<ObjectPolicyConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(modelWrapp, 
-						new ItemPath(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION));
-				return new ObjectPolicyConfigurationTabPanel(panelId, model);
+//				ContainerWrapperFromObjectWrapperModel<ObjectPolicyConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(modelWrapp, 
+//						new ItemPath(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION));
+//				return new ObjectPolicyConfigurationTabPanel(panelId, model);
+				return new ObjectPolicyConfigurationTabPanel(panelId, getObjectModel());
 //				return new OneContainerConfigurationPanel<ObjectPolicyConfigurationType>(panelId, modelWrapp, SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION);
 			}
 		});

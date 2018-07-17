@@ -124,17 +124,17 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
 	@Override
 	protected void initCustomPaging() {
-		getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, getCustomItemsPerPage()));
+		getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
 
 	}
 
 	@Override
-	protected TableId getCustomTableId() {
+	protected TableId getTableId() {
 		return UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE;
 	}
 
 	@Override
-	protected int getCustomItemsPerPage() {
+	protected int getItemsPerPage() {
 		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE);
 	}
 
@@ -142,10 +142,10 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
         PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
         newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
-        ContainerValueWrapper<AssignmentType> newAssignmentWrapper = createNewAssignmentContainerValueWrapper(newAssignment);
+        ContainerValueWrapper<AssignmentType> newAssignmentWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModel());
         newAssignmentWrapper.setShowEmpty(true, false);
         newAssignmentWrapper.computeStripes();
-        assignmentDetailsPerformed(target, Arrays.asList(newAssignmentWrapper));
+        getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newAssignmentWrapper));
 	}
 
 	@Override
@@ -154,11 +154,6 @@ public class PolicyRulesPanel extends AssignmentPanel {
                 .exists(AssignmentType.F_POLICY_RULE)
                 .build();
     }
-
-//	@Override
-//	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-//		return new PolicyRuleDetailsPanel(idAssignmentDetails, form, model);
-//	}
 
 	@Override
 	protected Fragment getCustomSearchPanel(String contentAreaId){
@@ -170,7 +165,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	@Override
 	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
 		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
-		specificContainers.add(getPolicyRuleContainerPanel(modelObject));
+		specificContainers.add(getSpecificContainerPanel(modelObject));
 		return specificContainers;
 	}
 	
@@ -181,7 +176,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
 					((ContainerValueWrapper)value).getItems().forEach(
 							constraintContainerItem -> {
 								if (constraintContainerItem instanceof ContainerWrapper && ((ContainerWrapper) constraintContainerItem).getItemDefinition().isMultiValue()){
-									((ContainerWrapper) constraintContainerItem).setRemoveContainerButtonVisible(true);
+//									((ContainerWrapper) constraintContainerItem).setRemoveContainerButtonVisible(true);
 								}
 							}
 					));
@@ -191,11 +186,11 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	private void setAddContainerButtonVisibility(ContainerWrapper<PolicyRuleType> policyRulesContainer){
 		ContainerWrapper constraintsContainer = policyRulesContainer.findContainerWrapper(new ItemPath(policyRulesContainer.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
 		constraintsContainer.setShowEmpty(true, false);
-		constraintsContainer.setAddContainerButtonVisible(true);
+//		constraintsContainer.setAddContainerButtonVisible(true);
 	}
 
 	@Override
-	protected IModel<ContainerWrapper> getPolicyRuleContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
+	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
 		ContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
 		if (policyRuleWrapper != null && policyRuleWrapper.getValues() != null) {
 			policyRuleWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));

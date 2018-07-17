@@ -58,8 +58,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	private List<ContainerValueWrapper<C>> values;
 
 	private boolean readonly;
-	private boolean removeContainerButtonVisible;
-	private boolean addContainerButtonVisible;
+//	private boolean removeContainerButtonVisible;
+//	private boolean addContainerButtonVisible;
 	
 	private ContainerStatus objectStatus;
 
@@ -536,21 +536,21 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return getItemDefinition().getDeprecatedSince();
 	}
 
-	public boolean isRemoveContainerButtonVisible() {
-		return removeContainerButtonVisible;
-	}
+//	public boolean isRemoveContainerButtonVisible() {
+//		return removeContainerButtonVisible;
+//	}
+//
+//	public void setRemoveContainerButtonVisible(boolean removeContainerButtonVisible) {
+//		this.removeContainerButtonVisible = removeContainerButtonVisible;
+//	}
 
-	public void setRemoveContainerButtonVisible(boolean removeContainerButtonVisible) {
-		this.removeContainerButtonVisible = removeContainerButtonVisible;
-	}
+//	public boolean isAddContainerButtonVisible() {
+//		return addContainerButtonVisible;
+//	}
 
-	public boolean isAddContainerButtonVisible() {
-		return addContainerButtonVisible;
-	}
-
-	public void setAddContainerButtonVisible(boolean addContainerButtonVisible) {
-		this.addContainerButtonVisible = addContainerButtonVisible;
-	}
+//	public void setAddContainerButtonVisible(boolean addContainerButtonVisible) {
+//		this.addContainerButtonVisible = addContainerButtonVisible;
+//	}
 
 	@Override
 	public boolean isExperimental() {
