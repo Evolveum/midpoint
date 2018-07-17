@@ -34,6 +34,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
@@ -49,6 +50,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
@@ -410,5 +413,18 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		});
 		refreshTable(target);
 		reloadSavePreviewButtons(target);
+	}
+	
+	public List<InlineMenuItem> getDefaultMenuActions() {
+		List<InlineMenuItem> menuItems = new ArrayList<>();
+		PrismObject obj = getFocusObject();
+		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
+			new Model<>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
+			DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
+
+		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<>(true),
+            new Model<>(true), false, createEditColumnAction(), 1, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
+			DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString()));
+		return menuItems;
 	}
 }

@@ -1487,6 +1487,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageSystemConfigurationNew.CONFIGURATION_TAB_BASIC);
         addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.objectPolicy",
                 PageSystemConfigurationNew.CONFIGURATION_TAB_OBJECT_POLICY);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.globalPolicyRule",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_GLOBAL_POLICY_RULE);
         addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.globalAccountSynchronization",
                 PageSystemConfigurationNew.CONFIGURATION_TAB_GLOBAL_ACCOUNT_SYNCHRONIZATION);
         addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.cleanupPolicy",

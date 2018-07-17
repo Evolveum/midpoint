@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -30,6 +31,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -55,16 +57,19 @@ import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -84,6 +89,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -95,20 +101,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrapper<ObjectPolicyConfigurationType>> {
+public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalPolicyRuleType>> {
 
 	private static final long serialVersionUID = 1L;
 	
-	private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyConfigurationTabPanel.class);
+	private static final Trace LOGGER = TraceManager.getTrace(GlobalPolicyRuleTabPanel.class);
 	
-    private static final String ID_OBJECTS_POLICY = "objectsPolicy";
+    private static final String ID_GLOBAL_POLICY_RULE = "globalPolicyRule";
     private static final String ID_SEARCH_FRAGMENT = "searchFragment";
-    private static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
+    protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
+    protected static final String ID_SPECIFIC_CONTAINER = "specificContainers";
     
-    private List<ContainerValueWrapper<ObjectPolicyConfigurationType>> detailsPanelObjectPoliciesList = new ArrayList<>();
+    private List<ContainerValueWrapper<GlobalPolicyRuleType>> detailsPanelObjectPoliciesList = new ArrayList<>();
     
-    public ObjectPolicyConfigurationTabPanel(String id, IModel<ContainerWrapper<ObjectPolicyConfigurationType>> model) {
+    public GlobalPolicyRuleTabPanel(String id, IModel<ContainerWrapper<GlobalPolicyRuleType>> model) {
         super(id, model);
+		
     }
 
     @Override
@@ -120,33 +128,33 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
     protected void initLayout() {
     	
     	TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
-    	int itemPerPage = (int) ((PageBase)ObjectPolicyConfigurationTabPanel.this.getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE);
-    	PageStorage pageStorage = ((PageBase)ObjectPolicyConfigurationTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
+    	int itemPerPage = (int) ((PageBase)GlobalPolicyRuleTabPanel.this.getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE);
+    	PageStorage pageStorage = ((PageBase)GlobalPolicyRuleTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
     	
-    	MultivalueContainerListPanel<ObjectPolicyConfigurationType> multivalueContainerListPanel = new MultivalueContainerListPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, getModel(),
+    	MultivalueContainerListPanel<GlobalPolicyRuleType> multivalueContainerListPanel = new MultivalueContainerListPanel<GlobalPolicyRuleType>(ID_GLOBAL_POLICY_RULE, getModel(),
     			tableId, itemPerPage, pageStorage) {
 			
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<ContainerValueWrapper<ObjectPolicyConfigurationType>> postSearch(
-					List<ContainerValueWrapper<ObjectPolicyConfigurationType>> items) {
+			protected List<ContainerValueWrapper<GlobalPolicyRuleType>> postSearch(
+					List<ContainerValueWrapper<GlobalPolicyRuleType>> items) {
 				return items;
 			}
 			
 			@Override
 			protected void newItemPerformed(AjaxRequestTarget target) {
-				newObjectPolicyClickPerformed(target);
+				newGlobalPolicuRuleClickPerformed(target);
 			}
 			
 			@Override
 			protected void initPaging() {
-				ObjectPolicyConfigurationTabPanel.this.initPaging(); 
+				GlobalPolicyRuleTabPanel.this.initPaging(); 
 			}
 			
 			@Override
 			protected Fragment getSearchPanel(String contentAreaId) {
-				return new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, ObjectPolicyConfigurationTabPanel.this);
+				return new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, GlobalPolicyRuleTabPanel.this);
 			}
 			
 			@Override
@@ -156,18 +164,18 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			
 			@Override
 			protected ObjectQuery createQuery() {
-			        return ObjectPolicyConfigurationTabPanel.this.createQuery();
+			        return GlobalPolicyRuleTabPanel.this.createQuery();
 			}
 			
 			@Override
-			protected List<IColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createColumns() {
+			protected List<IColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
 				return initBasicColumns();
 			}
 
 			@Override
-			protected MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
-					ListItem<ContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
-				return ObjectPolicyConfigurationTabPanel.this.getMultivalueContainerDetailsPanel(item);
+			protected MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
+					ListItem<ContainerValueWrapper<GlobalPolicyRuleType>> item) {
+				return GlobalPolicyRuleTabPanel.this.getMultivalueContainerDetailsPanel(item);
 			}
 		};
 		
@@ -176,86 +184,68 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 		setOutputMarkupId(true);
 	}
     
-    protected void newObjectPolicyClickPerformed(AjaxRequestTarget target) {
-        PrismContainerValue<ObjectPolicyConfigurationType> newObjectPolicy = getModel().getObject().getItem().createNewValue();
-        ContainerValueWrapper<ObjectPolicyConfigurationType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModel());
+    protected void newGlobalPolicuRuleClickPerformed(AjaxRequestTarget target) {
+        PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModel().getObject().getItem().createNewValue();
+        ContainerValueWrapper<GlobalPolicyRuleType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModel());
         newObjectPolicyWrapper.setShowEmpty(true, false);
         newObjectPolicyWrapper.computeStripes();
         getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
 	}
     
-    private MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
-			ListItem<ContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
-    	MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> detailsPanel = new  MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType>(MultivalueContainerListPanel.ID_ITEM_DETAILS, item.getModel()) {
+    private MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
+			ListItem<ContainerValueWrapper<GlobalPolicyRuleType>> item) {
+    	MultivalueContainerDetailsPanel<GlobalPolicyRuleType> detailsPanel = new  MultivalueContainerDetailsPanel<GlobalPolicyRuleType>(MultivalueContainerListPanel.ID_ITEM_DETAILS, item.getModel()) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected DisplayNamePanel<ObjectPolicyConfigurationType> createDisplayNamePanel(String displayNamePanelId) {
-				IModel<ObjectPolicyConfigurationType> displayNameModel = new AbstractReadOnlyModel<ObjectPolicyConfigurationType>() {
+			protected DisplayNamePanel<GlobalPolicyRuleType> createDisplayNamePanel(String displayNamePanelId) {
+				IModel<GlobalPolicyRuleType> displayNameModel = new AbstractReadOnlyModel<GlobalPolicyRuleType>() {
 
 		    		private static final long serialVersionUID = 1L;
 
 					@Override
-		    		public ObjectPolicyConfigurationType getObject() {
+		    		public GlobalPolicyRuleType getObject() {
 		    			return item.getModelObject().getContainerValue().getValue();
 		    		}
 
 		    	};
-				return new DisplayNamePanel<ObjectPolicyConfigurationType>(displayNamePanelId, displayNameModel);
+				return new DisplayNamePanel<GlobalPolicyRuleType>(displayNamePanelId, displayNameModel);
 			}
 
 			@Override
 			protected  Fragment getSpecificContainers(String contentAreaId) {
-				Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, ObjectPolicyConfigurationTabPanel.this);
+				Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, GlobalPolicyRuleTabPanel.this);
 				return specificContainers;
 			}
-			
-//			@Override
-//			protected ContainerValuePanel<ObjectPolicyConfigurationType> getBasicContainerValuePanel(
-//					String idPanel) {
-//				
-//				Form form = new Form<>("form");
-//		    	ItemPath itemPath = getModelObject().getPath();
-//		    	ContainerValueWrapper<ObjectPolicyConfigurationType> modelObject = item.getModelObject();
-//		    	modelObject.setShowEmpty(true, true);
-//		    	
-//		    	ContainerWrapper<PropertyConstraintType> propertyConstraintModel = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(), ObjectPolicyConfigurationType.F_PROPERTY_CONSTRAINT));
-//		    	propertyConstraintModel.setShowEmpty(true, false);
-////		    	propertyConstraintModel.setAddContainerButtonVisible(true);
-//		    	
-//				return new ContainerValuePanel<ObjectPolicyConfigurationType>(idPanel, Model.of(modelObject), true, form,
-//						itemWrapper -> super.getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
-//			}
-		
 		};
 		return detailsPanel;
 	}
     
-	private MultivalueContainerListPanel<ObjectPolicyConfigurationType> getMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanel<ObjectPolicyConfigurationType>)get(ID_OBJECTS_POLICY));
+	private MultivalueContainerListPanel<GlobalPolicyRuleType> getMultivalueContainerListPanel(){
+		return ((MultivalueContainerListPanel<GlobalPolicyRuleType>)get(ID_GLOBAL_POLICY_RULE));
 	}
     
     private ObjectQuery createQuery() {
-    	TypeFilter filter = TypeFilter.createType(ObjectPolicyConfigurationType.COMPLEX_TYPE, new AllFilter());
+    	TypeFilter filter = TypeFilter.createType(GlobalPolicyRuleType.COMPLEX_TYPE, new AllFilter());
     	return ObjectQuery.createObjectQuery(filter);
     }
     
     private void initPaging() {
-    	getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage().setPaging(ObjectPaging.createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE)));
+    	getPageBase().getSessionStorage().getGlobalPolicyRulesTabStorage().setPaging(ObjectPaging.createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.GLOBAL_POLICY_RULES_TAB_TABLE)));
     }
     
-    private List<IColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>> initBasicColumns() {
-		List<IColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>> columns = new ArrayList<>();
+    private List<IColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>> initBasicColumns() {
+		List<IColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>> columns = new ArrayList<>();
 
 		columns.add(new CheckBoxHeaderColumn<>());
 
-		columns.add(new IconColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>>(Model.of("")) {
+		columns.add(new IconColumn<ContainerValueWrapper<GlobalPolicyRuleType>>(Model.of("")) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
+			protected IModel<String> createIconModel(IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
 				return new AbstractReadOnlyModel<String>() {
 
 					private static final long serialVersionUID = 1L;
@@ -269,61 +259,60 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 
 		});
 		
-		columns.add(new AbstractColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>(createStringResource("ObjectPolicyConfigurationTabPanel.type")){
+		columns.add(new LinkColumn<ContainerValueWrapper<GlobalPolicyRuleType>>(createStringResource("PolicyRulesPanel.nameColumn")){
             private static final long serialVersionUID = 1L;
 
-            
-			@Override
-			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
-									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				QName typeValue = WebComponentUtil.getValue(rowModel.getObject().getContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
-				item.add(new Label(componentId, Model.of(typeValue != null ? typeValue.getLocalPart() : "")));
-			}
-        });
+            @Override
+            protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+            	GlobalPolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue();
+            	String name = policyRuleType.getName();
+           		if (StringUtils.isBlank(name)) {
+            		return createStringResource("AssignmentPanel.noName");
+            	}
+            	return Model.of(name);
+            }
 
-		columns.add(new AbstractColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>(createStringResource("ObjectPolicyConfigurationTabPanel.subtype")){
-            private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
-									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				String subtypeValue = WebComponentUtil.getValue(rowModel.getObject().getContainerValue(), ObjectPolicyConfigurationType.F_SUBTYPE, String.class);
-				item.add(new Label(componentId, Model.of(subtypeValue)));
-			}
-        });
-
-		columns.add(new AbstractColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>(createStringResource("ObjectPolicyConfigurationTabPanel.objectTemplate")){
-            private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
-									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				
-				ObjectReferenceType objectTemplate = rowModel.getObject().getContainerValue().getValue().getObjectTemplateRef();
-				
-				if(objectTemplate != null) {
-					String objectTemplateNameValue = WebModelServiceUtils.resolveReferenceName(objectTemplate, getPageBase());
-					item.add(new Label(componentId, Model.of(objectTemplateNameValue)));
-				} else {
-					item.add(new Label(componentId, Model.of("")));
-				}
-			}
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+            	getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
+            }
         });
 		
-		columns.add(new AbstractColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>(createStringResource("ObjectPolicyConfigurationTabPanel.lifecycleState")){
+        columns.add(new AbstractColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>(createStringResource("PolicyRulesPanel.constraintsColumn")){
             private static final long serialVersionUID = 1L;
 
-			@Override
-			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
-									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				
-				ContainerWrapper<Containerable> lifecycleState = rowModel.getObject().findContainerWrapper(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL);
-				if(lifecycleState == null) {
-					item.add(new Label(componentId, createStringResource("ObjectPolicyConfigurationTabPanel.lifecycleState.value.no")));
-				} else {
-					item.add(new Label(componentId, createStringResource("ObjectPolicyConfigurationTabPanel.lifecycleState.value.yes")));
-				}
-			}
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
+                                     final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+            	GlobalPolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue();
+                String constraints = PolicyRuleTypeUtil.toShortString(policyRuleType.getPolicyConstraints());
+                cellItem.add(new MultiLineLabel(componentId, Model.of(constraints != null && !constraints.equals("null") ? constraints : "")));
+            }
+
+        });
+        columns.add(new AbstractColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>(createStringResource("PolicyRulesPanel.situationColumn")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
+                                     final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+            	GlobalPolicyRuleType globalPolicyRuleTypeModel = rowModel.getObject().getContainerValue().getValue();
+                String situationValue = globalPolicyRuleTypeModel == null ? "" : globalPolicyRuleTypeModel.getPolicySituation();
+                cellItem.add(new Label(componentId, Model.of(situationValue)));
+            }
+
+        });
+        columns.add(new AbstractColumn<ContainerValueWrapper<GlobalPolicyRuleType>, String>(createStringResource("PolicyRulesPanel.actionColumn")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
+                                     final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+            	GlobalPolicyRuleType globalPolicyRuleTypeModel = rowModel.getObject().getContainerValue().getValue();
+            	String action = PolicyRuleTypeUtil.toShortString(globalPolicyRuleTypeModel.getPolicyActions(), new ArrayList<>());
+                cellItem.add(new MultiLineLabel(componentId, Model.of(action != null && !action.equals("null") ? action : "")));
+            }
+
         });
 		
 		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
