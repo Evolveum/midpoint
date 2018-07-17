@@ -55,8 +55,8 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 	protected List<ITab> createTabs(final PageAdminObjectDetails<RoleType> parentPage) {
 		List<ITab> tabs = super.createTabs(parentPage);
 
-		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL);
+		FocusTabVisibleBehavior<RoleType> authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
+				ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, isFocusHistoryPage());
 
 		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"), authorization) {
 
@@ -72,28 +72,6 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 				return super.isVisible() && getObjectWrapper().getStatus() != ContainerStatus.ADDING;
 			}
 		});
-
-		authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_POLICY_CONSTRAINTS_URL);
-
-	
-		authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL);
-
-//		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"), authorization) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public WebMarkupContainer createPanel(String panelId) {
-//				return new RoleMemberPanel(panelId, new Model<RoleType>(getObject().asObjectable()), getDetailsPage());
-//			}
-//
-//			@Override
-//			public boolean isVisible() {
-//				return getObjectWrapper().getStatus() != ContainerStatus.ADDING;
-//			}
-//		});
 
 		return tabs;
 	}

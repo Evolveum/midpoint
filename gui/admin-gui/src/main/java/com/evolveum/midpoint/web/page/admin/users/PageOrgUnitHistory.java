@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
@@ -35,10 +34,14 @@ import com.evolveum.midpoint.web.component.assignment.DelegationEditorPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -52,28 +55,28 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-@PageDescriptor(url = "/admin/userHistory", action = {
-        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
-                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
-                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_HISTORY_URL,
-                label = "PageUser.auth.userHistory.label",
-                description = "PageUser.auth.userHistory.description")})
-public class PageUserHistory extends PageUser {
+@PageDescriptor(url = "/admin/orgUnitHistory", action = {
+        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_ORG_ALL,
+                label = PageAdminUsers.AUTH_ORG_ALL_LABEL,
+                description = PageAdminUsers.AUTH_ORG_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ORG_UNIT_HISTORY_URL,
+                label = "PageOrgUnitHistory.auth.orgUnitHistory.label",
+                description = "PageOrgUnitHistory.auth.orgUnitHistory.description")})
+public class PageOrgUnitHistory extends PageOrgUnit {
     private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = PageUserHistory.class.getName() + ".";
-    private static final Trace LOGGER = TraceManager.getTrace(PageUserHistory.class);
+    private static final String DOT_CLASS = PageOrgUnitHistory.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnitHistory.class);
     private String date = "";
 
-    public PageUserHistory(final PrismObject<UserType> user, String date) {
-        super(user);
+    public PageOrgUnitHistory(final PrismObject<OrgType> org, String date) {
+        super(org);
         this.date = date;
     }
 
     @Override
-    protected ObjectWrapper<UserType> loadObjectWrapper(PrismObject<UserType> user, boolean isReadonly) {
-        return super.loadObjectWrapper(user, true);
+    protected ObjectWrapper<OrgType> loadObjectWrapper(PrismObject<OrgType> org, boolean isReadonly) {
+        return super.loadObjectWrapper(org, true);
     }
 
     @Override
