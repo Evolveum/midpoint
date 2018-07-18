@@ -64,6 +64,7 @@ public class SynchronizationContext<F extends FocusType> {
 		QName focusTypeQName = objectSynchronization.getFocusType();
 		if (focusTypeQName == null) {
 			this.focusClass = (Class<F>) UserType.class;
+			return focusClass;
 		}
 		ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(focusTypeQName);
 		if (objectType == null) {
