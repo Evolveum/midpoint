@@ -587,11 +587,10 @@ public class ShadowCache {
 		// This is where the repo shadow is created or updated (if needed)
 		shadowManager.recordAddResult(ctx, shadowToAdd, opState, parentResult);
 		
-		if (addedShadow != null) {
-			addedShadow.setOid(opState.getRepoShadow().getOid());
-		} else {
+		if (addedShadow == null) {
 			addedShadow = shadowToAdd;
 		}
+		addedShadow.setOid(opState.getRepoShadow().getOid());
 
 		notifyAfterAdd(ctx, addedShadow, opState, task, parentResult);
 		

@@ -60,6 +60,26 @@ public class PrismObjectAsserter<O extends ObjectType> extends AbstractAsserter 
 		return new PrismObjectAsserter<>(shadow, details);
 	}
 	
+	public PrismObjectAsserter<O> assertOid() {
+		assertNotNull("No OID in "+desc(), getObject().getOid());
+		return this;
+	}
+	
+	public PrismObjectAsserter<O> assertOid(String expected) {
+		assertEquals("Wrong OID in "+desc(), expected, getObject().getOid());
+		return this;
+	}
+	
+	public PrismObjectAsserter<O> assertName() {
+		assertNotNull("No name in "+desc(), getObject().getName());
+		return this;
+	}
+	
+	public PrismObjectAsserter<O> assertName(String expectedOrig) {
+		PrismAsserts.assertEqualsPolyString("Wrong name in "+desc(), expectedOrig, getObject().getName());
+		return this;
+	}
+	
 	protected String desc() {
 		return descWithDetails(object);
 	}

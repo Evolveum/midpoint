@@ -498,9 +498,16 @@ public class ShadowUtil {
     	return (protectedObject != null && protectedObject);
     }
 
-    public static boolean isDead(ShadowType shadow){
-    	return shadow.isDead() != null && shadow.isDead();
+    public static boolean isDead(ShadowType shadow) {
+    	Boolean dead = shadow.isDead();
+    	return dead != null && dead;
     }
+    
+	public static boolean isExists(ShadowType shadow) {
+		Boolean exists = shadow.isExists();
+		return exists == null || exists;
+	}
+
 
 	public static boolean matches(ShadowType shadowType, String resourceOid, ShadowKindType kind, String intent) {
 		if (shadowType == null) {
@@ -753,7 +760,7 @@ public class ShadowUtil {
 			if (val == null) {
 				throw new SchemaException("Null value in attribute "+attrName);
 			}
-			LOGGER.info("MMMMMMMMMMMM: {}:{}\n   {} <-> {}", attrName, attrDef, expectedClass, val.getClass());
+//			LOGGER.info("MMMMMMMMMMMM: {}:{}\n   {} <-> {}", attrName, attrDef, expectedClass, val.getClass());
 			if (!XmlTypeConverter.isMatchingType(expectedClass, val.getClass())) {
 				throw new SchemaException("Wrong value in attribute "+attrName+"; expected class "+attrDef.getTypeClass().getSimpleName()+", but was "+val.getClass());
 			}

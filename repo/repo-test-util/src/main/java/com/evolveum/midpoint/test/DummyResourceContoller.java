@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -431,6 +432,16 @@ public class DummyResourceContoller extends AbstractResourceController {
 		dummyResource.setBreakMode(BreakMode.NONE);
 		dummyResource.setBlockOperations(false);
 		dummyResource.unblockAll();
+	}
+	
+	public DummyAccountAsserter assertAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyAccount account = dummyResource.getAccountByUsername(username);
+		assertNotNull("Account "+username+" does not exist on dummy resource "+getName());
+		return assertAccount(account);
+	}
+
+	private DummyAccountAsserter assertAccount(DummyAccount account) {
+		return new DummyAccountAsserter(account, getName());
 	}
 
 }

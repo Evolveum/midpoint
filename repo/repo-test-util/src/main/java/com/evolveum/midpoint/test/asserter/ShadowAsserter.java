@@ -23,9 +23,12 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -48,6 +51,58 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 	
 	public static ShadowAsserter forShadow(PrismObject<ShadowType> shadow, String details) {
 		return new ShadowAsserter(shadow, details);
+	}
+	
+	@Override
+	public ShadowAsserter assertOid() {
+		super.assertOid();
+		return this;
+	}
+	
+	@Override
+	public ShadowAsserter assertOid(String expected) {
+		super.assertOid(expected);
+		return this;
+	}
+	
+	@Override
+	public ShadowAsserter assertName() {
+		super.assertName();
+		return this;
+	}
+	
+	@Override
+	public ShadowAsserter assertName(String expectedOrig) {
+		super.assertName(expectedOrig);
+		return this;
+	}
+	
+	public ShadowAsserter assertObjectClass() {
+		assertNotNull("No objectClass in "+desc(), getObject().asObjectable().getObjectClass());
+		return this;
+	}
+	
+	public ShadowAsserter assertObjectClass(QName expected) {
+		PrismAsserts.assertMatchesQName("Wrong objectClass in "+desc(), expected, getObject().asObjectable().getObjectClass());
+		return this;
+	}
+	
+	public ShadowAsserter assertKind() {
+		assertNotNull("No kind in "+desc(), getObject().asObjectable().getKind());
+		return this;
+	}
+	
+	public ShadowAsserter assertKind(ShadowKindType expected) {
+		assertEquals("Wrong kind in "+desc(), expected, getObject().asObjectable().getKind());
+		return this;
+	}
+	
+	public ShadowAsserter assertBasicRepoProperties() {
+		assertOid();
+		assertName();
+		assertObjectClass();
+		attributes().assertAny();
+		return this;
 	}
 
 	public ShadowAsserter assertDead() {

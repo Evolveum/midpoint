@@ -103,6 +103,10 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 		return executionStatus == PendingOperationExecutionStatusType.EXECUTING;
 	}
 
+	public boolean isSuccess() {
+		return OperationResultStatusType.SUCCESS.equals(getResultStatusType());
+	}
+
 
 	public OperationResultStatusType getResultStatusType() {
 		OperationResultStatus resultStatus = getResultStatus();

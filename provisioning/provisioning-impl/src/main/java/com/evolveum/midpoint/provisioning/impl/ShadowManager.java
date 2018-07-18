@@ -824,50 +824,6 @@ public class ShadowManager {
 	}
 	
 	/**
-	 * Record results of an operation that have thrown exception.
-	 * This happens after the error handler is processed - and only for those
-	 * cases when the handler has re-thrown the exception.
-	 */
-	public void recordOperationException(
-			ProvisioningContext ctx,
-			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-			ObjectDelta<ShadowType> delta,
-			OperationResult parentResult) 
-					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
-		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
-		if (repoShadow == null) {
-			// Shadow does not exist. As this operation immediately ends up with an error then
-			// we not even bother to create a shadow.
-			return;
-		}
-		
-		Collection<ItemDelta> shadowChanges = new ArrayList<>();
-		
-		if (opState.hasPendingOperations()) {
-			collectPendingOperationUpdates(shadowChanges, opState, OperationResultStatus.FATAL_ERROR);
-		}
-		
-		if (delta.isAdd()) {
-			// This means we have failed add operation here. We tried to add object,
-			// but we have failed. Which means that this shadow is now dead.
-			PrismPropertyDefinition<Boolean> deadDef = repoShadow.getDefinition().findPropertyDefinition(ShadowType.F_DEAD);
-			PropertyDelta<Boolean> deadDelta = deadDef.createEmptyDelta(new ItemPath(ShadowType.F_DEAD));
-			deadDelta.setValuesToReplace(new PrismPropertyValue<>(Boolean.TRUE));
-			shadowChanges.add(deadDelta);
-		}
-		
-		if (shadowChanges.isEmpty()) {
-			return;
-		}
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Updading repository shadow (after error handling)\n{}", DebugUtil.debugDump(shadowChanges, 1));
-		}
-
-		repositoryService.modifyObject(ShadowType.class, opState.getRepoShadow().getOid(), shadowChanges, parentResult);
-	}
-	
-	/**
 	 * Add new active shadow to repository. It is executed after ADD operation on resource.
 	 * There are several scenarios. The operation may have been executed (synchronous operation),
 	 * it may be executing (asynchronous operation) or the operation may be delayed due to grouping.
@@ -940,14 +896,7 @@ public class ShadowManager {
 			resourceShadow = opState.getAsyncResult().getReturnValue();
 		}
 		
-		PrismObject<ShadowType> proposedShadow = repositoryService.getObject(ShadowType.class, opState.getRepoShadow().getOid(), null, parentResult);
-
-		if (proposedShadow == null) {
-			parentResult
-					.recordFatalError("Error while creating account shadow object to save in the reposiotory. Proposed shadow is gone.");
-			throw new IllegalStateException(
-					"Error while creating account shadow object to save in the reposiotory. Proposed shadow is gone.");
-		}
+		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
 
 		Collection<ItemDelta> shadowChanges = new ArrayList<>();
 		
@@ -959,7 +908,7 @@ public class ShadowManager {
 			
 			if (!opState.isCompleted()) {
 				
-				PrismContainerDefinition<PendingOperationType> containerDefinition = proposedShadow.getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
+				PrismContainerDefinition<PendingOperationType> containerDefinition = repoShadow.getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
 				ContainerDelta<PendingOperationType> pendingOperationDelta =containerDefinition.createEmptyDelta(new ItemPath(ShadowType.F_PENDING_OPERATION));
 				PendingOperationType pendingOperation = createPendingOperationAdd(resourceShadow, opState, null);
 				pendingOperationDelta.addValuesToAdd(pendingOperation.asPrismContainerValue());
@@ -969,24 +918,83 @@ public class ShadowManager {
 			}
 		}
 		
-		PrismPropertyDefinition<String> lifecycleDef = proposedShadow.getDefinition().findPropertyDefinition(ShadowType.F_LIFECYCLE_STATE);
-		PropertyDelta<String> lifecycleDelta = lifecycleDef.createEmptyDelta(new ItemPath(ShadowType.F_LIFECYCLE_STATE));
-		lifecycleDelta.setValuesToReplace(new PrismPropertyValue<>(SchemaConstants.LIFECYCLE_ACTIVE));
-		shadowChanges.add(lifecycleDelta);
+		if (opState.isCompleted() && opState.isSuccess() && !ShadowUtil.isExists(repoShadow.asObjectable())) {
+			shadowChanges.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, null));
+		}
+		
+		String currentLifecycleState = repoShadow.asObjectable().getLifecycleState();
+		if (currentLifecycleState != null && !currentLifecycleState.equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
+			shadowChanges.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE));
+		}
 
-		computeUpdateShadowAttributeChanges(ctx, shadowChanges, resourceShadow, proposedShadow);
+		computeUpdateShadowAttributeChanges(ctx, shadowChanges, resourceShadow, repoShadow);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Updading repository shadow\n{}", DebugUtil.debugDump(shadowChanges, 1));
 		}
 
-		repositoryService.modifyObject(ShadowType.class, proposedShadow.getOid(), shadowChanges, parentResult);
+		repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
 
 		LOGGER.trace("Repository shadow updated");
 
 		parentResult.recordSuccess();
 	}
 	
+	private <T> PropertyDelta<T> createShadowPropertyReplaceDelta(PrismObject<ShadowType> repoShadow, QName propName, T value) {
+		PrismPropertyDefinition<T> def = repoShadow.getDefinition().findPropertyDefinition(propName);
+		PropertyDelta<T> delta = def.createEmptyDelta(new ItemPath(propName));
+		if (value == null) {
+			delta.setValueToReplace();
+		} else {
+			delta.setValuesToReplace(new PrismPropertyValue<>(value));
+		}
+		return delta;
+	}
+	
+	/**
+	 * Record results of an operation that have thrown exception.
+	 * This happens after the error handler is processed - and only for those
+	 * cases when the handler has re-thrown the exception.
+	 */
+	public void recordOperationException(
+			ProvisioningContext ctx,
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+			ObjectDelta<ShadowType> delta,
+			OperationResult parentResult) 
+					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+		if (repoShadow == null) {
+			// Shadow does not exist. As this operation immediately ends up with an error then
+			// we not even bother to create a shadow.
+			return;
+		}
+		
+		Collection<ItemDelta> shadowChanges = new ArrayList<>();
+		
+		if (opState.hasPendingOperations()) {
+			collectPendingOperationUpdates(shadowChanges, opState, OperationResultStatus.FATAL_ERROR);
+		}
+		
+		if (delta.isAdd()) {
+			// This means we have failed add operation here. We tried to add object,
+			// but we have failed. Which means that this shadow is now dead.
+			PrismPropertyDefinition<Boolean> deadDef = repoShadow.getDefinition().findPropertyDefinition(ShadowType.F_DEAD);
+			PropertyDelta<Boolean> deadDelta = deadDef.createEmptyDelta(new ItemPath(ShadowType.F_DEAD));
+			deadDelta.setValuesToReplace(new PrismPropertyValue<>(Boolean.TRUE));
+			shadowChanges.add(deadDelta);
+		}
+		
+		if (shadowChanges.isEmpty()) {
+			return;
+		}
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Updading repository shadow (after error handling)\n{}", DebugUtil.debugDump(shadowChanges, 1));
+		}
+
+		repositoryService.modifyObject(ShadowType.class, opState.getRepoShadow().getOid(), shadowChanges, parentResult);
+	}
+
 	private void collectPendingOperationUpdates(Collection<ItemDelta> shadowChanges,
 			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, OperationResultStatus implicitStatus) {
 		

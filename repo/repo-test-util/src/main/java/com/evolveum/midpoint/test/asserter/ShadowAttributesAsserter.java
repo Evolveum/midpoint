@@ -18,6 +18,7 @@ package com.evolveum.midpoint.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -91,6 +92,14 @@ public class ShadowAttributesAsserter extends AbstractAsserter {
 				fail("Unexpected attribute "+existingAttr.getElementName()+" in "+desc()+". Expected attributes: "+QNameUtil.prettyPrint(expectedAttributes));
 			}
 		}
+		return this;
+	}
+	
+	public ShadowAttributesAsserter assertAny() {
+		assertNotNull("No attributes container in "+desc(), getAttributesContainer());
+		PrismContainerValue<ShadowAttributesType> containerValue = getAttributesContainer().getValue();
+		assertNotNull("No attributes container avlue in "+desc(), containerValue);
+		assertFalse("No attributes in "+desc(), containerValue.isEmpty());
 		return this;
 	}
 	
