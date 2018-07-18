@@ -401,13 +401,22 @@
             </xsd:documentation>
         </xsd:annotation>    
     </xsd:element>
-
+    
     <xsd:element name="deprecatedSince" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
                 Version of data model in which was the item marked as deprecated.
             </xsd:documentation>
         </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="plannedRemoval" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Version of data model in which the item is likely to be removed.
+                This annotation is used for deprecated item to indicate imminent incompatibility in future versions of data model.
+            </xsd:documentation>
+        </xsd:annotation>    
     </xsd:element>
 
     <xsd:element name="label" type="xsd:string">

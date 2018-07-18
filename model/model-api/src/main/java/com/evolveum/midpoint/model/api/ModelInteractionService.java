@@ -338,12 +338,14 @@ public interface ModelInteractionService {
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException;
 	
-	public ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user, 
+	ExecuteCredentialResetResponseType executeCredentialsReset(PrismObject<UserType> user, 
 			ExecuteCredentialResetRequestType executeCredentialResetRequest, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 	
-	public void clearCaches();
+	void clearCaches();
 	
 	void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException;
+	
+	List<RelationDefinitionType> getRelationDefinitions(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }

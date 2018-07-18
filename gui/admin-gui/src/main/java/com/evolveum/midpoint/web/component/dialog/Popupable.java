@@ -22,6 +22,8 @@ public interface Popupable {
 
 	public int getWidth();
 	public int getHeight();
+	public String getWidthUnit();
+	public String getHeightUnit();
 	public StringResourceModel getTitle();
 	public Component getComponent();
 

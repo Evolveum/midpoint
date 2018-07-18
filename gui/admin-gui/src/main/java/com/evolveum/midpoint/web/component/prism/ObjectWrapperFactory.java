@@ -99,11 +99,32 @@ public class ObjectWrapperFactory {
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
             String description, PrismObject<O> object, ContainerStatus status, Task task) {
-        return createObjectWrapper(displayName, description, object, status, AuthorizationPhaseType.REQUEST, task);
+        return createObjectWrapper(displayName, description, object, status, AuthorizationPhaseType.REQUEST, false, task);
+    }
+
+	/**
+	 *
+	 * @param displayName
+	 * @param description
+	 * @param object
+	 * @param status
+	 * @param entirelyReadonly  every child item wrapper will be set to this value
+	 * @param task
+	 * @param <O>
+	 * @return
+	 */
+    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
+            String description, PrismObject<O> object, ContainerStatus status, boolean entirelyReadonly, Task task) {
+        return createObjectWrapper(displayName, description, object, status, AuthorizationPhaseType.REQUEST, entirelyReadonly, task);
     }
 
     public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
 			PrismObject<O> object, ContainerStatus status, AuthorizationPhaseType authorizationPhase, Task task) {
+		return createObjectWrapper(displayName, description, object, status, authorizationPhase, false, task);
+	}
+
+    public <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName, String description,
+			PrismObject<O> object, ContainerStatus status, AuthorizationPhaseType authorizationPhase, boolean entirelyReadonly, Task task) {
         if (authorizationPhase == null) {
             authorizationPhase = AuthorizationPhaseType.REQUEST;
         }
@@ -133,7 +154,7 @@ public class ObjectWrapperFactory {
                 
             }
             return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
-                    objectClassDefinitionForEditing, status, task, result);
+                    objectClassDefinitionForEditing, status, entirelyReadonly, task, result);
         } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | SecurityViolationException ex) {
             throw new SystemException(ex);
         }
@@ -143,12 +164,12 @@ public class ObjectWrapperFactory {
 			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
 			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status, Task task) throws SchemaException {
         return createObjectWrapper(displayName, description, object, objectDefinitionForEditing,
-                objectClassDefinitionForEditing, status, task, null);
+                objectClassDefinitionForEditing, status, false, task, null);
     }
 
     private <O extends ObjectType> ObjectWrapper<O> createObjectWrapper(String displayName,
 			String description, PrismObject<O> object, PrismObjectDefinition<O> objectDefinitionForEditing,
-			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status,
+			RefinedObjectClassDefinition objectClassDefinitionForEditing, ContainerStatus status, boolean entirelyReadonly,
 			Task task, OperationResult result) throws SchemaException {
 
         if (result == null) {
@@ -163,6 +184,7 @@ public class ObjectWrapperFactory {
 		List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
 				objectDefinitionForEditing, status, task, this.result);
 		objectWrapper.setContainers(containerWrappers);
+		setObjectWrapperValuesReadOnlyState(objectWrapper, entirelyReadonly);
 
         this.result.computeStatusIfUnknown();
 
@@ -304,4 +326,26 @@ public class ObjectWrapperFactory {
                 || (object.getDefinition() != null && object.getDefinition().getName()
                 .equals(ShadowType.COMPLEX_TYPE));
     }
+
+	private <O extends ObjectType> void setObjectWrapperValuesReadOnlyState(ObjectWrapper<O> objectWrapper, boolean entirelyReadonly) {
+		for (ContainerWrapper<? extends Containerable> container : objectWrapper.getContainers()) {
+			setContainerValuesReadOnlyState(container, entirelyReadonly);
+		}
+	}
+
+	private void setContainerValuesReadOnlyState(ContainerWrapper<? extends Containerable> container, boolean entirelyReadonly) {
+		container.setReadonly(entirelyReadonly);
+
+		container.getValues().forEach(v -> {
+			v.getItems().forEach(item -> {
+				if (item instanceof ContainerWrapper) {
+					setContainerValuesReadOnlyState((ContainerWrapper) item, entirelyReadonly);
+				} else if (item instanceof PropertyOrReferenceWrapper) {
+					((PropertyOrReferenceWrapper) item).setReadonly(entirelyReadonly);
+				}
+			});
+			((ContainerValueWrapper) v).setReadonly(entirelyReadonly);
+
+		});
+	}
 }

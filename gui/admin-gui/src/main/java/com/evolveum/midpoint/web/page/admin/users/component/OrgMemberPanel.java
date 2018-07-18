@@ -25,12 +25,13 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseMemberForOrgPopup;
+import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -405,7 +407,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							OrgMemberPanel.this.addMembers(SchemaConstants.ORG_MANAGER, target);
+							OrgMemberPanel.this.addMembers(target, Arrays.asList(RelationTypes.MANAGER));
 						}
 					}));
 		}
@@ -490,30 +492,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return delta;
 	}
 
-	@Override
-	protected void addMembersPerformed(QName type, List<QName> relation, List selected, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, false));
-		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, relation, operationalTask.getResult(),
-				target);
-		if (delta == null) {
-			return;
-		}
-		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
-				TaskCategory.EXECUTE_CHANGES, target);
-
-	}
-
-	protected void addManagersPerformed(QName type, List selected, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null, true));
-		ObjectDelta delta = prepareDelta(MemberOperation.ADD, type, Arrays.asList(SchemaConstants.ORG_MANAGER),
-				operationalTask.getResult(), target);
-		if (delta == null) {
-			return;
-		}
-		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
-				TaskCategory.EXECUTE_CHANGES, target);
-
-	}
 
 	protected void removeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
 

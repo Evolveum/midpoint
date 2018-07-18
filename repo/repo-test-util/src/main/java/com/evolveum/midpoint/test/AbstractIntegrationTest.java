@@ -2368,4 +2368,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		fail("Expected that attribute "+attrName+" is "+expectedClass+", but it was "+value.getClass()+": "+value);
 		return null; // not reached
 	}
+	
+	protected void assertRelationDef(List<RelationDefinitionType> relations, QName qname, String expectedLabel) {
+    	RelationDefinitionType relDef = ObjectTypeUtil.findRelationDefinition(relations, qname);
+    	assertNotNull("No definition for relation "+qname, relDef);
+    	assertEquals("Wrong relation "+qname+" label", expectedLabel, relDef.getDisplay().getLabel());
+	}
 }

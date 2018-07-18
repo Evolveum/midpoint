@@ -577,7 +577,17 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
 		return 560;
 	}
 
-	@Override
+    @Override
+    public String getWidthUnit(){
+        return "px";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "px";
+    }
+
+    @Override
 	public StringResourceModel getTitle() {
 		return createStringResource("RunReportPopupPanel.title");
 	}

@@ -22,18 +22,16 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.ChooseMembersPopup;
-import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -41,14 +39,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 /**
  * Created by honchar.
  */
-public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
+public class RoleGovernanceMemberPanel extends RoleMemberPanel<RoleType> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(RoleGovernanceRelationsPanel.class);
-    private static final String DOT_CLASS = RoleGovernanceRelationsPanel.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(RoleGovernanceMemberPanel.class);
+    private static final String DOT_CLASS = RoleGovernanceMemberPanel.class.getName() + ".";
 
-    public RoleGovernanceRelationsPanel(String id, IModel<RoleType> model, List<RelationTypes> relations) {
+    public RoleGovernanceMemberPanel(String id, IModel<RoleType> model, List<RelationTypes> relations) {
         super(id, model, relations);
     }
 
@@ -87,39 +85,6 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
     }
 
     @Override
-    protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
-        List<InlineMenuItem> assignMemberMenuItems = new ArrayList<>();
-
-        assignMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.assignApprovers"), false,
-                new HeaderMenuAction(this) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        addMembers(RelationTypes.APPROVER.getRelation(), target);
-                    }
-                }));
-        assignMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.assignOwners"), false,
-                new HeaderMenuAction(this) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        addMembers(RelationTypes.OWNER.getRelation(), target);
-                    }
-                }));
-        assignMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
-                new HeaderMenuAction(this) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        addMembers(RelationTypes.MANAGER.getRelation(), target);
-                    }
-                }));
-        return assignMemberMenuItems;
-    }
-
     protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
 		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
 		unassignMenuItems
@@ -158,52 +123,9 @@ public class RoleGovernanceRelationsPanel extends RoleMemberPanel<RoleType> {
 		return unassignMenuItems;
 	}
 
-    private void removeAllMembersPerformed(AjaxRequestTarget target) {
-
-    	RoleRelationSelectionPanel relatioNSelectionPanel = new RoleRelationSelectionPanel(getPageBase().getMainPopupBodyId(), new RoleRelationSelectionDto()) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onConfirmPerformed(IModel<RoleRelationSelectionDto> model, AjaxRequestTarget target) {
-				getPageBase().hideMainPopup(target);
-
-				RoleRelationSelectionDto relationsSelected = model.getObject();
-				ArrayList<QName> relations=  new ArrayList<>();
-				if (relationsSelected.isApprover()) {
-					relations.add(SchemaConstants.ORG_APPROVER);
-				}
-
-				if (relationsSelected.isOwner()) {
-					relations.add(SchemaConstants.ORG_OWNER);
-				}
-
-				if (relationsSelected.isManager()) {
-					relations.add(SchemaConstants.ORG_MANAGER);
-				}
-
-				removeMembersPerformed(QueryScope.ALL, relations, target);
-			}
-		};
-
-		getPageBase().showMainPopup(relatioNSelectionPanel, target);
-
-	}
-
-    protected void addMembers(final QName relation, AjaxRequestTarget target) {
-
-        ChooseMembersPopup browser = new ChooseMembersPopup(getPageBase().getMainPopupBodyId()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected RoleType getAssignmentTargetRefObject(){
-                return RoleGovernanceRelationsPanel.this.getModelObject();
-            }
-        };
-        browser.setOutputMarkupId(true);
-
-        getPageBase().showMainPopup(browser, target);
-
+	@Override
+    protected List<RelationTypes> getAvailableRelationList(){
+        return Arrays.asList(RelationTypes.MANAGER, RelationTypes.APPROVER, RelationTypes.OWNER);
     }
 
     @Override

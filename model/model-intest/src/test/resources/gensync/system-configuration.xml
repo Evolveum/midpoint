@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
+	xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>SystemConfiguration</name>
     <logging>
     	<rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -40,4 +42,27 @@
     	<type>c:RoleType</type>
     	<objectTemplateRef oid="fc0ace70-688f-11e3-ab09-001e8c717e5b"/>
     </objectTemplate>
+    <roleManagement>
+    	<relations>
+    		<!-- MID-4660, MID-4491, MID-3581 -->
+    		<relation>
+    			<ref>piracy:captain</ref>
+    			<description>This is completely new relation</description>
+    			<display>
+    				<label>Captain</label>
+    			</display>
+    			<category>organization</category>
+    			<category>governance</category>
+    		</relation>
+    		<relation>
+    			<ref>org:owner</ref>
+    			<description>This is redefined default relation</description>
+    			<display>
+    				<label>Master</label>
+    			</display>
+    			<category>policy</category>
+    			<category>governance</category>
+    		</relation>
+    	</relations>
+    </roleManagement>
 </systemConfiguration>
