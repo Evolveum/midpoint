@@ -60,6 +60,7 @@ import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -102,6 +103,8 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 	private static final String ID_ADD_BUTTON = "addButton";
 	private static final String ID_REMOVE_BUTTON = "removeButton";
 	private static final String ID_VALUE_CONTAINER = "valueContainer";
+	
+	private static final String OBJECT_TYPE = "ObjectType";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
@@ -482,7 +485,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
 			} else if (DOMUtil.XSD_QNAME.equals(valueType)) {
 				DropDownChoicePanel<QName> panelDropDown = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
-						Model.ofList(WebComponentUtil.createObjectTypeList()), new QNameObjectTypeChoiceRenderer(), false);
+						Model.ofList(WebComponentUtil.createObjectTypeList()), new QNameIChoiceRenderer(OBJECT_TYPE), false);
 				panelDropDown.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 				panelDropDown.setOutputMarkupId(true);
 				return panelDropDown;

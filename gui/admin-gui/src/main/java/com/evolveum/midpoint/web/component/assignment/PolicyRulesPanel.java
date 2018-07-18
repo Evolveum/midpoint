@@ -169,33 +169,10 @@ public class PolicyRulesPanel extends AssignmentPanel {
 		return specificContainers;
 	}
 	
-	private void setRemoveContainerButtonVisibility(ContainerWrapper<PolicyRuleType> policyRulesContainer){
-		ContainerWrapper constraintsContainer = policyRulesContainer.findContainerWrapper(new ItemPath(policyRulesContainer.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
-		if (constraintsContainer != null){
-			constraintsContainer.getValues().forEach(value ->
-					((ContainerValueWrapper)value).getItems().forEach(
-							constraintContainerItem -> {
-								if (constraintContainerItem instanceof ContainerWrapper && ((ContainerWrapper) constraintContainerItem).getItemDefinition().isMultiValue()){
-								}
-							}
-					));
-		}
-	}
-
-	private void setAddContainerButtonVisibility(ContainerWrapper<PolicyRuleType> policyRulesContainer){
-		ContainerWrapper constraintsContainer = policyRulesContainer.findContainerWrapper(new ItemPath(policyRulesContainer.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
-		constraintsContainer.setShowEmpty(true, false);
-	}
-
 	@Override
 	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
 		ContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
-		if (policyRuleWrapper != null && policyRuleWrapper.getValues() != null) {
-			policyRuleWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
-		}
-		setRemoveContainerButtonVisibility(policyRuleWrapper);
-		setAddContainerButtonVisibility(policyRuleWrapper);
-
+		policyRuleWrapper.setShowEmpty(true, true);
 		return Model.of(policyRuleWrapper);
 	}
 }

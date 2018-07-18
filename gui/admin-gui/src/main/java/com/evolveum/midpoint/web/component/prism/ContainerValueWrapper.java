@@ -124,7 +124,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	@Nullable
-	ContainerWrapper<C> getContainer() {
+	public ContainerWrapper<C> getContainer() {
 		return containerWrapper;
 	}
 
@@ -831,5 +831,4 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		return WebComponentUtil.getDisplayName(containerValue);
 	}
-
 }
