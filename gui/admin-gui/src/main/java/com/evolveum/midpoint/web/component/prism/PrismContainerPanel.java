@@ -128,27 +128,6 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
     }
 
     private void addOrReplaceProperties(IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean isToBeReplaced){
-    	
-//    	LOGGER.info("XXXXXXXXXXXXXXX model name: " + model.getObject().getItemDefinition().getName().getLocalPart());
-//    	LOGGER.info("XXXXXXXXXXXXXXX isMultiValue: " + model.getObject().getItemDefinition().isMultiValue());
-//    	LOGGER.info("XXXXXXXXXXXXXXX values: " + model.getObject().getValues());
-//    	
-//    	if(model.getObject().getItemDefinition().isMultiValue()) {
-//    		ContainerValueWrapper<C> container = new ContainerValueWrapper<C>(model.getObject(), model.getObject().getItem().createNewValue(), model.getObject().getObjectStatus(), ValueStatus.NOT_CHANGED, model.getObject().getPath());
-//    		List<ItemWrapper> properties = new ArrayList<>();
-//    		model.getObject().getValues().forEach(item -> {
-//    			properties.add(item.getContainer());
-//    		});
-//    		container.setProperties(properties);
-//    		model = new LoadableModel<ContainerWrapper<C>>(false) {
-//    			private static final long serialVersionUID = 1L;
-//
-//    			@Override
-//    			protected ContainerWrapper<C> load() {
-//    				return container.getContainer();
-//    			}
-//    		};
-//    	}
     	ListView<ContainerValueWrapper<C>> values = new ListView<ContainerValueWrapper<C>>("values", new PropertyModel<List<ContainerValueWrapper<C>>>(model, "values")) {
 			
 			private static final long serialVersionUID = 1L;

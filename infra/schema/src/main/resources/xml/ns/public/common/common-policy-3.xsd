@@ -1981,6 +1981,9 @@
                             lifecycleState property.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.name</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -1991,6 +1994,9 @@
                             Used for documentation purposes (comment).
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.description</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="displayName" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -2000,6 +2006,9 @@
                             User-friendly name of the state, e.g. for displaying in the user interface.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.displayName</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="forcedActivationStatus" type="tns:ActivationStatusType" minOccurs="0">
@@ -2028,6 +2037,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.8</a:since>
+						<a:displayName>LifecycleStateType.forcedActivationStatus</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2038,6 +2048,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
+						<a:displayName>LifecycleStateType.forcedAssignment</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -2069,6 +2080,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:since>3.8</a:since>
+						<a:displayName>LifecycleStateType.activeAssignments</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2080,6 +2092,9 @@
                             State entry action. Action that is executed when the state is entered.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.entryAction</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="exitAction" type="tns:LifecycleStateActionType" minOccurs="0" maxOccurs="unbounded">
@@ -2089,6 +2104,9 @@
                             State exit action. Action that is executed when the state is exited.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.exitAction</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="transition" type="tns:LifecycleStateTransitionType" minOccurs="0" maxOccurs="unbounded">
@@ -2098,6 +2116,9 @@
                             Transition to another state.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.transition</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -2123,6 +2144,9 @@
                             Short name for the transition. It may be used in log files, user interface, etc.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateTransitionType.name</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -2133,6 +2157,9 @@
                             Used for documentation purposes (comment).
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateTransitionType.description</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="targetState" type="xsd:string" minOccurs="1" maxOccurs="1">
@@ -2142,6 +2169,9 @@
                             Identifier of the state that is the target of the transition.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateTransitionType.targetState</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
@@ -2152,6 +2182,9 @@
                             then lifecycle transitions to the target state.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateTransitionType.condition</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
