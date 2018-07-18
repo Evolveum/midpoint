@@ -188,14 +188,14 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 			@Override
 			public boolean isVisible(){
-				return getModelObject().containsMultivalueContainer() && getModelObject().getContainer() != null
+				return getModelObject().containsMultipleMultivalueContainer() && getModelObject().getContainer() != null
 //						&& getModelObject().getContainer().isAddContainerButtonVisible()
 						&& getModelObject().getDefinition().canModify();
 			}
 		});
         add(addChildContainerButton);
 
-		WebMarkupContainer childContainersSelectorPanel = new WebMarkupContainer(ID_CHILD_CONTAINERS_SELECTOR_PANEL);
+       	WebMarkupContainer childContainersSelectorPanel = new WebMarkupContainer(ID_CHILD_CONTAINERS_SELECTOR_PANEL);
 		childContainersSelectorPanel.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
 
@@ -206,21 +206,26 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		});
 		childContainersSelectorPanel.setOutputMarkupId(true);
 		add(childContainersSelectorPanel);
-
-		List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded();
-		
-		if(pathsList.size() != 1) {
+		 List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded();
+//		if(pathsList.size() != 1) {
 			DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
 					Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
 					new QNameIChoiceRenderer(getModelObject().getDefinition().getCompileTimeClass().getSimpleName()));
 			multivalueContainersList.setOutputMarkupId(true);
 			multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 			childContainersSelectorPanel.add(multivalueContainersList);
-		} else {
-			Label containerName = new Label(ID_CHILD_CONTAINERS_LIST, getPathDisplayName(pathsList.get(0)));
-//			TextField<String> containerName = new TextField<String>(ID_CHILD_CONTAINERS_LIST, Model.of(getPathDisplayName(pathsList.get(0))));
-			childContainersSelectorPanel.add(containerName);
-		}
+			multivalueContainersList.add(new VisibleEnableBehaviour() {
+				
+				@Override
+				public boolean isVisible() {
+					return pathsList.size() > 1;
+				}
+			});
+//		} else {
+//			Label containerName = new Label(ID_CHILD_CONTAINERS_LIST, getPathDisplayName(pathsList.get(0)));
+////			TextField<String> containerName = new TextField<String>(ID_CHILD_CONTAINERS_LIST, Model.of(getPathDisplayName(pathsList.get(0))));
+//			childContainersSelectorPanel.add(containerName);
+//		}
 		childContainersSelectorPanel.add(new AjaxButton(ID_ADD_BUTTON, createStringResource("prismValuePanel.add")) {
 			
 			private static final long serialVersionUID = 1L;
@@ -298,7 +303,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		isChildContainersSelectorPanelVisible = false;
 		getModelObject().setShowEmpty(true, false);
 		createNewContainerValue(getModelObject(), getSelectedContainerQName());
-		ajaxRequestTarget.add(getChildContainersSelectorPanel().getParent());
+//		ajaxRequestTarget.add(getChildContainersSelectorPanel().getParent());
 	}
 
 	private QName getSelectedContainerQName(){
@@ -330,8 +335,8 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	}
 	
 	public void createNewContainerValue(ContainerValueWrapper<C> containerValueWrapper, QName path){
-		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(new ItemPath(containerValueWrapper.getPath(),
-				path));
+		ItemPath newPath = new ItemPath(containerValueWrapper.getPath(), path);
+		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(newPath);
 		if (childContainerWrapper == null){
 			return;
 		}
@@ -346,7 +351,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
 		ContainerValueWrapper<C> newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
 				newContainerValue, containerValueWrapper.getObjectStatus(),
-				ValueStatus.ADDED, new ItemPath(path), task);
+				ValueStatus.ADDED, newPath, task);
 		newValueWrapper.setShowEmpty(true, false);
 		newValueWrapper.computeStripes();
 		childContainerWrapper.getValues().add(newValueWrapper);
