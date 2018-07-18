@@ -59,7 +59,8 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 		this.pageBase = pageBase;
 		
 		add(new VisibleEnableBehaviour() {
-
+			
+			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isVisible() {
 				return model.getObject().isVisible();
@@ -82,17 +83,6 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 				target.add(getPageBase().getFeedbackPanel());
 			}
 
-			@Override
-            protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){
-                super.addNewContainerValuePerformed(ajaxRequestTarget);
-                addOrReplaceProperties(model, form, isPanelVisible, true);
-                ajaxRequestTarget.add(ContainerValuePanel.this);
-            }
-
-
-            protected void reloadParentContainerPanel(AjaxRequestTarget target){
-                target.add(ContainerValuePanel.this);
-            }
         };
         
         
@@ -138,6 +128,8 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 					containerPanel.setOutputMarkupId(true);
 					item.add(containerPanel);
 					containerPanel.add(new VisibleEnableBehaviour() {
+						
+						private static final long serialVersionUID = 1L;
 						
 						@Override
 						public boolean isVisible() {
