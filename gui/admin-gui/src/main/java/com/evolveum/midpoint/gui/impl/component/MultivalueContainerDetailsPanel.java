@@ -71,6 +71,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     	ItemPath itemPath = getModelObject().getPath();
     	IModel<ContainerValueWrapper<C>> model = getModel();
     	model.getObject().setShowEmpty(true, true);
+    	model.getObject().getContainer().setShowOnTopLevel(true);
 		return new ContainerValuePanel<C>(idPanel, getModel(), true, form,
 				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
     }

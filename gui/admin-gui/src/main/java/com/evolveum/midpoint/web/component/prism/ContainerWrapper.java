@@ -60,6 +60,7 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	private boolean readonly;
 //	private boolean removeContainerButtonVisible;
 //	private boolean addContainerButtonVisible;
+	private boolean isShowOnTopLevel;
 	
 	private ContainerStatus objectStatus;
 
@@ -561,5 +562,13 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public ExpressionType getFormItemValidator() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public void setShowOnTopLevel(boolean isShowOnTopLevel){
+		this.isShowOnTopLevel = isShowOnTopLevel;
+	}
+	
+	public boolean isShowOnTopLevel() {
+		return isShowOnTopLevel;
 	}
 }

@@ -106,7 +106,10 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     	DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class),
                 new IModel<RelationTypes>() {
-                    @Override
+    		
+					private static final long serialVersionUID = 1L;
+
+					@Override
                     public RelationTypes getObject() {
                         return relationValue;
                     }
@@ -363,25 +366,15 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
 			ContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(),
 					AssignmentType.F_CONSTRUCTION));
-
-//			constructionWrapper.setAddContainerButtonVisible(true);
-			constructionWrapper.setShowEmpty(true, false);
-			if (constructionWrapper != null && constructionWrapper.getValues() != null) {
-				constructionWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
-			}
-			ContainerWrapper associationWrapper = constructionWrapper.findContainerWrapper(constructionWrapper.getPath().append(ConstructionType.F_ASSOCIATION));
-			if (associationWrapper != null) {
-//				associationWrapper.setRemoveContainerButtonVisible(true);
-			}
+			constructionWrapper.setShowEmpty(true, true);
+			
 			return Model.of(constructionWrapper);
 		}
 		
 		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
 			ContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(),
 					AssignmentType.F_PERSONA_CONSTRUCTION));
-			if (personasWrapper != null && personasWrapper.getValues() != null) {
-				personasWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
-			}
+			personasWrapper.setShowEmpty(true, true);
 
 			return Model.of(personasWrapper);
 		}

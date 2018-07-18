@@ -21,6 +21,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -116,19 +117,19 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_SHOW_EMPTY_FIELDS,
 				GuiStyleConstants.CLASS_ICON_SHOW_EMPTY_FIELDS, GuiStyleConstants.CLASS_ICON_NOT_SHOW_EMPTY_FIELDS) {
+			
 			private static final long serialVersionUID = 1L;
 
 			@Override
-					protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
 				onShowEmptyClick(target);
-					}
+			}
 			
-@Override
-		protected void onError(AjaxRequestTarget target, Form<?> form) {
-	target.add(getPageBase().getFeedbackPanel());
-		}
+			@Override
+			protected void onError(AjaxRequestTarget target, Form<?> form) {
+				target.add(getPageBase().getFeedbackPanel());
+			}
 
-			
 			@Override
 			public boolean isOn() {
 				return PrismContainerValueHeaderPanel.this.getModelObject().isShowEmpty();
@@ -141,6 +142,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
         ToggleIconButton sortPropertiesButton = new ToggleIconButton(ID_SORT_PROPERTIES,
         		GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
+        	
         	private static final long serialVersionUID = 1L;
 
         	@Override
@@ -186,9 +188,6 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 			@Override
 			public boolean isVisible(){
-//				LOGGER.info("XXXXXXXXXXXX isMain: " + getModelObject().getContainer().isMain());
-//				LOGGER.info("XXXXXXXXXXXX isEnforceRequiredFields: " + getModelObject().getContainer().isEnforceRequiredFields());
-				LOGGER.info("XXXXXXXXXXXX type: " + getModelObject().getDefinition().getTypeName());
 				return getModelObject().containsMultivalueContainer() && getModelObject().getContainer() != null
 //						&& getModelObject().getContainer().isAddContainerButtonVisible()
 						&& getModelObject().getDefinition().canModify();
@@ -213,25 +212,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		if(pathsList.size() != 1) {
 			DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
 					Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
-					new IChoiceRenderer<QName>() {
-                	@Override
-                	public Object getDisplayValue(QName qName) {
-                		return getPageBase().createStringResource(getModelObject().getDefinition().getCompileTimeClass().getSimpleName() + "." + qName.getLocalPart()).getString();
-                	}
-
-                	@Override
-                	public String getIdValue(QName qName, int i) {
-                		return Integer.toString(i);
-                	}
-
-                	@Override
-                	public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
-                		if (StringUtils.isBlank(id)) {
-                			return null;
-                		}
-                		return choices.getObject().get(Integer.parseInt(id));
-                	}
-			});
+					new QNameIChoiceRenderer(getModelObject().getDefinition().getCompileTimeClass().getSimpleName()));
 			multivalueContainersList.setOutputMarkupId(true);
 			multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 			childContainersSelectorPanel.add(multivalueContainersList);
@@ -280,7 +261,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 			@Override
 			public boolean isVisible(){
-				return getModelObject().getContainer() != null && !getModelObject().getContainer().isMain() ? getModelObject().getContainer().getItemDefinition().isMultiValue() : false;
+				return getModelObject().getContainer() != null && !getModelObject().getContainer().isShowOnTopLevel() ? getModelObject().getContainer().getItemDefinition().isMultiValue() : false;
 			}
 		});
 		add(removeContainerButton);
