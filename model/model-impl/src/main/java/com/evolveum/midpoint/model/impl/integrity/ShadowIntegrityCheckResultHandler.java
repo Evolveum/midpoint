@@ -518,9 +518,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
         ObjectSynchronizationType synchronizationPolicy;
         try {
-        	SynchronizationContext<? extends FocusType> syncCtx = new SynchronizationContext<>(fullShadow, fullShadow, resource, task.getChannel());
-        	
-            synchronizationService.determineSynchronizationPolicy(syncCtx, task, result);
+        	SynchronizationContext<? extends FocusType> syncCtx = synchronizationService.loadSynchronizationContext(fullShadow, fullShadow, resource, task.getChannel(), systemObjectCache.getSystemConfiguration(result), task, result);
             synchronizationPolicy = syncCtx.getObjectSynchronization();            
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX, new SystemException("Couldn't prepare fix for missing intent, because the synchronization policy couldn't be determined", e));
