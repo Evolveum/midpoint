@@ -237,8 +237,6 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		});
 		
 		
-		
-
 		ToggleIconButton removeContainerButton = new ToggleIconButton(ID_REMOVE_CONTAINER,
 				GuiStyleConstants.CLASS_MINUS_CIRCLE_DANGER, GuiStyleConstants.CLASS_MINUS_CIRCLE_DANGER) {
 			private static final long serialVersionUID = 1L;

@@ -141,7 +141,13 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 						
 						@Override
 						public boolean isVisible() {
-							return (model.getObject().containsMultipleMultivalueContainer() && item.getModelObject().getItemDefinition().isMultiValue() && CollectionUtils.isEmpty(item.getModelObject().getValues())) ? false : true;
+							if (model.getObject().containsMultipleMultivalueContainer()
+									&& item.getModelObject().getItemDefinition().isMultiValue()
+									&& CollectionUtils.isEmpty(item.getModelObject().getValues())) {
+								return false;
+							}
+							
+							return containerPanel.isPanelVisible(isPanaleVisible, (IModel<ContainerWrapper<C>>) item.getModel());
 							
 						}
 					});
