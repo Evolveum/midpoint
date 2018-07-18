@@ -255,7 +255,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
 		checkAccountWill(shadow, result);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 	}
 
 	@Test
@@ -282,7 +282,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
 		assertFalse("No shadows found", allShadows.isEmpty());
 
-		checkConsistency(allShadows);
+		checkUniqueness(allShadows);
 
 		for (PrismObject<ShadowType> shadow: allShadows) {
 			assertNoAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME);

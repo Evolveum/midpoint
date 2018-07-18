@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
@@ -107,6 +109,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 public class ProvisioningUtil {
 
 	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
+	public static final Duration DEFAULT_OPERATION_RETRY_PERIOD_DURATION = XmlTypeConverter.createDuration("PT30M");
+	public static final int DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS = 3;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
 
@@ -662,6 +666,30 @@ public class ProvisioningUtil {
 		return XmlTypeConverter.compare(now, graceExpiration) == DatatypeConstants.GREATER;
 	}
 	
+	public static Duration getRetryPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Duration period = null;
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency != null) {
+			period = consistency.getOperationRetryPeriod();
+		}
+		if (period == null) {
+			period = DEFAULT_OPERATION_RETRY_PERIOD_DURATION;
+		}
+		return period;
+	}
+	
+	public static int getMaxRetryAttempts(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency == null) {
+			return DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS;
+		}
+		Integer operationRetryMaxAttempts = consistency.getOperationRetryMaxAttempts();
+		if (operationRetryMaxAttempts == null) {
+			return DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS;
+		}
+		return operationRetryMaxAttempts;
+	}
+	
 	public static boolean isCompleted(OperationResultStatusType statusType) {
 		 return statusType != null && statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
 	}
@@ -697,5 +725,17 @@ public class ProvisioningUtil {
 	public static boolean isFuturePointInTime(Collection<SelectorOptions<GetOperationOptions>> options) {
 		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
 		return PointInTimeType.FUTURE.equals(pit);
+	}
+	
+	public static ResourceOperationDescription createResourceFailureDescription(
+			PrismObject<ShadowType> conflictedShadow, ResourceType resource, ObjectDelta<ShadowType> delta, OperationResult parentResult) {
+		ResourceOperationDescription failureDesc = new ResourceOperationDescription();
+		failureDesc.setCurrentShadow(conflictedShadow);
+		failureDesc.setObjectDelta(delta);
+		failureDesc.setResource(resource.asPrismObject());
+		failureDesc.setResult(parentResult);
+		failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+		
+		return failureDesc;
 	}
 }

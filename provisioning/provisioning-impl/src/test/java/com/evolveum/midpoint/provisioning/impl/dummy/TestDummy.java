@@ -239,7 +239,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		// MID-4397
 		assertRepoShadowCredentials(shadowFromRepo, ACCOUNT_MORGAN_PASSWORD);
 
-		checkConsistency(account.asPrismObject());
+		checkUniqueness(account.asPrismObject());
 
 		assertSteadyResource();
 	}
@@ -400,7 +400,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword", "love");
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertCachingMetadata(shadow, false, startTs, endTs);
 
@@ -445,7 +445,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
 		checkRepoAccountShadowWill(shadowRepo, startTs, endTs);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertCachingMetadata(shadow, false, startTs, endTs);
 
@@ -524,7 +524,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
 		assertEquals(4, foundObjects.size());
-		checkConsistency(foundObjects);
+		checkUniqueness(foundObjects);
 		assertProtected(foundObjects, 1);
 
 		PrismObject<ShadowType> shadowWillRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -557,7 +557,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		display("Found shadows", foundObjects);
 
 		assertEquals(4, foundObjects.size());
-		checkConsistency(foundObjects);
+		checkUniqueness(foundObjects);
 		assertProtected(foundObjects, 1);
 
 		shadowWillRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -620,7 +620,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		display("Found shadows", foundObjects);
 
 		assertEquals(4, foundObjects.size());
-		checkConsistency(foundObjects);
+		checkUniqueness(foundObjects);
 		assertProtected(foundObjects, 1);       // MID-1640
 
 		assertSteadyResource();
@@ -659,7 +659,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		display("Found shadows", foundObjects);
 
 		assertEquals(4, foundObjects.size());
-		checkConsistency(foundObjects);
+		checkUniqueness(foundObjects);
 		assertProtected(foundObjects, 1);       // MID-1640
 
 		assertSteadyResource();
@@ -730,7 +730,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertFalse("No shadows found", allShadows.isEmpty());
 		assertEquals("Wrong number of results", 4, allShadows.size());
 
-		checkConsistency(allShadows);
+		checkUniqueness(allShadows);
 		assertProtected(allShadows, 1);
 
 		assertSteadyResource();
@@ -846,7 +846,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
-		checkConsistency(allShadows);
+		checkUniqueness(allShadows);
 		assertProtected(allShadows, 1);
 
 		assertSteadyResource();
@@ -1801,7 +1801,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		checkAccountWill(shadow, result, startTs, endTs);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertSteadyResource();
 	}
@@ -1921,7 +1921,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		checkAccountWill(shadow, result, startTs, endTs);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertSteadyResource();
 	}
@@ -2284,7 +2284,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		assertEquals("Wrong number of found objects ("+foundObjects+"): "+foundObjects, expectedAccountNames.length, foundObjects.size());
         if (!useRepo) {
-            checkConsistency(foundObjects);
+            checkUniqueness(foundObjects);
         }
         assertSteadyResource();
 	}
@@ -2347,7 +2347,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		checkRepoEntitlementShadow(shadowFromRepo);
 
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
-		checkConsistency(group);
+		checkUniqueness(group);
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		assertSteadyResource();
 	}
@@ -2378,7 +2378,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		checkGroupPirates(shadow, result);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertSteadyResource();
 	}
@@ -2425,7 +2425,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		checkGroupShadow(shadow, result, false);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertSteadyResource();
 	}
@@ -2522,7 +2522,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		checkRepoEntitlementShadow(shadowFromRepo);
 
-		checkConsistency(priv);
+		checkUniqueness(priv);
 		assertSteadyResource();
 	}
 
@@ -2548,7 +2548,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		checkPrivPillage(shadow, result);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertSteadyResource();
 	}
@@ -2620,7 +2620,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         checkRepoEntitlementShadow(shadowFromRepo);
 
-        checkConsistency(priv);
+        checkUniqueness(priv);
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
         assertSteadyResource();
     }
@@ -3243,7 +3243,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				provisioningAccount, new QName(SchemaConstants.NS_ICF_SCHEMA, "password")));
 
-		checkConsistency(provisioningAccount);
+		checkUniqueness(provisioningAccount);
 
 		assertSteadyResource();
 	}
@@ -3455,7 +3455,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
 
 		assertEquals(""+account+" is not protected", Boolean.TRUE, account.asObjectable().isProtectedObject());
-		checkConsistency(account);
+		checkUniqueness(account);
 
 		result.computeStatus();
 		display("getObject result", result);

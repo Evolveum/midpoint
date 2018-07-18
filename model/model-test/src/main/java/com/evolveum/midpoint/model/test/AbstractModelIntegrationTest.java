@@ -5015,17 +5015,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return new UserValuePolicyOriginResolver(user, modelObjectResolver);
 	}
 
-	protected XMLGregorianCalendar getTimestamp(String duration) {
-		return XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), duration);
-	}
-
-	protected void clockForward(String duration) {
-		XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
-		clock.overrideDuration(duration);
-		XMLGregorianCalendar after = clock.currentTimeXMLGregorianCalendar();
-		display("Clock going forward", before + " --[" + duration + "]--> " + after);
-	}
-
 	protected List<PrismObject<TaskType>> getTasksForObject(String oid, QName type,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,

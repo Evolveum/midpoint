@@ -154,7 +154,7 @@ public class TestDummyCaching extends TestDummy {
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertCachingMetadata(shadow, true, null, startTs);
 
@@ -219,7 +219,7 @@ public class TestDummyCaching extends TestDummy {
 		assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertCachingMetadata(shadow, true, null, startTs);
 

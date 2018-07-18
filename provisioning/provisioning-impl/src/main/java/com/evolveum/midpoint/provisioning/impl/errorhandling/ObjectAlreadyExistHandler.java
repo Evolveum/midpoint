@@ -31,10 +31,12 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -54,9 +56,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	
 	@Override
-	protected void throwException(Exception cause, OperationResult result)
+	protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
 			throws ObjectAlreadyExistsException {
-		result.recordFatalError(cause);
+		recordCompletionError(cause, opState, result);
 		if (cause instanceof ObjectAlreadyExistsException) {
 			throw (ObjectAlreadyExistsException)cause;
 		} else {

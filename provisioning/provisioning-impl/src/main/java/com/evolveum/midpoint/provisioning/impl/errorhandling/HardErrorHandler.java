@@ -78,7 +78,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
-		throwException(cause, parentResult);
+		throwException(cause, null, parentResult);
 		return null; // not reached
 	}
 
@@ -91,7 +91,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		
-		throwException(cause, parentResult);
+		throwException(cause, opState, parentResult);
 		return OperationResultStatus.FATAL_ERROR; // not reached
 	}
 
@@ -104,7 +104,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
-		throwException(cause, parentResult);
+		throwException(cause, opState, parentResult);
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
-		throwException(cause, parentResult);
+		throwException(cause, opState, parentResult);
 	}	
 
 }

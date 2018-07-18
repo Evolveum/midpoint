@@ -35,12 +35,14 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -63,9 +65,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 public class ObjectNotFoundHandler extends HardErrorHandler {
 	
 	@Override
-	protected void throwException(Exception cause, OperationResult result)
+	protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
 			throws ObjectNotFoundException {
-		result.recordFatalError(cause);
+		recordCompletionError(cause, opState, result);
 		if (cause instanceof ObjectNotFoundException) {
 			throw (ObjectNotFoundException)cause;
 		} else {

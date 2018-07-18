@@ -867,17 +867,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 
-			// TODO: RECON RECON RECON mode
 			shadowCache.refreshShadow(shadow, task, result);
 
-			refreshShadowLegacy(shadow, options, task, result);
-
-		} catch (GenericFrameworkException e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": "+ e.getMessage(), e);
-			throw new CommunicationException(e.getMessage(), e);
-
-		} catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException
-				| SecurityViolationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't refresh shadow: " + e.getClass().getSimpleName() + ": "+ e.getMessage(), e);
 			throw e;
 			
@@ -890,28 +882,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 
 		LOGGER.debug("Finished refreshing shadow {}: {}", shadow, result);
-	}
-
-	private  void refreshShadowLegacy(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			ObjectAlreadyExistsException, SecurityViolationException, GenericFrameworkException, ExpressionEvaluationException, EncryptionException {
-
-		ShadowType shadowType = shadow.asObjectable();
-
-		// TODO: RECON RECON RECON mode
-		
-		if (shadowType.getFailedOperationType() == null) {
-			return;
-		} else if (FailedOperationTypeType.ADD == shadowType.getFailedOperationType()) {
-			shadowCache.addShadow(shadow, null, null, options, task, result);
-		} else if (FailedOperationTypeType.MODIFY == shadowType.getFailedOperationType()) {
-			shadowCache.modifyShadow(shadow, new ArrayList<>(), null, options, task, result);
-		} else if (FailedOperationTypeType.DELETE == shadowType.getFailedOperationType()) {
-			shadowCache.deleteShadow(shadow, options, null, task, result);
-		} else {
-			result.recordWarning("Missing or unknown type of operation to finish: " + shadowType.getFailedOperationType());
-		}
-
 	}
 
 	// TODO: move to ResourceManager and ConnectorManager

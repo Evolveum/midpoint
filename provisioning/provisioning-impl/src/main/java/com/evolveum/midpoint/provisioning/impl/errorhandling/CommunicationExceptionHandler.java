@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -81,7 +82,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		
 		ResourceType resource = ctx.getResource();
 		if (!isDoDiscovery(resource, rootOptions)) {
-			throwException(cause, parentResult);
+			throwException(cause, null, parentResult);
 		}
 		
 		OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_GET_ERROR);
@@ -103,8 +104,8 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 	
 	@Override
-	protected void throwException(Exception cause, OperationResult result) throws CommunicationException {
-		result.recordFatalError(cause);
+	protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result) throws CommunicationException {
+		recordCompletionError(cause, opState, result);
 		if (cause instanceof CommunicationException) {
 			throw (CommunicationException)cause;
 		} else {
@@ -129,7 +130,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		result.addParam("exception", cause.getMessage());
 		ResourceType resource = ctx.getResource();
 		markResourceDown(resource, result);
-		handleNoRetryCase(resource, options, cause, result);
+		handleRetriesAndAttempts(ctx, opState, options, cause, result);
 		return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
 	}
 
@@ -146,7 +147,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		result.addParam("exception", cause.getMessage());
 		ResourceType resource = ctx.getResource();
 		markResourceDown(resource, result);
-		handleNoRetryCase(resource, options, cause, result);
+		handleRetriesAndAttempts(ctx, opState, options, cause, result);
 		LOGGER.trace("Postponing MODIFY operation for {}: ", repoShadow, modifications);
 		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
 		AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncResult = new AsynchronousOperationReturnValue<>();
@@ -169,7 +170,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		result.addParam("exception", cause.getMessage());
 		ResourceType resource = ctx.getResource();
 		markResourceDown(resource, result);
-		handleNoRetryCase(resource, options, cause, result);
+		handleRetriesAndAttempts(ctx, opState, options, cause, result);
 		LOGGER.trace("Postponing DELETE operation for {}: ", repoShadow);
 		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
 		AsynchronousOperationResult asyncResult = new AsynchronousOperationResult();
@@ -178,11 +179,21 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		result.recordInProgress();
 	}
 
-	private void handleNoRetryCase(ResourceType resource, ProvisioningOperationOptions options, Exception cause, OperationResult result) throws CommunicationException {
+	private void handleRetriesAndAttempts(ProvisioningContext ctx, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, ProvisioningOperationOptions options, Exception cause, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+		ResourceType resource = ctx.getResource();
 		if (!isOperationRetryEnabled(resource) || !isCompletePostponedOperations(options)) {
-			LOGGER.trace("Postponing operation turned off.");
-			result.recordFatalError(cause.getMessage(), cause);
-			throw new CommunicationException(cause.getMessage(), cause);
+			LOGGER.trace("Operation retry turned off for {}", resource);
+			throwException(cause, opState, result);
+		}
+		
+		int maxRetryAttempts = ProvisioningUtil.getMaxRetryAttempts(ctx);
+		Integer attemptNumber = opState.getAttemptNumber();
+		if (attemptNumber == null) {
+			attemptNumber = 1;
+		}
+		if (attemptNumber >= maxRetryAttempts) {
+			LOGGER.debug("Maximum nuber of retry attempts ({}) reached for operation on {}", attemptNumber, ctx.getResource() );
+			throwException(cause, opState, result);
 		}
 	}
 

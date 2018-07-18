@@ -54,6 +54,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExec
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+/**
+ * Handler for provisioning errors. The handler can invoke additional functionality to
+ * handle the error, transform the error, turn critical errors to non-critical, and so on.
+ * 
+ * The handler may "swallow" and re-throw the exception. If the exception is "swallowed" then
+ * the operation continues. In that case the relevant information is in opState and result.
+ * This will usually indicate "in progress" operation (e.g. operation prepared to be retried).
+ * 
+ * If exception is thrown from the handler then this means the end of the operation.
+ * No more retries, no more attempts.
+ * 
+ * @author Katka Valalikova
+ * @author Radovan Semancik
+ *
+ */
 public abstract class ErrorHandler {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ErrorHandler.class);
@@ -130,11 +145,25 @@ public abstract class ErrorHandler {
 	
 	/**
 	 * Throw exception of appropriate type.
+	 * If exception is thrown then this is definitive end of the operation.
+	 * No more retries, no more attempts.
 	 */
-	protected abstract void throwException(Exception cause, OperationResult result)
+	protected abstract void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
 			throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException;
+	
+	/**
+	 * Record error that completes the operation. If such error is recorded then this is definitive end of the operation.
+	 * No more retries, no more attempts.
+	 */
+	protected void recordCompletionError(Exception cause,
+			ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result) {
+		result.recordFatalError(cause);
+		if (opState != null) {
+			opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+		}
+	}
 		
 	protected void markResourceDown(ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		resourceManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), 
@@ -147,7 +176,11 @@ public abstract class ErrorHandler {
 		}
 		
 		if (resource.getConsistency().isPostpone() == null) {
-			return true;
+			Integer operationRetryMaxAttempts = resource.getConsistency().getOperationRetryMaxAttempts();
+			if (operationRetryMaxAttempts == null) {
+				return true;
+			}
+			return operationRetryMaxAttempts != 0;
 		}
 		
 		return resource.getConsistency().isPostpone();

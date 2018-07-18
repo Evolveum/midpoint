@@ -1150,7 +1150,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		lastPasswordModifyStart = start;
 		lastPasswordModifyEnd = end;
 
-		checkConsistency(accountProvisioning);
+		checkUniqueness(accountProvisioning);
 		assertSteadyResource();
 	}
 
@@ -1216,7 +1216,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
 		checkRepoAccountShadowWill(shadowRepo, startTs, endTs);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertCachingMetadata(shadow, false, startTs, endTs);
 
@@ -1259,7 +1259,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		// This is noFetch. Therefore the read should NOT update the caching timestamp
 		checkRepoAccountShadowWill(shadow, null, startTs);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertSteadyResource();
 	}
@@ -1341,7 +1341,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 		assertRepoShadowCredentials(shadowRepo, ACCOUNT_WILL_PASSWORD);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertCachingMetadata(shadow, false, startTs, endTs);
 

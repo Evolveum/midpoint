@@ -49,6 +49,42 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 	public static ShadowAsserter forShadow(PrismObject<ShadowType> shadow, String details) {
 		return new ShadowAsserter(shadow, details);
 	}
+
+	public ShadowAsserter assertDead() {
+		assertIsDead(true);
+		return this;
+	}
+	
+	public ShadowAsserter assertNotDead() {
+		Boolean isDead = getObject().asObjectable().isDead();
+		if (isDead != null && isDead) {
+			fail("Wrong isDead in "+desc()+", expected null or false, but was true");
+		}
+		return this;
+	}
+	
+	public ShadowAsserter assertIsDead(Boolean expected) {
+		assertEquals("Wrong isDead in "+desc(), expected, getObject().asObjectable().isDead());
+		return this;
+	}
+	
+	public ShadowAsserter assertIsExists() {
+		Boolean isExists = getObject().asObjectable().isExists();
+		if (isExists != null && !isExists) {
+			fail("Wrong isExists in "+desc()+", expected null or true, but was false");
+		}
+		return this;
+	}
+	
+	public ShadowAsserter assertIsNotExists() {
+		assertIsExists(false);
+		return this;
+	}
+	
+	public ShadowAsserter assertIsExists(Boolean expected) {
+		assertEquals("Wrong isExists in "+desc(), expected, getObject().asObjectable().isExists());
+		return this;
+	}
 	
 	public PendingOperationsAsserter pendingOperations() {
 		return new PendingOperationsAsserter(getObject(), getDetails());

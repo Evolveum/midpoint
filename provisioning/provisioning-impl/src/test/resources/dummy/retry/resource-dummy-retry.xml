@@ -193,4 +193,7 @@
         	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 	</schemaHandling>
+	<consistency>
+		<operationRetryPeriod>PT15M</operationRetryPeriod>
+	</consistency>
 </resource>

@@ -62,6 +62,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -2367,5 +2368,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 		fail("Expected that attribute "+attrName+" is "+expectedClass+", but it was "+value.getClass()+": "+value);
 		return null; // not reached
+	}
+	
+
+	protected XMLGregorianCalendar getTimestamp(String duration) {
+		return XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), duration);
+	}
+
+	protected void clockForward(String duration) {
+		XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
+		clock.overrideDuration(duration);
+		XMLGregorianCalendar after = clock.currentTimeXMLGregorianCalendar();
+		display("Clock going forward", before + " --[" + duration + "]--> " + after);
 	}
 }

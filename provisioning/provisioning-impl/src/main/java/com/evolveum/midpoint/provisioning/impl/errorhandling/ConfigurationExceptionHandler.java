@@ -27,9 +27,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -49,9 +51,9 @@ public class ConfigurationExceptionHandler extends HardErrorHandler {
 	private static final Trace LOGGER = TraceManager.getTrace(ConfigurationExceptionHandler.class);
 	
 	@Override
-	protected void throwException(Exception cause, OperationResult result)
+	protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
 			throws ConfigurationException {
-		result.recordFatalError(cause);
+		recordCompletionError(cause, opState, result);
 		if (cause instanceof ConfigurationException) {
 			throw (ConfigurationException)cause;
 		} else {

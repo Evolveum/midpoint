@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	super(name, propertyDefinition, prismContext);
     }
 
-    public PropertyDelta(ItemPath parentPath, QName name, PrismPropertyDefinition<T> propertyDefinition, PrismContext prismContext) {
-    	super(parentPath, name, propertyDefinition, prismContext);
+    public PropertyDelta(ItemPath itemPath, QName name, PrismPropertyDefinition<T> propertyDefinition, PrismContext prismContext) {
+    	super(itemPath, name, propertyDefinition, prismContext);
     }
 
     public PropertyDelta(ItemPath propertyPath, PrismPropertyDefinition<T> propertyDefinition, PrismContext prismContext) {

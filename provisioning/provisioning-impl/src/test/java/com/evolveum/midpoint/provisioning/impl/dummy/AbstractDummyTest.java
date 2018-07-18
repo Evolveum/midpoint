@@ -227,13 +227,13 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		return true;
 	}
 
-	protected <T extends ShadowType> void checkConsistency(Collection<PrismObject<T>> shadows) throws SchemaException {
+	protected <T extends ShadowType> void checkUniqueness(Collection<PrismObject<T>> shadows) throws SchemaException {
 		for (PrismObject<T> shadow: shadows) {
-			checkConsistency(shadow);
+			checkUniqueness(shadow);
 		}
 	}
 
-	protected void checkConsistency(PrismObject<? extends ShadowType> object) throws SchemaException {
+	protected void checkUniqueness(PrismObject<? extends ShadowType> object) throws SchemaException {
 
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".checkConsistency");

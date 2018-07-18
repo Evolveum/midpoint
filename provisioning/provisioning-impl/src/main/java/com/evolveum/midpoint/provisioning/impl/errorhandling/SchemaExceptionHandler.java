@@ -19,6 +19,7 @@ package com.evolveum.midpoint.provisioning.impl.errorhandling;
 import java.util.Collection;
 
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -47,9 +49,9 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 public class SchemaExceptionHandler extends HardErrorHandler {
 	
 	@Override
-	protected void throwException(Exception cause, OperationResult result)
+	protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
 			throws SchemaException {
-		result.recordFatalError(cause);
+		recordCompletionError(cause, opState, result);
 		if (cause instanceof SchemaException) {
 			throw (SchemaException)cause;
 		} else {

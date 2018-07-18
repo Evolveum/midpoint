@@ -6032,9 +6032,11 @@
         			<xsd:documentation>
         				Postpone the operation in case that an error is encountered. The operation
         				will be re-tried later (consistency mechanism).
+        				DEPRECATED. Use operationRetryMaxAttempts instead.
         			</xsd:documentation>
         			<xsd:appinfo>
         				<a:deprecated>true</a:deprecated>
+        				<a:plannedRemoval>4.0</a:plannedRemoval>
         			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
@@ -6071,6 +6073,27 @@
             		</xsd:documentation>
             		<xsd:appinfo>
             			<a:since>3.6</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationRetryPeriod" type="xsd:duration" minOccurs="0" default="PT30M">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Duration for which the system will wait before re-trying failed operation.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.9</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationRetryMaxAttempts" type="xsd:int" minOccurs="0" default="3">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Maximum number of attempts to re-try a failed operation.
+            			If set to 0 then operation re-tries are disabled.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.9</a:since>
             		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
