@@ -22,6 +22,8 @@ import java.util.List;
 import com.evolveum.midpoint.web.component.assignment.ConstructionDetailsPanelChainedModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -86,27 +88,27 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
     }
 
     private void initLayout(final IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
-//    	PrismContainerHeaderPanel header = new PrismContainerHeaderPanel(ID_HEADER, model) {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			protected void onButtonClick(AjaxRequestTarget target) {
-//				addOrReplaceProperties(model, form, isPanelVisible, true);
-//				target.add(PrismContainerPanel.this.findParent(PrismPanel.class));
-//			}
-//
-//
-//    	};
-//        header.add(new VisibleEnableBehaviour(){
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible(){
-//                return showHeader;
-//            }
-//        });
-//        header.setOutputMarkupId(true);
-//        add(header);
+    	PrismContainerHeaderPanel<C> header = new PrismContainerHeaderPanel<C>(ID_HEADER, model) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onButtonClick(AjaxRequestTarget target) {
+				addOrReplaceProperties(model, form, isPanelVisible, true);
+				target.add(PrismContainerPanel.this.getParent());
+			}
+
+
+    	};
+        header.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible(){
+                return model.getObject().getItemDefinition().isMultiValue();
+            }
+        });
+        header.setOutputMarkupId(true);
+        add(header);
 
         addOrReplaceProperties(model, form, isPanelVisible, false);
     }
@@ -158,11 +160,13 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
                     ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
                     containerPanel.setOutputMarkupId(true);
                     item.add(containerPanel);
+                    item.setOutputMarkupId(true);
 
 			}
 			
 		};
     	values.setReuseItems(true);
+    	values.setOutputMarkupId(true);
         if (isToBeReplaced) {
             replace(values);
         } else {

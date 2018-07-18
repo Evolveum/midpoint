@@ -786,12 +786,17 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
-	public boolean containsMultivalueContainer(){
+	public boolean containsMultipleMultivalueContainer(){
+		int count = 0;
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
 			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
+				count++;
+			}
+			
+			if (count > 1) {
 				return true;
 			}
 		}

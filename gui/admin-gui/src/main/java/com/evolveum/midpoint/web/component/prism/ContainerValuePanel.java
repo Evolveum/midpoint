@@ -16,8 +16,11 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -91,6 +94,8 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
                 target.add(ContainerValuePanel.this);
             }
         };
+        
+        
         header.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
 
@@ -127,18 +132,19 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 
 			@Override
             protected void populateItem(final ListItem<IW> item) {
-				
+				item.setOutputMarkupId(true);
 				if (item.getModel().getObject() instanceof ContainerWrapper) {
-					PrismContainerPanel<C> containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanaleVisible, pageBase);
+					PrismContainerPanel<C> containerPanel = new PrismContainerPanel<C>("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanaleVisible, pageBase);
 					containerPanel.setOutputMarkupId(true);
-					item.add(new VisibleEnableBehaviour(){
-                        private static final long serialVersionUID = 1L;
-
-                        public boolean isVisible(){
-                            return containerPanel.isVisible();
-                        }
-                    });
 					item.add(containerPanel);
+					containerPanel.add(new VisibleEnableBehaviour() {
+						
+						@Override
+						public boolean isVisible() {
+							return (model.getObject().containsMultipleMultivalueContainer() && item.getModelObject().getItemDefinition().isMultiValue() && CollectionUtils.isEmpty(item.getModelObject().getValues())) ? false : true;
+							
+						}
+					});
 					return;
 				}
 				
@@ -150,6 +156,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
             }
         };
         properties.setReuseItems(true);
+        properties.setOutputMarkupId(true);
         if (isToBeReplaced) {
             replace(properties);
         } else {
