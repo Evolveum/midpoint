@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.boot;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jasig.cas.client.validation.Cas30ServiceTicketValidator;
 import org.jasig.cas.client.validation.TicketValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -76,13 +77,16 @@ public class CasSecurityConfig {
     }
 
     private TicketValidator createTicketValidatorInstance() throws Exception {
-        if (!StringUtils.contains(ticketValidator, "\\.")) {
+        if (StringUtils.isEmpty(ticketValidator)) {
+            return new Cas30ServiceTicketValidator(casServerUrl);
+        }
+
+        if (!ticketValidator.contains(".")) {
             ticketValidator = "org.jasig.cas.client.validation." + ticketValidator;
         }
 
         Class<TicketValidator> type = (Class) Class.forName(ticketValidator);
         Constructor<TicketValidator> c = type.getConstructor(String.class);
-
         return c.newInstance(casServerUrl);
     }
 }
