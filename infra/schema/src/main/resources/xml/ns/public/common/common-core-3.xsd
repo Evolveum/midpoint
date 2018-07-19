@@ -9459,8 +9459,8 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="objectSynchronizationSorter" type="tns:ObjectSynchronizationSorterType" minOccurs="0" maxOccurs="1"/>
         	<xsd:element name="objectSynchronization" type="tns:ObjectSynchronizationType" minOccurs="0" maxOccurs="unbounded"/>
-        	<xsd:element name="objectSynchronizationDivider" type="tns:ObjectSynchronizationDividerType" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -9638,7 +9638,7 @@
         </xsd:sequence>
     </xsd:complexType>
     
-    <xsd:complexType name="ObjectSynchronizationDividerType">
+    <xsd:complexType name="ObjectSynchronizationSorterType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines a synchronization properties (configuration) for a
@@ -9672,6 +9672,8 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	<xsd:element name="objectSynchronizationSorter" type="tns:ObjectSynchronizationSorterType"/>
+	
 	 <xsd:complexType name="ObjectSynchronizationDiscriminatorType">
         <xsd:annotation>
             <xsd:documentation>
@@ -9680,7 +9682,7 @@
                 (live sync, reconciliation, import, ...)
             </xsd:documentation>
             <xsd:appinfo>
-  				<a:container/>
+<!--   				<a:container/> --> <!-- it's not container beacuse of the owner property. -->
    				<a:since>3.9</a:since>
    			</xsd:appinfo>
         </xsd:annotation>
@@ -9740,6 +9742,8 @@
         	</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:element name="objectSynchronizationDiscriminator" type="tns:ObjectSynchronizationDiscriminatorType"/>
 	
     <xsd:complexType name="ConditionalSearchFilterType">
         <xsd:annotation>

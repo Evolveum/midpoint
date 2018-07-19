@@ -48,6 +48,8 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -91,7 +93,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationDiscriminatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationDividerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationSorterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -236,13 +238,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		}
 		
 		ObjectSynchronizationDiscriminatorType synchronizationDiscriminator = determineObjectSynchronizationDiscriminatorType(syncCtx, task, result);
-		
 		if (synchronizationDiscriminator != null) {
+			LOGGER.trace("Setting synchronization situation to synchronization context: {}", synchronizationDiscriminator.getSynchronizationSituation());
 			syncCtx.setSituation(synchronizationDiscriminator.getSynchronizationSituation());
 			F owner = (F) syncCtx.getCurrentOwner();
 			if (owner != null && alreadyLinked(owner, syncCtx.getApplicableShadow())) {
+				LOGGER.trace("Setting owner to synchronization context: {}", synchronizationDiscriminator.getOwner());
 				syncCtx.setCurrentOwner((F) synchronizationDiscriminator.getOwner());
 			}
+			LOGGER.trace("Setting correlated owner to synchronization context: {}", synchronizationDiscriminator.getOwner());
 			syncCtx.setCorrelatedOwner((F) synchronizationDiscriminator.getOwner());
 		}
 		
@@ -251,6 +255,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				syncCtx.setObjectSynchronization(objectSynchronization);
 				return syncCtx;
 			}
+		}
+		
+		for (ObjectSynchronizationType objectSynchronization : synchronization.getObjectSynchronization()) {
 			if (isPolicyApplicable(syncCtx, objectSynchronization, task, result)) {
 				syncCtx.setObjectSynchronization(objectSynchronization);
 				return syncCtx;
@@ -268,7 +275,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			return null;
 		}
 
-		ObjectSynchronizationDividerType divider = synchronizationType.getObjectSynchronizationDivider();
+		ObjectSynchronizationSorterType divider = synchronizationType.getObjectSynchronizationSorter();
 		if (divider == null) {
 			return null;
 		}
@@ -296,23 +303,28 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return conditionResult != null ? conditionResult : true;
 	}
 	
-	private <F extends FocusType> ObjectSynchronizationDiscriminatorType evaluateSynchronizationDivision(ObjectSynchronizationDividerType synchronizationDividerType,
+	private <F extends FocusType> ObjectSynchronizationDiscriminatorType evaluateSynchronizationDivision(ObjectSynchronizationSorterType synchronizationSorterType,
 			SynchronizationContext<F> syncCtx, Task task, OperationResult result)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		if (synchronizationDividerType.getExpression() == null) {
+		if (synchronizationSorterType.getExpression() == null) {
 			return null;
 		}
-		ExpressionType conditionExpressionType = synchronizationDividerType.getExpression();
+		ExpressionType classificationExpression = synchronizationSorterType.getExpression();
 		String desc = "syncrhonization divider type ";
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, syncCtx.getApplicableShadow(), null,
 				syncCtx.getResource(), syncCtx.getSystemConfiguration(), null);
 		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, syncCtx.getChanel());
 		try {
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-			PrismContainerDefinition<ObjectSynchronizationDiscriminatorType> discriminatorDef = prismContext.getSchemaRegistry().findContainerDefinitionByType(ObjectSynchronizationDiscriminatorType.COMPLEX_TYPE);
-			PrismContainerValue<ObjectSynchronizationDiscriminatorType> evaluateCondition = ExpressionUtil.evaluateExpression(variables, discriminatorDef, 
-					conditionExpressionType, expressionFactory, desc, task, result);
-			return evaluateCondition.getValue();
+			PrismPropertyDefinition<ObjectSynchronizationDiscriminatorType> discriminatorDef = prismContext.getSchemaRegistry()
+					.findPropertyDefinitionByElementName(new QName(SchemaConstants.NS_C, "objectSynchronizationDiscriminator"));
+//			PrismPropertyDefinition<ObjectSynchronizationDiscriminatorType> discriminatorDef = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName();
+			PrismPropertyValue<ObjectSynchronizationDiscriminatorType> evaluateDiscriminator = ExpressionUtil.evaluateExpression(variables, discriminatorDef, 
+					classificationExpression, expressionFactory, desc, task, result);
+			if (evaluateDiscriminator == null) {
+				return null;
+			}
+			return evaluateDiscriminator.getValue();
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
@@ -736,7 +748,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		}
 
 		F user = syncCtx.getCorrelatedOwner();
-		
+		LOGGER.trace("Correlated owner present in synchronization context: {}", user);
 		if (user != null) {
 			if (syncCtx.getSituation() != null) {
 				return;
