@@ -111,6 +111,8 @@ public class ProvisioningUtil {
 	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
 	public static final Duration DEFAULT_OPERATION_RETRY_PERIOD_DURATION = XmlTypeConverter.createDuration("PT30M");
 	public static final int DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS = 3;
+	private static final Duration DEFAULT_PENDING_OPERATION_RETENTION_PERIOD_DURATION = XmlTypeConverter.createDuration("P1D");;
+	public static final Duration DEFAULT_DEAD_SHADOW_RETENTION_PERIOD_DURATION = XmlTypeConverter.createDuration("P7D");
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
 
@@ -646,8 +648,20 @@ public class ProvisioningUtil {
 		}
 		return gracePeriod;
 	}
+	
+	public static Duration getPendingOperationRetentionPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Duration period = null;
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency != null) {
+			period = consistency.getPendingOperationRetentionPeriod();
+		}
+		if (period == null) {
+			period = DEFAULT_PENDING_OPERATION_RETENTION_PERIOD_DURATION;
+		}
+		return period;
+	}
 
-	public static boolean isOverGrace(XMLGregorianCalendar now, Duration gracePeriod, PendingOperationType pendingOperation) {
+	public static boolean isOverPeriod(XMLGregorianCalendar now, Duration period, PendingOperationType pendingOperation) {
 		if (!isCompleted(pendingOperation.getResultStatus())) {
 			return false;
 		}
@@ -655,15 +669,15 @@ public class ProvisioningUtil {
 		if (completionTimestamp == null) {
 			return false;
 		}
-		return isOverGrace(now, gracePeriod, completionTimestamp);
+		return isOverPeriod(now, period, completionTimestamp);
 	}
 	
-	public static boolean isOverGrace(XMLGregorianCalendar now, Duration gracePeriod, XMLGregorianCalendar completionTimestamp) {
-		if (gracePeriod == null) {
+	public static boolean isOverPeriod(XMLGregorianCalendar now, Duration period, XMLGregorianCalendar lastActivityTimestamp) {
+		if (period == null) {
 			return true;
 		}
-		XMLGregorianCalendar graceExpiration = XmlTypeConverter.addDuration(completionTimestamp, gracePeriod);
-		return XmlTypeConverter.compare(now, graceExpiration) == DatatypeConstants.GREATER;
+		XMLGregorianCalendar expirationTimestamp = XmlTypeConverter.addDuration(lastActivityTimestamp, period);
+		return XmlTypeConverter.compare(now, expirationTimestamp) == DatatypeConstants.GREATER;
 	}
 	
 	public static Duration getRetryPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -674,6 +688,18 @@ public class ProvisioningUtil {
 		}
 		if (period == null) {
 			period = DEFAULT_OPERATION_RETRY_PERIOD_DURATION;
+		}
+		return period;
+	}
+	
+	public static Duration getDeadShadowRetentionPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Duration period = null;
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency != null) {
+			period = consistency.getDeadShadowRetentionPeriod();
+		}
+		if (period == null) {
+			period = DEFAULT_DEAD_SHADOW_RETENTION_PERIOD_DURATION;
 		}
 		return period;
 	}

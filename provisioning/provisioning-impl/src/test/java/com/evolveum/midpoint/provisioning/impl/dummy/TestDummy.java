@@ -277,16 +277,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		try {
 
-			ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null,
-				result).asObjectable();
+			provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, null, result);
 
-			AssertJUnit.fail("Unexpected success");
+			assertNotReached();
 		} catch (ConfigurationException e) {
 			// Caching is disabled, this is expected.
 			displayThen(TEST_NAME);
 			display("Expected exception", e);
-			result.computeStatus();
-			TestUtil.assertFailure(result);
+			assertFailure(result);
 		}
 
 		PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
@@ -3654,6 +3652,12 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertSteadyResource();
 	}
 
+	/**
+	 * Test for proper handling of "already exists" exception. We try to add a shadow.
+	 * It fails, because there is unknown conflicting object on the resource. But a new
+	 * shadow for the conflicting object should be created in the repository.
+	 * MID-3603
+	 */
 	@Test
 	public void test600AddAccountAlreadyExist() throws Exception {
 		final String TEST_NAME = "test600AddAccountAlreadyExist";
@@ -3671,24 +3675,25 @@ public class TestDummy extends AbstractBasicDummyTest {
 		display("Adding shadow", account);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		try {
 			provisioningService.addObject(account, null, null, task, result);
 
-			AssertJUnit.fail("Unexpected success");
+			assertNotReached();
 		} catch (ObjectAlreadyExistsException e) {
 			// This is expected
+			displayThen(TEST_NAME);
 			display("Expected exception", e);
 		}
 
 		// THEN
-		result.computeStatus();
-		display("add object result", result);
-		TestUtil.assertFailure(result);
+		assertFailure(result);
+		
+		syncServiceMock.assertNotifyChange();
 
 		// Even though the operation failed a shadow should be created for the conflicting object
-
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername(getMurrayRepoIcfName(), resource, result);
-		assertNotNull("Shadow was not created in the repository", accountRepo);
+		assertNotNull("Shadow for conflicting object was not created in the repository", accountRepo);
 		display("Repository shadow", accountRepo);
 		checkRepoAccountShadow(accountRepo);
 

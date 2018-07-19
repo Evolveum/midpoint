@@ -19,116 +19,53 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME;
-import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.icf.dummy.resource.DummyPrivilege;
-import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.NoneFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ObjectChecker;
-import com.evolveum.midpoint.test.ProvisioningScriptSpec;
-import com.evolveum.midpoint.test.asserter.PendingOperationsAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 /**
- * The test of Provisioning service on the API level. The test is using dummy
- * resource for speed and flexibility.
+ * Test for various aspects of provisioning failure handling
+ * (aka "consistency mechanism").
+ * 
+ *  MID-3603
  *
  * @author Radovan Semancik
  *
@@ -480,8 +417,6 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 				.assertNoPrimaryIdentifier()
 				.assertHasSecondaryIdentifier();
 		
-		// TODO: completion timestamp
-		
 		dummyResource.resetBreakMode();
 		
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername(transformNameFromResource(ACCOUNT_WILL_USERNAME));
@@ -641,6 +576,133 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		// Resource -> up
 		assertResourceStatusChangeCounterIncrements();
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Refreshing dead shadow after pending operation is expired.
+	 * Pending operation should be gone.
+	 * MID-3891
+	 */
+	@Test
+	public void test190AccountMorganDeadExpireOperation() throws Exception {
+		final String TEST_NAME = "test190AccountMorganDeadExpireOperation";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("P1D");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.resetBreakMode();
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertSuccess(result);
+		syncServiceMock.assertNoNotifcations();
+		
+		PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_MORGAN_OID);
+		assertNotNull("Shadow was not created in the repository", repoShadow);
+		
+		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.none();
+		shadowAsserter
+			.assertBasicRepoProperties()
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertDead()
+			.assertIsNotExists()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertAttributes(SchemaConstants.ICFS_NAME);
+		
+		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(ACCOUNT_MORGAN_OID);
+		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.none();
+		shadowAsserter
+			.assertDead()
+			.assertIsNotExists()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertNoPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(1);
+		
+		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuture(ACCOUNT_MORGAN_OID);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+		shadowAsserter
+			.display()
+			.assertDead()
+			.assertIsNotExists()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertNoPrimaryIdentifier()
+				.assertHasSecondaryIdentifier();
+		
+		dummyResource.resetBreakMode();
+		
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername(transformNameFromResource(ACCOUNT_WILL_USERNAME));
+		assertNotNull("No dummy account", dummyAccount);
+		assertEquals("Username is wrong", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyAccount.getName());
+		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
+		assertTrue("The account is not enabled", dummyAccount.isEnabled());
+		assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD, dummyAccount.getPassword());
+		
+		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+		
+		checkUniqueness(accountProvisioningFuture);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Refresh of dead shadow after the shadow itself expired. The shadow should be gone.
+	 * MID-3891
+	 */
+	@Test
+	public void test192AccountMorganDeadExpireShadow() throws Exception {
+		final String TEST_NAME = "test192AccountMorganDeadExpireShadow";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("P10D");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.resetBreakMode();
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(ACCOUNT_MORGAN_OID);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertSuccess(result);
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertNoRepoObject(ShadowType.class, ACCOUNT_MORGAN_OID);
+		
 		assertSteadyResources();
 	}
 	

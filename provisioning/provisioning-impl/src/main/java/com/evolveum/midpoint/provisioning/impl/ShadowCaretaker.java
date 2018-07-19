@@ -274,7 +274,7 @@ public class ShadowCaretaker {
 			if (skipExecutionPendingOperations && executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
 				continue;
 			}
-			if (ProvisioningUtil.isOverGrace(now, gracePeriod, pendingOperation)) {
+			if (ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
 				continue;
 			}
 			if (resourceReadIsCachingOnly) {

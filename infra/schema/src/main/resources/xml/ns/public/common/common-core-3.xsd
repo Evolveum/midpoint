@@ -6064,12 +6064,23 @@
             <xsd:element name="pendingOperationGracePeriod" type="xsd:duration" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
+            			Duration for which the completed asynchronous operations that are kept in the
+            			shadow objects are considered during computation. This may be needed to avoid
+            			repeating operations in semi-manual resources.
+            			By default there is no grace period and completed operations are not considered
+            			during computations.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.6</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="pendingOperationRetentionPeriod" type="xsd:duration" minOccurs="0" default="P1D">
+            	<xsd:annotation>
+            		<xsd:documentation>
             			Duration for which the completed asynchronous operations will be kept in the
-            			shadow objects. This may be needed to avoid repeating operations in semi-manual
-            			resources. But this may also be desirable in other cases if the administrator
+            			shadow objects. This may be desirable for visibility, e.g. if the administrator
             			wants to inspect result of an asynchronous operation.
-            			By default there is no grace period and completed operations are immediately
-            			deleted.
             		</xsd:documentation>
             		<xsd:appinfo>
             			<a:since>3.6</a:since>
@@ -6091,6 +6102,20 @@
             		<xsd:documentation>
             			Maximum number of attempts to re-try a failed operation.
             			If set to 0 then operation re-tries are disabled.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.9</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deadShadowRetentionPeriod" type="xsd:duration" minOccurs="0" default="P7D">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Duration for which the system will keep dead shadows. After this interval has
+            			passed the dead shadows are deleted.
+            			Note: this may also be influenced by pendingOperationGracePeriod. Dead shadow
+            			may be kept for longer than the interval specified in deadShadowRetentionPeriod
+            			if that is needed to for evaluation of grace period.
             		</xsd:documentation>
             		<xsd:appinfo>
             			<a:since>3.9</a:since>

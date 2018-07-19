@@ -110,6 +110,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
@@ -857,6 +858,8 @@ public class ShadowManager {
 			addPendingOperationAdd(repoShadow, resourceShadow, opState, null);
 		}
 		
+		addCreateMetadata(repoShadow);
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Adding repository shadow\n{}", repoShadow.debugDump(1));
 		}
@@ -883,6 +886,8 @@ public class ShadowManager {
 		parentResult.recordSuccess();
 	}
 	
+	
+
 	@SuppressWarnings("unchecked")
 	private void recordAddResultExistingShadow(
 			ProvisioningContext ctx,
@@ -902,7 +907,8 @@ public class ShadowManager {
 		
 		if (opState.hasPendingOperations()) {
 		
-			collectPendingOperationUpdates(shadowChanges, opState, null);
+			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+			collectPendingOperationUpdates(shadowChanges, opState, null, now);
 			
 		} else {
 			
@@ -928,6 +934,8 @@ public class ShadowManager {
 		}
 
 		computeUpdateShadowAttributeChanges(ctx, shadowChanges, resourceShadow, repoShadow);
+		
+		addModifyMetadataDeltas(repoShadow, shadowChanges);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Updading repository shadow\n{}", DebugUtil.debugDump(shadowChanges, 1));
@@ -972,7 +980,8 @@ public class ShadowManager {
 		Collection<ItemDelta> shadowChanges = new ArrayList<>();
 		
 		if (opState.hasPendingOperations()) {
-			collectPendingOperationUpdates(shadowChanges, opState, OperationResultStatus.FATAL_ERROR);
+			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+			collectPendingOperationUpdates(shadowChanges, opState, OperationResultStatus.FATAL_ERROR, now);
 		}
 		
 		if (delta.isAdd()) {
@@ -996,7 +1005,9 @@ public class ShadowManager {
 	}
 
 	private void collectPendingOperationUpdates(Collection<ItemDelta> shadowChanges,
-			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, OperationResultStatus implicitStatus) {
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+			OperationResultStatus implicitStatus,
+			XMLGregorianCalendar now) {
 		
 		PrismContainerDefinition<PendingOperationType> containerDefinition = opState.getRepoShadow().getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
 		
@@ -1016,6 +1027,12 @@ public class ShadowManager {
 				PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = createPendingOperationDelta(containerDefinition, containerPath,
 						PendingOperationType.F_EXECUTION_STATUS, opState.getExecutionStatus());
 				shadowChanges.add(executionStatusDelta);
+				
+				if (opState.getExecutionStatus().equals(PendingOperationExecutionStatusType.COMPLETED) && pendingOperation.getCompletionTimestamp() == null) {
+					PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = createPendingOperationDelta(containerDefinition, containerPath,
+							PendingOperationType.F_COMPLETION_TIMESTAMP, now);
+					shadowChanges.add(completionTimestampDelta);
+				}
 			}
 			
 			if (opStateResultStatusType == null) {
@@ -1031,8 +1048,6 @@ public class ShadowManager {
 					shadowChanges.add(resultStatusDelta);
 				}
 			}
-			
-			// TODO: Completion timestamp?
 		}
 		
 	}
@@ -2129,4 +2144,29 @@ public class ShadowManager {
 		return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
 	}
 
+	// Just minimal metadata for now, maybe we need to expand that later
+	// those are needed to properly manage dead shadows
+	private void addCreateMetadata(PrismObject<ShadowType> repoShadow) {
+		ShadowType repoShadowType = repoShadow.asObjectable();
+		MetadataType metadata = repoShadowType.getMetadata();
+		if (metadata != null) {
+			return;
+		}
+		metadata = new MetadataType();
+		repoShadowType.setMetadata(metadata);
+		metadata.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
+	}
+	
+	// Just minimal metadata for now, maybe we need to expand that later
+	// those are needed to properly manage dead shadows
+	private void addModifyMetadataDeltas(PrismObject<ShadowType> repoShadow, Collection<ItemDelta> shadowChanges) {
+		PropertyDelta<XMLGregorianCalendar> modifyTimestampDelta = ItemDelta.findPropertyDelta(shadowChanges, SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
+		if (modifyTimestampDelta != null) {
+			return;
+		}
+		PrismPropertyDefinition<XMLGregorianCalendar> def = repoShadow.getDefinition().findPropertyDefinition(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
+		modifyTimestampDelta = def.createEmptyDelta(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
+		modifyTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));
+		shadowChanges.add(modifyTimestampDelta);
+	}
 }
