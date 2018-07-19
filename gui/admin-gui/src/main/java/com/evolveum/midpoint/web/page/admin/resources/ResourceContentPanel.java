@@ -983,7 +983,6 @@ public abstract class ResourceContentPanel extends Panel {
 						"pageContentAccounts.message.deleteConfirmationSingle")) {
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				((PageBase) getPage()).hideMainPopup(target);
 				deleteAccountConfirmedPerformed(target, result, selectedShadow);
 			}
 		};

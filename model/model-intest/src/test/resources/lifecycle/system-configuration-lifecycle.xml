@@ -46,6 +46,16 @@
    			<state>
    				<name>proposed</name>
    				<!-- no forcedActivationStatus, changing the default to undefined -->
+   				<forcedAssignment>
+	            	<targetType>RoleType</targetType>
+	            	<filter>
+	            		<q:equal>
+			            	<q:matching>polyStringNorm</q:matching>
+			                <q:path>name</q:path>
+			                <q:value>croupier</q:value>
+			            </q:equal>
+	            	</filter>
+	           	</forcedAssignment>
    			</state>
    			<state>
    				<name>active</name>
@@ -58,6 +68,16 @@
    						</script>
    					</condition>
    				</transition>
+   				<forcedAssignment>
+	            	<targetType>RoleType</targetType>
+	            	<filter>
+	            		<q:equal>
+			            	<q:matching>polyStringOrig</q:matching>
+			                <q:path>name</q:path>
+			                <q:value>Pirate Green</q:value>
+			            </q:equal>
+	            	</filter>
+	           	</forcedAssignment>
    			</state>
    			<state>
    				<name>archived</name>

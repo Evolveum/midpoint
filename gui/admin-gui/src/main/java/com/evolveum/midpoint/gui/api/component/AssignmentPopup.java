@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
@@ -14,9 +29,10 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.ClientProperties;
+import org.apache.wicket.protocol.http.WebSession;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by honchar.
@@ -68,26 +84,22 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<AssignmentType> newAssignmentsList = new ArrayList<>();
-                List<AssignmentType> newOrgTypeAssignmentsList = new ArrayList<>();
+                Map<String, AssignmentType> selectedAssignmentsMap = new HashMap<>();
 
                 tabs.forEach(panelTab -> {
                     WebMarkupContainer assignmentPanel = ((CountablePanelTab)panelTab).getPanel();
                     if (assignmentPanel == null){
                         return;
                     }
-                    if (assignmentPanel instanceof OrgTypeAssignmentPopupTabPanel){
-                        if (newOrgTypeAssignmentsList.isEmpty()) {
-                            newOrgTypeAssignmentsList.addAll(((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedAssignmentsList());
-                            return;
-                        } else {
-                            return;
-                        }
-                    }
-                    newAssignmentsList.addAll(((AbstractAssignmentPopupTabPanel)assignmentPanel).getSelectedAssignmentsList());
+
+                    (((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedAssignmentsMap()).forEach((k, v) ->
+                            selectedAssignmentsMap.putIfAbsent((String)k, (AssignmentType) v));
+
+
                 });
-                newAssignmentsList.addAll(newOrgTypeAssignmentsList);
-                addPerformed(target, newAssignmentsList);
+                List assignments = new ArrayList<>();
+                assignments.addAll(Arrays.asList(selectedAssignmentsMap.values().toArray()));
+                addPerformed(target, assignments);
             }
         };
         addButton.setOutputMarkupId(true);
@@ -113,6 +125,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected void onSelectionPerformed(AjaxRequestTarget target){
                                 tabLabelPanelUpdate(target);
                             }
+
+                            @Override
+                            protected ObjectTypes getObjectType(){
+                                return ObjectTypes.ROLE;
+                            }
                         };
                     }
 
@@ -129,12 +146,17 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new OrgTypeAssignmentPopupTabPanel(panelId, false){
+                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ORG){
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target){
                                 tabLabelPanelUpdate(target);
+                            }
+
+                            @Override
+                            protected ObjectTypes getObjectType(){
+                                return ObjectTypes.ORG;
                             }
 
                             @Override
@@ -158,7 +180,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new OrgTypeAssignmentPopupTabPanel(panelId, true){
+                return new OrgTreeAssignmentPopupTabPanel(panelId){
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -188,6 +210,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     public WebMarkupContainer createPanel(String panelId) {
                         return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.SERVICE){
                             private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected ObjectTypes getObjectType(){
+                                return ObjectTypes.SERVICE;
+                            }
 
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target){
@@ -250,11 +277,21 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     public int getWidth(){
-        return 900;
+        return 80;
     }
 
     public int getHeight(){
-        return 1200;
+        return 80;
+    }
+
+    @Override
+    public String getWidthUnit(){
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "%";
     }
 
     public StringResourceModel getTitle(){

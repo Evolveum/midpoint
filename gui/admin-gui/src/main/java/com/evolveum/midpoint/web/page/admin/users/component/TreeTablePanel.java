@@ -499,7 +499,6 @@ public class TreeTablePanel extends BasePanel<String> {
 
 
 	private void deleteNodeConfirmedPerformed(SelectableBean<OrgType> orgToDelete, AjaxRequestTarget target) {
-		getPageBase().hideMainPopup(target);
 		OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
 
 		PageBase page = getPageBase();

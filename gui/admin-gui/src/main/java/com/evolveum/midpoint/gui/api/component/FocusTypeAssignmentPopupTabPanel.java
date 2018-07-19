@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -28,18 +29,18 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by honchar
@@ -60,10 +61,10 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     @Override
-    protected void initParametersPanel(){
+    protected void initParametersPanel(Fragment parametersPanel){
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
         relationContainer.setOutputMarkupId(true);
-        add(relationContainer);
+        parametersPanel.add(relationContainer);
 
         DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER),
@@ -75,15 +76,15 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     @Override
-    protected List<AssignmentType> getSelectedAssignmentsList(){
-        List<AssignmentType> assignmentList = new ArrayList<>();
+    protected Map<String, AssignmentType> getSelectedAssignmentsMap(){
+        Map<String, AssignmentType> assignmentsMap = new HashedMap();
 
         List<F> selectedObjects = getSelectedObjectsList();
         QName relation = getRelationValue();
         selectedObjects.forEach(selectedObject -> {
-            assignmentList.add(ObjectTypeUtil.createAssignmentTo(selectedObject, relation));
+            assignmentsMap.put(selectedObject.getOid(), ObjectTypeUtil.createAssignmentTo(selectedObject, relation));
         });
-        return assignmentList;
+        return assignmentsMap;
     }
 
     public QName getRelationValue(){
@@ -124,5 +125,10 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         }
         query.addFilter(filter);
         return query;
+    }
+
+    @Override
+    protected ObjectTypes getObjectType(){
+        return ObjectTypes.FOCUS_TYPE;
     }
 }

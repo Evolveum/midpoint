@@ -91,6 +91,16 @@ public class ParameterPropertiesPopupPanel extends BasePanel<JasperReportParamet
 	}
 
 	@Override
+	public String getWidthUnit(){
+		return "px";
+	}
+
+	@Override
+	public String getHeightUnit(){
+		return "px";
+	}
+
+	@Override
 	public StringResourceModel getTitle() {
 		return createStringResource("JasperReportParameterProperties.title");
 	}

@@ -470,6 +470,16 @@ public class ObjectPolicyPanel extends BasePanel<ObjectPolicyDialogDto> implemen
 	}
 
 	@Override
+	public String getWidthUnit(){
+		return "px";
+	}
+
+	@Override
+	public String getHeightUnit(){
+		return "px";
+	}
+	
+	@Override
 	public StringResourceModel getTitle() {
 		return createStringResource("ObjectPolicyDialog.label");
 	}

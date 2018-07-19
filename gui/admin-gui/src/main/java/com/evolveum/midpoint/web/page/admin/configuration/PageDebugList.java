@@ -836,21 +836,17 @@ public class PageDebugList extends PageAdminConfiguration {
 
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				ModalWindow modalWindow = findParent(ModalWindow.class);
-				if (modalWindow != null) {
-					modalWindow.close(target);
-					DebugConfDialogDto dto = confDialogModel.getObject();
-					switch (dto.getOperation()) {
-						case DELETE_ALL_TYPE:
-							deleteAllTypeConfirmed(target);
-							break;
-						case DELETE_SELECTED:
-							deleteSelectedConfirmed(target, dto.getObjects());
-							break;
-						case DELETE_RESOURCE_SHADOWS:
-							deleteAllShadowsOnResourceConfirmed(target);
-							break;
-					}
+				DebugConfDialogDto dto = confDialogModel.getObject();
+				switch (dto.getOperation()) {
+					case DELETE_ALL_TYPE:
+						deleteAllTypeConfirmed(target);
+						break;
+					case DELETE_SELECTED:
+						deleteSelectedConfirmed(target, dto.getObjects());
+						break;
+					case DELETE_RESOURCE_SHADOWS:
+						deleteAllShadowsOnResourceConfirmed(target);
+						break;
 				}
 			}
 

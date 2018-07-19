@@ -494,6 +494,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_MARK = new QName(NS_PIRACY, "mark");
 	protected static final QName PIRACY_KEY = new QName(NS_PIRACY, "key");
 	protected static final QName PIRACY_BINARY_ID = new QName(NS_PIRACY, "binaryId");
+	protected static final QName RELATION_PIRACY_CAPTAIN = new QName(NS_PIRACY, "captain");
 
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 
@@ -527,6 +528,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_APPARATE_URL = QNameUtil.qNameToUri(AUTZ_APPARATE_QNAME);
 	protected static final QName AUTZ_GAMBLE_QNAME = new QName(NS_TEST_AUTZ, "gamble");
 	protected static final String AUTZ_GAMBLE_URL = QNameUtil.qNameToUri(AUTZ_GAMBLE_QNAME);
+	protected static final QName AUTZ_CROUPIER_QNAME = new QName(NS_TEST_AUTZ, "croupier");
+	protected static final String AUTZ_CROUPIER_URL = QNameUtil.qNameToUri(AUTZ_CROUPIER_QNAME);
 
 	protected static final String NOTIFIER_ACCOUNT_PASSWORD_NAME = "accountPasswordNotifier";
 	protected static final String NOTIFIER_USER_PASSWORD_NAME = "userPasswordNotifier";

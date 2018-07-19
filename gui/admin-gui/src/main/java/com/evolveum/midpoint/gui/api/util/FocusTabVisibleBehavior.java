@@ -46,10 +46,14 @@ public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnable
 
     private IModel<PrismObject<T>> objectModel;
     private String uiAuthorizationUrl;
+    private boolean visibleOnHistoryPage = false;
+    private boolean isHistoryPage = false;
 
-    public FocusTabVisibleBehavior(IModel<PrismObject<T>> objectModel, String uiAuthorizationUrl) {
+    public FocusTabVisibleBehavior(IModel<PrismObject<T>> objectModel, String uiAuthorizationUrl, boolean visibleOnHistoryPage, boolean isHistoryPage) {
         this.objectModel = objectModel;
         this.uiAuthorizationUrl = uiAuthorizationUrl;
+        this.visibleOnHistoryPage = visibleOnHistoryPage;
+        this.isHistoryPage = isHistoryPage;
     }
 
     private ModelInteractionService getModelInteractionService() {
@@ -83,13 +87,13 @@ public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnable
         // find all object form definitions for specified type, if there is none we'll show all default tabs
         List<ObjectFormType> forms = findObjectForm(config, type);
         if (forms.isEmpty()) {
-            return true;
+            return !isHistoryPage || visibleOnHistoryPage;
         }
 
         // we'll try to find includeDefault, if there is includeDefault=true, we can return true (all tabs visible)
         for (ObjectFormType form : forms) {
             if (BooleanUtils.isTrue(form.isIncludeDefaultForms())) {
-                return true;
+                return !isHistoryPage || visibleOnHistoryPage;
             }
         }
 
@@ -100,7 +104,7 @@ public class FocusTabVisibleBehavior<T extends ObjectType> extends VisibleEnable
             }
 
             if (ObjectUtils.equals(uiAuthorizationUrl, spec.getPanelUri())) {
-                return true;
+                return !isHistoryPage || visibleOnHistoryPage;
             }
         }
 

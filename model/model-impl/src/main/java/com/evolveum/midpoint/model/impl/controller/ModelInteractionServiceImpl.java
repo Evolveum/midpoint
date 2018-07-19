@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,6 +127,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -172,6 +173,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
@@ -180,6 +182,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialSourceType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsResetPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
@@ -194,7 +197,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -247,7 +253,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
-
+	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -1709,17 +1715,21 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 	
 	@Override
-	public void refreshPrincipal(String name) {
+	public void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException {
 		try {
-			MidPointPrincipal principal = userProfileService.getPrincipal(name);
+			MidPointPrincipal principal = userProfileService.getPrincipalByOid(oid);
 			securityContextManager.setupPreAuthenticatedSecurityContext(principal);
 		} catch (ObjectNotFoundException | SchemaException e) {
-			LOGGER.error("Cannot refresh authentication for user identified with" + name);
-			//TODO: how to handle?
+			LOGGER.error("Cannot refresh authentication for user identified with" + oid);
+			throw e;
 		}
 		
 		
 	}
-	
+
+	@Override
+	public List<RelationDefinitionType> getRelationDefinitions(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		return systemObjectCache.getRelationDefinitions(parentResult);
+	}
 
 }

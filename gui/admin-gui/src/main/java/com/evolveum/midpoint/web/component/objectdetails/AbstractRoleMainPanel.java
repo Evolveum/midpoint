@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -189,7 +191,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	protected List<ITab> createTabs(final PageAdminObjectDetails<R> parentPage) {
 		List<ITab> tabs = super.createTabs(parentPage);
 
-		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_POLICY_RULES_URL);
+		FocusTabVisibleBehavior<R> authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_POLICY_RULES_URL, false, isFocusHistoryPage());
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.policyRules"), authorization) {
 
@@ -206,7 +208,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL);
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, isFocusHistoryPage());
 		tabs.add(
 				new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"), authorization) {
 
@@ -218,8 +220,8 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL);
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
+				ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL, false, isFocusHistoryPage());
 		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"), authorization) {
 
 			private static final long serialVersionUID = 1L;
@@ -235,8 +237,8 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 
 		});
-		authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL);
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
+				ComponentConstants.UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL, false, isFocusHistoryPage());
 		tabs.add(new CountablePanelTab(parentPage.createStringResource("AbstractRoleMainPanel.inducedEntitlements"), authorization) {
 
 			private static final long serialVersionUID = 1L;
@@ -253,8 +255,22 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 		});
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL);
+		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
+			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage());
+			tabs.add(
+					new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
+
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public WebMarkupContainer createPanel(String panelId) {
+							return createObjectHistoryTabPanel(panelId, parentPage);
+						}
+					});
+		}
+
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
+				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, isFocusHistoryPage());
 		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"), authorization) {
 
 			private static final long serialVersionUID = 1L;

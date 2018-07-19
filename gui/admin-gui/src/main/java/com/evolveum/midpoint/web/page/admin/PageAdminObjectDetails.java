@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -56,9 +57,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -348,7 +346,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		ObjectWrapper<O> wrapper;
 		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
-			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status, task);
+			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status, isReadonly, task);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
@@ -733,4 +731,5 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		GuiObjectDetailsPageType objectDetails = AdminGuiConfigTypeUtil.findObjectConfiguration(getCompileTimeClass(), getAdminGuiConfiguration());
 		return objectDetails != null && DetailsPageSaveMethodType.FORCED_PREVIEW.equals(objectDetails.getSaveMethod());
 	}
+
 }

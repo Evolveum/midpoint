@@ -416,8 +416,6 @@ public class PageCreatedReports extends PageAdminReports {
         	private static final long serialVersionUID = 1L;
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                getPageBase().hideMainPopup(target);
-
                 ReportDeleteDialogDto dto = deleteModel.getObject();
                 switch (dto.getOperation()) {
                     case DELETE_SINGLE:
