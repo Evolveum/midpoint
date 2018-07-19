@@ -52,7 +52,7 @@
 	            		<q:equal>
 			            	<q:matching>polyStringNorm</q:matching>
 			                <q:path>name</q:path>
-			                <q:value>croupier</q:value>
+			                <q:value>pit boss</q:value>
 			            </q:equal>
 	            	</filter>
 	           	</forcedAssignment>
