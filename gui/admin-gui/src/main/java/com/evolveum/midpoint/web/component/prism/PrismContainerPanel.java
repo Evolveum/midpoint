@@ -66,20 +66,7 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 
 			@Override
         	public boolean isVisible() {
-        		if (isPanelVisible != null && model.getObject() != null) {
-        			ItemVisibility visible = isPanelVisible.isVisible(model.getObject());
-        			if (visible != null) {
-        				switch (visible) {
-            				case VISIBLE:
-            					return true;
-            				case HIDDEN:
-            					return false;
-            				default:
-            					// automatic, go on ...
-            			}
-        			}
-        		}
-                return model.getObject() != null && model.getObject().isVisible();
+        		return isPanelVisible(isPanelVisible, model);
         	}
         });
         
@@ -87,6 +74,23 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
         
     }
 
+    public boolean isPanelVisible(ItemVisibilityHandler isPanelVisible, IModel<ContainerWrapper<C>> model) {
+    	if (isPanelVisible != null && model.getObject() != null) {
+			ItemVisibility visible = isPanelVisible.isVisible(model.getObject());
+			if (visible != null) {
+				switch (visible) {
+    				case VISIBLE:
+    					return true;
+    				case HIDDEN:
+    					return false;
+    				default:
+    					// automatic, go on ...
+    			}
+			}
+		}
+        return model.getObject() != null && model.getObject().isVisible();
+    }
+    
     private void initLayout(final IModel<ContainerWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
     	PrismContainerHeaderPanel<C> header = new PrismContainerHeaderPanel<C>(ID_HEADER, model) {
 			private static final long serialVersionUID = 1L;
