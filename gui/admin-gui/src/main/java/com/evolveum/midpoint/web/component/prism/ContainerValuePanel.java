@@ -68,6 +68,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 		});
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
+        LOGGER.trace("isVisible {}", model.getObject().isVisible());
 
         initLayout(model, form, isPanelVisible, showHeader);
     }

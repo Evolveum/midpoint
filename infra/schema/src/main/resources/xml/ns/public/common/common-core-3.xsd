@@ -11807,12 +11807,21 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element ref="tns:description" minOccurs="0"/>
+        	<xsd:element ref="tns:description" minOccurs="0">
+				<xsd:annotation>
+                    <xsd:appinfo>
+            			<a:displayName>ObjectSelectorType.description</a:displayName>
+            		</xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
         	<xsd:element name="type" minOccurs="0" type="xsd:QName">
         		<xsd:annotation>
         			<xsd:documentation>
         				Type of the object to select.
         			</xsd:documentation>
+					<xsd:appinfo>
+            			<a:displayName>ObjectSelectorType.type</a:displayName>
+            		</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="subtype" minOccurs="0" type="xsd:string">
@@ -11820,6 +11829,9 @@
         			<xsd:documentation>
         				Subtype of the object to select.
         			</xsd:documentation>
+					<xsd:appinfo>
+            			<a:displayName>ObjectSelectorType.subtype</a:displayName>
+            		</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
 			<xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
@@ -11832,6 +11844,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+						<a:displayName>ObjectSelectorType.orgRef</a:displayName>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11842,6 +11855,9 @@
         				This filter MUST NOT contain organization unit clauses. It may only contain
         				property clauses, logical operations and so on.
         			</xsd:documentation>
+					<xsd:appinfo>
+            			<a:displayName>ObjectSelectorType.filter</a:displayName>
+            		</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         </xsd:sequence>
@@ -15670,6 +15686,9 @@
 		    					(in object modification situations) or the focus object that contains
 		    					the assignments (in assignment/inducement situations).
 		    				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GlobalPolicyRuleType.focusSelector</a:displayName>
+							</xsd:appinfo>
 		    			</xsd:annotation>
 		    		</xsd:element>
 		        	<xsd:element name="targetSelector" type="tns:ObjectSelectorType" minOccurs="0">
@@ -15678,6 +15697,9 @@
 		    					Selector for assignment/inducement target object. It is used only in
 		    					assignment situations.
 		    				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GlobalPolicyRuleType.targetSelector</a:displayName>
+							</xsd:appinfo>
 		    			</xsd:annotation>
 		    		</xsd:element>
 		 		    <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
@@ -15686,6 +15708,9 @@
 		                        The rule is applied only if the condition is evaluated to true.
 		                        If condition is not present, it is assumed to be always true.
 		                    </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GlobalPolicyRuleType.condition</a:displayName>
+							</xsd:appinfo>
 		                </xsd:annotation>
 		            </xsd:element>
 		        </xsd:sequence>

@@ -48,7 +48,6 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
     private static final String ID_REMOVE_CONTAINER = "removeContainer";
     private static final String ID_CHILD_CONTAINERS_SELECTOR_PANEL = "childContainersSelectorPanel";
     private static final String ID_CHILD_CONTAINERS_LIST = "childContainersList";
-//    private static final String ID_CHILD_CONTAINER_NAME = "childContainerName";
     private static final String ID_ADD_BUTTON = "addButton";
 
     private boolean isChildContainersSelectorPanelVisible = false;
@@ -180,7 +179,6 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			@Override
 			public boolean isVisible(){
 				return getModelObject().containsMultipleMultivalueContainer() && getModelObject().getContainer() != null
-//						&& getModelObject().getContainer().isAddContainerButtonVisible()
 						&& getModelObject().getDefinition().canModify();
 			}
 		});
@@ -301,6 +299,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	public void createNewContainerValue(ContainerValueWrapper<C> containerValueWrapper, QName path){
 		ItemPath newPath = new ItemPath(containerValueWrapper.getPath(), path);
 		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(newPath);
+		
 		if (childContainerWrapper == null){
 			return;
 		}

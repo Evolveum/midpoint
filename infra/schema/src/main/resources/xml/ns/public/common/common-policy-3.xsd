@@ -323,6 +323,9 @@
                     <xsd:documentation>
                         Name of the constraint referenced.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PolicyConstraintReferenceType.name</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
 				<!-- parameters, if the referenced constraint is a parametrized one -->
             </xsd:element>
@@ -651,6 +654,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7.1</a:since>
+								<a:displayName>ExclusionPolicyConstraintType.orderConstraint</a:displayName>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -667,6 +671,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7.1</a:since>
+								<a:displayName>ExclusionPolicyConstraintType.targetOrderConstraint</a:displayName>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -674,6 +679,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:deprecated>true</a:deprecated>
+								<a:displayName>ExclusionPolicyConstraintType.policy</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -702,6 +708,9 @@
                             <xsd:documentation>
                                 Numeric value or string "unbounded".
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>MultiplicityPolicyConstraintType.multiplicity</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
@@ -710,6 +719,9 @@
                                 Relation(s) to which this constraint applies. All of these relations must match
 								the defined multiplicity. If no relation is present, org:default (i.e. null) is assumed.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>MultiplicityPolicyConstraintType.relation</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 					<!-- TODO something like "assigned" vs. "effective" - i.e. if we watch assignments created
@@ -743,6 +755,9 @@
                                 This defines the object operation (add/modify/delete of the entire object)
 								or assignment operation (add/modify/delete of the given assignment).
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ModificationPolicyConstraintType.operation</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
@@ -752,6 +767,9 @@
                                 constraint be triggered. If no items are specified then any modification will
                                 trigger this constraint.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>ModificationPolicyConstraintType.item</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="exactPathMatch" type="xsd:boolean" minOccurs="0" default="false">
@@ -766,6 +784,7 @@
                             </xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<a:displayName>ModificationPolicyConstraintType.exactPathMatch</a:displayName>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -777,6 +796,7 @@
                             </xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
+								<a:displayName>ModificationPolicyConstraintType.expression</a:displayName>
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -822,6 +842,9 @@
                                 affected by this policy then the special value of "any" should be specified
                                 in this element.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>AssignmentModificationPolicyConstraintType.relation</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <!--<xsd:element name="targetType" type="xsd:QName"  minOccurs="0" maxOccurs="unbounded">-->
@@ -880,6 +903,9 @@
                                 like the one in exclusion constraint. If a relation here is specified, it takes precedence
                                 over "relation" item in this constraint.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>HasAssignmentPolicyConstraintType.targetRef</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 					<xsd:element name="direct" type="xsd:boolean" minOccurs="0">
@@ -889,6 +915,9 @@
 								If not specified, it might be either direct or indirect. But in all cases it must be of the order
 								one, i.e. metaroles are not considered.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>HasAssignmentPolicyConstraintType.direct</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
     				<xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
@@ -898,6 +927,9 @@
 								but effectively disabled (beware, the behavior of midPoint for disabled indirect assignments may
 								be fragile). If not specified, the effective status is not considered.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>HasAssignmentPolicyConstraintType.enabled</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
                     <xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
@@ -909,6 +941,9 @@
                                 applies to the null (default) relation. If all relations need to be affected by this policy
                                 then the special value of "any" should be specified in this element or in the targetRef element.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>HasAssignmentPolicyConstraintType.relation</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 				</xsd:sequence>
@@ -938,6 +973,9 @@
                             <xsd:documentation>
                                 The item whose validity is to be checked. If not specified, activation/validTo is assumed.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TimeValidityPolicyConstraintType.item</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="assignment" type="xsd:boolean" minOccurs="0" maxOccurs="1">
@@ -948,6 +986,9 @@
                                 assignments to roles A, B, C expire, you'd need to attach a policy rule with this constraint
                                 having assignment=true to roles A, B, and C.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TimeValidityPolicyConstraintType.assignment</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="activateOn" type="xsd:duration" minOccurs="0">
@@ -957,6 +998,9 @@
                                 on the moment of validity change. Specify negative durations if you need to activate the trigger
                                 before that moment; and positive ones if the trigger should be activated after that.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TimeValidityPolicyConstraintType.activateOn</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="deactivateOn" type="xsd:duration" minOccurs="0">
@@ -968,6 +1012,9 @@
 
                                 If not specified, the trigger will be active forever (TODO ok? or only until validTo occurs?)
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TimeValidityPolicyConstraintType.deactivateOn</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -996,6 +1043,9 @@
                             <xsd:documentation>
                                 Filter that is to be used to determine the state. Mutually exclusive with expression, messageExpression, and executeScript.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>StatePolicyConstraintType.filter</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
@@ -1003,6 +1053,9 @@
                             <xsd:documentation>
                                 Expression that is to be used to determine the state. Mutually exclusive with messageExpression, filter, and executeScript.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>StatePolicyConstraintType.expression</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="messageExpression" type="tns:ExpressionType" minOccurs="0">
@@ -1013,6 +1066,9 @@
 
 								HIGHLY EXPERIMENTAL. Probably will change in the future.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>StatePolicyConstraintType.messageExpression</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0">
@@ -1020,6 +1076,9 @@
                             <xsd:documentation>
                                 Scripting expression (bulk action) to be used to determine the state. Mutually exclusive with filter, expression and messageExpression.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>StatePolicyConstraintType.executeScript</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -1048,6 +1107,9 @@
                             <xsd:documentation>
                                 Specifies the policy situation URI(s) to look for.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>PolicySituationPolicyConstraintType.situation</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <!-- TODO some more complex expressions (at least "and / or"; or something like this) -->
@@ -1079,6 +1141,9 @@
 								True means the constraint must evaluate to true. False means the constraint must evaluate to false.
 								Unspecified means the constraint is not checked before the operation.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TransitionPolicyConstraintType.stateBefore</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="stateAfter" type="xsd:boolean" minOccurs="0">
@@ -1088,6 +1153,9 @@
 								True means the constraint must evaluate to true. False means the constraint must evaluate to false.
 								Unspecified means the constraint is not checked after the operation.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TransitionPolicyConstraintType.stateAfter</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
 					<xsd:element name="constraints" type="tns:PolicyConstraintsType">
@@ -1095,6 +1163,9 @@
                             <xsd:documentation>
                                 Non-transitional policy constraints to be evaluated.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>TransitionPolicyConstraintType.constraints</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -1412,6 +1483,7 @@
 							<xsd:appinfo>
 								<a:since>3.7</a:since>
 								<a:experimental>true</a:experimental>
+								<a:displayName>ApprovalPolicyActionType.processSpecification</a:displayName>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1548,7 +1620,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="order" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="order" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+                    <xsd:appinfo>
+		                <a:displayName>ApprovalCompositionStrategyType.order</a:displayName>
+                    </xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="exclusive" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1558,6 +1636,7 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:experimental>true</a:experimental>
+		                <a:displayName>ApprovalCompositionStrategyType.exclusive</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1579,6 +1658,7 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergeable</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1594,9 +1674,11 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergeIntoOrder</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element><xsd:element name="mergeIntoAll" type="xsd:boolean" minOccurs="0">
+            </xsd:element>
+			<xsd:element name="mergeIntoAll" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Indicates that this fragment is to be merged into all the other "base" fragments.
@@ -1605,6 +1687,7 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergeIntoAll</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1616,6 +1699,7 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergePriority</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1630,6 +1714,7 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:experimental>true</a:experimental>
+						<a:displayName>ApprovalCompositionStrategyType.mergeOverwriting</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1655,6 +1740,9 @@
 				        <xsd:documentation>
 					        Reference to existing process specification.
 				        </xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>WfProcessSpecificationType.ref</a:displayName>
+						</xsd:appinfo>
 			        </xsd:annotation>
 		        </xsd:element>
 		        <xsd:sequence>
@@ -1663,6 +1751,9 @@
 					        <xsd:documentation>
 						        Name for this process specification.
 					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.name</a:displayName>
+							</xsd:appinfo>
 				        </xsd:annotation>
 			        </xsd:element>
 			        <xsd:element name="order" type="xsd:int" minOccurs="0">
@@ -1670,6 +1761,9 @@
 					        <xsd:documentation>
 						        In what order this process specification is to be considered.
 					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.order</a:displayName>
+							</xsd:appinfo>
 				        </xsd:annotation>
 			        </xsd:element>
 			        <xsd:element name="deltaFrom" type="c:DeltaSourceSpecificationType" minOccurs="0" maxOccurs="unbounded">
@@ -1677,6 +1771,9 @@
 					        <xsd:documentation>
 						        TODO
 					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.deltaFrom</a:displayName>
+							</xsd:appinfo>
 				        </xsd:annotation>
 			        </xsd:element>
 			        <xsd:element name="includeAction" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -1685,6 +1782,9 @@
 						        What approval actions to include during approval schema creation for this process.
 								If they are not triggered an exception is thrown.
 					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.includeAction</a:displayName>
+							</xsd:appinfo>
 				        </xsd:annotation>
 			        </xsd:element>
 			        <xsd:element name="includeActionIfPresent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
@@ -1693,6 +1793,9 @@
 						        What approval actions to include during approval schema creation for this process.
 								If they are not triggered they are silently skipped.
 					        </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.includeActionIfPresent</a:displayName>
+							</xsd:appinfo>
 				        </xsd:annotation>
 			        </xsd:element>
 					<xsd:element name="approvalDisplayName" type="tns:LocalizableMessageTemplateType" minOccurs="0">
@@ -1701,6 +1804,9 @@
 								Name for approval process. If not specified, name from approval action(s) is taken.
 								If not specified even there, the name is derived from triggered constraints (short messages).
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WfProcessSpecificationType.approvalDisplayName</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 		        </xsd:sequence>
@@ -1727,6 +1833,9 @@
 						<xsd:documentation>
 							Include all modifications of these items as a delta that is to be approved.
 						</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>DeltaSourceSpecificationType.item</a:displayName>
+						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:element>
 				<xsd:element name="itemValue" type="t:ItemPathType" minOccurs="0">
@@ -1734,6 +1843,9 @@
 						<xsd:documentation>
 							Create a delta for each value of this item that is to be added, deleted or modified.
 						</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>DeltaSourceSpecificationType.itemValue</a:displayName>
+						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:element>
 			</xsd:choice>
@@ -1856,6 +1968,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:experimental>true</a:experimental>
+								<a:displayName>RecordPolicyActionType.policyRules</a:displayName>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
