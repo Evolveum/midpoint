@@ -65,6 +65,9 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 	public static final File ROLE_CROUPIER_FILE = new File(TEST_DIR, "role-croupier.xml");
 	protected static final String ROLE_CROUPIER_OID = "a7b8de9a-20a1-84f6-b452-01254a1256e3";
 	
+	public static final File ROLE_PIT_BOSS_FILE = new File(TEST_DIR, "role-pit-boss.xml");
+	protected static final String ROLE_PIT_BOSS_OID = "c4525ef8-31d4-95e6-d542-745e263f596c";
+	
 	public static final String SUBTYPE_EMPLOYEE = "employee";
 	private static final Object USER_JACK_TELEPHONE_NUMBER = "12345654321";
 
@@ -78,6 +81,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_CARETAKER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_GAMBLER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_CROUPIER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PIT_BOSS_FILE, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
     }
@@ -195,6 +199,8 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertAuthorized(principal, AUTZ_GAMBLE_URL);
         assertAuthorized(principal, AUTZ_APPARATE_URL);
         // Forced assignment as specified in proposed lifecycle model
+        assertAuthorized(principal, AUTZ_PIT_BOSS_URL);
+        // and induced authz from pit boss
         assertAuthorized(principal, AUTZ_CROUPIER_URL);
 	}
     
@@ -244,6 +250,7 @@ public class TestLifecycle extends AbstractInitializedModelIntegrationTest {
         assertAuthorized(principal, AUTZ_GAMBLE_URL);
         assertAuthorized(principal, AUTZ_APPARATE_URL);
      // Forced assignment not specified for active lifecycle state
+        assertNotAuthorized(principal, AUTZ_PIT_BOSS_URL);
         assertNotAuthorized(principal, AUTZ_CROUPIER_URL);
 	}
     
