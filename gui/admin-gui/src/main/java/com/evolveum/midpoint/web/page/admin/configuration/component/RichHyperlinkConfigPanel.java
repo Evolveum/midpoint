@@ -169,7 +169,17 @@ public class RichHyperlinkConfigPanel extends Panel implements Popupable {
 		return 900;
 	}
 
-	@Override
+    @Override
+    public String getWidthUnit(){
+        return "px";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "px";
+    }
+
+    @Override
 	public StringResourceModel getTitle() {
 		return null;
 	}

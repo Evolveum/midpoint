@@ -494,6 +494,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_MARK = new QName(NS_PIRACY, "mark");
 	protected static final QName PIRACY_KEY = new QName(NS_PIRACY, "key");
 	protected static final QName PIRACY_BINARY_ID = new QName(NS_PIRACY, "binaryId");
+	protected static final QName RELATION_PIRACY_CAPTAIN = new QName(NS_PIRACY, "captain");
 
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 

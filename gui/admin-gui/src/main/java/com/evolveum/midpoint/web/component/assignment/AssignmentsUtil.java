@@ -6,6 +6,7 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;

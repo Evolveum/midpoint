@@ -28,6 +28,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

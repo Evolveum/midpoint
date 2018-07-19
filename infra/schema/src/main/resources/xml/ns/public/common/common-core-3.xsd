@@ -15507,7 +15507,17 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-        </xsd:sequence>
+	        <xsd:element name="relations" type="tns:RelationsDefinitionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Definition of (custom) relations. This is system-global definition.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
     </xsd:complexType>
     
     <xsd:complexType name="AssignmentConstraintsType">
@@ -15554,6 +15564,184 @@
 			<!-- TODO: prohibitSameOrg, prohibitSameTenant, parameter prohibitions -->
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="RelationsDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of (custom) relations.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container>true</a:container>
+				<a:since>3.9</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="relation" type="tns:RelationDefinitionType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Definition of a single (custom) relation.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="includeDefaultRelations" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            If set to true then default (hardcoded) relations will be included in addition to those
+			            relations that are defined above. If set to false then only those relations that are defined
+			            above will be used in the system.
+			            EXPERIMENTAL: only partially supported
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="RelationDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of a single (custom) relation.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container>true</a:container>
+				<a:since>3.9</a:since>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="ref" type="xsd:QName" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Relations identifier (QName)
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Free-form description of relation purpose. This field can be used as a comment.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Display properties of the relation. It is used to display the relation in
+			            drop-down lists, buttons, etc..
+     					Only label is used now. E.g. the CSS properties are ignored.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="category" type="tns:AreaCategoryType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Specifies category or "area" for the relation. This may indicate that the relation
+			            is used for identity governance, organizational management and so on. The category
+			            is used to display the relations in appropriate parts of user interface.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: type: membership, delegation, general -->
+			<!-- TODO: isDefault -->
+			<!-- TODO: isManager, processOnLogin, processOnRecompute  -->
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="AreaCategoryType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies category or "area" of a particular concept. Such category can be used
+				to display the concepts in appropriate parts of user interface. For example the
+				category may be used to display only governance-related relations in the governance
+				UI spanels.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.9</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="administration">
+				<xsd:annotation>
+					<xsd:documentation>
+						General identity administration (IDM). Functionality available to
+						a common identity administrator.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ADMINISTRATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="organization">
+				<xsd:annotation>
+					<xsd:documentation>
+						Organizational management category: management of organizational trees,
+						organizational unit membership, unit managers, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ORGANIZATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="governance">
+				<xsd:annotation>
+					<xsd:documentation>
+						Identity governance: approvers, owners, governance policies, remediation.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="GOVERNANCE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="policy">
+				<xsd:annotation>
+					<xsd:documentation>
+						General policy management: RBAC, provisioning policies, policy rules, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="POLICY"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="selfService">
+				<xsd:annotation>
+					<xsd:documentation>
+						End-user self service: profile update, password change, role request, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SELF_SERVICE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="dataProtection">
+				<xsd:annotation>
+					<xsd:documentation>
+						Data protection: management of consent, lawful bases, data regulation compliance, etc.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DATA_PROTECTION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<!-- TODO: system management? administration? compliance? -->
+		</xsd:restriction>
+	</xsd:simpleType>
         
     <xsd:complexType name="ObjectCollectionsUseType">
         <xsd:annotation>
@@ -19352,12 +19540,69 @@
     <xsd:complexType name="DisplayType">
         <xsd:sequence>
             <!-- basic properties -->
-            <xsd:element name="label" type="xsd:string" minOccurs="0" />
-            <xsd:element name="tooltip" type="xsd:string" minOccurs="0" />
-            <xsd:element name="help" type="xsd:string" minOccurs="0" />
+            <xsd:element name="label" type="xsd:string" minOccurs="0" >
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			<p>
+	            			Label of the displayed item. The label will (almost)
+	            			always be displayed - unless the item is hidden or
+	            			minimized/iconized. The label is usually the very
+	            			minimum to meaningfully display the item.
+	            			Label should be very short (couple of words).
+            			</p>
+            			<p>
+            				Plain string or a localization key may be used in
+            				this field. The value of this field will be interpreted
+            				as a localizaton key and looked up in the localization
+            				tables. If no translation is found, then the literal
+            				value is displayed.
+            			</p>
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tooltip" type="xsd:string" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			<p>
+	            			Tooltip of the displayed item. This is short text
+	            			that is usually displayed when the user howers mouse
+	            			cursor over the item. It may also be displayed next to
+	            			the selection in lists and so on.
+	            			Tooltip should still be quite short (one short sentence).
+            			</p>
+            			<p>
+            				Plain string or a localization key may be used in
+            				this field. The value of this field will be interpreted
+            				as a localizaton key and looked up in the localization
+            				tables. If no translation is found, then the literal
+            				value is displayed.
+            			</p>
+            		</xsd:documentation>
+            	</xsd:annotation>            
+            </xsd:element>
+            <xsd:element name="help" type="xsd:string" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			<p>
+	            			Help text for the displayed item. Help text is usually
+	            			displayed when the user clicks on help/information icon. 
+	            			This may be a longer text (several sentences).
+            			</p>
+            			<p>
+            				Plain string or a localization key may be used in
+            				this field. The value of this field will be interpreted
+            				as a localizaton key and looked up in the localization
+            				tables. If no translation is found, then the literal
+            				value is displayed.
+            			</p>
+            		</xsd:documentation>
+            	</xsd:annotation>            
+            </xsd:element>
             <!-- style properties -->
             <xsd:element name="cssStyle" type="xsd:string" minOccurs="0" />
             <xsd:element name="cssClass" type="xsd:string" minOccurs="0" />
+            <!-- TODO: icon -->
+            <!-- TODO: multilingual label, tooltip and help -->
         </xsd:sequence>
     </xsd:complexType>
 

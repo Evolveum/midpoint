@@ -86,6 +86,7 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
                 label = "PageUser.auth.user.label",
                 description = "PageUser.auth.user.description")})
 public class PageUser extends PageAdminFocus<UserType> {
+    private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
     private static final String OPERATION_LOAD_DELEGATED_BY_ME_ASSIGNMENTS = DOT_CLASS + "loadDelegatedByMeAssignments";
@@ -121,6 +122,8 @@ public class PageUser extends PageAdminFocus<UserType> {
         super.initializeModel(objectToEdit, isNewObject, isReadonly);
 
         delegationsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected List<AssignmentEditorDto> load() {
                 if (StringUtils.isNotEmpty(getObjectWrapper().getOid())) {
@@ -131,6 +134,8 @@ public class PageUser extends PageAdminFocus<UserType> {
             }
         };
         privilegesListModel = new LoadableModel<List<AssignmentInfoDto>>(false) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected List<AssignmentInfoDto> load() {
                 return getUserPrivilegesList();
@@ -181,10 +186,12 @@ public class PageUser extends PageAdminFocus<UserType> {
 	@Override
 	protected AbstractObjectMainPanel<UserType> createMainPanel(String id) {
         return new FocusMainPanel<UserType>(id, getObjectModel(), getProjectionModel(), this) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
-                FocusTabVisibleBehavior authorization;
-                authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL);
+                FocusTabVisibleBehavior<UserType> authorization;
+                authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, isFocusHistoryPage());
                 tabs.add(
                         new PanelTab(parentPage.createStringResource("pageAdminFocus.personas"), authorization){
 
@@ -197,22 +204,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                         });
 
-                if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
-                    authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL);
-                    tabs.add(
-                            new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
-
-                                private static final long serialVersionUID = 1L;
-
-                                @Override
-                                public WebMarkupContainer createPanel(String panelId) {
-                                    return createObjectHistoryTabPanel(panelId, parentPage);
-                                }
-                            });
-                }
-
-                authorization = new FocusTabVisibleBehavior(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL);
+                authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
+                        ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, isFocusHistoryPage());
                 tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"), authorization)
                 {
                     private static final long serialVersionUID = 1L;
@@ -231,8 +224,8 @@ public class PageUser extends PageAdminFocus<UserType> {
                     }
                 });
 
-                authorization = new FocusTabVisibleBehavior(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL);
+                authorization = new FocusTabVisibleBehavior<UserType>(unwrapModel(),
+                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, isFocusHistoryPage());
                 tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"), authorization)
                 {
                     private static final long serialVersionUID = 1L;
@@ -309,6 +302,16 @@ public class PageUser extends PageAdminFocus<UserType> {
             protected boolean areSavePreviewButtonsEnabled(){
                 return super.areSavePreviewButtonsEnabled() ||
                         (userDelegationsTabPanel != null ? userDelegationsTabPanel.isDelegationsModelChanged() : false);
+            }
+
+            @Override
+            protected boolean isFocusHistoryPage(){
+                return PageUser.this.isFocusHistoryPage();
+            }
+
+            @Override
+            protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<UserType> object, String date){
+                PageUser.this.navigateToNext(new PageUserHistory(object, date));
             }
         };
     }

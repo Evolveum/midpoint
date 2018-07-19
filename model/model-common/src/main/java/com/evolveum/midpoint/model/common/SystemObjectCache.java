@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,10 @@
  */
 package com.evolveum.midpoint.model.common;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,11 +28,17 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleManagementConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
@@ -55,6 +64,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class SystemObjectCache {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SystemObjectCache.class);
+	
+	private static final String USER_DATA_KEY_RELATIONS = SystemObjectCache.class.getName() + ".relations";
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -119,5 +130,60 @@ public class SystemObjectCache {
 
 	public synchronized void invalidateCaches() {
 		systemConfiguration = null;
+	}
+	
+	public List<RelationDefinitionType> getRelationDefinitions(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(parentResult);
+		if (systemConfiguration == null) {
+			return createRelationDefinitions(null);
+		}
+		List<RelationDefinitionType> cachedRelations = systemConfiguration.getUserData(USER_DATA_KEY_RELATIONS);
+		if (cachedRelations != null) {
+			return cachedRelations;
+		}
+		RoleManagementConfigurationType roleManagement = systemConfiguration.asObjectable().getRoleManagement();
+		RelationsDefinitionType relationsDef = null;
+		if (roleManagement != null) {
+			relationsDef = roleManagement.getRelations();
+		}
+		cachedRelations = createRelationDefinitions(relationsDef);
+		systemConfiguration.setUserData(USER_DATA_KEY_RELATIONS, cachedRelations);
+		return cachedRelations;
+	}
+
+	private List<RelationDefinitionType> createRelationDefinitions(RelationsDefinitionType relationsDef) {
+		List<RelationDefinitionType> configuredRelations = null;
+		boolean includeDefaultRelations = true;
+		if (relationsDef != null) {
+			configuredRelations = relationsDef.getRelation();
+			if (relationsDef.isIncludeDefaultRelations() != null && !relationsDef.isIncludeDefaultRelations()) {
+				includeDefaultRelations = false;
+			}
+		}
+		List<RelationDefinitionType> relations = new ArrayList<>();
+		if (configuredRelations != null) {
+			for (RelationDefinitionType configuredRelation: configuredRelations) {
+				relations.add(configuredRelation.clone());
+			}
+		}
+		if (includeDefaultRelations) {
+			addDefaultRelations(relations);
+		}
+		return relations;
+	}
+
+	private void addDefaultRelations(List<RelationDefinitionType> relations) {
+		for (RelationTypes relationTypeEnum : RelationTypes.values()) {
+			if (ObjectTypeUtil.findRelationDefinition(relations, relationTypeEnum.getRelation()) != null) {
+				continue;
+			}
+			RelationDefinitionType relationDef = new RelationDefinitionType();
+			relationDef.setRef(relationTypeEnum.getRelation());
+			DisplayType display = new DisplayType();
+			display.setLabel(relationTypeEnum.getLabelKey());
+			relationDef.setDisplay(display);
+			relationDef.getCategory().addAll(Arrays.asList(relationTypeEnum.getCategories()));
+			relations.add(relationDef);
+		}
 	}
 }

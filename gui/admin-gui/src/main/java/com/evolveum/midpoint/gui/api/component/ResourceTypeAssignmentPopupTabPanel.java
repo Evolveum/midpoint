@@ -20,12 +20,12 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -67,12 +68,12 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     }
 
     @Override
-    protected void initParametersPanel(){
+    protected void initParametersPanel(Fragment parametersPanel){
         initModels();
 
         WebMarkupContainer kindContainer = new WebMarkupContainer(ID_KIND_CONTAINER);
         kindContainer.setOutputMarkupId(true);
-        add(kindContainer);
+        parametersPanel.add(kindContainer);
 
         DropDownChoicePanel<ShadowKindType> kindSelector = WebComponentUtil.createEnumPanel(ShadowKindType.class, ID_KIND,
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class), Model.of(),
@@ -100,7 +101,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
 
         WebMarkupContainer intentContainer = new WebMarkupContainer(ID_INTENT_CONTAINER);
         intentContainer.setOutputMarkupId(true);
-        add(intentContainer);
+        parametersPanel.add(intentContainer);
 
         DropDownChoicePanel<String> intentSelector = new DropDownChoicePanel<String>(ID_INTENT,
                 Model.of(), intentValues, true);
@@ -181,6 +182,11 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
 
     private DropDownChoicePanel<ShadowKindType> getKindDropDown(){
         return (DropDownChoicePanel<ShadowKindType>)get(ID_KIND_CONTAINER).get(ID_KIND);
+    }
+
+    @Override
+    protected ObjectTypes getObjectType(){
+        return ObjectTypes.RESOURCE;
     }
 
     @Override

@@ -83,6 +83,11 @@ public class OrgTreeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
     }
 
     @Override
+    protected ObjectTypes getObjectType(){
+        return ObjectTypes.ORG;
+    }
+
+    @Override
     protected boolean isObjectListPanelVisible(){
         return false;
     }
