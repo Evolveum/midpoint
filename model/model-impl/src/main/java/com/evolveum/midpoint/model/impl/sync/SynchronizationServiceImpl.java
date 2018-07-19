@@ -732,6 +732,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			if (syncCtx.getSituation() == null) {
 				syncCtx.setSituation(SynchronizationSituationType.DELETED);
 			}
+			return;
 		}
 
 		F user = syncCtx.getCorrelatedOwner();
