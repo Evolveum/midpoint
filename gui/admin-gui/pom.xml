@@ -20,7 +20,7 @@
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui</artifactId>
     <packaging>war</packaging>
-<!--     <version>3.7-SNAPSHOT</version> -->
+    <!--     <version>3.7-SNAPSHOT</version> -->
     <parent>
         <artifactId>gui</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
@@ -52,7 +52,7 @@
             </resource>
             <!--  ICF LOGGING CONFIGURATION -->
             <resource>
-            	<targetPath>../midpoint/META-INF/services</targetPath>
+                <targetPath>../midpoint/META-INF/services</targetPath>
                 <filtering>false</filtering>
                 <directory>src/main/resources</directory>
                 <includes>
@@ -96,65 +96,42 @@
                 </includes>
             </testResource>
         </testResources>
-       <plugins>
-           <plugin>
-               <groupId>org.springframework.boot</groupId>
-               <artifactId>spring-boot-maven-plugin</artifactId>
-               <version>${spring.boot.version}</version>
-               <configuration>
-                   <fork>true</fork>
-                   <skip>false</skip>
-               </configuration>
-               <executions>
-                   <execution>
-                       <goals>
-                           <goal>repackage</goal>
-                       </goals>
-                       <configuration>
-                           <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
-                       </configuration>
-                   </execution>
-                   <!--<execution>-->
-                       <!--<id>pre-integration-test</id>-->
-                       <!--<goals>-->
-                           <!--<goal>start</goal>-->
-                       <!--</goals>-->
-                   <!--</execution>-->
-                   <!--<execution>-->
-                       <!--<id>post-integration-test</id>-->
-                       <!--<goals>-->
-                           <!--<goal>stop</goal>-->
-                       <!--</goals>-->
-                   <!--</execution>-->
-               </executions>
-               <dependencies>
-                   <dependency>
-                       <groupId>com.evolveum.midpoint</groupId>
-                       <artifactId>midpoint-war-layout</artifactId>
-                       <version>${project.version}</version>
-                   </dependency>
-               </dependencies>
-           </plugin>
-           <!--<plugin>-->
-                   <!--<groupId>org.apache.maven.plugins</groupId>-->
-                   <!--<artifactId>maven-failsafe-plugin</artifactId>-->
-               <!--<configuration>-->
-                   <!--<includes>-->
-                       <!--<include>**/IT*.java</include>-->
-                       <!--<include>**/*IT.java</include>-->
-                       <!--<include>**/*ITCase.java</include>-->
-                   <!--</includes>-->
-               <!--</configuration>-->
-               <!--<executions>-->
-                   <!--<execution>-->
-                       <!--<goals>-->
-                           <!--<goal>integration-test</goal>-->
-                           <!--<goal>verify</goal>-->
-                       <!--</goals>-->
-                   <!--</execution>-->
-               <!--</executions>-->
-           <!--</plugin>-->
-       </plugins>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.boot.version}</version>
+                <configuration>
+                    <wait>1000</wait> <!-- POSSIBLY OBSOLETE ! : Added because spring-boot:start goal -->
+                    <maxAttempts>150</maxAttempts><!-- POSSIBLY OBSOLETE ! : Added because spring-boot:start goal -->
+                    <fork>true</fork>
+                    <excludeDevtools>true</excludeDevtools>
+                    <skip>false</skip>
+                    <!-- POSSIBLY OBSOLETE ! -->
+                    <!--<noverify>true</noverify>-->
+                    <!--<jvmArguments>"-Dcom.sun.management.jmxremote.port=20002","-Djava.rmi.server.hostname=0.0.0.0"</jvmArguments>-->
+                    <!--<jmxPort>20002</jmxPort>-->
+
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.evolveum.midpoint</groupId>
+                        <artifactId>midpoint-war-layout</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
     </build>
 
 
@@ -198,7 +175,7 @@
             <artifactId>cxf-rt-transports-http</artifactId>
         </dependency>
 
-    	<dependency>
+        <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>swagger-ui</artifactId>
             <version>2.2.5</version>
@@ -359,18 +336,18 @@
             <artifactId>repo-api</artifactId>
             <version>3.9-SNAPSHOT</version>
             <exclusions>
-            	<exclusion>
-            		<artifactId>jaxb-impl</artifactId>
-            		<groupId>com.sun.xml.bind</groupId>
-            	</exclusion>
-            	<exclusion>
-            		<artifactId>jaxb-core</artifactId>
-            		<groupId>com.sun.xml.bind</groupId>
-            	</exclusion>
-            	<exclusion>
-            		<artifactId>asm</artifactId>
-            		<groupId>asm</groupId>
-            	</exclusion>
+                <exclusion>
+                    <artifactId>jaxb-impl</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jaxb-core</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>asm</artifactId>
+                    <groupId>asm</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -435,38 +412,38 @@
             <version>3.9-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
-        <dependency> <!-- needed as runtime dependency otherwise spring won't start --> 
-			<groupId>org.springframework</groupId> 
-			<artifactId>spring-aspects</artifactId>
-			<scope>runtime</scope> 
-		</dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <dependency>
-			<groupId>org.codehaus.groovy</groupId>
-			<artifactId>groovy-all</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-				<groupId>joda-time</groupId>
-				<artifactId>joda-time</artifactId>
-			</dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
             <version>3.9-SNAPSHOT</version>
             <scope>runtime</scope>
             <exclusions>
-            	<exclusion>
-            		<artifactId>jaxb-impl</artifactId>
-            		<groupId>com.sun.xml.bind</groupId>
-            	</exclusion>
-            	<exclusion>
-            		<artifactId>jaxb-api</artifactId>
-            		<groupId>javax.xml.bind</groupId>
-            	</exclusion>
-            	<exclusion>
-            		<artifactId>jaxb-core</artifactId>
-            		<groupId>com.sun.xml.bind</groupId>
-            	</exclusion>
+                <exclusion>
+                    <artifactId>jaxb-impl</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jaxb-api</artifactId>
+                    <groupId>javax.xml.bind</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jaxb-core</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -499,10 +476,10 @@
             <version>3.9-SNAPSHOT</version>
             <scope>runtime</scope>
             <exclusions>
-            	<exclusion>
-            		<artifactId>jaxb-impl</artifactId>
-            		<groupId>com.sun.xml.bind</groupId>
-            	</exclusion>
+                <exclusion>
+                    <artifactId>jaxb-impl</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -529,35 +506,35 @@
             <version>3.9-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
-		<dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
             <version>3.9-SNAPSHOT</version>
             <scope>runtime</scope>
             <exclusions>
-            	<exclusion>
-            		<artifactId>jaxb-impl</artifactId>
-            		<groupId>com.sun.xml.bind</groupId>
-            	</exclusion>
-            	<exclusion>
-            		<artifactId>asm</artifactId>
-            		<groupId>asm</groupId>
-            	</exclusion>
+                <exclusion>
+                    <artifactId>jaxb-impl</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>asm</artifactId>
+                    <groupId>asm</groupId>
+                </exclusion>
             </exclusions>
-	</dependency>
-       
-	<dependency>
+        </dependency>
+
+        <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
             <version>3.9-SNAPSHOT</version>
             <exclusions>
-				<exclusion>
-					<groupId>xml-apis</groupId>
-  					<artifactId>xml-apis</artifactId>
-				</exclusion>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
- 
+
         <!-- SPRING -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -575,10 +552,10 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
-        <dependency> 
-			<groupId>org.springframework</groupId> 
-			<artifactId>spring-aop</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+        </dependency>
 
         <!-- SPRING SECURITY -->
         <dependency>
@@ -646,29 +623,29 @@
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
         </dependency>
-        
+
         <dependency>
-        	<groupId>org.apache.commons</groupId>
-        	<artifactId>commons-collections4</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
         </dependency>
 
- 		<dependency>
-	        <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-	             As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-	             Therefore explicitly use the custom version. -->
-	        <groupId>org.apache.httpcomponents</groupId>
-	        <artifactId>httpclient</artifactId>
-	        <scope>runtime</scope>
+        <dependency>
+            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                 As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+                 Therefore explicitly use the custom version. -->
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
-	        <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
-	             As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
-	             Therefore explicitly use the custom version. -->
-	        <groupId>org.apache.httpcomponents</groupId>
-	        <artifactId>httpcore</artifactId>
-	        <scope>runtime</scope>
+            <!-- In LDAP/AD connector we use custom build of HTTP client with CredSSP support.
+                 As AD/LDAP connector is bundled then this triggers a conflict in dependency convergence.
+                 Therefore explicitly use the custom version. -->
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <scope>runtime</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.ocpsoft.prettytime</groupId>
             <artifactId>prettytime</artifactId>
@@ -676,63 +653,63 @@
         </dependency>
 
         <!-- Xtext DSL: IDE schema support (experimental) -->
-<!--        <dependency>
-            <groupId>com.evolveum.midpoint.msl</groupId>
-            <artifactId>com.evolveum.midpoint.msl</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-            <scope>runtime</scope>
+        <!--        <dependency>
+                    <groupId>com.evolveum.midpoint.msl</groupId>
+                    <artifactId>com.evolveum.midpoint.msl</artifactId>
+                    <version>1.0.0-SNAPSHOT</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.eclipse.xtend</groupId>
+                    <artifactId>org.eclipse.xtend.lib</artifactId>
+                    <version>2.5.1</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.eclipse.xtext</groupId>
+                    <artifactId>org.eclipse.xtext.dependencies</artifactId>
+                    <version>2.5.1</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.eclipse.xtext</groupId>
+                    <artifactId>org.eclipse.xtext.xbase</artifactId>
+                    <version>2.5.1</version>
+                    <scope>runtime</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.eclipse.xtext</groupId>
+                    <artifactId>org.eclipse.xtext</artifactId>
+                    <version>2.5.1</version>
+                    <scope>runtime</scope>
+                </dependency>
+
+                -->
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.xtend</groupId>
-            <artifactId>org.eclipse.xtend.lib</artifactId>
-            <version>2.5.1</version>
-            <scope>runtime</scope>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.xtext</groupId>
-            <artifactId>org.eclipse.xtext.dependencies</artifactId>
-            <version>2.5.1</version>
-            <scope>runtime</scope>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.xtext</groupId>
-            <artifactId>org.eclipse.xtext.xbase</artifactId>
-            <version>2.5.1</version>
-            <scope>runtime</scope>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.xtext</groupId>
-            <artifactId>org.eclipse.xtext</artifactId>
-            <version>2.5.1</version>
-            <scope>runtime</scope>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
         </dependency>
-        
-        -->
-        
         <dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-		</dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
@@ -741,22 +718,22 @@
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils-core</artifactId>
         </dependency>
-		<dependency>
-			<groupId>commons-javaflow</groupId>
-			<artifactId>commons-javaflow</artifactId>
-			<scope>runtime</scope> <!-- TODO: review if we need this dependency -->
-		</dependency>
-		<dependency>
+        <dependency>
+            <groupId>commons-javaflow</groupId>
+            <artifactId>commons-javaflow</artifactId>
+            <scope>runtime</scope> <!-- TODO: review if we need this dependency -->
+        </dependency>
+        <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations-java5</artifactId>
         </dependency>
         <dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-		</dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+        </dependency>
 
         <!-- TEST -->
-        
+
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
@@ -793,15 +770,15 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-    		<groupId>javax.annotation</groupId>
-    		<artifactId>javax.annotation-api</artifactId>
-    		<scope>test</scope>
-		</dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
         <dependency>
-			<groupId>com.evolveum.polygon</groupId>
-			<artifactId>connector-ldap</artifactId>
+            <groupId>com.evolveum.polygon</groupId>
+            <artifactId>connector-ldap</artifactId>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -817,12 +794,12 @@
                 </exclusion>
                 <exclusion>
                     <groupId>com.evolveum.polygon</groupId>
-					<artifactId>connector-common</artifactId>
+                    <artifactId>connector-common</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
-        	<groupId>com.evolveum.polygon</groupId>
+            <groupId>com.evolveum.polygon</groupId>
             <artifactId>connector-databasetable</artifactId>
             <scope>runtime</scope>
         </dependency>
@@ -831,7 +808,7 @@
             <artifactId>connector-csv</artifactId>
             <scope>runtime</scope>
         </dependency>
-     
+
         <!-- end connectors -->
 
         <!-- logging bridges to slf4j -->
@@ -847,70 +824,70 @@
         </dependency>
         <!-- Jasper reports -->
         <dependency>
-    			<groupId>net.sf.jasperreports</groupId>
-    			<artifactId>jasperreports</artifactId>
-           <exclusions> <!-- we dont want bouncy castle to include into midPoint -->
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+            <exclusions> <!-- we dont want bouncy castle to include into midPoint -->
                 <exclusion>
                     <groupId>bouncycastle</groupId>
-			               <artifactId>bcmail-jdk14</artifactId>
+                    <artifactId>bcmail-jdk14</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>bouncycastle</groupId>
-			              <artifactId>bcprov-jdk14</artifactId>
+                    <artifactId>bcprov-jdk14</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>bouncycastle</groupId>
-			              <artifactId>bctsp-jdk14</artifactId>
+                    <artifactId>bctsp-jdk14</artifactId>
                 </exclusion>
-            </exclusions>                  
-    		</dependency>
-		<!-- report dependency (needed for microsoft office formats) -->
-            <dependency>
-				<groupId>org.apache.poi</groupId>
-				<artifactId>poi</artifactId>
-			</dependency>
+            </exclusions>
+        </dependency>
+        <!-- report dependency (needed for microsoft office formats) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+        </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
-		
-		<!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
-		<!-- SSO CAS Client dependencies -->
-		<!-- <dependency>
-			<groupId>org.jasig.cas.client</groupId>
-			<artifactId>cas-client-integration-tomcat-v7</artifactId>
-			<version>${cas.client.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jasig.cas.client</groupId>
-			<artifactId>cas-client-core</artifactId>
-			<version>${cas.client.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>xercesImpl</artifactId>
-					<groupId>xerces</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>xmltooling</artifactId>
-					<groupId>org.opensaml</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>velocity</artifactId>
-					<groupId>velocity</groupId>
-				</exclusion>
-			</exclusions>
-			<scope>runtime</scope>
-		</dependency>
-		 <dependency>
+
+        <!-- Uncomment following if you want midpoint to be a part of SSO using CAS server-->
+        <!-- SSO CAS Client dependencies -->
+        <!-- <dependency>
+            <groupId>org.jasig.cas.client</groupId>
+            <artifactId>cas-client-integration-tomcat-v7</artifactId>
+            <version>${cas.client.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jasig.cas.client</groupId>
+            <artifactId>cas-client-core</artifactId>
+            <version>${cas.client.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>xercesImpl</artifactId>
+                    <groupId>xerces</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>xmltooling</artifactId>
+                    <groupId>org.opensaml</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>velocity</artifactId>
+                    <groupId>velocity</groupId>
+                </exclusion>
+            </exclusions>
+            <scope>runtime</scope>
+        </dependency>
+         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-cas</artifactId>
-			<version>${spring.security.version}</version>
-			<scope>runtime</scope>
-        </dependency>  
+            <version>${spring.security.version}</version>
+            <scope>runtime</scope>
+        </dependency>
          -->
-        
+
         <!-- testing dependencies -->
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>

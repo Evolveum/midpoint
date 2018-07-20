@@ -13,6 +13,10 @@
 
     <properties>
         <selenium.version>3.6.0</selenium.version>
+       <!-- <project.version>3.9-SNAPSHOT</project.version>-->
+        <project.build.directory>C:\Users\matus\Documents\mp3.7\midpoint\gui\admin-gui\target</project.build.directory>
+        <!--<project.starter.module>/c/Users/matus/Documents/mp3.7/midpoint/gui/admin-gui</project.starter.module>-->
+        <project.starter.module>../../gui/admin-gui</project.starter.module>
     </properties>
 
     <dependencies>
@@ -89,12 +93,12 @@
             </exclusions>
         </dependency> -->
 
-       <dependency>
-        <groupId>com.evolveum.midpoint.gui</groupId>
-        <artifactId>admin-gui</artifactId>
-        <version>3.9-SNAPSHOT</version>
-        <type>war</type>
-       </dependency>
+       <!--<dependency>-->
+        <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
+        <!--<artifactId>admin-gui</artifactId>-->
+        <!--<version>3.9-SNAPSHOT</version>-->
+        <!--<type>war</type>-->
+       <!--</dependency>-->
     </dependencies>
 
 
@@ -207,16 +211,139 @@
     <build>
         <plugins>
 
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-failsafe-plugin</artifactId>-->
+                <!--<version>2.19.1</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<goals>-->
+                            <!--<goal>integration-test</goal>-->
+                            <!--<goal>verify</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+
+            <!--<plugin>-->
+                <!--<artifactId>maven-dependency-plugin</artifactId>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>copy-server-artifact</id>-->
+                        <!--<goals>-->
+                            <!--<goal>copy</goal>-->
+                        <!--</goals>-->
+                        <!--<phase>pre-integration-test</phase>-->
+                        <!--<configuration>-->
+                            <!--<artifactItems>-->
+                                <!--<artifactItem>-->
+                                    <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
+                                    <!--<artifactId>admin-gui</artifactId>-->
+                                    <!--<version>${project.version}</version>-->
+                                  <!--&lt;!&ndash;  <classifier>war</classifier>&ndash;&gt;-->
+                                    <!--<type>war</type>-->
+                                    <!--<outputDirectory>${project.build.directory}</outputDirectory>-->
+                                    <!--<destFileName>midpoint.war</destFileName>-->
+                                <!--</artifactItem>-->
+                            <!--</artifactItems>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+
+            <!--<plugin>-->
+                <!--<groupId>com.bazaarvoice.maven.plugins</groupId>-->
+                <!--<artifactId>process-exec-maven-plugin</artifactId>-->
+                <!--<version>0.7</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>start-server</id>-->
+                        <!--<phase>pre-integration-test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>start</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<name>run-server</name>-->
+                            <!--<workingDir>run-server</workingDir>-->
+                            <!--<waitForInterrupt>false</waitForInterrupt>-->
+                            <!--<healthcheckUrl>http://localhost:8080/midpoint</healthcheckUrl>-->
+                            <!--<arguments>-->
+                                <!--<argument>mvn</argument>-->
+                                <!--<argument>-f</argument>-->
+                                <!--<argument>../../gui/admin-gui/pom.xml</argument>-->
+                                <!--<argument>spring-boot:run</argument>-->
+                            <!--</arguments>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+
+                    <!--<execution>-->
+                        <!--<id>stop-server</id>-->
+                        <!--<phase>post-integration-test</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>stop-all</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+
+            <!--<plugin>-->
+            <!--<groupId>org.codehaus.mojo</groupId>-->
+            <!--<artifactId>exec-maven-plugin</artifactId>-->
+            <!--<version>1.6.0</version>-->
+            <!--<executions>-->
+            <!--<execution>-->
+                <!--<id>id1</id>-->
+                <!--<phase>pre-integration-test</phase>-->
+                <!--<goals>-->
+                    <!--<goal>exec</goal>-->
+                <!--</goals>-->
+                <!--<configuration>-->
+                    <!--<executable>mvn</executable>-->
+                    <!--<arguments>-->
+                        <!--<argument>-f</argument>-->
+                        <!--<argument>${project.starter.module}/pom.xml</argument>-->
+                        <!--<argument>spring-boot:start</argument>-->
+                    <!--</arguments>-->
+                <!--</configuration>-->
+            <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
                 <executions>
                     <execution>
+                        <phase>pre-integration-test</phase>
+                        <configuration>
+                            <target>
+                                <exec dir="." executable="cmd"
+                                      spawn="true">
+                                    <arg value="/c"/>
+                                    <arg value="mvn"/>
+                                    <arg value="-f"/>
+                                    <arg value="${project.starter.module}/pom.xml"/>
+                                    <arg value="spring-boot:run"/>
+                                </exec>
+                                <sleep seconds="200" /><!-- Needed so MP boots up, but the whole thing is quite hackish  -->
+                            </target>
+                        </configuration>
                         <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
+                            <goal>run</goal>
                         </goals>
                     </execution>
+                    <!--<execution>-->
+                        <!--<id>sleep-for-a-while</id>-->
+                        <!--<phase>integration-test</phase>-->
+                        <!--<configuration>-->
+                            <!--<target>-->
+                                <!--<sleep seconds="300" />-->
+                            <!--</target>-->
+                        <!--</configuration>-->
+                        <!--<goals>-->
+                            <!--<goal>run</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
                 </executions>
             </plugin>
 
