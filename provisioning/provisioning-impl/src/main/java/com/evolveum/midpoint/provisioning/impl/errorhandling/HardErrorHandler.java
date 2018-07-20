@@ -96,7 +96,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 	}
 
 	@Override
-	public void handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+	public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
 			Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
 			Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
@@ -105,10 +105,11 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			SecurityViolationException, ExpressionEvaluationException {
 
 		throwException(cause, opState, parentResult);
+		return OperationResultStatus.FATAL_ERROR; // not reached
 	}
 
 	@Override
-	public void handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+	public OperationResultStatus handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
 			ProvisioningOperationOptions options,
 			ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
 			OperationResult failedOperationResult, Task task, OperationResult parentResult)
@@ -117,6 +118,7 @@ public abstract class HardErrorHandler extends ErrorHandler {
 			SecurityViolationException, ExpressionEvaluationException {
 
 		throwException(cause, opState, parentResult);
+		return OperationResultStatus.FATAL_ERROR; // not reached
 	}	
 
 }

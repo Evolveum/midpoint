@@ -141,6 +141,7 @@ public class ShadowAttributesAsserter extends AbstractAsserter {
 	
 	public <T> ShadowAttributesAsserter assertValue(QName attrName, T... expectedValues) {
 		PrismProperty<T> property = findAttribute(attrName);
+		assertNotNull("No attribute "+attrName+" in "+desc());
 		PrismAsserts.assertPropertyValueDesc(property, desc(), expectedValues);
 		return this;
 	}

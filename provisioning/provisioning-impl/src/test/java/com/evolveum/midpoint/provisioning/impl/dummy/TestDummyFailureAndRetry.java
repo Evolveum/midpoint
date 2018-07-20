@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -55,11 +57,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * Test for various aspects of provisioning failure handling
@@ -77,6 +82,9 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 	
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "retry");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy-retry.xml");
+	
+	protected static final String ACCOUNT_MORGAN_FULLNAME_HM = "Henry Morgan";
+	protected static final String ACCOUNT_MORGAN_FULLNAME_CHM = "Captain Henry Morgan";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyFailureAndRetry.class);
 	
@@ -175,6 +183,8 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		checkUniqueness(accountProvisioning);
 		rememberSteadyResources();
 	}
+	
+	// TODO: asssert operationExecution
 	
 	@Test
 	public void test100AddAccountMorganCommunicationFailure() throws Exception {
@@ -579,6 +589,499 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		assertSteadyResources();
 	}
 	
+	@Test
+	public void test120ModifyMorganFullNameCommunicationFailure() throws Exception {
+		final String TEST_NAME = "test120ModifyMorganFullNameCommunicationFailure";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_HM);
+		display("ObjectDelta", delta);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertInProgress(result);
+		lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifyInProgressOnly();
+
+		assertUnmodifiedMorgan(1, 2, ACCOUNT_MORGAN_FULLNAME_HM);
+
+		// Resource -> down
+		assertResourceStatusChangeCounterIncrements();
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Refresh while the resource is down. Retry interval is not yet reached.
+	 * Nothing should really happen yet.
+	 */
+	@Test
+	public void test124RefreshAccountMorganCommunicationFailure() throws Exception {
+		final String TEST_NAME = "test124RefreshAccountMorganCommunicationFailure";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertSuccess(result);
+		syncServiceMock.assertNoNotifcations();
+		
+		assertUnmodifiedMorgan(1, 2, ACCOUNT_MORGAN_FULLNAME_HM);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Wait for retry interval to pass. Now provisioning should retry the operation.
+	 * But no luck yet. Resource is still down.
+	 */
+	@Test
+	public void test126RefreshAccountMorganCommunicationFailureRetry() throws Exception {
+		final String TEST_NAME = "test126RefreshAccountMorganCommunicationFailureRetry";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("PT17M");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		result.computeStatus();
+		TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+		lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifyInProgressOnly();
+		
+		assertUnmodifiedMorgan(2, 2, ACCOUNT_MORGAN_FULLNAME_HM);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Wait for yet another retry interval to pass. Now provisioning should retry the operation
+	 * again. Still no luck. As this is the third and last attempt the operation should now be
+	 * completed.
+	 */
+	@Test
+	public void test128RefreshAccountMorganCommunicationFailureRetryAgain() throws Exception {
+		final String TEST_NAME = "test128RefreshAccountMorganCommunicationFailureRetryAgain";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("PT17M");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		result.computeStatus();
+		TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+		lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifyFailureOnly();
+		
+		assertMorganModifyFailed();
+		
+	}
+	
+	/**
+	 * Attempt to refresh shadow with failed operation. Nothing should happen.
+	 */
+	@Test
+	public void test129RefreshAccountMorganFailed() throws Exception {
+		final String TEST_NAME = "test129RefreshAccountMorganFailed";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("PT17M");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertSuccess(result);
+		syncServiceMock.assertNoNotifcations();
+		
+		assertMorganModifyFailed();
+	}
+	
+	@Test
+	public void test130ModifyMorganFullNameAgainCommunicationFailure() throws Exception {
+		final String TEST_NAME = "test130ModifyMorganFullNameAgainCommunicationFailure";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_CHM);
+		display("ObjectDelta", delta);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertInProgress(result);
+		lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifyInProgressOnly();
+
+		assertUnmodifiedMorgan(1, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Wait for retry interval to pass. Now provisioning should retry the operation.
+	 * Resource is up now and the operation can proceed.
+	 */
+	@Test
+	public void test136RefreshAccountMorganRetrySuccess() throws Exception {
+		final String TEST_NAME = "test136RefreshAccountMorganRetrySuccess";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("PT17M");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.resetBreakMode();
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertSuccess(result);
+		lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertModifiedMorgan(2, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
+		
+		// Resource -> up
+		assertResourceStatusChangeCounterIncrements();
+		assertSteadyResources();
+	}
+	
+	@Test
+	public void test170DeleteMorganCommunicationFailure() throws Exception {
+		final String TEST_NAME = "test170DeleteMorganCommunicationFailure";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_HM);
+		display("ObjectDelta", delta);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.deleteObject(ShadowType.class, shadowMorganOid, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertInProgress(result);
+		lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifyInProgressOnly();
+
+		assertUndeletedMorgan(1, 4);
+
+		// Resource -> down
+		assertResourceStatusChangeCounterIncrements();
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Refresh while the resource is down. Retry interval is not yet reached.
+	 * Nothing should really happen yet.
+	 */
+	@Test
+	public void test174RefreshAccountMorganCommunicationFailure() throws Exception {
+		final String TEST_NAME = "test174RefreshAccountMorganCommunicationFailure";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertSuccess(result);
+		syncServiceMock.assertNoNotifcations();
+		
+		assertUndeletedMorgan(1, 4);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Wait for retry interval to pass. Now provisioning should retry the operation.
+	 * But no luck yet. Resource is still down.
+	 */
+	@Test
+	public void test176RefreshAccountMorganCommunicationFailureRetry() throws Exception {
+		final String TEST_NAME = "test176RefreshAccountMorganCommunicationFailureRetry";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("PT17M");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		result.computeStatus();
+		TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+		lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifyInProgressOnly();
+		
+		assertUndeletedMorgan(2, 4);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Wait for yet another retry interval to pass. Now provisioning should retry the operation
+	 * again. Still no luck. As this is the third and last attempt the operation should now be
+	 * completed.
+	 */
+	@Test
+	public void test178RefreshAccountMorganCommunicationFailureRetryAgain() throws Exception {
+		final String TEST_NAME = "test178RefreshAccountMorganCommunicationFailureRetryAgain";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("PT17M");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		result.computeStatus();
+		TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+		lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifyFailureOnly();
+		
+		assertMorganDeleteFailed();
+	}
+	
+	/**
+	 * Attempt to refresh shadow with failed operation. Nothing should happen.
+	 */
+	@Test
+	public void test179RefreshAccountMorganFailed() throws Exception {
+		final String TEST_NAME = "test179RefreshAccountMorganFailed";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("PT17M");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertSuccess(result);
+		syncServiceMock.assertNoNotifcations();
+		
+		assertMorganDeleteFailed();
+	}
+	
+	@Test
+	public void test180DeleteMorganCommunicationFailureAgain() throws Exception {
+		final String TEST_NAME = "test180DeleteMorganCommunicationFailureAgain";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				shadowMorganOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, ACCOUNT_MORGAN_FULLNAME_HM);
+		display("ObjectDelta", delta);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.deleteObject(ShadowType.class, shadowMorganOid, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertInProgress(result);
+		lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifyInProgressOnly();
+
+		assertUndeletedMorgan(1, 5);
+
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Wait for retry interval to pass. Now provisioning should retry the operation.
+	 * Resource is up now and the operation can proceed.
+	 */
+	@Test
+	public void test186RefreshAccountMorganRetrySuccess() throws Exception {
+		final String TEST_NAME = "test186RefreshAccountMorganRetrySuccess";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("PT17M");
+		
+		syncServiceMock.reset();
+		
+		dummyResource.resetBreakMode();
+
+		PrismObject<ShadowType> shadowRepoBefore = getShadowRepo(shadowMorganOid);
+		
+		lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.refreshShadow(shadowRepoBefore, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertSuccess(result);
+		lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifySuccessOnly();
+		
+		assertDeletedMorgan(2, 5);
+		
+		// Resource -> up
+		assertResourceStatusChangeCounterIncrements();
+		assertSteadyResources();
+	}
+	
 	/**
 	 * Refreshing dead shadow after pending operation is expired.
 	 * Pending operation should be gone.
@@ -773,8 +1276,6 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 				.assertSize(4)
 				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME);
 		
-		dummyResource.resetBreakMode();
-
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		checkUniqueness(accountProvisioningFuture);
 	}
@@ -878,6 +1379,562 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 			.assertPassword(ACCOUNT_MORGAN_PASSWORD);
 	}
 	
+	private void assertUnmodifiedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName) throws Exception {
+		
+		PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+		assertNotNull("Shadow was not created in the repository", repoShadow);
+		
+		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(expectenNumberOfPendingOperations)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+				.find()
+					.display()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(expectedAttemptNumber)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.display()
+						.assertModify();
+		shadowAsserter
+			.assertBasicRepoProperties()
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+		
+		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(expectenNumberOfPendingOperations)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+				.find()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(expectedAttemptNumber)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.assertModify();
+		shadowAsserter
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		
+		
+		Task task = createTask("assertUnmodifiedMorgan");
+		OperationResult result = task.getResult();
+		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+		assertPartialError(result);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+		shadowAsserter
+			.display()
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		// TODO: assert caching metadata?
+		
+		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+		shadowAsserter
+			.display()
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(3)
+				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), expectedFullName);
+		
+		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+		checkUniqueness(accountProvisioningFuture);
+	}
+	
+	private void assertModifiedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName) throws Exception {
+		
+		PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+		assertNotNull("Shadow was not created in the repository", repoShadow);
+		
+		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(expectenNumberOfPendingOperations)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.resultStatus(OperationResultStatusType.SUCCESS)
+					.changeType(ChangeTypeType.MODIFY)
+				.find()
+					.display()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(expectedAttemptNumber)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.display()
+						.assertModify();
+		shadowAsserter
+			.assertBasicRepoProperties()
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+		
+		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(expectenNumberOfPendingOperations)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.resultStatus(OperationResultStatusType.SUCCESS)
+					.changeType(ChangeTypeType.MODIFY)
+				.find()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(expectedAttemptNumber)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.assertModify();
+		shadowAsserter
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		
+		
+		Task task = createTask("assertModifiedMorgan");
+		OperationResult result = task.getResult();
+		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+		assertSuccess(result);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+		shadowAsserter
+			.display()
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(5)
+				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), expectedFullName);
+		
+		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuture(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+		shadowAsserter
+			.display()
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(5)
+				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), expectedFullName);
+		
+		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+		checkUniqueness(accountProvisioningFuture);
+	}
+	
+	private void assertMorganModifyFailed() throws Exception {
+		PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+		assertNotNull("Shadow was not created in the repository", repoShadow);
+		
+		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(2)
+				.modifyOperation()
+					.display()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(3)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.assertCompletionTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.display()
+						.assertModify();
+		shadowAsserter
+			.assertBasicRepoProperties()
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+		
+		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(2)
+				.modifyOperation()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(3)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.assertCompletionTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.assertModify();
+		shadowAsserter
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		
+		
+		Task task1 = createTask("assertUnmodifiedMorgan");
+		OperationResult result1 = task1.getResult();
+		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task1, result1);
+		assertPartialError(result1);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+		shadowAsserter
+			.display()
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		// TODO: assert caching metadata?
+		
+		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+		shadowAsserter
+			.display()
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		
+		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+		checkUniqueness(accountProvisioningFuture);
+	}
+	
+	private void assertUndeletedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations) throws Exception {
+		
+		PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+		assertNotNull("Shadow was not created in the repository", repoShadow);
+		
+		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(expectenNumberOfPendingOperations)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+				.find()
+					.display()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(expectedAttemptNumber)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.display()
+						.assertDelete();
+		shadowAsserter
+			.assertBasicRepoProperties()
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+		
+		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(expectenNumberOfPendingOperations)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+				.find()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(expectedAttemptNumber)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.assertDelete();
+		shadowAsserter
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		
+		
+		Task task = createTask("assertUnmodifiedMorgan");
+		OperationResult result = task.getResult();
+		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+		assertPartialError(result);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+		shadowAsserter
+			.display()
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		// TODO: assert caching metadata?
+		
+		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+		shadowAsserter
+			.display()
+			.assertIsNotExists()
+			.assertDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		
+		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+		checkUniqueness(accountProvisioningFuture);
+	}
+	
+	private void assertMorganDeleteFailed() throws Exception {
+		
+		PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+		assertNotNull("Shadow was not created in the repository", repoShadow);
+		
+		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(4)
+				.by()
+					.changeType(ChangeTypeType.DELETE)
+				.find()
+					.display()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(3)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.display()
+						.assertDelete();
+		shadowAsserter
+			.assertBasicRepoProperties()
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+		
+		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(4)
+				.by()
+					.changeType(ChangeTypeType.DELETE)
+				.find()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(3)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.assertDelete();
+		shadowAsserter
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		
+		
+		Task task = createTask("assertUnmodifiedMorgan");
+		OperationResult result = task.getResult();
+		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+		assertPartialError(result);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"current");
+		shadowAsserter
+			.display()
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		// TODO: assert caching metadata?
+		
+		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuturePartialError(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
+		shadowAsserter
+			.display()
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		
+		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
+		checkUniqueness(accountProvisioningFuture);
+	}
+	
+	private void assertDeletedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations) throws Exception {
+		
+		PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
+		assertNotNull("Shadow was not created in the repository", repoShadow);
+		
+		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(expectenNumberOfPendingOperations)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.resultStatus(OperationResultStatusType.SUCCESS)
+					.changeType(ChangeTypeType.DELETE)
+				.find()
+					.display()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(expectedAttemptNumber)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.display()
+						.assertDelete();
+		shadowAsserter
+			.assertBasicRepoProperties()
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertIsNotExists()
+			.assertDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
+		
+		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
+		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
+		shadowAsserter
+			.display()
+			.pendingOperations()
+				.assertOperations(expectenNumberOfPendingOperations)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.resultStatus(OperationResultStatusType.SUCCESS)
+					.changeType(ChangeTypeType.DELETE)
+				.find()
+					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertOperationStartTimestamp(lastRequestStartTs, lastRequestEndTs)
+					.assertAttemptNumber(expectedAttemptNumber)
+					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
+					.delta()
+						.assertDelete();
+		shadowAsserter
+			.assertIsNotExists()
+			.assertDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2);
+		
+		
+		Task task = createTask("assertDeletedMorgan");
+		OperationResult result = task.getResult();
+		try {
+			provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+			assertNotReached();
+		} catch (ObjectNotFoundException e) {
+			// expected
+		}
+
+		try {
+			Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+			PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
+					shadowMorganOid, options, task, result);
+		} catch (ObjectNotFoundException e) {
+			// expected
+		}
+	}
+
+	
 	private void assertResourceStatusChangeCounterIncrements() {
 		assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 1);
 		assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT, 1);
@@ -913,6 +1970,16 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
 				oid, options, task, result);
 		assertSuccess(result);
+		return shadow;
+	}
+	
+	private PrismObject<ShadowType> getShadowFuturePartialError(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask("getShadowFuture");
+		OperationResult result = task.getResult();
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
+				oid, options, task, result);
+		assertPartialError(result);
 		return shadow;
 	}
 

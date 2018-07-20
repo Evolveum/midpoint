@@ -26,6 +26,7 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * @author semancik
@@ -49,28 +50,45 @@ public class PendingOperationsAsserter extends AbstractAsserter {
 		return new PendingOperationsAsserter(shadow);
 	}
 	
-	private List<PendingOperationType> getOperations() {
+	List<PendingOperationType> getOperations() {
 		return shadow.asObjectable().getPendingOperation();
 	}
 	
-	public void assertOperations(int expectedNumber) {
+	public PendingOperationsAsserter assertOperations(int expectedNumber) {
 		assertEquals("Unexpected number of pending operations in "+shadow, expectedNumber, getOperations().size());
+		return this;
 	}
 	
-//	PendingOperationChecker 
+	PendingOperationAsserter forOperation(PendingOperationType operation) {
+		return new PendingOperationAsserter(shadow, operation, idToString(operation.getId()), getDetails());
+	}
 	
-//	PendingOperationAsserter find() {
-//		
-//	}
-	
+	private String idToString(Long id) {
+		if (id == null) {
+			return "";
+		} else {
+			return id.toString();
+		}
+	}
+
 	public PendingOperationAsserter singleOperation() {
 		assertOperations(1);
-		return new PendingOperationAsserter(shadow, getOperations().get(0), "0", getDetails());
+		return forOperation(getOperations().get(0));
 	}
 	
 	public PendingOperationsAsserter none() {
 		assertOperations(0);
 		return this;
+	}
+	
+	public PendingOperationAsserter modifyOperation() {
+		return by()
+			.changeType(ChangeTypeType.MODIFY)
+			.find();
+	}
+	
+	public PendingOperationFinder by() {
+		return new PendingOperationFinder(this);
 	}
 
 }

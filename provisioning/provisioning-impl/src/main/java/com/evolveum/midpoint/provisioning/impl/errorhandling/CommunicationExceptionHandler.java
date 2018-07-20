@@ -135,7 +135,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 	}
 
 	@Override
-	public void handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+	public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
 			Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
 			Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
@@ -148,18 +148,11 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		ResourceType resource = ctx.getResource();
 		markResourceDown(resource, result);
 		handleRetriesAndAttempts(ctx, opState, options, cause, result);
-		LOGGER.trace("Postponing MODIFY operation for {}: ", repoShadow, modifications);
-		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
-		AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncResult = new AsynchronousOperationReturnValue<>();
-		asyncResult.setOperationResult(failedOperationResult);
-		opState.setAsyncResult(asyncResult);
-		result.recordInProgress();
+		return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
 	}
 
-
-
 	@Override
-	public void handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+	public OperationResultStatus handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
 			ProvisioningOperationOptions options,
 			ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
 			OperationResult failedOperationResult, Task task, OperationResult parentResult)
@@ -171,12 +164,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 		ResourceType resource = ctx.getResource();
 		markResourceDown(resource, result);
 		handleRetriesAndAttempts(ctx, opState, options, cause, result);
-		LOGGER.trace("Postponing DELETE operation for {}: ", repoShadow);
-		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
-		AsynchronousOperationResult asyncResult = new AsynchronousOperationResult();
-		asyncResult.setOperationResult(failedOperationResult);
-		opState.setAsyncResult(asyncResult);
-		result.recordInProgress();
+		return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
 	}
 
 	private void handleRetriesAndAttempts(ProvisioningContext ctx, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, ProvisioningOperationOptions options, Exception cause, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {

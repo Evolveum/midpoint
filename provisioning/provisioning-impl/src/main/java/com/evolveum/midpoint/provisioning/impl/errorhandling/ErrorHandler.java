@@ -75,7 +75,7 @@ public abstract class ErrorHandler {
 	
 	@Autowired protected ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired private ResourceManager resourceManager;
-	protected PrismContext prismContext;
+	@Autowired protected PrismContext prismContext;
 	
 	public abstract PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
 			PrismObject<ShadowType> repositoryShadow,
@@ -117,8 +117,7 @@ public abstract class ErrorHandler {
 		return OperationResultStatus.IN_PROGRESS;
 	}
 
-	
-	public abstract void handleModifyError(ProvisioningContext ctx,
+	public abstract OperationResultStatus handleModifyError(ProvisioningContext ctx,
 			PrismObject<ShadowType> repoShadow,
 			Collection<? extends ItemDelta> modifications,
 			ProvisioningOperationOptions options,
@@ -130,8 +129,43 @@ public abstract class ErrorHandler {
 				throws SchemaException, GenericFrameworkException, CommunicationException,
 				ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 				SecurityViolationException, ExpressionEvaluationException;
+	
+	protected OperationResultStatus postponeModify(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow,
+			Collection<? extends ItemDelta> modifications,
+			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+			OperationResult failedOperationResult,
+			OperationResult result) {
+		LOGGER.trace("Postponing MODIFY operation for {}", repoShadow);
+		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
+		AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncResult = new AsynchronousOperationReturnValue<>();
+		asyncResult.setOperationResult(failedOperationResult);
+		opState.setAsyncResult(asyncResult);
+		if (opState.getAttemptNumber() == null) {
+			opState.setAttemptNumber(1);
+		}
+		result.recordInProgress();
+		return OperationResultStatus.IN_PROGRESS;
+	}
+	
+	protected OperationResultStatus postponeDelete(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow,
+			ProvisioningOperationState<AsynchronousOperationResult> opState,
+			OperationResult failedOperationResult,
+			OperationResult result) {
+		LOGGER.trace("Postponing DELETE operation for {}", repoShadow);
+		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
+		AsynchronousOperationResult asyncResult = new AsynchronousOperationResult();
+		asyncResult.setOperationResult(failedOperationResult);
+		opState.setAsyncResult(asyncResult);
+		if (opState.getAttemptNumber() == null) {
+			opState.setAttemptNumber(1);
+		}
+		result.recordInProgress();
+		return OperationResultStatus.IN_PROGRESS;
+	}
 
-	public abstract void handleDeleteError(ProvisioningContext ctx,
+	public abstract OperationResultStatus handleDeleteError(ProvisioningContext ctx,
 			PrismObject<ShadowType> repoShadow,
 			ProvisioningOperationOptions options,
 			ProvisioningOperationState<AsynchronousOperationResult> opState,
