@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -42,9 +43,13 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,6 +59,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -68,6 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
@@ -112,7 +119,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test003Connection() throws Exception {
 		final String TEST_NAME = "test003Connection";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -195,7 +202,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test110GetObjectNoShadow() throws Exception {
 		final String TEST_NAME = "test110GetObjectNoShadow";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -222,7 +229,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test111GetObjectShadow() throws Exception {
 		final String TEST_NAME = "test111GetObjectShadow";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -245,7 +252,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test120ListResourceObjects() throws Exception {
 		final String TEST_NAME = "test120ListResourceObjects";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -269,7 +276,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	public void test121SearchAccounts() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
 		final String TEST_NAME = "test121SearchAccounts";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -299,7 +306,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	public void test122SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
 		final String TEST_NAME = "test122SearchAccountsIterative";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -335,7 +342,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test130AddAccountWill() throws Exception {
 		final String TEST_NAME = "test130AddAccountWill";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -362,7 +369,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test140AddDeleteAccountSparrow() throws Exception {
 		final String TEST_NAME = "test140AddDeleteAccountSparrow";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -385,7 +392,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test150ModifyObject() throws Exception {
 		final String TEST_NAME = "test150ModifyObject";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -412,7 +419,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test190Synchronize() throws Exception {
 		final String TEST_NAME = "test190Synhronize";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -445,7 +452,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test500ReplaceResource() throws Exception {
 		final String TEST_NAME = "test500ReplaceResource";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -470,7 +477,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test510GetObjectNoShadow() throws Exception {
 		final String TEST_NAME = "test510GetObjectNoShadow";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -498,7 +505,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test511GetObjectShadow() throws Exception {
 		final String TEST_NAME = "test511GetObjectShadow";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -526,7 +533,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	@Test
 	public void test520ListResourceObjects() throws Exception {
 		final String TEST_NAME = "test520ListResourceObjects";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -542,15 +549,14 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 			display("Expected exception", e);
 		}
 
-		result.computeStatus();
-		TestUtil.assertFailure(result);
+		assertFailure(result);
 	}
 
 	@Test
 	public void test521SearchAccounts() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
 		final String TEST_NAME = "test521SearchAccounts";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -579,7 +585,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 	public void test522SearchAccountsIterative() throws SchemaException, ObjectNotFoundException,
           CommunicationException, ConfigurationException, SecurityViolationException, Exception {
 		final String TEST_NAME = "test522SearchAccountsIterative";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -608,101 +614,110 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 			display("Expected exception", e);
 		}
 
-		result.computeStatus();
-		display(result);
-		TestUtil.assertFailure(result);
+		assertFailure(result);
   	}
 
 	@Test
 	public void test530AddAccountWill() throws Exception {
 		final String TEST_NAME = "test530AddAccountWill";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		ShadowType object = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
+		PrismObject<ShadowType> object = parseObject(ACCOUNT_WILL_FILE);
 		display("Account to add", object);
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
+		String addedObjectOid = provisioningService.addObject(object, null, null, task, result);
 
 		// THEN
 		result.computeStatus();
 		display("addObject result", result);
-		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		assertInProgress(result);
 
 		assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
 
-		ShadowType repoAccountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
-				null, result).asObjectable();
-		display("repo shadow", repoAccountType);
-		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_DN, repoAccountType.getName());
-		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, repoAccountType.getFailedOperationType());
-		OperationResultType repoResult = repoAccountType.getResult();
-		assertNotNull("No result in shadow (repo)", repoResult);
-		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		ShadowAsserter.forShadow(repoShadow, "repo")
+			.display()
+			.assertName(ACCOUNT_WILL_DN)
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.delta()
+						.assertAdd();
 
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID,
-				null, task, result).asObjectable();
-		display("provisioning shadow", provisioningAccountType);
-		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_DN, provisioningAccountType.getName());
-		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.ADD, provisioningAccountType.getFailedOperationType());
-		OperationResultType provisioningResult = provisioningAccountType.getResult();
-		assertNotNull("No result in shadow (repo)", provisioningResult);
-		TestUtil.assertFailure("Result in shadow (repo)", provisioningResult);
-
+		try {
+			provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+			
+			assertNotReached();
+		} catch (GenericConnectorException e) {
+			display("expected exception", e);
+		}
+		
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+		PrismObject<ShadowType> provisioningAccountFuture = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
+		ShadowAsserter.forShadow(provisioningAccountFuture, "future")
+			.display()
+			.assertName(ACCOUNT_WILL_DN)
+			.assertIsExists()
+			.assertNotDead();
 	}
 
 	@Test
 	public void test540DeleteObject() throws Exception {
 		final String TEST_NAME = "test540DeleteObject";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
-				+ "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
 
-		Task task = taskManager.createTaskInstance();
 		// WHEN
 		provisioningService.deleteObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, null, task, result);
 
 		// THEN
 		result.computeStatus();
 		display("deleteObject result", result);
-		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		assertInProgress(result);
+		
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, result);
+		ShadowAsserter.forShadow(repoShadow, "repo")
+			.display()
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.delta()
+						.assertDelete();
 
-		ShadowType repoAccountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID,
-				null, result).asObjectable();
-		display("repo shadow", repoAccountType);
-		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, repoAccountType.getFailedOperationType());
-		OperationResultType repoResult = repoAccountType.getResult();
-		assertNotNull("No result in shadow (repo)", repoResult);
-		display("repoResult in shadow", repoResult);
-		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
+		PrismObject<ShadowType> provisioningAccount = provisioningService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID, null, task, result);
+		ShadowAsserter.forShadow(provisioningAccount, "provisioning")
+			.display()
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.delta()
+						.assertDelete();
 
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_SPARROW_OID,
-				null, task, result).asObjectable();
-		display("provisioning shadow", provisioningAccountType);
-		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.DELETE, provisioningAccountType.getFailedOperationType());
-		OperationResultType provisioningResult = provisioningAccountType.getResult();
-		assertNotNull("No result in shadow (repo)", provisioningResult);
-		TestUtil.assertFailure("Result in shadow (repo)", provisioningResult);
 	}
 
 	@Test
 	public void test550ModifyObject() throws Exception {
 		final String TEST_NAME = "test150ModifyObject";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
-		OperationResult result = new OperationResult(TestOpenDjNegative.class.getName()
-				+ "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
 
 		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(ACCOUNT_JACK_CHANGE_FILE, ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 		display("Object change",delta);
-
-		Task task = taskManager.createTaskInstance();
+		
+		// WHEN
 		provisioningService.modifyObject(ShadowType.class, objectChange.getOid(),
 				delta.getModifications(), null, null, task, result);
 
@@ -710,30 +725,33 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 		// THEN
 		result.computeStatus();
 		display("deleteObject result", result);
-		assertEquals("Wrong result", OperationResultStatus.HANDLED_ERROR, result.getStatus());
+		assertInProgress(result);
 
-		ShadowType repoAccountType =  repositoryService.getObject(ShadowType.class, ACCOUNT_JACK_OID,
-				null, result).asObjectable();
-		display("repo shadow", repoAccountType);
-		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, repoAccountType.getFailedOperationType());
-		OperationResultType repoResult = repoAccountType.getResult();
-		assertNotNull("No result in shadow (repo)", repoResult);
-		TestUtil.assertFailure("Result in shadow (repo)", repoResult);
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_JACK_OID, null, result);
+		ShadowAsserter.forShadow(repoShadow, "repo")
+			.display()
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.delta()
+						.assertModify();
 
-		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class, ACCOUNT_JACK_OID,
-				null, task, result).asObjectable();
-		display("provisioning shadow", provisioningAccountType);
-		assertEquals("Wrong failedOperationType in repo", FailedOperationTypeType.MODIFY, provisioningAccountType.getFailedOperationType());
-		OperationResultType provisioningResult = provisioningAccountType.getResult();
-		assertNotNull("No result in shadow (repo)", provisioningResult);
-		TestUtil.assertFailure("Result in shadow (repo)", provisioningResult);
-
+		PrismObject<ShadowType> provisioningAccount = provisioningService.getObject(ShadowType.class, ACCOUNT_JACK_OID, null, task, result);
+		ShadowAsserter.forShadow(provisioningAccount, "provisioning")
+			.display()
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.delta()
+						.assertModify();
 	}
 
 	@Test
 	public void test590Synchronize() throws Exception {
 		final String TEST_NAME = "test590Synhronize";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestOpenDjNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -753,8 +771,7 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
 			display("Expected exception", e);
 		}
 
-		result.computeStatus();
-		TestUtil.assertFailure(result);
+		assertFailure(result);
 	}
 
 

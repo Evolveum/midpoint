@@ -19,10 +19,12 @@ import java.util.List;
 
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -35,6 +37,7 @@ public class PendingOperationFinder {
 	private PendingOperationExecutionStatusType executionStatus;
 	private OperationResultStatusType resultStatus;
 	private ChangeTypeType changeType;
+	private ItemPath itemPath;
 	
 	public PendingOperationFinder(PendingOperationsAsserter pendingOperationsAsserter) {
 		this.pendingOperationsAsserter = pendingOperationsAsserter;
@@ -54,6 +57,12 @@ public class PendingOperationFinder {
 		this.resultStatus = resultStatus;
 		return this;
 	}
+	
+	public PendingOperationFinder item(ItemPath itemPath) {
+		this.itemPath = itemPath;
+		return this;
+	}
+
 
 	public PendingOperationAsserter find() {
 		PendingOperationType found = null;
@@ -75,15 +84,6 @@ public class PendingOperationFinder {
 	private boolean matches(PendingOperationType operation) {
 		ObjectDeltaType delta = operation.getDelta();
 		
-		if (changeType != null) {
-			if (delta == null) {
-				return false;
-			}
-			if (!changeType.equals(delta.getChangeType())) {
-				return false;
-			}
-		}
-		
 		if (executionStatus != null) {
 			if (!executionStatus.equals(operation.getExecutionStatus())) {
 				return false;
@@ -96,11 +96,40 @@ public class PendingOperationFinder {
 			}
 		}
 		
+		if (changeType != null) {
+			if (delta == null) {
+				return false;
+			}
+			if (!changeType.equals(delta.getChangeType())) {
+				return false;
+			}
+		}
+		
+		if (itemPath != null) {
+			if (delta == null) {
+				return false;
+			}
+			if (!deltaContains(delta, itemPath)) {
+				return false;
+			}
+		}
+		
 		// TODO: more criteria
 		return true;
+	}
+
+	private boolean deltaContains(ObjectDeltaType delta, ItemPath itemPath2) {
+		for (ItemDeltaType itemDelta: delta.getItemDelta()) {
+			ItemPath deltaPath = itemDelta.getPath().getItemPath();
+			if (itemPath.equivalent(deltaPath)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected void fail(String message) {
 		AssertJUnit.fail(message);
 	}
+
 }

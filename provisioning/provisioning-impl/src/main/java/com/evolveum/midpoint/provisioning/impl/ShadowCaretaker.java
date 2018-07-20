@@ -265,16 +265,13 @@ public class ShadowCaretaker {
 				// Not applicable means: "no point trying this, will not retry". Therefore it will not change future state. 
 				continue;
 			}
-			if (PendingOperationExecutionStatusType.COMPLETED.equals(executionStatus)) {
-				// Completed operations. They have already affected current state. They are already "applied". 
+			if (PendingOperationExecutionStatusType.COMPLETED.equals(executionStatus) && ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
+				// Completed operations over grace period. They have already affected current state. They are already "applied". 
 				continue;
 			}
 			// Note: We still want to process errors, even fatal errors. As long as they are in executing state then they
 			// are going to be retried and they still may influence future state
 			if (skipExecutionPendingOperations && executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
-				continue;
-			}
-			if (ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
 				continue;
 			}
 			if (resourceReadIsCachingOnly) {

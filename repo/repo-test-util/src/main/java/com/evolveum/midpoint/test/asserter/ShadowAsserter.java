@@ -27,6 +27,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -97,6 +99,23 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 		return this;
 	}
 	
+	public ShadowAsserter assertAdministrativeStatus(ActivationStatusType expected) {
+		ActivationType activation = getActivation();
+		if (activation == null) {
+			if (expected == null) {
+				return this;
+			} else {
+				fail("No activation in "+desc());
+			}
+		}
+		assertEquals("Wrong activation administrativeStatus in "+desc(), expected, activation.getAdministrativeStatus());
+		return this;
+	}
+	
+	private ActivationType getActivation() {
+		return getObject().asObjectable().getActivation();
+	}
+	
 	public ShadowAsserter assertBasicRepoProperties() {
 		assertOid();
 		assertName();
@@ -142,11 +161,11 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 	}
 	
 	public PendingOperationsAsserter pendingOperations() {
-		return new PendingOperationsAsserter(getObject(), getDetails());
+		return new PendingOperationsAsserter(this, getDetails());
 	}
 	
 	public ShadowAttributesAsserter attributes() {
-		return new ShadowAttributesAsserter(getObject(), getDetails());
+		return new ShadowAttributesAsserter(this, getDetails());
 	}
 
 	public ShadowAsserter assertNoLegacyConsistency() {
@@ -166,4 +185,5 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 		super.display(message);
 		return this;
 	}
+
 }

@@ -1492,9 +1492,12 @@ public class ShadowManager {
 		
 		List<ItemDelta> internalShadowModifications = computeInternalShadowModifications(ctx, opState, requestDelta);
 		
-		// TODO
-		
-		List<ItemDelta> modifications = MiscUtil.join(requestedModifications, (List)internalShadowModifications);
+		List<ItemDelta> modifications;
+		if (opState.isCompleted()) {
+			modifications = MiscUtil.join(requestedModifications, (List)internalShadowModifications);
+		} else {
+			modifications = internalShadowModifications;
+		}
 		LOGGER.trace("Updating repository {} after MODIFY operation {}, {} repository shadow modifications", oldRepoShadow, opState, requestedModifications.size());
 		
 		modifyShadowAttributes(ctx, oldRepoShadow, modifications, parentResult);

@@ -40,19 +40,19 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  */
 public class PendingOperationAsserter extends AbstractAsserter {
 	
-	private PrismObject<ShadowType> shadow;
-	private PendingOperationType pendingOperation;
+	final private PendingOperationsAsserter pendingOperationsAsserter;
+	final private PendingOperationType pendingOperation;
 	private String operationDesc;
 
-	public PendingOperationAsserter(PrismObject<ShadowType> shadow, PendingOperationType pendingOperation) {
+	public PendingOperationAsserter(PendingOperationsAsserter pendingOperationsAsserter, PendingOperationType pendingOperation) {
 		super();
-		this.shadow = shadow;
+		this.pendingOperationsAsserter = pendingOperationsAsserter;
 		this.pendingOperation = pendingOperation;
 	}
 	
-	public PendingOperationAsserter(PrismObject<ShadowType> shadow, PendingOperationType pendingOperation, String operationDesc, String details) {
+	public PendingOperationAsserter(PendingOperationsAsserter pendingOperationsAsserter, PendingOperationType pendingOperation, String operationDesc, String details) {
 		super(details);
-		this.shadow = shadow;
+		this.pendingOperationsAsserter = pendingOperationsAsserter;
 		this.pendingOperation = pendingOperation;
 		this.operationDesc = operationDesc;
 	}
@@ -92,12 +92,22 @@ public class PendingOperationAsserter extends AbstractAsserter {
 		return this;
 	}
 	
+	public PendingOperationAsserter assertId() {
+		assertNotNull("No id in "+desc(), pendingOperation.getId());
+		return this;
+	}
+	
+	public PendingOperationAsserter assertId(Long expected) {
+		assertEquals("Wrong id in "+desc(), expected, pendingOperation.getId());
+		return this;
+	}
+	
 	public ObjectDeltaTypeAsserter delta() {
 		return new ObjectDeltaTypeAsserter(pendingOperation.getDelta(), "delta in "+desc());
 	}
 
 	private String desc() {
-		return descWithDetails("pending operation "+operationDesc+" in "+shadow);
+		return descWithDetails("pending operation "+operationDesc+" in "+pendingOperationsAsserter.getShadow());
 	}
 	
 	public PendingOperationAsserter display() {
@@ -108,5 +118,9 @@ public class PendingOperationAsserter extends AbstractAsserter {
 	public PendingOperationAsserter display(String message) {
 		IntegrationTestTools.display(message, pendingOperation);
 		return this;
+	}
+	
+	public PendingOperationsAsserter end() {
+		return pendingOperationsAsserter;
 	}
 }

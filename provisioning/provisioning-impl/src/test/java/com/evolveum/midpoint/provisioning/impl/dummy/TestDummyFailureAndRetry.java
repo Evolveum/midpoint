@@ -160,7 +160,7 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		ShadowAsserter.forShadow(accountProvisioning)
 			.assertNoLegacyConsistency()
 			.pendingOperations()
-				.none();
+				.assertNone();
 
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername(transformNameFromResource(ACCOUNT_WILL_USERNAME));
 		assertNotNull("No dummy account", dummyAccount);
@@ -178,7 +178,7 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		ShadowAsserter.forShadow(shadowFromRepo)
 			.assertNoLegacyConsistency()
 			.pendingOperations()
-				.none();
+				.assertNone();
 
 		checkUniqueness(accountProvisioning);
 		rememberSteadyResources();
@@ -1120,7 +1120,7 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		shadowAsserter
 			.display()
 			.pendingOperations()
-				.none();
+				.assertNone();
 		shadowAsserter
 			.assertBasicRepoProperties()
 			.assertKind(ShadowKindType.ACCOUNT)
@@ -1135,7 +1135,7 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		shadowAsserter
 			.display()
 			.pendingOperations()
-				.none();
+				.assertNone();
 		shadowAsserter
 			.assertDead()
 			.assertIsNotExists()
@@ -1472,6 +1472,13 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		checkUniqueness(accountProvisioningFuture);
+		
+		dummyResource.resetBreakMode();
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
+		.assertName(ACCOUNT_MORGAN_NAME)
+		.assertFullName(ACCOUNT_MORGAN_FULLNAME)
+		.assertEnabled()
+		.assertPassword(ACCOUNT_MORGAN_PASSWORD);
 	}
 	
 	private void assertModifiedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations, String expectedFullName) throws Exception {
@@ -1571,6 +1578,13 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		checkUniqueness(accountProvisioningFuture);
+		
+		dummyResource.resetBreakMode();
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
+		.assertName(ACCOUNT_MORGAN_NAME)
+		.assertFullName(expectedFullName)
+		.assertEnabled()
+		.assertPassword(ACCOUNT_MORGAN_PASSWORD);
 	}
 	
 	private void assertMorganModifyFailed() throws Exception {
@@ -1662,6 +1676,13 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		checkUniqueness(accountProvisioningFuture);
+		
+		dummyResource.resetBreakMode();
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
+		.assertName(ACCOUNT_MORGAN_NAME)
+		.assertFullName(ACCOUNT_MORGAN_FULLNAME)
+		.assertEnabled()
+		.assertPassword(ACCOUNT_MORGAN_PASSWORD);
 	}
 	
 	private void assertUndeletedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations) throws Exception {
@@ -1756,6 +1777,13 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		checkUniqueness(accountProvisioningFuture);
+		
+		dummyResource.resetBreakMode();
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
+		.assertName(ACCOUNT_MORGAN_NAME)
+		.assertFullName(ACCOUNT_MORGAN_FULLNAME_CHM)
+		.assertEnabled()
+		.assertPassword(ACCOUNT_MORGAN_PASSWORD);
 	}
 	
 	private void assertMorganDeleteFailed() throws Exception {
@@ -1850,6 +1878,13 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		checkUniqueness(accountProvisioningFuture);
+		
+		dummyResource.resetBreakMode();
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
+		.assertName(ACCOUNT_MORGAN_NAME)
+		.assertFullName(ACCOUNT_MORGAN_FULLNAME_CHM)
+		.assertEnabled()
+		.assertPassword(ACCOUNT_MORGAN_PASSWORD);
 	}
 	
 	private void assertDeletedMorgan(int expectedAttemptNumber, int expectenNumberOfPendingOperations) throws Exception {
@@ -1932,6 +1967,9 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		} catch (ObjectNotFoundException e) {
 			// expected
 		}
+		
+		dummyResource.resetBreakMode();
+		dummyResourceCtl.assertNoAccountByUsername(ACCOUNT_MORGAN_NAME);
 	}
 
 	

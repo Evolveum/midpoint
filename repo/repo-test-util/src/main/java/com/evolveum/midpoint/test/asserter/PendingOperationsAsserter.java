@@ -34,33 +34,33 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
  */
 public class PendingOperationsAsserter extends AbstractAsserter {
 	
-	private PrismObject<ShadowType> shadow;
+	private ShadowAsserter shadowAsserter;
 
-	public PendingOperationsAsserter(PrismObject<ShadowType> shadow) {
+	public PendingOperationsAsserter(ShadowAsserter shadowAsserter) {
 		super();
-		this.shadow = shadow;
+		this.shadowAsserter = shadowAsserter;
 	}
 	
-	public PendingOperationsAsserter(PrismObject<ShadowType> shadow, String details) {
+	public PendingOperationsAsserter(ShadowAsserter shadowAsserter, String details) {
 		super(details);
-		this.shadow = shadow;
+		this.shadowAsserter = shadowAsserter;
 	}
 	
 	public static PendingOperationsAsserter forShadow(PrismObject<ShadowType> shadow) {
-		return new PendingOperationsAsserter(shadow);
+		return new PendingOperationsAsserter(ShadowAsserter.forShadow(shadow));
 	}
 	
 	List<PendingOperationType> getOperations() {
-		return shadow.asObjectable().getPendingOperation();
+		return shadowAsserter.getObject().asObjectable().getPendingOperation();
 	}
 	
 	public PendingOperationsAsserter assertOperations(int expectedNumber) {
-		assertEquals("Unexpected number of pending operations in "+shadow, expectedNumber, getOperations().size());
+		assertEquals("Unexpected number of pending operations in "+shadowAsserter.getObject(), expectedNumber, getOperations().size());
 		return this;
 	}
 	
 	PendingOperationAsserter forOperation(PendingOperationType operation) {
-		return new PendingOperationAsserter(shadow, operation, idToString(operation.getId()), getDetails());
+		return new PendingOperationAsserter(this, operation, idToString(operation.getId()), getDetails());
 	}
 	
 	private String idToString(Long id) {
@@ -76,7 +76,7 @@ public class PendingOperationsAsserter extends AbstractAsserter {
 		return forOperation(getOperations().get(0));
 	}
 	
-	public PendingOperationsAsserter none() {
+	public PendingOperationsAsserter assertNone() {
 		assertOperations(0);
 		return this;
 	}
@@ -91,4 +91,11 @@ public class PendingOperationsAsserter extends AbstractAsserter {
 		return new PendingOperationFinder(this);
 	}
 
+	PrismObject<ShadowType> getShadow() {
+		return shadowAsserter.getObject();
+	}
+
+	public ShadowAsserter end() {
+		return shadowAsserter;
+	}
 }

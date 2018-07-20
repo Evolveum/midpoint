@@ -444,4 +444,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		return new DummyAccountAsserter(account, getName());
 	}
 
+	public void assertNoAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyAccount account = dummyResource.getAccountByUsername(username);
+		assertNull("Unexpected account "+username+" on dummy resource "+getName(), account);
+	}
 }

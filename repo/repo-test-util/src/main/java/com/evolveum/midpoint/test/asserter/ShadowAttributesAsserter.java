@@ -46,22 +46,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public class ShadowAttributesAsserter extends AbstractAsserter {
 	
-	private PrismObject<ShadowType> shadow;
 	private PrismContainer<ShadowAttributesType> attributesContainer;
+	private ShadowAsserter shadowAsserter;
 
-	public ShadowAttributesAsserter(PrismObject<ShadowType> shadow) {
+	public ShadowAttributesAsserter(ShadowAsserter shadowAsserter) {
 		super();
-		this.shadow = shadow;
+		this.shadowAsserter = shadowAsserter;
 	}
 	
-	public ShadowAttributesAsserter(PrismObject<ShadowType> shadow, String details) {
+	public ShadowAttributesAsserter(ShadowAsserter shadowAsserter, String details) {
 		super(details);
-		this.shadow = shadow;
+		this.shadowAsserter = shadowAsserter;
+	}
+	
+	private PrismObject<ShadowType> getShadow() {
+		return shadowAsserter.getObject();
 	}
 	
 	private PrismContainer<ShadowAttributesType> getAttributesContainer() {
 		if (attributesContainer == null) {
-			attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+			attributesContainer = getShadow().findContainer(ShadowType.F_ATTRIBUTES);
 		}
 		return attributesContainer;
 	}
@@ -116,25 +120,25 @@ public class ShadowAttributesAsserter extends AbstractAsserter {
 	}
 
 	public ShadowAttributesAsserter assertHasPrimaryIdentifier() {
-		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(getShadow());
 		assertFalse("No primary identifiers in "+desc(), primaryIdentifiers.isEmpty());
 		return this;
 	}
 	
 	public ShadowAttributesAsserter assertNoPrimaryIdentifier() {
-		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(getShadow());
 		assertTrue("Unexpected primary identifiers in "+desc()+": "+primaryIdentifiers, primaryIdentifiers.isEmpty());
 		return this;
 	}
 	
 	public ShadowAttributesAsserter assertHasSecondaryIdentifier() {
-		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(getShadow());
 		assertFalse("No secondary identifiers in "+desc(), secondaryIdentifiers.isEmpty());
 		return this;
 	}
 	
 	public ShadowAttributesAsserter assertNoSecondaryIdentifier() {
-		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(getShadow());
 		assertTrue("Unexpected secpndary identifiers in "+desc()+": "+secondaryIdentifiers, secondaryIdentifiers.isEmpty());
 		return this;
 	}
@@ -151,7 +155,11 @@ public class ShadowAttributesAsserter extends AbstractAsserter {
 	}
 
 	private String desc() {
-		return descWithDetails(shadow);
+		return descWithDetails(getShadow());
+	}
+
+	public ShadowAsserter end() {
+		return shadowAsserter;
 	}
 
 }

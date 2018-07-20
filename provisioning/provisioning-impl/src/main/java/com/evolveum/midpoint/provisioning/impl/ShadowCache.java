@@ -469,6 +469,9 @@ public class ShadowCache {
 			ctx.assertDefinition();
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(e);
+			ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(
+					shadowToAdd, ctx.getResource(), shadowToAdd.createAddDelta(), parentResult);
+			operationListener.notifyFailure(operationDescription, task, parentResult);
 			throw e;
 		}
 		
@@ -490,9 +493,11 @@ public class ShadowCache {
 
 		PrismContainer<?> attributesContainer = shadowToAdd.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
-			SchemaException e = new SchemaException(
-					"Attempt to add shadow without any attributes: " + shadowToAdd);
+			SchemaException e = new SchemaException("Attempt to add shadow without any attributes: " + shadowToAdd);
 			parentResult.recordFatalError(e);
+			ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(
+					shadowToAdd, ctx.getResource(), shadowToAdd.createAddDelta(), parentResult);
+			operationListener.notifyFailure(operationDescription, task, parentResult);
 			throw e;
 		}
 		if (!(attributesContainer instanceof ResourceAttributeContainer)) {
@@ -584,14 +589,26 @@ public class ShadowCache {
 
 		notifyAfterAdd(ctx, addedShadow, opState, task, parentResult);
 		
-		if (finalOperationStatus != null) {
-			parentResult.setStatus(finalOperationStatus);
-		}
-		parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
+		setParentOperationStatus(parentResult, opState, finalOperationStatus);
 		
 		return opState.getRepoShadow().getOid();
 	}
 		
+	private void setParentOperationStatus(OperationResult parentResult,
+			ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+			OperationResultStatus finalOperationStatus) {
+		if (finalOperationStatus != null) {
+			parentResult.setStatus(finalOperationStatus);
+		} else {
+			if (opState.isCompleted()) {
+				parentResult.computeStatus();
+			} else {
+				parentResult.recordInProgress();
+			}
+		}
+		parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
+	}
+
 	private boolean hasDeadShadowWithDeleteOperation(ProvisioningContext ctx,
 			PrismObject<ShadowType> shadowToAdd,
 			OperationResult parentResult)
@@ -974,16 +991,7 @@ public class ShadowCache {
 
 		notifyAfterModify(ctx, repoShadow, modifications, opState, task, parentResult);
 		
-		if (finalOperationStatus != null) {
-			parentResult.setStatus(finalOperationStatus);
-		} else {
-			if (opState.isCompleted()) {
-				parentResult.computeStatus();
-			} else {
-				parentResult.recordInProgress();
-			}
-		}
-		parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
+		setParentOperationStatus(parentResult, opState, finalOperationStatus);
 		
 		return repoShadow.getOid();
 	}
@@ -1170,10 +1178,8 @@ public class ShadowCache {
 		}
 		
 		notifyAfterDelete(ctx, repoShadow, opState, task, parentResult);
-		if (finalOperationStatus != null) {
-			parentResult.setStatus(finalOperationStatus);
-		}
-		parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
+		
+		setParentOperationStatus(parentResult, opState, finalOperationStatus);
 	}
 	
 	private ProvisioningOperationState<AsynchronousOperationResult> executeResourceDelete(
