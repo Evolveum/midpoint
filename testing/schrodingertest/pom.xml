@@ -17,6 +17,7 @@
         <project.build.directory>C:\Users\matus\Documents\mp3.7\midpoint\gui\admin-gui\target</project.build.directory>
         <!--<project.starter.module>/c/Users/matus/Documents/mp3.7/midpoint/gui/admin-gui</project.starter.module>-->
         <project.starter.module>../../gui/admin-gui</project.starter.module>
+        <project.app.package.name>com.evolveum.midpoint.web.boot.MidPointSpringApplication</project.app.package.name>
     </properties>
 
     <dependencies>
@@ -211,19 +212,24 @@
     <build>
         <plugins>
 
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-failsafe-plugin</artifactId>-->
-                <!--<version>2.19.1</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<goals>-->
-                            <!--<goal>integration-test</goal>-->
-                            <!--<goal>verify</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${failsafe.version}</version>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>testng-integration-schrodinger.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
             <!--<plugin>-->
                 <!--<artifactId>maven-dependency-plugin</artifactId>-->
@@ -311,39 +317,63 @@
 
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.6</version>
+                <version>${antrun.version}</version>
                 <executions>
                     <execution>
                         <phase>pre-integration-test</phase>
                         <configuration>
-                            <target>
-                                <exec dir="." executable="cmd"
-                                      spawn="true">
+                            <target name="####### Midpoint ${project.version} booting up for integration testing">
+                                <exec dir="." executable="cmd" osfamily="windows"  spawn="true">
                                     <arg value="/c"/>
                                     <arg value="mvn"/>
                                     <arg value="-f"/>
                                     <arg value="${project.starter.module}/pom.xml"/>
                                     <arg value="spring-boot:run"/>
                                 </exec>
-                                <sleep seconds="200" /><!-- Needed so MP boots up, but the whole thing is quite hackish  -->
+                                <exec dir="." executable="bash" osfamily="unix" spawn="true">
+                                    <arg value="mvn"/>
+                                    <arg value="-f"/>
+                                    <arg value="${project.starter.module}/pom.xml"/>
+                                    <arg value="spring-boot:run"/>
+                                </exec>
+                                <sleep seconds="230" /><!--TODO CHANGE! (This should be rather the concern of the tests) : Needed so MP boots up, but the whole thing is quite hackish and depends on the environment (and almost the weather)-->
                             </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>
                         </goals>
                     </execution>
-                    <!--<execution>-->
-                        <!--<id>sleep-for-a-while</id>-->
-                        <!--<phase>integration-test</phase>-->
-                        <!--<configuration>-->
-                            <!--<target>-->
-                                <!--<sleep seconds="300" />-->
-                            <!--</target>-->
-                        <!--</configuration>-->
-                        <!--<goals>-->
-                            <!--<goal>run</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
+                    <execution>
+                        <id>Shut-down-process</id>
+                        <phase>post-integration-test</phase>
+                        <configuration>
+                            <target name="####### Shuting down Midpoint ${project.version} after integration testing completed">
+                                <exec executable="jps"> <!-- TODO ok?: JDK needed to be referenced on the PATH-->
+                                    <arg value="-l" />
+                                    <redirector outputproperty="process.pid">
+                                        <outputfilterchain>
+                                            <linecontains>
+                                                <contains value="${project.app.package.name}" />
+                                            </linecontains>
+                                            <replacestring from=" ${project.app.package.name}" />
+                                        </outputfilterchain>
+                                    </redirector>
+                                </exec>
+                                <exec executable="taskkill" osfamily="windows">
+                                    <arg value="/PID" />
+                                    <arg value="${process.pid}" />
+                                    <arg value="/F" />  <!-- TODO ok?: Had to force this-->
+                                </exec>
+                                <exec executable="kill" osfamily="unix">
+                                    <arg value="-15" />
+                                    <arg value="${process.pid}" />
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
 

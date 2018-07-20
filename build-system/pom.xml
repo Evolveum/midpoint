@@ -94,6 +94,7 @@
         <reflections.version>0.9.11</reflections.version>
         <guava.version>20.0</guava.version>
         <jcommander.version>1.72</jcommander.version>
+		<failsafe.version>2.22.0</failsafe.version>
     </properties>
     <dependencyManagement>
         <dependencies>

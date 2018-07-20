@@ -12,7 +12,7 @@ import java.io.File;
 /**
  * Created by matus on 5/11/2018.
  */
-public class UserPhotoTestsIT extends TestBase {
+public class UserPhotoTests extends TestBase {
 
     private static final String TEST_USER_LEO_NAME= "leonardo";
     private static final File PHOTO_SOURCE_FILE_LARGE = new File("./src/test/resources/images/leonardo_large_nc.jpg");

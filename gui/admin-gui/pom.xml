@@ -102,16 +102,16 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring.boot.version}</version>
                 <configuration>
-                    <wait>1000</wait> <!-- POSSIBLY OBSOLETE ! : Added because spring-boot:start goal -->
-                    <maxAttempts>150</maxAttempts><!-- POSSIBLY OBSOLETE ! : Added because spring-boot:start goal -->
+                    <wait>1000</wait> <!-- TODO POSSIBLY OBSOLETE ! : Added because spring-boot:start goal -->
+                    <maxAttempts>150</maxAttempts><!-- TODO  POSSIBLY OBSOLETE ! : Added because spring-boot:start goal -->
                     <fork>true</fork>
                     <excludeDevtools>true</excludeDevtools>
                     <skip>false</skip>
-                    <!-- POSSIBLY OBSOLETE ! -->
+                    <!-- TODO POSSIBLY OBSOLETE ! -->
                     <!--<noverify>true</noverify>-->
                     <!--<jvmArguments>"-Dcom.sun.management.jmxremote.port=20002","-Djava.rmi.server.hostname=0.0.0.0"</jvmArguments>-->
                     <!--<jmxPort>20002</jmxPort>-->
-
+                    <jvmArguments>"-Dmidpoint.schrodinger=true"</jvmArguments><!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
                 </configuration>
                 <executions>
                     <execution>
