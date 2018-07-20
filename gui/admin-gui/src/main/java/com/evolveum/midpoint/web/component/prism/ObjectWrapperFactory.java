@@ -184,7 +184,9 @@ public class ObjectWrapperFactory {
 		List<ContainerWrapper<? extends Containerable>> containerWrappers = createContainerWrappers(objectWrapper, object,
 				objectDefinitionForEditing, status, task, this.result);
 		objectWrapper.setContainers(containerWrappers);
-		setObjectWrapperValuesReadOnlyState(objectWrapper, entirelyReadonly);
+		if (entirelyReadonly) {
+			setObjectWrapperValuesReadOnlyState(objectWrapper, entirelyReadonly);
+		}
 
         this.result.computeStatusIfUnknown();
 
