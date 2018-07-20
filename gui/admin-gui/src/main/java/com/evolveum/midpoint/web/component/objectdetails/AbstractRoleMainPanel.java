@@ -34,7 +34,7 @@ import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart;
+import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
@@ -98,7 +98,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			public boolean isVisible(){
 				//show panel only in case if user came to object details from
 				// Role Catalog page
-				return PageAssignmentShoppingKart.class.equals(getPreviousPage(parentPage));
+				return PageAssignmentShoppingCart.class.equals(getPreviousPage(parentPage));
 			}
 		});
 		getMainForm().add(shoppingCartButtonsPanel);
