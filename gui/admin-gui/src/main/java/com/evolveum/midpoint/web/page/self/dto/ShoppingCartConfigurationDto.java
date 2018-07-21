@@ -34,7 +34,6 @@ public class ShoppingCartConfigurationDto implements Serializable {
     private AssignmentViewType defaultViewType;
     private List<AssignmentViewType> viewTypeList;
     private String roleCatalogOid = null;
-    private AssignmentConstraintsType defaultAssignmentConstraints;
 //    private boolean isUserAssignmentsViewAllowed = false;
 
     public void initShoppingCartConfigurationDto(RoleManagementConfigurationType roleManagementConfiguration) {
@@ -50,7 +49,7 @@ public class ShoppingCartConfigurationDto implements Serializable {
         initRoleCatalogOid(roleManagementConfiguration);
         computeDefaultViewType(roleManagementConfiguration);
 
-        this.defaultAssignmentConstraints = roleManagementConfiguration.getDefaultAssignmentConstraints();
+//        this.defaultAssignmentConstraints = roleManagementConfiguration.getDefaultAssignmentConstraints();
     }
 
     private List<AssignmentViewType> getRoleCatalogViewsList(RoleManagementConfigurationType roleManagementConfiguration) {
@@ -160,11 +159,4 @@ public class ShoppingCartConfigurationDto implements Serializable {
         this.roleCatalogOid = roleCatalogOid;
     }
 
-    public AssignmentConstraintsType getDefaultAssignmentConstraints() {
-        return defaultAssignmentConstraints;
-    }
-
-    public void setDefaultAssignmentConstraints(AssignmentConstraintsType defaultAssignmentConstraints) {
-        this.defaultAssignmentConstraints = defaultAssignmentConstraints;
-    }
 }

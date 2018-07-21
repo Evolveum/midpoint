@@ -38,7 +38,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     private static final long serialVersionUID = 1L;
 
     private static final String ID_OBJECT_LIST_PANEL = "objectListPanel";
-    private static final String ID_PARAMETERS_PANEL = "parametersPanel";
+    protected static final String ID_PARAMETERS_PANEL = "parametersPanel";
     protected static final String ID_PARAMETERS_PANEL_FRAGMENT = "parametersPanelFragment";
 
     protected List<O> preSelectedObjects = new ArrayList<>();

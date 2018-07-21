@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.web.component.assignment.GridViewComponent;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -22,8 +23,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -44,13 +45,15 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
 
     private String roleCatalogOid;
 
-    public RoleCatalogTabPanel(String id, String roleCatalogOid){
-        super(id);
+    public RoleCatalogTabPanel(String id, RoleManagementConfigurationType roleManagementConfig, String roleCatalogOid){
+        super(id, roleManagementConfig);
         this.roleCatalogOid = roleCatalogOid;
     }
 
     @Override
     protected void initLeftSidePanel(){
+        getRoleCatalogStorage().setSelectedOid(roleCatalogOid);
+
         WebMarkupContainer treePanelContainer = new WebMarkupContainer(ID_TREE_PANEL_CONTAINER);
         treePanelContainer.setOutputMarkupId(true);
         add(treePanelContainer);
@@ -115,14 +118,29 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
         if (selectedOrg == null) {
             return;
         }
-//        getRoleCatalogStorage().setSelectedOid(selectedOrg.getOid());
-//        target.add(getCatalogItemsPanelContainer());
+        getRoleCatalogStorage().setSelectedOid(selectedOrg.getOid());
+        target.add(getGridViewComponent());
 
     }
 
     @Override
-    protected QName getType(){
-        return AbstractRoleType.COMPLEX_TYPE;
+    protected ObjectQuery createContentQuery(ObjectQuery searchQuery) {
+        ObjectQuery query = super.createContentQuery(searchQuery);
+        String oid = getRoleCatalogStorage().getSelectedOid();
+        if (StringUtils.isEmpty(oid)) {
+            return searchQuery;
+        }
+        ObjectFilter filter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
+
+        TypeFilter roleTypeFilter = TypeFilter.createType(RoleType.COMPLEX_TYPE, filter);
+        TypeFilter serviceTypeFilter = TypeFilter.createType(ServiceType.COMPLEX_TYPE, filter);
+        query.addFilter(OrFilter.createOr(roleTypeFilter, serviceTypeFilter));
+        return query;
+    }
+
+    @Override
+    protected QName getQueryType(){
+        return null;
     }
 
 }
