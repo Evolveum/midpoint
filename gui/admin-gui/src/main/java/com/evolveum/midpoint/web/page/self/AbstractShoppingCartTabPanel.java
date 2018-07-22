@@ -76,6 +76,8 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     private void initLayout(){
+        setOutputMarkupId(true);
+
         initLeftSidePanel();
 
         GridViewComponent<AssignmentEditorDto> catalogItemsGrid = new GridViewComponent(ID_SHOPPING_CART_ITEMS_PANEL,
@@ -171,12 +173,6 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
     protected ObjectQuery createContentQuery(ObjectQuery searchQuery) {
         ObjectQuery memberQuery = new ObjectQuery();
-//        if (getRoleCatalogStorage().getAssignmentsUserOwner() != null) {
-//            UserType assignmentsOwner =  getRoleCatalogStorage().getAssignmentsUserOwner();
-//            List<String> assignmentTargetObjectOidsList = collectTargetObjectOids(assignmentsOwner.getAssignment());
-//            ObjectFilter oidsFilter = InOidFilter.createInOid(assignmentTargetObjectOidsList);
-//            memberQuery.addFilter(oidsFilter);
-//        }
         memberQuery.addFilter(getAssignableRolesFilter());
         if (getQueryType() != null){
             ObjectFilter typeFilter = ObjectQueryUtil.filterAnd(TypeFilter.createType(getQueryType(), null), memberQuery.getFilter());

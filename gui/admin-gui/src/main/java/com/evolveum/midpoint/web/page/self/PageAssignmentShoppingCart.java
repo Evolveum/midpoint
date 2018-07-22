@@ -260,12 +260,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new AbstractShoppingCartTabPanel(panelId, roleManagementConfigModel.getObject()) {
-                    @Override
-                    protected QName getQueryType() {
-                        return AbstractRoleType.COMPLEX_TYPE;
-                    }
-
+                return new UserViewTabPanel(panelId, roleManagementConfigModel.getObject()) {
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
                         target.add(getCartButton());
@@ -315,7 +310,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
 //        initViewSelector(headerPanel);
         initTargetUserSelectionPanel(headerPanel);
-        initSourceUserSelectionPanel(headerPanel);
+//        initSourceUserSelectionPanel(headerPanel);
         initCartButton(headerPanel);
         initSearchPanel(headerPanel);
         mainForm.add(headerPanel);
@@ -358,59 +353,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         parametersPanel.add(targetUserPanel);
     }
 
-    private void initSourceUserSelectionPanel(WebMarkupContainer headerPanel){
-
-        UserSelectionButton sourceUserPanel = new UserSelectionButton(ID_SOURCE_USER_PANEL,
-                new AbstractReadOnlyModel<List<UserType>>() {
-                    @Override
-                    public List<UserType> getObject() {
-                        List<UserType> usersList = new ArrayList<>();
-                        if (getRoleCatalogStorage().getAssignmentsUserOwner() != null){
-                            usersList.add(getRoleCatalogStorage().getAssignmentsUserOwner());
-                        }
-                        return usersList;
-                    }
-                }, false, createStringResource("AssignmentCatalogPanel.selectSourceUser")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void singleUserSelectionPerformed(AjaxRequestTarget target, UserType user){
-                super.singleUserSelectionPerformed(target, user);
-                getRoleCatalogStorage().setAssignmentsUserOwner(user);
-
-//                initProvider();
-                searchModel.reset();
-
-                target.add(getTabbedPanel());
-//                target.add(getHeaderPanel());
-            }
-
-            @Override
-            protected String getUserButtonLabel(){
-                return getSourceUserSelectionButtonLabel(getModelObject() != null && getModelObject().size() > 0 ? getModelObject().get(0) : null);
-            }
-
-            @Override
-            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
-                super.onDeleteSelectedUsersPerformed(target);
-                getRoleCatalogStorage().setAssignmentsUserOwner(null);
-//                initProvider();
-                searchModel.reset();
-
-                target.add(getTabbedPanel());
-//                target.add(getHeaderPanel());
-            }
-        };
-//        sourceUserPanel.add(new VisibleEnableBehaviour(){
-//            private static final long serialVersionUID = 1L;
-//
-//            public boolean isVisible(){
-//                return getRoleCatalogStorage().getShoppingCartConfigurationDto().isUserAssignmentsViewAllowed();
-//            }
-//        });
-        sourceUserPanel.setOutputMarkupId(true);
-        headerPanel.add(sourceUserPanel);
-    }
 
 //    private void initViewSelector(WebMarkupContainer headerPanel){
 //        DropDownChoice<AssignmentViewType> viewSelect = new DropDownChoice(ID_VIEW_TYPE, viewTypeModel,
@@ -527,28 +469,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
             return createStringResource("AssignmentCatalogPanel.requestForMultiple",
                     usersList.size()).getString();
         }
-    }
-
-    private String getSourceUserSelectionButtonLabel(UserType user){
-        if (user ==  null){
-            return createStringResource("AssignmentCatalogPanel.selectSourceUser").getString();
-        } else {
-            return createStringResource("AssignmentCatalogPanel.sourceUserSelected", user.getName().getOrig()).getString();
-        }
-    }
-
-    private List<String> collectTargetObjectOids(List<AssignmentType> assignments){
-        List<String> oidsList = new ArrayList<>();
-        if (assignments == null){
-            return oidsList;
-        }
-        for (AssignmentType assignment : assignments){
-            if (assignment.getTargetRef() == null || assignment.getTargetRef().getOid() == null){
-                continue;
-            }
-            oidsList.add(assignment.getTargetRef().getOid());
-        }
-        return oidsList;
     }
 
     private AjaxButton getCartButton(){
