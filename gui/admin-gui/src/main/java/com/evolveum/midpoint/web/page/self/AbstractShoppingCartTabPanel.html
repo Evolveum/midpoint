@@ -17,6 +17,12 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div class="row">
         <wicket:child />
-        <div wicket:id="shoppingCartItemsPanel" />
+        <div wicket:id="shoppingCartContainer">
+            <form class="col-md-4 search-form pull-right" wicket:id="searchForm">
+                <div wicket:id="search"/>
+            </form>
+            <div class="col-md-12" wicket:id="shoppingCartItemsPanel" />
+            <a class="btn btn-sm btn-default pull-left" style="margin-left: 15px;" wicket:id="addAllButton" />
+        </div>
     </div>
 </wicket:panel>

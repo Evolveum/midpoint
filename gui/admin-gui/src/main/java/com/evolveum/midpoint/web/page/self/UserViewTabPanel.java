@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.web.component.assignment.GridViewComponent;
@@ -33,7 +32,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -109,13 +107,6 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
 //                target.add(getHeaderPanel());
             }
         };
-//        sourceUserPanel.add(new VisibleEnableBehaviour(){
-//            private static final long serialVersionUID = 1L;
-//
-//            public boolean isVisible(){
-//                return getRoleCatalogStorage().getShoppingCartConfigurationDto().isUserAssignmentsViewAllowed();
-//            }
-//        });
         sourceUserButton.setOutputMarkupId(true);
         sourceUserPanel.add(sourceUserButton);
     }
@@ -192,13 +183,13 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
     }
 
     @Override
-    protected void appendItemsPanelStyle(GridViewComponent itemsPanel){
-        itemsPanel.add(AttributeAppender.append("class", "col-md-9"));
+    protected void appendItemsPanelStyle(WebMarkupContainer container){
+        container.add(AttributeAppender.append("class", "col-md-9"));
     }
 
     @Override
-    protected ObjectQuery createContentQuery(ObjectQuery searchQuery) {
-        ObjectQuery query = super.createContentQuery(searchQuery);
+    protected ObjectQuery createContentQuery() {
+        ObjectQuery query = super.createContentQuery();
         if (getRoleCatalogStorage().getAssignmentsUserOwner() != null) {
             UserType assignmentsOwner =  getRoleCatalogStorage().getAssignmentsUserOwner();
             List<String> assignmentTargetObjectOidsList = collectTargetObjectOids(assignmentsOwner.getAssignment());
