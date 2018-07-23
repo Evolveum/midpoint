@@ -44,7 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * @author semancik
  *
  */
-public class DummyObjectAsserter<D extends DummyObject> extends AbstractAsserter {
+public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAsserter<R> {
 	
 	private D dummyObject;
 	private String dummyResourceName;
@@ -61,16 +61,22 @@ public class DummyObjectAsserter<D extends DummyObject> extends AbstractAsserter
 		this.dummyResourceName = dummyResourceName;
 	}
 	
+	public DummyObjectAsserter(D dummyObject, String dummyResourceName, R returnAsserter, String details) {
+		super(returnAsserter, details);
+		this.dummyObject = dummyObject;
+		this.dummyResourceName = dummyResourceName;
+	}
+	
 	public D getDummyObject() {
 		return dummyObject;
 	}
 
-	public DummyObjectAsserter<D> assertName(String expected) {
+	public DummyObjectAsserter<D,R> assertName(String expected) {
 		assertEquals("Wrong name in "+desc(), expected, getDummyObject().getName());
 		return this;
 	}
 	
-	public <T> DummyObjectAsserter<D> assertAttribute(String attributeName, T... expectedAttributeValues) {
+	public <T> DummyObjectAsserter<D,R> assertAttribute(String attributeName, T... expectedAttributeValues) {
 		
 		Set<Object> values = getDummyObject().getAttributeValues(attributeName, Object.class);
 		if ((values == null || values.isEmpty()) && (expectedAttributeValues == null || expectedAttributeValues.length == 0)) {
@@ -89,7 +95,7 @@ public class DummyObjectAsserter<D extends DummyObject> extends AbstractAsserter
 		return this;
 	}
 	
-	public DummyObjectAsserter<D> assertEnabled() {
+	public DummyObjectAsserter<D,R> assertEnabled() {
 		assertTrue(desc() + " is disabled", getDummyObject().isEnabled());
 		return this;
 	}
@@ -102,12 +108,12 @@ public class DummyObjectAsserter<D extends DummyObject> extends AbstractAsserter
 		}
 	}
 	
-	public DummyObjectAsserter display() {
+	public DummyObjectAsserter<D,R> display() {
 		display(desc());
 		return this;
 	}
 	
-	public DummyObjectAsserter display(String message) {
+	public DummyObjectAsserter<D,R> display(String message) {
 		IntegrationTestTools.display(message, dummyObject);
 		return this;
 	}

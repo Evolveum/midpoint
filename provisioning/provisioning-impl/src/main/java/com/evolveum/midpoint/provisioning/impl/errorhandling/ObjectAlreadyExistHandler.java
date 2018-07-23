@@ -100,8 +100,10 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 			conflictingShadow = foundAccounts.get(0);
 		}
 		
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Processing \"already exists\" error for shadow:\n{}\nConflicting shadow:\n{}", shadowToAdd.debugDump(1), conflictingShadow==null?"  null":conflictingShadow.debugDump(1));
+		LOGGER.debug("DISCOVERY: discovered new shadow {}", conflictingShadow);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Processing \"already exists\" error for shadow:\n{}\nConflicting shadow:\n{}", shadowToAdd.debugDump(1), conflictingShadow==null?"  null":conflictingShadow.debugDump(1));
 		}
 		
 		try{

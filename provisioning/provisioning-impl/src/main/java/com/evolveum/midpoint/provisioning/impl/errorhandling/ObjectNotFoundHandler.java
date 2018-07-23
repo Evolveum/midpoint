@@ -35,7 +35,9 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -64,6 +66,50 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 @Component
 public class ObjectNotFoundHandler extends HardErrorHandler {
 	
+	private static final String OP_DISCOVERY = ObjectNotFoundHandler.class + ".discovery";
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ObjectNotFoundHandler.class);
+	
+	@Autowired private ShadowManager shadowManager;
+	
+	@Override
+	public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
+			PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
+			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException,
+			CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		
+		if (isDoDiscovery(ctx.getResource(), rootOptions)) {
+			discoverDeletedShadow(ctx, repositoryShadow, rootOptions, cause, task, parentResult);
+		}
+		
+		throwException(cause, null, parentResult);
+		return null; // not reached
+	}
+	
+	private void discoverDeletedShadow(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
+			GetOperationOptions rootOptions, Exception cause, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		
+		// TODO: this probably should NOT be a subresult of parentResult. We probably want new result (and maybe also task) here.
+		OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
+		
+		LOGGER.debug("DISCOVERY: discovered deleted shadow {}", repositoryShadow);		
+		
+		repositoryShadow = shadowManager.markShadowDead(repositoryShadow, result);
+		
+		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+		change.setResource(ctx.getResource().asPrismObject());
+		change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+		change.setObjectDelta(repositoryShadow.createDeleteDelta());
+		change.setOldShadow(repositoryShadow);
+		change.setCurrentShadow(null);
+		// TODO: task initialization
+//		Task task = taskManager.createTaskInstance();
+		changeNotificationDispatcher.notifyChange(change, task, result);
+		
+		result.computeStatus();
+	}
+
 	@Override
 	protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
 			throws ObjectNotFoundException {

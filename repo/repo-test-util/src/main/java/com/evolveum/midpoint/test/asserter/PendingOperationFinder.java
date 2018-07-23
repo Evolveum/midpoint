@@ -31,40 +31,40 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * @author semancik
  *
  */
-public class PendingOperationFinder {
+public class PendingOperationFinder<R> {
 
-	private final PendingOperationsAsserter pendingOperationsAsserter;
+	private final PendingOperationsAsserter<R> pendingOperationsAsserter;
 	private PendingOperationExecutionStatusType executionStatus;
 	private OperationResultStatusType resultStatus;
 	private ChangeTypeType changeType;
 	private ItemPath itemPath;
 	
-	public PendingOperationFinder(PendingOperationsAsserter pendingOperationsAsserter) {
+	public PendingOperationFinder(PendingOperationsAsserter<R> pendingOperationsAsserter) {
 		this.pendingOperationsAsserter = pendingOperationsAsserter;
 	}
 	
-	public PendingOperationFinder changeType(ChangeTypeType changeType) {
+	public PendingOperationFinder<R> changeType(ChangeTypeType changeType) {
 		this.changeType = changeType;
 		return this;
 	}
 	
-	public PendingOperationFinder executionStatus(PendingOperationExecutionStatusType executionStatus) {
+	public PendingOperationFinder<R> executionStatus(PendingOperationExecutionStatusType executionStatus) {
 		this.executionStatus = executionStatus;
 		return this;
 	}
 	
-	public PendingOperationFinder resultStatus(OperationResultStatusType resultStatus) {
+	public PendingOperationFinder<R> resultStatus(OperationResultStatusType resultStatus) {
 		this.resultStatus = resultStatus;
 		return this;
 	}
 	
-	public PendingOperationFinder item(ItemPath itemPath) {
+	public PendingOperationFinder<R> item(ItemPath itemPath) {
 		this.itemPath = itemPath;
 		return this;
 	}
 
 
-	public PendingOperationAsserter find() {
+	public PendingOperationAsserter<R> find() {
 		PendingOperationType found = null;
 		for (PendingOperationType operation: pendingOperationsAsserter.getOperations()) {
 			if (matches(operation)) {

@@ -254,36 +254,49 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 		assertFailure(result);
 	}
 	
-	protected ShadowAsserter assertShadowProvisioning(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected void assertProvisioningFutureNotFound(String oid) throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask("assertProvisioningFutureNotFound");
+		OperationResult result = task.getResult();
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+		try {
+			provisioningService.getObject(ShadowType.class, oid, options, task, result);
+			assertNotReached();
+		} catch (ObjectNotFoundException e) {
+			// expected
+		}
+		assertFailure(result);
+	}
+	
+	protected ShadowAsserter<Void> assertShadowProvisioning(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = createTask("assertShadowProvisioning");
 		OperationResult result = task.getResult();
 		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, null, task, result);
 		assertSuccess(result);
-		ShadowAsserter asserter = ShadowAsserter.forShadow(shadow, "provisioning");
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "provisioning");
 		asserter
 			.display();
 		return asserter;
 	}
 	
-	protected ShadowAsserter assertShadowNoFetch(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected ShadowAsserter<Void> assertShadowNoFetch(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = createTask("assertShadowProvisioning");
 		OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
 		assertSuccess(result);
-		ShadowAsserter asserter = ShadowAsserter.forShadow(shadow, "noFetch");
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "noFetch");
 		asserter
 			.display();
 		return asserter;
 	}
 	
-	protected ShadowAsserter assertShadowFuture(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	protected ShadowAsserter<Void> assertShadowFuture(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = createTask("assertShadowProvisioning");
 		OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
 		assertSuccess(result);
-		ShadowAsserter asserter = ShadowAsserter.forShadow(shadow, "future");
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "future");
 		asserter
 			.display();
 		return asserter;

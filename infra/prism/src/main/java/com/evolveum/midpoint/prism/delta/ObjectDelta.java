@@ -772,7 +772,11 @@ public class ObjectDelta<O extends Objectable> implements DebugDumpable, Visitab
         if (changeType != ChangeType.MODIFY) {
             throw new IllegalStateException("Can apply only MODIFY delta to object, got " + changeType + " delta");
         }
-        for (ItemDelta itemDelta : modifications) {
+        applyTo(targetObject, modifications);
+    }
+    
+    public static <O extends Objectable> void applyTo(PrismObject<O> targetObject, Collection<? extends ItemDelta<?,?>> modifications) throws SchemaException {
+    	for (ItemDelta itemDelta : modifications) {
             itemDelta.applyTo(targetObject);
         }
     }

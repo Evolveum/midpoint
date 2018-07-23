@@ -40,7 +40,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * @author semancik
  *
  */
-public class DummyAccountAsserter extends DummyObjectAsserter<DummyAccount> {
+public class DummyAccountAsserter<R> extends DummyObjectAsserter<DummyAccount,R> {
 	
 	public DummyAccountAsserter(DummyAccount dummyAccount, String dummyResourceName) {
 		super(dummyAccount, dummyResourceName);
@@ -50,40 +50,44 @@ public class DummyAccountAsserter extends DummyObjectAsserter<DummyAccount> {
 		super(dummyAccount, dummyResourceName, details);
 	}
 	
+	public DummyAccountAsserter(DummyAccount dummyAccount, String dummyResourceName, R returnAsserter, String details) {
+		super(dummyAccount, dummyResourceName, returnAsserter, details);
+	}
+	
 	@Override
-	public DummyAccountAsserter assertName(String expected) {
+	public DummyAccountAsserter<R> assertName(String expected) {
 		super.assertName(expected);
 		return this;
 	}
 	
 	@Override
-	public <T> DummyAccountAsserter assertAttribute(String attrName, T... expected) {
+	public <T> DummyAccountAsserter<R> assertAttribute(String attrName, T... expected) {
 		super.assertAttribute(attrName, expected);
 		return this;
 	}
 	
 	@Override
-	public DummyAccountAsserter assertEnabled() {
+	public DummyAccountAsserter<R> assertEnabled() {
 		super.assertEnabled();
 		return this;
 	}
 	
-	public DummyAccountAsserter assertFullName(String expected) {
+	public DummyAccountAsserter<R> assertFullName(String expected) {
 		assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expected);
 		return this;
 	}
 		
-	public DummyAccountAsserter assertPassword(String expected) {
+	public DummyAccountAsserter<R> assertPassword(String expected) {
 		assertEquals("Wrong password in "+desc(), expected, getDummyObject().getPassword());
 		return this;
 	}
 	
-	public DummyAccountAsserter display() {
+	public DummyAccountAsserter<R> display() {
 		super.display();
 		return this;
 	}
 	
-	public DummyAccountAsserter display(String message) {
+	public DummyAccountAsserter<R> display(String message) {
 		super.display(message);
 		return this;
 	}

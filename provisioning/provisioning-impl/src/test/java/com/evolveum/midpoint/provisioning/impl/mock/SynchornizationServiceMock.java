@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -331,40 +331,60 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		this.callCountNotifyChange = callCount;
 	}
 
-	public void assertNotifyChange() {
+	public SynchornizationServiceMock assertNotifyChange() {
 		assert wasCalledNotifyChange() : "Expected that notifyChange will be called but it was not";
+		return this;
 	}
 
-	public void assertNoNotifyChange() {
+	public SynchornizationServiceMock assertNoNotifyChange() {
 		assert !wasCalledNotifyChange() : "Expected that no notifyChange will be called but it was";
+		return this;
 	}
 	
-	public void assertNotifySuccessOnly() {
+	public ResourceObjectShadowChangeDescriptionAsserter lastNotifyChange() {
+		return new ResourceObjectShadowChangeDescriptionAsserter(lastChange);
+	}
+	
+	public SynchornizationServiceMock assertNotifySuccessOnly() {
 		assert wasSuccess : "Expected that notifySuccess will be called but it was not";		
 		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
 		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
 		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+		return this;
 	}
 
-	public void assertNotifyFailureOnly() {
+	public SynchornizationServiceMock assertNotifyFailureOnly() {
 		assert wasFailure : "Expected that notifyFailure will be called but it was not";				
 		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
 		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
 		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+		return this;
 	}
 	
-	public void assertNotifyInProgressOnly() {
+	public SynchornizationServiceMock assertNotifyFailure() {
+		assert wasFailure : "Expected that notifyFailure will be called but it was not";
+		return this;
+	}
+	
+	public SynchornizationServiceMock assertNotifyOperations(int expected) {
+		assert callCountNotifyOperation == expected : "Expected " + expected + " notify operations, but was " + callCountNotifyOperation;
+		return this;
+	}
+	
+	public SynchornizationServiceMock assertNotifyInProgressOnly() {
 		assert wasInProgress : "Expected that notifyInProgress will be called but it was not";				
 		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
 		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
 		assert callCountNotifyOperation == 1 : "Expected only a single notification call but there was "+callCountNotifyOperation+" calls";
+		return this;
 	}
 	
-	public void assertNoNotifcations() {
+	public SynchornizationServiceMock assertNoNotifcations() {
 		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";				
 		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
 		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
 		assert callCountNotifyOperation == 0 : "Expected no notification call but there was "+callCountNotifyOperation+" calls";
+		return this;
 	}
 
 	/* (non-Javadoc)

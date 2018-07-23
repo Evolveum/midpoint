@@ -21,9 +21,10 @@ import org.testng.AssertJUnit;
  * @author semancik
  *
  */
-public abstract class AbstractAsserter {
+public abstract class AbstractAsserter<R> {
 	
 	private String details;
+	private R returnAsserter;
 	
 	public AbstractAsserter() {
 		this(null);
@@ -31,6 +32,12 @@ public abstract class AbstractAsserter {
 	
 	public AbstractAsserter(String details) {
 		super();
+		this.details = details;
+	}
+	
+	public AbstractAsserter(R returnAsserter, String details) {
+		super();
+		this.returnAsserter = returnAsserter;
 		this.details = details;
 	}
 
@@ -48,5 +55,9 @@ public abstract class AbstractAsserter {
 		} else {
 			return o.toString()+" ("+details+")";
 		}
+	}
+	
+	public R end() {
+		return returnAsserter;
 	}
 }

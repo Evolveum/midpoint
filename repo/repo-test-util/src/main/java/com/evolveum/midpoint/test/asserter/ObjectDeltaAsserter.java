@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public class ObjectDeltaAsserter<O extends ObjectType> extends AbstractAsserter {
+public class ObjectDeltaAsserter<O extends ObjectType,R> extends AbstractAsserter<R> {
 	
 	private ObjectDelta<O> delta;
 
@@ -46,26 +46,36 @@ public class ObjectDeltaAsserter<O extends ObjectType> extends AbstractAsserter 
 		this.delta = delta;
 	}
 	
-	public static <O extends ObjectType> ObjectDeltaAsserter<O> forDelta(ObjectDelta<O> delta) {
+	public ObjectDeltaAsserter(ObjectDelta<O> delta, String detail) {
+		super(detail);
+		this.delta = delta;
+	}
+	
+	public ObjectDeltaAsserter(ObjectDelta<O> delta, R returnAsserter, String detail) {
+		super(returnAsserter, detail);
+		this.delta = delta;
+	}
+	
+	public static <O extends ObjectType> ObjectDeltaAsserter<O,Void> forDelta(ObjectDelta<O> delta) {
 		return new ObjectDeltaAsserter<>(delta);
 	}
 	
-	public ObjectDeltaAsserter<O> assertAdd() {
+	public ObjectDeltaAsserter<O,R> assertAdd() {
 		assertChangeType(ChangeType.ADD);
 		return this;
 	}
 	
-	public ObjectDeltaAsserter<O> assertModify() {
+	public ObjectDeltaAsserter<O,R> assertModify() {
 		assertChangeType(ChangeType.MODIFY);
 		return this;
 	}
 	
-	public ObjectDeltaAsserter<O> assertDelete() {
+	public ObjectDeltaAsserter<O,R> assertDelete() {
 		assertChangeType(ChangeType.DELETE);
 		return this;
 	}
 	
-	public ObjectDeltaAsserter<O> assertChangeType(ChangeType expected) {
+	public ObjectDeltaAsserter<O,R> assertChangeType(ChangeType expected) {
 		assertEquals("Wrong change type in "+desc(), expected, delta.getChangeType());
 		return this;
 	}

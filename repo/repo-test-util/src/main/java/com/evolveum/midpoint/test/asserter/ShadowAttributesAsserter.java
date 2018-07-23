@@ -25,7 +25,6 @@ import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -44,17 +43,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public class ShadowAttributesAsserter extends AbstractAsserter {
+public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter<R>> {
 	
 	private PrismContainer<ShadowAttributesType> attributesContainer;
-	private ShadowAsserter shadowAsserter;
+	private ShadowAsserter<R> shadowAsserter;
 
-	public ShadowAttributesAsserter(ShadowAsserter shadowAsserter) {
+	public ShadowAttributesAsserter(ShadowAsserter<R> shadowAsserter) {
 		super();
 		this.shadowAsserter = shadowAsserter;
 	}
 	
-	public ShadowAttributesAsserter(ShadowAsserter shadowAsserter, String details) {
+	public ShadowAttributesAsserter(ShadowAsserter<R> shadowAsserter, String details) {
 		super(details);
 		this.shadowAsserter = shadowAsserter;
 	}
@@ -74,17 +73,17 @@ public class ShadowAttributesAsserter extends AbstractAsserter {
 		return getAttributesContainer().getValue();
 	}
 	
-	public ShadowAttributesAsserter assertResourceAttributeContainer() {
+	public ShadowAttributesAsserter<R> assertResourceAttributeContainer() {
 		assertTrue("Wrong type of attribute container in "+desc()+", expected ResourceAttributeContainer but was " + getAttributesContainer().getClass(), getAttributesContainer() instanceof ResourceAttributeContainer);
 		return this;
 	}
 	
-	public ShadowAttributesAsserter assertSize(int expected) {
+	public ShadowAttributesAsserter<R> assertSize(int expected) {
 		assertEquals("Wrong number of attributes in "+desc(), expected, getAttributes().size());
 		return this;
 	}
 	
-	public ShadowAttributesAsserter assertAttributes(QName... expectedAttributes) {
+	public ShadowAttributesAsserter<R> assertAttributes(QName... expectedAttributes) {
 		for (QName expectedAttribute: expectedAttributes) {
 			PrismProperty<Object> attr = getAttributes().findProperty(expectedAttribute);
 			if (attr == null) {
@@ -99,7 +98,7 @@ public class ShadowAttributesAsserter extends AbstractAsserter {
 		return this;
 	}
 	
-	public ShadowAttributesAsserter assertAny() {
+	public ShadowAttributesAsserter<R> assertAny() {
 		assertNotNull("No attributes container in "+desc(), getAttributesContainer());
 		PrismContainerValue<ShadowAttributesType> containerValue = getAttributesContainer().getValue();
 		assertNotNull("No attributes container avlue in "+desc(), containerValue);
@@ -119,31 +118,31 @@ public class ShadowAttributesAsserter extends AbstractAsserter {
 		return sb.toString();
 	}
 
-	public ShadowAttributesAsserter assertHasPrimaryIdentifier() {
+	public ShadowAttributesAsserter<R> assertHasPrimaryIdentifier() {
 		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(getShadow());
 		assertFalse("No primary identifiers in "+desc(), primaryIdentifiers.isEmpty());
 		return this;
 	}
 	
-	public ShadowAttributesAsserter assertNoPrimaryIdentifier() {
+	public ShadowAttributesAsserter<R> assertNoPrimaryIdentifier() {
 		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(getShadow());
 		assertTrue("Unexpected primary identifiers in "+desc()+": "+primaryIdentifiers, primaryIdentifiers.isEmpty());
 		return this;
 	}
 	
-	public ShadowAttributesAsserter assertHasSecondaryIdentifier() {
+	public ShadowAttributesAsserter<R> assertHasSecondaryIdentifier() {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(getShadow());
 		assertFalse("No secondary identifiers in "+desc(), secondaryIdentifiers.isEmpty());
 		return this;
 	}
 	
-	public ShadowAttributesAsserter assertNoSecondaryIdentifier() {
+	public ShadowAttributesAsserter<R> assertNoSecondaryIdentifier() {
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(getShadow());
 		assertTrue("Unexpected secpndary identifiers in "+desc()+": "+secondaryIdentifiers, secondaryIdentifiers.isEmpty());
 		return this;
 	}
 	
-	public <T> ShadowAttributesAsserter assertValue(QName attrName, T... expectedValues) {
+	public <T> ShadowAttributesAsserter<R> assertValue(QName attrName, T... expectedValues) {
 		PrismProperty<T> property = findAttribute(attrName);
 		assertNotNull("No attribute "+attrName+" in "+desc());
 		PrismAsserts.assertPropertyValueDesc(property, desc(), expectedValues);
@@ -158,7 +157,8 @@ public class ShadowAttributesAsserter extends AbstractAsserter {
 		return descWithDetails(getShadow());
 	}
 
-	public ShadowAsserter end() {
+	@Override
+	public ShadowAsserter<R> end() {
 		return shadowAsserter;
 	}
 

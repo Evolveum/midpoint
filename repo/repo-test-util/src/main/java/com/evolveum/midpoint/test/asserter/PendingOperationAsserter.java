@@ -38,89 +38,90 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * @author semancik
  *
  */
-public class PendingOperationAsserter extends AbstractAsserter {
+public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperationsAsserter<R>> {
 	
-	final private PendingOperationsAsserter pendingOperationsAsserter;
+	final private PendingOperationsAsserter<R> pendingOperationsAsserter;
 	final private PendingOperationType pendingOperation;
 	private String operationDesc;
 
-	public PendingOperationAsserter(PendingOperationsAsserter pendingOperationsAsserter, PendingOperationType pendingOperation) {
+	public PendingOperationAsserter(PendingOperationsAsserter<R> pendingOperationsAsserter, PendingOperationType pendingOperation) {
 		super();
 		this.pendingOperationsAsserter = pendingOperationsAsserter;
 		this.pendingOperation = pendingOperation;
 	}
 	
-	public PendingOperationAsserter(PendingOperationsAsserter pendingOperationsAsserter, PendingOperationType pendingOperation, String operationDesc, String details) {
+	public PendingOperationAsserter(PendingOperationsAsserter<R> pendingOperationsAsserter, PendingOperationType pendingOperation, String operationDesc, String details) {
 		super(details);
 		this.pendingOperationsAsserter = pendingOperationsAsserter;
 		this.pendingOperation = pendingOperation;
 		this.operationDesc = operationDesc;
 	}
 	
-	public PendingOperationAsserter assertRequestTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
+	public PendingOperationAsserter<R> assertRequestTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		TestUtil.assertBetween("Wrong request timestamp in "+desc(), start, end, pendingOperation.getRequestTimestamp());
 		return this;
 	}
 	
-	public PendingOperationAsserter assertCompletionTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
+	public PendingOperationAsserter<R> assertCompletionTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		TestUtil.assertBetween("Wrong completion timestamp in "+desc(), start, end, pendingOperation.getCompletionTimestamp());
 		return this;
 	}
 	
-	public PendingOperationAsserter assertLastAttemptTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
+	public PendingOperationAsserter<R> assertLastAttemptTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		TestUtil.assertBetween("Wrong last attempt timestamp in "+desc(), start, end, pendingOperation.getLastAttemptTimestamp());
 		return this;
 	}
 	
-	public PendingOperationAsserter assertOperationStartTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
+	public PendingOperationAsserter<R> assertOperationStartTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		TestUtil.assertBetween("Wrong operation start timestamp in "+desc(), start, end, pendingOperation.getOperationStartTimestamp());
 		return this;
 	}
 
-	public PendingOperationAsserter assertExecutionStatus(PendingOperationExecutionStatusType expected) {
+	public PendingOperationAsserter<R> assertExecutionStatus(PendingOperationExecutionStatusType expected) {
 		assertEquals("Wrong execution status in "+desc(), expected, pendingOperation.getExecutionStatus());
 		return this;
 	}
 	
-	public PendingOperationAsserter assertResultStatus(OperationResultStatusType expected) {
+	public PendingOperationAsserter<R> assertResultStatus(OperationResultStatusType expected) {
 		assertEquals("Wrong result status in "+desc(), expected, pendingOperation.getResultStatus());
 		return this;
 	}
 	
-	public PendingOperationAsserter assertAttemptNumber(Integer expected) {
+	public PendingOperationAsserter<R> assertAttemptNumber(Integer expected) {
 		assertEquals("Wrong attempt number in "+desc(), expected, pendingOperation.getAttemptNumber());
 		return this;
 	}
 	
-	public PendingOperationAsserter assertId() {
+	public PendingOperationAsserter<R> assertId() {
 		assertNotNull("No id in "+desc(), pendingOperation.getId());
 		return this;
 	}
 	
-	public PendingOperationAsserter assertId(Long expected) {
+	public PendingOperationAsserter<R> assertId(Long expected) {
 		assertEquals("Wrong id in "+desc(), expected, pendingOperation.getId());
 		return this;
 	}
 	
-	public ObjectDeltaTypeAsserter delta() {
-		return new ObjectDeltaTypeAsserter(pendingOperation.getDelta(), "delta in "+desc());
+	public ObjectDeltaTypeAsserter<PendingOperationAsserter<R>> delta() {
+		return new ObjectDeltaTypeAsserter<>(pendingOperation.getDelta(), this, "delta in "+desc());
 	}
 
 	private String desc() {
 		return descWithDetails("pending operation "+operationDesc+" in "+pendingOperationsAsserter.getShadow());
 	}
 	
-	public PendingOperationAsserter display() {
+	public PendingOperationAsserter<R> display() {
 		display(desc());
 		return this;
 	}
 	
-	public PendingOperationAsserter display(String message) {
+	public PendingOperationAsserter<R> display(String message) {
 		IntegrationTestTools.display(message, pendingOperation);
 		return this;
 	}
 	
-	public PendingOperationsAsserter end() {
+	@Override
+	public PendingOperationsAsserter<R> end() {
 		return pendingOperationsAsserter;
 	}
 }

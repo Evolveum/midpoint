@@ -32,21 +32,21 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
  * @author semancik
  *
  */
-public class PendingOperationsAsserter extends AbstractAsserter {
+public class PendingOperationsAsserter<R> extends AbstractAsserter<ShadowAsserter<R>> {
 	
-	private ShadowAsserter shadowAsserter;
+	private ShadowAsserter<R> shadowAsserter;
 
-	public PendingOperationsAsserter(ShadowAsserter shadowAsserter) {
+	public PendingOperationsAsserter(ShadowAsserter<R> shadowAsserter) {
 		super();
 		this.shadowAsserter = shadowAsserter;
 	}
 	
-	public PendingOperationsAsserter(ShadowAsserter shadowAsserter, String details) {
+	public PendingOperationsAsserter(ShadowAsserter<R> shadowAsserter, String details) {
 		super(details);
 		this.shadowAsserter = shadowAsserter;
 	}
 	
-	public static PendingOperationsAsserter forShadow(PrismObject<ShadowType> shadow) {
+	public static PendingOperationsAsserter<Void> forShadow(PrismObject<ShadowType> shadow) {
 		return new PendingOperationsAsserter(ShadowAsserter.forShadow(shadow));
 	}
 	
@@ -54,13 +54,13 @@ public class PendingOperationsAsserter extends AbstractAsserter {
 		return shadowAsserter.getObject().asObjectable().getPendingOperation();
 	}
 	
-	public PendingOperationsAsserter assertOperations(int expectedNumber) {
+	public PendingOperationsAsserter<R> assertOperations(int expectedNumber) {
 		assertEquals("Unexpected number of pending operations in "+shadowAsserter.getObject(), expectedNumber, getOperations().size());
 		return this;
 	}
 	
-	PendingOperationAsserter forOperation(PendingOperationType operation) {
-		return new PendingOperationAsserter(this, operation, idToString(operation.getId()), getDetails());
+	PendingOperationAsserter<R> forOperation(PendingOperationType operation) {
+		return new PendingOperationAsserter<>(this, operation, idToString(operation.getId()), getDetails());
 	}
 	
 	private String idToString(Long id) {
@@ -71,43 +71,44 @@ public class PendingOperationsAsserter extends AbstractAsserter {
 		}
 	}
 
-	public PendingOperationAsserter singleOperation() {
+	public PendingOperationAsserter<R> singleOperation() {
 		assertOperations(1);
 		return forOperation(getOperations().get(0));
 	}
 	
-	public PendingOperationsAsserter assertNone() {
+	public PendingOperationsAsserter<R> assertNone() {
 		assertOperations(0);
 		return this;
 	}
 	
-	public PendingOperationAsserter modifyOperation() {
+	public PendingOperationAsserter<R> modifyOperation() {
 		return by()
 			.changeType(ChangeTypeType.MODIFY)
 			.find();
 	}
 	
-	public PendingOperationAsserter addOperation() {
+	public PendingOperationAsserter<R> addOperation() {
 		return by()
 			.changeType(ChangeTypeType.ADD)
 			.find();
 	}
 	
-	public PendingOperationAsserter deleteOperation() {
+	public PendingOperationAsserter<R> deleteOperation() {
 		return by()
 			.changeType(ChangeTypeType.DELETE)
 			.find();
 	}
 	
-	public PendingOperationFinder by() {
-		return new PendingOperationFinder(this);
+	public PendingOperationFinder<R> by() {
+		return new PendingOperationFinder<>(this);
 	}
 
 	PrismObject<ShadowType> getShadow() {
 		return shadowAsserter.getObject();
 	}
 
-	public ShadowAsserter end() {
+	@Override
+	public ShadowAsserter<R> end() {
 		return shadowAsserter;
 	}
 }

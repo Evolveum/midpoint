@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public class PrismObjectAsserter<O extends ObjectType> extends AbstractAsserter {
+public class PrismObjectAsserter<O extends ObjectType,R> extends AbstractAsserter<R> {
 	
 	private PrismObject<O> object;
 
@@ -49,44 +49,55 @@ public class PrismObjectAsserter<O extends ObjectType> extends AbstractAsserter 
 		this.object = object;
 	}
 	
+	public PrismObjectAsserter(PrismObject<O> object, R returnAsserter, String details) {
+		super(returnAsserter, details);
+		this.object = object;
+	}
+	
 	public PrismObject<O> getObject() {
 		return object;
 	}
 
-	public static <O extends ObjectType> PrismObjectAsserter<O> forObject(PrismObject<O> shadow) {
+	public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> shadow) {
 		return new PrismObjectAsserter<>(shadow);
 	}
 	
-	public static <O extends ObjectType> PrismObjectAsserter<O> forObject(PrismObject<O> shadow, String details) {
+	public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> shadow, String details) {
 		return new PrismObjectAsserter<>(shadow, details);
 	}
 	
-	public PrismObjectAsserter<O> assertOid() {
+	public PrismObjectAsserter<O,R> assertOid() {
 		assertNotNull("No OID in "+desc(), getObject().getOid());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O> assertOid(String expected) {
+	public PrismObjectAsserter<O,R> assertOid(String expected) {
 		assertEquals("Wrong OID in "+desc(), expected, getObject().getOid());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O> assertName() {
+	public PrismObjectAsserter<O,R> assertOidDifferentThan(String oid) {
+		assertFalse("Expected that "+desc()+" will have different OID than "+oid+", but it has the same", oid.equals(getObject().getOid()));
+		return this;
+	}
+
+	
+	public PrismObjectAsserter<O,R> assertName() {
 		assertNotNull("No name in "+desc(), getObject().getName());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O> assertName(String expectedOrig) {
+	public PrismObjectAsserter<O,R> assertName(String expectedOrig) {
 		PrismAsserts.assertEqualsPolyString("Wrong name in "+desc(), expectedOrig, getObject().getName());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O> assertLifecycleState(String expected) {
+	public PrismObjectAsserter<O,R> assertLifecycleState(String expected) {
 		assertEquals("Wrong lifecycleState in "+desc(), expected, getObject().asObjectable().getLifecycleState());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O> assertActiveLifecycleState() {
+	public PrismObjectAsserter<O,R> assertActiveLifecycleState() {
 		String actualLifecycleState = getObject().asObjectable().getLifecycleState();
 		if (actualLifecycleState != null) {
 			assertEquals("Wrong lifecycleState in "+desc(), SchemaConstants.LIFECYCLE_ACTIVE, actualLifecycleState);
@@ -98,13 +109,14 @@ public class PrismObjectAsserter<O extends ObjectType> extends AbstractAsserter 
 		return descWithDetails(object);
 	}
 	
-	public PrismObjectAsserter<O> display() {
+	public PrismObjectAsserter<O,R> display() {
 		display(desc());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O> display(String message) {
+	public PrismObjectAsserter<O,R> display(String message) {
 		IntegrationTestTools.display(message, object);
 		return this;
 	}
+
 }

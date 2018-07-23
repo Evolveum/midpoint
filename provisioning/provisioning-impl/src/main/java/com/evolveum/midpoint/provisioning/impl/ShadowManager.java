@@ -1011,10 +1011,11 @@ public class ShadowManager {
 		if (delta.isAdd()) {
 			// This means we have failed add operation here. We tried to add object,
 			// but we have failed. Which means that this shadow is now dead.
-			PrismPropertyDefinition<Boolean> deadDef = repoShadow.getDefinition().findPropertyDefinition(ShadowType.F_DEAD);
-			PropertyDelta<Boolean> deadDelta = deadDef.createEmptyDelta(new ItemPath(ShadowType.F_DEAD));
-			deadDelta.setValuesToReplace(new PrismPropertyValue<>(Boolean.TRUE));
-			shadowChanges.add(deadDelta);
+			shadowChanges.add(
+				DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+					.item(ShadowType.F_DEAD).replace(true)
+				.asItemDelta()
+			);
 		}
 		
 		if (shadowChanges.isEmpty()) {
@@ -1027,6 +1028,8 @@ public class ShadowManager {
 
 		repositoryService.modifyObject(ShadowType.class, opState.getRepoShadow().getOid(), shadowChanges, parentResult);
 	}
+	
+	
 
 	private void collectPendingOperationUpdates(Collection<ItemDelta> shadowChanges,
 			ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
@@ -1938,7 +1941,26 @@ public class ShadowManager {
 		LOGGER.trace("Deleting repository {}", oldRepoShadow);
 		repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
 	}
-
+	
+	public PrismObject<ShadowType> markShadowDead(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
+		List<ItemDelta<?, ?>> shadowChanges = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+			.item(ShadowType.F_DEAD).replace(true)
+			.item(ShadowType.F_EXISTS).replace(false)
+		.asItemDeltas();
+		try {
+			repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
+		} catch (ObjectAlreadyExistsException e) {
+			// Should not happen, this is not a rename
+			new SystemException(e.getMessage(), e);
+		} catch (ObjectNotFoundException e) {
+			// Cannot be more dead
+			LOGGER.trace("Attempt to mark shadow {} as dead found that no such shadow exists", repoShadow);
+			return null;
+		}
+		ObjectDelta.applyTo(repoShadow, shadowChanges);
+		return repoShadow;
+	}
+	
 	/**
 	 * Re-reads the shadow, re-evaluates the identifiers and stored values, updates them if necessary. Returns
 	 * fixed shadow.  

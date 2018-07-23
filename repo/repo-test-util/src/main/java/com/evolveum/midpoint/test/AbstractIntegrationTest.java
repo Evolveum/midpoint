@@ -2396,4 +2396,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			.assertBasicRepoProperties();
 		return asserter;
 	}
+	
+	protected void assertNoRepoShadow(String oid) throws SchemaException {
+		OperationResult result = new OperationResult("assertNoRepoShadow");
+		try {
+			PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, oid, GetOperationOptions.createRawCollection(), result);
+			fail("Expected that shadow "+oid+" will not be in the repo. But it was: "+shadow);
+		} catch (ObjectNotFoundException e) {
+			// Expected
+			assertFailure(result);
+		}
+	}
 }

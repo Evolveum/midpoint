@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
+public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 	
 	public ShadowAsserter(PrismObject<ShadowType> shadow) {
 		super(shadow);
@@ -47,71 +47,75 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 		super(shadow, details);
 	}
 	
-	public static ShadowAsserter forShadow(PrismObject<ShadowType> shadow) {
-		return new ShadowAsserter(shadow);
+	public ShadowAsserter(PrismObject<ShadowType> shadow, R returnAsserter, String details) {
+		super(shadow, returnAsserter, details);
 	}
 	
-	public static ShadowAsserter forShadow(PrismObject<ShadowType> shadow, String details) {
-		return new ShadowAsserter(shadow, details);
+	public static ShadowAsserter<Void> forShadow(PrismObject<ShadowType> shadow) {
+		return new ShadowAsserter<>(shadow);
+	}
+	
+	public static ShadowAsserter<Void> forShadow(PrismObject<ShadowType> shadow, String details) {
+		return new ShadowAsserter<>(shadow, details);
 	}
 	
 	@Override
-	public ShadowAsserter assertOid() {
+	public ShadowAsserter<R> assertOid() {
 		super.assertOid();
 		return this;
 	}
 	
 	@Override
-	public ShadowAsserter assertOid(String expected) {
+	public ShadowAsserter<R> assertOid(String expected) {
 		super.assertOid(expected);
 		return this;
 	}
 	
 	@Override
-	public ShadowAsserter assertName() {
+	public ShadowAsserter<R> assertName() {
 		super.assertName();
 		return this;
 	}
 	
 	@Override
-	public ShadowAsserter assertName(String expectedOrig) {
+	public ShadowAsserter<R> assertName(String expectedOrig) {
 		super.assertName(expectedOrig);
 		return this;
 	}
 	
 	@Override
-	public ShadowAsserter assertLifecycleState(String expected) {
+	public ShadowAsserter<R> assertLifecycleState(String expected) {
 		super.assertLifecycleState(expected);
 		return this;
 	}
 	
 	@Override
-	public ShadowAsserter assertActiveLifecycleState() {
+	public ShadowAsserter<R> assertActiveLifecycleState() {
 		super.assertActiveLifecycleState();
 		return this;
 	}
 	
-	public ShadowAsserter assertObjectClass() {
+	public ShadowAsserter<R> assertObjectClass() {
 		assertNotNull("No objectClass in "+desc(), getObject().asObjectable().getObjectClass());
 		return this;
 	}
 	
-	public ShadowAsserter assertObjectClass(QName expected) {
+	public ShadowAsserter<R> assertObjectClass(QName expected) {
 		PrismAsserts.assertMatchesQName("Wrong objectClass in "+desc(), expected, getObject().asObjectable().getObjectClass());
 		return this;
 	}
 	
-	public ShadowAsserter assertKind() {
+	public ShadowAsserter<R> assertKind() {
 		assertNotNull("No kind in "+desc(), getObject().asObjectable().getKind());
 		return this;
 	}
 	
-	public ShadowAsserter assertKind(ShadowKindType expected) {
+	public ShadowAsserter<R> assertKind(ShadowKindType expected) {
 		assertEquals("Wrong kind in "+desc(), expected, getObject().asObjectable().getKind());
 		return this;
 	}
 	
-	public ShadowAsserter assertAdministrativeStatus(ActivationStatusType expected) {
+	public ShadowAsserter<R> assertAdministrativeStatus(ActivationStatusType expected) {
 		ActivationType activation = getActivation();
 		if (activation == null) {
 			if (expected == null) {
@@ -128,7 +132,7 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 		return getObject().asObjectable().getActivation();
 	}
 	
-	public ShadowAsserter assertBasicRepoProperties() {
+	public ShadowAsserter<R> assertBasicRepoProperties() {
 		assertOid();
 		assertName();
 		assertObjectClass();
@@ -136,12 +140,12 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 		return this;
 	}
 
-	public ShadowAsserter assertDead() {
+	public ShadowAsserter<R> assertDead() {
 		assertIsDead(true);
 		return this;
 	}
 	
-	public ShadowAsserter assertNotDead() {
+	public ShadowAsserter<R> assertNotDead() {
 		Boolean isDead = getObject().asObjectable().isDead();
 		if (isDead != null && isDead) {
 			fail("Wrong isDead in "+desc()+", expected null or false, but was true");
@@ -149,12 +153,12 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 		return this;
 	}
 	
-	public ShadowAsserter assertIsDead(Boolean expected) {
+	public ShadowAsserter<R> assertIsDead(Boolean expected) {
 		assertEquals("Wrong isDead in "+desc(), expected, getObject().asObjectable().isDead());
 		return this;
 	}
 	
-	public ShadowAsserter assertIsExists() {
+	public ShadowAsserter<R> assertIsExists() {
 		Boolean isExists = getObject().asObjectable().isExists();
 		if (isExists != null && !isExists) {
 			fail("Wrong isExists in "+desc()+", expected null or true, but was false");
@@ -162,25 +166,25 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 		return this;
 	}
 	
-	public ShadowAsserter assertIsNotExists() {
+	public ShadowAsserter<R> assertIsNotExists() {
 		assertIsExists(false);
 		return this;
 	}
 	
-	public ShadowAsserter assertIsExists(Boolean expected) {
+	public ShadowAsserter<R> assertIsExists(Boolean expected) {
 		assertEquals("Wrong isExists in "+desc(), expected, getObject().asObjectable().isExists());
 		return this;
 	}
 	
-	public PendingOperationsAsserter pendingOperations() {
-		return new PendingOperationsAsserter(this, getDetails());
+	public PendingOperationsAsserter<R> pendingOperations() {
+		return new PendingOperationsAsserter<>(this, getDetails());
 	}
 	
-	public ShadowAttributesAsserter attributes() {
-		return new ShadowAttributesAsserter(this, getDetails());
+	public ShadowAttributesAsserter<R> attributes() {
+		return new ShadowAttributesAsserter<>(this, getDetails());
 	}
 
-	public ShadowAsserter assertNoLegacyConsistency() {
+	public ShadowAsserter<R> assertNoLegacyConsistency() {
 		PrismAsserts.assertNoItem(getObject(), ShadowType.F_RESULT);
 		PrismAsserts.assertNoItem(getObject(), ShadowType.F_ATTEMPT_NUMBER);
 		PrismAsserts.assertNoItem(getObject(), ShadowType.F_FAILED_OPERATION_TYPE);
@@ -188,13 +192,18 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 		return this;
 	}
 	
-	public ShadowAsserter display() {
+	public ShadowAsserter<R> display() {
 		super.display();
 		return this;
 	}
 	
-	public ShadowAsserter display(String message) {
+	public ShadowAsserter<R> display(String message) {
 		super.display(message);
+		return this;
+	}
+
+	public ShadowAsserter<R> assertOidDifferentThan(String oid) {
+		super.assertOidDifferentThan(oid);
 		return this;
 	}
 

@@ -40,6 +40,7 @@ import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyOrg;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -415,6 +416,10 @@ public class DummyResourceContoller extends AbstractResourceController {
 		DummyGroup group = new DummyGroup(name);
 		group.setEnabled(true);
 		dummyResource.addGroup(group);
+	}
+	
+	public void deleteAccount(String name) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException {
+		dummyResource.deleteAccountByName(name);
 	}
 
 	public QName getOrgObjectClassQName() {
