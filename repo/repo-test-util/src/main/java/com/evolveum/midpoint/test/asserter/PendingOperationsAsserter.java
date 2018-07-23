@@ -87,6 +87,18 @@ public class PendingOperationsAsserter extends AbstractAsserter {
 			.find();
 	}
 	
+	public PendingOperationAsserter addOperation() {
+		return by()
+			.changeType(ChangeTypeType.ADD)
+			.find();
+	}
+	
+	public PendingOperationAsserter deleteOperation() {
+		return by()
+			.changeType(ChangeTypeType.DELETE)
+			.find();
+	}
+	
 	public PendingOperationFinder by() {
 		return new PendingOperationFinder(this);
 	}

@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
@@ -48,7 +49,7 @@ public class PrismObjectAsserter<O extends ObjectType> extends AbstractAsserter 
 		this.object = object;
 	}
 	
-	protected PrismObject<O> getObject() {
+	public PrismObject<O> getObject() {
 		return object;
 	}
 
@@ -77,6 +78,19 @@ public class PrismObjectAsserter<O extends ObjectType> extends AbstractAsserter 
 	
 	public PrismObjectAsserter<O> assertName(String expectedOrig) {
 		PrismAsserts.assertEqualsPolyString("Wrong name in "+desc(), expectedOrig, getObject().getName());
+		return this;
+	}
+	
+	public PrismObjectAsserter<O> assertLifecycleState(String expected) {
+		assertEquals("Wrong lifecycleState in "+desc(), expected, getObject().asObjectable().getLifecycleState());
+		return this;
+	}
+	
+	public PrismObjectAsserter<O> assertActiveLifecycleState() {
+		String actualLifecycleState = getObject().asObjectable().getLifecycleState();
+		if (actualLifecycleState != null) {
+			assertEquals("Wrong lifecycleState in "+desc(), SchemaConstants.LIFECYCLE_ACTIVE, actualLifecycleState);
+		}
 		return this;
 	}
 	

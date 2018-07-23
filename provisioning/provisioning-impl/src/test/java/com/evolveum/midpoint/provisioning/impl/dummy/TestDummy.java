@@ -905,8 +905,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
 	@Test
-	public void test120ModifyObjectReplace() throws Exception {
-		final String TEST_NAME = "test120ModifyObjectReplace";
+	public void test120ModifyWillReplaceFullname() throws Exception {
+		final String TEST_NAME = "test120ModifyWillReplaceFullname";
 		displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
@@ -928,8 +928,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertSuccess(result);
 
 		delta.checkConsistence();
-		assertDummyAccountAttributeValues(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid,
-				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
+		assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
 
 		syncServiceMock.assertNotifySuccessOnly();
 

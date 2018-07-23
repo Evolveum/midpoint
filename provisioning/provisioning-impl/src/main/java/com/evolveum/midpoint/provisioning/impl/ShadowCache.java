@@ -864,24 +864,6 @@ public class ShadowCache {
 		return operationDescription;
 	}
 	
-	public Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications) throws SchemaException {
-		
-		// TODO: error handling
-		//do not merge deltas when complete postponed operation is set to false, because it can cause some unexpected behavior..
-		if (!ProvisioningOperationOptions.isCompletePostponed(options)) {
-			return modifications;
-		}
-		
-		ObjectDelta mergedDelta = mergeDeltas(shadow, modifications);
-
-		if (mergedDelta != null) {
-			modifications = mergedDelta.getModifications();
-		}
-		
-		return modifications;
-		
-	}
-
 	public String modifyShadow(PrismObject<ShadowType> repoShadow,
 			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts,
 			ProvisioningOperationOptions options, Task task, OperationResult parentResult)
@@ -923,7 +905,7 @@ public class ShadowCache {
 		
 		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
 		
-		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, repoShadow, modifications, task, parentResult);
+		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, repoShadow, modifications, opState, task, parentResult);
 		if (duplicateOperation != null) {
 			parentResult.recordInProgress();
 			return repoShadow.getOid();
@@ -935,8 +917,6 @@ public class ShadowCache {
 				ctx.getObjectClassDefinition(), parentResult);
 		
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-
-		modifications = beforeModifyOnResource(repoShadow, options, modifications);
 		
 		preprocessEntitlements(ctx, modifications, "delta for shadow " + repoShadow.getOid(), parentResult);
 		
@@ -1115,7 +1095,7 @@ public class ShadowCache {
 		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
 		shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
-		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, repoShadow, task, parentResult);
+		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, repoShadow, opState, task, parentResult);
 		if (duplicateOperation != null) {
 			parentResult.recordInProgress();
 			return;
@@ -3068,29 +3048,6 @@ public class ShadowCache {
 		}
 		return passwordDefinition.getCompareStrategy();
 	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected ObjectDelta mergeDeltas(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications)
-			throws SchemaException {
-		ShadowType shadowType = shadow.asObjectable();
-		if (shadowType.getObjectChange() != null) {
-
-			ObjectDeltaType deltaType = shadowType.getObjectChange();
-			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
-					deltaType.getItemDelta(), shadow.getDefinition());
-
-            // pendingModifications must come before modifications, otherwise REPLACE of value X (pending),
-            // followed by ADD of value Y (current) would become "REPLACE X", which is obviously wrong.
-            // See e.g. MID-1709.
-			return ObjectDelta.summarize(
-                    ObjectDelta.createModifyDelta(shadow.getOid(), pendingModifications,
-                            ShadowType.class, getPrismContext()),
-                    ObjectDelta.createModifyDelta(shadow.getOid(), modifications,
-                            ShadowType.class, getPrismContext()));
-		}
-		return null;
-	}
-	
 	
 	// ----------------------- LEGACY ------ to be removed later (MID-4780)
 	

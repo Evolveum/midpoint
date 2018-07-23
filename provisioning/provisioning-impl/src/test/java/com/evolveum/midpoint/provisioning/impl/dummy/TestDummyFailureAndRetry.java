@@ -1211,12 +1211,14 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 	
 	private void assertUncreatedMorgan(int expectedAttemptNumber) throws Exception {
 		
-		PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
-		assertNotNull("Shadow was not created in the repository", repoShadow);
-		
-		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
-		shadowAsserter
-			.display()
+		assertRepoShadow(shadowMorganOid)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertIsNotExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertAttributes(SchemaConstants.ICFS_NAME)
+				.end()
 			.pendingOperations()
 				.singleOperation()
 					.display()
@@ -1229,19 +1231,17 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 					.delta()
 						.display()
 						.assertAdd();
-		shadowAsserter
-			.assertBasicRepoProperties()
-			.assertKind(ShadowKindType.ACCOUNT)
+		
+		assertShadowNoFetch(shadowMorganOid)
 			.assertIsNotExists()
 			.assertNotDead()
 			.assertNoLegacyConsistency()
 			.attributes()
-				.assertAttributes(SchemaConstants.ICFS_NAME);
-		
-		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
-		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
-		shadowAsserter
-			.display()
+				.assertResourceAttributeContainer()
+				.assertNoPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(1)
+				.end()
 			.pendingOperations()
 				.singleOperation()
 					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
@@ -1252,20 +1252,8 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
 					.delta()
 						.assertAdd();
-		shadowAsserter
-			.assertIsNotExists()
-			.assertNotDead()
-			.assertNoLegacyConsistency()
-			.attributes()
-				.assertResourceAttributeContainer()
-				.assertNoPrimaryIdentifier()
-				.assertHasSecondaryIdentifier()
-				.assertSize(1);
 		
-		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuture(shadowMorganOid);
-		shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
-		shadowAsserter
-			.display()
+		ShadowAsserter asserterFuture = assertShadowFuture(shadowMorganOid)
 			.assertIsExists()
 			.assertNotDead()
 			.assertNoLegacyConsistency()
@@ -1274,20 +1262,23 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 				.assertNoPrimaryIdentifier()
 				.assertHasSecondaryIdentifier()
 				.assertSize(4)
-				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME);
+				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME)
+				.end();
 		
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-		checkUniqueness(accountProvisioningFuture);
+		checkUniqueness(asserterFuture.getObject());
 	}
 	
 	private void assertCreatedMorgan(int expectedAttemptNumber) throws Exception {
 		
-		PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
-		assertNotNull("Shadow was not created in the repository", repoShadow);
-		
-		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
-		shadowAsserter
-			.display()
+		assertRepoShadow(shadowMorganOid)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertIsExists()
+			.assertNotDead()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
+				.end()
 			.pendingOperations()
 				.singleOperation()
 					.display()
@@ -1301,19 +1292,17 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 					.delta()
 						.display()
 						.assertAdd();
-		shadowAsserter
-			.assertBasicRepoProperties()
-			.assertKind(ShadowKindType.ACCOUNT)
+		
+		assertShadowNoFetch(shadowMorganOid)
 			.assertIsExists()
 			.assertNotDead()
 			.assertNoLegacyConsistency()
 			.attributes()
-				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
-		
-		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(shadowMorganOid);
-		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
-		shadowAsserter
-			.display()
+				.assertResourceAttributeContainer()
+				.assertHasPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.assertSize(2)
+				.end()
 			.pendingOperations()
 				.singleOperation()
 					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
@@ -1325,24 +1314,8 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 					.assertCompletionTimestamp(lastAttemptStartTs, lastAttemptEndTs)
 					.delta()
 						.assertAdd();
-		shadowAsserter
-			.assertIsExists()
-			.assertNotDead()
-			.assertNoLegacyConsistency()
-			.attributes()
-				.assertResourceAttributeContainer()
-				.assertHasPrimaryIdentifier()
-				.assertHasSecondaryIdentifier()
-				.assertSize(2);
 		
-		Task task = createTask("assertCreatedMorgan");
-		OperationResult result = task.getResult();
-		PrismObject<ShadowType> accountProvisioning = 
-				provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
-		assertSuccess(result);
-		shadowAsserter = ShadowAsserter.forShadow(accountProvisioning,"fetch");
-		shadowAsserter
-			.display()
+		assertShadowProvisioning(shadowMorganOid)
 			.assertIsExists()
 			.assertNotDead()
 			.assertNoLegacyConsistency()
@@ -1352,11 +1325,8 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 				.assertHasSecondaryIdentifier()
 				.assertSize(5)
 				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME);
-		
-		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuture(shadowMorganOid);
-		shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
-		shadowAsserter
-			.display()
+
+		ShadowAsserter asserterFuture = assertShadowFuture(shadowMorganOid)
 			.assertIsExists()
 			.assertNotDead()
 			.assertNoLegacyConsistency()
@@ -1365,12 +1335,13 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 				.assertHasPrimaryIdentifier()
 				.assertHasSecondaryIdentifier()
 				.assertSize(5)
-				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME);
+				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME)
+				.end();
 		
 		dummyResource.resetBreakMode();
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
-		checkUniqueness(accountProvisioningFuture);
+		checkUniqueness(asserterFuture.getObject());
 		
 		dummyResourceCtl.assertAccountByUsername(ACCOUNT_MORGAN_NAME)
 			.assertName(ACCOUNT_MORGAN_NAME)

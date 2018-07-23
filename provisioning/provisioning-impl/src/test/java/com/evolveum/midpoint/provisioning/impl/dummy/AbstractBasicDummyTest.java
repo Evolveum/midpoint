@@ -1096,6 +1096,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		} else {
 			assertNull("Activation sneaked in (repo)", activationRepo);
 		}
+		assertWillRepoShadowAfterCreate(accountRepo);
 
 		syncServiceMock.assertNotifySuccessOnly();
 
@@ -1152,6 +1153,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		checkUniqueness(accountProvisioning);
 		assertSteadyResource();
+	}
+
+	protected void assertWillRepoShadowAfterCreate(PrismObject<ShadowType> repoShadow) {
+		// for the subclasses
 	}
 
 	protected void checkRepoAccountShadowWillBasic(PrismObject<ShadowType> accountRepo,

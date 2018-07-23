@@ -85,6 +85,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -2385,5 +2386,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     	RelationDefinitionType relDef = ObjectTypeUtil.findRelationDefinition(relations, qname);
     	assertNotNull("No definition for relation "+qname, relDef);
     	assertEquals("Wrong relation "+qname+" label", expectedLabel, relDef.getDisplay().getLabel());
+	}
+	
+	protected ShadowAsserter assertRepoShadow(String oid) throws ObjectNotFoundException, SchemaException {
+		PrismObject<ShadowType> repoShadow = getShadowRepo(oid);
+		ShadowAsserter asserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		asserter
+			.display()
+			.assertBasicRepoProperties();
+		return asserter;
 	}
 }

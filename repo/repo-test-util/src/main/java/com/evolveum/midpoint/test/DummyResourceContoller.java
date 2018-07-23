@@ -439,6 +439,12 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertNotNull("Account "+username+" does not exist on dummy resource "+getName());
 		return assertAccount(account);
 	}
+	
+	public DummyAccountAsserter assertAccountById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyAccount account = dummyResource.getAccountById(id);
+		assertNotNull("Account id="+id+" does not exist on dummy resource "+getName());
+		return assertAccount(account);
+	}
 
 	private DummyAccountAsserter assertAccount(DummyAccount account) {
 		return new DummyAccountAsserter(account, getName());

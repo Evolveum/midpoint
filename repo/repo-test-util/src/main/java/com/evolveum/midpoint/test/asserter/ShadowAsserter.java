@@ -79,6 +79,18 @@ public class ShadowAsserter extends PrismObjectAsserter<ShadowType> {
 		return this;
 	}
 	
+	@Override
+	public ShadowAsserter assertLifecycleState(String expected) {
+		super.assertLifecycleState(expected);
+		return this;
+	}
+	
+	@Override
+	public ShadowAsserter assertActiveLifecycleState() {
+		super.assertActiveLifecycleState();
+		return this;
+	}
+	
 	public ShadowAsserter assertObjectClass() {
 		assertNotNull("No objectClass in "+desc(), getObject().asObjectable().getObjectClass());
 		return this;

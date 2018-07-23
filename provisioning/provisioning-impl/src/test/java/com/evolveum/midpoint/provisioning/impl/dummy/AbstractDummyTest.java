@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -280,7 +281,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 
 	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-//		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
@@ -289,7 +289,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 
 	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-//		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
@@ -297,6 +296,14 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 			 assertNotNull("No dummy account with ICF UID "+icfUid+" (expected name "+icfName+")", account);
 			 assertEquals("Unexpected name in "+account, icfName, account.getName());
 			 return account;
+		}
+	}
+	
+	protected DummyAccountAsserter assertDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		if (isIcfNameUidSame()) {
+			return dummyResourceCtl.assertAccountByUsername(icfName);
+		} else {
+			return dummyResourceCtl.assertAccountById(icfUid);
 		}
 	}
 
