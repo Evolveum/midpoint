@@ -128,6 +128,6 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     }
 
     private DropDownChoicePanel getRelationDropDown(){
-        return (DropDownChoicePanel)get(ID_RELATION_CONTAINER).get(ID_RELATION);
+        return (DropDownChoicePanel)get(ID_PARAMETERS_PANEL).get(ID_RELATION_CONTAINER).get(ID_RELATION);
     }
 }
