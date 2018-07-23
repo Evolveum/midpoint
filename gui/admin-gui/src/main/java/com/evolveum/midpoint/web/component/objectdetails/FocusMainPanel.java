@@ -21,7 +21,9 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -35,20 +37,19 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.assignment.GenericAbstractRoleAssignmentPanel;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
+import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -224,7 +225,14 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 	}
 
 	protected WebMarkupContainer createObjectHistoryTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new ObjectHistoryTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+		return new ObjectHistoryTabPanel<F>(panelId, getMainForm(), getObjectModel(), parentPage){
+			protected void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date){
+				viewObjectHistoricalDataPerformed(target, object, date);
+			}
+		};
+	}
+
+	protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<F> object, String date){
 	}
 
 	protected IModel<PrismObject<F>> unwrapModel() {
@@ -241,8 +249,8 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
     }
 
     protected void addDefaultTabs(final PageAdminObjectDetails<F> parentPage, List<ITab> tabs) {
-		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_BASIC_URL);
+		FocusTabVisibleBehavior<F> authorization = new FocusTabVisibleBehavior<F>(unwrapModel(),
+				ComponentConstants.UI_FOCUS_TAB_BASIC_URL, true, isFocusHistoryPage());
 
 		tabs.add(
 				new PanelTab(parentPage.createStringResource("pageAdminFocus.basic"), authorization){
@@ -255,7 +263,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL);
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PROJECTIONS_URL, false, isFocusHistoryPage());
 		tabs.add(
                 new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.projections"), authorization){
 
@@ -272,7 +280,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL);
+		authorization = new FocusTabVisibleBehavior<F>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL, true, isFocusHistoryPage());
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments"), authorization) {
 
@@ -289,7 +297,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 		
-		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL);
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_ASSIGNMENTS_URL, false, isFocusHistoryPage());
 		
 		if (WebModelServiceUtils.isEnableExperimentalFeature(parentPage)) {
 			tabs.add(new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.dataProtection"), authorization) {
@@ -327,9 +335,22 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 				}
 			});
 		}
-		
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_TASKS_URL);
+		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
+			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage());
+			tabs.add(
+					new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
+
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public WebMarkupContainer createPanel(String panelId) {
+							return createObjectHistoryTabPanel(panelId, parentPage);
+						}
+					});
+		}
+
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_TASKS_URL, false, isFocusHistoryPage());
 		tabs.add(
 				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.tasks"), authorization) {
 
@@ -346,6 +367,10 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 					}
 				});
 
+	}
+
+	protected boolean isFocusHistoryPage(){
+		return false;
 	}
 
 	@Override

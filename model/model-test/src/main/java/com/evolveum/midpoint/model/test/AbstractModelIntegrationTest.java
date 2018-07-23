@@ -4526,8 +4526,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".getAssignableRoleSpecification");
 		OperationResult result = task.getResult();
 		RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(focus, task, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 		return spec;
 	}
 

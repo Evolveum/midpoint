@@ -50,7 +50,7 @@ public abstract class AbstractAssignmentPopupTabPanel<O extends ObjectType> exte
     private static final String DOT_CLASS = AbstractAssignmentPopupTabPanel.class.getName();
 
     public AbstractAssignmentPopupTabPanel(String id, ObjectTypes type){
-        super(id, type);
+        super(id);
     }
 
     protected abstract Map<String, AssignmentType> getSelectedAssignmentsMap();

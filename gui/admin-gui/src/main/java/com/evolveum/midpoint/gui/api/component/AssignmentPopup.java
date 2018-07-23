@@ -29,6 +29,8 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.protocol.http.ClientProperties;
+import org.apache.wicket.protocol.http.WebSession;
 
 import java.util.*;
 
@@ -123,6 +125,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected void onSelectionPerformed(AjaxRequestTarget target){
                                 tabLabelPanelUpdate(target);
                             }
+
+                            @Override
+                            protected ObjectTypes getObjectType(){
+                                return ObjectTypes.ROLE;
+                            }
                         };
                     }
 
@@ -145,6 +152,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target){
                                 tabLabelPanelUpdate(target);
+                            }
+
+                            @Override
+                            protected ObjectTypes getObjectType(){
+                                return ObjectTypes.ORG;
                             }
 
                             @Override
@@ -198,6 +210,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     public WebMarkupContainer createPanel(String panelId) {
                         return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.SERVICE){
                             private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected ObjectTypes getObjectType(){
+                                return ObjectTypes.SERVICE;
+                            }
 
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target){
@@ -260,11 +277,21 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     public int getWidth(){
-        return 900;
+        return 80;
     }
 
     public int getHeight(){
-        return 1200;
+        return 80;
+    }
+
+    @Override
+    public String getWidthUnit(){
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "%";
     }
 
     public StringResourceModel getTitle(){

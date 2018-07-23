@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -60,7 +60,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     private static final String ID_FORM = "form";
 
     private List<OrgType> selectedOrgsList = new ArrayList<>();
-    private List<RelationTypes> availableRelationList;
+    protected List<RelationTypes> availableRelationList;
 
     public ChooseMemberPopup(String id, List<RelationTypes> availableRelationList){
         super(id);
@@ -107,7 +107,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     }
 
                     MemberPopupTabPanel memberPanel = (MemberPopupTabPanel) tabPanel;
-                    executeMemberOperation(memberPanel.getType().getTypeQName(), createInOidQuery(memberPanel.getSelectedObjectsList()),
+                    executeMemberOperation(memberPanel.getObjectType().getTypeQName(), createInOidQuery(memberPanel.getSelectedObjectsList()),
                            memberPanel.prepareDelta(), target);
                 });
                 ChooseMemberPopup.this.getPageBase().hideMainPopup(target);
@@ -123,18 +123,55 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         VisibleEnableBehaviour authorization = new VisibleEnableBehaviour(){
         };
 
+        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.USER"), authorization) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public WebMarkupContainer createPanel(String panelId) {
+                return new MemberPopupTabPanel(panelId, availableRelationList){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onSelectionPerformed(AjaxRequestTarget target){
+                        tabLabelPanelUpdate(target);
+                    }
+
+                    @Override
+                    protected ObjectTypes getObjectType(){
+                        return ObjectTypes.USER;
+                    }
+
+                    @Override
+                    protected T getAbstractRoleTypeObject(){
+                        return ChooseMemberPopup.this.getAssignmentTargetRefObject();
+                    }
+                };
+            }
+
+            @Override
+            public String getCount() {
+                return Integer.toString(getTabPanelSelectedCount(getPanel()));
+            }
+        });
+
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"), authorization) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel(panelId, ObjectTypes.ROLE, availableRelationList){
+                return new MemberPopupTabPanel(panelId, availableRelationList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected void onSelectionPerformed(AjaxRequestTarget target){
                         tabLabelPanelUpdate(target);
+                    }
+
+                    @Override
+                    protected ObjectTypes getObjectType(){
+                        return ObjectTypes.ROLE;
                     }
 
                     @Override
@@ -157,12 +194,17 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel(panelId, ObjectTypes.ORG, availableRelationList){
+                        return new MemberPopupTabPanel(panelId, availableRelationList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target){
                                 tabLabelPanelUpdate(target);
+                            }
+
+                            @Override
+                            protected ObjectTypes getObjectType(){
+                                return ObjectTypes.ORG;
                             }
 
                             @Override
@@ -224,12 +266,17 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel(panelId, ObjectTypes.SERVICE, availableRelationList){
+                        return new MemberPopupTabPanel(panelId, availableRelationList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             protected T getAbstractRoleTypeObject(){
                                 return ChooseMemberPopup.this.getAssignmentTargetRefObject();
+                            }
+
+                            @Override
+                            protected ObjectTypes getObjectType(){
+                                return ObjectTypes.SERVICE;
                             }
 
                             @Override
@@ -249,14 +296,14 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return tabs;
     }
 
-    private int getTabPanelSelectedCount(WebMarkupContainer panel){
+    protected int getTabPanelSelectedCount(WebMarkupContainer panel){
         if (panel != null && panel instanceof MemberPopupTabPanel){
             return ((MemberPopupTabPanel) panel).getSelectedObjectsList().size();
         }
         return 0;
     }
 
-    private void tabLabelPanelUpdate(AjaxRequestTarget target){
+    protected void tabLabelPanelUpdate(AjaxRequestTarget target){
         target.add(getTabbedPanel());
     }
 
@@ -294,11 +341,21 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     protected abstract T getAssignmentTargetRefObject();
 
     public int getWidth(){
-        return 900;
+        return 80;
     }
 
     public int getHeight(){
-        return 1200;
+        return 80;
+    }
+
+    @Override
+    public String getWidthUnit(){
+        return "%";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "%";
     }
 
     public StringResourceModel getTitle(){

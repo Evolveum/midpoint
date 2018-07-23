@@ -108,6 +108,15 @@ public class AuthorizationConstants {
 	public static final QName AUTZ_UI_USER_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "userHistory");
 	public static final String AUTZ_UI_USER_HISTORY_URL = NS_AUTHORIZATION_UI + "#userHistory";
 
+	public static final QName AUTZ_UI_ORG_UNIT_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "orgUnitHistory");
+	public static final String AUTZ_UI_ORG_UNIT_HISTORY_URL = NS_AUTHORIZATION_UI + "#orgUnitHistory";
+
+	public static final QName AUTZ_UI_ROLE_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "roleHistory");
+	public static final String AUTZ_UI_ROLE_HISTORY_URL = NS_AUTHORIZATION_UI + "#roleHistory";
+
+	public static final QName AUTZ_UI_SERVICE_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "serviceHistory");
+	public static final String AUTZ_UI_SERVICE_HISTORY_URL = NS_AUTHORIZATION_UI + "#serviceHistory";
+
 	public static final QName AUTZ_UI_USER_HISTORY_XML_REVIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "userHistoryXmlReview");
 	public static final String AUTZ_UI_USER_HISTORY_XML_REVIEW_URL = NS_AUTHORIZATION_UI + "#userHistoryXmlReview";
 
