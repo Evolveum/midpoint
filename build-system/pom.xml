@@ -95,6 +95,7 @@
         <guava.version>20.0</guava.version>
         <jcommander.version>1.72</jcommander.version>
 		<failsafe.version>2.22.0</failsafe.version>
+		<antrun.version>1.8</antrun.version>
     </properties>
     <dependencyManagement>
         <dependencies>

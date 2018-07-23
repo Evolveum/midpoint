@@ -208,6 +208,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!--TODO for the time being, check if this really needed -->
+        <dependency>
+            <groupId>com.github.sommeri</groupId>
+            <artifactId>less4j</artifactId>
+            <version>1.17.2</version>
+        </dependency>
+
         <!-- WRO4J-->
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>

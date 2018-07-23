@@ -30,6 +30,7 @@ public class MidPoint {
     private String baseUrl;
     private String webDriver;
     private String webdriverLocation;
+    private Boolean headless;
 
     public MidPoint(EnvironmentConfiguration environment) throws IOException {
         Validate.notNull(environment, "Environment configuration must not be null");
@@ -49,6 +50,7 @@ public class MidPoint {
         System.setProperty("selenide.browser", environment.getDriver().name().toLowerCase());
         System.setProperty("selenide.baseUrl", environment.getBaseUrl());
 
+        Configuration.headless = headless;
         Configuration.timeout = 6000L;
     }
 
@@ -77,18 +79,20 @@ public class MidPoint {
             password = schrodingerProperties.getProperty("password");
             baseUrl = schrodingerProperties.getProperty("base_url");
 
-
+            headless = Boolean.valueOf(schrodingerProperties.getProperty("headlessStart"));
+            System.out.println("The headlessStart prop: "+ schrodingerProperties.getProperty("headlessStart"));
+            System.out.println("Headless start ? :" + headless);
         } catch (IOException e) {
             throw new IOException("An exception was thrown during Schrodinger initialization " + e.getLocalizedMessage());
         }
     }
 
-    public String getPassword(){
+    public String getPassword() {
 
         return this.password;
     }
 
-    public String getUsername(){
+    public String getUsername() {
 
         return this.username;
     }
