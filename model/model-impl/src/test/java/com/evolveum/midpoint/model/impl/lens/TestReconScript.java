@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -224,13 +225,11 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
-		PropertyDelta dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), false);
+		PropertyDelta<Boolean> dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), false);
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(dryRunDelta);
 
 		repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
-
-//		dummyResource.deleteAccount("beforeScript");
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -244,14 +243,10 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		// THEN
 		displayThen(TEST_NAME);
 
-		try{
-			PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
-
-			display("Unexpected shadow", shadow);
-			AssertJUnit.fail("Expected object not found, but haven't got one");
-		} catch (ObjectNotFoundException ex){
-			//this is ok
-		}
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
+		ShadowAsserter.forShadow(shadow)
+			.assertDead()
+			.assertIsNotExists();
 
 		PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
 		display("Unexpected owner", user);

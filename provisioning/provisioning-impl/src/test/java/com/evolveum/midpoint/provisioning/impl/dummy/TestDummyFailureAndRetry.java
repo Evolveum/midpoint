@@ -37,6 +37,7 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -89,7 +90,10 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 	protected static final String ACCOUNT_MORGAN_FULLNAME_CHM = "Captain Henry Morgan";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyFailureAndRetry.class);
+	
 	private static final String ACCOUNT_JP_MORGAN_FULLNAME = "J.P. Morgan";
+	private static final String ACCOUNT_BETTY_USERNAME = "betty";
+	private static final String ACCOUNT_BETTY_FULLNAME = "Betty Rubble";
 	
 	private XMLGregorianCalendar lastRequestStartTs;
 	private XMLGregorianCalendar lastRequestEndTs;
@@ -1378,6 +1382,277 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 	}
 	
 	/**
+	 * Same add attempt than before. But this time the conflicting shadow exists.
+	 * MID-3891
+	 */
+	@Test
+	public void test802AddAccountMorganAlreadyExistsAgain() throws Exception {
+		final String TEST_NAME = "test802AddAccountMorganAlreadyExistsAgain";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+		dummyResource.resetBreakMode();
+		
+		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_MORGAN_FILE);
+		account.checkConsistence();
+		display("Adding shadow", account);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		try {
+			provisioningService.addObject(account, null, null, task, result);
+			assertNotReached();
+		} catch (ObjectAlreadyExistsException e) {
+			displayThen(TEST_NAME);
+			display("expected exception", e);
+		}
+
+		// THEN
+		display("Result", result);
+		assertFailure(result);
+		account.checkConsistence();
+		
+		PrismObject<ShadowType> conflictingShadowRepo = getShadowRepo(shadowMorganOid);
+		ShadowAsserter.forShadow(conflictingShadowRepo,"confligting repo shadow")
+			.display()
+			.assertBasicRepoProperties()
+			.assertOid(shadowMorganOid)
+			.assertName(ACCOUNT_MORGAN_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.pendingOperations()
+			.assertNone();
+		
+		syncServiceMock
+			.assertNotifyFailureOnly()
+			.assertNotifyChange()
+			.lastNotifyChange()
+				.display()
+				.assertNoDelta()
+				.oldShadow()
+					.assertOid(shadowMorganOid)
+					.assertName(ACCOUNT_MORGAN_NAME)
+					.assertKind(ShadowKindType.ACCOUNT)
+					.attributes()
+						.assertHasPrimaryIdentifier()
+						.assertHasSecondaryIdentifier()
+						.end()
+					.pendingOperations()
+						.assertNone()
+						.end()
+					.end()
+				.assertUnrelatedChange(false)
+				.assertProtected(false)
+				.currentShadow()
+					.assertOid(shadowMorganOid)
+					.assertName(ACCOUNT_MORGAN_NAME)
+					.assertKind(ShadowKindType.ACCOUNT)
+					.attributes()
+						.assertHasPrimaryIdentifier()
+						.assertHasSecondaryIdentifier()
+						.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_JP_MORGAN_FULLNAME)
+						.end()
+					.pendingOperations()
+						.assertNone();
+		
+		assertNoRepoShadow(ACCOUNT_MORGAN_OID);
+		assertSteadyResources();
+	}
+	
+	@Test
+	public void test804AddAccountElizabeth() throws Exception {
+		final String TEST_NAME = "test804AddAccountElizabeth";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+		dummyResource.resetBreakMode();
+		
+		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
+		account.checkConsistence();
+		display("Adding shadow", account);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.addObject(account, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		account.checkConsistence();
+		
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_ELIZABETH_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_ELIZABETH_FULLNAME);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Try to rename Elizabeth to Betty. But there is already Betty account on the resource.
+	 * MidPoint does not know anything about it (no shadow).
+	 */
+	@Test
+	public void test806RenameAccountElizabethAlreadyExists() throws Exception {
+		final String TEST_NAME = "test806RenameAccountElizabethAlreadyExists";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+		dummyResource.resetBreakMode();
+		
+		dummyResourceCtl.addAccount(ACCOUNT_BETTY_USERNAME, ACCOUNT_BETTY_FULLNAME);
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_ELIZABETH_OID, new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		try {
+			provisioningService.modifyObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, delta.getModifications(), null, null, task, result);
+			assertNotReached();
+		} catch (ObjectAlreadyExistsException e) {
+			displayThen(TEST_NAME);
+			display("expected exception", e);
+		}
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertFailure(result);
+		
+		PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
+		assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
+		ShadowAsserter.forShadow(conflictingShadowRepo,"confligting repo shadow")
+			.display()
+			.assertBasicRepoProperties()
+			.assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
+			.assertName(ACCOUNT_BETTY_USERNAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.pendingOperations()
+			.assertNone();
+		
+		syncServiceMock
+			.assertNotifyFailureOnly()
+			.assertNotifyChange()
+			.lastNotifyChange()
+				.display()
+				.assertNoDelta()
+				.assertNoOldShadow()
+				.assertUnrelatedChange(false)
+				.assertProtected(false)
+				.currentShadow()
+					.assertOid(conflictingShadowRepo.getOid())
+					.assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
+					.assertName(ACCOUNT_BETTY_USERNAME)
+					.assertKind(ShadowKindType.ACCOUNT)
+					.attributes()
+						.assertHasPrimaryIdentifier()
+						.assertHasSecondaryIdentifier()
+						.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_BETTY_FULLNAME)
+						.end()
+					.pendingOperations()
+						.assertNone();
+		
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_ELIZABETH_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_ELIZABETH_FULLNAME);
+		
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_BETTY_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_BETTY_FULLNAME);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Same rename attempt as before. But this time the conflicting shadow exists.
+	 */
+	@Test
+	public void test808RenameAccountElizabethAlreadyExistsAgain() throws Exception {
+		final String TEST_NAME = "test808RenameAccountElizabethAlreadyExistsAgain";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+		dummyResource.resetBreakMode();
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_ELIZABETH_OID, new ItemPath(ShadowType.F_ATTRIBUTES, SchemaConstants.ICFS_NAME), prismContext, ACCOUNT_BETTY_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		try {
+			provisioningService.modifyObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, delta.getModifications(), null, null, task, result);
+			assertNotReached();
+		} catch (ObjectAlreadyExistsException e) {
+			displayThen(TEST_NAME);
+			display("expected exception", e);
+		}
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertFailure(result);
+		
+		PrismObject<ShadowType> conflictingShadowRepo = findAccountShadowByUsername(ACCOUNT_BETTY_USERNAME, getResource(), result);
+		assertNotNull("Shadow for conflicting object was not created in the repository", conflictingShadowRepo);
+		ShadowAsserter.forShadow(conflictingShadowRepo,"confligting repo shadow")
+			.display()
+			.assertBasicRepoProperties()
+			.assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
+			.assertName(ACCOUNT_BETTY_USERNAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.pendingOperations()
+			.assertNone();
+		
+		syncServiceMock
+			.assertNotifyFailureOnly()
+			.assertNotifyChange()
+			.lastNotifyChange()
+				.display()
+				.assertNoDelta()
+				.oldShadow()
+					.assertOid(conflictingShadowRepo.getOid())
+					.assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
+					.assertName(ACCOUNT_BETTY_USERNAME)
+					.assertKind(ShadowKindType.ACCOUNT)
+					.attributes()
+						.assertHasPrimaryIdentifier()
+						.assertHasSecondaryIdentifier()
+						.end()
+					.pendingOperations()
+						.assertNone()
+						.end()
+					.end()
+				.assertUnrelatedChange(false)
+				.assertProtected(false)
+				.currentShadow()
+					.assertOid(conflictingShadowRepo.getOid())
+					.assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
+					.assertName(ACCOUNT_BETTY_USERNAME)
+					.assertKind(ShadowKindType.ACCOUNT)
+					.attributes()
+						.assertHasPrimaryIdentifier()
+						.assertHasSecondaryIdentifier()
+						.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_BETTY_FULLNAME)
+						.end()
+					.pendingOperations()
+						.assertNone();
+		
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_ELIZABETH_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_ELIZABETH_FULLNAME);
+		
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_BETTY_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_BETTY_FULLNAME);
+		
+		assertSteadyResources();
+	}
+	
+	/**
 	 * Try to get account morgan. But the account has disappeared from the resource
 	 * in the meantime. MidPoint does not know anything about this (shadow still exists).
 	 * Proper notification should be called.
@@ -1393,7 +1668,6 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 		dummyResource.resetBreakMode();
-		
 		dummyResourceCtl.deleteAccount(ACCOUNT_MORGAN_NAME);
 
 		// WHEN
@@ -1443,8 +1717,138 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		assertSteadyResources();
 	}
 	
-	// TODO: modify of deleted shadow
-	// TODO: delete of deleted shadow
+	/**
+	 * Try to modify account will. But the account has disappeared from the resource
+	 * in the meantime. MidPoint does not know anything about this (shadow still exists).
+	 * Proper notification should be called.
+	 * MID-3891
+	 */
+	@Test
+	public void test812ModifyAccountWillNotFound() throws Exception {
+		final String TEST_NAME = "test812ModifyAccountWillNotFound";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+		dummyResource.resetBreakMode();
+		dummyResourceCtl.deleteAccount(ACCOUNT_WILL_USERNAME);
+		
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Will Turner");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		try {
+			provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, delta.getModifications(), null, null, task, result);
+			assertNotReached();
+		} catch (ObjectNotFoundException e) {
+			displayThen(TEST_NAME);
+			display("expected exception", e);
+		}
+
+		// THEN
+		display("Result", result);
+		assertFailure(result);
+		
+		syncServiceMock
+			.assertNotifyChange()
+			.lastNotifyChange()
+				.display()
+				.assertNoCurrentShadow()
+				.assertUnrelatedChange(false)
+				.assertProtected(false)
+				.delta()
+					.assertDelete()
+					.end()
+				.oldShadow()
+					.assertOid(ACCOUNT_WILL_OID)
+					.assertName(ACCOUNT_WILL_USERNAME)
+					.assertKind(ShadowKindType.ACCOUNT)
+					.assertDead()
+					.assertIsNotExists()
+					.attributes()
+						.assertHasPrimaryIdentifier()
+						.assertHasSecondaryIdentifier()
+						.end()
+					.pendingOperations()
+						.assertNone();
+
+		assertRepoShadow(ACCOUNT_WILL_OID)
+			.assertDead()
+			.assertIsNotExists()
+			.pendingOperations()
+				.assertNone();
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Try to delete account elizabeth. But the account has disappeared from the resource
+	 * in the meantime. MidPoint does not know anything about this (shadow still exists).
+	 * Proper notification should be called.
+	 * MID-3891
+	 */
+	@Test
+	public void test814DeleteAccountElizabethNotFound() throws Exception {
+		final String TEST_NAME = "test814DeleteAccountElizabethNotFound";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+		dummyResource.resetBreakMode();
+		dummyResourceCtl.deleteAccount(ACCOUNT_ELIZABETH_USERNAME);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		try {
+			provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
+			assertNotReached();
+		} catch (ObjectNotFoundException e) {
+			displayThen(TEST_NAME);
+			display("expected exception", e);
+		}
+
+		// THEN
+		display("Result", result);
+		assertFailure(result);
+		
+		syncServiceMock
+			.assertNotifyChange()
+			.lastNotifyChange()
+				.display()
+				.assertNoCurrentShadow()
+				.assertUnrelatedChange(false)
+				.assertProtected(false)
+				.delta()
+					.assertDelete()
+					.end()
+				.oldShadow()
+					.assertOid(ACCOUNT_ELIZABETH_OID)
+					.assertName(ACCOUNT_ELIZABETH_USERNAME)
+					.assertKind(ShadowKindType.ACCOUNT)
+					.assertDead()
+					.assertIsNotExists()
+					.attributes()
+						.assertHasPrimaryIdentifier()
+						.assertHasSecondaryIdentifier()
+						.end()
+					.pendingOperations()
+						.assertNone();
+
+		assertRepoShadow(ACCOUNT_ELIZABETH_OID)
+			.assertDead()
+			.assertIsNotExists()
+			.pendingOperations()
+				.assertNone();
+		
+		assertSteadyResources();
+	}
+	
+	// TODO: test no discovery options
 	
 	private void assertUncreatedMorgan(int expectedAttemptNumber) throws Exception {
 		

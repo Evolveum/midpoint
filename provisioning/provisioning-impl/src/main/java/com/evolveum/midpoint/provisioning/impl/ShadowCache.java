@@ -78,12 +78,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -110,7 +108,7 @@ public class ShadowCache {
 	public static String OP_DELAYED_OPERATION = ShadowCache.class.getName() + ".delayedOperation";
 	public static String OP_OPERATION_RETRY = ShadowCache.class.getName() + ".operationRetry";
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
@@ -868,7 +866,7 @@ public class ShadowCache {
 			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts,
 			ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
 
 		Validate.notNull(repoShadow, "Object to modify must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
@@ -901,7 +899,7 @@ public class ShadowCache {
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
 			Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
 		
 		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
 		
@@ -946,13 +944,7 @@ public class ShadowCache {
 				} catch (Exception ex) {
 					LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
 							ex.getClass(), ex.getMessage(), ex);
-					try {
-						finalOperationStatus = handleModifyError(ctx, repoShadow, modifications, options, opState, ex, parentResult.getLastSubresult(), task, parentResult);
-					} catch (ObjectAlreadyExistsException e) {
-						parentResult.recordFatalError(
-								"While handling communication problem for modify operation got: " + ex.getMessage(), ex);
-						throw new SystemException(e);
-					}
+					finalOperationStatus = handleModifyError(ctx, repoShadow, modifications, options, opState, ex, parentResult.getLastSubresult(), task, parentResult);
 				}
 				
 				LOGGER.debug("MODIFY {}: resource operation executed, operation state: {}", repoShadow, opState.shortDumpLazily());

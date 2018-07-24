@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -80,15 +82,47 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
 		if (isDoDiscovery(ctx.getResource(), rootOptions)) {
-			discoverDeletedShadow(ctx, repositoryShadow, rootOptions, cause, task, parentResult);
+			discoverDeletedShadow(ctx, repositoryShadow, cause, task, parentResult);
 		}
 		
-		throwException(cause, null, parentResult);
-		return null; // not reached
+		return super.handleGetError(ctx, repositoryShadow, rootOptions, cause, task, parentResult);
 	}
 	
+	@Override
+	public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+			Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
+			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+			Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
+			throws SchemaException, GenericFrameworkException, CommunicationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException {
+
+		if (isDoDiscovery(ctx.getResource(), options)) {
+			discoverDeletedShadow(ctx, repoShadow, cause, task, parentResult);
+		}
+
+		return super.handleModifyError(ctx, repoShadow, modifications, options, opState, cause, failedOperationResult, task, parentResult);
+	}
+	
+	@Override
+	public OperationResultStatus handleDeleteError(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
+			ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
+			OperationResult failedOperationResult, Task task, OperationResult parentResult)
+			throws SchemaException, GenericFrameworkException, CommunicationException,
+			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		
+		if (isDoDiscovery(ctx.getResource(), options)) {
+			discoverDeletedShadow(ctx, repoShadow, cause, task, parentResult);
+		}
+		
+		return super.handleDeleteError(ctx, repoShadow, options, opState, cause, failedOperationResult, task,
+				parentResult);
+	}
+
 	private void discoverDeletedShadow(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
-			GetOperationOptions rootOptions, Exception cause, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+			Exception cause, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
 		// TODO: this probably should NOT be a subresult of parentResult. We probably want new result (and maybe also task) here.
 		OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
