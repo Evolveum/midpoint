@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.testing.consistency;
+package com.evolveum.midpoint.testing.story;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoCache;
@@ -147,12 +147,12 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
  * 
  * @author Katarina Valalikova
  */
-@ContextConfiguration(locations = { "classpath:ctx-consistency-test-main.xml" })
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class ConsistencyTest extends AbstractModelIntegrationTest {
+public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 	
-	private static final String REPO_DIR_NAME = "src/test/resources/repo/";
-	private static final String REQUEST_DIR_NAME = "src/test/resources/request/";
+	private static final String REPO_DIR_NAME = "src/test/resources/consistency/repo/";
+	private static final String REQUEST_DIR_NAME = "src/test/resources/consistency/request/";
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
 	
@@ -291,7 +291,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	private static final String LDIF_MODIFY_RENAME_FILENAME = "src/test/resources/request/modify-rename.ldif";
 
-	private static final Trace LOGGER = TraceManager.getTrace(ConsistencyTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestConsistencyMechanism.class);
 
 	private static final String NS_MY = "http://whatever.com/my";
 	private static final QName MY_SHIP_STATE = new QName(NS_MY, "shipState");
@@ -377,7 +377,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		assertNoRepoCache();
 
-		OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestConsistencyMechanism.class.getName() + "." + TEST_NAME);
 
 		// Check if OpenDJ resource was imported correctly
 
@@ -417,7 +417,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		TestUtil.assertSuccess("testResource has failed", result);
 
-		OperationResult opResult = new OperationResult(ConsistencyTest.class.getName()
+		OperationResult opResult = new OperationResult(TestConsistencyMechanism.class.getName()
 				+ "." + TEST_NAME);
 
 		PrismObject<ResourceType> resourceOpenDjRepo = repositoryService.getObject(ResourceType.class,
@@ -1750,7 +1750,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
         // GIVEN
         openDJController.assumeRunning();        
-        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestConsistencyMechanism.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
@@ -1805,7 +1805,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
         // GIVEN	
         openDJController.assumeRunning();
-        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestConsistencyMechanism.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
@@ -1867,7 +1867,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
         // GIVEN	
         openDJController.assumeRunning();
-        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestConsistencyMechanism.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
@@ -1926,7 +1926,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestConsistencyMechanism.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
@@ -1996,7 +1996,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
         // GIVEN
         openDJController.assumeRunning();
-        Task task = taskManager.createTaskInstance(ConsistencyTest.class.getName() + "." + TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestConsistencyMechanism.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
         
@@ -2139,7 +2139,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
         openDJController.assumeRunning();
 
-		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
+		final OperationResult result = new OperationResult(TestConsistencyMechanism.class.getName() + "." + TEST_NAME);
 
 		// TODO: remove this if the previous test is enabled
 //		openDJController.start();
@@ -2291,7 +2291,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	
 	private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException {
-		OperationResult result = new OperationResult(ConsistencyTest.class.getName()
+		OperationResult result = new OperationResult(TestConsistencyMechanism.class.getName()
 				+ ".checkRepoOpenDjResource");
 		PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class,
 				RESOURCE_OPENDJ_OID, null, result);
