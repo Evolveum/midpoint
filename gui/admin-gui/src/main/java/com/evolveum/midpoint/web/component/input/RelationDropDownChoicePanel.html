@@ -16,24 +16,7 @@
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:extend>
-    <wicket:child />
-    <div class="form-inline">
-        <div class="row">
-            <div class="col-md-4">
-                <label><wicket:message key="AssignmentPanel.newAssignmentParameters" /></label>
-            </div>
-        </div>
-        <div wicket:id="relationContainer" class="row">
-            <div class="form-group col-md-12">
-                <div class="col-md-1" >
-                    <div><wicket:message key="AssignmentEditorPanel.relation"/></div>
-                </div>
-                <div class="col-md-3" >
-                    <span wicket:id="relation"/>
-                </div>
-            </div>
-        </div>
-    </div>
-</wicket:extend>
+<wicket:panel>
+    <select class="form-control input-sm" wicket:id="input"/>
+</wicket:panel>
 </html>

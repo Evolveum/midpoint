@@ -27,21 +27,19 @@ import org.apache.wicket.model.IModel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by honchar
  */
-public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabPanel<OrgType>{
+public class OrgTreeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabPanel<OrgType>{
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
-    private boolean isOrgTreeView;
-
-    public OrgTypeAssignmentPopupTabPanel(String id, boolean isOrgTreeView){
+    public OrgTreeAssignmentPopupTabPanel(String id){
         super(id, ObjectTypes.ORG);
-        this.isOrgTreeView = isOrgTreeView;
     }
 
     @Override
@@ -71,7 +69,7 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
                         preselectedObjects.add(rowModel.getObject().getValue());
                     }
                 }
-                OrgTypeAssignmentPopupTabPanel.this.onOrgTreeCheckBoxSelectionPerformed(target);
+                OrgTreeAssignmentPopupTabPanel.this.onOrgTreeCheckBoxSelectionPerformed(target);
             }
 
             @Override
@@ -80,40 +78,23 @@ public class OrgTypeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
             }
         };
         orgTreePanel.setOutputMarkupId(true);
-        orgTreePanel.add(new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible(){
-                return isOrgTreeView;
-            }
-        });
         add(orgTreePanel);
 
     }
 
     @Override
-    protected boolean isObjectListPanelVisible(){
-        return !isOrgTreeView;
-    }
-
-    protected List getSelectedObjectsList(){
-        if (isOrgTreeView){
-            return getPreselectedObjects();
-        } else {
-            return super.getSelectedObjectsList();
-        }
+    protected ObjectTypes getObjectType(){
+        return ObjectTypes.ORG;
     }
 
     @Override
-    protected List<AssignmentType> getSelectedAssignmentsList(){
-        isOrgTreeView = true;
-        return super.getSelectedAssignmentsList();
+    protected boolean isObjectListPanelVisible(){
+        return false;
+    }
+
+    protected List getSelectedObjectsList(){
+            return getPreselectedObjects();
     }
 
     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){}
-
-    public boolean isOrgTreeView(){
-        return isOrgTreeView;
-    }
 }

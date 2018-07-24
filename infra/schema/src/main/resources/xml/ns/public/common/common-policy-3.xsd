@@ -2031,14 +2031,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="forcedAssignment" type="tns:ObjectReferenceType">
+            <xsd:element name="forcedAssignment" type="tns:VirtualAssignmentSpecificationType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
-						Reference to the role, service or org.
+						<p>
+                    		There are cases when you need to force midpoint thinks that user has assigned some
+                    		role. The assignemnt actually doesn't exist but there is a need to preted as it does.
+                    		This can be used e.g. for post-authentication flow. The user has assigned all business,
+                    		application, etc. roles but we don't want to consider these roles during his
+                    		post-authentication proces. Instead, we want to pretend he has "temporary" role assigned
+                    		which allows him to perform post-authentication.
+                    	</p>
 					</xsd:documentation>
-					<xsd:appinfo>
-						<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
-					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
             <xsd:element name="activeAssignments" type="xsd:boolean" minOccurs="0">
@@ -2101,6 +2105,46 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="VirtualAssignmentSpecificationType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			<p>
+    				There are cases when you need to force midpoint thinks that user has assigned some
+                    role. The assignemnt actually doesn't exist but there is a need to preted as it does.
+                    This can be used e.g. for post-authentication flow. The user has assigned all business,
+                    application, etc. roles but we don't want to consider these roles during his
+                    post-authentication proces. Instead, we want to pretend he has "temporary" role assigned
+                    which allows him to perform post-authentication.
+    			</p>
+    		</xsd:documentation>
+    		<xsd:appinfo>
+    			<a:container/>
+    			<a:since>3.8.1</a:since>
+    			<a:experimental>true</a:experimental>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+    	<xsd:sequence>
+    		<xsd:element name="targetType" type="xsd:QName" minOccurs="0" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The target type of the assignment, e.g RoleType, ServiceType, OrgType, ...
+    					</p>
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						No filter, no virtual assignemnts.
+    					</p>
+    				</xsd:documentation>
+    			</xsd:annotation>
+    		</xsd:element>
+    	</xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="LifecycleStateTransitionType">

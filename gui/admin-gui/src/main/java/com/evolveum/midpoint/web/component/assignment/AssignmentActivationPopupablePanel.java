@@ -160,6 +160,16 @@ public class AssignmentActivationPopupablePanel extends BasePanel<ActivationType
     }
 
     @Override
+    public String getWidthUnit(){
+        return "px";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "px";
+    }
+
+    @Override
     public StringResourceModel getTitle(){
         return createStringResource("AssignmentActivationPopupPanel.title");
     }

@@ -118,7 +118,6 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 
 			            @Override
 			            public void yesPerformed(AjaxRequestTarget target) {
-				            getPageBase().hideMainPopup(target);
 				            ajaxDownloadBehavior.initiate(target);
 			            }
 		            };

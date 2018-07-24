@@ -26,12 +26,12 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceRelationsPanel;
+import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
@@ -55,8 +55,8 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 	protected List<ITab> createTabs(final PageAdminObjectDetails<RoleType> parentPage) {
 		List<ITab> tabs = super.createTabs(parentPage);
 
-		FocusTabVisibleBehavior authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL);
+		FocusTabVisibleBehavior<RoleType> authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
+				ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, isFocusHistoryPage());
 
 		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"), authorization) {
 
@@ -73,28 +73,6 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 			}
 		});
 
-		authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_POLICY_CONSTRAINTS_URL);
-
-	
-		authorization = new FocusTabVisibleBehavior(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL);
-
-//		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"), authorization) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public WebMarkupContainer createPanel(String panelId) {
-//				return new RoleMemberPanel(panelId, new Model<RoleType>(getObject().asObjectable()), getDetailsPage());
-//			}
-//
-//			@Override
-//			public boolean isVisible() {
-//				return getObjectWrapper().getStatus() != ContainerStatus.ADDING;
-//			}
-//		});
-
 		return tabs;
 	}
 
@@ -109,7 +87,7 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 		relationsList.add(RelationTypes.OWNER);
 		relationsList.add(RelationTypes.MANAGER);
 
-		return new RoleGovernanceRelationsPanel(panelId, new Model<>(getObject().asObjectable()), relationsList);
+		return new RoleGovernanceMemberPanel(panelId, new Model<>(getObject().asObjectable()), relationsList);
 	}
 
 

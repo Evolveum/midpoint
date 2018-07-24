@@ -41,6 +41,8 @@ public interface UserProfileService extends OwnerResolver {
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
     MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException;
+    
+    MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException;
 
     MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException;
     

@@ -22,17 +22,18 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -46,7 +47,6 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -73,16 +73,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.model.Model;
 
 public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extends BasePanel<T> {
@@ -117,8 +107,6 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	private LoadableModel<List<String>> ownerRelationObjectsModel;
 	private LoadableModel<List<String>> managerRelationObjectsModel;
 	protected LoadableModel<List<String>> memberRelationObjectsModel;
-
-	private boolean areModelsInitialized = false;
 
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model) {
 		this(id, tableId, model, new ArrayList<>());
@@ -188,7 +176,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 			@Override
 			protected void newObjectPerformed(AjaxRequestTarget target) {
-				AbstractRoleMemberPanel.this.createFocusMemberPerformed(null, target);
+				AbstractRoleMemberPanel.this.addMembers(target, getAvailableRelationList());
 			}
 
 			@Override
@@ -300,7 +288,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						addMembers(null, target);
+						addMembers(target, getAvailableRelationList());
 					}
 				}));
 		return newMemberMenuItems;
@@ -423,19 +411,14 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, this);
 	}
 
-	protected void addMembers(final QName relation, AjaxRequestTarget target) {
+	protected void addMembers(AjaxRequestTarget target, List<RelationTypes> availableRelationList) {
 
-		List<QName> types = getNewMemberSupportedTypes();
-
-		ObjectBrowserPanel<ObjectType> browser = new ObjectBrowserPanel(getPageBase().getMainPopupBodyId(),
-				UserType.class, types, true, getPageBase()) {
+		ChooseMemberPopup browser = new ChooseMemberPopup(getPageBase().getMainPopupBodyId(), availableRelationList) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void addPerformed(AjaxRequestTarget target, QName type, List selected) {
-				AbstractRoleMemberPanel.this.getPageBase().hideMainPopup(target);
-				AbstractRoleMemberPanel.this.addMembersPerformed(type, Arrays.asList(relation), selected, target);
-
+			protected T getAssignmentTargetRefObject(){
+				return AbstractRoleMemberPanel.this.getModelObject();
 			}
 		};
 		browser.setOutputMarkupId(true);
@@ -444,27 +427,9 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	}
 
-	protected List<QName> getNewMemberSupportedTypes(){
-		List<QName> types = WebComponentUtil.createObjectTypeList();
-		types.remove(NodeType.COMPLEX_TYPE);
-		types.remove(ShadowType.COMPLEX_TYPE);
-		return types;
+	protected List<RelationTypes> getAvailableRelationList(){
+		return Arrays.asList(RelationTypes.MEMBER, RelationTypes.MANAGER, RelationTypes.APPROVER, RelationTypes.OWNER);
 	}
-
-	protected ObjectQuery createQueryForAdd(List selected) {
-		List<String> oids = new ArrayList<>();
-		for (Object selectable : selected) {
-			if (selectable instanceof ObjectType) {
-				oids.add(((ObjectType) selectable).getOid());
-			}
-
-		}
-
-		return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
-	}
-
-	protected abstract void addMembersPerformed(QName type, List<QName> relation, List selected,
-			AjaxRequestTarget target);
 
 	protected abstract void removeMembersPerformed(QueryScope scope, List<QName> relation, AjaxRequestTarget target);
 
@@ -476,12 +441,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		OperationResult parentResult = operationalTask.getResult();
 
 		try {
-			ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
-					? ModelExecuteOptions.createReconcile()		// This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
-					: null;
-			TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type,
-					memberQuery, delta, options, category, getPageBase());
-			WebModelServiceUtils.runTask(task, operationalTask, parentResult, getPageBase());
+			WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, delta, category, parentResult, getPageBase());
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(parentResult.getOperation(), e);
 			LoggingUtils.logUnexpectedException(LOGGER,

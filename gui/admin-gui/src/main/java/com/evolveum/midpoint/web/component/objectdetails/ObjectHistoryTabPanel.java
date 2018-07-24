@@ -60,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * Created by honchar.
  */
-public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
+public abstract class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 
     private static final long serialVersionUID = 1L;
 
@@ -107,10 +107,9 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
                                                 createStringResource("ObjectHistoryTabPanel.viewHistoricalObjectDataTitle"),
                                                 new Model<>("btn btn-sm " + DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO),
                                                 target ->
-                                                        currentStateButtonClicked(target, focusWrapperModel.getObject().getOid(),
-                                                                model.getObject().getEventIdentifier(),
-                                                                WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE),
-                                                                page.getCompileTimeClass()));
+                                                        currentStateButtonClicked(target, getReconstructedObject(focusWrapperModel.getObject().getOid(),
+                                                                model.getObject().getEventIdentifier(), page.getCompileTimeClass()),
+                                                                WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                     case 1:
                                         btn = buildDefaultButton(componentId, new Model<>(GuiStyleConstants.CLASS_FILE_TEXT),
@@ -173,11 +172,7 @@ public class ObjectHistoryTabPanel<F extends FocusType> extends AbstractObjectTa
         return searchDto;
     }
 
-    private void currentStateButtonClicked(AjaxRequestTarget target, String oid, String eventIdentifier,
-                                           String date, Class type) {
-        //TODO cases for PageRoleHistory, PageOrgHistory if needed...
-        getPageBase().navigateToNext(new PageUserHistory((PrismObject<UserType>) getReconstructedObject(oid, eventIdentifier, type), date));
-    }
+    protected abstract void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date);
 
     private PrismObject<F> getReconstructedObject(String oid, String eventIdentifier,
                                                   Class type) {

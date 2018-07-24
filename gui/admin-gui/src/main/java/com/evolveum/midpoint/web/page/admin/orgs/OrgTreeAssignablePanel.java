@@ -169,6 +169,16 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 	}
 
 	@Override
+	public String getWidthUnit(){
+		return "px";
+	}
+
+	@Override
+	public String getHeightUnit(){
+		return "px";
+	}
+
+	@Override
 	public StringResourceModel getTitle() {
 		return new StringResourceModel("OrgTreeAssignablePanel.selectOrg");
 	}

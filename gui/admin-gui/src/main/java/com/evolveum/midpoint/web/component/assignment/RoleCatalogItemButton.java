@@ -21,6 +21,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -42,6 +44,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -295,16 +298,17 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
     private void addAssignmentPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){
         plusIconClicked = true;
         RoleCatalogStorage storage = getPageBase().getSessionStorage().getRoleCatalog();
-        if (storage.getAssignmentShoppingCart() == null){
-            storage.setAssignmentShoppingCart(new ArrayList<>());
-        }
         AssignmentEditorDto dto = assignment.clone();
-        dto.setDefaultRelation();
+        dto.getTargetRef().setRelation(getNewAssignmentRelation());
         storage.getAssignmentShoppingCart().add(dto);
 
         assignmentAddedToShoppingCartPerformed(target);
     }
 
     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
+    }
+
+    protected QName getNewAssignmentRelation(){
+        return SchemaConstants.ORG_DEFAULT;
     }
 }

@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -547,6 +548,17 @@ public final class WebComponentUtil {
 
 	}
 
+	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
+											  ObjectDelta delta, String category, OperationResult parentResult, PageBase pageBase) throws SchemaException{
+		ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
+				? ModelExecuteOptions.createReconcile()		// This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
+				: null;
+		TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type,
+				memberQuery, delta, options, category, pageBase);
+		WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
+
+	}
+
 	public static boolean isAuthorized(String... action) {
 		if (action == null || action.length == 0) {
 			return true;
@@ -777,29 +789,8 @@ public final class WebComponentUtil {
 
 	public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
 			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull, String nullValidDisplayValue) {
-		return new DropDownChoicePanel<E>(id, model, choicesList,
-            new IChoiceRenderer<E>() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public E getObject(String id, IModel<? extends List<? extends E>> choices) {
-                    if (StringUtils.isBlank(id)) {
-                        return null;
-                    }
-                    return choices.getObject().get(Integer.parseInt(id));
-                }
-
-                @Override
-                public Object getDisplayValue(E object) {
-                    return WebComponentUtil.createLocalizedModelForEnum(object, component).getObject();
-                }
-
-                @Override
-                public String getIdValue(E object, int index) {
-                    return Integer.toString(index);
-                }
-            }, allowNull){
+		return new DropDownChoicePanel<E>(id, model, choicesList, getEnumChoiceRenderer(component)
+            , allowNull){
 
 			private static final long serialVersionUID = 1L;
 
@@ -807,6 +798,31 @@ public final class WebComponentUtil {
 			protected String getNullValidDisplayValue() {
 				return nullValidDisplayValue != null && StringUtils.isNotEmpty(nullValidDisplayValue.trim()) ?
 						nullValidDisplayValue : super.getNullValidDisplayValue();
+			}
+		};
+	}
+
+	public static <E extends Enum> IChoiceRenderer<E> getEnumChoiceRenderer(Component component){
+		return new IChoiceRenderer<E>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public E getObject(String id, IModel<? extends List<? extends E>> choices) {
+				if (StringUtils.isBlank(id)) {
+					return null;
+				}
+				return choices.getObject().get(Integer.parseInt(id));
+			}
+
+			@Override
+			public Object getDisplayValue(E object) {
+				return WebComponentUtil.createLocalizedModelForEnum(object, component).getObject();
+			}
+
+			@Override
+			public String getIdValue(E object, int index) {
+				return Integer.toString(index);
 			}
 		};
 	}

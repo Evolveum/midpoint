@@ -24,11 +24,15 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoleHistory;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -89,6 +93,16 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 			@Override
 			public AbstractRoleMemberPanel<ServiceType> createMemberPanel(String panelId) {
 				return new ServiceMemberPanel(panelId, Model.of(getObject().asObjectable()));
+			}
+
+			@Override
+			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<ServiceType> object, String date){
+				PageService.this.navigateToNext(new PageServiceHistory(object, date));
+			}
+
+			@Override
+			protected boolean isFocusHistoryPage(){
+				return PageService.this.isFocusHistoryPage();
 			}
 		};
 	}

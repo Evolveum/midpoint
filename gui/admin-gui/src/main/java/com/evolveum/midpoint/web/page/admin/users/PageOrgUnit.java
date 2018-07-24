@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -94,6 +97,16 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 			@Override
 			public AbstractRoleMemberPanel<OrgType> createMemberPanel(String panelId) {
 				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()));
+			}
+
+			@Override
+			protected boolean isFocusHistoryPage(){
+				return PageOrgUnit.this.isFocusHistoryPage();
+			}
+
+			@Override
+			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<OrgType> object, String date){
+				PageOrgUnit.this.navigateToNext(new PageOrgUnitHistory(object, date));
 			}
 		};
 	}
