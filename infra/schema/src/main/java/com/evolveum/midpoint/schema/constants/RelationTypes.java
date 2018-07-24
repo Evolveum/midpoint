@@ -57,7 +57,7 @@ public enum RelationTypes {
     }
     
     public String getLabelKey() {
-    	return RelationTypes.class.getSimpleName() + "." + getHeaderLabel();
+    	return RelationTypes.class.getSimpleName() + "." + relation.getLocalPart();
     }
     
     public AreaCategoryType[] getCategories() {

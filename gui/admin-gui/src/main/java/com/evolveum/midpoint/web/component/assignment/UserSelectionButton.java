@@ -113,13 +113,17 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible(){
-                return getModelObject() != null && getModelObject().size() > 0;
+                return isDeleteButtonVisible();
             }
         });
         userSelectionButton.add(deleteButton);
     }
 
     protected abstract String getUserButtonLabel();
+
+    protected boolean isDeleteButtonVisible(){
+        return getModelObject() != null && getModelObject().size() > 0;
+    }
 
     protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
         showUserSelectionPopup = false;

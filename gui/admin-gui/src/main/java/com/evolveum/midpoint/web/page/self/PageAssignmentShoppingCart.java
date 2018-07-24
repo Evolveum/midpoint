@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
@@ -380,27 +381,15 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
-        List<RelationTypes> availableRelations = new ArrayList<>();
-        for (RelationTypes relation : RelationTypes.values()){
-            if (relation.getCategories() != null && ArraysUtils.asList(relation.getCategories()).contains(AreaCategoryType.SELF_SERVICE)){
-                availableRelations.add(relation);
-            }
-        }
-        DropDownChoicePanel<RelationTypes> relationSelector =  new DropDownChoicePanel<RelationTypes> (ID_RELATION,
-                Model.of(RelationTypes.MEMBER), Model.ofList(availableRelations),
-                WebComponentUtil.getEnumChoiceRenderer(PageAssignmentShoppingCart.this), false);
-        relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-        relationSelector.setOutputMarkupId(true);
-        relationSelector.setOutputMarkupPlaceholderTag(true);
-        relationContainer.add(relationSelector);
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, Model.of(SchemaConstants.ORG_DEFAULT), AreaCategoryType.SELF_SERVICE));
     }
 
     private QName getRelationParameterValue(){
-        return getRelationDropDown().getModel().getObject().getRelation();
+        return getRelationDropDown().getModel().getObject();
     }
 
-    private DropDownChoicePanel<RelationTypes> getRelationDropDown(){
-        return (DropDownChoicePanel<RelationTypes>)get(createComponentPath(ID_MAIN_FORM, ID_PARAMETERS_PANEL, ID_RELATION_CONTAINER, ID_RELATION));
+    private RelationDropDownChoicePanel getRelationDropDown(){
+        return (RelationDropDownChoicePanel)get(createComponentPath(ID_MAIN_FORM, ID_PARAMETERS_PANEL, ID_RELATION_CONTAINER, ID_RELATION));
     }
 
     private TabbedPanel getTabbedPanel(){

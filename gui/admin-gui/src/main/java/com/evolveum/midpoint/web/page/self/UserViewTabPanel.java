@@ -17,11 +17,15 @@ package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.web.component.assignment.GridViewComponent;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.UserSelectionButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.github.sommeri.less4j.utils.ArraysUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -32,6 +36,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -43,11 +48,14 @@ import java.util.List;
 public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleType> {
     private static final long serialVersionUID = 1L;
 
+    private static final String DOT_CLASS = UserViewTabPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_RELATION_DEFINITIONS = DOT_CLASS + "loadRelationDefinitions";
+    private static final Trace LOGGER = TraceManager.getTrace(UserViewTabPanel.class);
+
     private static final String ID_SOURCE_USER_PANEL = "sourceUserPanel";
     private static final String ID_SOURCE_USER_BUTTON = "sourceUserButton";
     private static final String ID_SOURCE_USER_RELATIONS = "sourceUserRelations";
     private static final String ID_RELATION_LINK = "relationLink";
-    private static final String ID_RELATION_LINK_LABEL = "relationLinkLabel";
 
     private QName selectedRelation = null;
 
@@ -86,8 +94,6 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
             protected void singleUserSelectionPerformed(AjaxRequestTarget target, UserType user){
                 super.singleUserSelectionPerformed(target, user);
                 getRoleCatalogStorage().setAssignmentsUserOwner(user);
-
-//                searchModel.reset();
                 target.add(UserViewTabPanel.this);
             }
 
@@ -97,14 +103,8 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
             }
 
             @Override
-            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
-                super.onDeleteSelectedUsersPerformed(target);
-                getRoleCatalogStorage().setAssignmentsUserOwner(null);
-//                initProvider();
-//                searchModel.reset();
-
-//                target.add(getTabbedPanel());
-//                target.add(getHeaderPanel());
+            protected boolean isDeleteButtonVisible(){
+                return false;
             }
         };
         sourceUserButton.setOutputMarkupId(true);
@@ -113,10 +113,10 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
 
     private String getSourceUserSelectionButtonLabel(){
         UserType user = getRoleCatalogStorage().getAssignmentsUserOwner();
-        if (user ==  null){
-            return createStringResource("AssignmentCatalogPanel.selectSourceUser").getString();
+        if (user.getOid().equals(getPageBase().loadUserSelf().getOid())){
+            return createStringResource("UserSelectionButton.myAssignmentsLabel").getString();
         } else {
-            return createStringResource("AssignmentCatalogPanel.sourceUserSelected", user.getName().getOrig()).getString();
+            return createStringResource("UserSelectionButton.userAssignmentsLabel", user.getName().getOrig()).getString();
         }
     }
 
@@ -141,13 +141,29 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
 
     private List<QName> getRelationsList(){
         List<QName> relationsList = new ArrayList<>();
+        //null value is needed for ALL relations to be displayed
         relationsList.add(null);
-        for (RelationTypes relation : RelationTypes.values()){
-            if (relation.getCategories() != null && ArraysUtils.asList(relation.getCategories()).contains(AreaCategoryType.SELF_SERVICE)){
-                relationsList.add(relation.getRelation());
-            }
+
+        List<RelationDefinitionType> defList = getRelationDefinitions();
+        if (defList != null) {
+            defList.forEach(def -> {
+                if (def.getCategory() != null && def.getCategory().contains(AreaCategoryType.SELF_SERVICE)) {
+                    relationsList.add(def.getRef());
+                }
+            });
         }
         return relationsList;
+    }
+
+    private List<RelationDefinitionType> getRelationDefinitions(){
+        OperationResult result = new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS);
+        try {
+            return getPageBase().getModelInteractionService().getRelationDefinitions(result);
+        } catch (ObjectNotFoundException | SchemaException ex){
+            result.computeStatus();
+            LOGGER.error("Unable to load relation definitions, " + ex.getLocalizedMessage());
+        }
+        return null;
     }
 
     private Component createRelationLink(String id, IModel<QName> model) {
@@ -156,8 +172,21 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
             @Override
             public IModel<String> getBody() {
                 QName relation = model.getObject();
-                return relation == null ? createStringResource("RelationTypes.ANY") :
-                        createStringResource("RelationTypes." + relation.getLocalPart());
+                if (relation == null){
+                    return createStringResource("RelationTypes.ANY");
+                }
+                List<RelationDefinitionType> defList = getRelationDefinitions();
+                RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(defList, model.getObject());
+                if (def != null) {
+                    DisplayType display = def.getDisplay();
+                    if (display != null) {
+                        String label = display.getLabel();
+                        if (StringUtils.isNotEmpty(label)) {
+                            return getPageBase().createStringResource(label);
+                        }
+                    }
+                }
+                return Model.of(model.getObject().getLocalPart());
             }
 
             @Override
