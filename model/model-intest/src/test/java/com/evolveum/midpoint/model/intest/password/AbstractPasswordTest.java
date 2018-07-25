@@ -130,6 +130,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		InternalsConfig.setAvoidLoggingChange(true);
 		super.initSystem(initTask, initResult);
 		
+		importObjectFromFile(USER_THREE_HEADED_MONKEY_FILENAME);
+		
 		importObjectFromFile(PASSWORD_POLICY_UGLY_FILE);
 		importObjectFromFile(SECURITY_POLICY_DEFAULT_STORAGE_HASHING_FILE);
 		importObjectFromFile(SECURITY_POLICY_PASSWORD_STORAGE_NONE_FILE);
