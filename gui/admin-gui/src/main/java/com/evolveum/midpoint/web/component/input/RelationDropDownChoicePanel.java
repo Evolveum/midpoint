@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -31,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -49,7 +51,6 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     private static final String ID_INPUT = "input";
 
     private AreaCategoryType category;
-    private LoadableModel<List<RelationDefinitionType>> relationDefsModel;
 
     public RelationDropDownChoicePanel(String id, IModel<QName> model, AreaCategoryType category) {
         super(id, model);
@@ -60,9 +61,7 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     protected void onInitialize(){
         super.onInitialize();
 
-        initModels();
-
-        DropDownChoice<QName> input = new DropDownChoice<>(ID_INPUT, getModel(), getChoicesModel(), getRenderer());
+        DropDownChoice<QName> input = new DropDownChoice<>(ID_INPUT, getModel(), Model.ofList(getChoicesList()), getRenderer());
         input.setNullValid(false);
         input.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(input);
@@ -71,36 +70,8 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
         setOutputMarkupPlaceholderTag(true);
     }
 
-    protected void initModels(){
-        relationDefsModel = new LoadableModel<List<RelationDefinitionType>>(false) {
-            @Override
-            protected List<RelationDefinitionType> load() {
-                OperationResult result = new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS);
-                try {
-                    return getPageBase().getModelInteractionService().getRelationDefinitions(result);
-                } catch (ObjectNotFoundException | SchemaException ex){
-                    LOGGER.error("Unable to load relation definitions, " + ex.getLocalizedMessage());
-                }
-                return null;
-            }
-        };
-    }
-
-    protected IModel<List<QName>> getChoicesModel(){
-        return new LoadableModel<List<QName>>() {
-            @Override
-            protected List<QName> load() {
-                List<QName> choicesList = new ArrayList<>();
-                if (relationDefsModel != null && relationDefsModel.getObject() != null){
-                    relationDefsModel.getObject().forEach(def -> {
-                        if (category == null || def.getCategory().contains(category)){
-                            choicesList.add(def.getRef());
-                        }
-                    });
-                }
-                return choicesList;
-            }
-        };
+    protected List<QName> getChoicesList(){
+        return WebComponentUtil.getCategoryRelationChoices(category, new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS), getPageBase());
     }
 
     protected IChoiceRenderer<QName> getRenderer(){
@@ -118,7 +89,9 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
 
             @Override
             public Object getDisplayValue(QName object) {
-                RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(relationDefsModel.getObject(), object);
+                RelationDefinitionType def =
+                        ObjectTypeUtil.findRelationDefinition(WebComponentUtil.getRelationDefinitions(
+                                new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS), RelationDropDownChoicePanel.this.getPageBase()), object);
                 if (def != null){
                     DisplayType display = def.getDisplay();
                     if (display != null){

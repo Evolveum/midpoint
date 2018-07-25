@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -65,7 +66,9 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
 
     @Override
     protected void initLeftSidePanel(){
-        getRoleCatalogStorage().setAssignmentsUserOwner(getPageBase().loadUserSelf().asObjectable());
+        if (getRoleCatalogStorage().getAssignmentsUserOwner() == null) {
+            getRoleCatalogStorage().setAssignmentsUserOwner(getPageBase().loadUserSelf().asObjectable());
+        }
 
         WebMarkupContainer sourceUserPanel = new WebMarkupContainer(ID_SOURCE_USER_PANEL);
         sourceUserPanel.setOutputMarkupId(true);
@@ -144,26 +147,9 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
         //null value is needed for ALL relations to be displayed
         relationsList.add(null);
 
-        List<RelationDefinitionType> defList = getRelationDefinitions();
-        if (defList != null) {
-            defList.forEach(def -> {
-                if (def.getCategory() != null && def.getCategory().contains(AreaCategoryType.SELF_SERVICE)) {
-                    relationsList.add(def.getRef());
-                }
-            });
-        }
+        relationsList.addAll(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE,
+                new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS), getPageBase()));
         return relationsList;
-    }
-
-    private List<RelationDefinitionType> getRelationDefinitions(){
-        OperationResult result = new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS);
-        try {
-            return getPageBase().getModelInteractionService().getRelationDefinitions(result);
-        } catch (ObjectNotFoundException | SchemaException ex){
-            result.computeStatus();
-            LOGGER.error("Unable to load relation definitions, " + ex.getLocalizedMessage());
-        }
-        return null;
     }
 
     private Component createRelationLink(String id, IModel<QName> model) {
@@ -175,7 +161,8 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
                 if (relation == null){
                     return createStringResource("RelationTypes.ANY");
                 }
-                List<RelationDefinitionType> defList = getRelationDefinitions();
+                List<RelationDefinitionType> defList = WebComponentUtil.getRelationDefinitions(new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS),
+                        UserViewTabPanel.this.getPageBase());
                 RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(defList, model.getObject());
                 if (def != null) {
                     DisplayType display = def.getDisplay();
