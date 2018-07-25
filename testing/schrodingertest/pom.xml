@@ -336,7 +336,10 @@
                                     <arg value="${project.starter.module}/pom.xml"/>
                                     <arg value="spring-boot:run"/>
                                 </exec>
-                                <sleep seconds="230" /><!--TODO CHANGE! (This should be rather the concern of the tests) : Needed so MP boots up, but the whole thing is quite hackish and depends on the environment (and almost the weather)-->
+                                <!--<sleep seconds="230" />&lt;!&ndash;TODO CHANGE! (This should be rather the concern of the tests) : Needed so MP boots up, but the whole thing is quite hackish and depends on the environment (and almost the weather)&ndash;&gt;-->
+                                <waitfor maxwait="400" maxwaitunit="second" checkevery="500" checkeveryunit="millisecond">
+                                    <http url="http://www.localhost:8080/midpoint"/>
+                                </waitfor>
                             </target>
                         </configuration>
                         <goals>
