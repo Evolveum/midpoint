@@ -81,19 +81,20 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
-public class TestDummyFailureAndRetry extends AbstractDummyTest {
+public class TestDummyConsistency extends AbstractDummyTest {
 	
-	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "retry");
+	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "consistency");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy-retry.xml");
 	
 	protected static final String ACCOUNT_MORGAN_FULLNAME_HM = "Henry Morgan";
 	protected static final String ACCOUNT_MORGAN_FULLNAME_CHM = "Captain Henry Morgan";
 
-	private static final Trace LOGGER = TraceManager.getTrace(TestDummyFailureAndRetry.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TestDummyConsistency.class);
 	
 	private static final String ACCOUNT_JP_MORGAN_FULLNAME = "J.P. Morgan";
 	private static final String ACCOUNT_BETTY_USERNAME = "betty";
 	private static final String ACCOUNT_BETTY_FULLNAME = "Betty Rubble";
+	private static final String ACCOUNT_ELIZABETH2_FULLNAME = "Her Majesty Queen Elizabeth II";
 	
 	private XMLGregorianCalendar lastRequestStartTs;
 	private XMLGregorianCalendar lastRequestEndTs;
@@ -1350,12 +1351,15 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 			.assertOidDifferentThan(shadowMorganOid)
 			.assertName(ACCOUNT_MORGAN_NAME)
 			.assertKind(ShadowKindType.ACCOUNT)
+			.assertNotDead()
+			.assertIsExists()
 			.pendingOperations()
-			.assertNone();
+				.assertNone();
 		
 		syncServiceMock
 			.assertNotifyFailureOnly()
 			.assertNotifyChange()
+			.assertNotifyChangeCalls(1)
 			.lastNotifyChange()
 				.display()
 				.assertNoDelta()
@@ -1367,6 +1371,8 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 					.assertOidDifferentThan(shadowMorganOid)
 					.assertName(ACCOUNT_MORGAN_NAME)
 					.assertKind(ShadowKindType.ACCOUNT)
+					.assertNotDead()
+					.assertIsExists()
 					.attributes()
 						.assertHasPrimaryIdentifier()
 						.assertHasSecondaryIdentifier()
@@ -1422,12 +1428,15 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 			.assertOid(shadowMorganOid)
 			.assertName(ACCOUNT_MORGAN_NAME)
 			.assertKind(ShadowKindType.ACCOUNT)
+			.assertNotDead()
+			.assertIsExists()
 			.pendingOperations()
-			.assertNone();
+				.assertNone();
 		
 		syncServiceMock
 			.assertNotifyFailureOnly()
 			.assertNotifyChange()
+			.assertNotifyChangeCalls(1)
 			.lastNotifyChange()
 				.display()
 				.assertNoDelta()
@@ -1435,6 +1444,8 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 					.assertOid(shadowMorganOid)
 					.assertName(ACCOUNT_MORGAN_NAME)
 					.assertKind(ShadowKindType.ACCOUNT)
+					.assertNotDead()
+					.assertIsExists()
 					.attributes()
 						.assertHasPrimaryIdentifier()
 						.assertHasSecondaryIdentifier()
@@ -1449,6 +1460,8 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 					.assertOid(shadowMorganOid)
 					.assertName(ACCOUNT_MORGAN_NAME)
 					.assertKind(ShadowKindType.ACCOUNT)
+					.assertNotDead()
+					.assertIsExists()
 					.attributes()
 						.assertHasPrimaryIdentifier()
 						.assertHasSecondaryIdentifier()
@@ -1539,6 +1552,7 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		syncServiceMock
 			.assertNotifyFailureOnly()
 			.assertNotifyChange()
+			.assertNotifyChangeCalls(1)
 			.lastNotifyChange()
 				.display()
 				.assertNoDelta()
@@ -1550,6 +1564,8 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 					.assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
 					.assertName(ACCOUNT_BETTY_USERNAME)
 					.assertKind(ShadowKindType.ACCOUNT)
+					.assertNotDead()
+					.assertIsExists()
 					.attributes()
 						.assertHasPrimaryIdentifier()
 						.assertHasSecondaryIdentifier()
@@ -1612,6 +1628,7 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		syncServiceMock
 			.assertNotifyFailureOnly()
 			.assertNotifyChange()
+			.assertNotifyChangeCalls(1)
 			.lastNotifyChange()
 				.display()
 				.assertNoDelta()
@@ -1635,6 +1652,8 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 					.assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
 					.assertName(ACCOUNT_BETTY_USERNAME)
 					.assertKind(ShadowKindType.ACCOUNT)
+					.assertNotDead()
+					.assertIsExists()
 					.attributes()
 						.assertHasPrimaryIdentifier()
 						.assertHasSecondaryIdentifier()
@@ -1686,6 +1705,7 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		syncServiceMock
 			.assertNotifyChange()
+			.assertNotifyChangeCalls(1)
 			.lastNotifyChange()
 				.display()
 				.assertNoCurrentShadow()
@@ -1754,6 +1774,7 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		syncServiceMock
 			.assertNotifyChange()
+			.assertNotifyChangeCalls(1)
 			.lastNotifyChange()
 				.display()
 				.assertNoCurrentShadow()
@@ -1818,6 +1839,7 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 		
 		syncServiceMock
 			.assertNotifyChange()
+			.assertNotifyChangeCalls(1)
 			.lastNotifyChange()
 				.display()
 				.assertNoCurrentShadow()
@@ -1844,6 +1866,72 @@ public class TestDummyFailureAndRetry extends AbstractDummyTest {
 			.assertIsNotExists()
 			.pendingOperations()
 				.assertNone();
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * We try to add elizabeth account while there is still a dead shadow for that.
+	 * There is also new conflicting elizabeth account on the resource that midPoint
+	 * does not know about.
+	 */
+	@Test
+	public void test816AddAccountElizabethAfterDeathAlreadyExists() throws Exception {
+		final String TEST_NAME = "test816AddAccountElizabethAfterDeathAlreadyExists";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+		dummyResource.resetBreakMode();
+		
+		dummyResourceCtl.addAccount(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH2_FULLNAME);
+		
+		PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_ELIZABETH_FILE);
+		account.setOid(null);
+		account.checkConsistence();
+		display("Adding shadow", account);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		try {
+			provisioningService.addObject(account, null, null, task, result);
+		} catch (ObjectAlreadyExistsException e) {
+			displayThen(TEST_NAME);
+			display("expected exception", e);
+		}
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertFailure(result);
+		
+		syncServiceMock
+			.assertNotifyFailureOnly()
+			.assertNotifyChange()
+			.assertNotifyChangeCalls(1)
+			.lastNotifyChange()
+				.display()
+				.assertNoDelta()
+				.assertNoOldShadow()
+				.assertUnrelatedChange(false)
+				.assertProtected(false)
+				.currentShadow()
+					.assertOidDifferentThan(ACCOUNT_ELIZABETH_OID)
+					.assertName(ACCOUNT_ELIZABETH_USERNAME)
+					.assertKind(ShadowKindType.ACCOUNT)
+					.assertNotDead()
+					.assertIsExists()
+					.attributes()
+						.assertHasPrimaryIdentifier()
+						.assertHasSecondaryIdentifier()
+						.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_ELIZABETH2_FULLNAME)
+						.end()
+					.pendingOperations()
+						.assertNone();
+		
+		dummyResourceCtl.assertAccountByUsername(ACCOUNT_ELIZABETH_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_ELIZABETH2_FULLNAME);
 		
 		assertSteadyResources();
 	}

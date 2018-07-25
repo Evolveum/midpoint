@@ -81,7 +81,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
 		ResourceType resource = ctx.getResource();
-		if (!isDoDiscovery(resource, rootOptions)) {
+		if (!ProvisioningUtil.isDoDiscovery(resource, rootOptions)) {
 			throwException(cause, null, parentResult);
 		}
 		

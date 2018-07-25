@@ -69,7 +69,7 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
  * @author Radovan Semancik
  *
  */
-public class OperationResult implements Serializable, DebugDumpable, Cloneable {
+public class OperationResult implements Serializable, DebugDumpable, ShortDumpable, Cloneable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String VARIOUS_VALUES = "[various values]";
@@ -1664,6 +1664,20 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 			sb.append("\n");
 		}
 	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
+		sb.append(operation).append(" ").append(status).append(" ").append(message);
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("R(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+
 
 	public void setBackgroundTaskOid(String oid) {
 		setAsynchronousOperationReference(TASK_OID_PREFIX + oid);
@@ -1924,8 +1938,4 @@ public class OperationResult implements Serializable, DebugDumpable, Cloneable {
 		return true;
 	}
 
-	@Override
-	public String toString() {
-		return "R(" + operation + " " + status + " " + message + ")";
-	}
 }

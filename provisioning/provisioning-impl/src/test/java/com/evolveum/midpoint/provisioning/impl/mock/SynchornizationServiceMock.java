@@ -371,6 +371,11 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		return this;
 	}
 	
+	public SynchornizationServiceMock assertNotifyChangeCalls(int expected) {
+		assert callCountNotifyChange == expected : "Expected " + expected + " notify change calls, but was " + callCountNotifyOperation;
+		return this;
+	}
+	
 	public SynchornizationServiceMock assertNotifyInProgressOnly() {
 		assert wasInProgress : "Expected that notifyInProgress will be called but it was not";				
 		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";

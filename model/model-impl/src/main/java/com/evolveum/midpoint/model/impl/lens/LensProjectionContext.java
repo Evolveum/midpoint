@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,6 +201,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	transient private String humanReadableName;
 	
 	private Map<String, PrismObject<ShadowType>> entitlementMap = new HashMap<>();
+
+	transient private String humanReadableString;
 
 	LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
     	super(ShadowType.class, lensContext);
@@ -1293,14 +1295,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	 * Return a human readable name of the projection object suitable for logs.
 	 */
 	public String toHumanReadableString() {
-		if (resourceShadowDiscriminator == null) {
-			return "(null" + resource + ")";
+		if (humanReadableString == null) {
+			if (resourceShadowDiscriminator == null) {
+				humanReadableString = "(null" + resource + ")";
+			} else if (resource != null) {
+				humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resource + ")";
+			} else {
+				humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
+			}
 		}
-		if (resource != null) {
-			return "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resource + ")";
-		} else {
-			return "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
-		}
+		return humanReadableString;
 	}
 
     public String getHumanReadableKind() {

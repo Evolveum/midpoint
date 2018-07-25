@@ -250,8 +250,10 @@ public class ChangeExecutor {
 				if (projCtx.getResource() != null) {
 					subResult.addParam("resource", projCtx.getResource());
 				}
+				
 				try {
-
+					LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());
+					
 					context.checkAbortRequested();
 
 					context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
@@ -347,6 +349,7 @@ public class ChangeExecutor {
 					// - in such case, mark the context as broken
 
 					if (isRepeatedAlreadyExistsException(projCtx)) {
+						LOGGER.debug("Repeated ObjectAlreadyExistsException detected, marking projection {} as broken", projCtx.toHumanReadableString());
 						recordProjectionExecutionException(e, projCtx, subResult,
 								SynchronizationPolicyDecision.BROKEN);
 						continue;
@@ -361,10 +364,10 @@ public class ChangeExecutor {
 					// if it is fatal, it will be set later
 					// but we need to set some result
 					subResult.recordSuccess();
-					subResult.muteLastSubresultError();
 					restartRequested = true;
-					break; // we will process remaining projections when retrying
-					// the wave
+					LOGGER.debug("ObjectAlreadyExistsException for projection {}, requesting projector restart", projCtx.toHumanReadableString());
+					// we will process remaining projections when retrying the wave
+					break; 
 
 				} finally {
 					context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
@@ -612,8 +615,8 @@ public class ChangeExecutor {
 				// This seems to be OK. In quite a strange way, but still OK.
 				return;
 			}
-			LOGGER.trace("Shadow has null OID, this should not happen, context:\n{}", projCtx.debugDump());
-			throw new IllegalStateException("Shadow has null OID, this should not happen");
+			LOGGER.error("Projection {} has null OID, this should not happen, context:\n{}", projCtx.toHumanReadableString(), projCtx.debugDump());
+			throw new IllegalStateException("Projection "+projCtx.toHumanReadableString()+" has null OID, this should not happen");
 		}
 
 		if (linkShouldExist(projCtx, result)) {
@@ -881,7 +884,7 @@ public class ChangeExecutor {
 		objectDelta = computeDeltaToExecute(objectDelta, objectContext);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("computeDeltaToExecute returned:\n{}",
-					objectDelta != null ? objectDelta.debugDump() : "(null)");
+					objectDelta != null ? objectDelta.debugDump(1) : "(null)");
 		}
 
 		if (objectDelta == null || objectDelta.isEmpty()) {
@@ -929,6 +932,9 @@ public class ChangeExecutor {
 				}
 				LensObjectDeltaOperation<T> objectDeltaOp = LensUtil.createObjectDeltaOperation(
 						objectDelta.clone(), result, objectContext, null, resource);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Recording executed delta:\n{}", objectDeltaOp.shorterDebugDump(1));
+				}
 				objectContext.addToExecutedDeltas(objectDeltaOp);
 			}
 
@@ -1008,7 +1014,7 @@ public class ChangeExecutor {
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Computing delta to execute from delta:\n{}\nGiven these executed deltas:\n{}",
-					objectDelta.debugDump(), DebugUtil.debugDump(objectContext.getExecutedDeltas()));
+					objectDelta.debugDump(1), LensObjectDeltaOperation.shorterDebugDump(objectContext.getExecutedDeltas(),1));
 		}
 		List<LensObjectDeltaOperation<T>> executedDeltas = objectContext.getExecutedDeltas();
 		return computeDiffDelta(executedDeltas, objectDelta);
@@ -1049,7 +1055,7 @@ public class ChangeExecutor {
 		ObjectDeltaOperation<T> lastRelated = findLastRelatedDelta(executedDeltas, objectDelta);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("findLastRelatedDelta returned:\n{}",
-					lastRelated != null ? lastRelated.debugDump() : "(null)");
+					lastRelated != null ? lastRelated.shorterDebugDump(1) : "  (null)");
 		}
 		if (lastRelated == null) {
 			return objectDelta; // nothing found, let us apply our delta
@@ -1084,65 +1090,42 @@ public class ChangeExecutor {
 			List<? extends ObjectDeltaOperation<T>> executedDeltas, ObjectDelta<T> objectDelta) {
 		for (int i = executedDeltas.size() - 1; i >= 0; i--) {
 			ObjectDeltaOperation<T> currentOdo = executedDeltas.get(i);
-			if (!currentOdo.getExecutionResult().isFatalError()) {
-				ObjectDelta<T> current = currentOdo.getObjectDelta();
+			if (currentOdo.getExecutionResult().isFatalError()) {
+				continue;
+			}
+			ObjectDelta<T> current = currentOdo.getObjectDelta();
 
-				if (current.equals(objectDelta)) {
+			if (current.equals(objectDelta)) {
+				return currentOdo;
+			}
+
+			String oid1 = current.isAdd() ? current.getObjectToAdd().getOid() : current.getOid();
+			String oid2 = objectDelta.isAdd() ? objectDelta.getObjectToAdd().getOid()
+					: objectDelta.getOid();
+			if (oid1 != null && oid2 != null) {
+				if (oid1.equals(oid2)) {
 					return currentOdo;
 				}
-
-				String oid1 = current.isAdd() ? current.getObjectToAdd().getOid() : current.getOid();
-				String oid2 = objectDelta.isAdd() ? objectDelta.getObjectToAdd().getOid()
-						: objectDelta.getOid();
-				if (oid1 != null && oid2 != null) {
-					if (oid1.equals(oid2)) {
-						return currentOdo;
-					}
-					continue;
-				}
-				// ADD-MODIFY and ADD-DELETE combinations lead to applying whole
-				// delta (as a result of computeDiffDelta)
-				// so we can be lazy and check only ADD-ADD combinations here...
-				if (!current.isAdd() || !objectDelta.isAdd()) {
-					continue;
-				}
-				// we simply check the type (for focus objects) and
-				// resource+kind+intent (for shadows)
-				PrismObject<T> currentObject = current.getObjectToAdd();
-				PrismObject<T> objectTypeToAdd = objectDelta.getObjectToAdd();
-				Class currentObjectClass = currentObject.getCompileTimeClass();
-				Class objectTypeToAddClass = objectTypeToAdd.getCompileTimeClass();
-				if (currentObjectClass == null || !currentObjectClass.equals(objectTypeToAddClass)) {
-					continue;
-				}
-				if (FocusType.class.isAssignableFrom(currentObjectClass)) {
-					return currentOdo; // we suppose there is only one delta of
-										// Focus class
-				}
-				// Shadow deltas have to be matched exactly... because "ADD
-				// largo" and "ADD largo1" are two different deltas
-				// And, this is not a big problem, because ADD conflicts are
-				// treated by provisioning
-				// Again, all this stuff is highly temporary and has to be
-				// thrown away as soon as possible!!!
 				continue;
-				// if (ShadowType.class.equals(currentObjectClass)) {
-				// ShadowType currentShadow = (ShadowType)
-				// currentObject.asObjectable();
-				// ShadowType shadowToAdd = (ShadowType)
-				// objectTypeToAdd.asObjectable();
-				// if (currentShadow.getResourceRef() != null &&
-				// shadowToAdd.getResourceRef() != null &&
-				// currentShadow.getResourceRef().getOid().equals(shadowToAdd.getResourceRef().getOid())
-				// &&
-				// currentShadow.getKind() == shadowToAdd.getKind() && // TODO
-				// default kind handling
-				// currentShadow.getIntent() != null &&
-				// currentShadow.getIntent().equals(shadowToAdd.getIntent())) {
-				// // TODO default intent handling
-				// return currentOdo;
-				// }
-				// }
+			}
+			// ADD-MODIFY and ADD-DELETE combinations lead to applying whole
+			// delta (as a result of computeDiffDelta)
+			// so we can be lazy and check only ADD-ADD combinations here...
+			if (!current.isAdd() || !objectDelta.isAdd()) {
+				continue;
+			}
+			// we simply check the type (for focus objects) and
+			// resource+kind+intent (for shadows)
+			PrismObject<T> currentObject = current.getObjectToAdd();
+			PrismObject<T> objectTypeToAdd = objectDelta.getObjectToAdd();
+			Class currentObjectClass = currentObject.getCompileTimeClass();
+			Class objectTypeToAddClass = objectTypeToAdd.getCompileTimeClass();
+			if (currentObjectClass == null || !currentObjectClass.equals(objectTypeToAddClass)) {
+				continue;
+			}
+			if (FocusType.class.isAssignableFrom(currentObjectClass)) {
+				return currentOdo; // we suppose there is only one delta of
+									// Focus class
 			}
 		}
 		return null;

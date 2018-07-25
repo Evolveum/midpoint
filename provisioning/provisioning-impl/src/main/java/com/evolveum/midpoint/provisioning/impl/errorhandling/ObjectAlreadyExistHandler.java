@@ -22,6 +22,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -40,15 +42,20 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
+import com.evolveum.midpoint.provisioning.impl.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -73,6 +80,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	
 	@Autowired ProvisioningService provisioningService;
 	@Autowired ShadowCaretaker shadowCaretaker;
+	@Autowired ShadowManager shadowManager;
 	
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -87,7 +95,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		
-		if (isDoDiscovery(ctx.getResource(), options)) {
+		if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
 			discoverConflictingShadow(ctx, shadowToAdd, options, opState, cause, failedOperationResult, task, parentResult);
 		}
 		
@@ -105,7 +113,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		
-		if (isDoDiscovery(ctx.getResource(), options)) {
+		if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
 			PrismObject<ShadowType> newShadow = repoShadow.clone();
 			ObjectDelta.applyTo(newShadow, (Collection) modifications);
 			discoverConflictingShadow(ctx, newShadow, options, opState, cause, failedOperationResult, task, parentResult);
@@ -129,13 +137,13 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 		ObjectQuery query = createQueryBySecondaryIdentifier(newShadow.asObjectable());
 		
 		final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, task, result);
-		PrismObject<ShadowType> oldShadow = reduceShadows(conflictingRepoShadows);
+		PrismObject<ShadowType> oldShadow = shadowManager.reduceLiveShadows(conflictingRepoShadows, result);
 		if (oldShadow != null) {
 			shadowCaretaker.applyAttributesDefinition(ctx, oldShadow);
 		}
 		
 		final List<PrismObject<ShadowType>> conflictingResourceShadows = findConflictingShadowsOnResource(query, task, result);
-		PrismObject<ShadowType> conflictingShadow = reduceShadows(conflictingResourceShadows);
+		PrismObject<ShadowType> conflictingShadow = shadowManager.reduceLiveShadows(conflictingResourceShadows, result);
 		
 		
 		LOGGER.debug("DISCOVERY: discovered new shadow {}", conflictingShadow);
@@ -167,20 +175,17 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 			}
 	}
 	
-	private PrismObject<ShadowType> reduceShadows(List<PrismObject<ShadowType>> shadows) {
-		if (shadows == null || shadows.isEmpty()) {
-			return null;
-		}
-		if (shadows.size() == 1) {
-			return shadows.get(0);
-		}
-		// TODO: handle "more than one shadow" case
-		throw new IllegalStateException("Found more than one conflicting shadows: "+shadows);
+	// TODO: maybe move to ShadowManager?
+	
+
+	private boolean isFresher(PrismObject<ShadowType> theShadow, PrismObject<ShadowType> refShadow) {
+		return XmlTypeConverter.isFresher(
+				ObjectTypeUtil.getLastTouchTimestamp(theShadow), ObjectTypeUtil.getLastTouchTimestamp(refShadow));
 	}
 
 
 	private ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow) throws SchemaException {
-		// TODO: error handling TODO TODO TODO set matching rule instead of null in equlas filter
+		// TODO TODO TODO set matching rule instead of null in equlas filter
 		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
 		S_AtomicFilterEntry q = QueryBuilder.queryFor(ShadowType.class, prismContext);
 		q = q.block();
@@ -200,6 +205,9 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 		return q.item(ShadowType.F_OBJECT_CLASS).eq(shadow.getObjectClass()).build();
 	}
 	
+	/**
+	 * Note: this may return dead shadow.
+	 */
 	private List<PrismObject<ShadowType>> findConflictingShadowsInRepo(ObjectQuery query, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
 					SecurityViolationException, ExpressionEvaluationException {
@@ -219,7 +227,9 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 				SecurityViolationException, ExpressionEvaluationException {
 		final List<PrismObject<ShadowType>> foundAccount = new ArrayList<>();
 		
-		provisioningService.searchObjectsIterative(ShadowType.class, query, null, (object,result) -> foundAccount.add(object), task, parentResult);
+		// noDiscovery option to avoid calling notifyChange from ShadowManager (in case that new resource object is discovered)
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+		provisioningService.searchObjectsIterative(ShadowType.class, query, options, (object,result) -> foundAccount.add(object), task, parentResult);
 		
 		return foundAccount;
 	}

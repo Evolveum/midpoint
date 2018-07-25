@@ -174,8 +174,6 @@ public class ShadowManager {
 	 * Locates the appropriate Shadow in repository that corresponds to the
 	 * provided resource object.
 	 *
-	 * DEAD flag is cleared - in memory as well as in repository. [is this really needed?]
-	 * 
 	 * @return current shadow object that corresponds to provided
 	 *         resource object or null if the object does not exist
 	 */
@@ -189,42 +187,42 @@ public class ShadowManager {
 			LOGGER.trace("Searching for shadow using filter:\n{}", query.debugDump());
 		}
 
-		// TODO: check for errors
 		 List<PrismObject<ShadowType>> foundShadows = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 		 MiscSchemaUtil.reduceSearchResult(foundShadows);
 
 		LOGGER.trace("lookupShadow found {} objects", foundShadows.size());
 		
-		PrismObject<ShadowType> liveShadow = null;
-		for (PrismObject<ShadowType> foundShadow : foundShadows) {
-			if (!Boolean.TRUE.equals(foundShadow.asObjectable().isDead())) {
-				if (liveShadow != null) {
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("More than one live shadow found for resource shadow {}:\n{}\n{}",
-								resourceShadow, liveShadow.debugDump(1), foundShadow.debugDump(1));
-					}
-					LOGGER.error("More than one live shadow found for " + resourceShadow);
-					throw new IllegalStateException("More than one live shadow found for " + resourceShadow);
-				}
-			}
-		}
+		PrismObject<ShadowType> liveShadow = reduceLiveShadows(foundShadows, parentResult);
 		
-		if (liveShadow == null && foundShadows.size() == 1) {
-			// LEGACY CODE
-			// Not sure about this code. In which case is this automatic resurrection of shadows needed?
-			liveShadow = foundShadows.get(0);
-			LOGGER.debug("Repository shadow {} is marked as dead - resetting the flag (LEGACY)", ObjectTypeUtil.toShortString(liveShadow));
-			liveShadow.asObjectable().setDead(false);
-			List<ItemDelta<?, ?>> deltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext).item(ShadowType.F_DEAD).replace().asItemDeltas();
-			try {
-				repositoryService.modifyObject(ShadowType.class, liveShadow.getOid(), deltas, parentResult);
-			} catch (ObjectAlreadyExistsException e) {
-				throw new SystemException("Unexpected exception when resetting 'dead' flag: " + e.getMessage(), e);
-			}
-		}
+		// Note: never reset dead shadow flag. Once the shadow's dead, it stays dead.
 
 		checkConsistency(liveShadow);
 
+		return liveShadow;
+	}
+	
+	public PrismObject<ShadowType> reduceLiveShadows(List<PrismObject<ShadowType>> shadows, OperationResult result) {
+		if (shadows == null || shadows.isEmpty()) {
+			return null;
+		}
+		
+		PrismObject<ShadowType> liveShadow = null;
+		for (PrismObject<ShadowType> shadow: shadows) {
+			if (!ShadowUtil.isDead(shadow.asObjectable())) {
+				if (liveShadow == null) {
+					liveShadow = shadow;
+				} else {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("More than one live conflicting shadow found {} and {}:\n{}",
+								liveShadow, shadow, DebugUtil.debugDump(shadows, 1));
+					}
+					// TODO: handle "more than one shadow" case MID-4490
+					String msg = "Found more than one live conflicting shadows: "+liveShadow+" and " + shadow;
+					result.recordFatalError(msg);
+					throw new IllegalStateException(msg);
+				}
+			}
+		}
 		return liveShadow;
 	}
 
@@ -270,8 +268,7 @@ public class ShadowManager {
 	public Collection<PrismObject<ShadowType>> lookForPreviousDeadShadows(ProvisioningContext ctx,
 			PrismObject<ShadowType> inputShadow, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		List<PrismObject<ShadowType>> deadShadows = new ArrayList<>();
-		ObjectQuery query = createSearchShadowQueryByPrimaryIdentifier(ctx, inputShadow, prismContext,
-				parentResult);
+		ObjectQuery query = createSearchShadowQueryByPrimaryIdentifier(ctx, inputShadow, prismContext, parentResult);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for dead shadows using filter:\n{}",
 					query==null?null:query.debugDump(1));

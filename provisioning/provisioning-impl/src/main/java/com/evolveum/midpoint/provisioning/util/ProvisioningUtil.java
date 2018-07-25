@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
@@ -764,4 +765,28 @@ public class ProvisioningUtil {
 		
 		return failureDesc;
 	}
+	
+	public static boolean isDoDiscovery(ResourceType resource, GetOperationOptions rootOptions) {
+		return !GetOperationOptions.isDoNotDiscovery(rootOptions) && isDoDiscovery(resource);
+	}
+
+	public static boolean isDoDiscovery(ResourceType resource, ProvisioningOperationOptions options) {
+		return !ProvisioningOperationOptions.isDoNotDiscovery(options) && isDoDiscovery(resource);
+	}
+	
+	public static boolean isDoDiscovery (ResourceType resource) {
+		if (resource == null) {
+			return true;
+		}
+		if (resource.getConsistency() == null) {
+			return true;
+		}
+		
+		if (resource.getConsistency().isDiscovery() == null) {
+			return true;
+		}
+		
+		return resource.getConsistency().isDiscovery();
+	}
+	
 }

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -81,7 +82,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 			CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
-		if (isDoDiscovery(ctx.getResource(), rootOptions)) {
+		if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), rootOptions)) {
 			discoverDeletedShadow(ctx, repositoryShadow, cause, task, parentResult);
 		}
 		
@@ -97,7 +98,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
-		if (isDoDiscovery(ctx.getResource(), options)) {
+		if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
 			discoverDeletedShadow(ctx, repoShadow, cause, task, parentResult);
 		}
 
@@ -113,7 +114,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		
-		if (isDoDiscovery(ctx.getResource(), options)) {
+		if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
 			discoverDeletedShadow(ctx, repoShadow, cause, task, parentResult);
 		}
 		

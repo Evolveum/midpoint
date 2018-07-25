@@ -685,4 +685,14 @@ public class XmlTypeConverter {
 			return b;
 		}
 	}
+
+	public static boolean isFresher(XMLGregorianCalendar theTimestamp, XMLGregorianCalendar refTimestamp) {
+		if (theTimestamp == null) {
+			return false;
+		}
+		if (refTimestamp == null) {
+			return true;
+		}
+		return theTimestamp.compare(refTimestamp) == DatatypeConstants.GREATER;
+	}
 }
