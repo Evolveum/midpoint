@@ -3928,6 +3928,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertUserPassword(userAfter, PASSWORD_HELLO_WORLD);
 		assertPasswordModifyMetadata(userAfter);
 	}
+	
+	// TODO: remove global password policy, set organizational policy, check that such password policy is NOT applied to resources
+	// MID-4791
 
 	protected void prepareTest() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
