@@ -14066,7 +14066,6 @@
         <xsd:annotation>
             <xsd:documentation>
                 Administration GUI configuration.
-                Note: This complexType is NOT a container. We need to guarantee ordering of some sub-items (e.g. links)
             </xsd:documentation>
             <xsd:appinfo>
 				<a:container/>
@@ -14226,18 +14225,44 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="assignmentApprovalRequestLimit" type="xsd:int" minOccurs="0">
+			<xsd:element name="roleManagement" type="tns:AdminGuiConfigurationRoleManagementType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						<p>
-							How many assignment approvals (add/delete/modify) can be requested via any given operation?
-							EXPERIMENTAL. TEMPORARY. Just to validate the concept.
+							User-specific role management configuration.
 						</p>
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.7.3</a:since>
 						<a:since>3.8.1</a:since>
-						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AdminGuiConfigurationRoleManagementType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Role management features that are potentially user-specific i.e. assigned as part of GUI configuration.
+            </xsd:documentation>
+            <xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+			<xsd:element name="assignmentApprovalRequestLimit" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							How many assignment approvals (add/delete/modify) can be requested via any given operation?
+							This parameter is checked by the model namely in the workflow hook. It should be eventually moved
+							to a more appropriate place, not related to the GUI.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.7.3</a:since>
+						<a:since>3.8.1</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
