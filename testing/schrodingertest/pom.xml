@@ -334,8 +334,8 @@
 				    <arg line="-c 'mvn -f ${project.starter.module}/pom.xml spring-boot:run'"/>
                                 </exec>
                               <!--  <sleep seconds="400" /> --><!--&lt;!&ndash;TODO CHANGE! (This should be rather the concern of the tests) : Needed so MP boots up, but the whole thing is quite hackish and depends on the environment (and almost the weather)&ndash;&gt;-->
-                                <waitfor maxwait="750" maxwaitunit="second" checkevery="500" checkeveryunit="millisecond">
-                                    <http url="http://www.localhost:8090/midpoint"/>
+                                <waitfor maxwait="600" maxwaitunit="second" checkevery="500" checkeveryunit="millisecond">
+                                    <socket server="0.0.0.0" port="8090"/>
                                 </waitfor>
                             </target>
                         </configuration>
