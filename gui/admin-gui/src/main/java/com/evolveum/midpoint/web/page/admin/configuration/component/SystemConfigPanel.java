@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;

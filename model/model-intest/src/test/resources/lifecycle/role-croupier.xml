@@ -13,16 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="2bb2fb86-034e-11e8-9cf3-77abfc7aafec"
+<role oid="a7b8de9a-20a1-84f6-b452-01254a1256e3"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
-    <name>Gambler</name>
+    <name>Croupier</name>
     <description>This is non-employee role. It does NOT work as data processing basis.</description>
     <!-- No roleType -->
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#gamble</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#croupier</action>
     </authorization>
 </role>

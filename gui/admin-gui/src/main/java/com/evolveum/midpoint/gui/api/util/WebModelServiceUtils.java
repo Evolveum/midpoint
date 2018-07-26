@@ -36,6 +36,7 @@ import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -661,8 +662,8 @@ public class WebModelServiceUtils {
 								ObjectPaging.createPaging(LookupTableRowType.F_LABEL, OrderDirection.ASCENDING))));
 	}
 
-	public static ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
-        return pageBase.getModelInteractionService().getEffectiveStatus(lifecycleStatus, activationType);
+	public static ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
+        return pageBase.getModelInteractionService().getAssignmentEffectiveStatus(lifecycleStatus, activationType);
     }
 
 	public static void assumePowerOfAttorney(PrismObject<UserType> donor,
@@ -761,5 +762,35 @@ public class WebModelServiceUtils {
 			LoggingUtils.logUnexpectedException(LOGGER, "Cannot load certification configuration", t);
 			return null;
 		}
+	}
+	
+	public static String translateMessage(OperationResult result, ModelServiceLocator page) {
+		LocalizationService service = page.getLocalizationService();
+		Locale locale = page.getLocale();
+
+		return service.translate(result.getUserFriendlyMessage(), locale);
+	}
+	
+	public static boolean isPostAuthenticationEnabled(TaskManager taskManager, ModelInteractionService modelInteractionService) {
+		MidPointPrincipal midpointPrincipal = SecurityUtils.getPrincipalUser();
+    	if (midpointPrincipal != null) {
+    		UserType user = midpointPrincipal.getUser();
+    		String OPERATION_LOAD_FLOW_POLICY = WebModelServiceUtils.class.getName() + ".loadFlowPolicy";
+    		Task task = taskManager.createTaskInstance(OPERATION_LOAD_FLOW_POLICY);
+    		OperationResult parentResult = new OperationResult(OPERATION_LOAD_FLOW_POLICY);
+    		RegistrationsPolicyType registrationPolicyType = null;
+			try {
+				registrationPolicyType = modelInteractionService.getFlowPolicy(user.asPrismObject(), task, parentResult);
+				SelfRegistrationPolicyType postAuthenticationPolicy = registrationPolicyType.getPostAuthentication();
+	    		String requiredLifecycleState = postAuthenticationPolicy.getRequiredLifecycleState();
+	    		if (StringUtils.isNotBlank(requiredLifecycleState) && requiredLifecycleState.equals(user.getLifecycleState())) {
+	    			return true; 
+	    			 
+	    		}
+			} catch (ObjectNotFoundException | SchemaException e) {
+				LoggingUtils.logException(LOGGER, "Cannot determine post authentication policies", e);
+			}
+    	}
+    	return false;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -451,6 +451,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return application.getWebApplicationConfiguration();
     }
 
+    @Override
     public LocalizationService getLocalizationService() {
         return localizationService;
     }
@@ -804,7 +805,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         mainHeader.setOutputMarkupId(true);
         add(mainHeader);
 
-        AjaxLink logo = new AjaxLink(ID_LOGO) {
+        AjaxLink<String> logo = new AjaxLink<String>(ID_LOGO) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -814,9 +815,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         logo.add(new VisibleEnableBehaviour() {
+        	
+        	 private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible() {
                 return !isCustomLogoVisible();
+            }
+            
+            @Override
+            public boolean isEnabled() {
+            	return isLogoLinkEnabled();
             }
         });
         mainHeader.add(logo);
@@ -2093,6 +2101,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
         return false;
     }
+    
+    protected boolean isLogoLinkEnabled() {
+    	return true;
+    }
 
     private String getSubscriptionId() {
         if (deploymentInfoModel == null || deploymentInfoModel.getObject() == null) {
@@ -2136,4 +2148,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public AsyncWebProcessManager getAsyncWebProcessManager() {
         return MidPointApplication.get().getAsyncWebProcessManager();
     }
+    
+    @Override
+    public Locale getLocale() {
+    	return getSession().getLocale();
+    }
+    
 }

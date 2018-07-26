@@ -658,6 +658,16 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public boolean canBeDefinitionOf(PrismValue pvalue) {
 		return refinedAttributeDefinition.canBeDefinitionOf(pvalue);
 	}
+	
+	@Override
+	public <A> A getAnnotation(QName qname) {
+		return refinedAttributeDefinition.getAnnotation(qname);
+	}
+
+	@Override
+	public <A> void setAnnotation(QName qname, A value) {
+		refinedAttributeDefinition.setAnnotation(qname, value);
+	}
 
 	@Override
 	public String toString() {

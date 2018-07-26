@@ -68,7 +68,25 @@
 	            	<code>employeeType == 'BUCCANEER'</code>
 	            </script>
 			</condition>
-	    </mapping> 	
+	    </mapping>
+	    <validation>
+	    	<server>
+	    		<expression>
+	    			<script>
+	    				<code>
+	    					if (input.size() == 4) {
+	    						return null
+	    					} else {
+	    						result = new com.evolveum.midpoint.schema.result.OperationResult("cost center validation")
+	    						result.setStatus(com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR)
+	    						result.setMessage("Must be 4 characters");
+	    						return result
+	    					}
+	    				</code>
+	    			</script>
+	    		</expression>
+	    	</server>
+	    </validation>
     </item>
     
     <item>

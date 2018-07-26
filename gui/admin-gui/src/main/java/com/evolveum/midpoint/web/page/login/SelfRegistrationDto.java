@@ -45,6 +45,24 @@ public class SelfRegistrationDto implements Serializable {
 			return;
 		}
 
+		init(securityPolicy, selfRegistration);
+
+	}
+	
+	public void initPostAuthenticationDto(SecurityPolicyType securityPolicy) throws SchemaException {
+		if (securityPolicy == null) {
+			return;
+		}
+		SelfRegistrationPolicyType selfRegistration = getPostAuthenticationPolicy(securityPolicy);
+		if (selfRegistration == null) {
+			return;
+		}
+
+		init(securityPolicy, selfRegistration);
+	}
+
+	
+	private void init(SecurityPolicyType securityPolicy, SelfRegistrationPolicyType selfRegistration) throws SchemaException {
 		this.name = selfRegistration.getName();
 		this.defaultRoles = selfRegistration.getDefaultRole();
 		this.initialLifecycleState = selfRegistration.getInitialLifecycleState();
@@ -62,11 +80,8 @@ public class SelfRegistrationDto implements Serializable {
 			this.smsAuthenticationPolicy = (SmsAuthenticationPolicyType) authPolicy;
 			noncePolicy = SecurityPolicyUtil.getCredentialPolicy(((SmsAuthenticationPolicyType) authPolicy).getSmsNonce(), securityPolicy);
 		}
-
-
-
 	}
-
+	
 	public boolean isEmpty() {
 		return StringUtils.isEmpty(name) && CollectionUtils.isEmpty(defaultRoles)
 				&& mailAuthenticationPolicy == null && smsAuthenticationPolicy == null && noncePolicy == null;
@@ -85,6 +100,16 @@ public class SelfRegistrationDto implements Serializable {
 	}
 
 	private SelfRegistrationPolicyType getSelfRegistrationPolicy(SecurityPolicyType securityPolicyType) {
+		RegistrationsPolicyType flowPolicy = securityPolicyType.getFlow();
+		SelfRegistrationPolicyType selfRegistrationPolicy = null;
+		if (flowPolicy != null) {
+			selfRegistrationPolicy = flowPolicy.getSelfRegistration();
+		}
+		
+		if (selfRegistrationPolicy != null) {
+			return selfRegistrationPolicy;
+		}
+		
 		RegistrationsPolicyType registrationPolicy = securityPolicyType.getRegistration();
 
 		if (registrationPolicy == null) {
@@ -92,6 +117,16 @@ public class SelfRegistrationDto implements Serializable {
 		}
 
 		return registrationPolicy.getSelfRegistration();
+	}
+	
+	private SelfRegistrationPolicyType getPostAuthenticationPolicy(SecurityPolicyType securityPolicyType) {
+		RegistrationsPolicyType flowPolicy = securityPolicyType.getFlow();
+		SelfRegistrationPolicyType selfRegistrationPolicy = null;
+		if (flowPolicy != null) {
+			selfRegistrationPolicy = flowPolicy.getPostAuthentication();
+		}
+		
+		return selfRegistrationPolicy;
 	}
 
 //	private AbstractAuthenticationPolicyType getAuthenticationPolicy(String selfRegistrationAuthPoliocyName,

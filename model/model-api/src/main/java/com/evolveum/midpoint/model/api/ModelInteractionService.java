@@ -208,10 +208,22 @@ public interface ModelInteractionService {
      *@param parentResult  @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
+     * @deprecated
      */
     RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     /**
+     * Returns a policy for registration, e.g. type of the supported registrations (self, social,...)
+     *
+     * @param user user for who the policy should apply
+     * @param task
+     *@param parentResult  @return applicable credentials policy or null
+     * @throws ObjectNotFoundException No system configuration or other major system inconsistency
+     * @throws SchemaException Wrong schema or content of security policy
+     */
+    RegistrationsPolicyType getFlowPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+        /**
      * Returns a credential policy that applies to the specified user. This method is designed to be used
      * during credential reset so the GUI has enough information to set up the credential (e.g. password policies,
      * security questions, etc).
@@ -309,12 +321,9 @@ public interface ModelInteractionService {
 			throws SchemaException;
 
 	/**
-	 * computes effective status for the current ActivationType object
-	 * @param lifecycleStatus
-	 * @param activationType
-	 * @return
+	 * Computes effective status for the current ActivationType in for an assignment
 	 */
-	ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType);
+	ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType);
 	
 	MidPointPrincipal assumePowerOfAttorney(PrismObject<UserType> donor, Task task, OperationResult result) 
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
@@ -335,4 +344,6 @@ public interface ModelInteractionService {
 			SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 	
 	public void clearCaches();
+	
+	void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException;
 }
