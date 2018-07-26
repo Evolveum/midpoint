@@ -61,7 +61,11 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     protected void onInitialize(){
         super.onInitialize();
 
-        DropDownChoice<QName> input = new DropDownChoice<>(ID_INPUT, getModel(), Model.ofList(getChoicesList()), getRenderer());
+        List<QName> choicesList = getChoicesList();
+        QName defaultValue = choicesList.size() > 0 ? choicesList.get(0) : null;
+
+        DropDownChoice<QName> input = new DropDownChoice<>(ID_INPUT, getModel() == null ? Model.of(defaultValue) : getModel(),
+                Model.ofList(choicesList), getRenderer());
         input.setNullValid(false);
         input.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         add(input);
@@ -109,5 +113,9 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
                 return Integer.toString(index);
             }
         };
+    }
+
+    public QName getRelationValue() {
+        return ((DropDownChoice<QName>) get(ID_INPUT)).getModelObject();
     }
 }
