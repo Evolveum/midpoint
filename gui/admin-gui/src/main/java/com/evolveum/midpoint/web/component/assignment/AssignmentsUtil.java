@@ -374,19 +374,19 @@ public class AssignmentsUtil {
 
     }
 
-    public static IModel<String> getAssignmentsLimitReachedTitleModel(OperationResult result, PageBase pageBase){
+    public static IModel<String> getShoppingCartAssignmentsLimitReachedTitleModel(OperationResult result, PageBase pageBase){
         return new LoadableModel<String>(true) {
             @Override
             protected String load() {
                 int assignmentsLimit = loadAssignmentsLimit(result, pageBase);
-                return isAssignmentsLimitReached(assignmentsLimit, pageBase) ?
-                        pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", loadAssignmentsLimit(result, pageBase))
+                return isShoppingCartAssignmentsLimitReached(assignmentsLimit, pageBase) ?
+                        pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", assignmentsLimit)
                         .getString() : "";
             }
         };
     }
 
-    public static boolean isAssignmentsLimitReached(int assignmentsLimit, PageBase pageBase){
+    public static boolean isShoppingCartAssignmentsLimitReached(int assignmentsLimit, PageBase pageBase){
         RoleCatalogStorage storage = pageBase.getSessionStorage().getRoleCatalog();
         return assignmentsLimit >= 0 && storage.getAssignmentShoppingCart().size() >= assignmentsLimit;
     }

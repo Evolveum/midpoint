@@ -23,8 +23,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -129,7 +127,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         };
         detailsLink.add(getFooterLinksEnableBehaviour());
         detailsLink.add(AttributeAppender.append("title",
-                AssignmentsUtil.getAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
+                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
         itemButtonContainer.add(detailsLink);
 
         Label detailsLinkLabel = new Label(ID_DETAILS_LINK_LABEL, createStringResource("MultiButtonPanel.detailsLink"));
@@ -157,7 +155,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         };
         addToCartLink.add(getFooterLinksEnableBehaviour());
         addToCartLink.add(AttributeAppender.append("title",
-                AssignmentsUtil.getAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
+                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
         itemButtonContainer.add(addToCartLink);
 
         AjaxLink addToCartLinkIcon = new AjaxLink(ID_ADD_TO_CART_LINK_ICON) {
@@ -236,7 +234,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
             public boolean isEnabled(){
                 int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
                         RoleCatalogItemButton.this.getPageBase());
-                return !AssignmentsUtil.isAssignmentsLimitReached(assignmentsLimit, RoleCatalogItemButton.this.getPageBase())
+                return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, RoleCatalogItemButton.this.getPageBase())
                         && (isMultiUserRequest() || canAssign(getModelObject()));
             }
         };

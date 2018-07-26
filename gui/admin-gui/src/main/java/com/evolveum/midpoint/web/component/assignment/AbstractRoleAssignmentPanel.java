@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -199,8 +200,17 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                    target.add(getPageBase().getFeedbackPanel());
                    return;
            }
-           
-           for (T object : assignmentsList){
+
+        int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                getPageBase());
+        int addedAssignmentsCount = getNewAssignmentsCount() + assignmentsList.size();
+        if (assignmentsLimit >= 0 && addedAssignmentsCount > assignmentsLimit) {
+            warn(getParentPage().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsLimit));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        for (T object : assignmentsList){
         	   PrismContainerDefinition<AssignmentType> definition = getModelObject().getItem().getDefinition();
         	   PrismContainerValue<AssignmentType> newAssignment;
 			try {
@@ -224,11 +234,44 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 				target.add(getPageBase().getFeedbackPanel());
 				target.add(this);
 			}
-        	   
+
            }
 
-           
+
        }
+    protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation) {
+        if (assignmentsList == null || assignmentsList.isEmpty()) {
+            warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+        int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                getPageBase());
+        int addedAssignmentsCount = getNewAssignmentsCount() + assignmentsList.size();
+        if (assignmentsLimit >= 0 && addedAssignmentsCount > assignmentsLimit) {
+            warn(getParentPage().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsLimit));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        for (T object : assignmentsList) {
+            PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, relation);
+            AssignmentType assignmentType = newAssignment.asContainerable();
+            if (ResourceType.class.equals(object.getClass())) {
+                ConstructionType constructionType = new ConstructionType();
+                constructionType.setResourceRef(ref);
+                assignmentType.setConstruction(constructionType);
+            } else {
+                assignmentType.setTargetRef(ref);
+            }
+            createNewAssignmentContainerValueWrapper(newAssignment);
+        }
+
+        refreshTable(target);
+        target.add(getAssignmentContainer());
+        reloadSavePreviewButtons(target);
+    }
 
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
