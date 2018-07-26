@@ -238,11 +238,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
             return false;
         }
         boolean isAssigned = false;
-        List<RelationTypes> assignedRelationsList = new ArrayList<>();
+        List<QName> assignedRelationsList = new ArrayList<>();
         for (AssignmentType assignment : user.getAssignment()){
             if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid().equals(obj.getOid())){
                 isAssigned = true;
-                assignedRelationsList.add(RelationTypes.getRelationType(assignment.getTargetRef().getRelation()));
+                assignedRelationsList.add(assignment.getTargetRef().getRelation());
             }
         }
         assignmentDto.setAssignedRelationsList(assignedRelationsList);

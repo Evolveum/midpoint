@@ -24,7 +24,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -70,6 +73,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
 
     private static final String DOT_CLASS = RoleCatalogItemButton.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+    private static final String OPERATION_LOAD_RELATION_DEFINITION_LIST = DOT_CLASS + "loadRelationDefinitionList";
     private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogItemButton.class);
 
     public RoleCatalogItemButton(String id, IModel<AssignmentEditorDto> model){
@@ -224,28 +228,28 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
     }
 
     private IModel<String> getAlreadyAssignedIconTitleModel(AssignmentEditorDto dto) {
-        return new LoadableModel<String>(false) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                List<RelationTypes> assignedRelations = dto.getAssignedRelationsList();
-                String relations = "";
+                List<QName> assignedRelations = dto.getAssignedRelationsList();
+                StringBuilder relations = new StringBuilder();
                 if (assignedRelations != null && assignedRelations.size() > 0) {
-                    relations = createStringResource("MultiButtonPanel.alreadyAssignedIconTitle").getString() + " ";
-                    for (RelationTypes relation : assignedRelations) {
-                        String relationName = createStringResource(relation).getString();
-                        if (!relations.contains(relationName)) {
-                            if (assignedRelations.indexOf(relation) > 0) {
-                                relations = relations + ", ";
+                    List<RelationDefinitionType> defs = WebComponentUtil.getRelationDefinitions(new OperationResult(OPERATION_LOAD_RELATION_DEFINITION_LIST),
+                            RoleCatalogItemButton.this.getPageBase());
+                    for (QName relation : assignedRelations) {
+                        RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(defs, relation);
+                        String relationLabel;
+                        if (def == null || def.getCategory() == null || def.getDisplay().getLabel() == null){
+                            relationLabel = relation.getLocalPart();
+                        } else {
+                            relationLabel = createStringResource(def.getDisplay().getLabel()).getString();
+                        }
+                        if (!relations.toString().contains(relationLabel)){
+                            if (!relations.toString().isEmpty()){
+                                relations.append(", ");
                             }
-                            relations = relations + createStringResource(relation).getString();
+                            relations.append(relationLabel);
                         }
                     }
                 }
-                return relations;
-            }
-        };
+                return createStringResource("MultiButtonPanel.alreadyAssignedIconTitle", relations.toString());
     }
 
     private void assignmentDetailsPerformed(AssignmentEditorDto assignment, AjaxRequestTarget target){

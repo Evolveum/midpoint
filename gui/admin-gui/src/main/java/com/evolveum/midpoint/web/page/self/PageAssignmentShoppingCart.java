@@ -84,6 +84,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
     private static final String ID_RELATION = "relation";
 
     private static final String OPERATION_GET_ASSIGNMENT_VIEW_LIST = DOT_CLASS + "getRoleCatalogViewsList";
+    private static final String OPERATION_LOAD_RELATION_DEFINITIONS = DOT_CLASS + "loadRelationDefinitions";
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentShoppingCart.class);
 
    private IModel<RoleManagementConfigurationType> roleManagementConfigModel;
@@ -381,7 +382,10 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, Model.of(SchemaConstants.ORG_DEFAULT), AreaCategoryType.SELF_SERVICE));
+        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE,
+                new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS), PageAssignmentShoppingCart.this);
+        QName defaultRelation = availableRelations != null && availableRelations.size() > 0 ? availableRelations.get(0) : null;
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, Model.of(defaultRelation), AreaCategoryType.SELF_SERVICE));
     }
 
     private QName getRelationParameterValue(){
