@@ -116,7 +116,8 @@ public class AssignmentPolicyAspectPart {
 		int instructionsAdded = instructions.size() - instructionsBefore;
 		LOGGER.trace("Assignment-related approval instructions: {}", instructionsAdded);
 		AdminGuiConfigurationType adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(ctx.taskFromModel, result);
-		Integer limit = adminGuiConfiguration.getAssignmentApprovalRequestLimit();
+		Integer limit = adminGuiConfiguration.getRoleManagement() != null ?
+				adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit() : null;
 		LOGGER.trace("Allowed approval instructions: {}", limit);
 		if (limit != null && instructionsAdded > limit) {
 			// TODO think about better error reporting
