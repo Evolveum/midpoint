@@ -70,6 +70,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 	public static final File ROLE_SWASHBUCKLER_FILE = new File(TEST_DIR, "role-swashbuckler.xml");
 	public static final String ROLE_SWASHBUCKLER_OID = "10000000-0000-0000-0000-000000001601";
+	
+	public static final File ROLE_SWASHBUCKLER_BLUE_FILE = new File(TEST_DIR, "role-swashbuckler-blue.xml");
+	public static final String ROLE_SWASHBUCKLER_BLUE_OID = "181a58ae-90dd-11e8-a371-77713d9f7a57";
 
 	public static final File ROLE_LANDLUBER_FILE = new File(TEST_DIR, "role-landluber.xml");
 	public static final String ROLE_LANDLUBER_OID = "10000000-0000-0000-0000-000000001603";
@@ -97,6 +100,11 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	public static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID = "20000000-0000-0000-3333-000000000001";
 	public static final String GROUP_DUMMY_SWASHBUCKLERS_NAME = "swashbucklers";
 	public static final String GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION = "Scurvy swashbucklers";
+	
+	public static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_BLUE_FILE = new File(TEST_DIR, "group-swashbucklers-blue.xml");
+	public static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_BLUE_OID = "20000000-0000-0000-3333-020400000001";
+	public static final String GROUP_DUMMY_SWASHBUCKLERS_BLUE_NAME = "swashbucklers";
+	public static final String GROUP_DUMMY_SWASHBUCKLERS_BLUE_DESCRIPTION = "Scurvy blue swashbucklers";
 
 	public static final File SHADOW_GROUP_DUMMY_LANDLUBERS_FILE = new File(TEST_DIR, "group-landlubers.xml");
 	public static final String SHADOW_GROUP_DUMMY_LANDLUBERS_OID = "20000000-0000-0000-3333-000000000003";
@@ -119,6 +127,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         importObjectFromFile(ROLE_SWASHBUCKLER_FILE);
+        importObjectFromFile(ROLE_SWASHBUCKLER_BLUE_FILE);
         importObjectFromFile(ROLE_LANDLUBER_FILE);
         importObjectFromFile(ROLE_MAPMAKER_FILE);
         importObjectFromFile(ROLE_CREW_OF_GUYBRUSH_FILE);
@@ -1349,13 +1358,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		reconcileUser(USER_GUYBRUSH_OID, task, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
 		assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
 	}
-
+	
 	/**
 	 * Add account to a group using model service (shadow operations) - preparation for next test (tolerantValuePatterns)
 	 */
@@ -1453,6 +1464,150 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		assertGroupMember(GROUP_DUMMY_LANDLUBERS_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource());
 		assertGroupMember(GROUP_THUG_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
 		assertNoGroupMember(GROUP_THUG_NAME+"-wannabe", ACCOUNT_GUYBRUSH_DUMMY_USERNAME, getDummyResource(RESOURCE_DUMMY_ORANGE_NAME));
+	}
+	
+	/**
+	 * Mostly just preparation for following tests
+	 */
+	@Test
+	public void test780AssignGuybrushSwashbuckler() throws Exception {
+		final String TEST_NAME = "test780AssignGuybrushSwashbuckler";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
+		assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+		
+		assertSteadyResources();
+	}
+
+	/**
+	 * Guybrush has swashbuckler role. But its group membership is lost somewhere.
+	 * Reconcile should fix that because swashbuckler group mapping is strong.
+	 * MID-4792
+	 */
+	@Test
+	public void test781GuybrushTheLostSwashbuckler() throws Exception {
+		final String TEST_NAME = "test781GuybrushTheLostSwashbuckler";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+		dummyGroup.removeMember(USER_GUYBRUSH_USERNAME);
+		assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_GUYBRUSH_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
+		assertGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+		
+		assertSteadyResources();
+	}
+	
+	@Test
+	public void test784UnassignGuybrushSwashbuckler() throws Exception {
+		final String TEST_NAME = "test784UnassignGuybrushSwashbuckler";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
+		assertNoGroupMember(getDummyGroup(null, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+		
+		assertSteadyResources();
+	}
+	
+	@Test
+	public void test785AssignGuybrushBlueSwashbuckler() throws Exception {
+		final String TEST_NAME = "test785AssignGuybrushBlueSwashbuckler";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		PrismObject<ShadowType> group = prismContext.parseObject(SHADOW_GROUP_DUMMY_SWASHBUCKLERS_BLUE_FILE);
+		addObject(group, task, result);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_BLUE_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
+		assertGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Guybrush has blue swashbuckler role. But its group membership is lost somewhere.
+	 * Reconcile should fix that because swashbuckler group mapping is strong.
+	 * MID-4792
+	 */
+	@Test
+	public void test786GuybrushTheLostBlueSwashbuckler() throws Exception {
+		final String TEST_NAME = "test786GuybrushTheLostBlueSwashbuckler";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		DummyGroup dummyGroup = getDummyResource(RESOURCE_DUMMY_BLUE_NAME).getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+		dummyGroup.removeMember(USER_GUYBRUSH_USERNAME);
+		assertNoGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(USER_GUYBRUSH_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
+		assertGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+		
+		assertSteadyResources();
+	}
+	
+	@Test
+	public void test789UnassignGuybrushBlueSwashbuckler() throws Exception {
+		final String TEST_NAME = "test789UnassignGuybrushBlueSwashbuckler";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		unassignRole(USER_GUYBRUSH_OID, ROLE_SWASHBUCKLER_BLUE_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		dumpUserAndAccounts(getUser(USER_GUYBRUSH_OID), task, result);
+		assertNoGroupMember(getDummyGroup(RESOURCE_DUMMY_BLUE_NAME, GROUP_DUMMY_SWASHBUCKLERS_NAME), USER_GUYBRUSH_USERNAME);
+		
+		assertSteadyResources();
 	}
 	
 	/**
