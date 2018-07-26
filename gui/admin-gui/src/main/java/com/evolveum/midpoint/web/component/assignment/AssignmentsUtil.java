@@ -16,16 +16,9 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -33,10 +26,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import org.exolab.castor.dsml.XML;
 
 /**
  * Created by honchar.
@@ -379,19 +370,19 @@ public class AssignmentsUtil {
 
     }
 
-    public static IModel<String> getAssignmentsLimitReachedTitleModel(OperationResult result, PageBase pageBase){
+    public static IModel<String> getShoppingCartAssignmentsLimitReachedTitleModel(OperationResult result, PageBase pageBase){
         return new LoadableModel<String>(true) {
             @Override
             protected String load() {
                 int assignmentsLimit = loadAssignmentsLimit(result, pageBase);
-                return isAssignmentsLimitReached(assignmentsLimit, pageBase) ?
-                        pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", loadAssignmentsLimit(result, pageBase))
+                return isShoppingCartAssignmentsLimitReached(assignmentsLimit, pageBase) ?
+                        pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", assignmentsLimit)
                         .getString() : "";
             }
         };
     }
 
-    public static boolean isAssignmentsLimitReached(int assignmentsLimit, PageBase pageBase){
+    public static boolean isShoppingCartAssignmentsLimitReached(int assignmentsLimit, PageBase pageBase){
         RoleCatalogStorage storage = pageBase.getSessionStorage().getRoleCatalog();
         return assignmentsLimit >= 0 && storage.getAssignmentShoppingCart().size() >= assignmentsLimit;
     }
