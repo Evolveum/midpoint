@@ -330,15 +330,12 @@
                                     <arg value="${project.starter.module}/pom.xml"/>
                                     <arg value="spring-boot:run"/>
                                 </exec>
-                                <exec dir="." executable="bash" osfamily="unix" spawn="true">
-                                    <arg value="mvn"/>
-                                    <arg value="-f"/>
-                                    <arg value="${project.starter.module}/pom.xml"/>
-                                    <arg value="spring-boot:run"/>
+                                <exec dir="." executable="sh" osfamily="unix" spawn="true">
+				    <arg line="-c 'mvn -f ${project.starter.module}/pom.xml spring-boot:run'"/>
                                 </exec>
-                                <!--<sleep seconds="230" />&lt;!&ndash;TODO CHANGE! (This should be rather the concern of the tests) : Needed so MP boots up, but the whole thing is quite hackish and depends on the environment (and almost the weather)&ndash;&gt;-->
-                                <waitfor maxwait="400" maxwaitunit="second" checkevery="500" checkeveryunit="millisecond">
-                                    <http url="http://www.localhost:8080/midpoint"/>
+                              <!--  <sleep seconds="400" /> --><!--&lt;!&ndash;TODO CHANGE! (This should be rather the concern of the tests) : Needed so MP boots up, but the whole thing is quite hackish and depends on the environment (and almost the weather)&ndash;&gt;-->
+                                <waitfor maxwait="750" maxwaitunit="second" checkevery="500" checkeveryunit="millisecond">
+                                    <http url="http://www.localhost:8090/midpoint"/>
                                 </waitfor>
                             </target>
                         </configuration>
