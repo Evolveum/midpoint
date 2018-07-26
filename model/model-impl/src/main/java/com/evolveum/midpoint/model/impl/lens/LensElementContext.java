@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private String oid = null;
 	private int iteration;
     private String iterationToken;
+    
+    transient private SecurityPolicyType securityPolicy;
 
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
@@ -434,6 +436,19 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	public Collection<String> getPolicySituations() {
 		return policySituations;
 	}
+	
+	/**
+	 * Returns security policy applicable to the object. This means security policy
+	 * applicable directory to focus or projection. It will NOT return global
+	 * security policy.
+	 */
+	public SecurityPolicyType getSecurityPolicy() {
+		return securityPolicy;
+	}
+
+	public void setSecurityPolicy(SecurityPolicyType securityPolicy) {
+		this.securityPolicy = securityPolicy;
+	}
 
 	public void recompute() throws SchemaException {
 		PrismObject<O> base = objectCurrent;
@@ -554,6 +569,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		clone.isFresh = this.isFresh;
 		clone.iteration = this.iteration;
 		clone.iterationToken = this.iterationToken;
+		clone.securityPolicy = this.securityPolicy;
 	}
 
 	protected ObjectDelta<O> cloneDelta(ObjectDelta<O> thisDelta) {

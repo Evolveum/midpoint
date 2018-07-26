@@ -421,11 +421,7 @@ public class ProjectionCredentialsProcessor {
 		if (passwordPolicy != null) {
 			return passwordPolicy;
 		}
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			return null;
-		}
-		return SecurityUtil.getPasswordPolicy(focusContext.getSecurityPolicy());
+		return SecurityUtil.getPasswordPolicy(context.getGlobalSecurityPolicy());
 	}
 
 	// On missing password this returns empty string (""). It is then up to password policy whether it allows empty passwords or not.

@@ -414,35 +414,6 @@ public class ContextLoader {
 		
 		loadSecurityPolicy(context, task, result);
 	}
-	
-	@SuppressWarnings("unchecked")
-	private <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
-			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			return;
-		}
-		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-			LOGGER.trace("Skipping load of security policy because focus is not user");
-			return;
-		}
-		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
-		if (securityPolicy == null) {
-			securityPolicy = securityHelper.locateSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(), 
-					context.getSystemConfiguration(), task, result);
-			if (securityPolicy == null) {
-				// store empty policy to avoid repeated lookups
-				securityPolicy = new SecurityPolicyType();
-			}
-			focusContext.setSecurityPolicy(securityPolicy);
-		}
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Security policy:\n{}", securityPolicy==null?null:securityPolicy.asPrismObject().debugDump(1));
-		} else {
-			LOGGER.debug("Security policy: {}", securityPolicy);
-		}
-	}
 
     // expects that object policy configuration is already set in focusContext
 	private <F extends ObjectType> PrismObject<ObjectTemplateType> determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
@@ -1359,4 +1330,52 @@ public class ContextLoader {
 	}
 
 	
+	public <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		loadSecurityPolicy(context, false, task, result);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context, boolean forceReload,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
+					SchemaException, PolicyViolationException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return;
+		}
+		if (focusContext == null || !UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			LOGGER.trace("Skipping load of security policy because focus is not user");
+			return;
+		}
+		SecurityPolicyType globalSecurityPolicy = context.getGlobalSecurityPolicy();
+		if (globalSecurityPolicy == null) {
+			globalSecurityPolicy = securityHelper.locateGlobalSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
+					context.getSystemConfiguration(), task, result);
+			if (globalSecurityPolicy == null) {
+				// store empty policy to avoid repeated lookups
+				globalSecurityPolicy = new SecurityPolicyType();
+			}
+			context.setGlobalSecurityPolicy(globalSecurityPolicy);
+		}
+		SecurityPolicyType focusSecurityPolicy = focusContext.getSecurityPolicy();
+		if (forceReload || focusSecurityPolicy == null) {
+			focusSecurityPolicy = securityHelper.locateFocusSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
+					context.getSystemConfiguration(), task, result);
+			if (focusSecurityPolicy == null) {
+				// Not very clean. In fact we should store focus security policy separate from global
+				// policy to avoid confusion. But need to do this to fix MID-4793 and backport the fix.
+				// Therefore avoiding big changes. TODO: fix properly later
+				focusSecurityPolicy = globalSecurityPolicy;
+			}
+			focusContext.setSecurityPolicy(focusSecurityPolicy);
+		}
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Security policy:\n  Global:\n{}\n  Focus:\n{}", 
+					globalSecurityPolicy==null?null:globalSecurityPolicy.asPrismObject().debugDump(2),
+					focusSecurityPolicy==null?null:focusSecurityPolicy.asPrismObject().debugDump(2));
+		} else {
+			LOGGER.debug("Security policy: global: {}, focus: {}", globalSecurityPolicy, focusSecurityPolicy);
+		}
+	}
 }

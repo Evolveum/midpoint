@@ -65,6 +65,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	@NotNull private final transient List<ConflictWatcher> conflictWatchers = new ArrayList<>();
 
 	private int conflictResolutionAttemptNumber;
+	
+	transient private SecurityPolicyType globalSecurityPolicy;
 
 	/**
 	 * Channel that is the source of primary change (GUI, live sync, import,
@@ -1332,5 +1334,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		for (LensProjectionContext projectionContext : projectionContexts) {
 			projectionContext.deleteSecondaryDeltas();
 		}
+	}
+
+	public SecurityPolicyType getGlobalSecurityPolicy() {
+		return globalSecurityPolicy;
+	}
+
+	public void setGlobalSecurityPolicy(SecurityPolicyType globalSecurityPolicy) {
+		this.globalSecurityPolicy = globalSecurityPolicy;
 	}
 }

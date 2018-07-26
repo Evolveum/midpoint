@@ -44,8 +44,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     private static final Trace LOGGER = TraceManager.getTrace(LensFocusContext.class);
 
 	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
-	
-	transient private SecurityPolicyType securityPolicy;
 	transient private ObjectPolicyConfigurationType objectPolicyConfigurationType;
 	
 	private int getProjectionWave() {
@@ -54,14 +52,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	
 	private int getExecutionWave() {
 		return getLensContext().getProjectionWave();
-	}
-	
-	public SecurityPolicyType getSecurityPolicy() {
-		return securityPolicy;
-	}
-
-	public void setSecurityPolicy(SecurityPolicyType securityPolicy) {
-		this.securityPolicy = securityPolicy;
 	}
 
 	public ObjectPolicyConfigurationType getObjectPolicyConfigurationType() {

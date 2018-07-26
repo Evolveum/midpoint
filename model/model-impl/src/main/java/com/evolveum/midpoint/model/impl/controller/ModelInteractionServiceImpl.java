@@ -995,13 +995,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		// user-level policy
 		CredentialsPolicyType policy = null;
-		if (object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
-			policy = getCredentialsPolicy((PrismObject<UserType>) object, task, parentResult);
+		PrismObject<UserType> user = null;
+		if (object != null && object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
+			user = (PrismObject<UserType>) object;
+			policy = getCredentialsPolicy(user, task, parentResult);
 		}
 		
 		SystemConfigurationType systemConfigurationType = getSystemConfiguration(parentResult);
 		if (!containsValuePolicyDefinition(policy)) {
-			SecurityPolicyType securityPolicy = securityHelper.locateGlobalSecurityPolicy(systemConfigurationType, task, parentResult);
+			SecurityPolicyType securityPolicy = securityHelper.locateGlobalSecurityPolicy(user, systemConfigurationType.asPrismObject(), task, parentResult);
 			if (securityPolicy != null) {
 				policy = securityPolicy.getCredentials();
 			}
