@@ -513,7 +513,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
 		// in the old object. In the new object there will be one new history entry for the changed password.
 		int numberOfHistoryEntriesToDelete = historyEntries.size() - historyLength + addedValues + 1;
 		
-		for (int i = 0; i < numberOfHistoryEntriesToDelete; i++) {
+		for (int i = 0; i < numberOfHistoryEntriesToDelete && i < historyEntries.size(); i++) {
 			ContainerDelta<PasswordHistoryEntryType> deleteHistoryDelta = ContainerDelta
 					.createModificationDelete(
 							new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,

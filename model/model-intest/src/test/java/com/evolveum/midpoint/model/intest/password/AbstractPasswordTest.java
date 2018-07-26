@@ -93,15 +93,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_PASSWORD_VALID_2 = "abcd223";
 	protected static final String USER_PASSWORD_VALID_3 = "abcd323";
 	protected static final String USER_PASSWORD_VALID_4 = "abcd423";
-<<<<<<< HEAD
-=======
 	// Very long and very simple password. This is meant to violate the policies.
 	protected static final String USER_PASSWORD_LLL_CLEAR = "lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll";
 	
 	protected static final String PASSWORD_ALLIGATOR = "all1g4t0r";
 	protected static final String PASSWORD_CROCODILE = "cr0c0d1l3";
 	protected static final String PASSWORD_GIANT_LIZARD = "G14NTl1z4rd";
->>>>>>> f43c704... Fixing handling of global vs resource security policy (MID-4793)
 
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "password");
 
@@ -133,12 +130,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected String accountJackYellowOid;
 	protected XMLGregorianCalendar lastPasswordChangeStart;
 	protected XMLGregorianCalendar lastPasswordChangeEnd;
-<<<<<<< HEAD
-	
-=======
 	private String ministrySecurityPolicyOid;
 
->>>>>>> f43c704... Fixing handling of global vs resource security policy (MID-4793)
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		InternalsConfig.setAvoidLoggingChange(true);
