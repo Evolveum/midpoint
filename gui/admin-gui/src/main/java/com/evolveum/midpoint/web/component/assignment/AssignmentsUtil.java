@@ -6,9 +6,14 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -373,4 +378,35 @@ public class AssignmentsUtil {
         return ConstructionType.COMPLEX_TYPE;
 
     }
+
+    public static IModel<String> getAssignmentsLimitReachedTitleModel(OperationResult result, PageBase pageBase){
+        return new LoadableModel<String>(true) {
+            @Override
+            protected String load() {
+                int assignmentsLimit = loadAssignmentsLimit(result, pageBase);
+                return isAssignmentsLimitReached(assignmentsLimit, pageBase) ?
+                        pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", loadAssignmentsLimit(result, pageBase))
+                        .getString() : "";
+            }
+        };
+    }
+
+    public static boolean isAssignmentsLimitReached(int assignmentsLimit, PageBase pageBase){
+        RoleCatalogStorage storage = pageBase.getSessionStorage().getRoleCatalog();
+        return assignmentsLimit >= 0 && storage.getAssignmentShoppingCart().size() >= assignmentsLimit;
+    }
+
+    public static int loadAssignmentsLimit(OperationResult result, PageBase pageBase){
+        int assignmentsLimit = -1;
+        try {
+            SystemConfigurationType sysConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
+            if (sysConfig != null && sysConfig.getAdminGuiConfiguration() != null && sysConfig.getAdminGuiConfiguration().getRoleManagement() != null){
+                assignmentsLimit = sysConfig.getAdminGuiConfiguration().getRoleManagement().getAssignmentApprovalRequestLimit();
+            }
+        } catch (ObjectNotFoundException | SchemaException ex){
+            LOGGER.error("Error getting system configuration: {}", ex.getMessage(), ex);
+        }
+        return assignmentsLimit;
+    }
+
 }
