@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
