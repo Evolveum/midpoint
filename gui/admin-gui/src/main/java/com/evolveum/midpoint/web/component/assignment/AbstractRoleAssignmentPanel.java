@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -50,7 +51,6 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -157,30 +157,39 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
            getPageBase().showMainPopup(panel, target);
     }
 
-    protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation){
-           if (assignmentsList == null || assignmentsList.isEmpty()){
-                   warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
-                   target.add(getPageBase().getFeedbackPanel());
-                   return;
-           }
-           
-           for (T object : assignmentsList){
-        	   PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
-        	   ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, relation);
-        	   AssignmentType assignmentType = newAssignment.asContainerable();
-        	   if (ResourceType.class.equals(object.getClass())) {
-        		   ConstructionType constructionType = new ConstructionType();
-        		   constructionType.setResourceRef(ref);
-        		   assignmentType.setConstruction(constructionType);
-        	   } else {
-        		   assignmentType.setTargetRef(ref);
-        	   }
-        	   createNewAssignmentContainerValueWrapper(newAssignment);
-           }
+    protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList, QName relation) {
+        if (assignmentsList == null || assignmentsList.isEmpty()) {
+            warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+        int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                getPageBase());
+        int addedAssignmentsCount = getNewAssignmentsCount() + assignmentsList.size();
+        if (assignmentsLimit >= 0 && addedAssignmentsCount > assignmentsLimit) {
+            warn(getParentPage().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsLimit));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
 
-            refreshTable(target);
-            reloadSavePreviewButtons(target);
-       }
+        for (T object : assignmentsList) {
+            PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+            ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, relation);
+            AssignmentType assignmentType = newAssignment.asContainerable();
+            if (ResourceType.class.equals(object.getClass())) {
+                ConstructionType constructionType = new ConstructionType();
+                constructionType.setResourceRef(ref);
+                assignmentType.setConstruction(constructionType);
+            } else {
+                assignmentType.setTargetRef(ref);
+            }
+            createNewAssignmentContainerValueWrapper(newAssignment);
+        }
+
+        refreshTable(target);
+        target.add(getAssignmentContainer());
+        reloadSavePreviewButtons(target);
+    }
 
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();

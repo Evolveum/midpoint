@@ -28,16 +28,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
-import com.evolveum.midpoint.web.page.admin.users.PageMergeObjects;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
-import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -67,10 +61,12 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
     private static final String ID_DETAILS_LINK = "detailsLink";
     private static final String ID_DETAILS_LINK_LABEL = "detailsLinkLabel";
     private static final String ID_DETAILS_LINK_ICON = "detailsLinkIcon";
+
     private boolean plusIconClicked = false;
 
     private static final String DOT_CLASS = RoleCatalogItemButton.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+    private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogItemButton.class);
 
     public RoleCatalogItemButton(String id, IModel<AssignmentEditorDto> model){
@@ -84,6 +80,8 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
     }
 
     private void initLayout(){
+        setOutputMarkupId(true);
+
         WebMarkupContainer itemButtonContainer = new WebMarkupContainer(ID_ITEM_BUTTON_CONTAINER);
         itemButtonContainer.setOutputMarkupId(true);
         itemButtonContainer.add(new AttributeAppender("class", getBackgroundClass(getModelObject())));
@@ -124,14 +122,9 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
                 assignmentDetailsPerformed(RoleCatalogItemButton.this.getModelObject(), ajaxRequestTarget);
             }
         };
-        detailsLink.add(new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(getModelObject());
-            }
-        });
+        detailsLink.add(getFooterLinksEnableBehaviour());
+        detailsLink.add(AttributeAppender.append("title",
+                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
         itemButtonContainer.add(detailsLink);
 
         Label detailsLinkLabel = new Label(ID_DETAILS_LINK_LABEL, createStringResource("MultiButtonPanel.detailsLink"));
@@ -146,14 +139,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
             }
 
         };
-        detailsLinkIcon.add(new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(getModelObject());
-            }
-        });
+        detailsLinkIcon.add(getFooterLinksEnableBehaviour());
         detailsLink.add(detailsLinkIcon);
 
         AjaxLink addToCartLink = new AjaxLink(ID_ADD_TO_CART_LINK) {
@@ -164,14 +150,9 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
                 addAssignmentPerformed(RoleCatalogItemButton.this.getModelObject(), ajaxRequestTarget);
             }
         };
-        addToCartLink.add(new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(getModelObject());
-            }
-        });
+        addToCartLink.add(getFooterLinksEnableBehaviour());
+        addToCartLink.add(AttributeAppender.append("title",
+                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
         itemButtonContainer.add(addToCartLink);
 
         AjaxLink addToCartLinkIcon = new AjaxLink(ID_ADD_TO_CART_LINK_ICON) {
@@ -182,14 +163,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
             }
 
         };
-        addToCartLinkIcon.add(new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled(){
-                return isMultiUserRequest() || canAssign(getModelObject());
-            }
-        });
+        addToCartLinkIcon.add(getFooterLinksEnableBehaviour());
         addToCartLink.add(addToCartLinkIcon);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_TYPE_ICON);
@@ -245,6 +219,20 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
                     }
                 }
                 return relations;
+            }
+        };
+    }
+
+    private VisibleEnableBehaviour getFooterLinksEnableBehaviour(){
+        return new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                        RoleCatalogItemButton.this.getPageBase());
+                return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, RoleCatalogItemButton.this.getPageBase())
+                        && (isMultiUserRequest() || canAssign(getModelObject()));
             }
         };
     }
