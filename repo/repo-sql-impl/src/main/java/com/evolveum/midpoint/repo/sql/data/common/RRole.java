@@ -16,27 +16,18 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-
-import java.util.Collection;
+import javax.persistence.*;
 
 /**
  * @author lazyman
@@ -51,7 +42,8 @@ import java.util.Collection;
 @Persister(impl = MidPointJoinedPersister.class)
 public class RRole extends RAbstractRole<RoleType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
+    @Deprecated //todo remove in 3.9
     private String roleType;
 
     public String getRoleType() {
@@ -64,12 +56,12 @@ public class RRole extends RAbstractRole<RoleType> {
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
     })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setRoleType(String roleType) {
@@ -87,7 +79,7 @@ public class RRole extends RAbstractRole<RoleType> {
 
         RRole rRole = (RRole) o;
 
-        if (name != null ? !name.equals(rRole.name) : rRole.name != null)
+        if (nameCopy != null ? !nameCopy.equals(rRole.nameCopy) : rRole.nameCopy != null)
             return false;
         if (roleType != null ? !roleType.equals(rRole.roleType) : rRole.roleType != null)
             return false;
@@ -98,7 +90,7 @@ public class RRole extends RAbstractRole<RoleType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (roleType != null ? roleType.hashCode() : 0);
         return result;
     }
@@ -108,15 +100,6 @@ public class RRole extends RAbstractRole<RoleType> {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setRoleType(jaxb.getRoleType());
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-    }
-
-    @Override
-    public RoleType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RoleType object = new RoleType();
-        RRole.copyToJAXB(this, object, prismContext, options);
-        RUtil.revive(object, prismContext);
-        return object;
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }
 }

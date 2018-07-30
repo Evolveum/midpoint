@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.ROperationalState;
@@ -28,8 +27,6 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
@@ -40,7 +37,6 @@ import org.hibernate.annotations.Persister;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -58,7 +54,7 @@ import java.util.Set;
 public class RResource extends RObject<ResourceType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
-    private RPolyString name;
+    private RPolyString nameCopy;
     private REmbeddedReference connectorRef;
     private ROperationalState operationalState;
     //resource business configuration, embedded component can't be used, because then it couldn't use
@@ -100,8 +96,12 @@ public class RResource extends RObject<ResourceType> {
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
     })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public void setAdministrativeState(RResourceAdministrativeState administrativeState) {
@@ -110,10 +110,6 @@ public class RResource extends RObject<ResourceType> {
 
     public void setApproverRef(Set<RObjectReference<RFocus>> approverRef) {
         this.approverRef = approverRef;
-    }
-
-    public void setName(RPolyString name) {
-        this.name = name;
     }
 
     public void setOperationalState(ROperationalState operationalState) {
@@ -135,7 +131,7 @@ public class RResource extends RObject<ResourceType> {
 
         RResource rResource = (RResource) o;
 
-        if (name != null ? !name.equals(rResource.name) : rResource.name != null)
+        if (nameCopy != null ? !nameCopy.equals(rResource.nameCopy) : rResource.nameCopy != null)
             return false;
         if (connectorRef != null ? !connectorRef.equals(rResource.connectorRef) : rResource.connectorRef != null)
             return false;
@@ -146,7 +142,7 @@ public class RResource extends RObject<ResourceType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         return result;
     }
 
@@ -154,7 +150,7 @@ public class RResource extends RObject<ResourceType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), repositoryContext.prismContext));
 
         if (jaxb.getConnector() != null) {
@@ -177,15 +173,5 @@ public class RResource extends RObject<ResourceType> {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-    }
-
-    @Override
-    public ResourceType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        ResourceType object = new ResourceType();
-        RUtil.revive(object, prismContext);
-        RResource.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }

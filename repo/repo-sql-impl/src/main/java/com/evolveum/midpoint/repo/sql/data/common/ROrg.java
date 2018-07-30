@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -24,8 +23,6 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -33,7 +30,6 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
-import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -49,7 +45,8 @@ import java.util.Set;
 @Persister(impl = MidPointJoinedPersister.class)
 public class ROrg extends RAbstractRole<OrgType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
+    @Deprecated //todo remove collection in 3.9
     private Set<String> orgType;
     private String costCenter;
     private RPolyString locality;
@@ -62,12 +59,12 @@ public class ROrg extends RAbstractRole<OrgType> {
             @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
     })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public String getCostCenter() {
@@ -126,7 +123,7 @@ public class ROrg extends RAbstractRole<OrgType> {
 
         ROrg that = (ROrg) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(that.nameCopy) : that.nameCopy != null) return false;
         if (costCenter != null ? !costCenter.equals(that.costCenter) : that.costCenter != null) return false;
         if (locality != null ? !locality.equals(that.locality) : that.locality != null) return false;
         if (orgType != null ? !orgType.equals(that.orgType) : that.orgType != null) return false;
@@ -138,7 +135,7 @@ public class ROrg extends RAbstractRole<OrgType> {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (orgType != null ? orgType.hashCode() : 0);
         result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
         result = 31 * result + (locality != null ? locality.hashCode() : 0);
@@ -150,20 +147,10 @@ public class ROrg extends RAbstractRole<OrgType> {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setCostCenter(jaxb.getCostCenter());
         repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setOrgType(RUtil.listToSet(jaxb.getOrgType()));
         repo.setTenant(jaxb.isTenant());
-    }
-
-    @Override
-    public OrgType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        OrgType object = new OrgType();
-        RUtil.revive(object, prismContext);
-        RObject.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }
