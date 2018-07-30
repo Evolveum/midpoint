@@ -803,7 +803,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return false;
 	}
 
-	public List<QName> getChildMultivalueContainersToBeAdded(){
+	public List<QName> getChildMultivalueContainersToBeAdded(ItemVisibilityHandler isPanelVisible){
 		List<QName> pathList = new ArrayList<>();
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
@@ -812,6 +812,18 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			if (!((ContainerWrapper<C>)wrapper).getItemDefinition().canAdd() ||
 					!((ContainerWrapper<C>)wrapper).getItemDefinition().canModify()){
 				continue;
+			}
+			if(isPanelVisible != null) {
+				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.HIDDEN)) {
+					continue;
+				}
+				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && !((ContainerWrapper<C>)wrapper).isVisible()) {
+					continue;
+				}
+			} else {
+				if(!((ContainerWrapper<C>)wrapper).isVisible()) {
+					continue;
+				}
 			}
 			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
 				pathList.add(((ContainerWrapper<C>) wrapper).getName());

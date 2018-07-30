@@ -1,7 +1,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -65,7 +66,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE);
     }
 
-    private AssignmentsTabStorage getInducedEntitlementsTabStorage(){
+    private ObjectTabStorage getInducedEntitlementsTabStorage(){
         return getParentPage().getSessionStorage().getInducedEntitlementsTabStorage();
     }
 

@@ -21,7 +21,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.model.IModel;
@@ -49,7 +51,7 @@ public class PageServiceHistory extends PageService {
     }
 
     @Override
-    protected void setSummaryPanelVisibility(FocusSummaryPanel summaryPanel) {
+    protected void setSummaryPanelVisibility(ObjectSummaryPanel summaryPanel) {
         summaryPanel.setVisible(true);
     }
 

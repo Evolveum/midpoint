@@ -15055,6 +15055,9 @@
                 Auditing configuration
                 UNSTABLE. THIS WILL CHANGE IN THE FUTURE.
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true"/>
@@ -15068,6 +15071,9 @@
             <xsd:documentation>
                 Contains free form logging configuration.
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:any maxOccurs="unbounded"/>
@@ -15080,6 +15086,9 @@
     			Configuration of the logger: the facility that
                 collects log messages from the code.
     		</xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
     		<xsd:element name="level" type="tns:LoggingLevelType">
@@ -15106,6 +15115,9 @@
                 Configuration of the logger: the facility that
                 collects log messages from the code.
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
 			<xsd:extension base="tns:AbstractLoggerConfigurationType">
@@ -15130,6 +15142,9 @@
                 Configuration of the logger: the facility that
                 collects log messages from subsystem code.
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
 			<xsd:extension base="tns:AbstractLoggerConfigurationType">
@@ -15323,14 +15338,24 @@
 
                 TODO
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="pattern" type="xsd:string"/>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+    		</xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string"/>
+        <!-- <xsd:attribute name="name" type="xsd:string"/> -->
     </xsd:complexType>
 
     <xsd:complexType name="FileAppenderConfigurationType">
+		<xsd:annotation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>
@@ -15352,6 +15377,11 @@
     </xsd:complexType>
     
     <xsd:complexType name="SyslogAppenderConfigurationType">
+		<xsd:annotation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>

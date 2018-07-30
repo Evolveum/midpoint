@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.evolveum.midpoint.gui.impl.session.GlobalPolicyRulesTabStorage;
-import com.evolveum.midpoint.gui.impl.session.ObjectPoliciesTabStorage;
+import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -55,6 +55,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_INDUCED_ENTITLEMENTS_TAB = "inducedEntitlementsTab";
     public static final String KEY_OBJECT_POLICIES_TAB = "objectPoliciesTab";
     public static final String KEY_GLOBAL_POLICY_RULES_TAB = "globalPolicyRulesTab";
+    public static final String KEY_LOGGING_TAB_APPENDER_TABLE = "loggingTabAppenderTable";
+    public static final String KEY_LOGGING_TAB_LOGGER_TABLE = "loggingTabLoggerTable";
 
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
@@ -162,40 +164,40 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (ResourceContentStorage)pageStorageMap.get(key);
 
 	}
-
-    public AssignmentsTabStorage getAssignmentsTabStorage() {
-        if (pageStorageMap.get(KEY_ASSIGNMENTS_TAB) == null) {
-            pageStorageMap.put(KEY_ASSIGNMENTS_TAB, new AssignmentsTabStorage());
+    
+    private ObjectTabStorage getObjectTabStorage(String key) {
+    	if (pageStorageMap.get(key) == null) {
+            pageStorageMap.put(key, new ObjectTabStorage());
         }
-        return (AssignmentsTabStorage)pageStorageMap.get(KEY_ASSIGNMENTS_TAB);
+        return (ObjectTabStorage)pageStorageMap.get(key);
+    }
+
+    public ObjectTabStorage getAssignmentsTabStorage() {
+        return getObjectTabStorage(KEY_ASSIGNMENTS_TAB);
 	}
 
-    public AssignmentsTabStorage getInducementsTabStorage() {
-        if (pageStorageMap.get(KEY_INDUCEMENTS_TAB) == null) {
-            pageStorageMap.put(KEY_INDUCEMENTS_TAB, new AssignmentsTabStorage());
-        }
-        return (AssignmentsTabStorage)pageStorageMap.get(KEY_INDUCEMENTS_TAB);
+    public ObjectTabStorage getInducementsTabStorage() {
+        return getObjectTabStorage(KEY_INDUCEMENTS_TAB);
 	}
 
-    public AssignmentsTabStorage getInducedEntitlementsTabStorage() {
-        if (pageStorageMap.get(KEY_INDUCED_ENTITLEMENTS_TAB) == null) {
-            pageStorageMap.put(KEY_INDUCED_ENTITLEMENTS_TAB, new AssignmentsTabStorage());
-        }
-        return (AssignmentsTabStorage)pageStorageMap.get(KEY_INDUCED_ENTITLEMENTS_TAB);
+    public ObjectTabStorage getInducedEntitlementsTabStorage() {
+        return getObjectTabStorage(KEY_INDUCED_ENTITLEMENTS_TAB);
 	}
     
-    public ObjectPoliciesTabStorage getObjectPoliciesConfigurationTabStorage() {
-        if (pageStorageMap.get(KEY_OBJECT_POLICIES_TAB) == null) {
-            pageStorageMap.put(KEY_OBJECT_POLICIES_TAB, new ObjectPoliciesTabStorage());
-        }
-        return (ObjectPoliciesTabStorage)pageStorageMap.get(KEY_OBJECT_POLICIES_TAB);
+    public ObjectTabStorage getObjectPoliciesConfigurationTabStorage() {
+        return getObjectTabStorage(KEY_OBJECT_POLICIES_TAB);
 	}
     
-    public GlobalPolicyRulesTabStorage getGlobalPolicyRulesTabStorage() {
-        if (pageStorageMap.get(KEY_GLOBAL_POLICY_RULES_TAB) == null) {
-            pageStorageMap.put(KEY_GLOBAL_POLICY_RULES_TAB, new GlobalPolicyRulesTabStorage());
-        }
-        return (GlobalPolicyRulesTabStorage)pageStorageMap.get(KEY_GLOBAL_POLICY_RULES_TAB);
+    public ObjectTabStorage getGlobalPolicyRulesTabStorage() {
+        return getObjectTabStorage(KEY_GLOBAL_POLICY_RULES_TAB);
+	}
+    
+    public ObjectTabStorage getLoggingConfigurationTabAppenderTableStorage() {
+        return getObjectTabStorage(KEY_LOGGING_TAB_APPENDER_TABLE);
+	}
+    
+    public ObjectTabStorage getLoggingConfigurationTabLoggerTableStorage() {
+        return getObjectTabStorage(KEY_LOGGING_TAB_LOGGER_TABLE);
 	}
 
     private String getContentStorageKey(ShadowKindType kind, String searchMode) {

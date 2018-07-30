@@ -76,7 +76,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
 				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
     }
     
-    protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+    protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentPath) {
     	return ItemVisibility.AUTO;
     }
 

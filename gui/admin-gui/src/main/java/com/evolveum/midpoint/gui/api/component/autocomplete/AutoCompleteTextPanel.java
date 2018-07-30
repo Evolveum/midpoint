@@ -24,6 +24,8 @@ import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.StringAutoCompleteRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.time.Duration;
@@ -42,14 +44,21 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_INPUT = "input";
+	
+	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type) {
+		this(id, model, type, null);
+	}
 
-    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type) {
+    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, IAutoCompleteRenderer<T> renderer) {
     	super(id);
+    	if(renderer == null) {
+    		renderer = StringAutoCompleteRenderer.INSTANCE;
+    	}
 
         AutoCompleteSettings autoCompleteSettings = createAutoCompleteSettings();
 
         // this has to be copied because the  AutoCompleteTextField dies if renderer=null
-        final AutoCompleteTextField<T> input = new AutoCompleteTextField<T>(ID_INPUT, model, type, autoCompleteSettings) {
+        final AutoCompleteTextField<T> input = new AutoCompleteTextField<T>(ID_INPUT, model, type, renderer, autoCompleteSettings) {
         	private static final long serialVersionUID = 1L;
 
             @Override

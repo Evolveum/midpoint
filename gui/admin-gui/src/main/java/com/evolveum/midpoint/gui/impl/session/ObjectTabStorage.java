@@ -23,9 +23,9 @@ import com.evolveum.midpoint.web.session.PageStorage;
 /**
  * @author skublik
  */
-public class ObjectPoliciesTabStorage implements PageStorage{
+public class ObjectTabStorage implements PageStorage{
 
-    private ObjectPaging objectPoliciesPaging;
+    private ObjectPaging objectPaging;
 
 
     @Override
@@ -39,12 +39,12 @@ public class ObjectPoliciesTabStorage implements PageStorage{
 
     @Override
     public ObjectPaging getPaging() {
-        return objectPoliciesPaging;
+        return objectPaging;
     }
 
     @Override
-    public void setPaging(ObjectPaging objectPoliciesPaging) {
-        this.objectPoliciesPaging = objectPoliciesPaging;
+    public void setPaging(ObjectPaging objectPaging) {
+        this.objectPaging = objectPaging;
     }
 
     @Override

@@ -48,7 +48,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -131,7 +131,7 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
     	int itemPerPage = (int) ((PageBase)GlobalPolicyRuleTabPanel.this.getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE);
     	PageStorage pageStorage = ((PageBase)GlobalPolicyRuleTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
     	
-    	MultivalueContainerListPanel<GlobalPolicyRuleType> multivalueContainerListPanel = new MultivalueContainerListPanel<GlobalPolicyRuleType>(ID_GLOBAL_POLICY_RULE, getModel(),
+    	MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> multivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>(ID_GLOBAL_POLICY_RULE, getModel(),
     			tableId, itemPerPage, pageStorage) {
 			
 			private static final long serialVersionUID = 1L;
@@ -139,7 +139,7 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 			@Override
 			protected List<ContainerValueWrapper<GlobalPolicyRuleType>> postSearch(
 					List<ContainerValueWrapper<GlobalPolicyRuleType>> items) {
-				return items;
+				return getObjects();
 			}
 			
 			@Override
@@ -184,6 +184,10 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 		setOutputMarkupId(true);
 	}
     
+    private List<ContainerValueWrapper<GlobalPolicyRuleType>> getObjects() {
+    	return getModelObject().getValues();
+    }
+    
     protected void newGlobalPolicuRuleClickPerformed(AjaxRequestTarget target) {
         PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModel().getObject().getItem().createNewValue();
         ContainerValueWrapper<GlobalPolicyRuleType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModel());
@@ -194,7 +198,7 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
     
     private MultivalueContainerDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerDetailsPanel(
 			ListItem<ContainerValueWrapper<GlobalPolicyRuleType>> item) {
-    	MultivalueContainerDetailsPanel<GlobalPolicyRuleType> detailsPanel = new  MultivalueContainerDetailsPanel<GlobalPolicyRuleType>(MultivalueContainerListPanel.ID_ITEM_DETAILS, item.getModel()) {
+    	MultivalueContainerDetailsPanel<GlobalPolicyRuleType> detailsPanel = new  MultivalueContainerDetailsPanel<GlobalPolicyRuleType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -222,8 +226,8 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 		return detailsPanel;
 	}
     
-	private MultivalueContainerListPanel<GlobalPolicyRuleType> getMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanel<GlobalPolicyRuleType>)get(ID_GLOBAL_POLICY_RULE));
+	private MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType> getMultivalueContainerListPanel(){
+		return ((MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType>)get(ID_GLOBAL_POLICY_RULE));
 	}
     
     private ObjectQuery createQuery() {

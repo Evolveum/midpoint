@@ -53,9 +53,11 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
     private boolean isChildContainersSelectorPanelVisible = false;
     
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerValueHeaderPanel.class);
+    private ItemVisibilityHandler isPanelVisible;
 	
-	public PrismContainerValueHeaderPanel(String id, IModel<ContainerValueWrapper<C>> model) {
+	public PrismContainerValueHeaderPanel(String id, IModel<ContainerValueWrapper<C>> model, ItemVisibilityHandler isPanelVisible) {
 		super(id, model);
+		this.isPanelVisible = isPanelVisible;
 	}
 
 	@Override
@@ -179,12 +181,13 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			@Override
 			public boolean isVisible(){
 				return getModelObject().containsMultipleMultivalueContainer() && getModelObject().getContainer() != null
-						&& getModelObject().getDefinition().canModify();
+						&& getModelObject().getDefinition().canModify()
+						&& !getModelObject().getChildMultivalueContainersToBeAdded(isPanelVisible).isEmpty();
 			}
 		});
         add(addChildContainerButton);
 
-        List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded();
+        List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded(isPanelVisible);
         
        	WebMarkupContainer childContainersSelectorPanel = new WebMarkupContainer(ID_CHILD_CONTAINERS_SELECTOR_PANEL);
 		childContainersSelectorPanel.add(new VisibleEnableBehaviour(){
@@ -269,7 +272,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	}
 
 	private QName getSelectedContainerQName(){
-		List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded();
+		List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded(isPanelVisible);
 		if(pathsList.size() == 1) {
 			return pathsList.get(0);
 		}

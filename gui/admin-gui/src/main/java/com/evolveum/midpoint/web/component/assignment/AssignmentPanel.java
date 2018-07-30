@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -99,7 +100,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	
 	private void initLayout() {
 		
-		MultivalueContainerListPanel<AssignmentType> multivalueContainerListPanel = new MultivalueContainerListPanel<AssignmentType>(ID_ASSIGNMENTS, getModel(), getTableId(),
+		MultivalueContainerListPanelWithDetailsPanel<AssignmentType> multivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<AssignmentType>(ID_ASSIGNMENTS, getModel(), getTableId(),
 				getItemsPerPage(), getAssignmentsTabStorage()) {
 
 			private static final long serialVersionUID = 1L;
@@ -161,16 +162,12 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	
 	protected abstract void initCustomPaging();
 	
-	protected AssignmentsTabStorage getAssignmentsTabStorage(){
+	protected ObjectTabStorage getAssignmentsTabStorage(){
         return getParentPage().getSessionStorage().getAssignmentsTabStorage();
     }
 	
 	protected List<ContainerValueWrapper<AssignmentType>> customPostSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
 		return assignments;
-	}
-
-	protected AssignmentsTabStorage getAssignmentsStorage() {
-		return getPageBase().getSessionStorage().getAssignmentsTabStorage();
 	}
 
 	protected abstract ObjectQuery createObjectQuery();
@@ -240,7 +237,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	
 	private MultivalueContainerDetailsPanel<AssignmentType> createMultivalueContainerDetailsPanel(
 			ListItem<ContainerValueWrapper<AssignmentType>> item) {
-		MultivalueContainerDetailsPanel<AssignmentType> detailsPanel = new  MultivalueContainerDetailsPanel<AssignmentType>(MultivalueContainerListPanel.ID_ITEM_DETAILS, item.getModel()) {
+		MultivalueContainerDetailsPanel<AssignmentType> detailsPanel = new  MultivalueContainerDetailsPanel<AssignmentType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -442,8 +439,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		return menuItems;
 	}
 
-	protected MultivalueContainerListPanel<AssignmentType> getMultivalueContainerListPanel() {
-		return ((MultivalueContainerListPanel<AssignmentType>)get(ID_ASSIGNMENTS));
+	protected MultivalueContainerListPanelWithDetailsPanel<AssignmentType> getMultivalueContainerListPanel() {
+		return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType>)get(ID_ASSIGNMENTS));
 	}
 
 	protected abstract TableId getTableId();

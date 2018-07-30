@@ -40,9 +40,22 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	                addValue(target);
 	            }
 	        };
+	        addButton.add(new VisibleEnableBehaviour() {
+				
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isVisible() {
+					return isAddButtonVisible();
+				}
+			});
 	        
 	        add(addButton);
 
+	}
+	
+	protected boolean isAddButtonVisible() {
+		return true;
 	}
 	
 	private void addValue(AjaxRequestTarget target) {

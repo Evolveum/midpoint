@@ -15,7 +15,8 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -56,7 +57,7 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
         return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCEMENTS_TAB_TABLE);
     }
 
-    private AssignmentsTabStorage getInducementsTabStorage(){
+    private ObjectTabStorage getInducementsTabStorage(){
         return getParentPage().getSessionStorage().getInducementsTabStorage();
     }
 

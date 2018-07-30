@@ -47,7 +47,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -56,6 +56,7 @@ import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -126,15 +127,15 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
     	int itemPerPage = (int) ((PageBase)ObjectPolicyConfigurationTabPanel.this.getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE);
     	PageStorage pageStorage = ((PageBase)ObjectPolicyConfigurationTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
     	
-    	MultivalueContainerListPanel<ObjectPolicyConfigurationType> multivalueContainerListPanel = new MultivalueContainerListPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, getModel(),
+    	MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> multivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>(ID_OBJECTS_POLICY, getModel(),
     			tableId, itemPerPage, pageStorage) {
 			
 			private static final long serialVersionUID = 1L;
-
+			
 			@Override
 			protected List<ContainerValueWrapper<ObjectPolicyConfigurationType>> postSearch(
 					List<ContainerValueWrapper<ObjectPolicyConfigurationType>> items) {
-				return items;
+				return getObjects();
 			}
 			
 			@Override
@@ -179,6 +180,10 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 		setOutputMarkupId(true);
 	}
     
+    private List<ContainerValueWrapper<ObjectPolicyConfigurationType>> getObjects() {
+    	return getModelObject().getValues();
+    }
+    
     protected void newObjectPolicyClickPerformed(AjaxRequestTarget target) {
         PrismContainerValue<ObjectPolicyConfigurationType> newObjectPolicy = getModel().getObject().getItem().createNewValue();
         ContainerValueWrapper<ObjectPolicyConfigurationType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModel());
@@ -189,7 +194,7 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
     
     private MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
 			ListItem<ContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
-    	MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> detailsPanel = new  MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType>(MultivalueContainerListPanel.ID_ITEM_DETAILS, item.getModel()) {
+    	MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> detailsPanel = new  MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -235,13 +240,16 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 		return detailsPanel;
 	}
     
-	private MultivalueContainerListPanel<ObjectPolicyConfigurationType> getMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanel<ObjectPolicyConfigurationType>)get(ID_OBJECTS_POLICY));
+	private MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerListPanel(){
+		return ((MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType>)get(ID_OBJECTS_POLICY));
 	}
     
     private ObjectQuery createQuery() {
-    	TypeFilter filter = TypeFilter.createType(ObjectPolicyConfigurationType.COMPLEX_TYPE, new AllFilter());
-    	return ObjectQuery.createObjectQuery(filter);
+//    	TypeFilter filter = TypeFilter.createType(ObjectPolicyConfigurationType.COMPLEX_TYPE, new AllFilter());
+//    	return ObjectQuery.createObjectQuery(filter);
+    	return QueryBuilder.queryFor(ObjectPolicyConfigurationType.class, getPageBase().getPrismContext())
+    			.all()
+                .build();
     }
     
     private void initPaging() {

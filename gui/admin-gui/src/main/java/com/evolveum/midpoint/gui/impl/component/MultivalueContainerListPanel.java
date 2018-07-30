@@ -74,19 +74,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	public static final String ID_ITEMS = "items";
 	private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
 	private static final String ID_ITEMS_TABLE = "itemsTable";
-	public static final String ID_ITEMS_DETAILS = "itemsDetails";
-	public static final String ID_ITEM_DETAILS = "itemDetails";
 	public static final String ID_SEARCH_ITEM_PANEL = "search";
 
 	public static final String ID_DETAILS = "details";
 
-	private final static String ID_DONE_BUTTON = "doneButton";
-	private final static String ID_CANCEL_BUTTON = "cancelButton";
-
 	private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
-	private List<ContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
-	private boolean itemDetailsVisible;
 	private TableId tableId;
 	private int itemPerPage;
 	private PageStorage pageStorage;
@@ -109,18 +102,16 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 		initListPanel();
 
-		initDetailsPanel();
-
+		initCustomLayout();
+		
 		setOutputMarkupId(true);
 
 	}
 	
 	protected abstract void initPaging();
 	
-	public void setItemDetailsVisible(boolean itemDetailsVisible) {
-		this.itemDetailsVisible = itemDetailsVisible;
-	}
-
+	protected abstract void initCustomLayout();
+	
 	private void initListPanel() {
 		WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS);
 		itemsContainer.setOutputMarkupId(true);
@@ -158,10 +149,14 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 			@Override
 			public boolean isVisible() {
-				return !itemDetailsVisible;
+				return isListPanelVisible();
 			}
 		});
 
+	}
+	
+	protected boolean isListPanelVisible() {
+		return true;
 	}
 	
 	protected abstract Fragment getSearchPanel(String contentAreaId);
@@ -233,75 +228,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	
 	protected abstract void newItemPerformed(AjaxRequestTarget target);
 	
-	protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<ContainerValueWrapper<C>> item);
-
-	private void initDetailsPanel() {
-		WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
-		details.setOutputMarkupId(true);
-		details.add(new VisibleEnableBehaviour() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				return itemDetailsVisible;
-			}
-		});
-
-		add(details);
-		
-		ListView<ContainerValueWrapper<C>> itemDetailsView = new ListView<ContainerValueWrapper<C>>(MultivalueContainerListPanel.ID_ITEMS_DETAILS,
-				new AbstractReadOnlyModel<List<ContainerValueWrapper<C>>>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public List<ContainerValueWrapper<C>> getObject() {
-						return detailsPanelItemsList;
-					}
-				}) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
-				MultivalueContainerDetailsPanel<C> detailsPanel = getMultivalueContainerDetailsPanel(item);
-				item.add(detailsPanel);
-				detailsPanel.setOutputMarkupId(true);
-
-			}
-			
-
-		};
-
-		itemDetailsView.setOutputMarkupId(true);
-		details.add(itemDetailsView);
-
-		AjaxButton doneButton = new AjaxButton(ID_DONE_BUTTON,
-				createStringResource("MultivalueContainerListPanel.doneButton")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-				itemDetailsVisible = false;
-				refreshTable(ajaxRequestTarget);
-				ajaxRequestTarget.add(MultivalueContainerListPanel.this);
-			}
-		};
-		details.add(doneButton);
-
-		AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
-				createStringResource("MultivalueContainerListPanel.cancelButton")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-				itemDetailsVisible = false;
-				ajaxRequestTarget.add(MultivalueContainerListPanel.this);
-			}
-		};
-		details.add(cancelButton);
-	}
-
 	public BoxedTablePanel<ContainerValueWrapper<C>> getItemTable() {
 		return (BoxedTablePanel<ContainerValueWrapper<C>>) get(createComponentPath(ID_ITEMS, ID_ITEMS_TABLE));
 	}
@@ -334,24 +260,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		if (mainPanel != null) {
 			mainPanel.reloadSavePreviewButtons(target);
 		}
-	}
-	
-	public void itemDetailsPerformed(AjaxRequestTarget target, IModel<ContainerValueWrapper<C>> rowModel) {
-    	setItemDetailsVisible(true);
-    	detailsPanelItemsList.clear();
-    	detailsPanelItemsList.add(rowModel.getObject());
-		rowModel.getObject().setSelected(false);
-		target.add(MultivalueContainerListPanel.this);
-	}
-
-	public void itemDetailsPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<C>> rowModel) {
-		setItemDetailsVisible(true);
-		detailsPanelItemsList.clear();
-		detailsPanelItemsList.addAll(rowModel);
-		rowModel.forEach(itemConfigurationTypeContainerValueWrapper -> {
-			itemConfigurationTypeContainerValueWrapper.setSelected(false);
-		});
-		target.add(MultivalueContainerListPanel.this);
 	}
 	
 	public ContainerValueWrapper<C> createNewItemContainerValueWrapper(
@@ -389,14 +297,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				if (getRowModel() == null) {
-					itemDetailsPerformed(target, getSelectedItems());
-				} else {
-					itemDetailsPerformed(target, getRowModel());
-				}
+				itemPerformedForDefaultAction(target, getRowModel(), getSelectedItems());
 			}
 		};
 	}
+	
+	protected abstract void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<ContainerValueWrapper<C>> rowModel, List<ContainerValueWrapper<C>> listItems);
 	
 	private void deleteItemPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<C>> toDelete) {
 		if (toDelete == null){

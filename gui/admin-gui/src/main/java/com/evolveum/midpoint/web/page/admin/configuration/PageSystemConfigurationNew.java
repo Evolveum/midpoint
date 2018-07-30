@@ -36,6 +36,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.GlobalPolicyRuleTabPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.LoggingConfigPanelNew;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.LoggingConfigurationTabPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.NotificationConfigPanelNew;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.OneContainerConfigurationPanel;
@@ -229,7 +230,8 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new NotificationConfigPanelNew(panelId, getObjectModel(), getPageParameters());
+				return new OneContainerConfigurationPanel<NotificationConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_NOTIFICATION_CONFIGURATION);
+//				return new NotificationConfigPanelNew(panelId, getObjectModel(), getPageParameters());
 			}
 		});
 
@@ -239,7 +241,10 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new LoggingConfigPanelNew(panelId, getObjectModel());
+				ContainerWrapperFromObjectWrapperModel<LoggingConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+						new ItemPath(SystemConfigurationType.F_LOGGING));
+				return new LoggingConfigurationTabPanel(panelId, model);
+//				return new LoggingConfigPanelNew(panelId, getObjectModel());
 			}
 		});
 

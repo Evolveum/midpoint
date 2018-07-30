@@ -68,13 +68,12 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 		});
 
         LOGGER.trace("Creating container panel for {}", model.getObject());
-        LOGGER.trace("isVisible {}", model.getObject().isVisible());
 
         initLayout(model, form, isPanelVisible, showHeader);
     }
 
     private void initLayout(final IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
-    	PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model) {
+    	PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model, isPanelVisible) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
