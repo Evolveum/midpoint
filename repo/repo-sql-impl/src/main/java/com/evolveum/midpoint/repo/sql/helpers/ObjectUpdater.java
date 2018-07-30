@@ -495,9 +495,17 @@ public class ObjectUpdater {
         if (sqlException != null) {
             SQLException nextException = sqlException.getNextException();
             LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", new Object[]{ex, sqlException, nextException});
-            String[] ok = new String[]{
+            String[] ok = new String[] {
+		            // PostgreSQL
                     "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
-                    "duplicate key value violates unique constraint \"m_reference_pkey\""
+                    "duplicate key value violates unique constraint \"m_reference_pkey\"",
+		            "duplicate key value violates unique constraint \"m_assignment_pkey\"",
+		            "duplicate key value violates unique constraint \"m_operation_execution_pkey\"",     // TODO resolve more intelligently (and completely!)
+		            // SQL Server
+		            "Violation of PRIMARY KEY constraint 'PK__m_org_cl__",
+		            "Violation of PRIMARY KEY constraint 'PK__m_refere__",
+		            "Violation of PRIMARY KEY constraint 'PK__m_assign__",
+		            "Violation of PRIMARY KEY constraint 'PK__m_operat__"
             };
             String msg1;
             if (sqlException.getMessage() != null) {
