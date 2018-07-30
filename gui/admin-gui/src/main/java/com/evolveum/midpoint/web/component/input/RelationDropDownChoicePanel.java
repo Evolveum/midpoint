@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -51,10 +53,16 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     private static final String ID_INPUT = "input";
 
     private AreaCategoryType category;
+    private boolean allowNull;
 
     public RelationDropDownChoicePanel(String id, IModel<QName> model, AreaCategoryType category) {
+        this(id, model, category, false);
+    }
+
+    public RelationDropDownChoicePanel(String id, IModel<QName> model, AreaCategoryType category, boolean allowNull) {
         super(id, model);
         this.category = category;
+        this.allowNull = allowNull;
     }
 
     @Override
@@ -62,12 +70,31 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
         super.onInitialize();
 
         List<QName> choicesList = getChoicesList();
-        QName defaultValue = choicesList.size() > 0 ? choicesList.get(0) : null;
+        QName defaultValue = null;
+        if (!allowNull) {
+            defaultValue = choicesList.size() > 0 ? choicesList.get(0) : null;
+        }
 
-        DropDownChoice<QName> input = new DropDownChoice<>(ID_INPUT, getModel() == null ? Model.of(defaultValue) : getModel(),
-                Model.ofList(choicesList), getRenderer());
-        input.setNullValid(false);
+        DropDownChoice<QName> input = new DropDownChoice<QName>(ID_INPUT, getModel() == null ? Model.of(defaultValue) : getModel(),
+                Model.ofList(choicesList), getRenderer()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getNullValidDisplayValue() {
+                return RelationDropDownChoicePanel.this.createStringResource("RelationTypes.ANY").getString();
+            }
+        };
+        input.setNullValid(allowNull);
         input.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        input.add(new OnChangeAjaxBehavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                RelationDropDownChoicePanel.this.onValueChanged(target);
+            }
+        });
         add(input);
 
         setOutputMarkupId(true);
@@ -113,6 +140,9 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
                 return Integer.toString(index);
             }
         };
+    }
+
+   protected void onValueChanged(AjaxRequestTarget target){
     }
 
     public QName getRelationValue() {
