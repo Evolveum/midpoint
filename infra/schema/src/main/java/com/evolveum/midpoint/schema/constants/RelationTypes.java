@@ -30,7 +30,7 @@ import javax.xml.namespace.QName;
 public enum RelationTypes {
 
 	MEMBER(SchemaConstants.ORG_DEFAULT, "", AreaCategoryType.ADMINISTRATION, AreaCategoryType.ORGANIZATION, AreaCategoryType.SELF_SERVICE),
-    MANAGER(SchemaConstants.ORG_MANAGER, "Manager", AreaCategoryType.ADMINISTRATION, AreaCategoryType.ORGANIZATION, AreaCategoryType.SELF_SERVICE),
+    MANAGER(SchemaConstants.ORG_MANAGER, "Manager", AreaCategoryType.ADMINISTRATION, AreaCategoryType.GOVERNANCE, AreaCategoryType.ORGANIZATION, AreaCategoryType.SELF_SERVICE),
     META(SchemaConstants.ORG_META, "Meta", AreaCategoryType.POLICY),
     DEPUTY(SchemaConstants.ORG_DEPUTY, "Deputy" /* no values */),
     APPROVER(SchemaConstants.ORG_APPROVER, "Approver", AreaCategoryType.ADMINISTRATION, AreaCategoryType.GOVERNANCE, AreaCategoryType.SELF_SERVICE),

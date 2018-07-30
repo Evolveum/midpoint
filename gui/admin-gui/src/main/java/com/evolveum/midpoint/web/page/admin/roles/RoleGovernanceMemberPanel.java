@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -124,9 +126,9 @@ public class RoleGovernanceMemberPanel extends RoleMemberPanel<RoleType> {
 	}
 
 	@Override
-    protected List<RelationTypes> getAvailableRelationList(){
-        return Arrays.asList(RelationTypes.MANAGER, RelationTypes.APPROVER, RelationTypes.OWNER);
-    }
+    protected List<QName> getAvailableRelationList(){
+        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE,
+                new OperationResult(OPERATION_RELATION_DEFINITION_TYPE), getPageBase());    }
 
     @Override
     protected ObjectQuery createAllMemberQuery(List<QName> relations) {

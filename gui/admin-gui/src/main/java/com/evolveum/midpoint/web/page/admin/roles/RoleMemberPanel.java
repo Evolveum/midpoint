@@ -425,7 +425,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected List<RelationTypes> getAvailableRelationList(){
-		return Arrays.asList(RelationTypes.MEMBER);
+	protected List<QName> getAvailableRelationList(){
+		return Arrays.asList(RelationTypes.MEMBER.getRelation());
 	}
 }

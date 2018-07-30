@@ -25,8 +25,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.ChooseMemberForOrgPopup;
-import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -118,7 +115,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private static final String OPERATION_LOAD_MEMBER_RELATION_OBJECTS = DOT_CLASS + "loadMemberRelationObjects";
 	private static final String ID_MANAGER_SUMMARY = "managerSummary";
 	private static final String ID_REMOVE_MANAGER = "removeManager";
-	private static final String ID_DELETE_MANAGER = "deleteManager";
 	private static final String ID_EDIT_MANAGER = "editManager";
 
 	private RelationTypes relationValue = null;
@@ -407,7 +403,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							OrgMemberPanel.this.addMembers(target, Arrays.asList(RelationTypes.MANAGER));
+							OrgMemberPanel.this.addMembers(target, Arrays.asList(RelationTypes.MANAGER.getRelation()));
 						}
 					}));
 		}
