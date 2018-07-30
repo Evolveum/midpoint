@@ -88,7 +88,7 @@
         <derby.version>10.11.1.1</derby.version>
         <wro4j.version>1.8.0</wro4j.version>
         <jackson.version>2.9.5</jackson.version>
-        <snakeyaml.version>1.15</snakeyaml.version>
+        <snakeyaml.version>1.19</snakeyaml.version>
         <surefire.version>2.20.1</surefire.version>
         <reflections.version>0.9.11</reflections.version>
         <guava.version>20.0</guava.version>
