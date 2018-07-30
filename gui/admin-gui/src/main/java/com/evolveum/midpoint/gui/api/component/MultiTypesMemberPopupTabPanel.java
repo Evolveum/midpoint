@@ -27,6 +27,7 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,7 +43,7 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
 
     private ObjectTypes defaultObjectType = ObjectTypes.OBJECT_COLLECTION;
 
-    public MultiTypesMemberPopupTabPanel(String id, List<RelationTypes> supportedRelationsList){
+    public MultiTypesMemberPopupTabPanel(String id, List<QName> supportedRelationsList){
         super(id, supportedRelationsList);
     }
 

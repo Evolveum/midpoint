@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -36,7 +37,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
 
     private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
-    public OrgTreeMemberPopupTabPanel(String id, List<RelationTypes> availableRelationList){
+    public OrgTreeMemberPopupTabPanel(String id, List<QName> availableRelationList){
         super(id, availableRelationList);
     }
 

@@ -21,12 +21,14 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -51,9 +53,9 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     private static final String ID_RELATION = "relation";
 
     private PageBase pageBase;
-    private List<RelationTypes> supportedRelationList = new ArrayList<>();
+    private List<QName> supportedRelationList = new ArrayList<>();
 
-    public MemberPopupTabPanel(String id, List<RelationTypes> supportedRelationList){
+    public MemberPopupTabPanel(String id, List<QName> supportedRelationList){
         super(id);
         this.supportedRelationList = supportedRelationList;
     }
@@ -83,18 +85,29 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
         });
         parametersPanel.add(relationContainer);
 
-        DropDownChoicePanel<RelationTypes> relationSelector =  new DropDownChoicePanel<RelationTypes> (ID_RELATION,
-                Model.of(getDefaultRelationValue()), Model.ofList(supportedRelationList),
-                WebComponentUtil.getEnumChoiceRenderer(MemberPopupTabPanel.this), false);
-        relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-        relationSelector.setOutputMarkupId(true);
-        relationSelector.setOutputMarkupPlaceholderTag(true);
-        relationContainer.add(relationSelector);
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, AreaCategoryType.ADMINISTRATION){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<QName> getChoicesList(){
+                return supportedRelationList;
+            }
+
+
+        });
+
+//        DropDownChoicePanel<RelationTypes> relationSelector =  new DropDownChoicePanel<RelationTypes> (ID_RELATION,
+//                Model.of(getDefaultRelationValue()), Model.ofList(supportedRelationList),
+//                WebComponentUtil.getEnumChoiceRenderer(MemberPopupTabPanel.this), false);
+//        relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+//        relationSelector.setOutputMarkupId(true);
+//        relationSelector.setOutputMarkupPlaceholderTag(true);
+//        relationContainer.add(relationSelector);
     }
 
-    private RelationTypes getDefaultRelationValue(){
-        return CollectionUtils.isNotEmpty(supportedRelationList) ? supportedRelationList.get(0) : RelationTypes.MEMBER;
-    }
+//    private RelationTypes getDefaultRelationValue(){
+//        return CollectionUtils.isNotEmpty(supportedRelationList) ? supportedRelationList.get(0) : RelationTypes.MEMBER;
+//    }
 
     protected ObjectDelta prepareDelta(){
         ObjectDelta delta = null;
@@ -119,15 +132,11 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
     protected abstract AbstractRoleType getAbstractRoleTypeObject();
 
     public QName getRelationValue(){
-        DropDownChoicePanel<RelationTypes> relationPanel = getRelationDropDown();
-        RelationTypes relation = relationPanel.getModel().getObject();
-        if (relation == null) {
-            return SchemaConstants.ORG_DEFAULT;
-        }
-        return relation.getRelation();
+        RelationDropDownChoicePanel relationPanel = getRelationDropDown();
+        return relationPanel.getRelationValue();
     }
 
-    private DropDownChoicePanel getRelationDropDown(){
-        return (DropDownChoicePanel)get(ID_PARAMETERS_PANEL).get(ID_RELATION_CONTAINER).get(ID_RELATION);
+    private RelationDropDownChoicePanel getRelationDropDown(){
+        return (RelationDropDownChoicePanel)get(ID_PARAMETERS_PANEL).get(ID_RELATION_CONTAINER).get(ID_RELATION);
     }
 }
