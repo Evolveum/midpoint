@@ -15,18 +15,18 @@
   ~ limitations under the License.
   -->
 
-<shadow oid="20000000-0000-0000-3333-000000000001"
+<shadow oid="20000000-0000-0000-3333-020400000001"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<name>swashbucklers</name>
-	<resourceRef oid="10000000-0000-0000-0000-000000000004" />
+	<resourceRef oid="10000000-0000-0000-0000-000000000204" />
 	<objectClass>ri:GroupObjectClass</objectClass>
 	<kind>entitlement</kind>
 	<intent>group</intent>
 	<attributes>
 		<icfs:name>swashbucklers</icfs:name>
-		<ri:description>Scurvy swashbucklers</ri:description>
+		<ri:description>Scurvy blue swashbucklers</ri:description>
 	</attributes>
 </shadow>

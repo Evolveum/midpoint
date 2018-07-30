@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
@@ -189,7 +190,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                    target.add(getPageBase().getFeedbackPanel());
                    return;
            }
-           
+        int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                getPageBase());
+        int addedAssignmentsCount = getNewAssignmentsCount() + newAssignmentsList.size();
+        if (assignmentsLimit >= 0 && addedAssignmentsCount > assignmentsLimit) {
+            warn(getParentPage().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsLimit));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
            newAssignmentsList.forEach(assignment -> {
         	   PrismContainerDefinition<AssignmentType> definition = getModelObject().getItem().getDefinition();
         	   PrismContainerValue<AssignmentType> newAssignment;

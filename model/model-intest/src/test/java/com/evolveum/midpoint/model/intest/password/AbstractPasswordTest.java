@@ -80,6 +80,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_PASSWORD_VALID_2 = "abcd223";
 	protected static final String USER_PASSWORD_VALID_3 = "abcd323";
 	protected static final String USER_PASSWORD_VALID_4 = "abcd423";
+	// Very long and very simple password. This is meant to violate the policies.
+	protected static final String USER_PASSWORD_LLL_CLEAR = "lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll";
 	
 	protected static final String PASSWORD_ALLIGATOR = "all1g4t0r";
 	protected static final String PASSWORD_CROCODILE = "cr0c0d1l3";
@@ -131,6 +133,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected String accountJackMaverickOid;
 	protected XMLGregorianCalendar lastPasswordChangeStart;
 	protected XMLGregorianCalendar lastPasswordChangeEnd;
+	private String ministrySecurityPolicyOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -2250,12 +2253,48 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	
 	/**
 	 * Monkey has password that does not comply with current password policy.
+	 * Let's unassign pirate role to monkey. The role is modifying existing dummy
+	 * account. But it is not changing password, therefore it should all go well.
+	 * MID-4791
+	 */
+	@Test
+    public void test350UnassignMonkeyPirate() throws Exception {
+		final String TEST_NAME = "test350UnassignMonkeyPirate";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_THREE_HEADED_MONKEY_OID, ROLE_PIRATE_OID, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 1);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME, USER_THREE_HEADED_MONKEY_FULL_NAME, true);
+		assertDummyAccountAttribute(null, USER_THREE_HEADED_MONKEY_NAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Monkey Island");
+		assertNoDummyAccountAttribute(null, USER_THREE_HEADED_MONKEY_NAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+	}
+	
+	/**
+	 * Monkey has password that does not comply with current password policy.
 	 * Let's try to change it to a valid password.
 	 * MID-4791
 	 */
 	@Test
-    public void test350ModifyUserMonkeyPasswordValid1() throws Exception {
-		final String TEST_NAME = "test350ModifyUserMonkeyPasswordValid1";
+    public void test352ModifyUserMonkeyPasswordValid1() throws Exception {
+		final String TEST_NAME = "test352ModifyUserMonkeyPasswordValid1";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2283,8 +2322,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	 * MID-4791
 	 */
 	@Test
-    public void test351ModifyUserMonkeyDescriptionAgain() throws Exception {
-		final String TEST_NAME = "test351ModifyUserMonkeyDescriptionAgain";
+    public void test353ModifyUserMonkeyDescriptionAgain() throws Exception {
+		final String TEST_NAME = "test353ModifyUserMonkeyDescriptionAgain";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -3928,7 +3967,323 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertUserPassword(userAfter, PASSWORD_HELLO_WORLD);
 		assertPasswordModifyMetadata(userAfter);
 	}
+	
+	/**
+	 * Remove global password policy, set organizational policy, check that such password policy is NOT applied to resources.
+	 * We want to keep global security policy here. We just want to remove global password policy.
+	 * Global security policy sets the storage mechanism (encryption, hashing). We want to keep that.
+	 * MID-4793, MID-4791
+	 */
+	@Test
+    public void test950RemoveGlobalPasswordPolicy() throws Exception {
+		final String TEST_NAME = "test950RemoveGlobalPasswordPolicy";
+        displayTestTitle(TEST_NAME);
 
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		applyPasswordPolicy(null, getSecurityPolicyOid(), task, result);
+		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_HISTORY_LENGTH),
+        		task, result /* no value */);
+		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_AGE),
+        		task, result /* no value */);
+		modifyObjectReplaceProperty(SecurityPolicyType.class, getSecurityPolicyOid(),
+				new ItemPath(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MAX_AGE),
+				task, result /* no value */);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<SecurityPolicyType> securityPolicyAfter = getObject(SecurityPolicyType.class, getSecurityPolicyOid());
+		display("Security policy", securityPolicyAfter);
+
+		// Make sure no password policy is applied by setting some insane passwords
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_LLL_CLEAR, task, result);
+		modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_A_CLEAR, task, result);
+	}
+	
+	/**
+	 * Set up monkey in an organization and set up organizational security policy.
+	 * MID-4793
+	 */
+	@Test
+    public void test952SetupOrgPolicy() throws Exception {
+		final String TEST_NAME = "test952SetupOrgPolicy";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+        
+        PrismObject<SecurityPolicyType> securityPolicy = prismContext.createObject(SecurityPolicyType.class);
+        securityPolicy.asObjectable()
+        	.name("Ministry security policy")
+        	.beginCredentials()
+        		.beginPassword()
+        			.valuePolicyRef(PASSWORD_POLICY_GLOBAL_OID, ValuePolicyType.COMPLEX_TYPE);
+        ministrySecurityPolicyOid = addObject(securityPolicy, task, result);
+
+        PrismReferenceValue securityPolicyRef = new PrismReferenceValue();
+        securityPolicyRef.setOid(ministrySecurityPolicyOid);
+		modifyObjectReplaceReference(OrgType.class, ORG_MINISTRY_OF_OFFENSE_OID,
+        		OrgType.F_SECURITY_POLICY_REF, task, result, securityPolicyRef);
+        
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignOrg(USER_THREE_HEADED_MONKEY_OID, ORG_MINISTRY_OF_OFFENSE_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<OrgType> ministryPolicyAfter = getObject(OrgType.class, ORG_MINISTRY_OF_OFFENSE_OID);
+		display("Ministry after", ministryPolicyAfter);
+		
+		PrismObject<SecurityPolicyType> securityPolicyAfter = getObject(SecurityPolicyType.class, ministrySecurityPolicyOid);
+		display("Ministry security policy", securityPolicyAfter);
+
+		PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertAssignedOrg(userAfter, ORG_MINISTRY_OF_OFFENSE_OID);
+	}
+	
+	/**
+	 * Monkey has password that does not comply with current ministry password policy.
+	 * Let's try to change it to another illegal password to check that the ministry policy applies.
+	 * MID-4793
+	 */
+	@Test
+    public void test954ModifyUserMonkeyPasswordAA() throws Exception {
+		final String TEST_NAME = "test954ModifyUserMonkeyPasswordAA";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+        try {
+			// WHEN
+	        displayWhen(TEST_NAME);
+	        
+	        modifyUserChangePassword(USER_THREE_HEADED_MONKEY_OID, USER_PASSWORD_AA_CLEAR, task, result);
+	        
+	        assertNotReached();
+	        
+        } catch (PolicyViolationException e) {
+        	// expected
+        }
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertFailure(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+	}
+	
+	/**
+	 * Jack is not part of ministry. Password policy should not apply to jack.
+	 * MID-4793
+	 */
+	@Test
+    public void test956ModifyUserJackPasswordAA() throws Exception {
+		final String TEST_NAME = "test956ModifyUserJackPasswordAA";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_AA_CLEAR, task, result);
+	        
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		display("User after", userAfter);
+
+		assertUserPassword(userAfter, USER_PASSWORD_AA_CLEAR);
+	}
+	
+	/**
+	 * Monkey has password that does not comply with current password policy.
+	 * Recompute. The password has not changed, there should be no error.
+	 * MID-4791, MID-4793
+	 */
+	@Test
+    public void test961RecomputeMonkey() throws Exception {
+		final String TEST_NAME = "test961RecomputeMonkey";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        recomputeUser(USER_THREE_HEADED_MONKEY_OID, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+	}
+
+	/**
+	 * Monkey has password that does not comply with current password policy.
+	 * Reconcile. The password has not changed, there should be no error.
+	 * MID-4791, MID-4793
+	 */
+	@Test
+    public void test962ReconcileMonkey() throws Exception {
+		final String TEST_NAME = "test962ReconcileMonkey";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(USER_THREE_HEADED_MONKEY_OID, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+	}
+	
+	/**
+	 * Monkey has password that does not comply with current password policy.
+	 * Let's make a user modification that is mapped to a resource. 
+	 * Current password should be unaffected.
+	 * MID-4791, MID-4793
+	 */
+	@Test
+    public void test964ModifyUserMonkeyLocality() throws Exception {
+		final String TEST_NAME = "test964ModifyUserMonkeyLocality";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+        
+		// WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_THREE_HEADED_MONKEY_OID, UserType.F_LOCALITY, task, result,
+        		createPolyString("Scabb Island"));
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertDummyAccountAttribute(null, USER_THREE_HEADED_MONKEY_NAME, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Scabb Island");
+	}
+	
+	/**
+	 * Monkey has password that does not comply with current password policy.
+	 * But this is organizational password policy and it should apply only
+	 * to the user. Not the resources. Create of blue account should go well.
+	 * MID-4793
+	 */
+	@Test
+    public void test965AssignMonkeyAccountBlue() throws Exception {
+		final String TEST_NAME = "test965AssignMonkeyAccountBlue";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+	        
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 3);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
+	}
+	
+	/**
+	 * Monkey has password that does not comply with current password policy.
+	 * Let's assign yellow account. Yellow resource has a minimum password length
+	 * (resource-enforced). Even though midPoint password policy is not applied,
+	 * resource won't accept the account. Therefore assignment should fail.
+	 * MID-4793
+	 */
+	@Test
+    public void test966AssignMonkeyAccountYellow() throws Exception {
+		final String TEST_NAME = "test966AssignMonkeyAccountYellow";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+	        
+		// THEN
+        displayThen(TEST_NAME);
+		assertPartialError(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 4);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_THREE_HEADED_MONKEY_NAME);
+		assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
+	}
+	
 	protected void prepareTest() throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         prepareNotifications();

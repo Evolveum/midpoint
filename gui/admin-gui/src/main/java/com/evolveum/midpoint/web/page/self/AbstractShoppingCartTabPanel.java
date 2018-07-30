@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.assignment.GridViewComponent;
 import com.evolveum.midpoint.web.component.assignment.RoleCatalogItemButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -73,6 +74,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
     private static final String DOT_CLASS = AbstractShoppingCartTabPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
+    private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     private static final Trace LOGGER = TraceManager.getTrace(AbstractShoppingCartTabPanel.class);
 
     private RoleManagementConfigurationType roleManagementConfig;
@@ -146,6 +148,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
+                        target.add(AbstractShoppingCartTabPanel.this);
                         AbstractShoppingCartTabPanel.this.assignmentAddedToShoppingCartPerformed(target);
                     }
 
@@ -191,21 +194,42 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 return provider != null && provider.size() > 0;
 
             }
+
+            @Override
+            public boolean isEnabled() {
+                int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                        AbstractShoppingCartTabPanel.this.getPageBase());
+                return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, AbstractShoppingCartTabPanel.this.getPageBase());
+            }
         });
+        addAllButton.add(AttributeAppender.append("title",
+                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
         shoppingCartContainer.add(addAllButton);
     }
 
     private void addAllAssignmentsPerformed(AjaxRequestTarget target){
         List<AssignmentEditorDto> availableProviderData = getGridViewComponent().getProvider().getAvailableData();
+
         if (availableProviderData != null){
+            int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                    getPageBase());
+            int addedAssignmentsCount = availableProviderData.size() + getRoleCatalogStorage().getAssignmentShoppingCart().size();
+            if (assignmentsLimit >= 0 && addedAssignmentsCount > assignmentsLimit) {
+                warn(createStringResource("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsLimit).getString());
+                target.add(AbstractShoppingCartTabPanel.this.getPageBase().getFeedbackPanel());
+                return;
+            }
+
+
             availableProviderData.forEach(newAssignment -> {
                 AssignmentEditorDto assignmentToAdd = newAssignment.clone();
                 assignmentToAdd.getTargetRef().setRelation(getNewAssignmentRelation());
                 getRoleCatalogStorage().getAssignmentShoppingCart().add(assignmentToAdd);
             });
+
+            target.add(AbstractShoppingCartTabPanel.this);
+            assignmentAddedToShoppingCartPerformed(target);
         }
-        target.add(AbstractShoppingCartTabPanel.this);
-        assignmentAddedToShoppingCartPerformed(target);
     }
 
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> getTabPanelProvider() {
