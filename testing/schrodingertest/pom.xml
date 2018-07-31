@@ -156,6 +156,7 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>testng-integration-schrodinger.xml</suiteXmlFile>
                     </suiteXmlFiles>
+		<skipITs>${skipTests}</skipITs>
                 </configuration>
                 <executions>
                     <execution>
@@ -233,6 +234,9 @@
                                 <property environment="env"/>
                                 <exec executable="cmd" osfamily="windows">
                                     <arg line=' /c rmdir "${env.HOMEPATH}\midpoint" /S /Q '/>
+                                </exec>
+                                <exec executable="rm" osfamily="unix">
+                                    <arg line="-rf ${env.HOME}/midpoint"/>
                                 </exec>
                             </target>
                             <!--<target name="B" depends="init">-->
