@@ -62,7 +62,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, AreaCategoryType.SELF_SERVICE));
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, AreaCategoryType.ADMINISTRATION));
     }
 
     @Override

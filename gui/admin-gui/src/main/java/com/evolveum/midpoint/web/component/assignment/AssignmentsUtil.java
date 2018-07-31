@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -267,7 +268,7 @@ public class AssignmentsUtil {
 		}
 		appendTenantAndOrgName(assignment, sb, pageBase);
 
-		appendRelation(assignment, sb);
+		appendRelation(assignment, sb, pageBase);
 
 		return sb.toString();
 	}
@@ -285,14 +286,17 @@ public class AssignmentsUtil {
 
 	}
 
-    private static void appendRelation(AssignmentType assignment, StringBuilder sb) {
+    private static void appendRelation(AssignmentType assignment, StringBuilder sb, PageBase pageBase) {
     	if (assignment.getTargetRef() == null) {
     		return;
     	}
 
-        String hdrLabel = RelationTypes.getRelationType(assignment.getTargetRef().getRelation()).getHeaderLabel();
-        if (hdrLabel != null && !hdrLabel.isEmpty()) {
-            sb.append(" - "  + hdrLabel);
+    	RelationDefinitionType relationDef = ObjectTypeUtil.findRelationDefinition(
+    	        WebComponentUtil.getRelationDefinitions(new OperationResult("AssignmentsUtil.loadRelationDefinitions"), pageBase),
+                assignment.getTargetRef().getRelation());
+        if (relationDef != null && relationDef.getDisplay() != null &&
+                !relationDef.getDisplay().getLabel().isEmpty()) {
+            sb.append(" - "  + pageBase.createStringResource(relationDef.getDisplay().getLabel()).getString());
         }
 
     }

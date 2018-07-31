@@ -25,6 +25,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
+import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -68,20 +70,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -310,6 +304,23 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		managerContainer.add(menupanel);
 
 		return managerContainer;
+	}
+
+	@Override
+	protected void addMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
+
+		ChooseOrgMemberPopup browser = new ChooseOrgMemberPopup(getPageBase().getMainPopupBodyId(), availableRelationList) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected OrgType getAssignmentTargetRefObject(){
+				return OrgMemberPanel.this.getModelObject();
+			}
+		};
+		browser.setOutputMarkupId(true);
+
+		getPageBase().showMainPopup(browser, target);
+
 	}
 
 	private void removeManagerPerformed(FocusType manager, AjaxRequestTarget target) {

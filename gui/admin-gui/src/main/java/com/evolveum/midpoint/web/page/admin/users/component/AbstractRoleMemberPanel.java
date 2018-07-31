@@ -30,7 +30,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -548,12 +547,12 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
 									 String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
 				cellItem.add(new Label(componentId,
-						getRelationValue((FocusType) rowModel.getObject().getValue())));
+						getRelationValue(rowModel.getObject().getValue())));
 			}
 
 			@Override
 			public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
-				return Model.of(getRelationValue((FocusType) rowModel.getObject().getValue()));
+				return Model.of(getRelationValue(rowModel.getObject().getValue()));
 			}
 
 		};
@@ -704,7 +703,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return new QName[]{FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF};
 	}
 
-	private String getRelationValue(FocusType focusObject){
+	private String getRelationValue(ObjectType focusObject){
 		StringBuilder relations = new StringBuilder();
 		if (focusObject == null){
 			return "";
