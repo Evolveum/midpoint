@@ -251,6 +251,7 @@ public class ChangeExecutor {
 					subResult.addParam("resource", projCtx.getResource());
 				}
 				
+				PrismObject<ShadowType> shadowAfterModification = null;
 				try {
 					LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());
 					
@@ -281,7 +282,7 @@ public class ChangeExecutor {
 						}
 						if (projDelta != null && projDelta.isDelete()) {
 
-							executeDelta(projDelta, projCtx, context, null, null, projCtx.getResource(), task,
+							shadowAfterModification = executeDelta(projDelta, projCtx, context, null, null, projCtx.getResource(), task,
 									subResult);
 
 						}
@@ -291,8 +292,9 @@ public class ChangeExecutor {
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace("No change for " + projCtx.getResourceShadowDiscriminator());
 							}
+							shadowAfterModification = projCtx.getObjectCurrent();
 							if (focusContext != null) {
-								updateLinks(focusContext, projCtx, task, subResult);
+								updateLinks(focusContext, projCtx, shadowAfterModification, task, subResult);
 							}
 
 							// Make sure post-reconcile delta is always executed,
@@ -317,13 +319,13 @@ public class ChangeExecutor {
 							}
 						}
 
-						executeDelta(projDelta, projCtx, context, null, null, projCtx.getResource(), task, subResult);
+						shadowAfterModification = executeDelta(projDelta, projCtx, context, null, null, projCtx.getResource(), task, subResult);
 
 					}
 
 					subResult.computeStatus();
 					if (focusContext != null) {
-						updateLinks(focusContext, projCtx, task, subResult);
+						updateLinks(focusContext, projCtx, shadowAfterModification, task, subResult);
 					}
 
 					executeReconciliationScript(projCtx, context, BeforeAfterType.AFTER, task, subResult);
@@ -338,7 +340,7 @@ public class ChangeExecutor {
 					// We still want to update the links here. E.g. this may be live sync case where we discovered new account
 					// try to reconcile, but the reconciliation fails. We still want this shadow linked to user.
 					if (focusContext != null) {
-						updateLinks(focusContext, projCtx, task, subResult);
+						updateLinks(focusContext, projCtx, shadowAfterModification, task, subResult);
 					}
 
 				} catch (ObjectAlreadyExistsException e) {
@@ -590,8 +592,9 @@ public class ChangeExecutor {
 	 * Make sure that the account is linked (or unlinked) as needed.
 	 */
 	private <O extends ObjectType, F extends FocusType> void updateLinks(
-			LensFocusContext<O> focusObjectContext, LensProjectionContext projCtx, Task task,
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
+			LensFocusContext<O> focusObjectContext, LensProjectionContext projCtx,
+			PrismObject<ShadowType> shadowAfterModification,
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (focusObjectContext == null) {
 			return;
 		}
@@ -619,7 +622,7 @@ public class ChangeExecutor {
 			throw new IllegalStateException("Projection "+projCtx.toHumanReadableString()+" has null OID, this should not happen");
 		}
 
-		if (linkShouldExist(projCtx, result)) {
+		if (linkShouldExist(projCtx, shadowAfterModification, result)) {
 			// Link should exist
 
 						PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
@@ -686,24 +689,19 @@ public class ChangeExecutor {
 		}
 	}
 
-	private boolean linkShouldExist(LensProjectionContext projCtx, OperationResult result) {
+	private boolean linkShouldExist(LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
 		if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
 			return false;
 		}
 		if (isEmptyThombstone(projCtx)) {
 			return false;
 		}
-		if (projCtx.hasPendingOperations()) {
-			return true;
-		}
 		if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
 				|| projCtx.isDelete()) {
-			if (result.isInProgress()) {
-				// Keep the link until operation is finished
-				return true;
-			} else {
-				return false;
-			}
+			return shadowAfterModification != null;
+		}
+		if (projCtx.hasPendingOperations()) {
+			return true;
 		}
 		return true;
 	}
@@ -866,7 +864,11 @@ public class ChangeExecutor {
 
 	}
 
-	private <T extends ObjectType, F extends ObjectType> void executeDelta(ObjectDelta<T> objectDelta,
+	/**
+	 * @return Returns estimate of the object after modification. Or null if the object was deleted.
+	 *         NOTE: this is only partially implemented (only for shadow delete).
+	 */
+	private <T extends ObjectType, F extends ObjectType> PrismObject<T> executeDelta(ObjectDelta<T> objectDelta,
 			LensElementContext<T> objectContext, LensContext<F> context, ModelExecuteOptions options,
 			ConflictResolutionType conflictResolution, ResourceType resource, Task task, OperationResult parentResult)
 					throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException,
@@ -889,7 +891,7 @@ public class ChangeExecutor {
 
 		if (objectDelta == null || objectDelta.isEmpty()) {
 			LOGGER.debug("Skipping execution of delta because it was already executed: {}", objectContext);
-			return;
+			return objectContext.getObjectCurrent();
 		}
 
 		if (InternalsConfig.consistencyChecks) {
@@ -909,6 +911,7 @@ public class ChangeExecutor {
 		}
 
 		OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE_DELTA);
+		PrismObject<T> objectAfterModification = null;
 
 		try {
 
@@ -917,7 +920,7 @@ public class ChangeExecutor {
 			} else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
 				executeModification(objectDelta, context, objectContext, options, conflictResolution, resource, task, result);
 			} else if (objectDelta.getChangeType() == ChangeType.DELETE) {
-				executeDeletion(objectDelta, context, objectContext, options, resource, task, result);
+				objectAfterModification = executeDeletion(objectDelta, context, objectContext, options, resource, task, result);
 			}
 
 			// To make sure that the OID is set (e.g. after ADD operation)
@@ -947,6 +950,8 @@ public class ChangeExecutor {
 				}
 			}
 		}
+		
+		return objectAfterModification;
 	}
 
 	private <T extends ObjectType, F extends FocusType> void removeExecutedItemDeltas(
@@ -1274,7 +1279,7 @@ public class ChangeExecutor {
 		}
 	}
 
-	private <T extends ObjectType, F extends ObjectType> void executeDeletion(ObjectDelta<T> change,
+	private <T extends ObjectType, F extends ObjectType> PrismObject<T> executeDeletion(ObjectDelta<T> change,
 			LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options,
 			ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
 					ObjectAlreadyExistsException, SchemaException, CommunicationException,
@@ -1285,6 +1290,7 @@ public class ChangeExecutor {
 
 		PrismObject<T> objectOld = objectContext.getObjectOld();
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
+		PrismObject<T> objectAfterModification = null;
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(),
 					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObject(objectOld), ownerResolver, task, result);
@@ -1296,7 +1302,7 @@ public class ChangeExecutor {
 			} else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
 				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options);
 				try {
-					deleteProvisioningObject(objectTypeClass, oid, context, objectContext,
+					objectAfterModification = deleteProvisioningObject(objectTypeClass, oid, context, objectContext,
 							provisioningOptions, resource, task, result);
 				} catch (ObjectNotFoundException e) {
 					// Object that we wanted to delete is already gone. This can
@@ -1327,6 +1333,8 @@ public class ChangeExecutor {
 					context.getChannel(), t);
 			throw t;
 		}
+		
+		return objectAfterModification;
 	}
 
 	private <T extends ObjectType, F extends ObjectType> void executeModification(ObjectDelta<T> delta,
@@ -1428,7 +1436,7 @@ public class ChangeExecutor {
 		return oid;
 	}
 
-	private <F extends ObjectType, T extends ObjectType> void deleteProvisioningObject(
+	private <F extends ObjectType, T extends ObjectType> PrismObject<T> deleteProvisioningObject(
 			Class<T> objectTypeClass, String oid, LensContext<F> context, LensElementContext<T> objectContext,
 			ProvisioningOperationOptions options, ResourceType resource, Task task, OperationResult result)
 					throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
@@ -1452,8 +1460,9 @@ public class ChangeExecutor {
 					ProvisioningOperationTypeType.DELETE, resource, task, result);
 		}
 		Utils.setRequestee(task, context);
-		provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
+		PrismObject<T> objectAfterModification = provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
 		Utils.clearRequestee(task);
+		return objectAfterModification;
 	}
 
 	private <F extends ObjectType, T extends ObjectType> String modifyProvisioningObject(

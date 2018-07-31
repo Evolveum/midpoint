@@ -78,7 +78,7 @@ public class ObjectDeltaTypeAsserter<R> extends AbstractAsserter<R> {
 		return this;
 	}
 	
-	private String desc() {
+	protected String desc() {
 		return descWithDetails(delta);
 	}
 	

@@ -80,7 +80,7 @@ public class ObjectDeltaAsserter<O extends ObjectType,R> extends AbstractAsserte
 		return this;
 	}
 	
-	private String desc() {
+	protected String desc() {
 		return descWithDetails(delta);
 	}
 }

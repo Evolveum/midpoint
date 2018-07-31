@@ -17,6 +17,14 @@ package com.evolveum.midpoint.test.asserter;
 
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 /**
  * @author semancik
  *
@@ -25,6 +33,7 @@ public abstract class AbstractAsserter<R> {
 	
 	private String details;
 	private R returnAsserter;
+	private ObjectResolver objectResolver;
 	
 	public AbstractAsserter() {
 		this(null);
@@ -39,6 +48,14 @@ public abstract class AbstractAsserter<R> {
 		super();
 		this.returnAsserter = returnAsserter;
 		this.details = details;
+	}
+	
+	public ObjectResolver getObjectResolver() {
+		return objectResolver;
+	}
+
+	public void setObjectResolver(ObjectResolver objectResolver) {
+		this.objectResolver = objectResolver;
 	}
 
 	protected String getDetails() {
@@ -59,5 +76,22 @@ public abstract class AbstractAsserter<R> {
 	
 	public R end() {
 		return returnAsserter;
+	}
+	
+	protected <O extends ObjectType> PrismObject<O> resolveObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
+		if (objectResolver == null) {
+			throw new IllegalStateException("Cannot resolve object "+type.getSimpleName()+" "+oid+" because there is no resolver");
+		}
+		ObjectReferenceType ref = new ObjectReferenceType();
+		ref.setOid(oid);
+		OperationResult result = new OperationResult("AbstractAsserter.resolveObject");
+		O objectType = objectResolver.resolve(ref, type, null, desc(), null, result);
+		return (PrismObject<O>) objectType.asPrismObject();
+	}
+	
+	abstract protected String desc();
+	
+	protected <T> void copySetupTo(AbstractAsserter<T> other) {
+		other.setObjectResolver(getObjectResolver());
 	}
 }

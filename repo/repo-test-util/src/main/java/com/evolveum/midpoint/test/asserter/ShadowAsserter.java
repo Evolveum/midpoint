@@ -177,11 +177,21 @@ public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 	}
 	
 	public PendingOperationsAsserter<R> pendingOperations() {
-		return new PendingOperationsAsserter<>(this, getDetails());
+		PendingOperationsAsserter<R> asserter = new PendingOperationsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public ShadowAsserter<R> hasUnfinishedPendingOperations() {
+		pendingOperations()
+			.assertUnfinishedOperation();
+		return this;
 	}
 	
 	public ShadowAttributesAsserter<R> attributes() {
-		return new ShadowAttributesAsserter<>(this, getDetails());
+		ShadowAttributesAsserter<R> asserter = new ShadowAttributesAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
 	}
 
 	public ShadowAsserter<R> assertNoLegacyConsistency() {

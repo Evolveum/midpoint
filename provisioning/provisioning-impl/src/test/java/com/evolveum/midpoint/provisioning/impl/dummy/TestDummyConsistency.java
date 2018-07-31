@@ -231,9 +231,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
 	}
 
 	/**
-	 * Test add with pending operation and recovered resource. This happens when re-try task
-	 * does not have a chance to run yet.
-	 * Nothing significant should happen.
+	 * Test add with pending operation and recovered resource. This happens when refresh task
+	 * does not have a chance to run yet. The forceFresh option is NOT used here.
+	 * Therefore nothing significant should happen.
 	 */
 	@Test
 	public void test102GetAccountMorganRecovery() throws Exception {
@@ -284,6 +284,46 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		displayThen(TEST_NAME);
 		display("Result", result);
 		assertSuccess(result);
+		syncServiceMock.assertNoNotifcations();
+		
+		assertUncreatedMorgan(1);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Get account with forceRefresh while the resource is down. Retry interval is not yet reached.
+	 * Nothing should really happen yet.
+	 */
+	@Test
+	public void test105GetForceRefreshAccountMorganCommunicationFailure() throws Exception {
+		final String TEST_NAME = "test105GetForceRefreshAccountMorganCommunicationFailure";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());
+		
+		try {
+			// WHEN
+			displayWhen(TEST_NAME);
+			
+			provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, options, task, result);
+			
+			assertNotReached();
+			
+		} catch (GenericConnectorException e) {
+			// expected
+		}
+
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertFailure(result);
 		syncServiceMock.assertNoNotifcations();
 		
 		assertUncreatedMorgan(1);
@@ -780,8 +820,8 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
-
 		dummyResource.setBreakMode(BreakMode.NETWORK);
+		
 		lastRequestStartTs = lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -805,7 +845,123 @@ public class TestDummyConsistency extends AbstractDummyTest {
 	}
 	
 	/**
-	 * Wait for retry interval to pass. Now provisioning should retry the operation.
+	 * Wait for retry interval to pass. Get account, but do NOT use forceRefresh option.
+	 * Nothing should happen.
+	 * Resource is still down.
+	 * Get operation should return repository shadow because staleness option is null.
+	 * Partial error should be indicated.
+	 */
+	@Test
+	public void test132GetAccountMorganCommunicationFailure() throws Exception {
+		final String TEST_NAME = "test132GetAccountMorganCommunicationFailure";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		clockForward("PT17M");
+		
+		syncServiceMock.reset();
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+			
+		provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
+			
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertPartialError(result);
+		syncServiceMock.assertNoNotifcations();
+		
+		assertUnmodifiedMorgan(1, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
+		
+		assertSteadyResources();
+	}
+
+	/**
+	 * Get account, but do NOT use forceRefresh option.
+	 * Nothing should happen.
+	 * Resource is still down.
+	 * Get operation should throw an error, as there is explicit staleness=0 option.
+	 * MID-4796 
+	 */
+	@Test(enabled=false) // MID-4796
+	public void test133GetAccountMorganStalenessZeroCommunicationFailure() throws Exception {
+		final String TEST_NAME = "test133GetAccountMorganStalenessZeroCommunicationFailure";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+		
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createStaleness(0L));
+
+		try {
+			// WHEN
+			displayWhen(TEST_NAME);
+			
+			provisioningService.getObject(ShadowType.class, shadowMorganOid, options, task, result);
+			
+			assertNotReached();
+			
+		} catch (CommunicationException e) {
+			// expected
+		}
+		
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertFailure(result);
+		syncServiceMock.assertNoNotifcations();
+		
+		assertUnmodifiedMorgan(1, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
+		
+		assertSteadyResources();
+	}
+
+	
+	/**
+	 * Use forceRefresh option with get operation to force refresh. 
+	 * We are over retry interval, therefore provisioning should re-try the operation.
+	 * Resource is still down.
+	 */
+	@Test
+	public void test134GetAccountMorganForceRefreshRetryCommunicationFailure() throws Exception {
+		final String TEST_NAME = "test134GetAccountMorganForceRefreshRetryCommunicationFailure";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		syncServiceMock.reset();
+		dummyResource.setBreakMode(BreakMode.NETWORK);
+
+		lastAttemptStartTs = clock.currentTimeXMLGregorianCalendar();
+		
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.getObject(ShadowType.class, shadowMorganOid, options, task, result);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		display("Result", result);
+		assertPartialError(result);
+		lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
+		syncServiceMock.assertNotifyInProgressOnly();
+		
+		assertUnmodifiedMorgan(2, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * Wait for yet another retry interval to pass. Now provisioning should retry the operation.
 	 * Resource is up now and the operation can proceed.
 	 */
 	@Test
@@ -837,7 +993,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
 		syncServiceMock.assertNotifySuccessOnly();
 		
-		assertModifiedMorgan(2, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
+		assertModifiedMorgan(3, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
 		
 		// Resource -> up
 		assertResourceStatusChangeCounterIncrements();
@@ -1036,7 +1192,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.deleteObject(ShadowType.class, shadowMorganOid, null, null, task, result);
+		PrismObject<ShadowType> returnedShadow = provisioningService.deleteObject(ShadowType.class, shadowMorganOid, null, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1045,7 +1201,10 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		syncServiceMock.assertNotifyInProgressOnly();
 
 		assertUndeletedMorgan(1, 5);
-
+		
+		assertNotNull("No shadow returned from delete", returnedShadow);
+//		ShadowAsserter.forShadow(returnedShadow, "returned shadow");
+		
 		assertSteadyResources();
 	}
 	

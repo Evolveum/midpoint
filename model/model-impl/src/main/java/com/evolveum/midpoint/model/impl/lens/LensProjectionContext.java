@@ -112,6 +112,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private Boolean isLegal = null;
     private Boolean isLegalOld = null;
 
+    /**
+     * True if the projection exists (or will exist) on resource. False if it does not exist.
+     * NOTE: entire projection is loaded with pointInTime=future. Therefore this does NOT
+     * reflect actual situation. If there is a pending operation to create the object then
+     * isExists will in fact be true.
+     */
     private boolean isExists;
 
     /**

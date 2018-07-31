@@ -21,6 +21,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -562,42 +565,54 @@ public class DependencyProcessor {
 		}
 	}
 
-	private <F extends ObjectType> boolean wasProvisioned(LensProjectionContext accountContext, int executionWave) {
-		int accountWave = accountContext.getWave();
+	private <F extends ObjectType> boolean wasProvisioned(LensProjectionContext projectionContext, int executionWave) {
+		int accountWave = projectionContext.getWave();
 		if (accountWave >= executionWave) {
 			// This had no chance to be provisioned yet, so we assume it will be provisioned
 			return true;
 		}
-		if (accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
-				|| accountContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+		if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
+				|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+			return false;
+		}
+		
+		PrismObject<ShadowType> objectCurrent = projectionContext.getObjectCurrent();
+		if (objectCurrent == null) {
 			return false;
 		}
 
-
-		PrismObject<ShadowType> objectCurrent = accountContext.getObjectCurrent();
-		if (objectCurrent != null && objectCurrent.asObjectable().getFailedOperationType() != null) {
-			// There is unfinished operation in the shadow. We cannot continue.
+		
+		if (!projectionContext.isExists()) {
 			return false;
 		}
+		
+		// This is getting tricky now. We cannot simply check for projectionContext.isExists() here.
+		// entire projection is loaded with pointInTime=future. Therefore this does NOT
+	    // reflect actual situation. If there is a pending operation to create the object then
+	    // isExists will in fact be true even if the projection was not provisioned yet.
+		// We need to check pending operations to see if there is pending add delta.
+		if (hasPendingAddOperation(objectCurrent)) {
+			return false;
+		}
+		
+		return true;
+	}
 
-		if (accountContext.isExists()) {
+	private boolean hasPendingAddOperation(PrismObject<ShadowType> objectCurrent) {
+		List<PendingOperationType> pendingOperations = objectCurrent.asObjectable().getPendingOperation();
+		for (PendingOperationType pendingOperation: pendingOperations) {
+			if (pendingOperation.getExecutionStatus() != PendingOperationExecutionStatusType.EXECUTING) {
+				continue;
+			}
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (delta == null) {
+				continue;
+			}
+			if (delta.getChangeType() != ChangeTypeType.ADD) {
+				continue;
+			}
 			return true;
 		}
-
-		if (accountContext.isAdd()) {
-			List<LensObjectDeltaOperation<ShadowType>> executedDeltas = accountContext.getExecutedDeltas();
-			if (executedDeltas == null || executedDeltas.isEmpty()) {
-				return false;
-			}
-			for (LensObjectDeltaOperation<ShadowType> executedDelta: executedDeltas) {
-				OperationResult executionResult = executedDelta.getExecutionResult();
-				if (executionResult == null || !executionResult.isSuccess()) {
-					return false;
-				}
-			}
-			return true;
-		}
-
 		return false;
 	}
 

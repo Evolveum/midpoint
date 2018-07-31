@@ -80,11 +80,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
@@ -179,6 +181,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	@Autowired protected PrismContext prismContext;
 	@Autowired protected MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired protected LocalizationService localizationService;
+	
+	@Autowired(required = false)
+	@Qualifier("repoObjectResolver")
+	protected ObjectResolver repoObjectResolver;
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
@@ -209,7 +215,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			InternalMonitor.reset();
 			InternalsConfig.setPrismMonitoring(true);
 			prismContext.setMonitor(new InternalMonitor());
-
+			
 			initSystem(initTask, result);
 
 			postInitSystem(initTask, result);
@@ -2388,9 +2394,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
     	assertEquals("Wrong relation "+qname+" label", expectedLabel, relDef.getDisplay().getLabel());
 	}
 	
-	protected ShadowAsserter assertRepoShadow(String oid) throws ObjectNotFoundException, SchemaException {
+	protected ShadowAsserter<Void> assertRepoShadow(String oid) throws ObjectNotFoundException, SchemaException {
 		PrismObject<ShadowType> repoShadow = getShadowRepo(oid);
-		ShadowAsserter asserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "repository");
 		asserter
 			.display()
 			.assertBasicRepoProperties();
@@ -2407,4 +2413,5 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			assertFailure(result);
 		}
 	}
+	
 }

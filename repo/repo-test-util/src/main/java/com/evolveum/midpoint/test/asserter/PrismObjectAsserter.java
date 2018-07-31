@@ -23,7 +23,11 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -117,6 +121,12 @@ public class PrismObjectAsserter<O extends ObjectType,R> extends AbstractAsserte
 	public PrismObjectAsserter<O,R> display(String message) {
 		IntegrationTestTools.display(message, object);
 		return this;
+	}
+	
+	protected void assertPolyStringProperty(QName propName, String expectedOrig) {
+		PrismProperty<PolyString> prop = getObject().findProperty(propName);
+		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
+		PrismAsserts.assertEqualsPolyString("Wrong "+propName.getLocalPart()+" in "+desc(), expectedOrig, prop.getRealValue());
 	}
 
 }

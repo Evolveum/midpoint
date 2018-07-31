@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -54,7 +55,7 @@ public abstract class BaseCertificationHandler implements CertificationHandler {
 
     @Autowired protected PrismContext prismContext;
     @Autowired protected ModelService modelService;
-    @Autowired protected ObjectResolver objectResolver;
+    @Autowired @Qualifier("modelObjectResolver") protected ObjectResolver objectResolver;
     @Autowired protected CertificationManagerImpl certificationManager;
     @Autowired protected AccCertGeneralHelper helper;
     @Autowired protected AccCertResponseComputationHelper computationHelper;

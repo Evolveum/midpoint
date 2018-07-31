@@ -203,7 +203,9 @@ public class ShadowCache {
 			throw e;
 		}
 		
-		repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
+		if (GetOperationOptions.isForceRefresh(rootOptions)) {
+			repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
+		}
 		if (repositoryShadow == null) {
 			// Dead shadow was just removed
 			// TODO: is this OK? What about re-appeared objects
@@ -1042,7 +1044,7 @@ public class ShadowCache {
 		return opState;
 	}
 
-	public void deleteShadow(PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
+	public PrismObject<ShadowType> deleteShadow(PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
 			OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
 					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -1063,7 +1065,7 @@ public class ShadowCache {
 				shadowManager.deleteShadow(ctx, repoShadow, parentResult);		
 				parentResult.recordHandledError(
 						"Resource defined in shadow does not exists. Shadow was deleted from the repository.");
-				return;
+				return null;
 			} else {
 				throw ex;
 			}
@@ -1072,10 +1074,10 @@ public class ShadowCache {
 		ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
 		opState.setRepoShadow(repoShadow);
 		
-		deleteShadowAttempt(ctx, options, scripts, opState, task, parentResult);
+		return deleteShadowAttempt(ctx, options, scripts, opState, task, parentResult);
 	}
 	
-	private void deleteShadowAttempt(ProvisioningContext ctx,
+	private PrismObject<ShadowType> deleteShadowAttempt(ProvisioningContext ctx,
 			ProvisioningOperationOptions options,
 			OperationProvisioningScriptsType scripts,
 			ProvisioningOperationState<AsynchronousOperationResult> opState,
@@ -1090,7 +1092,7 @@ public class ShadowCache {
 		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, repoShadow, opState, task, parentResult);
 		if (duplicateOperation != null) {
 			parentResult.recordInProgress();
-			return;
+			return repoShadow;
 		}
 		
 		LOGGER.trace("Deleting object {} from the resource {}.", repoShadow, ctx.getResource());
@@ -1135,11 +1137,11 @@ public class ShadowCache {
 			LOGGER.debug("DELETE {}: resource operation NOT executed, execution pending", repoShadow);
 		}
 
-		LOGGER.trace("Deting object with oid {} form repository.", repoShadow.getOid());
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		
+		PrismObject<ShadowType> resultShadow;
 		try {
-			shadowManager.recordDeleteResult(ctx, repoShadow, opState, now, parentResult);			
+			resultShadow = shadowManager.recordDeleteResult(ctx, repoShadow, opState, now, parentResult);			
 		} catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(),
 					ex);
@@ -1152,6 +1154,8 @@ public class ShadowCache {
 		notifyAfterDelete(ctx, repoShadow, opState, task, parentResult);
 		
 		setParentOperationStatus(parentResult, opState, finalOperationStatus);
+		
+		return resultShadow;
 	}
 	
 	private ProvisioningOperationState<AsynchronousOperationResult> executeResourceDelete(

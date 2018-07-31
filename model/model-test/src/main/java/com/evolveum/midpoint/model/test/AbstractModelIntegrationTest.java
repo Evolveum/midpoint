@@ -160,6 +160,9 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
+import com.evolveum.midpoint.test.asserter.FocusAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -362,6 +365,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected DummyResourceContoller getDummyResourceController() {
 		return getDummyResourceController(null);
+	}
+	
+	protected DummyAccountAsserter<Void> assertDummyAccountByUsername(String dummyResourceName, String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		return getDummyResourceController(dummyResourceName).assertAccountByUsername(username);
 	}
 
 	protected DummyResource getDummyResource(String name) {
@@ -5228,6 +5235,41 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 		return null;
+	}
+
+	protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		UserAsserter<Void> asserter = assertUser(oid, "after");
+		asserter.display();
+		asserter.assertOid(oid);
+		return asserter;
+	}
+	
+	protected UserAsserter<Void> assertUserBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		UserAsserter<Void> asserter = assertUser(oid, "before");
+		asserter.display();
+		asserter.assertOid(oid);
+		return asserter;
+	}
+	
+	protected UserAsserter<Void> assertUserBeforeByUsername(String username) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		UserAsserter<Void> asserter = assertUserByUsername(username, "before");
+		asserter.display();
+		asserter.assertName(username);
+		return asserter;
+	}
+	
+	protected UserAsserter<Void> assertUser(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<UserType> user = getUser(oid);
+		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
+		asserter.setObjectResolver(repoObjectResolver);
+		return asserter;
+	}
+	
+	protected UserAsserter<Void> assertUserByUsername(String username, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<UserType> user = findUserByUsername(username);
+		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
+		asserter.setObjectResolver(repoObjectResolver);
+		return asserter;
 	}
 
 }

@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -47,7 +48,7 @@ public class PendingOperationsAsserter<R> extends AbstractAsserter<ShadowAsserte
 	}
 	
 	public static PendingOperationsAsserter<Void> forShadow(PrismObject<ShadowType> shadow) {
-		return new PendingOperationsAsserter(ShadowAsserter.forShadow(shadow));
+		return new PendingOperationsAsserter<>(ShadowAsserter.forShadow(shadow));
 	}
 	
 	List<PendingOperationType> getOperations() {
@@ -60,7 +61,9 @@ public class PendingOperationsAsserter<R> extends AbstractAsserter<ShadowAsserte
 	}
 	
 	PendingOperationAsserter<R> forOperation(PendingOperationType operation) {
-		return new PendingOperationAsserter<>(this, operation, idToString(operation.getId()), getDetails());
+		PendingOperationAsserter<R> asserter = new PendingOperationAsserter<>(this, operation, idToString(operation.getId()), getDetails());
+		copySetupTo(asserter);
+		return asserter;
 	}
 	
 	private String idToString(Long id) {
@@ -98,7 +101,21 @@ public class PendingOperationsAsserter<R> extends AbstractAsserter<ShadowAsserte
 			.changeType(ChangeTypeType.DELETE)
 			.find();
 	}
+
+	public PendingOperationsAsserter<R> assertUnfinishedOperation() {
+		for (PendingOperationType operation: getOperations()) {
+			if (isUnfinished(operation)) {
+				return this;
+			}
+		}
+		fail("No unfinished operations in "+desc());
+		return null; // not reached
+	}
 	
+	private boolean isUnfinished(PendingOperationType operation) {
+		return operation.getExecutionStatus() != PendingOperationExecutionStatusType.COMPLETED;
+	}
+
 	public PendingOperationFinder<R> by() {
 		return new PendingOperationFinder<>(this);
 	}
@@ -111,4 +128,10 @@ public class PendingOperationsAsserter<R> extends AbstractAsserter<ShadowAsserte
 	public ShadowAsserter<R> end() {
 		return shadowAsserter;
 	}
+
+	@Override
+	protected String desc() {
+		return descWithDetails("pending operations of "+shadowAsserter.getObject());
+	}
+
 }

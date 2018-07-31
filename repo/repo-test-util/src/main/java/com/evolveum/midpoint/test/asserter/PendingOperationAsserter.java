@@ -106,7 +106,7 @@ public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperati
 		return new ObjectDeltaTypeAsserter<>(pendingOperation.getDelta(), this, "delta in "+desc());
 	}
 
-	private String desc() {
+	protected String desc() {
 		return descWithDetails("pending operation "+operationDesc+" in "+pendingOperationsAsserter.getShadow());
 	}
 	

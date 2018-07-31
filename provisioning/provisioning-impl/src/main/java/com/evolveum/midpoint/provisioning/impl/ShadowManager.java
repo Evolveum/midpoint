@@ -1912,7 +1912,7 @@ public class ShadowManager {
 		}
 	}
 	
-	public void recordDeleteResult(
+	public PrismObject<ShadowType> recordDeleteResult(
 			ProvisioningContext ctx, 
 			PrismObject<ShadowType> oldRepoShadow, 
 			ProvisioningOperationState<AsynchronousOperationResult> opState,
@@ -1921,9 +1921,15 @@ public class ShadowManager {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 		
 		if (!opState.hasPendingOperations() && opState.isCompleted()) {
-			LOGGER.trace("Deleting repository {}: {}", oldRepoShadow, opState);
-			repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
-			return;
+			if (oldRepoShadow.asObjectable().getPendingOperation().isEmpty()) {
+				LOGGER.trace("Deleting repository {}: {}", oldRepoShadow, opState);
+				repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
+				return null;
+			} else {
+				// There are unexpired pendign operations in the shadow. We cannot delete the shadow yet.
+				// Therefore just mark shadow as dead.
+				return markShadowDead(oldRepoShadow, parentResult);
+			}
 		}
 		LOGGER.trace("Recording pending delete operation in repository {}: {}", oldRepoShadow, opState);
 		ObjectDelta<ShadowType> requestDelta = oldRepoShadow.createDeleteDelta();
@@ -1931,6 +1937,8 @@ public class ShadowManager {
 		
 		LOGGER.trace("Updating repository {} after DELETE operation {}, {} repository shadow modifications", oldRepoShadow, opState, internalShadowModifications.size());
 		modifyShadowAttributes(ctx, oldRepoShadow, internalShadowModifications, parentResult);
+		ObjectDelta.applyTo(oldRepoShadow, (List)internalShadowModifications);
+		return oldRepoShadow;
 	}
 	
 	public void deleteShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult) 
@@ -1944,6 +1952,7 @@ public class ShadowManager {
 			.item(ShadowType.F_DEAD).replace(true)
 			.item(ShadowType.F_EXISTS).replace(false)
 		.asItemDeltas();
+		LOGGER.trace("Marking shadow {} as dead", repoShadow);
 		try {
 			repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
 		} catch (ObjectAlreadyExistsException e) {

@@ -116,6 +116,7 @@ public class AssignmentProcessor {
     private RepositoryService repositoryService;
 
     @Autowired
+    @Qualifier("modelObjectResolver")
     private ObjectResolver objectResolver;
 
     @Autowired

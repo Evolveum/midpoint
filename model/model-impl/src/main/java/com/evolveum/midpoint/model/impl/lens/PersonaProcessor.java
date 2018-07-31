@@ -87,6 +87,7 @@ public class PersonaProcessor {
 	private ObjectTemplateProcessor objectTemplateProcessor;
 
 	@Autowired(required=true)
+	@Qualifier("modelObjectResolver")
     private ObjectResolver objectResolver;
 
 	@Autowired

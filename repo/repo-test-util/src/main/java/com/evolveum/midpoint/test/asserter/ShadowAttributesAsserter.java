@@ -153,7 +153,7 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 		return getAttributes().findProperty(attrName);
 	}
 
-	private String desc() {
+	protected String desc() {
 		return descWithDetails(getShadow());
 	}
 

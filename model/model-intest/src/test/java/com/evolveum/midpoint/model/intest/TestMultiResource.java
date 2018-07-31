@@ -90,7 +90,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_IVORY_NAME = "ivory";
 	protected static final String RESOURCE_DUMMY_IVORY_NAMESPACE = MidPointConstants.NS_RI;
 
-	// IVORY dummy resource has a RELAXED dependency on default dummy resource
+	// BEIGE dummy resource has a RELAXED dependency on default dummy resource
 	protected static final File RESOURCE_DUMMY_BEIGE_FILE = new File(TEST_DIR, "resource-dummy-beige.xml");
 	protected static final String RESOURCE_DUMMY_BEIGE_OID = "10000000-0000-0000-0000-00000001b504";
 	protected static final String RESOURCE_DUMMY_BEIGE_NAME = "beige";
@@ -120,7 +120,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_DAVID_NAMESPACE = MidPointConstants.NS_RI;
 
 	protected static final File RESOURCE_DUMMY_GOLIATH_FILE = new File(TEST_DIR, "resource-dummy-goliath.xml");
-	protected static final String RESOURCE_DUMMY_GOLIATH_OID = "10000000-0000-0000-0000-000000300001";
+	protected static final String RESOURCE_DUMMY_GOLIATH_OID = "10000000-0000-0000-0000-000000300002";
 	protected static final String RESOURCE_DUMMY_GOLIATH_NAME = "goliath";
 	protected static final String RESOURCE_DUMMY_GOLIATH_NAMESPACE = MidPointConstants.NS_RI;
 
@@ -571,6 +571,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		// THEN
 		displayThen(TEST_NAME);
 		result.computeStatus();
+		display("Result", result);
         TestUtil.assertSuccess(result);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -942,12 +943,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // THEN
         result.computeStatus();
         display(result);
-        if (expectAccount) {
-        	TestUtil.assertResultStatus(result, OperationResultStatus.PARTIAL_ERROR);
-        } else {
-        	TestUtil.assertStatus(result, OperationResultStatus.PARTIAL_ERROR);
-//        	TestUtil.assertPartialError(result);
-        }
+    	TestUtil.assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAssignedRole(USER_JACK_OID, roleOid, task, result);
@@ -987,7 +983,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		// there is a failure while reading dummy account - it was not created
 		// because of unavailability of the resource..but it is OK..
         OperationResultStatus status = result.getStatus();
-        if (status != OperationResultStatus.SUCCESS && status != OperationResultStatus.PARTIAL_ERROR) {
+        if (status != OperationResultStatus.HANDLED_ERROR && status != OperationResultStatus.PARTIAL_ERROR) {
         	AssertJUnit.fail("Expected result success or partial error status, but was "+status);
         }
 
@@ -1961,10 +1957,10 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result, 2);
 
-        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
-		display("User after fight", userAfter);
-		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
-		assertLinks(userAfter, 0);
+        assertUserAfter(userBefore.getOid())
+        	.assertName(USER_FIELD_NAME)
+        	.assertFullName(USER_WORLD_FULL_NAME)
+        	.assertLinks(0);
 
 		assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
 		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
@@ -2000,14 +1996,16 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         		UserType.F_LOCALITY, prismContext);
         userDelta.addModificationReplaceProperty(UserType.F_TITLE);
         executeChanges(userDelta, null, task, result);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
-        userBefore = findUserByUsername(USER_FIELD_NAME);
-        display("User before", userBefore);
+        userBefore = assertUserBeforeByUsername(USER_FIELD_NAME)
+        		.assertLinks(0)
+        		.getObject();
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 
         getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).setBreakMode(BreakMode.NETWORK);
-
         dummyAuditService.clear();
 
         // WHEN
@@ -2016,25 +2014,29 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        // Inner errors are expected
-        TestUtil.assertPartialError(result);
+        result.computeStatus(); // explicitly recompute status here. It was computed before.
+        // Inner errors are expected - but those should be pending on retry
+        assertInProgress(result);
 
-        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
-		display("User after fight", userAfter);
-		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
-		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
-		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID); // This is unfinished shadow
-		assertLinks(userAfter, 2);
+        assertUserAfter(userBefore.getOid())
+        	.assertName(USER_FIELD_NAME)
+        	.assertFullName(USER_WORLD_FULL_NAME)
+        	.assertLocality("rock (field) take throw")
+        	.assertLinks(2)
+        	.assertHasProjectionOnResource(RESOURCE_DUMMY_DAVID_OID)
+        	.projectionOnResource(RESOURCE_DUMMY_GOLIATH_OID) // This is unfinished shadow
+        		.display()
+        		.hasUnfinishedPendingOperations();
 
-		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME, USER_WORLD_FULL_NAME, true);
-
-		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (field) take");
-
-        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (field) take throw"));
+        getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
+        
+        assertDummyAccountByUsername(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME)
+        	.assertFullName(USER_WORLD_FULL_NAME)
+        	.assertEnabled()
+        	.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (field) take");
 
         // Goliath is down. No account.
+        assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -2051,24 +2053,137 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class);
 	}
 
-    // MID-1566
-    @Test(enabled=false)
-    public void test422DavidAndGoliathAssignRoleGoliathUpRecompute() throws Exception {
-		final String TEST_NAME = "test422DavidAndGoliathAssignRoleGoliathUpRecompute";
+    /**
+     *  Recompute. Before retry interval.
+     *  Even though resource is now up nothing should happen (yet).
+     *  MID-1566
+     */
+    @Test
+    public void test421DavidAndGoliathAssignRoleGoliathUpRecompute() throws Exception {
+		final String TEST_NAME = "test421DavidAndGoliathAssignRoleGoliathUpRecompute";
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
+		dummyAuditService.clear();
 
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
 
-        getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).setBreakMode(BreakMode.NONE);
+        // WHEN
+        recomputeUser(userBefore.getOid(), task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(userBefore.getOid())
+    	.assertName(USER_FIELD_NAME)
+    	.assertFullName(USER_WORLD_FULL_NAME)
+    	.assertLocality("rock (field) take throw")
+    	.assertLinks(2)
+    	.assertHasProjectionOnResource(RESOURCE_DUMMY_DAVID_OID)
+    	.projectionOnResource(RESOURCE_DUMMY_GOLIATH_OID) // This is unfinished shadow
+    		.display()
+    		.hasUnfinishedPendingOperations();
+
+	    getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
+	    
+	    assertDummyAccountByUsername(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME)
+	    	.assertFullName(USER_WORLD_FULL_NAME)
+	    	.assertEnabled()
+	    	.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (field) take");
+	
+	    // Goliath is up. But haven't retried yet. hence no account.
+	    assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+    }
+    
+    
+    /**
+     *  Wait for retry interval. Then recompute.
+     *  Even though resource is now up nothing should happen (yet) as recompute
+     *  is meant to be "lightweight" and it should not trigger refresh.
+     *  MID-1566
+     */
+    @Test
+    public void test422DavidAndGoliathAssignRoleGoliathUpRecompute() throws Exception {
+		final String TEST_NAME = "test422DavidAndGoliathAssignRoleGoliathUpRecompute";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
+		dummyAuditService.clear();
+		
+		clockForward("PT1H");
+
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
 
         // WHEN
         recomputeUser(userBefore.getOid(), task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(userBefore.getOid())
+    	.assertName(USER_FIELD_NAME)
+    	.assertFullName(USER_WORLD_FULL_NAME)
+    	.assertLocality("rock (field) take throw")
+    	.assertLinks(2)
+    	.assertHasProjectionOnResource(RESOURCE_DUMMY_DAVID_OID)
+    	.projectionOnResource(RESOURCE_DUMMY_GOLIATH_OID) // This is unfinished shadow
+    		.display()
+    		.hasUnfinishedPendingOperations();
+
+	    getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
+	    
+	    assertDummyAccountByUsername(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME)
+	    	.assertFullName(USER_WORLD_FULL_NAME)
+	    	.assertEnabled()
+	    	.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (field) take");
+	
+	    // Goliath is up. But haven't retried yet. hence no account.
+	    assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(0);
+    }
+
+    /**
+     * Reconcile after retry interval. Now we are rocking ... and things will finally
+     * get fixed.
+     * MID-1566
+     */
+    @Test
+    public void test423DavidAndGoliathAssignRoleGoliathUpReconcile() throws Exception {
+		final String TEST_NAME = "test423DavidAndGoliathAssignRoleGoliathUpReconcile";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
+		dummyAuditService.clear();
+
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
+
+        // WHEN
+        reconcileUser(userBefore.getOid(), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2078,20 +2193,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
-        dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0,2);
-        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(1,2);
-        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, UserType.class);
-        dummyAuditService.assertHasDelta(2,ChangeType.MODIFY, ShadowType.class);
-        dummyAuditService.assertExecutionSuccess();
-
     }
 
     @Test
@@ -2101,12 +2204,13 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// GIVEN
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
+		dummyAuditService.clear();
 
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
-        dummyAuditService.clear();
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -2114,15 +2218,15 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-//        TestUtil.assertSuccess(result, 2);
+        assertSuccess(result);
 
-        getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).setBreakMode(BreakMode.NONE);
-
-        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
-		display("User after fight", userAfter);
-		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
-		assertLinks(userAfter, 0);
+        assertUserAfter(userBefore.getOid())
+        	.assertName(USER_FIELD_NAME)
+        	.assertFullName(USER_WORLD_FULL_NAME)
+        	.singleLink()
+        		.resolveTarget()
+        			.display()
+        			.assertDead();
 
 		assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
 		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
@@ -2136,10 +2240,9 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(1,2);
         dummyAuditService.assertHasDelta(0,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
-        dummyAuditService.assertExecutionDeltas(2,2);
-        dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(2,1);
         dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
+        dummyAuditService.assertExecutionSuccess();
 	}
 
     @Test
@@ -2174,9 +2277,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        // Inner errors are expected
-        TestUtil.assertPartialError(result);
+        assertInProgress(result);
 
         PrismObject<UserType> userAfter = getUser(userBefore.getOid());
 		display("User after fight", userAfter);

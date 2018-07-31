@@ -667,7 +667,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options, OperationProvisioningScriptsType scripts,
+	public <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options, OperationProvisioningScriptsType scripts,
 			Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
@@ -687,11 +687,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.debugDump());
 		}
 
+		PrismObject<T> deadShadow = null;
+		
 		if (object.canRepresent(ShadowType.class) && !ProvisioningOperationOptions.isRaw(options)) {
 
 			try {
 
-				shadowCache.deleteShadow((PrismObject<ShadowType>)object, options, scripts, task, result);
+				deadShadow = (PrismObject<T>) shadowCache.deleteShadow((PrismObject<ShadowType>)object, options, scripts, task, result);
 
 			} catch (CommunicationException e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: communication problem: " + e.getMessage(), e);
@@ -741,6 +743,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.computeStatus();
 		}
 		result.cleanupResult();
+		
+		return deadShadow;
 	}
 
 	/* (non-Javadoc)
