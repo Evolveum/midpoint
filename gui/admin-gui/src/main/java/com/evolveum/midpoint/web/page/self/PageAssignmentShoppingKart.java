@@ -288,6 +288,7 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
+                        target.add(getCatalogItemsPanelContainer());
                         PageAssignmentShoppingKart.this.reloadCartButton(target);
 
                     }
