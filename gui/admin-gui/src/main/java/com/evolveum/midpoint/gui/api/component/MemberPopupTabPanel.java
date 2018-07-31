@@ -95,19 +95,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
 
 
         });
-
-//        DropDownChoicePanel<RelationTypes> relationSelector =  new DropDownChoicePanel<RelationTypes> (ID_RELATION,
-//                Model.of(getDefaultRelationValue()), Model.ofList(supportedRelationList),
-//                WebComponentUtil.getEnumChoiceRenderer(MemberPopupTabPanel.this), false);
-//        relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-//        relationSelector.setOutputMarkupId(true);
-//        relationSelector.setOutputMarkupPlaceholderTag(true);
-//        relationContainer.add(relationSelector);
     }
-
-//    private RelationTypes getDefaultRelationValue(){
-//        return CollectionUtils.isNotEmpty(supportedRelationList) ? supportedRelationList.get(0) : RelationTypes.MEMBER;
-//    }
 
     protected ObjectDelta prepareDelta(){
         ObjectDelta delta = null;
