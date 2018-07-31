@@ -33,10 +33,13 @@ import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -436,12 +439,13 @@ public class PolicyRuleProcessor {
 	//region ------------------------------------------------------------------ Pruning
 	public <F extends FocusType> boolean processPruning(LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
-			OperationResult result) throws PolicyViolationException, SchemaException {
+			OperationResult result) throws SchemaException {
 		Collection<EvaluatedAssignmentImpl<F>> plusSet = evaluatedAssignmentTriple.getPlusSet();
 		boolean needToReevaluateAssignments = false;
+		boolean enforceOverride = false;
 		for (EvaluatedAssignmentImpl<F> plusAssignment: plusSet) {
 			for (EvaluatedPolicyRule targetPolicyRule: plusAssignment.getAllTargetsPolicyRules()) {
-				for (EvaluatedPolicyRuleTrigger trigger: targetPolicyRule.getTriggers()) {
+				for (EvaluatedPolicyRuleTrigger trigger: new ArrayList<>(targetPolicyRule.getTriggers())) {
 					if (!(trigger instanceof EvaluatedExclusionTrigger)) {
 						continue;
 					}
@@ -455,19 +459,35 @@ public class PolicyRuleProcessor {
 								+", the exclusion prune rule was triggered but there is no conflicting assignment in the trigger");
 					}
 					LOGGER.debug("Pruning assignment {} because it conflicts with added assignment {}", conflictingAssignment, plusAssignment);
-					
-					PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType().asPrismContainerValue().clone();
-					PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
-					ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(FocusType.F_ASSIGNMENT, focusDef);
-					assignmentDelta.addValuesToDelete(assignmentValueToRemove);
-					context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
-					
+					if (!conflictingAssignment.isPresentInOldObject()) {
+						SingleLocalizableMessage message = new LocalizableMessageBuilder()
+								.key("PolicyViolationException.message.prunedRolesAssigned")
+								.arg(ObjectTypeUtil.createDisplayInformation(plusAssignment.getTarget(), false))
+								.arg(ObjectTypeUtil.createDisplayInformation(conflictingAssignment.getTarget(), false))
+								.build();
+						targetPolicyRule.addTrigger(
+								new EvaluatedExclusionTrigger(exclTrigger.getConstraint(),
+										message, null, exclTrigger.getConflictingAssignment(),
+										exclTrigger.getConflictingTarget(), exclTrigger.getConflictingPath(), true)
+						);
+						enforceOverride = true;
+					} else {
+						PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType()
+								.asPrismContainerValue().clone();
+						PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
+						ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta
+								.createDelta(FocusType.F_ASSIGNMENT, focusDef);
+						assignmentDelta.addValuesToDelete(assignmentValueToRemove);
+						context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
+					}
 					needToReevaluateAssignments = true;
 				}
 			}
 		}
-		
-		return needToReevaluateAssignments;
+
+		// If enforceOverride we will signal violation exception later anyway, and it is crucial that we will *NOT* prune
+		// conflicting assignments away, because it would mean that these enforcement triggers would go away with them.
+		return needToReevaluateAssignments && !enforceOverride;
 	}
 	//endregion
 

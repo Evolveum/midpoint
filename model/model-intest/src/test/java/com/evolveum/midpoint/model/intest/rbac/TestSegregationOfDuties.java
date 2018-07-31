@@ -844,7 +844,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 */
 	@Test
     public void test208GuybrushUnassignRoleBronze() throws Exception {
-		final String TEST_NAME = "test209GuybrushUnassignRoleSilver";
+		final String TEST_NAME = "test208GuybrushUnassignRoleSilver";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -931,6 +931,39 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 			System.out.println("Got expected exception: " + e.getMessage());
 			// order is not strictly defined; if this would lead to false failures, revisit the following assert
 			assertMessage(e, "Violation of SoD policy: Role \"Prize: Gold (enforced)\" excludes role \"Prize: Silver (enforced)\", they cannot be assigned at the same time; Violation of SoD policy: Role \"Prize: Silver (enforced)\" excludes role \"Prize: Gold (enforced)\", they cannot be assigned at the same time");
+			result.computeStatus();
+			assertFailure(result);
+		}
+	}
+
+	/**
+	 * MID-4766
+	 */
+	@Test
+	public void test209bGuybrushAssignRoleGoldAndSilver() throws Exception {
+		final String TEST_NAME = "test209bGuybrushAssignRoleGoldAndSilver";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(
+						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_OID, ObjectTypes.ROLE, prismContext),
+						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_SILVER_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDeltaCast(USER_GUYBRUSH_OID);
+
+		try {
+			executeChanges(delta, null, task, result);
+			// THEN
+			fail("unexpected success");
+		} catch (PolicyViolationException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+			// fragile, depends on the evaluation internals ... if it would cause problems please adapt the following assert
+			assertMessage(e, "Mutually-pruned roles cannot be assigned at the same time: role \"Prize: Silver\" and role \"Prize: Gold\"; Mutually-pruned roles cannot be assigned at the same time: role \"Prize: Gold\" and role \"Prize: Silver\"");
 			result.computeStatus();
 			assertFailure(result);
 		}
@@ -1229,6 +1262,40 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertLinks(userAfter, 0);
 
         assertNoDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+	}
+
+	/**
+	 * MID-4766
+	 */
+	@Test
+	public void test230GuybrushAssignRoleRedAndBlueAndGreen() throws Exception {
+		final String TEST_NAME = "test230GuybrushAssignRoleRedAndBlueAndGreen";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(
+						ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_RED_OID, ObjectTypes.ROLE, prismContext),
+						ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_BLUE_OID, ObjectTypes.ROLE, prismContext),
+						ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_GREEN_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDeltaCast(USER_GUYBRUSH_OID);
+
+		try {
+			executeChanges(delta, null, task, result);
+			// THEN
+			fail("unexpected success");
+		} catch (PolicyViolationException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+			// fragile, depends on the evaluation internals ... if it would cause problems please adapt the following assert
+			assertMessage(e, "Mutually-pruned roles cannot be assigned at the same time: role \"Color: Green\" and role \"Color: Red\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Green\" and role \"Color: Blue\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Red\" and role \"Color: Green\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Red\" and role \"Color: Blue\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Blue\" and role \"Color: Red\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Blue\" and role \"Color: Green\"");
+			result.computeStatus();
+			assertFailure(result);
+		}
 	}
 
 	/**
