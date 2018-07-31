@@ -39,7 +39,7 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 
 	public EvaluatedSituationTrigger(@NotNull PolicySituationPolicyConstraintType constraint,
 			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull Collection<EvaluatedPolicyRule> sourceRules) {
-		super(PolicyConstraintKindType.SITUATION, constraint, message, shortMessage);
+		super(PolicyConstraintKindType.SITUATION, constraint, message, shortMessage, false);
 		this.sourceRules = sourceRules;
 	}
 
@@ -107,7 +107,7 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
 		EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
 		fillCommonContent(rv);
 		if (!options.isRespectFinalFlag() || !isFinal()) {
-			sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleTypes(rv.getSourceRule(), options));
+			sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleTypes(rv.getSourceRule(), options, null));
 		}
 		return rv;
 	}

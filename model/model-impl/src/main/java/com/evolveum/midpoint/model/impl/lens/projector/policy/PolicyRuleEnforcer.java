@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
@@ -40,7 +41,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPoli
  * Code used to enforce the policy rules that have the enforce action.
  *
  * Originally this was a regular ChangeHook. However, when invoked among other hooks, it is too late (see MID-4797).
- * So we had to convert it into regular code. Some parts still carry this history, until properly rewritten (MID-xxx).
+ * So we had to convert it into regular code. Some parts still carry this history, until properly rewritten (MID-4798).
  *
  * @author semancik
  *
@@ -124,22 +125,28 @@ public class PolicyRuleEnforcer {
 				continue;
 			}
 
-			if (!isEnforce(policyRule)) {
-				continue;
+			boolean enforceAll = policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
+			Collection<EvaluatedPolicyRuleTrigger<?>> triggersFiltered;
+			if (enforceAll) {
+				triggersFiltered = triggers;
+			} else {
+				triggersFiltered = triggers.stream()
+						.filter(EvaluatedPolicyRuleTrigger::isEnforcementOverride)
+						.collect(Collectors.toList());
+				if (triggersFiltered.isEmpty()) {
+					continue;
+				}
 			}
 
 			// TODO really include assignments content?
-			policyRule.addToEvaluatedPolicyRuleTypes(evalCtx.rules, new PolicyRuleExternalizationOptions(FULL, true, true));
+			policyRule.addToEvaluatedPolicyRuleTypes(evalCtx.rules,
+					new PolicyRuleExternalizationOptions(FULL, true, true),
+					t -> enforceAll || t.isEnforcementOverride());
 
-			List<TreeNode<LocalizableMessage>> messageTrees = EvaluatedPolicyRuleUtil.extractMessages(triggers, EvaluatedPolicyRuleUtil.MessageKind.NORMAL);
+			List<TreeNode<LocalizableMessage>> messageTrees = EvaluatedPolicyRuleUtil.extractMessages(triggersFiltered, EvaluatedPolicyRuleUtil.MessageKind.NORMAL);
 			for (TreeNode<LocalizableMessage> messageTree : messageTrees) {
 				evalCtx.messages.add(messageTree.getUserObject());
 			}
 		}
 	}
-
-	private boolean isEnforce(EvaluatedPolicyRule policyRule) {
-		return policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-	}
-
 }
