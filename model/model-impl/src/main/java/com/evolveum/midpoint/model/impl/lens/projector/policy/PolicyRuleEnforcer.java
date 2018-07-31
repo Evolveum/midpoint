@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2016 Evolveum
+/*
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,59 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.impl.hooks;
+package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.context.*;
-import com.evolveum.midpoint.model.api.hooks.ChangeHook;
-import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
-import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageList;
 import com.evolveum.midpoint.util.LocalizableMessageListBuilder;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
- * Hook used to enforce the policy rules that have the enforce action.
+ * Code used to enforce the policy rules that have the enforce action.
+ *
+ * Originally this was a regular ChangeHook. However, when invoked among other hooks, it is too late (see MID-4797).
+ * So we had to convert it into regular code. Some parts still carry this history, until properly rewritten (MID-xxx).
  *
  * @author semancik
  *
  */
 @Component
-public class PolicyRuleEnforcerHook implements ChangeHook {
+public class PolicyRuleEnforcer {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleEnforcerHook.class);
+	//private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleEnforcer.class);
 
-	public static final String HOOK_URI = SchemaConstants.NS_MODEL + "/policy-rule-enforcer-hook-3";
+	// deprecated
+	private static final String HOOK_URI = SchemaConstants.NS_MODEL + "/policy-rule-enforcer-hook-3";
 
-	@Autowired private HookRegistry hookRegistry;
 	@Autowired private PrismContext prismContext;
 	@Autowired private LocalizationService localizationService;
-
-	@PostConstruct
-    public void init() {
-        hookRegistry.registerChangeHook(HOOK_URI, this);
-		LOGGER.trace("PolicyRuleEnforcerHook registered.");
-    }
 
     // TODO clean this up
     private static class EvaluationContext {
@@ -73,57 +62,53 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		private final List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
     }
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.hooks.ChangeHook#invoke(com.evolveum.midpoint.model.api.context.ModelContext, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
-	@Override
-	public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
-			@NotNull OperationResult result) throws PolicyViolationException {
-
-		if (context.getState() == ModelState.PRIMARY) {
-			EvaluationContext evalCtx = invokeInternal(context, task, result);
-			if (!evalCtx.messages.isEmpty()) {
-				LocalizableMessage message = new LocalizableMessageListBuilder()
-						.messages(evalCtx.messages)
-						.separator(LocalizableMessageList.SEMICOLON)
-						.buildOptimized();
-				throw localizationService.translate(new PolicyViolationException(message));
-			}
-        }
-		return HookOperationMode.FOREGROUND;
+	public <O extends ObjectType> void execute(@NotNull ModelContext<O> context) throws PolicyViolationException {
+		EvaluationContext evalCtx = executeInternal(context);
+    	if (context.isPreview()) {
+    		executePreview(context, evalCtx);
+	    } else {
+		    executeRegular(evalCtx);
+	    }
 	}
 
-	@Override
-	public void invokePreview(@NotNull ModelContext<? extends ObjectType> context, Task task, OperationResult result) {
-		// TODO check partial processing option (after it will be implemented)
+	private void executeRegular(EvaluationContext evalCtx)
+			throws PolicyViolationException {
+		if (!evalCtx.messages.isEmpty()) {
+			LocalizableMessage message = new LocalizableMessageListBuilder()
+					.messages(evalCtx.messages)
+					.separator(LocalizableMessageList.SEMICOLON)
+					.buildOptimized();
+			throw localizationService.translate(new PolicyViolationException(message));
+		}
+	}
+
+	private void executePreview(@NotNull ModelContext<? extends ObjectType> context, EvaluationContext evalCtx) {
 		PolicyRuleEnforcerHookPreviewOutputType output = new PolicyRuleEnforcerHookPreviewOutputType(prismContext);
-		EvaluationContext evalCtx = invokeInternal(context, task, result);
 		output.getRule().addAll(evalCtx.rules);
+		// deprecated
 		((LensContext) context).addHookPreviewResults(HOOK_URI, Collections.singletonList(output));
 	}
 
 	@NotNull
-	private <O extends ObjectType> EvaluationContext invokeInternal(@NotNull ModelContext<O> context, @NotNull Task task,
-			@NotNull OperationResult result) {
+	private <O extends ObjectType> EvaluationContext executeInternal(@NotNull ModelContext<O> context) {
 		EvaluationContext evalCtx = new EvaluationContext();
 		ModelElementContext<O> focusContext = context.getFocusContext();
 		if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			return evalCtx;
 		}
-
-		evaluateFocusRules(evalCtx, (ModelContext<FocusType>) context, task, result);
-		evaluateAssignmentRules(evalCtx, (ModelContext<FocusType>) context, task, result);
+		//noinspection unchecked
+		ModelContext<? extends FocusType> contextCasted = (ModelContext<? extends FocusType>) context;
+		evaluateFocusRules(evalCtx, contextCasted);
+		evaluateAssignmentRules(evalCtx, contextCasted);
 
 		return evalCtx;
 	}
 
-	private <F extends FocusType> void evaluateFocusRules(EvaluationContext evalCtx, ModelContext<F> context, Task task,
-			OperationResult result) {
+	private <F extends FocusType> void evaluateFocusRules(EvaluationContext evalCtx, ModelContext<F> context) {
 		enforceTriggeredRules(evalCtx, context.getFocusContext().getPolicyRules());
 	}
 
-	private <F extends FocusType> void evaluateAssignmentRules(EvaluationContext evalCtx, ModelContext<F> context, Task task,
-			OperationResult result) {
+	private <F extends FocusType> void evaluateAssignmentRules(EvaluationContext evalCtx, ModelContext<F> context) {
 		DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (evaluatedAssignmentTriple == null) {
 			return;
@@ -131,7 +116,7 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		evaluatedAssignmentTriple.simpleAccept(assignment -> enforceTriggeredRules(evalCtx, assignment.getAllTargetsPolicyRules()));
 	}
 
-	private <F extends FocusType> void enforceTriggeredRules(EvaluationContext evalCtx, Collection<EvaluatedPolicyRule> policyRules) {
+	private void enforceTriggeredRules(EvaluationContext evalCtx, Collection<EvaluatedPolicyRule> policyRules) {
 		for (EvaluatedPolicyRule policyRule: policyRules) {
 
 			Collection<EvaluatedPolicyRuleTrigger<?>> triggers = policyRule.getTriggers();
@@ -157,18 +142,4 @@ public class PolicyRuleEnforcerHook implements ChangeHook {
 		return policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.hooks.ChangeHook#invokeOnException(com.evolveum.midpoint.model.api.context.ModelContext, java.lang.Throwable, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
-	@Override
-	public void invokeOnException(@NotNull ModelContext context, @NotNull Throwable throwable, @NotNull Task task,
-			@NotNull OperationResult result) {
-		// Nothing to do
-	}
-
-	// Must be executed first, see MID-3836
-	@Override
-	public int getPriority() {
-		return 0;
-	}
 }
