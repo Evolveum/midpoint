@@ -12,12 +12,11 @@
     <artifactId>schrodingertest</artifactId>
 
     <properties>
-        <selenium.version>3.6.0</selenium.version>
-       <!-- <project.version>3.9-SNAPSHOT</project.version>-->
-        <project.build.directory>C:\Users\matus\Documents\mp3.7\midpoint\gui\admin-gui\target</project.build.directory>
-        <!--<project.starter.module>/c/Users/matus/Documents/mp3.7/midpoint/gui/admin-gui</project.starter.module>-->
         <project.starter.module>../../gui/admin-gui</project.starter.module>
         <project.app.package.name>com.evolveum.midpoint.web.boot.MidPointSpringApplication</project.app.package.name>
+        <selenium.version>3.6.0</selenium.version>
+        <skipTests>false</skipTests>
+        <midpoint.home></midpoint.home>
     </properties>
 
     <dependencies>
@@ -31,10 +30,9 @@
             <artifactId>schrodinger</artifactId>
             <version>3.9-SNAPSHOT</version>
         </dependency>
-
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.codeborne</groupId>
@@ -45,14 +43,12 @@
                     <groupId>io.netty</groupId>
                     <artifactId>netty-all</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
-
-        <dependency>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-api</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -81,25 +77,6 @@
             </exclusions>
             <scope>test</scope>
         </dependency>
-       <!-- <dependency>
-            <groupId>com.evolveum.midpoint</groupId>
-            <artifactId>midpoint-war-layout</artifactId>
-            <version>${project.version}</version>
-
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.commons</groupId>
-                    <artifactId>commons-compress</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency> -->
-
-       <!--<dependency>-->
-        <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
-        <!--<artifactId>admin-gui</artifactId>-->
-        <!--<version>3.9-SNAPSHOT</version>-->
-        <!--<type>war</type>-->
-       <!--</dependency>-->
     </dependencies>
 
 
@@ -168,47 +145,6 @@
     </dependencyManagement>
 
     <!--possibly obsolete end -->
-
-<!--<build>-->
-    <!--<plugins>-->
-        <!--<plugin>-->
-            <!--<groupId>org.springframework.boot</groupId>-->
-            <!--<artifactId>spring-boot-maven-plugin</artifactId>-->
-            <!--<version>${spring.boot.version}</version>-->
-            <!--<executions>-->
-                <!--<execution>-->
-                    <!--<goals>-->
-                        <!--<goal>run</goal>-->
-                    <!--</goals>-->
-                    <!--<configuration>-->
-                        <!--<includes>-->
-                            <!--<include>-->
-                                <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
-                                <!--<artifactId>admin-gui</artifactId>-->
-                            <!--</include>-->
-                        <!--</includes>-->
-                        <!--<mainClass>com.evolveum.midpoint.web.boot.MidPointSpringApplication</mainClass>-->
-                        <!--<startClass>com.evolveum.midpoint.web.boot.MidPointSpringApplication</startClass>-->
-                    <!--</configuration>-->
-                <!--</execution>-->
-            <!--</executions>-->
-            <!--<dependencies>-->
-                <!--<dependency>-->
-                    <!--<groupId>com.evolveum.midpoint</groupId>-->
-                    <!--<artifactId>midpoint-war-layout</artifactId>-->
-                    <!--<version>${project.version}</version>-->
-                <!--</dependency>-->
-                <!--<dependency>-->
-                    <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
-                    <!--<artifactId>admin-gui</artifactId>-->
-                    <!--<version>3.9-SNAPSHOT</version>-->
-                    <!--<type>war</type>-->
-                <!--</dependency>-->
-            <!--</dependencies>-->
-        <!--</plugin>-->
-    <!--</plugins>-->
-<!--</build>-->
-
     <build>
         <plugins>
 
@@ -231,90 +167,6 @@
                 </executions>
             </plugin>
 
-            <!--<plugin>-->
-                <!--<artifactId>maven-dependency-plugin</artifactId>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>copy-server-artifact</id>-->
-                        <!--<goals>-->
-                            <!--<goal>copy</goal>-->
-                        <!--</goals>-->
-                        <!--<phase>pre-integration-test</phase>-->
-                        <!--<configuration>-->
-                            <!--<artifactItems>-->
-                                <!--<artifactItem>-->
-                                    <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
-                                    <!--<artifactId>admin-gui</artifactId>-->
-                                    <!--<version>${project.version}</version>-->
-                                  <!--&lt;!&ndash;  <classifier>war</classifier>&ndash;&gt;-->
-                                    <!--<type>war</type>-->
-                                    <!--<outputDirectory>${project.build.directory}</outputDirectory>-->
-                                    <!--<destFileName>midpoint.war</destFileName>-->
-                                <!--</artifactItem>-->
-                            <!--</artifactItems>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
-
-            <!--<plugin>-->
-                <!--<groupId>com.bazaarvoice.maven.plugins</groupId>-->
-                <!--<artifactId>process-exec-maven-plugin</artifactId>-->
-                <!--<version>0.7</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>start-server</id>-->
-                        <!--<phase>pre-integration-test</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>start</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<name>run-server</name>-->
-                            <!--<workingDir>run-server</workingDir>-->
-                            <!--<waitForInterrupt>false</waitForInterrupt>-->
-                            <!--<healthcheckUrl>http://localhost:8080/midpoint</healthcheckUrl>-->
-                            <!--<arguments>-->
-                                <!--<argument>mvn</argument>-->
-                                <!--<argument>-f</argument>-->
-                                <!--<argument>../../gui/admin-gui/pom.xml</argument>-->
-                                <!--<argument>spring-boot:run</argument>-->
-                            <!--</arguments>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-
-                    <!--<execution>-->
-                        <!--<id>stop-server</id>-->
-                        <!--<phase>post-integration-test</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>stop-all</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
-
-            <!--<plugin>-->
-            <!--<groupId>org.codehaus.mojo</groupId>-->
-            <!--<artifactId>exec-maven-plugin</artifactId>-->
-            <!--<version>1.6.0</version>-->
-            <!--<executions>-->
-            <!--<execution>-->
-                <!--<id>id1</id>-->
-                <!--<phase>pre-integration-test</phase>-->
-                <!--<goals>-->
-                    <!--<goal>exec</goal>-->
-                <!--</goals>-->
-                <!--<configuration>-->
-                    <!--<executable>mvn</executable>-->
-                    <!--<arguments>-->
-                        <!--<argument>-f</argument>-->
-                        <!--<argument>${project.starter.module}/pom.xml</argument>-->
-                        <!--<argument>spring-boot:start</argument>-->
-                    <!--</arguments>-->
-                <!--</configuration>-->
-            <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
-
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>${antrun.version}</version>
@@ -322,7 +174,8 @@
                     <execution>
                         <phase>pre-integration-test</phase>
                         <configuration>
-                            <target name="####### Midpoint ${project.version} booting up for integration testing">
+                            <skip>${skipTests}</skip>
+                           <target name="Applicaion_boot_up" description="####### Midpoint ${project.version} booting up for integration testing">
                                 <exec dir="." executable="cmd" osfamily="windows"  spawn="true">
                                     <arg value="/c"/>
                                     <arg value="mvn"/>
@@ -347,7 +200,11 @@
                         <id>Shut-down-process</id>
                         <phase>post-integration-test</phase>
                         <configuration>
-                            <target name="####### Shuting down Midpoint ${project.version} after integration testing completed">
+                            <skip>${skipTests}</skip>
+                            <!--description="####### Shuting down Midpoint ${project.version} after integration testing completed"-->
+
+
+                            <target name="init">
                                 <exec executable="jps"> <!-- TODO ok?: JDK needed to be referenced on the PATH-->
                                     <arg value="-l" />
                                     <redirector outputproperty="process.pid">
@@ -368,7 +225,23 @@
                                     <arg value="-15" />
                                     <arg value="${process.pid}" />
                                 </exec>
+                                <waitfor maxwait="20"  maxwaitunit="second" checkevery="500">
+                                <not>
+                                    <socket port="8080" server="localhost" />
+                                </not>
+                                </waitfor>
+                                <property environment="env"/>
+                                <exec executable="cmd" osfamily="windows">
+                                    <arg line=' /c rmdir "${env.HOMEPATH}\midpoint" /S /Q '/>
+                                </exec>
                             </target>
+                            <!--<target name="B" depends="init">-->
+                                <!--<property environment="env"/>-->
+                                <!--<exec executable="cmd" osfamily="windows">-->
+                                    <!--<arg line=' /c rmdir "${env.HOMEPATH}\midpoint" /S /Q '/>-->
+                                <!--</exec>-->
+                        <!--</target>-->
+                            <!--description="####### Post integration tests clean up"-->
                         </configuration>
                         <goals>
                             <goal>run</goal>

@@ -25,31 +25,9 @@ public class TestSuiteConfig extends TestBase {
 
         EnvironmentConfiguration config = new EnvironmentConfiguration();
         midPoint = new MidPoint(config);
-         String[] s= {"start"};
-//        try {
-//           MidPointWarLauncher.start(s);
-//
-//        } catch (Exception e) {
-//            //TODO handle the right way
-//
-//            LOG.debug("The application state: "+ e.getMessage());
-//        }
-
-        LOG.debug("The application state: "+ ArrayUtils.toString(s));
-
     }
 
   @AfterSuite
     public void cleanUp() {
-        String[] s= {"stop"};
-//        try {
-//            MidPointWarLauncher.main(s);
-//        } catch (Exception e) {
-//            //TODO handle the right way
-//            e.printStackTrace();
-//        }
-
-
-      LOG.debug("The application state: "+ ArrayUtils.toString(s));
     }
 }
