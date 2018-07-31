@@ -291,6 +291,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			RepositoryCache.enter();
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
 			context = contextFactory.createContext(clonedDeltas, options, task, result);
+			context.setPreview(true);
+
 //			context.setOptions(options);
 			LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
 			context.setProgressListeners(listeners);
