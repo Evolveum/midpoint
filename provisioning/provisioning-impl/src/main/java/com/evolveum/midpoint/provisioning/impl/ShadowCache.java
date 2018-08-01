@@ -203,7 +203,8 @@ public class ShadowCache {
 			throw e;
 		}
 		
-		if (GetOperationOptions.isForceRefresh(rootOptions)) {
+		if (shouldRefreshOnRead(resource, rootOptions)) {
+			LOGGER.trace("Refreshing shadow {} before reading", repositoryShadow);
 			repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
 		}
 		if (repositoryShadow == null) {
@@ -354,6 +355,10 @@ public class ShadowCache {
 
 			}
 		}
+	}
+
+	private boolean shouldRefreshOnRead(ResourceType resource, GetOperationOptions rootOptions) {
+		return GetOperationOptions.isForceRefresh(rootOptions) || ResourceTypeUtil.isRefreshOnRead(resource);
 	}
 
 	private PrismObject<ShadowType> processNoFetchGet(ProvisioningContext ctx,
