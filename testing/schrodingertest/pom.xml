@@ -16,7 +16,11 @@
         <project.app.package.name>com.evolveum.midpoint.web.boot.MidPointSpringApplication</project.app.package.name>
         <selenium.version>3.6.0</selenium.version>
         <skipTests>false</skipTests>
-        <midpoint.home></midpoint.home>
+        <server.port>8090</server.port>
+        <midpoint.host>0.0.0.0</midpoint.host>
+        <!--<midpoint.home></midpoint.home>-->
+        <javax.net.ssl.trustStore></javax.net.ssl.trustStore>
+        <javax.net.ssl.trustStoreType></javax.net.ssl.trustStoreType>
     </properties>
 
     <dependencies>
@@ -176,20 +180,22 @@
                         <phase>pre-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                           <target name="Applicaion_boot_up" description="####### Midpoint ${project.version} booting up for integration testing">
+                            <target name="Midpoint ${project.version} booting up for integration testing">
                                 <exec dir="." executable="cmd" osfamily="windows"  spawn="true">
                                     <arg value="/c"/>
                                     <arg value="mvn"/>
                                     <arg value="-f"/>
                                     <arg value="${project.starter.module}/pom.xml"/>
                                     <arg value="spring-boot:run"/>
+                                    <arg value="-Dmidpoint.home=${midpoint.home}"/>
+                                    <arg value="-Dserver.port=${server.port}"/>
                                 </exec>
-                                <exec dir="." executable="sh" osfamily="unix" spawn="true">
-				    <arg line="-c 'mvn -f ${project.starter.module}/pom.xml spring-boot:run'"/>
+                                <exec dir="." executable="sh" osfamily="unix, mac" spawn="true" failonerror="true">
+				    <arg line="-c 'mvn -f ${project.starter.module}/pom.xml spring-boot:run -Dmidpoint.home=${midpoint.home} -Dserver.port=${server.port}'"/>
                                 </exec>
                               <!--  <sleep seconds="400" /> --><!--&lt;!&ndash;TODO CHANGE! (This should be rather the concern of the tests) : Needed so MP boots up, but the whole thing is quite hackish and depends on the environment (and almost the weather)&ndash;&gt;-->
                                 <waitfor maxwait="600" maxwaitunit="second" checkevery="500" checkeveryunit="millisecond">
-                                    <socket server="0.0.0.0" port="8090"/>
+                                    <socket server="${midpoint.host}" port="${server.port}"/>
                                 </waitfor>
                             </target>
                         </configuration>
@@ -202,10 +208,7 @@
                         <phase>post-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <!--description="####### Shuting down Midpoint ${project.version} after integration testing completed"-->
-
-
-                            <target name="init">
+                            <target name="Shuting down Midpoint ${project.version} after integration testing, and cleaning up">
                                 <exec executable="jps"> <!-- TODO ok?: JDK needed to be referenced on the PATH-->
                                     <arg value="-l" />
                                     <redirector outputproperty="process.pid">
@@ -217,26 +220,37 @@
                                         </outputfilterchain>
                                     </redirector>
                                 </exec>
-                                <exec executable="taskkill" osfamily="windows">
+                                <exec executable="taskkill" osfamily="windows" failonerror="true">
                                     <arg value="/PID" />
                                     <arg value="${process.pid}" />
                                     <arg value="/F" />  <!-- TODO ok?: Had to force this-->
                                 </exec>
-                                <exec executable="kill" osfamily="unix">
+                                <exec executable="kill" osfamily="unix, mac" failonerror="true">
                                     <arg value="-15" />
                                     <arg value="${process.pid}" />
                                 </exec>
                                 <waitfor maxwait="20"  maxwaitunit="second" checkevery="500">
                                 <not>
-                                    <socket port="8080" server="localhost" />
+                                    <socket port="${server.port}" server="${midpoint.host}"/>
                                 </not>
                                 </waitfor>
                                 <property environment="env"/>
-                                <exec executable="cmd" osfamily="windows">
-                                    <arg line=' /c rmdir "${env.HOMEPATH}\midpoint" /S /Q '/>
+                                <condition property ="e.home" value="${env.HOMEPATH}" else="${env.HOME}">
+                                    <and>
+                                        <os family="windows"/>
+                                        <not>
+                                            <os family="unix, mac"/>
+                                        </not>
+                                    </and>
+                                </condition>
+                                <condition property ="home" value="${midpoint.home}" else="${e.home}/midpoint">
+                                    <isset property="midpoint.home"/>
+                                </condition>
+                                <exec executable="cmd" osfamily="windows" failonerror="true">
+                                    <arg line=' /c rmdir "${home}" /S /Q '/>
                                 </exec>
-                                <exec executable="rm" osfamily="unix">
-                                    <arg line="-rf ${env.HOME}/midpoint"/>
+                                <exec executable="rm" osfamily="unix, mac" failonerror="true">
+                                    <arg line="-rf ${home}"/>
                                 </exec>
                             </target>
                             <!--<target name="B" depends="init">-->
