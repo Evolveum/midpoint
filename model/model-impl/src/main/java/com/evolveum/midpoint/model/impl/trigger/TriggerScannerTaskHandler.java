@@ -206,7 +206,11 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		LOGGER.debug("Firing trigger {} in {}: id={}", handlerUri, object, trigger.getId());
 		if (triggerAlreadySeen(coordinatorTask, handlerUri, object.getOid()+":"+trigger.getId())) {
 			LOGGER.debug("Handler {} already executed for {}:{}", handlerUri, ObjectTypeUtil.toShortString(object), trigger.getId());
-			return true;
+			// We don't request the trigger removal here. If the trigger was previously seen and processed correctly,
+			// it was already removed. But if it was seen and failed, we want to keep it!
+			// (We do want to record it as seen even in that case, as we do not want to re-process it multiple times
+			// during single task handler run.)
+			return false;
 		} else {
 			TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
 			if (handler == null) {

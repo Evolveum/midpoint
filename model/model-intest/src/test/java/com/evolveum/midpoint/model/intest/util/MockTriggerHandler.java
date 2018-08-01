@@ -41,6 +41,7 @@ public class MockTriggerHandler implements TriggerHandler {
 	private PrismObject<?> lastObject;
 	private AtomicInteger invocationCount = new AtomicInteger(0);
 	private long delay;
+	private boolean failOnNextInvocation;
 
 	public PrismObject<?> getLastObject() {
 		return lastObject;
@@ -56,6 +57,14 @@ public class MockTriggerHandler implements TriggerHandler {
 
 	public void setDelay(long delay) {
 		this.delay = delay;
+	}
+
+	public boolean isFailOnNextInvocation() {
+		return failOnNextInvocation;
+	}
+
+	public void setFailOnNextInvocation(boolean failOnNextInvocation) {
+		this.failOnNextInvocation = failOnNextInvocation;
 	}
 
 	/* (non-Javadoc)
@@ -74,12 +83,16 @@ public class MockTriggerHandler implements TriggerHandler {
 				// just ignore
 			}
 		}
+		if (failOnNextInvocation) {
+			failOnNextInvocation = false;
+			throw new IllegalStateException("Failing as instructed");
+		}
 	}
 
 	public void reset() {
 		lastObject = null;
 		invocationCount.set(0);
 		delay = 0;
+		failOnNextInvocation = false;
 	}
-
 }
