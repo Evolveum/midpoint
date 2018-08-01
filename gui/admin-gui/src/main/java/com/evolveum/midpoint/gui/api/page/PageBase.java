@@ -63,6 +63,7 @@ import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -147,6 +148,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.CssResourceReference;
@@ -160,6 +162,8 @@ import org.w3c.dom.Node;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
+import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -192,7 +196,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_RIGHT_MENU = "rightMenu";
     private static final String ID_LOCALE = "locale";
     private static final String ID_MENU_TOGGLE = "menuToggle";
-    private static final String ID_BREADCRUMBS = "breadcrumbs";
+//    private static final String ID_BREADCRUMBS = "breadcrumbs";
     private static final String ID_BREADCRUMB = "breadcrumb";
     private static final String ID_BC_LINK = "bcLink";
     private static final String ID_BC_ICON = "bcIcon";
@@ -618,12 +622,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return SecurityUtils.getPrincipalUser();
     }
 
-    public static StringResourceModel createStringResourceStatic(Component component, Enum e) {
+    public static StringResourceModel createStringResourceStatic(Component component, Enum<?> e) {
         String resourceKey = createEnumResourceKey(e);
         return createStringResourceStatic(component, resourceKey);
     }
 
-    public static String createEnumResourceKey(Enum e) {
+    public static String createEnumResourceKey(Enum<?> e) {
         return e.getDeclaringClass().getSimpleName() + "." + e.name();
     }
 
@@ -712,7 +716,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         Model<String> deploymentNameModel = new Model<>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
         Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
         deploymentName.add(new VisibleEnableBehaviour() {
-            public boolean isVisible() {
+          	
+        	private static final long serialVersionUID = 1L;
+
+			public boolean isVisible() {
                 return StringUtils.isNotEmpty(deploymentNameModel.getObject());
             }
         });
@@ -723,21 +730,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 
-        ListView breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB,
-                new AbstractReadOnlyModel<List<Breadcrumb>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public List<Breadcrumb> getObject() {
-                        return getBreadcrumbs();
-                    }
-                }) {
+        IModel<List<Breadcrumb>> breadcrumbsModel =  new AbstractReadOnlyModel<List<Breadcrumb>>() {
+        	
+			private static final long serialVersionUID = 1L;
 
             @Override
+            public List<Breadcrumb> getObject() {
+                return getBreadcrumbs();
+            }
+        };
+        
+        ListView<Breadcrumb> breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB, breadcrumbsModel) {
+
+           
+        	private static final long serialVersionUID = 1L;
+
+			@Override
             protected void populateItem(ListItem<Breadcrumb> item) {
                 final Breadcrumb dto = item.getModelObject();
 
-                AjaxLink bcLink = new AjaxLink(ID_BC_LINK) {
+                AjaxLink<String> bcLink = new AjaxLink<String>(ID_BC_LINK) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -826,7 +838,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         });
         mainHeader.add(logo);
 
-        AjaxLink customLogo = new AjaxLink(ID_CUSTOM_LOGO) {
+        AjaxLink<String> customLogo = new AjaxLink<String>(ID_CUSTOM_LOGO) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -837,7 +849,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         customLogo.add(new VisibleEnableBehaviour() {
-            @Override
+        	
+          	private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isVisible() {
                 return isCustomLogoVisible();
             }
@@ -890,7 +905,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         initDebugBarLayout();
 
         List<SideBarMenuItem> menuItems = createMenuItems();
-        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new Model((Serializable) menuItems));
+        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new ListModel<>(menuItems));
         sidebarMenu.add(createUserStatusBehaviour(true));
         add(sidebarMenu);
 
@@ -1069,7 +1084,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 .setParameters(objects);
     }
 
-    public StringResourceModel createStringResource(Enum e) {
+    public StringResourceModel createStringResource(Enum<?> e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
         return createStringResource(resourceKey);
     }
@@ -1150,9 +1165,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         OperationResult topResult = task.getResult();
         try {
             ExpressionFactory factory = getExpressionFactory();
-            PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinitionImpl<>(
+            PrismPropertyDefinition<OperationResultType> outputDefinition = new PrismPropertyDefinitionImpl<>(
                     ExpressionConstants.OUTPUT_ELEMENT_NAME, OperationResultType.COMPLEX_TYPE, getPrismContext());
-            Expression expression = factory.makeExpression(expressionType, outputDefinition, contextDesc, task, topResult);
+            Expression<PrismPropertyValue<OperationResultType>, PrismPropertyDefinition<OperationResultType>> expression = factory.makeExpression(expressionType, outputDefinition, contextDesc, task, topResult);
 
             ExpressionVariables variables = new ExpressionVariables();
 
@@ -1161,12 +1176,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, resultType);
 
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, topResult);
-            PrismValueDeltaSetTriple<PrismPropertyValue<?>> outputTriple = expression.evaluate(context);
+            PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple = expression.evaluate(context);
             if (outputTriple == null) {
                 return null;
             }
 
-            Collection<PrismPropertyValue<?>> values = outputTriple.getNonNegativeValues();
+            Collection<PrismPropertyValue<OperationResultType>> values = outputTriple.getNonNegativeValues();
             if (values == null || values.isEmpty()) {
                 return null;
             }
@@ -1242,7 +1257,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         modal.setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
 
-            @Override
+            private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
                 return true;
             }
@@ -1250,6 +1267,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         modal.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void onClose(AjaxRequestTarget target) {
                 modal.close(target);
@@ -1257,6 +1276,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         });
 
         modal.add(new AbstractDefaultAjaxBehavior() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void renderHead(Component component, IHeaderResponse response) {
@@ -1508,6 +1529,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, tabIndex);
         MenuItem menu = new MenuItem(createStringResource(key), PageSystemConfiguration.class, params, null) {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public boolean isMenuActive(WebPage page) {
                 if (!PageSystemConfiguration.class.equals(page.getClass())) {
@@ -1689,36 +1712,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private void createAdditionalMenu(SideBarMenuItem menu) {
         AdminGuiConfigurationType adminGuiConfig = loadAdminGuiConfiguration();
-        List<RichHyperlinkType> menuList = loadAdminGuiConfiguration().getAdditionalMenuLink();
+        List<RichHyperlinkType> menuList = adminGuiConfig.getAdditionalMenuLink();
 
         Map<String, Class> urlClassMap = DescriptorLoader.getUrlClassMap();
         if (menuList != null && menuList.size() > 0 && urlClassMap != null && urlClassMap.size() > 0) {
             for (RichHyperlinkType link : menuList) {
                 if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
                     AdditionalMenuItem item = new AdditionalMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
-                            getAdditionalMenuItemNameModel(link.getLabel()),
+                            new Model<String>(link.getLabel()),
                             link.getTargetUrl(), urlClassMap.get(link.getTargetUrl()));
                     menu.getItems().add(item);
                 }
             }
         }
-    }
-
-    private IModel<String> getAdditionalMenuItemNameModel(final String name) {
-        return new IModel<String>() {
-            @Override
-            public String getObject() {
-                return name;
-            }
-
-            @Override
-            public void setObject(String s) {
-            }
-
-            @Override
-            public void detach() {
-            }
-        };
     }
 
     private MainMenuItem createHomeItems() {
@@ -1888,37 +1894,41 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return;
         }
         objectListViews.forEach(objectListView -> {
-                if (objectListView.getType() != null && !objectListView.getType().equals(UserType.COMPLEX_TYPE)){
-                    return;
-                }
-                ObjectReferenceType collectionRef = objectListView.getCollectionRef();
-                if (collectionRef == null){
-                    return;
-                }
-                OperationResult result = new OperationResult(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
-                Task task = createSimpleTask(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
-                PrismObject<? extends ObjectType> collectionObject = WebModelServiceUtils.resolveReferenceNoFetch(collectionRef, this, task, result);
-                if (collectionObject == null){
-                    return;
-                }
-                if (collectionObject.getValue().asObjectable() instanceof ObjectCollectionType) {
-                    ObjectCollectionType collectionValue = (ObjectCollectionType) collectionObject.getValue().asObjectable();
-                    if (!collectionValue.getType().equals(UserType.COMPLEX_TYPE)) {
-                        return;
-                    }
-                    DisplayType viewDisplayType = objectListView.getDisplay();
+        	if (!QNameUtil.match(objectListView.getType(), UserType.COMPLEX_TYPE)) {
+        		return;
+        	}
+                
+        	ObjectReferenceType collectionRef = objectListView.getCollectionRef();
+            if (collectionRef == null){
+               return;
+            }
+            
+			OperationResult result = new OperationResult(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
+			Task task = createSimpleTask(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
+			PrismObject<? extends ObjectType> collectionObject = WebModelServiceUtils.resolveReferenceNoFetch(collectionRef, this,
+					task, result);
+			if (collectionObject == null) {
+				return;
+			}
+			ObjectType obejctType = collectionObject.asObjectable();
+			if (obejctType instanceof ObjectCollectionType) {
+				ObjectCollectionType collectionValue = (ObjectCollectionType) obejctType;
+				if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)) {
+					return;
+				}
+				DisplayType viewDisplayType = objectListView.getDisplay();
 
-                    PageParameters pageParameters = new PageParameters();
-                    pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
+				PageParameters pageParameters = new PageParameters();
+				pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
 
-                    MenuItem userViewMenu = new MenuItem(viewDisplayType != null && StringUtils.isNotEmpty(viewDisplayType.getLabel()) ?
-                            createStringResource(viewDisplayType.getLabel()) : createStringResource("MenuItem.noName"), PageUsersView.class,
-                            pageParameters, null);
-                    menu.add(userViewMenu);
-                }
+				MenuItem userViewMenu = new MenuItem(viewDisplayType != null && StringUtils.isNotEmpty(viewDisplayType.getLabel())
+						? createStringResource(viewDisplayType.getLabel())
+						: createStringResource("MenuItem.noName"), PageUsersView.class, pageParameters, null);
+				menu.add(userViewMenu);
+			}
         });
     }
-
+    
     private List<GuiObjectListViewType> getObjectViewsList(){
         GuiObjectListViewsType objectListViews = getAdminGuiConfiguration().getObjectLists();
         if (objectListViews == null){
@@ -1942,7 +1952,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private VisibleEnableBehaviour createVisibleDisabledBehaviorForEditMenu(final Class<? extends WebPage> page) {
         return new VisibleEnableBehaviour() {
 
-            @Override
+        	private static final long serialVersionUID = 1L;
+
+			@Override
             public boolean isVisible() {
                 return getPage().getClass().equals(page);
             }
