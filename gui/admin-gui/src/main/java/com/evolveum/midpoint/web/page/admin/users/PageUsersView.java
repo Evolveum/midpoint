@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -63,8 +64,6 @@ public class PageUsersView extends PageUsers {
     private static final String DOT_CLASS = PageUsersView.class.getName() + ".";
     private static final String OPERATION_LOAD_USERS_VIEW_COLLECTION_REF = DOT_CLASS + "loadUsersViewCollectionRef";
 
-    private ObjectFilter viewFilter;
-
     public PageUsersView(){
         super();
     }
@@ -84,7 +83,7 @@ public class PageUsersView extends PageUsers {
             return null;
         }
         ObjectCollectionType collectionValue = collectionObject.getValue().asObjectable();
-        if (!collectionValue.getType().equals(UserType.COMPLEX_TYPE)){
+        if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)){
             return null;
         }
         ObjectFilter filter = null;
