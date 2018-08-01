@@ -306,8 +306,12 @@ public class AssignmentPolicyAspectPart {
 		instruction.setObjectRef(modelContext, result);
 		instruction.setTargetRef(createObjectRef(target), result);
 
-		String andExecution = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
-		instruction.setTaskName("Approval " + andExecution + "of: " + processNameInDefaultLocale);
+		String taskNameInDefaultLocale = localizationService.translate(
+				new LocalizableMessageBuilder()
+						.key(instruction.isExecuteApprovedChangeImmediately() ? "ApprovalAndExecutionOf" : "ApprovalOf")
+						.arg(processNameInDefaultLocale)
+						.build(), Locale.getDefault());
+		instruction.setTaskName(taskNameInDefaultLocale);
 		instruction.setProcessInstanceName(processNameInDefaultLocale);
 		instruction.setLocalizableProcessInstanceName(processName);
 
