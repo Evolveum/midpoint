@@ -147,6 +147,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 	private static final String USER_PASSWORD_A_CLEAR = "A"; // too short
 
+	private String deadShadowOid;
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -2198,8 +2200,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     }
 
     @Test
-    public void test429DavidAndGoliathUnassignRole() throws Exception {
-		final String TEST_NAME = "test429DavidAndGoliathUnassignRole";
+    public void test428DavidAndGoliathUnassignRole() throws Exception {
+		final String TEST_NAME = "test428DavidAndGoliathUnassignRole";
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
@@ -2220,13 +2222,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         displayThen(TEST_NAME);
         assertSuccess(result);
 
-        assertUserAfter(userBefore.getOid())
+        deadShadowOid = assertUserAfter(userBefore.getOid())
         	.assertName(USER_FIELD_NAME)
         	.assertFullName(USER_WORLD_FULL_NAME)
         	.singleLink()
         		.resolveTarget()
         			.display()
-        			.assertDead();
+        			.assertDead()
+        			.getObject().getOid();
 
 		assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
 		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
@@ -2243,6 +2246,47 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(2,1);
         dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
+	}
+    
+    /**
+     * Let the dead shadow expire. Let's check that it is gone and that it is
+     * also properly unlinked. It also cleans the slate for next tests.
+     */
+    @Test
+    public void test429ExpireDeadShadow() throws Exception {
+		final String TEST_NAME = "test429ExpireDeadShadow";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		getDummyResource(RESOURCE_DUMMY_DAVID_NAME).resetBreakMode();
+		getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
+		dummyAuditService.clear();
+		
+		PrismObject<UserType> userBefore = findUserByUsername(USER_FIELD_NAME);
+		
+		clockForward("P10D");
+
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        reconcileUser(userBefore.getOid(), task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(userBefore.getOid())
+        	.assertName(USER_FIELD_NAME)
+        	.assertFullName(USER_WORLD_FULL_NAME)
+        	.assertLinks(0);
+
+        assertNoRepoShadow(deadShadowOid);
+        
+		assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 	}
 
     @Test
@@ -2277,19 +2321,21 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        assertInProgress(result);
+//        assertInProgress(result);
 
-        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
-		display("User after fight", userAfter);
-		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
-		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID); // This is unfinished shadow
-		// No goliath account, not even tried, the dependency stopped it
-		assertLinks(userAfter, 1);
+        assertUserAfter(userBefore.getOid())
+        	.assertName(USER_FIELD_NAME)
+        	.assertFullName(USER_WORLD_FULL_NAME)
+        	.assertLinks(1)
+        	.projectionOnResource(RESOURCE_DUMMY_DAVID_OID)
+        		.hasUnfinishedPendingOperations(); // This is unfinished shadow
 
+        getDummyResource(RESOURCE_DUMMY_DAVID_NAME).resetBreakMode();
+        
 		// David is down. No account.
+        assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
 
 		// Goliath depends on David, no account.
-
 		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
 
         // Check audit
@@ -2312,8 +2358,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test440DavidAndGoliathAssignRoleAndCreateUserInOneStep";
 		displayTestTitle(TEST_NAME);
 
-		getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).setBreakMode(BreakMode.NONE);
-		getDummyResource(RESOURCE_DUMMY_DAVID_NAME).setBreakMode(BreakMode.NONE);
+		getDummyResource(RESOURCE_DUMMY_GOLIATH_NAME).resetBreakMode();
+		getDummyResource(RESOURCE_DUMMY_DAVID_NAME).resetBreakMode();
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 		// delete user and his roles which were added before
