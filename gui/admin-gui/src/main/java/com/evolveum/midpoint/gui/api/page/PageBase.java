@@ -1894,10 +1894,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return;
         }
         objectListViews.forEach(objectListView -> {
-        	if (!QNameUtil.match(objectListView.getType(), UserType.COMPLEX_TYPE)) {
+        	//objectlistView.getType() might be null - from documentation:
+        	// It may not be present in case that the type is defined in a referenced object colleciton.
+        	
+        	if (objectListView.getType() != null && !QNameUtil.match(objectListView.getType(), UserType.COMPLEX_TYPE)) {
         		return;
         	}
-                
+            
         	ObjectReferenceType collectionRef = objectListView.getCollectionRef();
             if (collectionRef == null){
                return;
@@ -1910,22 +1913,25 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 			if (collectionObject == null) {
 				return;
 			}
-			ObjectType obejctType = collectionObject.asObjectable();
-			if (obejctType instanceof ObjectCollectionType) {
-				ObjectCollectionType collectionValue = (ObjectCollectionType) obejctType;
-				if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)) {
-					return;
-				}
-				DisplayType viewDisplayType = objectListView.getDisplay();
-
-				PageParameters pageParameters = new PageParameters();
-				pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
-
-				MenuItem userViewMenu = new MenuItem(viewDisplayType != null && StringUtils.isNotEmpty(viewDisplayType.getLabel())
-						? createStringResource(viewDisplayType.getLabel())
-						: createStringResource("MenuItem.noName"), PageUsersView.class, pageParameters, null);
-				menu.add(userViewMenu);
+			ObjectType objectType = collectionObject.asObjectable();
+			if (!(objectType instanceof ObjectCollectionType)) {
+				return;
 			}
+			
+			ObjectCollectionType collectionValue = (ObjectCollectionType) objectType;
+			if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)) {
+				return;
+			}
+			DisplayType viewDisplayType = objectListView.getDisplay();
+
+			PageParameters pageParameters = new PageParameters();
+			pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
+
+			MenuItem userViewMenu = new MenuItem(viewDisplayType != null && StringUtils.isNotEmpty(viewDisplayType.getLabel())
+					? createStringResource(viewDisplayType.getLabel())
+					: createStringResource("MenuItem.noName"), PageUsersView.class, pageParameters, null);
+			menu.add(userViewMenu);
+			
         });
     }
     
