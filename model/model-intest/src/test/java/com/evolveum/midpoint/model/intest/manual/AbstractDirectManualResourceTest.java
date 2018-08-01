@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -561,66 +562,75 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		accountWillSecondCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-
-		assertPendingOperationDeltas(shadowRepo, 3);
-
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_PASSWORD_VALUE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
-
-		pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_PASSWORD_VALUE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
+		PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
+			.pendingOperations()
+				.assertOperations(3)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.item(SchemaConstants.PATH_PASSWORD_VALUE)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+					.end()
+				.end()
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.end()
+			.getObject();
 
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
-
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		PrismObject<ShadowType> shadowModel = assertModelShadow(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end()
+			.pendingOperations()
+				.assertOperations(3)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.item(SchemaConstants.PATH_PASSWORD_VALUE)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+				.end()
+			.end()
+			.getObject();
+		
 		if (supportsBackingStore()) {
 			assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
 		} else {
 			assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
 		}
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModel);
 
-		assertPendingOperationDeltas(shadowModel, 3);
-		pendingOperation = findPendingOperation(shadowModel,
-				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_PASSWORD_VALUE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
+		PrismObject<ShadowType> shadowModelFuture = assertModelShadowFuture(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end()
+			.pendingOperations()
+				.assertOperations(3)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.item(SchemaConstants.PATH_PASSWORD_VALUE)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+				.end()
+			.end()
+			.getObject();
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-		assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
@@ -631,7 +641,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	}
 
 	/**
-	 * ff 7min. Refresh. Oldest delta should expire.
+	 * ff 7min. Refresh. Oldest pending operation is over grace period, but still
+	 * in retention period. It should stay in the shadow, but it should not influence
+	 * future shadow result.
 	 */
 	@Test
 	public void test270RecomputeWillAfter7min() throws Exception {
@@ -654,66 +666,75 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-
-		assertPendingOperationDeltas(shadowRepo, 2);
-
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_PASSWORD_VALUE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
-
-		pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_PASSWORD_VALUE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
+		PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
+			.pendingOperations()
+				.assertOperations(3)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.item(SchemaConstants.PATH_PASSWORD_VALUE)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+					.end()
+				.end()
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.end()
+			.getObject();
 
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
-
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
+		PrismObject<ShadowType> shadowModel = assertModelShadow(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end()
+			.pendingOperations()
+				.assertOperations(3)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.item(SchemaConstants.PATH_PASSWORD_VALUE)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+				.end()
+			.end()
+			.getObject();
+		
 		if (supportsBackingStore()) {
 			assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
 		} else {
 			assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
 		}
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModel);
 
-		assertPendingOperationDeltas(shadowModel, 2);
-		pendingOperation = findPendingOperation(shadowModel,
-				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_PASSWORD_VALUE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
-
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-		assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
+		
+		PrismObject<ShadowType> shadowModelFuture = assertModelShadowFuture(accountWillOid)
+				.assertName(USER_WILL_NAME)
+				.assertKind(ShadowKindType.ACCOUNT)
+				.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+				.attributes()
+					.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+					.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+					.end()
+				.pendingOperations()
+					.assertOperations(3)
+					.by()
+						.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+						.item(SchemaConstants.PATH_PASSWORD_VALUE)
+					.find()
+						.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+						.assertResultStatus(OperationResultStatusType.SUCCESS)
+						.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+					.end()
+				.end()
+				.getObject();
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
@@ -722,7 +743,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		
 		assertSteadyResources();
 	}
-
+	
 	@Test
 	public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
@@ -742,32 +763,33 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
+		ShadowAsserter.forShadow(shadowModel, "model")
+			.display()
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
+		
 		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModel);
 
-		assertPendingOperationDeltas(shadowModel, 2);
+		assertPendingOperationDeltas(shadowModel, 3);
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertPendingOperationDeltas(shadowRepo, 2);
+		assertRepoShadow(accountWillOid)
+			.pendingOperations()
+				.assertOperations(3);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-		assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
+		PrismObject<ShadowType> shadowModelFuture = assertModelShadowFuture(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end()
+			.getObject();
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
@@ -777,19 +799,22 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		
 		assertSteadyResources();
 	}
-
+	
 	/**
-	 * ff 5min. Refresh. Another delta should expire.
+	 * ff 15min. Refresh. Oldest pending operation is over retention period. It should be gone.
 	 */
 	@Test
-	public void test280RecomputeWillAfter5min() throws Exception {
-		final String TEST_NAME = "test280RecomputeWillAfter5min";
+	public void test274RecomputeWillAfter22min() throws Exception {
+		final String TEST_NAME = "test292RecomputeWillAfter22min";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clockForward("PT5M");
+		clockForward("PT15M");
+
+		PrismObject<ShadowType> shadowBefore = modelService.getObject(ShadowType.class, accountWillOid, null, task, result);
+		display("Shadow before", shadowBefore);
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -799,51 +824,48 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-
-		assertPendingOperationDeltas(shadowRepo, 1);
-
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_PASSWORD_VALUE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
-
-		pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_PASSWORD_VALUE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
-
+		PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.end()
+			.pendingOperations()
+				.assertOperations(2)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.item(SchemaConstants.PATH_PASSWORD_VALUE)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+					.end()
+				.end()
+			.getObject();
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
+		PrismObject<ShadowType> shadowModel = assertModelShadow(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end()
+			.pendingOperations()
+				.assertOperations(2)
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.item(SchemaConstants.PATH_PASSWORD_VALUE)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+					.end()
+				.end()
+			.getObject();
 
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModel);
-
-		assertPendingOperationDeltas(shadowModel, 1);
-		pendingOperation = findPendingOperation(shadowModel,
-				OperationResultStatusType.SUCCESS, SchemaConstants.PATH_PASSWORD_VALUE);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd);
 
 		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
 				accountWillOid,
@@ -865,11 +887,85 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	}
 
 	/**
-	 * ff 5min. Refresh. All delta should expire.
+	 * ff 5min. Refresh. Another delta should expire.
 	 */
 	@Test
-	public void test290RecomputeWillAfter5min() throws Exception {
-		final String TEST_NAME = "test290RecomputeWillAfter5min";
+	public void test280RecomputeWillAfter27min() throws Exception {
+		final String TEST_NAME = "test280RecomputeWillAfter27min";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clockForward("PT5M");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(userWillOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.end()
+			.pendingOperations()
+				.singleOperation()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+					.end()
+				.end()
+			.getObject();
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
+
+		PrismObject<ShadowType> shadowModel = assertModelShadow(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end()
+			.pendingOperations()
+				.singleOperation()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillSecondCompletionTimestampStart, accountWillSecondCompletionTimestampEnd)
+					.end()
+				.end()
+			.getObject();
+		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowModel);
+
+		PrismObject<ShadowType> shadowModelFuture = assertModelShadowFuture(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end()
+			.getObject();
+		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowModelFuture);
+
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
+	}
+
+	/**
+	 * ff 5min. Refresh. All pending operations should expire.
+	 */
+	@Test
+	public void test290RecomputeWillAfter32min() throws Exception {
+		final String TEST_NAME = "test290RecomputeWillAfter32min";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1259,7 +1355,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	// TODO: nofetch, nofetch+future
 
 	/**
-	 * ff 20min, grace period expired, shadow should be gone, linkRef shoud be gone.
+	 * ff 20min, grace period expired, but retention period not expired yet.
+	 * shadow should stay.
 	 */
 	@Test
 	public void test340RecomputeWillAfter25min() throws Exception {
@@ -1270,6 +1367,78 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		OperationResult result = task.getResult();
 
 		clockForward("PT20M");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(userWillOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(userWillOid)
+			.singleLink()
+				.resolveTarget()
+					.assertOid(accountWillOid)
+					.assertDead()
+					.pendingOperations()
+						.singleOperation();
+
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * ff 10min, retention period expired. Operation should be expired.
+	 * But dead shadow should still remain.
+	 */
+	@Test
+	public void test342RecomputeWillAfter35min() throws Exception {
+		final String TEST_NAME = "test342RecomputeWillAfter35min";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clockForward("PT10M");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		recomputeUser(userWillOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertRepoShadow(accountWillOid);
+		
+		assertUserAfter(userWillOid)
+			.singleLink()
+				.resolveTarget()
+					.assertOid(accountWillOid)
+					.assertDead()
+					.pendingOperations()
+						.assertNone();
+
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		
+		assertSteadyResources();
+	}
+	
+	/**
+	 * ff 130min, dead shadow retention period expired
+	 * shadow should be gone, linkRef should be gone.
+	 */
+	@Test
+	public void test344RecomputeWillAfter165min() throws Exception {
+		final String TEST_NAME = "test344RecomputeWillAfter165min";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clockForward("PT130M");
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1559,19 +1728,19 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	}
 
 	/**
-	 * ff 35min, grace period expired, shadow should be gone, linkRef should be gone.
-	 * So we have clean state for next tests.
+	 * ff 20min, grace period expired, But we keep pending operation and shadow
+	 * because they are not expired yet.
 	 * MID-4037
 	 */
 	@Test
-	public void test517RecomputeWillAfter35min() throws Exception {
-		final String TEST_NAME = "test517RecomputeWillAfter35min";
+	public void test516RecomputeWillAfter20min() throws Exception {
+		final String TEST_NAME = "test516RecomputeWillAfter20min";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clockForward("PT35M");
+		clockForward("PT20M");
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -1581,14 +1750,84 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(userWillOid);
-		display("User after", userAfter);
+		assertUserAfter(userWillOid)
+			.singleLink()
+				.resolveTarget()
+					.assertOid(accountWillOid)
+					.assertDead()
+					.pendingOperations()
+						.assertOperations(2);
+
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+	
+	/**
+	 * ff 15min, retention period expired, pending operation should be gone.
+	 * But we still retain dead shadow.
+	 * MID-4037
+	 */
+	@Test
+	public void test517RecomputeWillAfter50min() throws Exception {
+		final String TEST_NAME = "test517RecomputeWillAfter50min";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clockForward("PT15M");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(userWillOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertRepoShadow(accountWillOid);
+
+		assertUserAfter(userWillOid)
+		.singleLink()
+			.resolveTarget()
+				.assertOid(accountWillOid)
+				.assertDead()
+				.pendingOperations()
+					.assertNone();
+
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+	
+	/**
+	 * ff 130min, shadow retention period expired, shadow should be gone, linkRef should be gone.
+	 * So we have clean state for next tests.
+	 * MID-4037
+	 */
+	@Test
+	public void test518RecomputeWillAfter180min() throws Exception {
+		final String TEST_NAME = "test518RecomputeWillAfter180min";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		clockForward("PT130M");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		reconcileUser(userWillOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertUserAfter(userWillOid)
+			.assertLinks(0);
 		// Shadow will not stay even in the "disable" case.
 		// It was never created in the backing store
-		assertLinks(userAfter, 0);
 
-		// TODO: why?
-//		assertNoShadow(accountWillOid);
+		assertNoShadow(accountWillOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1898,7 +2137,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		cleanupUser(TEST_NAME, userWillOid, USER_WILL_NAME, accountWillOid);
 
 		// Make sure that all pending operations are expired
-		clockForward("PT1H");
+		clockForward("PT3H");
 		recomputeUser(userWillOid, task, result);
 		assertSuccess(result);
 

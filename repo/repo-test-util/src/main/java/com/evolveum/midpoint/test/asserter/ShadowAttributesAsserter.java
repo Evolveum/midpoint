@@ -22,14 +22,17 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -38,6 +41,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author semancik
@@ -149,6 +153,22 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 		return this;
 	}
 	
+	public <T> ShadowAttributesAsserter<R> assertValueRaw(QName attrName, T... expectedValues) {
+		PrismProperty<T> property = findAttribute(attrName);
+		assertNotNull("No attribute "+attrName+" in "+desc());
+		RawType[] expectedRaw = rawize(attrName, getPrismContext(), expectedValues);
+		PrismAsserts.assertPropertyValueDesc(property, desc(), (T[])expectedRaw);
+		return this;
+	}
+	
+	private <T> RawType[] rawize(QName attrName, PrismContext prismContext, T[] expectedValues) {
+		RawType[] raws = new RawType[expectedValues.length];
+		for(int i = 0; i < expectedValues.length; i++) {
+			raws[i] = new RawType(new PrismPropertyValue<>(expectedValues[i]), attrName, prismContext);
+		}
+		return raws;
+	}
+
 	private <T> PrismProperty<T> findAttribute(QName attrName) {
 		return getAttributes().findProperty(attrName);
 	}

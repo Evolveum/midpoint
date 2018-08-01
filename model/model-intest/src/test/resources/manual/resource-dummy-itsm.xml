@@ -129,6 +129,7 @@
 	<consistency>
 		<shadowConstraintsCheck>light</shadowConstraintsCheck>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+		<reshreshOnRead>true</reshreshOnRead>
 		<connectorErrorCriticality>			
 			<network>false</network>
 			<schema>false</schema>

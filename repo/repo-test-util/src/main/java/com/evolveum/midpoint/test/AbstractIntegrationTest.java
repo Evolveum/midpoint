@@ -2414,4 +2414,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		}
 	}
 	
+	protected <T> RawType rawize(QName attrName, T value) {
+		return new RawType(new PrismPropertyValue(value), attrName, prismContext);
+	}
+	
 }

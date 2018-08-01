@@ -124,6 +124,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -162,6 +163,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.asserter.FocusAsserter;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -1558,26 +1560,28 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected PrismObject<ShadowType> getShadowModel(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		return getShadowModel(accountOid, false, true);
+		return getShadowModel(accountOid, null, true);
 	}
 
 	protected PrismObject<ShadowType> getShadowModelNoFetch(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		return getShadowModel(accountOid, true, true);
+		return getShadowModel(accountOid, GetOperationOptions.createNoFetch(), true);
 	}
-
-	protected PrismObject<ShadowType> getShadowModel(String accountOid, boolean noFetch, boolean assertSuccess) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getAccount");
+	
+	protected PrismObject<ShadowType> getShadowModelFuture(String accountOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return getShadowModel(accountOid, GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE), true);
+	}
+	
+	protected PrismObject<ShadowType> getShadowModel(String accountOid, GetOperationOptions rootOptions, boolean assertSuccess) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getShadowModel");
         OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> opts = null;
-		if (noFetch) {
-			GetOperationOptions rootOpts = new GetOperationOptions();
-			rootOpts.setNoFetch(true);
-			opts = SelectorOptions.createCollection(rootOpts);
+		if (rootOptions != null) {
+			opts = SelectorOptions.createCollection(rootOptions);
 		}
 		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, opts , task, result);
 		result.computeStatus();
 		if (assertSuccess) {
-			TestUtil.assertSuccess("getObject(Account) result not success", result);
+			TestUtil.assertSuccess("getObject(shadow) result not success", result);
 		}
 		return account;
 	}
@@ -1668,7 +1672,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         for (ObjectReferenceType linkRefType: focusType.getLinkRef()) {
         	String linkTargetOid = linkRefType.getOid();
 	        assertFalse("No linkRef oid", StringUtils.isBlank(linkTargetOid));
-	        PrismObject<ShadowType> account = getShadowModel(linkTargetOid, true, false);
+	        PrismObject<ShadowType> account = getShadowModel(linkTargetOid, GetOperationOptions.createNoFetch(), false);
 	        if (resourceOid.equals(account.asObjectable().getResourceRef().getOid())) {
 	        	// This is noFetch. Therefore there is no fetchResult
 	        	return linkRefType.asReferenceValue();
@@ -1683,7 +1687,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         for (ObjectReferenceType linkRefType: focusType.getLinkRef()) {
         	String linkTargetOid = linkRefType.getOid();
 	        assertFalse("No linkRef oid", StringUtils.isBlank(linkTargetOid));
-	        PrismObject<ShadowType> account = getShadowModel(linkTargetOid, true, false);
+	        PrismObject<ShadowType> account = getShadowModel(linkTargetOid, GetOperationOptions.createNoFetch(), false);
 	        ShadowType shadowType = account.asObjectable();
 	        if (kind != null && !kind.equals(shadowType.getKind())) {
 	        	continue;
@@ -5236,6 +5240,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		return null;
 	}
+	
+	protected void initializeAsserter(UserAsserter<Void> asserter) {
+		asserter.setPrismContext(prismContext);
+		asserter.setObjectResolver(repoObjectResolver);
+	}
 
 	protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = assertUser(oid, "after");
@@ -5261,15 +5270,43 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected UserAsserter<Void> assertUser(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = getUser(oid);
 		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
-		asserter.setObjectResolver(repoObjectResolver);
+		initializeAsserter(asserter);
 		return asserter;
 	}
 	
 	protected UserAsserter<Void> assertUserByUsername(String username, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = findUserByUsername(username);
 		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
-		asserter.setObjectResolver(repoObjectResolver);
+		initializeAsserter(asserter);
 		return asserter;
+	}
+	
+	protected ShadowAsserter<Void> assertModelShadow(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ShadowType> repoShadow = getShadowModel(oid);
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model");
+		asserter
+			.display();
+		return asserter;
+	}
+	
+	protected ShadowAsserter<Void> assertModelShadowFuture(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ShadowType> repoShadow = getShadowModelFuture(oid);
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model(future)");
+		asserter
+			.display();
+		return asserter;
+	}
+	
+	protected void assertNoModelShadow(String oid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = createTask("assertNoModelShadow");
+		OperationResult result = task.getResult();
+		try {
+			PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, oid, null, task, result);
+			fail("Expected that shadow "+oid+" will not be in the model. But it was: "+shadow);
+		} catch (ObjectNotFoundException e) {
+			// Expected
+			assertFailure(result);
+		}
 	}
 
 }

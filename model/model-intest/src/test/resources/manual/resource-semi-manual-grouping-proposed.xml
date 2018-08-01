@@ -158,6 +158,7 @@
 		<avoidDuplicateValues>true</avoidDuplicateValues>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
 		<operationGroupingInterval>PT2M</operationGroupingInterval>
+		<reshreshOnRead>true</reshreshOnRead>
 	</consistency>
 	
 	<synchronization>

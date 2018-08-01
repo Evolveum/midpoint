@@ -166,6 +166,7 @@
 	<consistency>
 		<shadowConstraintsCheck>light</shadowConstraintsCheck>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+		<reshreshOnRead>true</reshreshOnRead>
 	</consistency>
 	
 </resource>

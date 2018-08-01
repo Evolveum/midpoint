@@ -17,6 +17,7 @@ package com.evolveum.midpoint.test.asserter;
 
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -33,6 +34,7 @@ public abstract class AbstractAsserter<R> {
 	
 	private String details;
 	private R returnAsserter;
+	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
 	
 	public AbstractAsserter() {
@@ -50,7 +52,15 @@ public abstract class AbstractAsserter<R> {
 		this.details = details;
 	}
 	
-	public ObjectResolver getObjectResolver() {
+	protected PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
+	protected ObjectResolver getObjectResolver() {
 		return objectResolver;
 	}
 
@@ -92,6 +102,7 @@ public abstract class AbstractAsserter<R> {
 	abstract protected String desc();
 	
 	protected <T> void copySetupTo(AbstractAsserter<T> other) {
+		other.setPrismContext(getPrismContext());
 		other.setObjectResolver(getObjectResolver());
 	}
 }
