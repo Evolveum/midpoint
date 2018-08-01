@@ -16,8 +16,19 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -37,6 +48,8 @@ import java.util.List;
  */
 public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extends MemberPopupTabPanel<O> {
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(MultiTypesMemberPopupTabPanel.class);
 
     private static final String ID_TYPE_SELECT_PANEL = "typeSelectPanel";
     private static final String ID_TYPE = "type";
@@ -75,6 +88,16 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
         typePanel.add(typeSelect);
 
         add(typePanel);
+    }
+
+    @Override
+    protected ObjectDelta prepareDelta(){
+        Class classType = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getObjectType().getTypeQName());
+        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getAbstractRoleTypeObject());
+        ref.setRelation(getRelationValue());
+        return ObjectDelta.createModificationAddReference(classType, "fakeOid",
+                ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
+                ref.asReferenceValue());
     }
 
     protected List<ObjectTypes> getSupportedTypesList(){

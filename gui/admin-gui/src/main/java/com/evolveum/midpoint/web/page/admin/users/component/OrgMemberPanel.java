@@ -25,6 +25,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
+import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -302,6 +304,23 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		managerContainer.add(menupanel);
 
 		return managerContainer;
+	}
+
+	@Override
+	protected void addMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
+
+		ChooseOrgMemberPopup browser = new ChooseOrgMemberPopup(getPageBase().getMainPopupBodyId(), availableRelationList) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected OrgType getAssignmentTargetRefObject(){
+				return OrgMemberPanel.this.getModelObject();
+			}
+		};
+		browser.setOutputMarkupId(true);
+
+		getPageBase().showMainPopup(browser, target);
+
 	}
 
 	private void removeManagerPerformed(FocusType manager, AjaxRequestTarget target) {

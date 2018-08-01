@@ -323,7 +323,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     protected void executeMemberOperation(QName type, ObjectQuery memberQuery,
                                           ObjectDelta delta, AjaxRequestTarget target) {
 
-        Task operationalTask = getPageBase().createSimpleTask("add members");
+        Task operationalTask = getPageBase().createSimpleTask("Add.members");
         OperationResult parentResult = operationalTask.getResult();
 
         try {
