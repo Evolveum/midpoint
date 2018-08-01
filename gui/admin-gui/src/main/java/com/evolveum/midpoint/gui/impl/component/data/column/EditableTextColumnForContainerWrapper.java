@@ -16,12 +16,9 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.input.TextPanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;

@@ -27,22 +27,18 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AbstractAutoCompleteRenderer;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.Response;
+import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
@@ -55,7 +51,6 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkColumnForContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableTextColumnForContainerWrapper;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -63,7 +58,6 @@ import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -74,42 +68,26 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
-import com.evolveum.midpoint.web.component.prism.PrismContainerValueHeaderPanel;
-import com.evolveum.midpoint.web.component.prism.PrismHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.model.LookupPropertyModel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLogger;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLoggerType;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -182,6 +160,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			protected boolean isAddButtonVisible() {
     			return false;
     		};
+    		
     	};
     	add(loggersHeader);
     	
@@ -198,6 +177,11 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			
 			@Override
 			protected void newItemPerformed(AjaxRequestTarget target) {
+				PrismContainerValue<ClassLoggerConfigurationType> newLogger = loggerModel.getObject().getItem().createNewValue();
+		        ContainerValueWrapper<ClassLoggerConfigurationType> newLoggerWrapper = getLoggersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newLogger, loggerModel);
+		        newLoggerWrapper.setShowEmpty(true, false);
+		        newLoggerWrapper.computeStripes();
+		        loggerEditPerformed(target, Model.of(newLoggerWrapper), null);
 			}
 			
 			@Override
@@ -212,7 +196,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			
 			@Override
 			protected boolean enableActionNewObject() {
-				return false;
+				return true;
 			}
 			
 			@Override
@@ -402,109 +386,80 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
             	}
             	
             	PropertyWrapper<String> packageWrapper = (PropertyWrapper<String>)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ClassLoggerConfigurationType.F_PACKAGE));
-            	AutoCompleteTextPanel<String> autoCompleteTextPanel = new AutoCompleteTextPanel<String>(componentId, new PropertyModel<String>(packageWrapper.getItem(), "value.value")
-//            			new IModel<String>() {
-//
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public void detach() {
-//					}
-//
-//					@Override
-//					public String getObject() {
-//						ClassLoggerConfigurationType logger = rowModel.getObject().getContainerValue().getValue();
-//		            	String loggerPackage = logger.getPackage();
-//						return loggerPackage;
-//					}
-//
-//					@Override
-//					public void setObject(String object) {
-//						LOGGER.info("XXXXXXXXXXXXXXXXXXXXX setObject: " + object);
-//						ClassLoggerConfigurationType logger = rowModel.getObject().getContainerValue().getValue();
-//		            	logger.setPackage(object);
-//		            	LOGGER.info("XXXXXXXXXXXXXXXXXXXXX setObject: " + logger.getPackage());
-//					}
-//					
-//				}
-            	, String.class) {
+            	AutoCompleteTextPanel<String> autoCompleteTextPanel = new AutoCompleteTextPanel<String>(componentId, new PropertyModel<String>(packageWrapper.getValues(), "[0].value.value") {
+            		
+            		@Override
+					public void setObject(String name) {
+            			
+            			String packageValue = name;
+            			for (StandardLoggerType standardLogger : StandardLoggerType.values()) {
+            		        if (name.equals(standardLogger.name())) {
+            		        	packageValue = standardLogger.getValue();
+            		        }
+            		    }
+            			
+            			for (LoggingComponentType componentLogger : LoggingComponentType.values()) {
+            		        if (name.equals(componentLogger.name())) {
+            		        	packageValue = componentLogger.value();
+            		        }
+            		    }
+						super.setObject(packageValue);
+					}
+            	
+            	}
+            	, String.class, new AbstractAutoCompleteRenderer() {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected String getTextValue(Object name) {
+						
+						for (StandardLoggerType standardLogger : StandardLoggerType.values()) {
+            		        if (name.equals(standardLogger.name())) {
+            		        	return standardLogger.getValue();
+            		        }
+            		    }
+            			
+            			for (LoggingComponentType componentLogger : LoggingComponentType.values()) {
+            		        if (name.equals(componentLogger.name())) {
+            		        	return componentLogger.value();
+            		        }
+            		    }
+            			
+						return name.toString();
+					}
+
+					@Override
+					protected void renderChoice(Object name, Response response, String criteria) {
+						
+						String displayName = name.toString();
+						for (StandardLoggerType standardLogger : StandardLoggerType.values()) {
+            		        if (name.equals(standardLogger.name())) {
+            		        	displayName = createStringResource("StandardLoggerType." + name).getString();
+            		        }
+            		    }
+            			
+            			for (LoggingComponentType componentLogger : LoggingComponentType.values()) {
+            		        if (name.equals(componentLogger.name())) {
+            		        	displayName = createStringResource("LoggingComponentType." + name).getString();
+            		        }
+            		    }
+            			
+            			displayName = Strings.escapeMarkup(displayName).toString();
+						response.write(displayName);
+					}
+					
+            	}) {
 					
 					private static final long serialVersionUID = 1L;
-					
 					
 					@Override
 					public Iterator<String> getIterator(String input) {
 						return allLoggers.iterator();
 					}
 					
-					@Override
-					public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target,
-							LookupPropertyModel model) {
-						if (input.getInput() == null || input.getInput().trim().equals("")){
-				            model.setObject(input.getInput());
-				        }
-						
-						String inputValue = input.getInput();
-						try {
-							StandardLoggerType standardLogger = StandardLoggerType.fromValue(inputValue);
-							model.setObject(standardLogger.getValue());
-							return;
-						} catch (IllegalArgumentException e) {
-							if(!e.getMessage().equals(inputValue)) {
-								throw new IllegalArgumentException(e);
-							}
-						}
-						
-						try {
-							LoggingComponentType componentLogger = LoggingComponentType.fromValue(inputValue);
-							model.setObject(componentLogger.value());
-							return;
-						} catch (IllegalArgumentException e) {
-							if(!e.getMessage().equals(inputValue)) {
-								throw new IllegalArgumentException(e);
-							}
-						}
-						model.setObject(inputValue);
-					}
 				};
-				
 				return autoCompleteTextPanel;
-            	
-//            	if(rowModel.getObject() instanceof StandardLogger){
-//                    DropDownChoicePanel<StandardLoggerType> dropDownChoicePanel = new DropDownChoicePanel<>(componentId,
-//                            new PropertyModel<>(rowModel, "logger"),
-//                            WebComponentUtil.createReadonlyModelFromEnum(StandardLoggerType.class),
-//                            new EnumChoiceRenderer<StandardLoggerType>());
-//
-//                    FormComponent<StandardLoggerType> input = dropDownChoicePanel.getBaseFormComponent();
-//                    input.add(new NotNullValidator<>("logger.emptyLogger"));
-//                    input.add(new AttributeAppender("style", "width: 100%"));
-//                    input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//                    addAjaxFormComponentUpdatingBehavior(input);
-//                    return dropDownChoicePanel;
-//
-//                } else if (rowModel.getObject() instanceof ComponentLogger) {
-//                    DropDownChoicePanel<LoggingComponentType> dropDownChoicePanel = new DropDownChoicePanel<>(componentId,
-//                            new PropertyModel<>(rowModel, "component"),
-//                            WebComponentUtil.createReadonlyModelFromEnum(LoggingComponentType.class),
-//                            new EnumChoiceRenderer<LoggingComponentType>());
-//
-//                    FormComponent<LoggingComponentType> input = dropDownChoicePanel.getBaseFormComponent();
-//                    input.add(new NotNullValidator<>("logger.emptyLogger"));
-//                    input.add(new AttributeAppender("style", "width: 100%"));
-//                    input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//                    addAjaxFormComponentUpdatingBehavior(input);
-//                    return dropDownChoicePanel;
-//
-//                } else {
-//                    TextPanel<String> textPanel = new TextPanel<>(componentId, new PropertyModel<String>(rowModel, getPropertyExpression()));
-//                    FormComponent input = textPanel.getBaseFormComponent();
-//                    addAjaxFormComponentUpdatingBehavior(input);
-//                    input.add(new AttributeAppender("style", "width: 100%"));
-//                    input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//                    input.add(new NotNullValidator<StandardLoggerType>("message.emptyString"));
-//                    return textPanel;
-//                }
             }
 
             @Override
@@ -520,14 +475,10 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			protected Component createInputPanel(String componentId,
 					IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
 				ClassLoggerConfigurationType logger = rowModel.getObject().getContainerValue().getValue();
-				PropertyWrapper<String> packageWrapper = (PropertyWrapper<String>)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ClassLoggerConfigurationType.F_LEVEL));
+				PropertyWrapper<LoggingLevelType> levelWrapper = (PropertyWrapper<LoggingLevelType>)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ClassLoggerConfigurationType.F_LEVEL));
 				DropDownChoicePanel<LoggingLevelType> dropDownChoicePanel = new DropDownChoicePanel<>(componentId,
-                        new PropertyModel<LoggingLevelType>(packageWrapper.getItem(), "value.value"),
+                        new PropertyModel<LoggingLevelType>(levelWrapper.getValues(), "[0].value.value"),
                         WebComponentUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-                FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
-                input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                input.add(new NotNullValidator<>("message.emptyLevel"));
-                addAjaxFormComponentUpdatingBehavior(input);
 				return dropDownChoicePanel;
 			}
 
@@ -551,16 +502,36 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
                 Map<String, String> optionsMap = new HashMap<>();
                 optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
                 options.setObject(optionsMap);
-                PropertyWrapper<String> packageWrapper = (PropertyWrapper<String>)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ClassLoggerConfigurationType.F_APPENDER));
+                PropertyWrapper<String> appenderWrapper = (PropertyWrapper<String>)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ClassLoggerConfigurationType.F_APPENDER));
                 
                 List<String> list = new ArrayList<>();
 
-                for (ValueWrapper appender : packageWrapper.getValues()) {
+                for (ValueWrapper appender : appenderWrapper.getValues()) {
                     list.add(appender.getValue().getRealValue());
                 }
+                
+                LOGGER.info("XXXXXXXXXXXXXXXXXX appenders: " + appenderWrapper.getValues().get(0).getValue());
 
                 ListMultipleChoicePanel panel = new ListMultipleChoicePanel<>(componentId,
-                    Model.ofList(list),
+                    new IModel<List<String>>(){
+
+						private static final long serialVersionUID = 1L;
+                	
+						@Override
+						public void setObject(List<String> object) {
+							logger.getAppender().clear();
+							logger.getAppender().addAll(object);
+						}
+
+						@Override
+						public void detach() {
+						}
+
+						@Override
+						public List<String> getObject() {
+							return list;
+						}
+                	},
                     new AbstractReadOnlyModel<List<String>>() {
 
                     	private static final long serialVersionUID = 1L;
@@ -577,9 +548,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
                 	},
                     StringChoiceRenderer.simple(), options);
 
-                FormComponent<AppenderConfigurationType> input = panel.getBaseFormComponent();
-                input.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-                addAjaxFormComponentUpdatingBehavior(input);
                 return panel;
 			}
 
@@ -723,8 +691,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		return ((MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>)get(ID_APPENDERS));
 	}
 	
-	private MultivalueContainerListPanel<AppenderConfigurationType> getLoggersMultivalueContainerListPanel(){
-		return ((MultivalueContainerListPanel<AppenderConfigurationType>)get(ID_LOGGERS));
+	private MultivalueContainerListPanel<ClassLoggerConfigurationType> getLoggersMultivalueContainerListPanel(){
+		return ((MultivalueContainerListPanel<ClassLoggerConfigurationType>)get(ID_LOGGERS));
 	}
     
     private ObjectQuery createAppendersQuery() {

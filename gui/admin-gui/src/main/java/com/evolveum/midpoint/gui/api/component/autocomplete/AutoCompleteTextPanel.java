@@ -46,14 +46,11 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 	private static final String ID_INPUT = "input";
 	
 	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type) {
-		this(id, model, type, null);
+		this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
 	}
-
-    public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, IAutoCompleteRenderer<T> renderer) {
-    	super(id);
-    	if(renderer == null) {
-    		renderer = StringAutoCompleteRenderer.INSTANCE;
-    	}
+	
+	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, IAutoCompleteRenderer<T> renderer) {
+		super(id);
 
         AutoCompleteSettings autoCompleteSettings = createAutoCompleteSettings();
 
