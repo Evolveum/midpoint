@@ -16,47 +16,22 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
-
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.function.Function;
 
 /**
  * @author mederly
  */
 public class LocalizationUtil {
-
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(
-			SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH);
-
-	// consider using LocalizationService instead
-	public static String resolve(String key) {
-		if (key != null && RESOURCE_BUNDLE.containsKey(key)) {
-			return RESOURCE_BUNDLE.getString(key);
-		} else {
-			return key;
-		}
-	}
-
-	// consider using LocalizationService instead
-	public static String resolve(String key, Object... params  ) {
-		if (key != null && RESOURCE_BUNDLE.containsKey(key)) {
-			return MessageFormat.format(RESOURCE_BUNDLE.getString(key), params);
-		} else {
-			return key;
-		}
-	}
 
 	public static LocalizableMessageType createLocalizableMessageType(LocalizableMessage message) {
 		return createLocalizableMessageType(message, null);

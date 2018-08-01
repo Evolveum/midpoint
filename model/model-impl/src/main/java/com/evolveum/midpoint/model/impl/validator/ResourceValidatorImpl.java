@@ -69,6 +69,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
  *  - empty confirmation condition?
  *  - empty synchronization condition?
  *
+ * TODO MID-4800 replace direct loading of ResourceBundle by calling LocalizationService
+ *
  * @author mederly
  */
 @Component(value = "resourceValidator")

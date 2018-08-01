@@ -363,21 +363,5 @@ public enum ObjectTypes {
 
         return list;
     }
-
-    // TODO move somewhere else?
-    public static String getDisplayNameForTypeName(@Nullable QName name, @Nullable Locale locale) {
-    	if (name == null) {
-    		return null;
-		}
-		ResourceBundle bundle = ResourceBundle.getBundle(
-				SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH,
-				locale != null ? locale : Locale.getDefault());
-		String key = SchemaConstants.OBJECT_TYPE_KEY_PREFIX + name.getLocalPart();
-		if (bundle.containsKey(key)) {
-			return bundle.getString(key);
-		} else {
-			return null;
-		}
-	}
 }
 
