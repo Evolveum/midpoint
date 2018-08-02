@@ -21,6 +21,7 @@
         <midpoint.home></midpoint.home>
         <javax.net.ssl.trustStore></javax.net.ssl.trustStore>
         <javax.net.ssl.trustStoreType></javax.net.ssl.trustStoreType>
+    	<cleanup>false</cleanup>
     </properties>
 
     <dependencies>
@@ -207,7 +208,7 @@
                         <phase>post-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <target name="Shuting down Midpoint ${project.version} after integration testing, and cleaning up">
+                            <target name="Shuting down Midpoint ${project.version} after integration testing, no cleaning up" unless="cleanup">
                                 <exec executable="jps"> <!-- TODO ok?: JDK needed to be referenced on the PATH-->
                                     <arg value="-l" />
                                     <redirector outputproperty="process.pid">
@@ -216,6 +217,7 @@
                                                 <contains value="${project.app.package.name}" />
                                             </linecontains>
                                             <replacestring from="${project.app.package.name}" />
+						<trim/>
                                         </outputfilterchain>
                                     </redirector>
                                 </exec>
@@ -227,6 +229,29 @@
                                 <exec executable="kill" osfamily="unix" failonerror="true">
                                     <arg value="-15" />
                                     <arg value="${process.pid}" />
+                                </exec>
+				</target>
+			    <target name="Shuting down Midpoint ${project.version} after integration testing, and cleaning up" if="cleanup">
+                                <exec executable="jps"> <!-- TODO ok?: JDK needed to be referenced on the PATH-->
+                                    <arg value="-l" />
+                                    <redirector outputproperty="process.pid">
+                                        <outputfilterchain>
+                                            <linecontains>
+                                                <contains value="${project.app.package.name}" />
+                                            </linecontains>
+                                            <replacestring from="${project.app.package.name}" />
+                                        <trim/>
+					</outputfilterchain>
+                                    </redirector>
+                                </exec>
+                                <exec executable="taskkill" osfamily="windows" failonerror="true">
+                                    <arg value="/PID" />
+                                    <arg value="${process.pid}" />
+                                    <arg value="/F" />  <!-- TODO ok?: Had to force this-->
+                                </exec>
+                                <exec executable="kill" osfamily="unix" failonerror="true">
+                                    <arg value="-15" />
+                                    <arg value="${process.pid}"/>
                                 </exec>
                                 <waitfor maxwait="20"  maxwaitunit="second" checkevery="500">
                                     <not>
