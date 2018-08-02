@@ -210,12 +210,14 @@ public class ShadowCache {
 		if (repositoryShadow == null) {
 			// Dead shadow was just removed
 			// TODO: is this OK? What about re-appeared objects
+			LOGGER.warn("DEAD shadow {} DEAD?", oid);
 			ObjectNotFoundException e = new ObjectNotFoundException("Resource object does not exist");
 			parentResult.recordFatalError(e);
 			throw e;
 		}
 		
 		if (canImmediatelyReturnCached(options, repositoryShadow, resource)) {
+			LOGGER.trace("Returning cached (repository) version of shadow {}", repositoryShadow);
 			PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
 			shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 			validateShadow(resultShadow, true);
@@ -268,7 +270,12 @@ public class ShadowCache {
 					LOGGER.trace("Error reading of {}, but we can return cached shadow", repositoryShadow);
 					parentResult.deleteLastSubresultIfError();		// we don't want to see 'warning-like' orange boxes in GUI (TODO reconsider this)
 					parentResult.recordSuccess();
-					repositoryShadow.asObjectable().setExists(false);
+					
+					ShadowType repositoryShadowType = repositoryShadow.asObjectable();
+					if (ShadowUtil.isExists(repositoryShadowType)) {
+						// Note: this may collapse quantum state of Schroedinger's shadow
+						repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, parentResult);
+					}
 					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
 					shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 					LOGGER.trace("Returning futurized shadow:\n{}", DebugUtil.debugDumpLazily(resultShadow));
@@ -402,6 +409,11 @@ public class ShadowCache {
 	
 	private boolean canImmediatelyReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
 		if (ProvisioningUtil.resourceReadIsCachingOnly(resource)) {
+			return true;
+		}
+		if (ShadowUtil.isTombstone(repositoryShadow)) {
+			// Once shadow is buried it stays nine feet under. Therefore there is no point in trying to access the resource.
+			// NOTE: this is just for tombstone! Schroedinger's shadows will still work as if they were alive.
 			return true;
 		}
 		long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
@@ -1271,6 +1283,7 @@ public class ShadowCache {
 		
 		List<ObjectDelta<ShadowType>> notificationDeltas = new ArrayList<>();
 		
+		boolean shadowInception = false;
 		ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
 		for (PendingOperationType pendingOperation: sortedOperations) {
 
@@ -1284,8 +1297,9 @@ public class ShadowCache {
 			if (asyncRef == null) {
 				continue;
 			}
-				
-			OperationResultStatus newStatus = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
+			
+			AsynchronousOperationResult refreshAsyncResult = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
+			OperationResultStatus newStatus = refreshAsyncResult.getOperationResult().getStatus();
 					
 			if (newStatus == null) {
 				continue;
@@ -1324,13 +1338,7 @@ public class ShadowCache {
 				ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
 				
 				if (pendingDelta.isAdd()) {
-					// We do not need to care about attributes in add deltas here. The add operation is already applied to
-					// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
-					// model can find unique values while taking pending create operations into consideration.
-					
-					PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
-					existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
-					shadowDelta.addModification(existsDelta);
+					shadowInception = true;
 				}
 				
 				if (pendingDelta.isModify()) {
@@ -1340,19 +1348,22 @@ public class ShadowCache {
 				}
 				
 				if (pendingDelta.isDelete()) {
-				
-					PropertyDelta<Boolean> deadDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_DEAD));
-					deadDelta.setValuesToReplace(new PrismPropertyValue<>(true));
-					shadowDelta.addModification(deadDelta);
-					
-					PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
-					existsDelta.setValuesToReplace(new PrismPropertyValue<>(false));
-					shadowDelta.addModification(existsDelta);
+					shadowInception = false;
+					shadowManager.addDeadShadowDeltas(repoShadow, refreshAsyncResult, (List)shadowDelta.getModifications());
 				}
 				
 				notificationDeltas.add(pendingDelta);
 			}
-						
+
+		}
+		
+		if (shadowInception) {
+			// We do not need to care about attributes in add deltas here. The add operation is already applied to
+			// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
+			// model can find unique values while taking pending create operations into consideration.
+			PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
+			existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
+			shadowDelta.addModification(existsDelta);			
 		}
 		
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();

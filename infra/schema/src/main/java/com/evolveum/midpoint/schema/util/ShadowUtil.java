@@ -510,7 +510,18 @@ public class ShadowUtil {
 		Boolean exists = shadow.isExists();
 		return exists == null || exists;
 	}
+	
+	public static boolean isTombstone(PrismObject<ShadowType> shadow) {
+		return isTombstone(shadow.asObjectable());
+	}
 
+	public static boolean isTombstone(ShadowType shadowType) {
+		return isDead(shadowType) && !isExists(shadowType);
+	}
+	
+	public static boolean isSchroedinger(ShadowType shadowType) {
+		return isDead(shadowType) && isExists(shadowType);
+	}
 
 	public static boolean matches(ShadowType shadowType, String resourceOid, ShadowKindType kind, String intent) {
 		if (shadowType == null) {
@@ -769,5 +780,6 @@ public class ShadowUtil {
 			}
 		}
 	}
+
 
 }

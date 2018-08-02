@@ -44,10 +44,12 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -123,6 +125,8 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 	}
 
 	/**
+	 * Trying to assign an account that already exists in the backing store.
+	 * But midPoint does not know about it.
 	 * MID-4002
 	 */
 	@Test
@@ -273,27 +277,29 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 
 		accountJackCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertSinglePendingOperation(shadowRepo,
-				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd);
-		assertUnassignedShadow(shadowRepo, null);
+		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountJackOid)
+			.pendingOperations()
+				.singleOperation()
+					.assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
+				.end()
+			.end();
+		assertUnassignedShadow(shadowRepoAsserter, true, null);
 
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountJackOid, null, task, result);
-
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeModel = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_JACK_USERNAME);
-		assertEquals("Wrong kind (model)", ShadowKindType.ACCOUNT, shadowTypeModel.getKind());
-		assertUnassignedShadow(shadowModel, ActivationStatusType.DISABLED);
-
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel,
-				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd);
+		ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountJackOid)
+			.assertName(USER_JACK_USERNAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.pendingOperations()
+				.singleOperation()
+					.assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
+				.end()
+			.end();
+		assertUnassignedShadow(shadowModelAsserter, true, ActivationStatusType.DISABLED);
 
 		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
 				accountJackOid,
@@ -352,5 +358,14 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		// CSV password is readable
 		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 		assertNotNull("No password value property in "+shadow+": "+passValProp, passValProp);
+	}
+	
+	@Override
+	protected void assertUnassignedShadow(ShadowAsserter<?> shadowModelAsserter, boolean backingStoreUpdated, ActivationStatusType expectAlternativeActivationStatus) {
+		if (backingStoreUpdated) {
+			shadowModelAsserter.assertTombstone();
+		} else {
+			shadowModelAsserter.assertSchroedinger();
+		}
 	}
 }

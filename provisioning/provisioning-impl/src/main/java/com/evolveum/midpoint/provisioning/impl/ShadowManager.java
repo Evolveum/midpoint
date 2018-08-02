@@ -946,12 +946,7 @@ public class ShadowManager {
 		
 		if (opState.isCompleted() && opState.isSuccess()) {
 			if (requestDelta.isDelete()) {
-				if (ShadowUtil.isExists(repoShadow.asObjectable())) {
-					shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.FALSE));
-				}
-				if (!ShadowUtil.isDead(repoShadow.asObjectable())) {
-					shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_DEAD, Boolean.TRUE));
-				}
+				addDeadShadowDeltas(repoShadow, opState.getAsyncResult(), shadowModifications);
 			} else {
 				if (!ShadowUtil.isExists(repoShadow.asObjectable())) {
 					shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, null));
@@ -967,6 +962,28 @@ public class ShadowManager {
 		addModifyMetadataDeltas(repoShadow, shadowModifications);
 		
 		return shadowModifications;
+	}
+	
+	public void addDeadShadowDeltas(PrismObject<ShadowType> repoShadow, AsynchronousOperationResult asyncResult, List<ItemDelta> shadowModifications) {
+		if (asyncResult.isQuantumOperation()) {
+			// We have Schroedinger's shadow here. It is both dead and alive.
+			LOGGER.trace("Marking shadow {} as Schroedinger's shadow (both dead and alive)", repoShadow);
+			if (!ShadowUtil.isExists(repoShadow.asObjectable())) {
+				shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.TRUE));
+			}
+			if (!ShadowUtil.isDead(repoShadow.asObjectable())) {
+				shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_DEAD, Boolean.TRUE));
+			}
+		} else {
+			// Marking as thombstone
+			LOGGER.trace("Marking shadow {} as thombstone (dead)", repoShadow);
+			if (ShadowUtil.isExists(repoShadow.asObjectable())) {
+				shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.FALSE));
+			}
+			if (!ShadowUtil.isDead(repoShadow.asObjectable())) {
+				shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_DEAD, Boolean.TRUE));
+			}
+		}
 	}
 	
 	private <T> PropertyDelta<T> createShadowPropertyReplaceDelta(PrismObject<ShadowType> repoShadow, QName propName, T value) {
@@ -1926,9 +1943,9 @@ public class ShadowManager {
 				repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
 				return null;
 			} else {
-				// There are unexpired pendign operations in the shadow. We cannot delete the shadow yet.
+				// There are unexpired pending operations in the shadow. We cannot delete the shadow yet.
 				// Therefore just mark shadow as dead.
-				return markShadowDead(oldRepoShadow, parentResult);
+				return markShadowTombstone(oldRepoShadow, parentResult);
 			}
 		}
 		LOGGER.trace("Recording pending delete operation in repository {}: {}", oldRepoShadow, opState);
@@ -1947,12 +1964,12 @@ public class ShadowManager {
 		repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
 	}
 	
-	public PrismObject<ShadowType> markShadowDead(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
+	public PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
 		List<ItemDelta<?, ?>> shadowChanges = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
 			.item(ShadowType.F_DEAD).replace(true)
 			.item(ShadowType.F_EXISTS).replace(false)
 		.asItemDeltas();
-		LOGGER.trace("Marking shadow {} as dead", repoShadow);
+		LOGGER.trace("Marking shadow {} as tombstone (dead)", repoShadow);
 		try {
 			repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
 		} catch (ObjectAlreadyExistsException e) {
@@ -1960,7 +1977,7 @@ public class ShadowManager {
 			new SystemException(e.getMessage(), e);
 		} catch (ObjectNotFoundException e) {
 			// Cannot be more dead
-			LOGGER.trace("Attempt to mark shadow {} as dead found that no such shadow exists", repoShadow);
+			LOGGER.trace("Attempt to mark shadow {} as tombstone found that no such shadow exists", repoShadow);
 			return null;
 		}
 		ObjectDelta.applyTo(repoShadow, shadowChanges);

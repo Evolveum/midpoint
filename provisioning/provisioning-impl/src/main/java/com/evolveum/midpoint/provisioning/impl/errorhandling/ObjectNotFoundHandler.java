@@ -126,10 +126,18 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 	private void discoverDeletedShadow(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
 			Exception cause, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
-		if (ShadowUtil.isDead(repositoryShadow.asObjectable())) {
+		ShadowType repositoryShadowType = repositoryShadow.asObjectable();
+		if (ShadowUtil.isTombstone(repositoryShadowType)) {
 			// Do NOT do discovery of shadow that is already dead. This is no discovery.
 			// We already know that it is dead ergo it is not present on resource.
-			LOGGER.trace("Skipping discovery of shadow {} becasue it is already dead.", repositoryShadow);
+			LOGGER.trace("Skipping discovery of shadow {} becasue it is just a tombstone.", repositoryShadow);
+			return;
+		}
+		if (ShadowUtil.isSchroedinger(repositoryShadowType)) {
+			// Box is open, quantum state collapses. Now we know that the cat is dead.
+			repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, parentResult);
+			// However, this is not a big surprise. No need to do discovery.
+			LOGGER.trace("Skipping discovery of shadow {} becasue it is just Schroedinger's shadow turned into a tombstone.", repositoryShadow);
 			return;
 		}
 		
@@ -138,7 +146,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 		
 		LOGGER.debug("DISCOVERY: discovered deleted shadow {}", repositoryShadow);		
 		
-		repositoryShadow = shadowManager.markShadowDead(repositoryShadow, result);
+		repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, result);
 		
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		change.setResource(ctx.getResource().asPrismObject());

@@ -78,6 +78,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -2318,6 +2319,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertActivationAdministrativeStatus(shadow, expectedStatus);
 	}
 
+	protected void assertShadowPassword(ShadowAsserter<?> shadowAsserter) {
+		assertShadowPassword(shadowAsserter.getObject());
+	}
+	
 	protected void assertShadowPassword(PrismObject<ShadowType> shadow) {
 		// pure manual resource should never "read" password
 		assertNoShadowPassword(shadow);

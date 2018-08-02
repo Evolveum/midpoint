@@ -1359,8 +1359,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		
 		assertRepoShadow(shadowMorganOid)
 			.assertKind(ShadowKindType.ACCOUNT)
-			.assertDead()
-			.assertIsNotExists()
+			.assertTombstone()
 			.assertNoLegacyConsistency()
 			.attributes()
 				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
@@ -1369,8 +1368,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 				.assertNone();
 			
 		assertShadowNoFetch(shadowMorganOid)
-			.assertDead()
-			.assertIsNotExists()
+			.assertTombstone()
 			.assertNoLegacyConsistency()
 			.attributes()
 				.assertResourceAttributeContainer()
@@ -1381,8 +1379,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
 			.pendingOperations()
 				.assertNone();
 	
-		assertProvisioningNotFound(shadowMorganOid);
-		assertProvisioningFutureNotFound(shadowMorganOid);
+		assertShadowProvisioning(shadowMorganOid)
+			.assertTombstone();
+	
+		assertShadowFuture(shadowMorganOid)
+			.assertTombstone();
 		
 		dummyResource.resetBreakMode();
 		
@@ -2774,15 +2775,13 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		shadowAsserter
 			.assertBasicRepoProperties()
 			.assertKind(ShadowKindType.ACCOUNT)
-			.assertIsNotExists()
-			.assertDead()
+			.assertTombstone()
 			.assertNoLegacyConsistency()
 			.attributes()
 				.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
 		
 		assertShadowNoFetch(shadowMorganOid)
-			.assertIsNotExists()
-			.assertDead()
+			.assertTombstone()
 			.assertNoLegacyConsistency()
 			.attributes()
 				.assertResourceAttributeContainer()
@@ -2806,8 +2805,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
 					.delta()
 						.assertDelete();
 		
-		assertProvisioningNotFound(shadowMorganOid);
-		assertProvisioningFutureNotFound(shadowMorganOid);
+		assertShadowProvisioning(shadowMorganOid)
+			.assertTombstone();
+		
+		assertShadowFuture(shadowMorganOid)
+			.assertTombstone();
 
 		dummyResource.resetBreakMode();
 		dummyResourceCtl.assertNoAccountByUsername(ACCOUNT_MORGAN_NAME);

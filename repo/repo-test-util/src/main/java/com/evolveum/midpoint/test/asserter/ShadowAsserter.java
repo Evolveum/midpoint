@@ -176,6 +176,30 @@ public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 		return this;
 	}
 	
+	public ShadowAsserter<R> assertInception() {
+		assertNotDead();
+		assertIsNotExists();
+		return this;
+	}
+	
+	public ShadowAsserter<R> assertLife() {
+		assertNotDead();
+		assertIsExists();
+		return this;
+	}
+	
+	public ShadowAsserter<R> assertTombstone() {
+		assertDead();
+		assertIsNotExists();
+		return this;
+	}
+	
+	public ShadowAsserter<R> assertSchroedinger() {
+		assertDead();
+		assertIsExists();
+		return this;
+	}
+	
 	public PendingOperationsAsserter<R> pendingOperations() {
 		PendingOperationsAsserter<R> asserter = new PendingOperationsAsserter<>(this, getDetails());
 		copySetupTo(asserter);

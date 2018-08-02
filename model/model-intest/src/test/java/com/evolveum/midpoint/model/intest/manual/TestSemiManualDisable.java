@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -107,9 +108,10 @@ public class TestSemiManualDisable extends TestSemiManual {
 	}
 	
 	@Override
-	protected void assertUnassignedShadow(PrismObject<ShadowType> shadow, ActivationStatusType expectAlternativeActivationStatus) {
-		assertShadowNotDead(shadow);
-		assertShadowActivationAdministrativeStatus(shadow, expectAlternativeActivationStatus);
+	protected void assertUnassignedShadow(ShadowAsserter<?> shadowModelAsserter, boolean backingStoreUpdated, ActivationStatusType expectAlternativeActivationStatus) {
+		shadowModelAsserter
+			.assertLife()
+			.assertAdministrativeStatus(expectAlternativeActivationStatus);
 	}
 
 	@Override

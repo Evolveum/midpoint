@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,13 @@ import com.evolveum.midpoint.util.ShortDumpable;
 public class AsynchronousOperationResult implements ShortDumpable {
 
 	private OperationResult operationResult;
+	
+	/**
+	 * Quantum operation is an operation where the results may not be immediately obvious.
+	 * E.g. delete on a semi-manual resource. The resource object is in fact deleted, but
+	 * it is not yet applied to the state that we see in the backing store (CSV file).  
+	 */
+	private boolean quantumOperation;
 
 	public OperationResult getOperationResult() {
 		return operationResult;
@@ -42,6 +49,14 @@ public class AsynchronousOperationResult implements ShortDumpable {
 
 	public void setOperationResult(OperationResult operationResult) {
 		this.operationResult = operationResult;
+	}
+
+	public boolean isQuantumOperation() {
+		return quantumOperation;
+	}
+
+	public void setQuantumOperation(boolean quantumOperation) {
+		this.quantumOperation = quantumOperation;
 	}
 
 	public static AsynchronousOperationResult wrap(OperationResult result) {
@@ -56,6 +71,9 @@ public class AsynchronousOperationResult implements ShortDumpable {
 
 	@Override
 	public void shortDump(StringBuilder sb) {
+		if (quantumOperation) {
+			sb.append("[QUANTUM]");
+		}
 		if (operationResult != null) {
 			sb.append(operationResult.getStatus());
 		}

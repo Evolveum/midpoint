@@ -87,6 +87,14 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 		this.attemptNumber = attemptNumber;
 	}
 
+	public boolean isQuantumOperation() {
+		if (asyncResult == null) {
+			return false;
+		} else {
+			return asyncResult.isQuantumOperation();
+		}
+	}
+
 	/**
 	 * Returns true if the operation was started. It returns true
 	 * if the operation is executing (in progress) or finished.
@@ -150,8 +158,10 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 
 	@Override
 	public String toString() {
-		return "ProvisioningOperationState(asyncResult=" + asyncResult + ", executionStatus="
-				+ executionStatus + ", repoShadow=" + repoShadow + ", attemptNumber="+attemptNumber+")";
+		StringBuilder sb = new StringBuilder("ProvisioningOperationState(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
 	}
 
 	@Override

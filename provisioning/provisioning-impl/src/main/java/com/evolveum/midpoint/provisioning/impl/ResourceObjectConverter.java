@@ -447,9 +447,19 @@ public class ResourceObjectConverter {
 		
 		
 		LOGGER.trace("Deleted resource object {}", shadow);
-		return AsynchronousOperationResult.wrap(result);
+		AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
+		updateQuantum(ctx, connector, aResult, parentResult);
+		return aResult;
 	}
 	
+	private void updateQuantum(ProvisioningContext ctx, ConnectorInstance connectorUsedForOperation, AsynchronousOperationResult aResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ConnectorInstance readConnector = ctx.getConnector(ReadCapabilityType.class, parentResult);
+		if (readConnector != connectorUsedForOperation) {
+			// Writing by different connector that we are going to use for reading: danger of quantum effects
+			aResult.setQuantumOperation(true);
+		}
+	}
+
 	public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> modifyResourceObject(
 			ProvisioningContext ctx,
 			PrismObject<ShadowType> repoShadow,
@@ -2367,7 +2377,7 @@ public class ResourceObjectConverter {
 		}
 	}
 	
-	public OperationResultStatus refreshOperationStatus(ProvisioningContext ctx, 
+	public AsynchronousOperationResult refreshOperationStatus(ProvisioningContext ctx, 
 			PrismObject<ShadowType> shadow, String asyncRef, OperationResult parentResult) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
@@ -2388,10 +2398,8 @@ public class ResourceObjectConverter {
 		OperationResultStatus status = null;
 		if (connector instanceof AsynchronousOperationQueryable) {
 			
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("PROVISIONING REFRESH operation on {}, object: {}",
-						resource, shadow);
-			}
+			LOGGER.trace("PROVISIONING REFRESH operation ref={} on {}, object: {}",
+					asyncRef, resource, shadow);
 			
 			try {
 				
@@ -2404,16 +2412,18 @@ public class ResourceObjectConverter {
 			
 			result.recordSuccess();
 			
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("PROVISIONING REFRESH successful, returned status: {}", status);
-			}
+			LOGGER.debug("PROVISIONING REFRESH ref={} successful on {} {}, returned status: {}", asyncRef, resource, shadow, status);
 
 		} else {
 			LOGGER.trace("Ignoring refresh of shadow {}, because the connector is not async", shadow.getOid());
 			result.recordNotApplicableIfUnknown();
 		}
 
-		return status;
+		OperationResult refreshResult = new OperationResult(OPERATION_REFRESH_OPERATION_STATUS);
+		refreshResult.setStatus(status);
+		AsynchronousOperationResult asyncResult = AsynchronousOperationResult.wrap(refreshResult);
+		updateQuantum(ctx, connector, asyncResult, result);
+		return asyncResult;
 	}
 	
 	private void computeResultStatus(OperationResult parentResult) {
