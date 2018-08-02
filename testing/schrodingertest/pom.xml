@@ -18,7 +18,7 @@
         <skipTests>false</skipTests>
         <server.port>8090</server.port>
         <midpoint.host>0.0.0.0</midpoint.host>
-        <!--<midpoint.home></midpoint.home>-->
+        <midpoint.home></midpoint.home>
         <javax.net.ssl.trustStore></javax.net.ssl.trustStore>
         <javax.net.ssl.trustStoreType></javax.net.ssl.trustStoreType>
     </properties>
@@ -160,7 +160,7 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>testng-integration-schrodinger.xml</suiteXmlFile>
                     </suiteXmlFiles>
-		<skipITs>${skipTests}</skipITs>
+                    <skipITs>${skipTests}</skipITs>
                 </configuration>
                 <executions>
                     <execution>
@@ -180,7 +180,7 @@
                         <phase>pre-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
-                            <target name="Midpoint ${project.version} booting up for integration testing">
+                            <target name="Midpoint ${project.version} booting up for integration testing, embedded Tomcat instance configured to listen on port: ${server.port}">
                                 <exec dir="." executable="cmd" osfamily="windows"  spawn="true">
                                     <arg value="/c"/>
                                     <arg value="mvn"/>
@@ -190,11 +190,10 @@
                                     <arg value="-Dmidpoint.home=${midpoint.home}"/>
                                     <arg value="-Dserver.port=${server.port}"/>
                                 </exec>
-                                <exec dir="." executable="sh" osfamily="unix, mac" spawn="true" failonerror="true">
+                                <exec dir="." executable="sh" osfamily="unix" spawn="true">
 				    <arg line="-c 'mvn -f ${project.starter.module}/pom.xml spring-boot:run -Dmidpoint.home=${midpoint.home} -Dserver.port=${server.port}'"/>
                                 </exec>
-                              <!--  <sleep seconds="400" /> --><!--&lt;!&ndash;TODO CHANGE! (This should be rather the concern of the tests) : Needed so MP boots up, but the whole thing is quite hackish and depends on the environment (and almost the weather)&ndash;&gt;-->
-                                <waitfor maxwait="600" maxwaitunit="second" checkevery="500" checkeveryunit="millisecond">
+                                 <waitfor maxwait="600" maxwaitunit="second" checkevery="500" checkeveryunit="millisecond">
                                     <socket server="${midpoint.host}" port="${server.port}"/>
                                 </waitfor>
                             </target>
@@ -204,7 +203,7 @@
                         </goals>
                     </execution>
                     <execution>
-                        <id>Shut-down-process</id>
+                        <id>Shut-down-process and clean up</id>
                         <phase>post-integration-test</phase>
                         <configuration>
                             <skip>${skipTests}</skip>
@@ -216,7 +215,7 @@
                                             <linecontains>
                                                 <contains value="${project.app.package.name}" />
                                             </linecontains>
-                                            <replacestring from=" ${project.app.package.name}" />
+                                            <replacestring from="${project.app.package.name}" />
                                         </outputfilterchain>
                                     </redirector>
                                 </exec>
@@ -225,7 +224,7 @@
                                     <arg value="${process.pid}" />
                                     <arg value="/F" />  <!-- TODO ok?: Had to force this-->
                                 </exec>
-                                <exec executable="kill" osfamily="unix, mac" failonerror="true">
+                                <exec executable="kill" osfamily="unix" failonerror="true">
                                     <arg value="-15" />
                                     <arg value="${process.pid}" />
                                 </exec>
@@ -235,21 +234,26 @@
                                 </not>
                                 </waitfor>
                                 <property environment="env"/>
-                                <condition property ="e.home" value="${env.HOMEPATH}" else="${env.HOME}">
+                                <condition property ="e.home" value="${env.HOMEPATH}\midpoint" else="${env.HOME}/midpoint">
                                     <and>
                                         <os family="windows"/>
                                         <not>
-                                            <os family="unix, mac"/>
+                                            <os family="unix"/>
                                         </not>
                                     </and>
                                 </condition>
-                                <condition property ="home" value="${midpoint.home}" else="${e.home}/midpoint">
+                                <condition property ="home" value="${midpoint.home}" else="${e.home}">
+                                    <and>
                                     <isset property="midpoint.home"/>
+                                        <not>
+                                           <length string="${midpoint.home}" trim="true" when="lt" length="1"/>
+                                        </not>
+                                    </and>
                                 </condition>
                                 <exec executable="cmd" osfamily="windows" failonerror="true">
                                     <arg line=' /c rmdir "${home}" /S /Q '/>
                                 </exec>
-                                <exec executable="rm" osfamily="unix, mac" failonerror="true">
+                                <exec executable="rm" osfamily="unix" failonerror="true">
                                     <arg line="-rf ${home}"/>
                                 </exec>
                             </target>
