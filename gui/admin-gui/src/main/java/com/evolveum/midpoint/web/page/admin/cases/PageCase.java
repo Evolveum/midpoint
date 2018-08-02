@@ -288,6 +288,7 @@ public class PageCase  extends PageAdminCases {
                     CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
                             .originalAssigneeRef(operator.clone())
                             .assigneeRef(operator.clone())
+                            .output(new AbstractWorkItemOutputType())
                             .name(caseInstance.getName().getOrig());
                     caseInstance.getWorkItem().add(workItem);
                     // TODO deadline and maybe other fields

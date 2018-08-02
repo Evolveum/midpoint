@@ -85,6 +85,9 @@ import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_OUTPUT;
+
 /**
  * @author bpowers
  */
@@ -103,6 +106,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private static final String ID_SEARCH_FILTER_ASSIGNEE_CONTAINER = "filterAssigneeContainer";
     private static final String ID_SEARCH_FILTER_ASSIGNEE = "filterAssignee";
     private static final String ID_SEARCH_FILTER_CASES = "filterCases";
+    private static final String ID_SEARCH_FILTER_OUTCOME_ITEMS = "filterOutcomeItems";
     // Data Table
     private static final String ID_CASE_WORK_ITEMS_TABLE = "caseWorkItemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
@@ -162,6 +166,16 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
             query.addFilter(
                 QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
                             .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq(SEARCH_FILTER_CASES_CLOSED).build().getFilter()
+            );
+        }
+
+        //WorkItem Outcome Filter
+        IsolatedCheckBoxPanel onlyOutcomeItems = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_OUTCOME_ITEMS);
+        if (onlyOutcomeItems != null && onlyOutcomeItems.getValue()) {
+            query.addFilter(
+                QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+                        .item(F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).isNull()
+                            .build().getFilter()
             );
         }
 
@@ -407,10 +421,14 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 			}
 		});
         searchFilterForm.add(filterCases);
+
+        IsolatedCheckBoxPanel onlyOutcomeItems = new IsolatedCheckBoxPanel(ID_SEARCH_FILTER_OUTCOME_ITEMS, new Model<Boolean>(false)) {
+            private static final long serialVersionUID = 1L;
             public void onUpdate(AjaxRequestTarget target) {
                 searchFilterPerformed(target);
             }
         };
+        searchFilterForm.add(onlyOutcomeItems);
     }
 
     private boolean isAuthorizedToSeeAllCases() {
