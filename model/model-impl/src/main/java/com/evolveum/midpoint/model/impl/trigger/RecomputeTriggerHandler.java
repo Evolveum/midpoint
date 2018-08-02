@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.trigger;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,20 +50,9 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTriggerHandler.class);
 
-	@Autowired(required = true)
-	private TriggerHandlerRegistry triggerHandlerRegistry;
-
-	@Autowired(required = true)
-    private Clockwork clockwork;
-
-	@Autowired(required=true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-    private ProvisioningService provisioningService;
-
-	@Autowired(required = true)
-	private ContextFactory contextFactory;
+	@Autowired private TriggerHandlerRegistry triggerHandlerRegistry;
+	@Autowired private Clockwork clockwork;
+	@Autowired private ContextFactory contextFactory;
 
 	@PostConstruct
 	private void initialize() {
@@ -86,7 +76,8 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 			LOGGER.trace("Recomputing of {}: {}", object, result.getStatus());
 
 		} catch (CommonException | PreconditionViolationException | RuntimeException | Error  e) {
-			LOGGER.error(e.getMessage(), e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't recompute object {}", e, object);
+			// do not retry (TODO is this ok?)
 		}
 
 	}

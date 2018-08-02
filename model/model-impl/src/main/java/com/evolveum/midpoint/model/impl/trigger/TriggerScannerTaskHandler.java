@@ -221,9 +221,9 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 					handler.handle(object, trigger, workerTask, result);
 					return true;
 					// Properly handle everything that the handler spits out. We do not want this task to die.
-					// Looks like the impossible happens and checked exceptions can somehow get here. Hence the heavy artillery below.
 				} catch (Throwable e) {
-					LOGGER.error("Trigger handler {} executed on {} thrown an error: {}", handler, object, e.getMessage(), e);
+					LOGGER.error("Trigger handler {} executed on {} thrown an error: {} -- it will be retried", handler,
+							object, e.getMessage(), e);
 					result.recordPartialError(e);
 					return false;
 				}
