@@ -31,12 +31,14 @@ import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AbstractAutoCo
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.util.string.Strings;
 
@@ -77,12 +79,18 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.prism.PrismPropertyColumn;
+import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismPropertyRealValueFromContainerableModel;
+import com.evolveum.midpoint.web.model.PrismPropertyRealValuesFromContainerValueWrapperModel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLoggerType;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -392,6 +400,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
             	}
             	
             	PropertyWrapper<String> packageWrapper = (PropertyWrapper<String>)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ClassLoggerConfigurationType.F_PACKAGE));
+//            	packageWrapper.setDefaultValues();
+            	//TODO: what about using 
             	AutoCompleteTextPanel<String> autoCompleteTextPanel = new AutoCompleteTextPanel<String>(componentId, new PropertyModel<String>(packageWrapper.getValues(), "[0].value.value") {
             		
             		@Override
@@ -482,10 +492,12 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 					IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
 				ClassLoggerConfigurationType logger = rowModel.getObject().getContainerValue().getValue();
 				PropertyWrapper<LoggingLevelType> levelWrapper = (PropertyWrapper<LoggingLevelType>)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ClassLoggerConfigurationType.F_LEVEL));
-				DropDownChoicePanel<LoggingLevelType> dropDownChoicePanel = new DropDownChoicePanel<>(componentId,
-                        new PropertyModel<LoggingLevelType>(levelWrapper.getValues(), "[0].value.value"),
-                        WebComponentUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-				return dropDownChoicePanel;
+//				DropDownChoicePanel<LoggingLevelType> dropDownChoicePanel = new DropDownChoicePanel<>(componentId,
+//                        new PropertyModel<LoggingLevelType>(levelWrapper.getValues(), "[0].value.value"),
+//                        WebComponentUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
+//				return dropDownChoicePanel;
+				Form form= new Form("form");
+				return new PrismPropertyColumn<>(componentId, new Model(levelWrapper), form, getPageBase());
 			}
 
 			@Override
@@ -502,65 +514,95 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			@Override
 			protected Component createInputPanel(String componentId,
 					IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
-				ClassLoggerConfigurationType logger = rowModel.getObject().getContainerValue().getValue();
+//				ClassLoggerConfigurationType logger = rowModel.getObject().getContainerValue().getValue();
 				
-				IModel<Map<String, String>> options = new Model(null);
-                Map<String, String> optionsMap = new HashMap<>();
-                optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
-                options.setObject(optionsMap);
-                PropertyWrapper<String> appenderWrapper = (PropertyWrapper<String>)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ClassLoggerConfigurationType.F_APPENDER));
+//				IModel<Map<String, String>> options = new Model(null);
+//                Map<String, String> optionsMap = new HashMap<>();
+//                optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
+//                options.setObject(optionsMap);
+				
+		        PropertyWrapper<String> appenderWrapper = (PropertyWrapper<String>)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ClassLoggerConfigurationType.F_APPENDER));
                 
-                List<String> list = new ArrayList<>();
+//                List<String> list = new ArrayList<>();
+//                
+                Form form = new Form("form");
+                PrismPropertyColumn<PropertyWrapper<String>> panel = new PrismPropertyColumn<>(componentId, new Model(appenderWrapper), form, getPageBase());
 
-                for (ValueWrapper appender : appenderWrapper.getValues()) {
-                    list.add(appender.getValue().getRealValue());
-                }
-                
-                LOGGER.info("XXXXXXXXXXXXXXXXXX appenders: " + appenderWrapper.getValues().get(0).getValue());
-
-                ListMultipleChoicePanel panel = new ListMultipleChoicePanel<>(componentId,
-                    new IModel<List<String>>(){
-
-						private static final long serialVersionUID = 1L;
-                	
-						@Override
-						public void setObject(List<String> list) {
-							appenderWrapper.getValues().clear();
-							List<ValueWrapper> appenders = new ArrayList<ValueWrapper>();
-							for(String value : list){
-								ValueWrapper<String> appender = appenderWrapper.createAddedValue();
-								PrismPropertyValue<String> prismValueAppender = (PrismPropertyValue<String>)appender.getValue();
-								prismValueAppender.setValue(value);
-								appenders.add(appender);
-							}
-							appenderWrapper.getValues().addAll(appenders);
-							
-						}
-
-						@Override
-						public void detach() {
-						}
-
-						@Override
-						public List<String> getObject() {
-							return list;
-						}
-                	},
-                    new AbstractReadOnlyModel<List<String>>() {
-
-                    	private static final long serialVersionUID = 1L;
-                        @Override
-                        public List<String> getObject() {
-                            List<String> list = new ArrayList<>();
-
-                            for (AppenderConfigurationType appender : getModelObject().getValues().get(0).getContainerValue().getValue().getAppender()) {
-                                list.add(appender.getName());
-                            }
-
-                            return list;
-                        }
-                	},
-                    StringChoiceRenderer.simple(), options);
+//                for (ValueWrapper appender : appenderWrapper.getValues()) {
+//                    list.add(appender.getValue().getRealValue());
+//                }
+//                
+//                LOGGER.info("XXXXXXXXXXXXXXXXXX appenders: " + appenderWrapper.getValues().get(0).getValue());
+//                
+//				IModel<List<String>> choiceModel = new AbstractReadOnlyModel<List<String>>() {
+//
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					public List<String> getObject() {
+//						List<String> list = new ArrayList<>();
+//
+//						for (AppenderConfigurationType appender : getModelObject().getValues().get(0).getContainerValue()
+//								.getValue().getAppender()) {
+//							list.add(appender.getName());
+//						}
+//
+//						return list;
+//					}
+//				};
+//                
+//				
+//				List<ValueWrapper> choices = getModelObject().getValues().get(0).findPropertyWrapper(new ItemPath(getModel().getObject().getPath(), LoggingConfigurationType.F_APPENDER, AppenderConfigurationType.F_NAME)).getValues();
+//				
+//                ListMultipleChoicePanel<ValueWrapper> panel = new ListMultipleChoicePanel(componentId, 
+//                		new ListModel(appenderWrapper.getValues()), new ListModel(choices), 
+//                		
+//                		new IChoiceRenderer<ValueWrapper>() {
+//                	
+//		                	public Object getDisplayValue(ValueWrapper object) {
+//		                		
+//		                		return object.getValue().getRealValue();
+//		                		
+//		                	}; 
+//							
+//		                	@Override
+//							public String getIdValue(ValueWrapper object, int index) {
+//		                		return Integer.toString(index);
+//							}
+//							@Override
+//							public ValueWrapper getObject(String id, IModel<? extends List<? extends ValueWrapper>> choices) {
+//								if (StringUtils.isEmpty(id)) {
+//									return null;
+//								}
+//								return choices.getObject().get(Integer.parseInt(id));
+//							}
+//					
+//					}
+//                , options);
+//
+                		
+//                ListMultipleChoicePanel panel = new ListMultipleChoicePanel<>(componentId,
+//                    new IModel<List<String>>(){
+//
+//						private static final long serialVersionUID = 1L;
+//                	
+//						@Override
+//						public void setObject(List<String> object) {
+//							logger.getAppender().clear();
+//							logger.getAppender().addAll(object);
+//						}
+//
+//						@Override
+//						public void detach() {
+//						}
+//
+//						@Override
+//						public List<String> getObject() {
+//							return list;
+//						}
+//                	},
+//                    ,
+//                    StringChoiceRenderer.simple(), options);
 
                 return panel;
 			}
