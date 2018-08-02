@@ -51,13 +51,16 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkColumnForContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableTextColumnForContainerWrapper;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -69,8 +72,10 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.input.StringChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
@@ -85,6 +90,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
@@ -518,9 +524,17 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 						private static final long serialVersionUID = 1L;
                 	
 						@Override
-						public void setObject(List<String> object) {
-							logger.getAppender().clear();
-							logger.getAppender().addAll(object);
+						public void setObject(List<String> list) {
+							appenderWrapper.getValues().clear();
+							List<ValueWrapper> appenders = new ArrayList<ValueWrapper>();
+							for(String value : list){
+								ValueWrapper<String> appender = appenderWrapper.createAddedValue();
+								PrismPropertyValue<String> prismValueAppender = (PrismPropertyValue<String>)appender.getValue();
+								prismValueAppender.setValue(value);
+								appenders.add(appender);
+							}
+							appenderWrapper.getValues().addAll(appenders);
+							
 						}
 
 						@Override
@@ -633,6 +647,48 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			}
 			
 			@Override
+			protected void getBasicContainerValuePanel(String idPanel) {
+				Form form = new Form<>("form");
+		    	ItemPath itemPath = getModelObject().getPath();
+		    	IModel<ContainerValueWrapper<AppenderConfigurationType>> model = getModel();
+		    	model.getObject().setShowEmpty(true, true);
+		    	model.getObject().getContainer().setShowOnTopLevel(true);
+		    	ContainerValuePanel panel;
+		    	if(item.getModelObject().getContainerValue().getValue() instanceof FileAppenderConfigurationType) {
+		    		
+		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX FileAppenderConfigurationType");
+		    		
+		    		FileAppenderConfigurationType appender = (FileAppenderConfigurationType) item.getModelObject().getContainerValue().getValue();
+		    		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
+		    		Task task = LoggingConfigurationTabPanel.this.getPageBase().createSimpleTask("create appender");
+		    		ContainerWrapper<FileAppenderConfigurationType> wrapper = cwf.createContainerWrapper((PrismContainer<FileAppenderConfigurationType>)appender.asPrismContainerValue().getContainer(), item.getModelObject().getObjectStatus(), 
+		    				item.getModelObject().getObjectStatus(), new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
+		    		wrapper.setShowOnTopLevel(true);
+		    		ContainerValueWrapper<FileAppenderConfigurationType> value = cwf.createContainerValueWrapper(wrapper, (PrismContainerValue<FileAppenderConfigurationType>)appender.asPrismContainerValue(), item.getModelObject().getObjectStatus(), item.getModelObject().getStatus(), new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
+		    		
+		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX wrapper: " + wrapper);
+		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX value: " + value);
+		    		
+		    		IModel<ContainerValueWrapper<FileAppenderConfigurationType>> valueModel = new LoadableModel<ContainerValueWrapper<FileAppenderConfigurationType>>(false) {
+
+		    			private static final long serialVersionUID = 1L;
+
+		    			@Override
+		    			protected ContainerValueWrapper<FileAppenderConfigurationType> load() {
+		    				return value;
+		    			}
+		    		};
+		    		
+		    		panel = new ContainerValuePanel<FileAppenderConfigurationType>(idPanel, valueModel, true, form,
+		    				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
+		    	} else {
+		    		panel = new ContainerValuePanel<AppenderConfigurationType>(idPanel, getModel(), true, form,
+		    				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
+		    	}
+		    	add(panel);
+			}
+			
+			@Override
 			protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentPath) {
 					LOGGER.info("XXXXXXXXXXXXX path: " + itemWrapper.getPath());
 				return ItemVisibility.VISIBLE;
@@ -682,6 +738,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 //		    	specificContainers.add(panel);
 				return specificContainers;
 			}
+			
+			
 			
 		};
 		return detailsPanel;
