@@ -11938,6 +11938,9 @@
 							<xsd:documentation>
 								The object matches the specification if it has an owner specified by this element.
 								The "owner" means a focus that has a link to the object.
+
+								LIMITATION: for search pre-processing this option is supported in a very limited way
+								(only for TaskType.ownerRef and AbstractRoleType.ownerRef and only for "self" owners).
 							</xsd:documentation>
 						</xsd:annotation>
 			        </xsd:element>
@@ -11954,7 +11957,38 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 			        </xsd:element>
-		        </xsd:sequence>        	
+					<xsd:element name="requester" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it has a requester specified by this element.
+								(So it is applicable only for tasks and, in the future, case- and work items-like objects.)
+
+								LIMITATION: Supported only for TaskType and not for search pre-processing.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="assignee" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it has a (current) assignee specified by this element.
+								(So it is applicable only for task-, case- and work item-like objects.)
+
+								LIMITATION: Supported only for TaskType with work items fully fetched; and not for search
+								pre-processing.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="object" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it has a related object specified by this element.
+								(So it is applicable only for task-, case- and work item-like objects.)
+
+								LIMITATION: Supported only for TaskType; and for search pre-processing it is limited to "self".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+		        </xsd:sequence>
         	</xsd:extension>
         </xsd:complexContent>
 	</xsd:complexType>
