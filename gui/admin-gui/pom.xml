@@ -35,6 +35,7 @@
         <server.port></server.port>
         <midpoint.host></midpoint.host>
         <midpoint.home></midpoint.home>
+        <midpoint.schrodinger>false</midpoint.schrodinger>
         <javax.net.ssl.trustStore></javax.net.ssl.trustStore>
         <javax.net.ssl.trustStoreType></javax.net.ssl.trustStoreType>
     </properties>
@@ -111,7 +112,7 @@
                 <configuration>
                     <fork>true</fork>
                     <skip>false</skip>
-                    <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=true</jvmArguments><!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
+                    <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments><!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
                 </configuration>
                 <executions>
                     <execution>
