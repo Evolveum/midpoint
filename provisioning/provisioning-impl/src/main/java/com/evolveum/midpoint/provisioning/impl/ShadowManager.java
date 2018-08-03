@@ -965,24 +965,12 @@ public class ShadowManager {
 	}
 	
 	public void addDeadShadowDeltas(PrismObject<ShadowType> repoShadow, AsynchronousOperationResult asyncResult, List<ItemDelta> shadowModifications) {
-		if (asyncResult.isQuantumOperation()) {
-			// We have Schroedinger's shadow here. It is both dead and alive.
-			LOGGER.trace("Marking shadow {} as Schroedinger's shadow (both dead and alive)", repoShadow);
-			if (!ShadowUtil.isExists(repoShadow.asObjectable())) {
-				shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.TRUE));
-			}
-			if (!ShadowUtil.isDead(repoShadow.asObjectable())) {
-				shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_DEAD, Boolean.TRUE));
-			}
-		} else {
-			// Marking as thombstone
-			LOGGER.trace("Marking shadow {} as thombstone (dead)", repoShadow);
-			if (ShadowUtil.isExists(repoShadow.asObjectable())) {
-				shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.FALSE));
-			}
-			if (!ShadowUtil.isDead(repoShadow.asObjectable())) {
-				shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_DEAD, Boolean.TRUE));
-			}
+		LOGGER.trace("Marking shadow {} as dead", repoShadow);
+		if (ShadowUtil.isExists(repoShadow.asObjectable())) {
+			shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.FALSE));
+		}
+		if (!ShadowUtil.isDead(repoShadow.asObjectable())) {
+			shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_DEAD, Boolean.TRUE));
 		}
 	}
 	
@@ -1760,7 +1748,7 @@ public class ShadowManager {
 	 */
 	@SuppressWarnings("unchecked")
 	public PrismObject<ShadowType> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> currentResourceShadow,
-			PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+			PrismObject<ShadowType> oldRepoShadow, ShadowState shadowState, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
 		
 		RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(currentResourceShadow);
 		ObjectDelta<ShadowType> shadowDelta = oldRepoShadow.createModifyDelta();
@@ -1769,11 +1757,6 @@ public class ShadowManager {
 		ShadowType oldRepoShadowType = oldRepoShadow.asObjectable();
 		ShadowType currentResourceShadowType = currentResourceShadow.asObjectable();
 
-		if (oldRepoShadowType.isExists() != currentResourceShadowType.isExists()) {
-			// Resource object obviously exists when we have got here
-			shadowDelta.addModificationReplaceProperty(ShadowType.F_EXISTS, currentResourceShadowType.isExists());
-		}
-		
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 
 		for (Item<?, ?> currentResourceItem: currentResourceAttributesContainer.getValue().getItems()) {
@@ -1874,6 +1857,14 @@ public class ShadowManager {
 			shadowDelta.addModification(auxOcDelta);
 		}
 		
+		// Resource object obviously exists in this case. However, we do not want to mess with isExists flag in some
+		// situations (e.g. in CORPSE state) as this existence may be just a quantum illusion.
+		if (shadowState == ShadowState.CONCEPTION || shadowState == ShadowState.GESTATION) {
+			PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
+			existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
+			shadowDelta.addModification(existsDelta);
+		}
+		
 		if (cachingStrategy == CachingStategyType.NONE) {
 			if (oldRepoShadowType.getCachingMetadata() != null) {
 				shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA);
@@ -1945,7 +1936,7 @@ public class ShadowManager {
 			} else {
 				// There are unexpired pending operations in the shadow. We cannot delete the shadow yet.
 				// Therefore just mark shadow as dead.
-				return markShadowTombstone(oldRepoShadow, parentResult);
+				return markShadowDead(oldRepoShadow, parentResult);
 			}
 		}
 		LOGGER.trace("Recording pending delete operation in repository {}: {}", oldRepoShadow, opState);
@@ -1964,12 +1955,12 @@ public class ShadowManager {
 		repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
 	}
 	
-	public PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
+	public PrismObject<ShadowType> markShadowDead(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
 		List<ItemDelta<?, ?>> shadowChanges = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
 			.item(ShadowType.F_DEAD).replace(true)
 			.item(ShadowType.F_EXISTS).replace(false)
 		.asItemDeltas();
-		LOGGER.trace("Marking shadow {} as tombstone (dead)", repoShadow);
+		LOGGER.trace("Marking shadow {} as dead", repoShadow);
 		try {
 			repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
 		} catch (ObjectAlreadyExistsException e) {
@@ -1977,13 +1968,13 @@ public class ShadowManager {
 			new SystemException(e.getMessage(), e);
 		} catch (ObjectNotFoundException e) {
 			// Cannot be more dead
-			LOGGER.trace("Attempt to mark shadow {} as tombstone found that no such shadow exists", repoShadow);
+			LOGGER.trace("Attempt to mark shadow {} as dead found that no such shadow exists", repoShadow);
 			return null;
 		}
 		ObjectDelta.applyTo(repoShadow, shadowChanges);
 		return repoShadow;
 	}
-	
+		
 	/**
 	 * Re-reads the shadow, re-evaluates the identifiers and stored values, updates them if necessary. Returns
 	 * fixed shadow.  

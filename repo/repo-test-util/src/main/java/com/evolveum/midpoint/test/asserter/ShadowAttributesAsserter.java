@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -167,6 +168,12 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 			raws[i] = new RawType(new PrismPropertyValue<>(expectedValues[i]), attrName, prismContext);
 		}
 		return raws;
+	}
+	
+	public <T> ShadowAttributesAsserter<R> assertNoAttribute(QName attrName) {
+		PrismProperty<T> property = findAttribute(attrName);
+		assertNull("Unexpected attribute "+attrName+" in "+desc()+": "+property, property);
+		return this;
 	}
 
 	private <T> PrismProperty<T> findAttribute(QName attrName) {

@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -123,11 +124,12 @@ public class TestSemiManualDisable extends TestSemiManual {
 	}
 
 	@Override
-	protected void assertDeprovisionedTimedOutUser(PrismObject<UserType> userAfter, String accountOid) throws Exception {
-		assertLinks(userAfter, 1);
-		PrismObject<ShadowType> shadowModel = getShadowModel(accountOid);
-		display("Model shadow", shadowModel);
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
+	protected <R> void assertDeprovisionedTimedOutUser(UserAsserter<R> userAsserter, String accountOid) throws Exception {
+		userAsserter
+			.assertLinks(1);
+		
+		assertModelShadow(accountOid)
+			.assertAdministrativeStatus(ActivationStatusType.DISABLED);
 	}
 
 	@Override

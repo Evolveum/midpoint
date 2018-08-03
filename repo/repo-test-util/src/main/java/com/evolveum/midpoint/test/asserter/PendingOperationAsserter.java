@@ -124,4 +124,8 @@ public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperati
 	public PendingOperationsAsserter<R> end() {
 		return pendingOperationsAsserter;
 	}
+
+	public PendingOperationType getOperation() {
+		return pendingOperation;
+	}
 }

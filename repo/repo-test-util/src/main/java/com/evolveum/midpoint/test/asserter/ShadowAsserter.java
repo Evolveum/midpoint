@@ -26,12 +26,15 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
@@ -176,7 +179,7 @@ public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 		return this;
 	}
 	
-	public ShadowAsserter<R> assertInception() {
+	public ShadowAsserter<R> assertConception() {
 		assertNotDead();
 		assertIsNotExists();
 		return this;
@@ -194,12 +197,13 @@ public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 		return this;
 	}
 	
-	public ShadowAsserter<R> assertSchroedinger() {
+	// We cannot really distinguish corpse and tombstone now. But maybe later.
+	public ShadowAsserter<R> assertCorpse() {
 		assertDead();
-		assertIsExists();
+		assertIsNotExists();
 		return this;
 	}
-	
+		
 	public PendingOperationsAsserter<R> pendingOperations() {
 		PendingOperationsAsserter<R> asserter = new PendingOperationsAsserter<>(this, getDetails());
 		copySetupTo(asserter);
@@ -241,4 +245,13 @@ public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 		return this;
 	}
 
+	public ShadowAsserter<R> assertNoPassword() {
+		PrismProperty<PolyStringType> passValProp = getPasswordValueProperty();
+		assertNull("Unexpected password value property in "+desc()+": "+passValProp, passValProp);
+		return this;
+	}
+	
+	private PrismProperty<PolyStringType> getPasswordValueProperty() {
+		return getObject().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+	}
 }

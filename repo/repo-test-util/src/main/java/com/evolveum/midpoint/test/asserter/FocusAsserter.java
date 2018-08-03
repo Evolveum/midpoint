@@ -207,4 +207,12 @@ public class FocusAsserter<F extends FocusType,R> extends PrismObjectAsserter<F,
 		}
 		return shadow;
 	}
+	
+	public  FocusAsserter<F,R> displayWithProjections() throws ObjectNotFoundException, SchemaException {
+		display();
+		for (PrismObject<ShadowType> linkTarget: getLinkTargets()) {
+			IntegrationTestTools.display("projetion of "+desc(), linkTarget);
+		}
+		return this;
+	}
 }

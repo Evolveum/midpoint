@@ -43,7 +43,9 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.PrismObjectAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -1185,8 +1187,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	 * because scheduled export has not refreshed the file yet.
 	 */
 	@Test
-	public void test310CloseCaseAndRecomputeWill() throws Exception {
-		final String TEST_NAME = "test310CloseCaseAndRecomputeWill";
+	public void test310CloseCaseAndReconcileWill() throws Exception {
+		final String TEST_NAME = "test310CloseCaseAndReconcileWill";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -1468,9 +1470,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(userWillOid);
-		display("User after", userAfter);
-		assertDeprovisionedTimedOutUser(userAfter, accountWillOid);
+		UserAsserter<Void> userAfterAsserter = assertUserAfter(userWillOid);
+		assertDeprovisionedTimedOutUser(userAfterAsserter, accountWillOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
@@ -1481,8 +1482,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 	// TODO: let grace period expire without updating the backing store (semi-manual-only)
 
-	protected void assertDeprovisionedTimedOutUser(PrismObject<UserType> userAfter, String accountOid) throws Exception {
-		assertLinks(userAfter, 0);
+	protected <R> void assertDeprovisionedTimedOutUser(UserAsserter<R> userAsserter, String accountOid) throws Exception {
+		userAsserter
+			.assertLinks(0);
 		assertNoShadow(accountOid);
 	}
 
@@ -2187,6 +2189,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		
+		assertUserBefore(userWillOid)
+			.assertLinks(0);
+		assertNoShadow(accountWillOid);
 
 		modifyUserReplace(userWillOid, UserType.F_FULL_NAME, task, result, createPolyString(USER_WILL_FULL_NAME));
 
@@ -2234,11 +2240,13 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		waitForTaskFinish(TASK_SHADOW_REFRESH_OID, false);
 
 		assertAccountJackAfterAssign(TEST_NAME);
+		
+		assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 	}
 
 	@Test
-	public void test830CloseCaseAndWaitForRefresh() throws Exception {
-		final String TEST_NAME = "test830CloseCaseAndWaitForRefresh";
+	public void test830CloseCaseWillAndWaitForRefresh() throws Exception {
+		final String TEST_NAME = "test830CloseCaseWillAndWaitForRefresh";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
@@ -2281,32 +2289,39 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
-
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
+		
+		ShadowAsserter.forShadow(shadowModel, "model")
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertNotDead()
+			.assertIsExists()
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME)
+			.end();
 		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
-		assertShadowExists(shadowModel, true);
 		assertShadowPassword(shadowModel);
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertSinglePendingOperation(shadowRepo,
-				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME), ATTR_FULLNAME_QNAME, prismContext));
-		assertNoAttribute(shadowRepo, ATTR_DESCRIPTION_QNAME);
+		PrismObject<ShadowType> shadowRepo = assertRepoShadow(accountWillOid)
+			.assertNotDead()
+			.assertIsExists()
+			.pendingOperations()
+				.singleOperation()
+					.assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+					.end()
+				.end()
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertNoAttribute(ATTR_DESCRIPTION_QNAME)
+			.end()
+			.assertNoPassword()
+			.getObject();
+		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME);
 		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertNoShadowPassword(shadowRepo);
-		assertShadowExists(shadowRepo, true);
 	}
 	
 	// Direct execution. The operation is always executing immediately after it is requested.

@@ -45,6 +45,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -156,7 +157,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		// THEN
 		displayThen(TEST_NAME);
 		display("result", result);
-		assertSuccess(result);
+		assertSuccess(result, 2);
 		assertNull("Unexpected ticket in result", result.getAsynchronousOperationReference());
 
 		accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -316,14 +317,14 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 	 * MID-4002
 	 */
 	@Test
-	public void test717RecomputeJackAfter30min() throws Exception {
-		final String TEST_NAME = "test717RecomputeJackAfter30min";
+	public void test717RecomputeJackAfter130min() throws Exception {
+		final String TEST_NAME = "test717RecomputeJackAfter130min";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT30M");
+		clock.overrideDuration("PT130M");
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -335,9 +336,9 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		display("result", result);
 		assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		assertDeprovisionedTimedOutUser(userAfter, accountJackOid);
+		UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
+		userAfterAsserter.displayWithProjections();
+		assertDeprovisionedTimedOutUser(userAfterAsserter, accountJackOid);
 
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
@@ -365,7 +366,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		if (backingStoreUpdated) {
 			shadowModelAsserter.assertTombstone();
 		} else {
-			shadowModelAsserter.assertSchroedinger();
+			shadowModelAsserter.assertCorpse();
 		}
 	}
 }

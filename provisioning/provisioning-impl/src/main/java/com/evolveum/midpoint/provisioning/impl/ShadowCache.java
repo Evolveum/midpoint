@@ -216,7 +216,10 @@ public class ShadowCache {
 			throw e;
 		}
 		
-		if (canImmediatelyReturnCached(options, repositoryShadow, resource)) {
+		ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow, now);
+		LOGGER.trace("State of shadow {}: {}", repositoryShadow, shadowState);
+		
+		if (canImmediatelyReturnCached(options, repositoryShadow, shadowState, resource)) {
 			LOGGER.trace("Returning cached (repository) version of shadow {}", repositoryShadow);
 			PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
 			shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
@@ -266,22 +269,21 @@ public class ShadowCache {
 				
 			} catch (ObjectNotFoundException e) {
 				// This may be OK, e.g. for connectors that have running async add operation.
-				if (canReturnCachedAfterObjectNotFound(options, repositoryShadow, resource)) {
-					LOGGER.trace("Error reading of {}, but we can return cached shadow", repositoryShadow);
+				if (shadowState == ShadowState.CONCEPTION || shadowState == ShadowState.GESTATION) {
+					LOGGER.trace("{} was not found, but we can return cached shadow because it is in {} state", repositoryShadow, shadowState);
 					parentResult.deleteLastSubresultIfError();		// we don't want to see 'warning-like' orange boxes in GUI (TODO reconsider this)
 					parentResult.recordSuccess();
 					
-					ShadowType repositoryShadowType = repositoryShadow.asObjectable();
-					if (ShadowUtil.isExists(repositoryShadowType)) {
-						// Note: this may collapse quantum state of Schroedinger's shadow
-						repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, parentResult);
-					}
 					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
 					shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 					LOGGER.trace("Returning futurized shadow:\n{}", DebugUtil.debugDumpLazily(resultShadow));
 					validateShadow(resultShadow, true);
 					return resultShadow;
+					
 				} else {
+					LOGGER.trace("{} was not found, following normal error processing beacuse shadow is in {} state", repositoryShadow, shadowState);
+					// This is live shadow that was not found on resource. Just re-throw the exception. It will
+					// be caught later and the usual error handlers will bury the shadow.
 					throw e;
 				}
 			}
@@ -315,7 +317,7 @@ public class ShadowCache {
 				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump());
 			}
 
-			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow,
+			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow, shadowState,
 					parentResult);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDump());
@@ -404,16 +406,16 @@ public class ShadowCache {
 		}
 		// TODO: which case is this exactly?
 		// Explicitly check the capability of the resource (primary connector), not capabilities of additional connectors
-		return ProvisioningUtil.isPrimaryCachingOnly(resource);			
+		return ProvisioningUtil.isPrimaryCachingOnly(resource);
 	}
 	
-	private boolean canImmediatelyReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
+	private boolean canImmediatelyReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ShadowState shadowState, ResourceType resource) throws ConfigurationException {
 		if (ProvisioningUtil.resourceReadIsCachingOnly(resource)) {
 			return true;
 		}
-		if (ShadowUtil.isTombstone(repositoryShadow)) {
+		if (shadowState == ShadowState.TOMBSTONE) {
 			// Once shadow is buried it stays nine feet under. Therefore there is no point in trying to access the resource.
-			// NOTE: this is just for tombstone! Schroedinger's shadows will still work as if they were alive.
+			// NOTE: this is just for tombstone! Schroedinger's shadows (corpse) will still work as if they were alive.
 			return true;
 		}
 		long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
@@ -642,36 +644,13 @@ public class ShadowCache {
 		
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		for (PrismObject<ShadowType> previousDeadShadow : previousDeadShadows) {
-			if (hasPreviousDeletePendingOperationInGracePeriod(ctx, previousDeadShadow, now)) {
+			if (shadowCaretaker.findPreviousPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow, now) == ChangeTypeType.DELETE) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	private boolean hasPreviousDeletePendingOperationInGracePeriod(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-		if (pendingOperations == null || pendingOperations.isEmpty()) {
-			return false;
-		}
-		Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
-		for (PendingOperationType pendingOperation : pendingOperations) {
-			ObjectDeltaType delta = pendingOperation.getDelta();
-			if (delta == null) {
-				continue;
-			}
-			ChangeTypeType changeType = delta.getChangeType();
-			if (!ChangeTypeType.DELETE.equals(changeType)) {
-				continue;
-			}
-			if (ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
-				continue;
-			}
-			return true;
-		}
-		return false;
-	}
-	
+		
 	private PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
 			PrismObject<ShadowType> repositoryShadow,
 			GetOperationOptions rootOptions,
@@ -1363,7 +1342,7 @@ public class ShadowCache {
 			// model can find unique values while taking pending create operations into consideration.
 			PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
 			existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
-			shadowDelta.addModification(existsDelta);			
+			shadowDelta.addModification(existsDelta);
 		}
 		
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
@@ -1762,9 +1741,9 @@ public class ShadowCache {
 						// This determines the definitions exactly. How the repo
 						// shadow should have proper kind/intent
 						ProvisioningContext shadowCtx = shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
-
+						// TODO: shadowState
 						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow,
-								parentResult);
+								null, parentResult);
 						
 						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, isDoDiscovery, objResult);
 						
@@ -2507,7 +2486,8 @@ public class ShadowCache {
 				PrismObject<ShadowType> currentShadow = completeShadow(ctx, change.getCurrentShadow(),
 						oldShadow, false, parentResult);
 				change.setCurrentShadow(currentShadow);
-				shadowManager.updateShadow(ctx, currentShadow, oldShadow, parentResult);
+				// TODO: shadowState
+				shadowManager.updateShadow(ctx, currentShadow, oldShadow, null, parentResult);
 			}
 
 			// FIXME: hack. the object delta must have oid specified.

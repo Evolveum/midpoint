@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExec
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -326,6 +327,66 @@ public class ShadowCaretaker {
 		sortedList.addAll(pendingOperations);
 		sortedList.sort((o1, o2) -> XmlTypeConverter.compare(o1.getRequestTimestamp(), o2.getRequestTimestamp()));
 		return sortedList;
+	}
+	
+	public ChangeTypeType findPreviousPendingLifecycleOperationInGracePeriod(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
+		if (pendingOperations == null || pendingOperations.isEmpty()) {
+			return null;
+		}
+		Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
+		ChangeTypeType found = null;
+		for (PendingOperationType pendingOperation : pendingOperations) {
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (delta == null) {
+				continue;
+			}
+			ChangeTypeType changeType = delta.getChangeType();
+			if (ChangeTypeType.MODIFY.equals(changeType)) {
+				continue;
+			}
+			if (ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
+				continue;
+			}
+			if (changeType == ChangeTypeType.DELETE) {
+				// DELETE always wins
+				return changeType;
+			} else {
+				// If there is an ADD then let's check for delete.
+				found = changeType;
+			}
+		}
+		return found;
+	}
+
+	
+	// NOTE: detection of quantum states (gestation, corpse) might not be precise. E.g. the shadow may already be
+	// tombstone because it is not in the snapshot. But as long as the pending operation is in grace we will still
+	// detect it as corpse. But that should not cause any big problems.
+	public ShadowState determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ShadowType shadowType = shadow.asObjectable();
+		ChangeTypeType pendingLifecycleOperation = findPreviousPendingLifecycleOperationInGracePeriod(ctx, shadow, now);
+		if (ShadowUtil.isDead(shadowType)) {
+			if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
+				return ShadowState.CORPSE;
+			} else {
+				return ShadowState.TOMBSTONE;
+			}
+		}
+		if (ShadowUtil.isExists(shadowType)) {
+			if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
+				return ShadowState.REAPING;
+			} else if (pendingLifecycleOperation == ChangeTypeType.ADD) {
+				return ShadowState.GESTATION;
+			} else {
+				return ShadowState.LIFE;
+			}
+		}
+		if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadowType.getLifecycleState())) {
+			return ShadowState.PROPOSED;
+		} else {
+			return ShadowState.CONCEPTION;
+		}
 	}
 
 }

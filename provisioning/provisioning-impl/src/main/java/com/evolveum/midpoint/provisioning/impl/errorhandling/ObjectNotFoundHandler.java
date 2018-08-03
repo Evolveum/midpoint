@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -38,7 +39,9 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.ShadowManager;
+import com.evolveum.midpoint.provisioning.impl.ShadowState;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -75,6 +78,8 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectNotFoundHandler.class);
 	
 	@Autowired private ShadowManager shadowManager;
+	@Autowired private ShadowCaretaker shadowCaretaker;
+	@Autowired private Clock clock;
 	
 	@Override
 	public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
@@ -126,18 +131,11 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 	private void discoverDeletedShadow(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
 			Exception cause, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		
-		ShadowType repositoryShadowType = repositoryShadow.asObjectable();
-		if (ShadowUtil.isTombstone(repositoryShadowType)) {
-			// Do NOT do discovery of shadow that is already dead. This is no discovery.
-			// We already know that it is dead ergo it is not present on resource.
-			LOGGER.trace("Skipping discovery of shadow {} becasue it is just a tombstone.", repositoryShadow);
-			return;
-		}
-		if (ShadowUtil.isSchroedinger(repositoryShadowType)) {
-			// Box is open, quantum state collapses. Now we know that the cat is dead.
-			repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, parentResult);
-			// However, this is not a big surprise. No need to do discovery.
-			LOGGER.trace("Skipping discovery of shadow {} becasue it is just Schroedinger's shadow turned into a tombstone.", repositoryShadow);
+		ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow, clock.currentTimeXMLGregorianCalendar());
+		if (shadowState != ShadowState.LIFE) {
+			// Do NOT do discovery of shadow that can legally not exist. This is no discovery.
+			// We already know that the object are supposed not to exist yet or to dead already.
+			LOGGER.trace("Skipping discovery of shadow {} becasue it is {}, we expect that it might not exist", repositoryShadow, shadowState);
 			return;
 		}
 		
@@ -146,7 +144,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 		
 		LOGGER.debug("DISCOVERY: discovered deleted shadow {}", repositoryShadow);		
 		
-		repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, result);
+		repositoryShadow = shadowManager.markShadowDead(repositoryShadow, result);
 		
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		change.setResource(ctx.getResource().asPrismObject());

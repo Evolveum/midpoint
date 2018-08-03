@@ -1571,19 +1571,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return getShadowModel(accountOid, GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE), true);
 	}
 	
-	protected PrismObject<ShadowType> getShadowModel(String accountOid, GetOperationOptions rootOptions, boolean assertSuccess) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	protected PrismObject<ShadowType> getShadowModel(String shadowOid, GetOperationOptions rootOptions, boolean assertSuccess) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getShadowModel");
         OperationResult result = task.getResult();
 		Collection<SelectorOptions<GetOperationOptions>> opts = null;
 		if (rootOptions != null) {
 			opts = SelectorOptions.createCollection(rootOptions);
 		}
-		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, opts , task, result);
+		LOGGER.info("Getting model shadow {} with options {}", shadowOid, opts);
+		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, shadowOid, opts , task, result);
+		LOGGER.info("Got model shadow (options {})\n{}", shadowOid, shadow.debugDumpLazily(1));
 		result.computeStatus();
 		if (assertSuccess) {
 			TestUtil.assertSuccess("getObject(shadow) result not success", result);
 		}
-		return account;
+		return shadow;
 	}
 
 	protected <O extends ObjectType> void assertNoObject(Class<O> type, String oid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

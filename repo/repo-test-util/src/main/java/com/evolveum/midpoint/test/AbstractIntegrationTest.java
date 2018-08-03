@@ -1767,6 +1767,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		display("Operation result status", result.getStatus());
 		TestUtil.assertSuccess(result);
 	}
+	
+	protected void assertSuccess(OperationResult result, int depth) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		display("Operation result status", result.getStatus());
+		TestUtil.assertSuccess(result, depth);
+	}
 
 	protected void assertSuccess(String message, OperationResult result) {
 		if (result.isUnknown()) {
@@ -2344,7 +2352,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		OperationResult result = new OperationResult("getShadowRepo");
 		// We need to read the shadow as raw, so repo will look for some kind of rudimentary attribute
 		// definitions here. Otherwise we will end up with raw values for non-indexed (cached) attributes
+		LOGGER.info("Getting repo shadow {}", shadowOid);
 		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, GetOperationOptions.createRawCollection(), result);
+		LOGGER.info("Got repo shadow\n{}", shadow.debugDumpLazily(1));
 		assertSuccess(result);
 		return shadow;
 	}

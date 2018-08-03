@@ -159,4 +159,10 @@ public class UserAsserter<R> extends FocusAsserter<UserType,R> {
 	public ShadowAsserter<UserAsserter<R>> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		return super.projectionOnResource(resourceOid);
 	}
+	
+	@Override
+	public UserAsserter<R> displayWithProjections() throws ObjectNotFoundException, SchemaException {
+		super.displayWithProjections();
+		return this;
+	}
 }
