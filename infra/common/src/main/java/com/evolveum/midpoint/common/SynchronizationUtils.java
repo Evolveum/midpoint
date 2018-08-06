@@ -197,25 +197,25 @@ public class SynchronizationUtils {
 		return syncSituationDelta;
 	}
 
-	public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject object,
+	public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject<ShadowType> currentObject,
 			SynchronizationSituationType situation, String sourceChannel, boolean full) {
 		XMLGregorianCalendar timestamp = XmlTypeConverter
 				.createXMLGregorianCalendar(System.currentTimeMillis());
 
-		List<PropertyDelta<?>> delta = createSynchronizationSituationDescriptionDelta(object, situation,
+		List<PropertyDelta<?>> delta = createSynchronizationSituationDescriptionDelta(currentObject, situation,
 				timestamp, sourceChannel, full);
 
-		PropertyDelta<XMLGregorianCalendar> timestampDelta = createSynchronizationTimestampDelta(object,
+		PropertyDelta<XMLGregorianCalendar> timestampDelta = createSynchronizationTimestampDelta(currentObject,
 				ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestamp);
 		delta.add(timestampDelta);
 
 		if (full) {
-			timestampDelta = createSynchronizationTimestampDelta(object,
+			timestampDelta = createSynchronizationTimestampDelta(currentObject,
 					ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, timestamp);
 			delta.add(timestampDelta);
 		}
 
-		PropertyDelta<SynchronizationSituationType> syncSituationDelta = createSynchronizationSituationDelta(object, situation);
+		PropertyDelta<SynchronizationSituationType> syncSituationDelta = createSynchronizationSituationDelta(currentObject, situation);
 
 		if (syncSituationDelta != null) {
 			delta.add(syncSituationDelta);

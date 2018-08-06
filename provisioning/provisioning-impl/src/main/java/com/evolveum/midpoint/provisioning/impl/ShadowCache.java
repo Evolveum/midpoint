@@ -2605,7 +2605,9 @@ public class ShadowCache {
 		ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry);
 		
 		// exists, dead
-		resultShadowType.setExists(resourceShadowType.isExists());
+		// This may seem strange, but always take exists and dead flags from the repository.
+		// Repository is wiser in this case. It may seem that the shadow exists if it is returned
+		// by the resource. But that may be just a quantum illusion (gestation and corpse shadow states).
 
 		// Activation
 		ActivationType resultActivationType = resultShadowType.getActivation();

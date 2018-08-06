@@ -31,7 +31,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * @author semancik
  *
  */
-public class ObjectDeltaTypeAsserter<R> extends AbstractAsserter<R> {
+public class ObjectDeltaTypeAsserter<RA> extends AbstractAsserter<RA> {
 	
 	private ObjectDeltaType delta;
 
@@ -45,8 +45,8 @@ public class ObjectDeltaTypeAsserter<R> extends AbstractAsserter<R> {
 		this.delta = delta;
 	}
 	
-	public ObjectDeltaTypeAsserter(ObjectDeltaType delta, R returnAsserter, String details) {
-		super(details);
+	public ObjectDeltaTypeAsserter(ObjectDeltaType delta, RA returnAsserter, String details) {
+		super(returnAsserter, details);
 		this.delta = delta;
 	}
 	
@@ -58,22 +58,22 @@ public class ObjectDeltaTypeAsserter<R> extends AbstractAsserter<R> {
 		return new ObjectDeltaTypeAsserter<>(delta, details);
 	}
 	
-	public ObjectDeltaTypeAsserter<R> assertAdd() {
+	public ObjectDeltaTypeAsserter<RA> assertAdd() {
 		assertChangeType(ChangeTypeType.ADD);
 		return this;
 	}
 	
-	public ObjectDeltaTypeAsserter<R> assertModify() {
+	public ObjectDeltaTypeAsserter<RA> assertModify() {
 		assertChangeType(ChangeTypeType.MODIFY);
 		return this;
 	}
 	
-	public ObjectDeltaTypeAsserter<R> assertDelete() {
+	public ObjectDeltaTypeAsserter<RA> assertDelete() {
 		assertChangeType(ChangeTypeType.DELETE);
 		return this;
 	}
 	
-	public ObjectDeltaTypeAsserter<R> assertChangeType(ChangeTypeType expected) {
+	public ObjectDeltaTypeAsserter<RA> assertChangeType(ChangeTypeType expected) {
 		assertEquals("Wrong change type in "+desc(), expected, delta.getChangeType());
 		return this;
 	}
@@ -82,7 +82,7 @@ public class ObjectDeltaTypeAsserter<R> extends AbstractAsserter<R> {
 		return descWithDetails(delta);
 	}
 	
-	public ObjectDeltaTypeAsserter<R> display() {
+	public ObjectDeltaTypeAsserter<RA> display() {
 		if (getDetails() != null) {
 			display(getDetails());
 		} else {
@@ -91,7 +91,7 @@ public class ObjectDeltaTypeAsserter<R> extends AbstractAsserter<R> {
 		return this;
 	}
 	
-	public ObjectDeltaTypeAsserter<R> display(String message) {
+	public ObjectDeltaTypeAsserter<RA> display(String message) {
 		IntegrationTestTools.display(message, PrettyPrinter.debugDump(delta, 1));
 		return this;
 	}

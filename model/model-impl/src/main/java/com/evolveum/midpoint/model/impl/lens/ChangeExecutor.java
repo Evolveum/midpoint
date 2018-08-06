@@ -632,7 +632,7 @@ public class ChangeExecutor {
 									// Already linked, nothing to do, only be sure, the
 									// situation is set with the good value
 									LOGGER.trace("Updating situation in already linked shadow.");
-									updateSituationInShadow(task, SynchronizationSituationType.LINKED, null, focusObjectContext,
+									updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusObjectContext,
 											projCtx, result);
 									return;
 								}
@@ -642,7 +642,7 @@ public class ChangeExecutor {
 						linkShadow(focusContext.getOid(), projOid, focusObjectContext, projCtx, task, result);
 						// be sure, that the situation is set correctly
 						LOGGER.trace("Updating situation after shadow was linked.");
-						updateSituationInShadow(task, SynchronizationSituationType.LINKED, null, focusObjectContext, projCtx,
+						updateSituationInShadow(task, SynchronizationSituationType.LINKED,  focusObjectContext, projCtx,
 								result);
 		} else {
 			// Link should NOT exist
@@ -665,26 +665,11 @@ public class ChangeExecutor {
 				}
 			}
 
-			if (projCtx.isDelete() || projCtx.isThombstone()) {
-				LOGGER.trace("Resource object {} deleted, updating also situation in shadow.", projOid);
-				// HACK HACK?
-				try {
-					updateSituationInShadow(task, SynchronizationSituationType.DELETED, true, focusObjectContext,
-							projCtx, result);
-				} catch (ObjectNotFoundException e) {
-					// HACK HACK?
-					LOGGER.trace(
-							"Resource object {} is gone, cannot update situation in shadow (this is probably harmless).",
-							projOid);
-					result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
-				}
-			} else {
-				// This should NOT be UNLINKED. We just do not know the
-				// situation here. Reflect that in the shadow.
-				LOGGER.trace("Resource object {} unlinked from the user, updating also situation in shadow.",
-						projOid);
-				updateSituationInShadow(task, null, null, focusObjectContext, projCtx, result);
-			}
+			// This should NOT be UNLINKED. We just do not know the
+			// situation here. Reflect that in the shadow.
+			LOGGER.trace("Resource object {} unlinked from the user, updating also situation in shadow.",
+					projOid);
+			updateSituationInShadow(task, null, focusObjectContext, projCtx, result);
 			// Not linked, that's OK
 		}
 	}
@@ -803,7 +788,7 @@ public class ChangeExecutor {
 	}
 
 	private <F extends ObjectType> void updateSituationInShadow(Task task,
-			SynchronizationSituationType situation, Boolean dead, LensFocusContext<F> focusContext,
+			SynchronizationSituationType situation, LensFocusContext<F> focusContext,
 			LensProjectionContext projectionCtx, OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException {
 
@@ -826,11 +811,6 @@ public class ChangeExecutor {
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
 				.createSynchronizationSituationAndDescriptionDelta(account, situation, task.getChannel(),
 						projectionCtx.hasFullShadow());
-		
-		if (dead != null) {
-			PropertyDelta<Boolean> deadDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_DEAD, account.getDefinition(), dead);
-			syncSituationDeltas.add(deadDelta);
-		}
 
 		try {
 			Utils.setRequestee(task, focusContext);

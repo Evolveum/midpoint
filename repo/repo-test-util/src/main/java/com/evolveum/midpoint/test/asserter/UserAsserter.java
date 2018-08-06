@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author semancik
  *
  */
-public class UserAsserter<R> extends FocusAsserter<UserType,R> {
+public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	
 	public UserAsserter(PrismObject<UserType> focus) {
 		super(focus);
@@ -52,7 +52,7 @@ public class UserAsserter<R> extends FocusAsserter<UserType,R> {
 		super(focus, details);
 	}
 	
-	public UserAsserter(PrismObject<UserType> focus, R returnAsserter, String details) {
+	public UserAsserter(PrismObject<UserType> focus, RA returnAsserter, String details) {
 		super(focus, returnAsserter, details);
 	}
 	
@@ -65,48 +65,48 @@ public class UserAsserter<R> extends FocusAsserter<UserType,R> {
 	}
 	
 	@Override
-	public UserAsserter<R> assertOid() {
+	public UserAsserter<RA> assertOid() {
 		super.assertOid();
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<R> assertOid(String expected) {
+	public UserAsserter<RA> assertOid(String expected) {
 		super.assertOid(expected);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<R> assertOidDifferentThan(String oid) {
+	public UserAsserter<RA> assertOidDifferentThan(String oid) {
 		super.assertOidDifferentThan(oid);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<R> assertName() {
+	public UserAsserter<RA> assertName() {
 		super.assertName();
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<R> assertName(String expectedOrig) {
+	public UserAsserter<RA> assertName(String expectedOrig) {
 		super.assertName(expectedOrig);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<R> assertLifecycleState(String expected) {
+	public UserAsserter<RA> assertLifecycleState(String expected) {
 		super.assertLifecycleState(expected);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<R> assertActiveLifecycleState() {
+	public UserAsserter<RA> assertActiveLifecycleState() {
 		super.assertActiveLifecycleState();
 		return this;
 	}
 	
-	public UserAsserter<R> assertAdministrativeStatus(ActivationStatusType expected) {
+	public UserAsserter<RA> assertAdministrativeStatus(ActivationStatusType expected) {
 		ActivationType activation = getActivation();
 		if (activation == null) {
 			if (expected == null) {
@@ -123,45 +123,52 @@ public class UserAsserter<R> extends FocusAsserter<UserType,R> {
 		return getObject().asObjectable().getActivation();
 	}
 	
-	public UserAsserter<R> display() {
+	public UserAsserter<RA> display() {
 		super.display();
 		return this;
 	}
 	
-	public UserAsserter<R> display(String message) {
+	public UserAsserter<RA> display(String message) {
 		super.display(message);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<R> assertLinks(int expected) {
+	public LinksAsserter<UserType, UserAsserter<RA>, RA> links() {
+		LinksAsserter<UserType, UserAsserter<RA>, RA> asserter = new LinksAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public UserAsserter<RA> assertLinks(int expected) {
 		super.assertLinks(expected);
 		return this;
 	}
 
-	public UserAsserter<R> assertFullName(String expectedOrig) {
+	public UserAsserter<RA> assertFullName(String expectedOrig) {
 		assertPolyStringProperty(UserType.F_FULL_NAME, expectedOrig);
 		return this;
 	}
 	
-	public UserAsserter<R> assertLocality(String expectedOrig) {
+	public UserAsserter<RA> assertLocality(String expectedOrig) {
 		assertPolyStringProperty(UserType.F_LOCALITY, expectedOrig);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<R> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
+	public UserAsserter<RA> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		super.assertHasProjectionOnResource(resourceOid);
 		return this;
 	}
 	
 	@Override
-	public ShadowAsserter<UserAsserter<R>> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
+	public ShadowAsserter<UserAsserter<RA>> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		return super.projectionOnResource(resourceOid);
 	}
 	
 	@Override
-	public UserAsserter<R> displayWithProjections() throws ObjectNotFoundException, SchemaException {
+	public UserAsserter<RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
 		super.displayWithProjections();
 		return this;
 	}

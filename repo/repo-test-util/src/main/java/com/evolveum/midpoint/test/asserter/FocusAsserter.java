@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public class FocusAsserter<F extends FocusType,R> extends PrismObjectAsserter<F,R> {
+public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F,RA> {
 	
 	private Map<String,PrismObject<ShadowType>> projectionCache = new HashMap<>();
 	
@@ -61,7 +61,7 @@ public class FocusAsserter<F extends FocusType,R> extends PrismObjectAsserter<F,
 		super(focus, details);
 	}
 	
-	public FocusAsserter(PrismObject<F> focus, R returnAsserter, String details) {
+	public FocusAsserter(PrismObject<F> focus, RA returnAsserter, String details) {
 		super(focus, returnAsserter, details);
 	}
 	
@@ -74,48 +74,48 @@ public class FocusAsserter<F extends FocusType,R> extends PrismObjectAsserter<F,
 	}
 	
 	@Override
-	public FocusAsserter<F,R> assertOid() {
+	public FocusAsserter<F,RA> assertOid() {
 		super.assertOid();
 		return this;
 	}
 	
 	@Override
-	public FocusAsserter<F,R> assertOid(String expected) {
+	public FocusAsserter<F,RA> assertOid(String expected) {
 		super.assertOid(expected);
 		return this;
 	}
 	
 	@Override
-	public FocusAsserter<F,R> assertOidDifferentThan(String oid) {
+	public FocusAsserter<F,RA> assertOidDifferentThan(String oid) {
 		super.assertOidDifferentThan(oid);
 		return this;
 	}
 	
 	@Override
-	public FocusAsserter<F,R> assertName() {
+	public FocusAsserter<F,RA> assertName() {
 		super.assertName();
 		return this;
 	}
 	
 	@Override
-	public FocusAsserter<F,R> assertName(String expectedOrig) {
+	public FocusAsserter<F,RA> assertName(String expectedOrig) {
 		super.assertName(expectedOrig);
 		return this;
 	}
 	
 	@Override
-	public FocusAsserter<F,R> assertLifecycleState(String expected) {
+	public FocusAsserter<F,RA> assertLifecycleState(String expected) {
 		super.assertLifecycleState(expected);
 		return this;
 	}
 	
 	@Override
-	public FocusAsserter<F,R> assertActiveLifecycleState() {
+	public FocusAsserter<F,RA> assertActiveLifecycleState() {
 		super.assertActiveLifecycleState();
 		return this;
 	}
 	
-	public FocusAsserter<F,R> assertAdministrativeStatus(ActivationStatusType expected) {
+	public FocusAsserter<F,RA> assertAdministrativeStatus(ActivationStatusType expected) {
 		ActivationType activation = getActivation();
 		if (activation == null) {
 			if (expected == null) {
@@ -132,45 +132,46 @@ public class FocusAsserter<F extends FocusType,R> extends PrismObjectAsserter<F,
 		return getObject().asObjectable().getActivation();
 	}
 	
-	public FocusAsserter<F,R> display() {
+	public FocusAsserter<F,RA> display() {
 		super.display();
 		return this;
 	}
 	
-	public FocusAsserter<F,R> display(String message) {
+	public FocusAsserter<F,RA> display(String message) {
 		super.display(message);
 		return this;
 	}
 	
-	public FocusAsserter<F,R> assertLinks(int expected) {
-		PrismReference linkRef = getObject().findReference(FocusType.F_LINK_REF);
-		if (linkRef == null) {
-			assertTrue("Expected "+expected+" links, but there is no linkRef in "+desc(), expected == 0);
-			return this;
-		}
-		assertEquals("Wrong number of links in " + desc(), expected, linkRef.size());
+	public LinksAsserter<F, ? extends FocusAsserter<F,RA>, RA> links() {
+		LinksAsserter<F,FocusAsserter<F,RA>,RA> asserter = new LinksAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public FocusAsserter<F,RA> assertLinks(int expected) {
+		links().assertLinks(expected);
 		return this;
 	}
 	
-	public ShadowReferenceAsserter<FocusAsserter<F,R>> singleLink() {
+	public ShadowReferenceAsserter<FocusAsserter<F,RA>> singleLink() {
 		PrismReference linkRef = getObject().findReference(FocusType.F_LINK_REF);
 		if (linkRef == null) {
 			fail("Expected single link, but is no linkRef in "+desc());
 			return null; // not reached
 		}
 		assertEquals("Wrong number of links in " + desc(), 1, linkRef.size());
-		ShadowReferenceAsserter<FocusAsserter<F, R>> asserter = new ShadowReferenceAsserter<>(linkRef.getValue(0), this, "link in "+desc());
+		ShadowReferenceAsserter<FocusAsserter<F, RA>> asserter = new ShadowReferenceAsserter<>(linkRef.getValue(0), null, this, "link in "+desc());
 		copySetupTo(asserter);
 		return asserter;
 	}
 	
-	public FocusAsserter<F,R> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
+	public FocusAsserter<F,RA> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		PrismObject<ShadowType> shadow = findProjectionOnResource(resourceOid);
 		assertNotNull("Projection for resource "+resourceOid+" not found in "+desc(), shadow);
         return this;
 	}
 	
-	public <A extends FocusAsserter<F,R>> ShadowAsserter<A> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
+	public <A extends FocusAsserter<F,RA>> ShadowAsserter<A> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		PrismObject<ShadowType> shadow = findProjectionOnResource(resourceOid);
 		assertNotNull("Projection for resource "+resourceOid+" not found in "+desc(), shadow);
 		ShadowAsserter<A> asserter = new ShadowAsserter<A>(shadow, (A)this, "projection of "+desc());
@@ -199,7 +200,7 @@ public class FocusAsserter<F extends FocusType,R> extends PrismObjectAsserter<F,
         return shadows;
 	}
 
-	private PrismObject<ShadowType> getLinkTarget(String oid) throws ObjectNotFoundException, SchemaException {
+	PrismObject<ShadowType> getLinkTarget(String oid) throws ObjectNotFoundException, SchemaException {
 		PrismObject<ShadowType> shadow = projectionCache.get(oid);
 		if (shadow == null) {
 			shadow = resolveObject(ShadowType.class, oid);
@@ -208,7 +209,7 @@ public class FocusAsserter<F extends FocusType,R> extends PrismObjectAsserter<F,
 		return shadow;
 	}
 	
-	public  FocusAsserter<F,R> displayWithProjections() throws ObjectNotFoundException, SchemaException {
+	public  FocusAsserter<F,RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
 		display();
 		for (PrismObject<ShadowType> linkTarget: getLinkTargets()) {
 			IntegrationTestTools.display("projetion of "+desc(), linkTarget);

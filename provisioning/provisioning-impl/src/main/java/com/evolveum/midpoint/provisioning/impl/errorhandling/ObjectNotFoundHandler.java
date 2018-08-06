@@ -92,6 +92,15 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 			discoverDeletedShadow(ctx, repositoryShadow, cause, task, parentResult);
 		}
 		
+		if (repositoryShadow != null) {
+			// We always want to return repository shadow it such shadow is available.
+			// The shadow may be dead, or it may be marked as "not exists", but we want
+			// to return something if shadow exists in the repo. Otherwise model may
+			// unlink the shadow or otherwise "forget" about it.
+			LOGGER.debug("Shadow {} not found on the resource. However still have it in the repository. Therefore returning repository version.", repositoryShadow);
+			parentResult.setStatus(OperationResultStatus.HANDLED_ERROR);
+			return repositoryShadow;
+		}
 		return super.handleGetError(ctx, repositoryShadow, rootOptions, cause, task, parentResult);
 	}
 	

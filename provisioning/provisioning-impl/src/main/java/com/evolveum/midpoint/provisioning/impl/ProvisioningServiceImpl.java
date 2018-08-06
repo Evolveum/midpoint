@@ -257,7 +257,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		}
 
-		result.computeStatus();
+		result.computeStatusIfUnknown();
 		if (!GetOperationOptions.isRaw(rootOptions)) {
 			resultingObject = resultingObject.cloneIfImmutable();
 			resultingObject.asObjectable().setFetchResult(result.createOperationResultType());

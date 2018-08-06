@@ -54,8 +54,8 @@ public class ShadowReferenceAsserter<R> extends ObjectReferenceAsserter<ShadowTy
 		super(refVal, ShadowType.class, detail);
 	}
 	
-	public ShadowReferenceAsserter(PrismReferenceValue refVal, R returnAsserter, String detail) {
-		super(refVal, ShadowType.class, returnAsserter, detail);
+	public ShadowReferenceAsserter(PrismReferenceValue refVal, PrismObject<ShadowType> resolvedTarget, R returnAsserter, String detail) {
+		super(refVal, ShadowType.class, resolvedTarget, returnAsserter, detail);
 	}
 	
 	@Override
@@ -75,6 +75,12 @@ public class ShadowReferenceAsserter<R> extends ObjectReferenceAsserter<ShadowTy
 		return asserter;
 	}
 
+	@Override
+	public ShadowAsserter<ObjectReferenceAsserter<ShadowType, R>> target()
+			throws ObjectNotFoundException, SchemaException {
+		return new ShadowAsserter<>(getResolvedTarget(), this, "object resolved from "+desc());
+	}
+	
 	@Override
 	public ShadowAsserter<ObjectReferenceAsserter<ShadowType, R>> resolveTarget()
 			throws ObjectNotFoundException, SchemaException {

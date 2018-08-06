@@ -1180,7 +1180,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	}
 
 	/**
-	 * Case is closed. The operation is complete.
+	 * Case is closed. The unassign operation is complete.
 	 * However, in the semi-manual case this gets really interesting.
 	 * We have Schroedinger's shadow here.  deleted account, ticket closed, account is deleted
 	 * by administrator in the target system. But the account is still in the backing store (CSV)
@@ -1346,7 +1346,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				.end();
 		assertUnassignedShadow(shadowRepoAsserter, true, null);
 	
-		ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountWillOid)
+		ShadowAsserter<Void> shadowModelAsserter = assertModelShadowNoFetch(accountWillOid)
 			.assertName(USER_WILL_NAME)
 			.assertKind(ShadowKindType.ACCOUNT)
 			.pendingOperations()
@@ -1360,12 +1360,14 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertUnassignedShadow(shadowModelAsserter, true, ActivationStatusType.DISABLED);
 		// Do NOT assert password here. There is no password even for semi-manual case as the shadow is dead and account gone.
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, false);
+		assertModelShadow(accountWillOid)
+			.assertTombstone();
+		
+		assertModelShadowFuture(accountWillOid)
+			.assertTombstone();
+		
+		assertModelShadowFutureNoFetch(accountWillOid)
+			.assertTombstone();
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
@@ -1738,7 +1740,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
 				task, result);
 		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, true);
+		assertWillUnassignedFuture(shadowModelFuture, false);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1988,7 +1990,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	 */
 	@Test
 	public void test525CloseCasesAndRecomputeWill() throws Exception {
-		final String TEST_NAME = "test515CloseCasesAndRecomputeWill";
+		final String TEST_NAME = "test525CloseCasesAndRecomputeWill";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);

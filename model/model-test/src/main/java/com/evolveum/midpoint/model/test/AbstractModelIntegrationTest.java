@@ -5291,9 +5291,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return asserter;
 	}
 	
+	protected ShadowAsserter<Void> assertModelShadowNoFetch(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ShadowType> repoShadow = getShadowModelNoFetch(oid);
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model(noFetch)");
+		asserter
+			.display();
+		return asserter;
+	}
+	
 	protected ShadowAsserter<Void> assertModelShadowFuture(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<ShadowType> repoShadow = getShadowModelFuture(oid);
 		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model(future)");
+		asserter
+			.display();
+		return asserter;
+	}
+	
+	protected ShadowAsserter<Void> assertModelShadowFutureNoFetch(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		GetOperationOptions options = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
+		options.setNoFetch(true);
+		PrismObject<ShadowType> repoShadow = getShadowModel(oid, options, true);
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "model(future,noFetch)");
 		asserter
 			.display();
 		return asserter;
@@ -5305,6 +5323,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		try {
 			PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, oid, null, task, result);
 			fail("Expected that shadow "+oid+" will not be in the model. But it was: "+shadow);
+		} catch (ObjectNotFoundException e) {
+			// Expected
+			assertFailure(result);
+		}
+	}
+	
+	protected void assertNoModelShadowFuture(String oid) throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = createTask("assertNoModelShadowFuture");
+		OperationResult result = task.getResult();
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+		try {
+			PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, oid, options, task, result);
+			fail("Expected that future shadow "+oid+" will not be in the model. But it was: "+shadow);
 		} catch (ObjectNotFoundException e) {
 			// Expected
 			assertFailure(result);

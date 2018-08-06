@@ -534,9 +534,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        display("user after", userJack);
-        assertLinks(userJack, 2);
+		assertUserAfter(USER_JACK_OID)
+			.assertLinks(2);
 
         display("dummy resource after", getDummyResource());
 
@@ -572,12 +571,29 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		display("Result", result);
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertLinks(userJack, 2);
+		assertUserAfter(USER_JACK_OID)
+			.displayWithProjections()
+			.links()
+				.assertLinks(3)
+				.by()
+					.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+					.dead(true)
+				.find()
+					.end()
+				.by()
+					.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+					.dead(false)
+				.find()
+					.end()
+				.by()
+					.resourceOid(RESOURCE_DUMMY_OID)
+				.find()
+					.target()
+						.assertLife()
+						.end()
+					.end();
 
         display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 

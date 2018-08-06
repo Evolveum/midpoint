@@ -47,6 +47,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAsserter<R> {
 	
 	final private PrismReferenceValue refVal;
+	private PrismObject<O> resolvedTarget = null;
 	final private Class<O> defaultTargetTypeClass;
 
 	public ObjectReferenceAsserter(PrismReferenceValue refVal, Class<O> defaultTargetTypeClass) {
@@ -61,10 +62,11 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
 		this.defaultTargetTypeClass = defaultTargetTypeClass;
 	}
 	
-	public ObjectReferenceAsserter(PrismReferenceValue refVal, Class<O> defaultTargetTypeClass, R returnAsserter, String detail) {
+	public ObjectReferenceAsserter(PrismReferenceValue refVal, Class<O> defaultTargetTypeClass, PrismObject<O> resolvedTarget, R returnAsserter, String detail) {
 		super(returnAsserter, detail);
 		this.refVal = refVal;
 		this.defaultTargetTypeClass = defaultTargetTypeClass;
+		this.resolvedTarget = resolvedTarget;
 	}
 	
 	protected PrismReferenceValue getRefVal() {
@@ -83,6 +85,17 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
 	
 	public PrismObjectAsserter<O,ObjectReferenceAsserter<O,R>> object() {
 		return new PrismObjectAsserter<>((PrismObject<O>)refVal.getObject(), this, "object in "+desc());
+	}
+	
+	protected PrismObject<O> getResolvedTarget() throws ObjectNotFoundException, SchemaException {
+		if (resolvedTarget == null) {
+			resolvedTarget = resolveTargetObject();
+		}
+		return resolvedTarget;
+	}
+	
+	public PrismObjectAsserter<O,ObjectReferenceAsserter<O,R>> target() throws ObjectNotFoundException, SchemaException {
+		return new PrismObjectAsserter<>(getResolvedTarget(), this, "object resolved from "+desc());
 	}
 	
 	public PrismObjectAsserter<O,ObjectReferenceAsserter<O,R>> resolveTarget() throws ObjectNotFoundException, SchemaException {

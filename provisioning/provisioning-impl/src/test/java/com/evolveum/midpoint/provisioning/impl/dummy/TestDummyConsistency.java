@@ -412,9 +412,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_MORGAN_OID);
 		assertNotNull("Shadow was not created in the repository", repoShadow);
 		
-		ShadowAsserter shadowAsserter = ShadowAsserter.forShadow(repoShadow, "repository");
-		shadowAsserter
-			.display()
+		assertRepoShadow(ACCOUNT_MORGAN_OID)
 			.pendingOperations()
 				.singleOperation()
 					.display()
@@ -427,8 +425,10 @@ public class TestDummyConsistency extends AbstractDummyTest {
 					.assertCompletionTimestamp(lastAttemptStartTs, lastAttemptEndTs)
 					.delta()
 						.display()
-						.assertAdd();
-		shadowAsserter
+						.assertAdd()
+						.end()
+					.end()
+				.end()
 			.assertBasicRepoProperties()
 			.assertKind(ShadowKindType.ACCOUNT)
 			.assertDead()
@@ -437,10 +437,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 			.attributes()
 				.assertAttributes(SchemaConstants.ICFS_NAME);
 		
-		PrismObject<ShadowType> shadowNoFetch = getShadowNoFetch(ACCOUNT_MORGAN_OID);
-		shadowAsserter = ShadowAsserter.forShadow(shadowNoFetch, "noFetch");
-		shadowAsserter
-			.display()
+		assertShadowNoFetch(ACCOUNT_MORGAN_OID)
 			.pendingOperations()
 				.singleOperation()
 					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
@@ -451,8 +448,10 @@ public class TestDummyConsistency extends AbstractDummyTest {
 					.assertLastAttemptTimestamp(lastAttemptStartTs, lastAttemptEndTs)
 					.assertCompletionTimestamp(lastAttemptStartTs, lastAttemptEndTs)
 					.delta()
-						.assertAdd();
-		shadowAsserter
+						.assertAdd()
+						.end()
+					.end()
+				.end()
 			.assertDead()
 			.assertIsNotExists()
 			.assertNoLegacyConsistency()
@@ -462,17 +461,26 @@ public class TestDummyConsistency extends AbstractDummyTest {
 				.assertHasSecondaryIdentifier()
 				.assertSize(1);
 		
-		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuture(ACCOUNT_MORGAN_OID);
-		shadowAsserter = ShadowAsserter.forShadow(accountProvisioningFuture,"future");
-		shadowAsserter
-			.display()
+		ShadowAsserter<Void> shadowProvisioningFutureAsserter =
+				assertShadowFuture(ACCOUNT_MORGAN_OID)
 			.assertDead()
 			.assertIsNotExists()
 			.assertNoLegacyConsistency()
 			.attributes()
 				.assertResourceAttributeContainer()
 				.assertNoPrimaryIdentifier()
-				.assertHasSecondaryIdentifier();
+				.assertHasSecondaryIdentifier()
+				.end();
+		
+		assertShadowFutureNoFetch(ACCOUNT_MORGAN_OID)
+			.assertDead()
+			.assertIsNotExists()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertNoPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.end();
 		
 		dummyResource.resetBreakMode();
 		
@@ -485,7 +493,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		
-		checkUniqueness(accountProvisioningFuture);
+		checkUniqueness(shadowProvisioningFutureAsserter.getObject());
 		
 		assertSteadyResources();
 	}
@@ -1305,16 +1313,25 @@ public class TestDummyConsistency extends AbstractDummyTest {
 			.pendingOperations()
 				.assertNone();
 
-		ShadowAsserter asserterShadowFuture = assertShadowFuture(ACCOUNT_MORGAN_OID)
-			.assertDead()
-			.assertIsNotExists()
+		ShadowAsserter<Void> asserterShadowFuture = assertShadowFuture(ACCOUNT_MORGAN_OID)
+			.assertTombstone()
 			.assertNoLegacyConsistency()
 			.attributes()
 				.assertResourceAttributeContainer()
 				.assertNoPrimaryIdentifier()
 				.assertHasSecondaryIdentifier()
 				.end();
+
 		
+		assertShadowFutureNoFetch(ACCOUNT_MORGAN_OID)
+			.assertTombstone()
+			.assertNoLegacyConsistency()
+			.attributes()
+				.assertResourceAttributeContainer()
+				.assertNoPrimaryIdentifier()
+				.assertHasSecondaryIdentifier()
+				.end();
+
 		dummyResource.resetBreakMode();
 		
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
@@ -1381,8 +1398,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
 	
 		assertShadowProvisioning(shadowMorganOid)
 			.assertTombstone();
-	
+		
 		assertShadowFuture(shadowMorganOid)
+			.assertTombstone();
+		
+		assertShadowFutureNoFetch(shadowMorganOid)
 			.assertTombstone();
 		
 		dummyResource.resetBreakMode();
@@ -1851,17 +1871,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		try {
-			provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
-			assertNotReached();
-		} catch (ObjectNotFoundException e) {
-			displayThen(TEST_NAME);
-			display("expected exception", e);
-		}
+		PrismObject<ShadowType> provisioningShadow = provisioningService.getObject(ShadowType.class, shadowMorganOid, null, task, result);
 
 		// THEN
-		display("Result", result);
-		assertFailure(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 		
 		syncServiceMock
 			.assertNotifyChange()
@@ -1888,10 +1902,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
 						.assertNone();
 
 		assertRepoShadow(shadowMorganOid)
-			.assertDead()
-			.assertIsNotExists()
+			.assertTombstone()
 			.pendingOperations()
 				.assertNone();
+		
+		ShadowAsserter.forShadow(provisioningShadow, "provisioning")
+			.assertTombstone();
 		
 		assertNoRepoShadow(ACCOUNT_MORGAN_OID);
 		assertSteadyResources();
@@ -2810,6 +2826,9 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		
 		assertShadowFuture(shadowMorganOid)
 			.assertTombstone();
+		
+		assertShadowFutureNoFetch(shadowMorganOid)
+			.assertTombstone();
 
 		dummyResource.resetBreakMode();
 		dummyResourceCtl.assertNoAccountByUsername(ACCOUNT_MORGAN_NAME);
@@ -2853,7 +2872,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		assertSuccess(result);
 		return shadow;
 	}
-	
+		
 	private PrismObject<ShadowType> getShadowFuturePartialError(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = createTask("getShadowFuture");
 		OperationResult result = task.getResult();

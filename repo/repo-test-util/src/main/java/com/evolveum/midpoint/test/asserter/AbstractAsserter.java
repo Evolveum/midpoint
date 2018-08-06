@@ -30,10 +30,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  *
  */
-public abstract class AbstractAsserter<R> {
+public abstract class AbstractAsserter<RA> {
 	
 	private String details;
-	private R returnAsserter;
+	private RA returnAsserter;
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
 	
@@ -46,7 +46,7 @@ public abstract class AbstractAsserter<R> {
 		this.details = details;
 	}
 	
-	public AbstractAsserter(R returnAsserter, String details) {
+	public AbstractAsserter(RA returnAsserter, String details) {
 		super();
 		this.returnAsserter = returnAsserter;
 		this.details = details;
@@ -84,7 +84,7 @@ public abstract class AbstractAsserter<R> {
 		}
 	}
 	
-	public R end() {
+	public RA end() {
 		return returnAsserter;
 	}
 	
