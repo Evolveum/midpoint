@@ -234,28 +234,25 @@ public class ShadowCaretaker {
 		return shadowCtx;
 	}
 	
-	public PrismObject<ShadowType> applyPendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-		if (shadow == null) {
-			return null;
-		}
-		return applyPendingOperations(ctx, shadow, shadow.asObjectable().getPendingOperation(), false, now);
-	}
-	
 	public PrismObject<ShadowType> applyPendingOperations(ProvisioningContext ctx,
-			PrismObject<ShadowType> shadow, 
-			List<PendingOperationType> pendingOperations,
+			PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow,
 			boolean skipExecutionPendingOperations,
 			XMLGregorianCalendar now)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-		if (shadow == null) {
-			return null;
+		if (repoShadow == null) {
+			return resourceShadow;
 		}
-		PrismObject<ShadowType> resultShadow = shadow;
-		ShadowType resultShadowType = resultShadow.asObjectable();
+		List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
+		PrismObject<ShadowType> resultShadow;
+		if (resourceShadow == null) {
+			resultShadow = repoShadow;
+		} else {
+			resultShadow = resourceShadow;
+		}
 		if (pendingOperations.isEmpty()) {
-			return shadow;
+			return resultShadow;
 		}
+		ShadowType resultShadowType = resultShadow.asObjectable();
 		List<PendingOperationType> sortedOperations = sortPendingOperations(pendingOperations);
 		Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
 		boolean resourceReadIsCachingOnly = ProvisioningUtil.resourceReadIsCachingOnly(ctx.getResource());
@@ -288,10 +285,13 @@ public class ShadowCaretaker {
 			ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
 			ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
 			if (pendingDelta.isAdd()) {
-				if (Boolean.FALSE.equals(resultShadowType.isExists())) {
-					ShadowType shadowType = shadow.asObjectable();
+				// In case that we have resourceShadow then do NOT apply ADD operation
+				// In that case the object was obviously already created. The data that we have from the
+				// resource are going to be more precise than the pending ADD delta (which might not have been applied completely)
+				if (resourceShadow == null) {
+					ShadowType shadowType = repoShadow.asObjectable();
 					resultShadow = pendingDelta.getObjectToAdd().clone();
-					resultShadow.setOid(shadow.getOid());
+					resultShadow.setOid(repoShadow.getOid());
 					resultShadowType = resultShadow.asObjectable();
 					resultShadowType.setExists(true);
 					resultShadowType.setName(shadowType.getName());

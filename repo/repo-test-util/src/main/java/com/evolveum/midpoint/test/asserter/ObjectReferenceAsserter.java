@@ -73,6 +73,10 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
 		return refVal;
 	}
 	
+	public String getOid() {
+		return refVal.getOid();
+	}
+	
 	public ObjectReferenceAsserter<O,R> assertOid() {
 		assertNotNull("No OID in "+desc(), refVal.getOid());
 		return this;

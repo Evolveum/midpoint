@@ -1904,12 +1904,11 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		// THEN
 		displayThen(TEST_NAME);
-		display("result", result);
 		assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(userWillOid);
-		display("User after", userAfter);
-		accountWillOid = getSingleLinkOid(userAfter);
+		accountWillOid = assertUserAfter(userWillOid)
+			.singleLink()
+				.getOid();
 
 		accountWillReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
@@ -1943,41 +1942,43 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		display("result", result);
 		willSecondLastCaseOid = assertInProgress(result);
 
-		PrismObject<UserType> userAfter = getUser(userWillOid);
-		display("User after", userAfter);
-		accountWillOid = getSingleLinkOid(userAfter);
-
 		accountWillSecondReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertPendingOperationDeltas(shadowRepo, 2);
+		assertUserAfter(userWillOid)
+		.singleLink()
+			.assertOid(accountWillOid);
 
-		ObjectDeltaType deltaModify = null;
-		ObjectDeltaType deltaAdd = null;
-		for (PendingOperationType pendingOperation: shadowRepo.asObjectable().getPendingOperation()) {
-			assertEquals("Wrong pending operation result", OperationResultStatusType.IN_PROGRESS, pendingOperation.getResultStatus());
-			ObjectDeltaType delta = pendingOperation.getDelta();
-			if (ChangeTypeType.ADD.equals(delta.getChangeType())) {
-				deltaAdd = delta;
-			}
-			if (ChangeTypeType.MODIFY.equals(delta.getChangeType())) {
-				deltaModify = delta;
-				assertEquals("Wrong case ID", willSecondLastCaseOid, pendingOperation.getAsynchronousOperationReference());
-			}
-		}
-		assertNotNull("No add pending delta", deltaAdd);
-		assertNotNull("No modify pending delta", deltaModify);
+		ShadowAsserter<Void> repoShadowAsserter = assertRepoShadow(accountWillOid)
+			.assertConception()
+			.pendingOperations()
+				.assertOperations(2)
+				.by()
+					.changeType(ChangeTypeType.ADD)
+				.find()
+					.delta()
+						.display()
+					.end()
+				.end()
+				.by()
+					.changeType(ChangeTypeType.MODIFY)
+				.find()
+					.assertAsynchronousOperationReference(willSecondLastCaseOid)
+				.end()
+			.end()
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+			.end()
+			.assertNoPassword();
+		assertAttributeFromCache(repoShadowAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
+		assertShadowActivationAdministrativeStatusFromCache(repoShadowAsserter, ActivationStatusType.ENABLED);
 
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
-		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertShadowExists(shadowRepo, false);
-		assertNoShadowPassword(shadowRepo);
-
-		// TODO: assert future
+		assertModelShadowFuture(accountWillOid)
+			.assertLife()
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end();
 
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
 
@@ -1989,8 +1990,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	 * MID-4095
 	 */
 	@Test
-	public void test525CloseCasesAndRecomputeWill() throws Exception {
-		final String TEST_NAME = "test525CloseCasesAndRecomputeWill";
+	public void test525CloseCasesAndReconcileWill() throws Exception {
+		final String TEST_NAME = "test525CloseCasesAndReconcileWill";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);

@@ -2144,6 +2144,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 					.assertId()
 					.assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
 					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.delta()
+						.display()
+						.end()
 					.end()
 				.end()
 			.attributes()
@@ -2290,10 +2293,10 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		} else {
 			
 			shadowRepoAsserter
-				.assertConception();
+				.assertGestation();
 			
 			shadowModelAsserter
-				.assertConception();
+				.assertGestation();
 		}
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);

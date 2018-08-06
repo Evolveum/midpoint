@@ -92,6 +92,11 @@ public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperati
 		return this;
 	}
 	
+	public PendingOperationAsserter<R> assertAsynchronousOperationReference(String expected) {
+		assertEquals("Wrong asynchronous operation reference in "+desc(), expected, pendingOperation.getAsynchronousOperationReference());
+		return this;
+	}
+	
 	public PendingOperationAsserter<R> assertId() {
 		assertNotNull("No id in "+desc(), pendingOperation.getId());
 		return this;

@@ -569,12 +569,9 @@ public class ResourceObjectConverter {
 				// account is enabled, then disable and then enabled again. If backing store still
 				// has the account as enabled, then the last enable operation would be ignored.
 				// No case is created to re-enable the account. And the account stays disabled at the end.
-				List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
-				if (!pendingOperations.isEmpty()) {
-					preReadShadow = shadowCaretaker.applyPendingOperations(ctx, preReadShadow, pendingOperations, true, now);
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Pre-read object (applied pending operations):\n{}", preReadShadow==null?null:preReadShadow.debugDump(1));
-					}
+				preReadShadow = shadowCaretaker.applyPendingOperations(ctx, repoShadow, preReadShadow, true, now);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Pre-read object (applied pending operations):\n{}", preReadShadow==null?null:preReadShadow.debugDump(1));
 				}
 			}
 			

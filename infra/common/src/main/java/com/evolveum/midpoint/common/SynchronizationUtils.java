@@ -168,7 +168,7 @@ public class SynchronizationUtils {
 	}
 
 	public static PropertyDelta<SynchronizationSituationType> createSynchronizationSituationDelta(
-			PrismObject object, SynchronizationSituationType situation) {
+			PrismObject<ShadowType> object, SynchronizationSituationType situation) {
 
 		SynchronizationSituationType oldValue = ((ShadowType) object.asObjectable())
 				.getSynchronizationSituation();
@@ -188,7 +188,7 @@ public class SynchronizationUtils {
 		return null;
 	}
 
-	public static PropertyDelta<XMLGregorianCalendar> createSynchronizationTimestampDelta(PrismObject object,
+	public static <O extends ObjectType> PropertyDelta<XMLGregorianCalendar> createSynchronizationTimestampDelta(PrismObject<O> object,
 			QName propName, XMLGregorianCalendar timestamp) {
 		// XMLGregorianCalendar gcal =
 		// XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
@@ -198,20 +198,18 @@ public class SynchronizationUtils {
 	}
 
 	public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject<ShadowType> currentObject,
-			SynchronizationSituationType situation, String sourceChannel, boolean full) {
-		XMLGregorianCalendar timestamp = XmlTypeConverter
-				.createXMLGregorianCalendar(System.currentTimeMillis());
+			SynchronizationSituationType situation, String sourceChannel, boolean full, XMLGregorianCalendar now) {
 
 		List<PropertyDelta<?>> delta = createSynchronizationSituationDescriptionDelta(currentObject, situation,
-				timestamp, sourceChannel, full);
+				now, sourceChannel, full);
 
 		PropertyDelta<XMLGregorianCalendar> timestampDelta = createSynchronizationTimestampDelta(currentObject,
-				ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestamp);
+				ShadowType.F_SYNCHRONIZATION_TIMESTAMP, now);
 		delta.add(timestampDelta);
 
 		if (full) {
 			timestampDelta = createSynchronizationTimestampDelta(currentObject,
-					ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, timestamp);
+					ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, now);
 			delta.add(timestampDelta);
 		}
 

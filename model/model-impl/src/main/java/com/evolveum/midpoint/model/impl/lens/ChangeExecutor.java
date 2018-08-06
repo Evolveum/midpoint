@@ -788,51 +788,57 @@ public class ChangeExecutor {
 	}
 
 	private <F extends ObjectType> void updateSituationInShadow(Task task,
-			SynchronizationSituationType situation, LensFocusContext<F> focusContext,
+			SynchronizationSituationType newSituation, LensFocusContext<F> focusContext,
 			LensProjectionContext projectionCtx, OperationResult parentResult)
 					throws ObjectNotFoundException, SchemaException {
 
 		String projectionOid = projectionCtx.getOid();
 
-		OperationResult result = new OperationResult(OPERATION_UPDATE_SITUATION_ACCOUNT);
-		result.addArbitraryObjectAsParam("situation", situation);
+		OperationResult result = parentResult.createMinorSubresult(OPERATION_UPDATE_SITUATION_ACCOUNT);
+		result.addArbitraryObjectAsParam("situation", newSituation);
 		result.addParam("accountRef", projectionOid);
 
-		PrismObject<ShadowType> account = null;
+		PrismObject<ShadowType> currentShadow = null;
 		GetOperationOptions getOptions = GetOperationOptions.createNoFetch();
 		getOptions.setAllowNotFound(true);
 		try {
-			account = provisioning.getObject(ShadowType.class, projectionOid,
+			currentShadow = provisioning.getObject(ShadowType.class, projectionOid,
 					SelectorOptions.createCollection(getOptions), task, result);
 		} catch (Exception ex) {
 			LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
 			return;
 		}
+		
+		// TODO: can we skip the update or cannot we? Do we always need to update sync timestamp?
+//		SynchronizationSituationType currentSynchronizationSituation = currentShadow.asObjectable().getSynchronizationSituation();
+//		if (newSituation.equals(currentSynchronizationSituation)) {
+//			LOGGER.trace("Skipping update of synchronization situation because there is no change ({})", currentSynchronizationSituation);
+//			result.recordSuccess();
+//			return;
+//		}
+		LOGGER.trace("Updating synchronization situation {} -> {}", currentSynchronizationSituation, newSituation);
+		
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
-				.createSynchronizationSituationAndDescriptionDelta(account, situation, task.getChannel(),
-						projectionCtx.hasFullShadow());
+				.createSynchronizationSituationAndDescriptionDelta(currentShadow, newSituation, task.getChannel(),
+						projectionCtx.hasFullShadow(), now);
 
 		try {
 			Utils.setRequestee(task, focusContext);
-			ProvisioningOperationOptions options = ProvisioningOperationOptions
-					.createCompletePostponed(false);
+			ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
 			options.setDoNotDiscovery(true);
-			String changedOid = provisioning.modifyObject(ShadowType.class, projectionOid,
-					syncSituationDeltas, null, options, task, result);
-			// modifyProvisioningObject(AccountShadowType.class, accountRef,
-			// syncSituationDeltas,
-			// ProvisioningOperationOptions.createCompletePostponed(false),
-			// task, result);
-			projectionCtx.setSynchronizationSituationResolved(situation);
-			LOGGER.trace("Situation in projection {} was updated to {}.", projectionCtx, situation);
+			provisioning.modifyObject(ShadowType.class, projectionOid, syncSituationDeltas, null, options, task, result);
+			projectionCtx.setSynchronizationSituationResolved(newSituation);
+			LOGGER.trace("Situation in projection {} was updated to {}.", projectionCtx, newSituation);
 		} catch (ObjectNotFoundException ex) {
 			// if the object not found exception is thrown, it's ok..probably
 			// the account was deleted by previous execution of changes..just
 			// log in the trace the message for the user..
-			LOGGER.trace(
+			LOGGER.debug(
 					"Situation in account could not be updated. Account not found on the resource. Skipping modifying situation in account");
 			return;
 		} catch (Exception ex) {
+			result.recordFatalError(ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			Utils.clearRequestee(task);
@@ -840,7 +846,6 @@ public class ChangeExecutor {
 		// if everything is OK, add result of the situation modification to the
 		// parent result
 		result.recordSuccess();
-		parentResult.addSubresult(result);
 
 	}
 

@@ -206,6 +206,7 @@ public class ShadowCache {
 		if (shouldRefreshOnRead(resource, rootOptions)) {
 			LOGGER.trace("Refreshing shadow {} before reading", repositoryShadow);
 			repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
+			LOGGER.trace("Refreshed repository shadow:\n{}", repositoryShadow.debugDumpLazily(1));
 		}
 		if (repositoryShadow == null) {
 			// Dead shadow was just removed
@@ -221,7 +222,7 @@ public class ShadowCache {
 		
 		if (canImmediatelyReturnCached(options, repositoryShadow, shadowState, resource)) {
 			LOGGER.trace("Returning cached (repository) version of shadow {}", repositoryShadow);
-			PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
+			PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
 			shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 			validateShadow(resultShadow, true);
 			return resultShadow;
@@ -236,7 +237,7 @@ public class ShadowCache {
 					// Get of uncreated or dead shadow, we want to see future state (how the shadow WILL look like).
 					// We cannot even try fetch operation here. We do not have the identifiers.
 					// But we have quite a good idea how the shadow is going to look like. Therefore we can return it.
-					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
+					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
 					shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 					validateShadow(resultShadow, true);
 					// NOTE: do NOT re-try add operation here. It will be retried in separate task.
@@ -274,7 +275,7 @@ public class ShadowCache {
 					parentResult.deleteLastSubresultIfError();		// we don't want to see 'warning-like' orange boxes in GUI (TODO reconsider this)
 					parentResult.recordSuccess();
 					
-					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
+					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
 					shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 					LOGGER.trace("Returning futurized shadow:\n{}", DebugUtil.debugDumpLazily(resultShadow));
 					validateShadow(resultShadow, true);
@@ -313,31 +314,34 @@ public class ShadowCache {
 			}
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump());
-				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump());
+				LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
+				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump(1));
 			}
 
 			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow, shadowState,
 					parentResult);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDump());
+				LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDump(1));
 			}
 			// Complete the shadow by adding attributes from the resource object
 			PrismObject<ShadowType> resultShadow = completeShadow(shadowCtx, resourceShadow, repositoryShadow, false, parentResult);
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump());
+				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump(1));
 			}
 
-			resultShadow = futurizeShadow(ctx, resultShadow, options, now);
+			resultShadow = futurizeShadow(ctx, repositoryShadow, resultShadow, options, now);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Futurized assembled shadow:\n{}", resultShadow.debugDump(1));
+			}
 			parentResult.recordSuccess();
 			validateShadow(resultShadow, true);
 			return resultShadow;
 
 		} catch (Exception ex) {
 			try {
-				resourceShadow = handleGetError(ctx, repositoryShadow, rootOptions, ex, task, parentResult);
-				if (resourceShadow == null) {
+				PrismObject<ShadowType> handledShadow = handleGetError(ctx, repositoryShadow, rootOptions, ex, task, parentResult);
+				if (handledShadow == null) {
 					throw ex;
 				}
 				if (parentResult.getStatus() == OperationResultStatus.FATAL_ERROR) {
@@ -346,9 +350,9 @@ public class ShadowCache {
 					// is returned
 					parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
 				}
-				futurizeShadow(ctx, resourceShadow, options, now);
-				validateShadow(resourceShadow, true);
-				return resourceShadow;
+				handledShadow = futurizeShadow(ctx, handledShadow, null, options, now);
+				validateShadow(handledShadow, true);
+				return handledShadow;
 
 			} catch (GenericFrameworkException | ObjectAlreadyExistsException e) {
 				throw new SystemException(e.getMessage(), e);
@@ -385,18 +389,22 @@ public class ShadowCache {
 			throw e;
 		}
 		
-		PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
+		PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
 		shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 		
 		return resultShadow;
 	}
 
-	private PrismObject<ShadowType> futurizeShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+	private PrismObject<ShadowType> futurizeShadow(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow,
 			Collection<SelectorOptions<GetOperationOptions>> options, XMLGregorianCalendar now) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 		if (!ProvisioningUtil.isFuturePointInTime(options)) {
-			return shadow;
+			if (resourceShadow == null) {
+				return repoShadow;
+			} else {
+				return resourceShadow;
+			}
 		}
-		return shadowCaretaker.applyPendingOperations(ctx, shadow, now);
+		return shadowCaretaker.applyPendingOperations(ctx, repoShadow, resourceShadow, false, now);
 	}
 
 	private boolean canReturnCachedAfterObjectNotFound(Collection<SelectorOptions<GetOperationOptions>> options, 

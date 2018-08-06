@@ -185,6 +185,13 @@ public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 		return this;
 	}
 	
+	// We cannot really distinguish gestation and life now. But maybe later.
+	public ShadowAsserter<R> assertGestation() {
+		assertNotDead();
+		assertIsExists();
+		return this;
+	}
+	
 	public ShadowAsserter<R> assertLife() {
 		assertNotDead();
 		assertIsExists();
