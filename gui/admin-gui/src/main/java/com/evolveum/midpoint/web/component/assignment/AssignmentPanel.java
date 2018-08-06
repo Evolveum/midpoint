@@ -20,10 +20,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
@@ -88,6 +90,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	private final static String ID_CANCEL_BUTTON = "cancelButton";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
+	private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
+	protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
 
 	protected boolean assignmentDetailsVisible;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
@@ -124,7 +128,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		assignmentsContainer.add(assignmentTable);
 
 		AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ASSIGNMENT_BUTTON, new Model<>("fa fa-plus"),
-				createStringResource("MainObjectListPanel.newObject")) {
+				getAssignmentsLimitReachedTitleModel()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -146,6 +150,11 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 				} catch (Exception ex){
 					return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI);
 				}
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return !isAssignmentsLimitReached();
 			}
 		});
 		assignmentsContainer.add(newObjectIcon);
@@ -293,6 +302,37 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	}
 
+	private IModel<String> getAssignmentsLimitReachedTitleModel() {
+		return new LoadableModel<String>(true) {
+			@Override
+			protected String load() {
+				int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+						AssignmentPanel.this.getPageBase());
+				return isAssignmentsLimitReached() ?
+						AssignmentPanel.this.getPageBase().createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", assignmentsLimit)
+								.getString() : "";
+			}
+		};
+	}
+
+	protected boolean isAssignmentsLimitReached() {
+		int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+				AssignmentPanel.this.getPageBase());
+		int addedAssignmentsCount = getNewAssignmentsCount();
+		return assignmentsLimit >= 0 && addedAssignmentsCount >= assignmentsLimit;
+	}
+
+	protected int getNewAssignmentsCount() {
+		List<ContainerValueWrapper<AssignmentType>> assignmentsList = getModelObject().getValues();
+		int addedAssignmentsCount = 0;
+		for (ContainerValueWrapper<AssignmentType> assignment : assignmentsList) {
+			if (ValueStatus.ADDED.equals(assignment.getStatus())) {
+				addedAssignmentsCount++;
+			}
+		}
+		return addedAssignmentsCount;
+	}
+		
 	private void initDetailsPanel() {
 		WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
 		details.setOutputMarkupId(true);

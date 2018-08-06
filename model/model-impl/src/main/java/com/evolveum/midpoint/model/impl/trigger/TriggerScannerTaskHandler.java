@@ -124,25 +124,9 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 		initProcessedTriggers(task);
 
-		ObjectQuery query = new ObjectQuery();
-		ObjectFilter filter;
-
-		if (handler.getLastScanTimestamp() == null) {
-			filter = QueryBuilder.queryFor(ObjectType.class, prismContext)
-					.item(F_TRIGGER, F_TIMESTAMP).le(handler.getThisScanTimestamp())
-					.buildFilter();
-		} else {
-			filter = QueryBuilder.queryFor(ObjectType.class, prismContext)
-					.exists(F_TRIGGER)
-						.block()
-							.item(F_TIMESTAMP).gt(handler.getLastScanTimestamp())
-							.and().item(F_TIMESTAMP).le(handler.getThisScanTimestamp())
-						.endBlock()
-					.buildFilter();
-		}
-
-		query.setFilter(filter);
-		return query;
+		return QueryBuilder.queryFor(ObjectType.class, prismContext)
+				.item(F_TRIGGER, F_TIMESTAMP).le(handler.getThisScanTimestamp())
+				.build();
 	}
 
 	@Override
@@ -159,7 +143,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		AbstractScannerResultHandler<ObjectType> handler = new AbstractScannerResultHandler<ObjectType>(
 				coordinatorTask, TriggerScannerTaskHandler.class.getName(), "trigger", "trigger task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult result) throws CommonException {
+			protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult result) {
 				fireTriggers(this, object, workerTask, coordinatorTask, result);
 				return true;
 			}
@@ -186,7 +170,10 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 						LOGGER.warn("Trigger without a timestamp in {}", object);
 					} else {
 						if (isHot(handler, timestamp)) {
-							fireTrigger(trigger, object, triggerContainer.getDefinition(), workerTask, coordinatorTask, result);
+							boolean remove = fireTrigger(trigger, object, workerTask, coordinatorTask, result);
+							if (remove) {
+								removeTrigger(object, trigger.asPrismContainerValue(), workerTask, triggerContainer.getDefinition());
+							}
 						} else {
 							LOGGER.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={})",
 									trigger, timestamp, handler.getThisScanTimestamp(), handler.getLastScanTimestamp());
@@ -204,43 +191,44 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		return rv;
 	}
 
-	/**
-	 * Returns true if the timestamp is in the "range of interest" for this scan run.
-	 */
 	private boolean isHot(AbstractScannerResultHandler<ObjectType> handler, XMLGregorianCalendar timestamp) {
-		if (handler.getThisScanTimestamp().compare(timestamp) == DatatypeConstants.LESSER) {
-			return false;
-		}
-		return handler.getLastScanTimestamp() == null || handler.getLastScanTimestamp().compare(timestamp) == DatatypeConstants.LESSER;
+		return handler.getThisScanTimestamp().compare(timestamp) != DatatypeConstants.LESSER;
 	}
 
-	private void fireTrigger(TriggerType trigger, PrismObject<ObjectType> object,
-			PrismContainerDefinition<TriggerType> triggerContainerDefinition,
+	// returns true if the trigger can be removed
+	private boolean fireTrigger(TriggerType trigger, PrismObject<ObjectType> object,
 			Task workerTask, Task coordinatorTask, OperationResult result) {
 		String handlerUri = trigger.getHandlerUri();
 		if (handlerUri == null) {
 			LOGGER.warn("Trigger without handler URI in {}", object);
-			return;
+			return false;
 		}
 		LOGGER.debug("Firing trigger {} in {}: id={}", handlerUri, object, trigger.getId());
 		if (triggerAlreadySeen(coordinatorTask, handlerUri, object.getOid()+":"+trigger.getId())) {
 			LOGGER.debug("Handler {} already executed for {}:{}", handlerUri, ObjectTypeUtil.toShortString(object), trigger.getId());
-			return;
-		}
-		TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
-		if (handler == null) {
-			LOGGER.warn("No registered trigger handler for URI {} in {}", handlerUri, trigger);
+			// We don't request the trigger removal here. If the trigger was previously seen and processed correctly,
+			// it was already removed. But if it was seen and failed, we want to keep it!
+			// (We do want to record it as seen even in that case, as we do not want to re-process it multiple times
+			// during single task handler run.)
+			return false;
 		} else {
-			try {
-				handler.handle(object, trigger, workerTask, result);
-				// Properly handle everything that the handler spits out. We do not want this task to die.
-				// Looks like the impossible happens and checked exceptions can somehow get here. Hence the heavy artillery below.
-			} catch (Throwable e) {
-				LOGGER.error("Trigger handler {} executed on {} thrown an error: {}", handler, object, e.getMessage(), e);
-				result.recordPartialError(e);
+			TriggerHandler handler = triggerHandlerRegistry.getHandler(handlerUri);
+			if (handler == null) {
+				LOGGER.warn("No registered trigger handler for URI {} in {}", handlerUri, trigger);
+				return false;
+			} else {
+				try {
+					handler.handle(object, trigger, workerTask, result);
+					return true;
+					// Properly handle everything that the handler spits out. We do not want this task to die.
+				} catch (Throwable e) {
+					LOGGER.error("Trigger handler {} executed on {} thrown an error: {} -- it will be retried", handler,
+							object, e.getMessage(), e);
+					result.recordPartialError(e);
+					return false;
+				}
 			}
 		}
-		removeTrigger(object, trigger.asPrismContainerValue(), workerTask, triggerContainerDefinition);
 	}
 
 	private void removeTrigger(PrismObject<ObjectType> object, PrismContainerValue<TriggerType> triggerCVal, Task task,

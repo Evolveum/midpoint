@@ -84,7 +84,9 @@ public class AccessCertificationCloseStageTriggerHandler implements TriggerHandl
 				certificationManager.startRemediation(campaign.getOid(), task, result);
 			}
 		} catch (CommonException | RuntimeException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't close current campaign and possibly advance to the next one", e);
+			String message = "Couldn't close current campaign and possibly advance to the next one";
+			LoggingUtils.logUnexpectedException(LOGGER, message, e);
+			throw new SystemException(message + ": " + e.getMessage(), e);
 		}
 	}
 }

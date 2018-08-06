@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -81,14 +84,20 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	protected static final File ROLE_PRIZE_GOLD_FILE = new File(TEST_DIR, "role-prize-gold.xml");
 	protected static final String ROLE_PRIZE_GOLD_OID = "bbc22f82-df21-11e6-aa6b-4b1408befd10";
 	protected static final String ROLE_PRIZE_GOLD_SHIP = "Gold";
+	protected static final File ROLE_PRIZE_GOLD_ENFORCED_FILE = new File(TEST_DIR, "role-prize-gold-enforced.xml");
+	protected static final String ROLE_PRIZE_GOLD_ENFORCED_OID = "6bff06a9-51b7-4a19-9e77-ee0701c5bfe2";
 
 	protected static final File ROLE_PRIZE_SILVER_FILE = new File(TEST_DIR, "role-prize-silver.xml");
 	protected static final String ROLE_PRIZE_SILVER_OID = "dfb5fffe-df21-11e6-bb4f-ef02bdbc9d71";
 	protected static final String ROLE_PRIZE_SILVER_SHIP = "Silver";
+	protected static final File ROLE_PRIZE_SILVER_ENFORCED_FILE = new File(TEST_DIR, "role-prize-silver-enforced.xml");
+	protected static final String ROLE_PRIZE_SILVER_ENFORCED_OID = "0c3b2e44-9387-4c7b-8262-a20fdea434ea";
 
 	protected static final File ROLE_PRIZE_BRONZE_FILE = new File(TEST_DIR, "role-prize-bronze.xml");
 	protected static final String ROLE_PRIZE_BRONZE_OID = "19f11686-df22-11e6-b0e9-835ed7ca08a5";
 	protected static final String ROLE_PRIZE_BRONZE_SHIP = "Bronze";
+	protected static final File ROLE_PRIZE_BRONZE_ENFORCED_FILE = new File(TEST_DIR, "role-prize-bronze-enforced.xml");
+	protected static final String ROLE_PRIZE_BRONZE_ENFORCED_OID = "702dc3c9-9755-4880-b132-cf82d5845dd9";
 
 	// Red, green and blue: mutual exclusion (prune) in the metarole
 
@@ -160,6 +169,9 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		repoAddObjectFromFile(ROLE_PRIZE_GOLD_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PRIZE_SILVER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PRIZE_BRONZE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PRIZE_GOLD_ENFORCED_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PRIZE_SILVER_ENFORCED_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PRIZE_BRONZE_ENFORCED_FILE, initResult);
 
 		repoAddObjectFromFile(ROLE_META_COLOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_COLOR_RED_FILE, initResult);
@@ -560,7 +572,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertAssignedNoRole(USER_JACK_OID, task, result);
 	}
 
-	Consumer<AssignmentType> getJudgeExceptionBlock(String excludedRoleName) {
+	private Consumer<AssignmentType> getJudgeExceptionBlock(String excludedRoleName) {
 		return assignment -> {
 			PolicyExceptionType policyException = new PolicyExceptionType();
 			policyException.setRuleName(ROLE_JUDGE_POLICY_RULE_EXCLUSION_PREFIX + excludedRoleName);
@@ -832,7 +844,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	 */
 	@Test
     public void test208GuybrushUnassignRoleBronze() throws Exception {
-		final String TEST_NAME = "test209GuybrushUnassignRoleSilver";
+		final String TEST_NAME = "test208GuybrushUnassignRoleSilver";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -886,6 +898,75 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertAssignedNoRole(userAfter);
 
         assertNoDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+	}
+
+	/**
+	 * There's an inherent conflict on resource attribute preventing the two roles to be assigned at once.
+	 * Original enforcement hook reacted too late so the "Attempt to replace 2 values to a single-valued item" comes first.
+	 *
+	 * MID-4797
+	 */
+	@Test
+	public void test209aGuybrushAssignRoleGoldAndSilverEnforced() throws Exception {
+		final String TEST_NAME = "test209aGuybrushAssignRoleGoldAndSilverEnforced";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(
+						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_ENFORCED_OID, ObjectTypes.ROLE, prismContext),
+						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_SILVER_ENFORCED_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDeltaCast(USER_GUYBRUSH_OID);
+
+		try {
+			executeChanges(delta, null, task, result);
+			// THEN
+			fail("unexpected success");
+		} catch (PolicyViolationException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+			// order is not strictly defined; if this would lead to false failures, revisit the following assert
+			assertMessage(e, "Violation of SoD policy: Role \"Prize: Gold (enforced)\" excludes role \"Prize: Silver (enforced)\", they cannot be assigned at the same time; Violation of SoD policy: Role \"Prize: Silver (enforced)\" excludes role \"Prize: Gold (enforced)\", they cannot be assigned at the same time");
+			result.computeStatus();
+			assertFailure(result);
+		}
+	}
+
+	/**
+	 * MID-4766
+	 */
+	@Test
+	public void test209bGuybrushAssignRoleGoldAndSilver() throws Exception {
+		final String TEST_NAME = "test209bGuybrushAssignRoleGoldAndSilver";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(
+						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_OID, ObjectTypes.ROLE, prismContext),
+						ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_SILVER_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDeltaCast(USER_GUYBRUSH_OID);
+
+		try {
+			executeChanges(delta, null, task, result);
+			// THEN
+			fail("unexpected success");
+		} catch (PolicyViolationException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+			// fragile, depends on the evaluation internals ... if it would cause problems please adapt the following assert
+			assertMessage(e, "Mutually-pruned roles cannot be assigned at the same time: role \"Prize: Silver\" and role \"Prize: Gold\"; Mutually-pruned roles cannot be assigned at the same time: role \"Prize: Gold\" and role \"Prize: Silver\"");
+			result.computeStatus();
+			assertFailure(result);
+		}
 	}
 
 	/**
@@ -1181,6 +1262,40 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertLinks(userAfter, 0);
 
         assertNoDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+	}
+
+	/**
+	 * MID-4766
+	 */
+	@Test
+	public void test230GuybrushAssignRoleRedAndBlueAndGreen() throws Exception {
+		final String TEST_NAME = "test230GuybrushAssignRoleRedAndBlueAndGreen";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).add(
+						ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_RED_OID, ObjectTypes.ROLE, prismContext),
+						ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_BLUE_OID, ObjectTypes.ROLE, prismContext),
+						ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_GREEN_OID, ObjectTypes.ROLE, prismContext))
+				.asObjectDeltaCast(USER_GUYBRUSH_OID);
+
+		try {
+			executeChanges(delta, null, task, result);
+			// THEN
+			fail("unexpected success");
+		} catch (PolicyViolationException e) {
+			System.out.println("Got expected exception: " + e.getMessage());
+			// fragile, depends on the evaluation internals ... if it would cause problems please adapt the following assert
+			assertMessage(e, "Mutually-pruned roles cannot be assigned at the same time: role \"Color: Green\" and role \"Color: Red\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Green\" and role \"Color: Blue\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Red\" and role \"Color: Green\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Red\" and role \"Color: Blue\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Blue\" and role \"Color: Red\"; Mutually-pruned roles cannot be assigned at the same time: role \"Color: Blue\" and role \"Color: Green\"");
+			result.computeStatus();
+			assertFailure(result);
+		}
 	}
 
 	/**

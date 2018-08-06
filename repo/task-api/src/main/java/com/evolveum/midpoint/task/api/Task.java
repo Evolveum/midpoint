@@ -547,6 +547,13 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     <T> T getExtensionPropertyRealValue(QName propertyName);
 
     /**
+     * Returns specified single-valued container real value from the extension
+     * @param containerName
+     * @return null if extension or property does not exist.
+     */
+    <T extends Containerable> T getExtensionContainerRealValue(QName containerName);
+
+    /**
      * Returns specified reference from the extension.
      * @param name
      * @return null if extension or reference does not exist.

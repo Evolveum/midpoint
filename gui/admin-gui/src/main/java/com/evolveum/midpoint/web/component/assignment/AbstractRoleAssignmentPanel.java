@@ -28,10 +28,13 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
+import com.evolveum.midpoint.web.page.admin.users.component.OrgMemberPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -74,7 +77,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
-    private RelationTypes relationValue = null;
+    protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_RELATION_DEFINITIONS = DOT_CLASS + "loadRelationDefinitions";
 
     public AbstractRoleAssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
     	super(id, assignmentContainerWrapperModel);
@@ -96,35 +100,15 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         });
         assignmentsContainer.addOrReplace(relationContainer);
 
-    	DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
-                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class),
-                new IModel<RelationTypes>() {
-                    @Override
-                    public RelationTypes getObject() {
-                        return relationValue;
-                    }
-
-                    @Override
-                    public void setObject(RelationTypes relationTypes) {
-                        relationValue = relationTypes;
-                    }
-
-                    @Override
-                    public void detach() {
-
-                    }
-                }, this, true,
-                createStringResource("RelationTypes.ANY").getString());
-        relation.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
+        RelationDropDownChoicePanel relation = new RelationDropDownChoicePanel(ID_RELATION,
+                Model.of(), AreaCategoryType.ADMINISTRATION, true){
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            	refreshTable(target);
+            protected void onValueChanged(AjaxRequestTarget target){
+                refreshTable(target);
             }
-        });
-        relation.setOutputMarkupId(true);
-        relation.setOutputMarkupPlaceholderTag(true);
+        };
         relationContainer.addOrReplace(relation);
 
         AjaxButton showAllAssignmentsButton = new AjaxButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON,
@@ -149,8 +133,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         });
     }
 
-    private DropDownChoicePanel<RelationTypes> getRelationPanel() {
-    	return (DropDownChoicePanel<RelationTypes>) getAssignmentContainer().get(ID_RELATION_CONTAINER).get(ID_RELATION);
+    private RelationDropDownChoicePanel getRelationPanel() {
+    	return (RelationDropDownChoicePanel) getAssignmentContainer().get(ID_RELATION_CONTAINER).get(ID_RELATION);
     }
 
 
@@ -189,7 +173,14 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                    target.add(getPageBase().getFeedbackPanel());
                    return;
            }
-           
+        int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                getPageBase());
+        int addedAssignmentsCount = getNewAssignmentsCount() + newAssignmentsList.size();
+        if (assignmentsLimit >= 0 && addedAssignmentsCount > assignmentsLimit) {
+            warn(getParentPage().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsLimit));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
            newAssignmentsList.forEach(assignment -> {
         	   PrismContainerDefinition<AssignmentType> definition = getModelObject().getItem().getDefinition();
         	   PrismContainerValue<AssignmentType> newAssignment;
@@ -254,7 +245,12 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 || assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation() == null){
             return "";
         }
-        return assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation().getLocalPart();
+        QName relation = assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation();
+        List<RelationDefinitionType> relationDefList = WebComponentUtil.getRelationDefinitions(new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS),
+                getPageBase());
+        RelationDefinitionType relationDef = ObjectTypeUtil.findRelationDefinition(relationDefList, relation);
+        return relationDef != null && relationDef.getDisplay() != null ?
+                getPageBase().createStringResource(relationDef.getDisplay().getLabel()).getString() : "";
     }
 
     protected boolean showAllAssignmentsVisible(){
@@ -314,7 +310,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	}
 
 	private QName getRelation() {
-		return relationValue == null ? PrismConstants.Q_ANY : relationValue.getRelation();
+		return getRelationPanel().getRelationValue() == null ? PrismConstants.Q_ANY : getRelationPanel().getRelationValue();
 	}
 
 	@Override

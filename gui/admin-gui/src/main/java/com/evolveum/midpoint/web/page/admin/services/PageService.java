@@ -100,6 +100,10 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 				PageService.this.navigateToNext(new PageServiceHistory(object, date));
 			}
 
+			@Override
+			protected boolean isFocusHistoryPage(){
+				return PageService.this.isFocusHistoryPage();
+			}
 		};
 	}
 

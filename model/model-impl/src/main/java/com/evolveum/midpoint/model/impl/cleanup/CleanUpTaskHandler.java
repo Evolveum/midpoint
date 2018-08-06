@@ -79,7 +79,7 @@ public class CleanUpTaskHandler implements TaskHandler {
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 
-		CleanupPoliciesType cleanupPolicies = task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES);
+		CleanupPoliciesType cleanupPolicies = task.getExtensionContainerRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES);
 
 		if (cleanupPolicies != null) {
 			LOGGER.info("Using task-specific cleanupPolicies: {}", cleanupPolicies);
@@ -190,7 +190,7 @@ public class CleanUpTaskHandler implements TaskHandler {
 
 	@Override
 	public String getCategoryName(Task task) {
-		if (task != null && task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES) != null) {
+		if (task != null && task.getExtensionContainerRealValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES) != null) {
 			return TaskCategory.UTIL;			// this is run on-demand just like other utility tasks (e.g. delete task handler)
 		} else {
 			return TaskCategory.SYSTEM;			// this is the default instance, always running

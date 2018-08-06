@@ -1852,6 +1852,16 @@ public class TaskQuartzImpl implements Task {
 	}
 
 	@Override
+	public <T extends Containerable> T getExtensionContainerRealValue(QName containerName) {
+		Item<?, ?> item = getExtensionItem(containerName);
+		if (item == null || item.getValues().isEmpty()) {
+			return null;
+		} else {
+			return ((PrismContainer<T>) item).getRealValue();
+		}
+	}
+
+	@Override
 	public Item<?, ?> getExtensionItem(QName propertyName) {
 		if (getExtension() != null) {
 			return getExtension().findItem(propertyName);

@@ -177,11 +177,11 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
     }
 
     private DropDownChoicePanel<String> getIntentDropDown(){
-        return (DropDownChoicePanel<String>)get(ID_INTENT_CONTAINER).get(ID_INTENT);
+        return (DropDownChoicePanel<String>)get(ID_PARAMETERS_PANEL).get(ID_INTENT_CONTAINER).get(ID_INTENT);
     }
 
     private DropDownChoicePanel<ShadowKindType> getKindDropDown(){
-        return (DropDownChoicePanel<ShadowKindType>)get(ID_KIND_CONTAINER).get(ID_KIND);
+        return (DropDownChoicePanel<ShadowKindType>)get(ID_PARAMETERS_PANEL).get(ID_KIND_CONTAINER).get(ID_KIND);
     }
 
     @Override
