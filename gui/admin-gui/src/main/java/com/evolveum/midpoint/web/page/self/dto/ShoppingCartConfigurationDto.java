@@ -34,15 +34,14 @@ public class ShoppingCartConfigurationDto implements Serializable {
     private AssignmentViewType defaultViewType;
     private List<AssignmentViewType> viewTypeList;
     private String roleCatalogOid = null;
-    private AssignmentConstraintsType defaultAssignmentConstraints;
-    private boolean isUserAssignmentsViewAllowed = false;
+//    private boolean isUserAssignmentsViewAllowed = false;
 
     public void initShoppingCartConfigurationDto(RoleManagementConfigurationType roleManagementConfiguration) {
         if (roleManagementConfiguration == null){
             viewTypeList = new ArrayList<>(Arrays.asList(AssignmentViewType.values()));
-            viewTypeList.remove(AssignmentViewType.USER_TYPE);
+//            viewTypeList.remove(AssignmentViewType.USER_TYPE);
             defaultViewType = AssignmentViewType.ROLE_TYPE;
-            isUserAssignmentsViewAllowed = true;
+//            isUserAssignmentsViewAllowed = true;
             return;
         }
 
@@ -50,7 +49,7 @@ public class ShoppingCartConfigurationDto implements Serializable {
         initRoleCatalogOid(roleManagementConfiguration);
         computeDefaultViewType(roleManagementConfiguration);
 
-        this.defaultAssignmentConstraints = roleManagementConfiguration.getDefaultAssignmentConstraints();
+//        this.defaultAssignmentConstraints = roleManagementConfiguration.getDefaultAssignmentConstraints();
     }
 
     private List<AssignmentViewType> getRoleCatalogViewsList(RoleManagementConfigurationType roleManagementConfiguration) {
@@ -93,10 +92,10 @@ public class ShoppingCartConfigurationDto implements Serializable {
             //use default views list if nothing is configured
             viewTypeList = new ArrayList<>(Arrays.asList(AssignmentViewType.values()));
         }
-        if (viewTypeList.contains(AssignmentViewType.USER_TYPE)){
-            viewTypeList.remove(AssignmentViewType.USER_TYPE);
-            isUserAssignmentsViewAllowed = true;
-        }
+//        if (viewTypeList.contains(AssignmentViewType.USER_TYPE)){
+//            viewTypeList.remove(AssignmentViewType.USER_TYPE);
+//            isUserAssignmentsViewAllowed = true;
+//        }
     }
 
     private void initRoleCatalogOid(RoleManagementConfigurationType roleManagementConfiguration){
@@ -128,13 +127,13 @@ public class ShoppingCartConfigurationDto implements Serializable {
         }
     }
 
-    public boolean isUserAssignmentsViewAllowed() {
-        return isUserAssignmentsViewAllowed;
-    }
-
-    public void setUserAssignmentsViewAllowed(boolean userAssignmentsViewAllowed) {
-        isUserAssignmentsViewAllowed = userAssignmentsViewAllowed;
-    }
+//    public boolean isUserAssignmentsViewAllowed() {
+//        return isUserAssignmentsViewAllowed;
+//    }
+//
+//    public void setUserAssignmentsViewAllowed(boolean userAssignmentsViewAllowed) {
+//        isUserAssignmentsViewAllowed = userAssignmentsViewAllowed;
+//    }
 
     public AssignmentViewType getDefaultViewType() {
         return defaultViewType;
@@ -160,11 +159,4 @@ public class ShoppingCartConfigurationDto implements Serializable {
         this.roleCatalogOid = roleCatalogOid;
     }
 
-    public AssignmentConstraintsType getDefaultAssignmentConstraints() {
-        return defaultAssignmentConstraints;
-    }
-
-    public void setDefaultAssignmentConstraints(AssignmentConstraintsType defaultAssignmentConstraints) {
-        this.defaultAssignmentConstraints = defaultAssignmentConstraints;
-    }
 }

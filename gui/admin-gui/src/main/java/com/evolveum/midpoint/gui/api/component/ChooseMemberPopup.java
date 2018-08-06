@@ -60,9 +60,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     private static final String ID_FORM = "form";
 
     private List<OrgType> selectedOrgsList = new ArrayList<>();
-    protected List<RelationTypes> availableRelationList;
+    protected List<QName> availableRelationList;
 
-    public ChooseMemberPopup(String id, List<RelationTypes> availableRelationList){
+    public ChooseMemberPopup(String id, List<QName> availableRelationList){
         super(id);
         this.availableRelationList = availableRelationList;
     }
@@ -323,7 +323,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     protected void executeMemberOperation(QName type, ObjectQuery memberQuery,
                                           ObjectDelta delta, AjaxRequestTarget target) {
 
-        Task operationalTask = getPageBase().createSimpleTask("add members");
+        Task operationalTask = getPageBase().createSimpleTask("Add.members");
         OperationResult parentResult = operationalTask.getResult();
 
         try {

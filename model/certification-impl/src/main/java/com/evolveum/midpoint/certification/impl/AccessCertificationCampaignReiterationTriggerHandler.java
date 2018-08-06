@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,7 +73,9 @@ public class AccessCertificationCampaignReiterationTriggerHandler implements Tri
 				LOGGER.warn("Campaign {} is not reiterable, exiting.", ObjectTypeUtil.toShortString(campaign));
 			}
 		} catch (CommonException | RuntimeException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reiterate the campaign and possibly advance to the next one", e);
+			String message = "Couldn't reiterate the campaign and possibly advance to the next one";
+			LoggingUtils.logUnexpectedException(LOGGER, message, e);
+			throw new SystemException(message + ": " + e.getMessage(), e);
 		}
 	}
 }

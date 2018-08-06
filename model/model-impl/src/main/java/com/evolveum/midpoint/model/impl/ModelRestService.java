@@ -39,7 +39,6 @@ import com.evolveum.midpoint.schema.DefinitionProcessingOption;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -150,7 +149,7 @@ public class ModelRestService {
 
 		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
 
-		Response response = null;
+		Response response;
 		try {
 			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
 			response = generateValue(object, policyItemsDefinition, task, parentResult);
@@ -169,7 +168,7 @@ public class ModelRestService {
 	@Path("/rpc/generate")
 	@Consumes({"application/xml", "application/json", "application/yaml"})
 	@Produces({"application/xml", "application/json", "application/yaml"})
-	public <O extends ObjectType> Response generateValue(PolicyItemsDefinitionType policyItemsDefinition,
+	public Response generateValue(PolicyItemsDefinitionType policyItemsDefinition,
 			@Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
@@ -213,7 +212,7 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
 
 		Class<O> clazz = ObjectTypes.getClassFromRestType(type);
-		Response response = null;
+		Response response;
 		try {
 			PrismObject<O> object = model.getObject(clazz, oid, null, task, parentResult);
 			response = validateValue(object, policyItemsDefinition, task, parentResult);
@@ -230,7 +229,7 @@ public class ModelRestService {
 	@Path("/rpc/validate")
 	@Consumes({"application/xml", "application/json", "application/yaml"})
 	@Produces({"application/xml", "application/json", "application/yaml"})
-	public <O extends ObjectType> Response validateValue(PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
+	public Response validateValue(PolicyItemsDefinitionType policyItemsDefinition, @Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_VALIDATE_VALUE);
@@ -370,7 +369,7 @@ public class ModelRestService {
 	@GET
 	@Path("/self")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
-	public <T extends ObjectType> Response getSelf(@Context MessageContext mc){
+	public Response getSelf(@Context MessageContext mc){
 		LOGGER.debug("model rest service for get operation start");
 
 		Task task = RestServiceUtil.initRequest(mc);
@@ -452,6 +451,7 @@ public class ModelRestService {
 	@Path("/{type}")
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
 	public <T extends ObjectType> Response searchObjectsByType(@PathParam("type") String type, @QueryParam("options") List<String> options,
+			@QueryParam("include") List<String> include, @QueryParam("exclude") List<String> exclude,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
@@ -460,19 +460,12 @@ public class ModelRestService {
 		Response response;
 		try {
 
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, null, null, DefinitionProcessingOption.ONLY_IF_EXISTS);
-			
-			
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
+
 			List<T> objects = new ArrayList<>();
-			ResultHandler<T> handler = new ResultHandler<T>() {
-				
-				@Override
-				public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-					return objects.add(object.asObjectable());
-				}
-			};
+			ResultHandler<T> handler = (object, parentResult1) -> objects.add(object.asObjectable());
 			
-			SearchResultMetadata searchMetadata = modelService.searchObjectsIterative(clazz, null, handler, searchOptions, task, parentResult);
+			modelService.searchObjectsIterative(clazz, null, handler, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
 			listType.getObject().addAll(objects);
@@ -504,7 +497,8 @@ public class ModelRestService {
 	}
 
 	// currently unused; but potentially useful in future
-	private <T extends ObjectType> void validateIfRequested(PrismObject<?> object,
+	@SuppressWarnings("unused")
+	private void validateIfRequested(PrismObject<?> object,
 			List<String> options, ResponseBuilder builder, Task task,
 			OperationResult parentResult) {
 		if (options != null && options.contains(VALIDATE) && object.asObjectable() instanceof ResourceType) {
@@ -606,7 +600,7 @@ public class ModelRestService {
 	@POST
 	@Path("/{type}/{oid}")
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
-	public <T extends ObjectType> Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid,
+	public Response modifyObjectPost(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 		return modifyObjectPatch(type, oid, modificationType, options, mc);
 	}
@@ -614,7 +608,7 @@ public class ModelRestService {
 	@PATCH
 	@Path("/{type}/{oid}")
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, "application/yaml"})
-	public <T extends ObjectType> Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid,
+	public Response modifyObjectPatch(@PathParam("type") String type, @PathParam("oid") String oid,
 			ObjectModificationType modificationType, @QueryParam("options") List<String> options, @Context MessageContext mc) {
 
 		LOGGER.debug("model rest service for modify operation start");

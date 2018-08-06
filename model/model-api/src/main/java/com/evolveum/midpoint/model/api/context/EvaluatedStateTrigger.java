@@ -29,7 +29,7 @@ public class EvaluatedStateTrigger extends EvaluatedPolicyRuleTrigger<StatePolic
 
 	public EvaluatedStateTrigger(@NotNull PolicyConstraintKindType kind, @NotNull StatePolicyConstraintType constraint,
 			LocalizableMessage message, LocalizableMessage shortMessage) {
-		super(kind, constraint, message, shortMessage);
+		super(kind, constraint, message, shortMessage, false);
 	}
 
 	@Override

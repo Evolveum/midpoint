@@ -197,8 +197,12 @@ public class ObjectPolicyAspectPart {
 
 			instruction.setObjectRef(modelContext, result);
 
-			String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
-			instruction.setTaskName("Approval " + andExecuting + "of: " + processNameInDefaultLocale);
+			String taskNameInDefaultLocale = localizationService.translate(
+					new LocalizableMessageBuilder()
+							.key(instruction.isExecuteApprovedChangeImmediately() ? "ApprovalAndExecutionOf" : "ApprovalOf")
+							.arg(processNameInDefaultLocale)
+							.build(), Locale.getDefault());
+			instruction.setTaskName(taskNameInDefaultLocale);
 			instruction.setProcessInstanceName(processNameInDefaultLocale);
 
 			itemApprovalProcessInterface.prepareStartInstruction(instruction);

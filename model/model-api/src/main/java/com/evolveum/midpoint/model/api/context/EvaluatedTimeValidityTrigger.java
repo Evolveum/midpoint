@@ -27,7 +27,7 @@ public class EvaluatedTimeValidityTrigger extends EvaluatedPolicyRuleTrigger<Tim
 
 	public EvaluatedTimeValidityTrigger(@NotNull PolicyConstraintKindType kind, @NotNull TimeValidityPolicyConstraintType constraint,
 			LocalizableMessage message, LocalizableMessage shortMessage) {
-		super(kind, constraint, message, shortMessage);
+		super(kind, constraint, message, shortMessage, false);
 	}
 
 	@Override

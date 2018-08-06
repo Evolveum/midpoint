@@ -131,13 +131,13 @@ public class AssignmentProcessor {
     @Autowired
     private MappingEvaluator mappingEvaluator;
 
-    @Autowired(required=true)
+    @Autowired
 	private ActivationComputer activationComputer;
 
-    @Autowired(required=true)
+    @Autowired
     private ProvisioningService provisioningService;
 
-    @Autowired(required=true)
+    @Autowired
     private ConstructionProcessor constructionProcessor;
 
     @Autowired

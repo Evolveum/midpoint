@@ -25,19 +25,20 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.ChooseMemberForOrgPopup;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
+import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -69,20 +70,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -118,10 +111,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	private static final String OPERATION_LOAD_MEMBER_RELATION_OBJECTS = DOT_CLASS + "loadMemberRelationObjects";
 	private static final String ID_MANAGER_SUMMARY = "managerSummary";
 	private static final String ID_REMOVE_MANAGER = "removeManager";
-	private static final String ID_DELETE_MANAGER = "deleteManager";
 	private static final String ID_EDIT_MANAGER = "editManager";
 
-	private RelationTypes relationValue = null;
 	private static final long serialVersionUID = 1L;
 
 	public OrgMemberPanel(String id, IModel<OrgType> model) {
@@ -137,6 +128,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		//fix for MID-3629 (we don't know the resource to search shadows on)
 		objectTypes.remove(ObjectTypes.SHADOW);
 		Collections.sort(objectTypes, new Comparator<ObjectTypes>() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public int compare(ObjectTypes o1, ObjectTypes o2) {
@@ -179,37 +171,15 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		seachScrope.setOutputMarkupId(true);
 		form.add(seachScrope);
 
-		DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_SEARCH_BY_RELATION,
-				WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class),
-				new IModel<RelationTypes>() {
-					@Override
-					public RelationTypes getObject() {
-						return relationValue;
-					}
-
-					@Override
-					public void setObject(RelationTypes relationTypes) {
-						relationValue = relationTypes;
-					}
-
-					@Override
-					public void detach() {
-
-					}
-				}, this, true,
-				createStringResource("RelationTypes.ANY").getString());
-
-		relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-		relationSelector.setOutputMarkupId(true);
-		relationSelector.setOutputMarkupPlaceholderTag(true);
-		relationSelector.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+		RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION,
+				Model.of(), AreaCategoryType.ADMINISTRATION, true){
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
+			protected void onValueChanged(AjaxRequestTarget target){
 				refreshTable(target);
 			}
-		});
+		};
 		form.add(relationSelector);
 
 	}
@@ -336,6 +306,23 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return managerContainer;
 	}
 
+	@Override
+	protected void addMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
+
+		ChooseOrgMemberPopup browser = new ChooseOrgMemberPopup(getPageBase().getMainPopupBodyId(), availableRelationList) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected OrgType getAssignmentTargetRefObject(){
+				return OrgMemberPanel.this.getModelObject();
+			}
+		};
+		browser.setOutputMarkupId(true);
+
+		getPageBase().showMainPopup(browser, target);
+
+	}
+
 	private void removeManagerPerformed(FocusType manager, AjaxRequestTarget target) {
 		OperationResult parentResult = new OperationResult(OPERATION_UNASSIGN_MANAGERS);
 		Task task = getPageBase().createSimpleTask(OPERATION_UNASSIGN_MANAGERS);
@@ -407,7 +394,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							OrgMemberPanel.this.addMembers(target, Arrays.asList(RelationTypes.MANAGER));
+							OrgMemberPanel.this.addMembers(target, Arrays.asList(RelationTypes.MANAGER.getRelation()));
 						}
 					}));
 		}
@@ -576,10 +563,12 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	private QName getSelectedRelation(){
+		RelationDropDownChoicePanel relationDropDown = (RelationDropDownChoicePanel) get(ID_FORM).get(ID_SEARCH_BY_RELATION);
+		QName relationValue = relationDropDown.getRelationValue();
 		if (relationValue == null){
 			return PrismConstants.Q_ANY;
 		} else {
-			return relationValue.getRelation();
+			return relationValue;
 		}
 	}
 

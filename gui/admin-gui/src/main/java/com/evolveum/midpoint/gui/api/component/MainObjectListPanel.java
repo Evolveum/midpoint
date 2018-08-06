@@ -176,7 +176,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 //                        isVisible = ((PageBase) getPage()).getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
 //                                null, objectToCreate, null, null, null);
 //                    } catch (Exception ex){
-//                        LOGGER.error("Failed to check authorization for ADD action on new object of " + mainObjectListPanel.getType().getSimpleName()
+//                        LOGGER.error("Failed to check authorization for ADD action on new object of " + mainObjectListPanel.getQueryType().getSimpleName()
 //                                + " type, ", ex);
 //                    }
 //                    return isVisible;

@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedPagingPanel;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -34,7 +36,7 @@ import java.util.List;
 /**
  * Created by honchar.
  */
-public abstract class GridViewComponent<O extends Object> extends BasePanel<IDataProvider<O>> {
+public abstract class GridViewComponent<O extends Object> extends BasePanel<ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>> {
     private static final long serialVersionUID = 1L;
 
     private static final int DEFAULT_ROW_COUNT = 5;
@@ -46,7 +48,7 @@ public abstract class GridViewComponent<O extends Object> extends BasePanel<IDat
     private static final String ID_COUNT = "count";
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
 
-    public GridViewComponent(String id, IModel<IDataProvider<O>> dataProviderModel){
+    public GridViewComponent(String id, IModel<ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>> dataProviderModel){
         super(id, dataProviderModel);
     }
 
@@ -149,4 +151,8 @@ public abstract class GridViewComponent<O extends Object> extends BasePanel<IDat
     }
 
     protected abstract void populateItem(Item item);
+
+    public ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> getProvider(){
+        return GridViewComponent.this.getModelObject();
+    }
 }
