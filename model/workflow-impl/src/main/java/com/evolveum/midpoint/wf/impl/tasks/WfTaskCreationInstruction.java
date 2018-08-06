@@ -377,9 +377,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		} else if (parentTask != null && parentTask.getObjectRef() != null) {
 			task.setObjectRef(parentTask.getObjectRef().clone());
 		}
-		if (task.getName() == null || task.getName().toPolyString().isEmpty()) {
-			task.setName(taskName);
-		}
+		task.setName(taskName);
 
 		// push the handlers, beginning with these that should execute last
 		wfTaskUtil.pushHandlers(task, getHandlersAfterModelOperation());

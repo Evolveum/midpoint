@@ -30,7 +30,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -92,6 +91,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	private static final String OPERATION_LOAD_APPROVER_RELATION_OBJECTS = DOT_CLASS + "loadApproverRelationObjects";
 	private static final String OPERATION_LOAD_OWNER_RELATION_OBJECTS = DOT_CLASS + "loadOwnerRelationObjects";
 	private static final String OPERATION_LOAD_MANAGER_RELATION_OBJECTS = DOT_CLASS + "loadManagerRelationObjects";
+	protected static final String OPERATION_RELATION_DEFINITION_TYPE = DOT_CLASS + "loadRelationDefinitionTypes";
 
 	protected static final String ID_FORM = "form";
 	protected static final String ID_CONTAINER_MANAGER = "managerContainer";
@@ -411,7 +411,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, this);
 	}
 
-	protected void addMembers(AjaxRequestTarget target, List<RelationTypes> availableRelationList) {
+	protected void addMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
 
 		ChooseMemberPopup browser = new ChooseMemberPopup(getPageBase().getMainPopupBodyId(), availableRelationList) {
 			private static final long serialVersionUID = 1L;
@@ -427,8 +427,9 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	}
 
-	protected List<RelationTypes> getAvailableRelationList(){
-		return Arrays.asList(RelationTypes.MEMBER, RelationTypes.MANAGER, RelationTypes.APPROVER, RelationTypes.OWNER);
+	protected List<QName> getAvailableRelationList(){
+		return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION,
+				new OperationResult(OPERATION_RELATION_DEFINITION_TYPE), getPageBase());
 	}
 
 	protected abstract void removeMembersPerformed(QueryScope scope, List<QName> relation, AjaxRequestTarget target);
@@ -546,12 +547,12 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> cellItem,
 									 String componentId, IModel<SelectableBean<ObjectType>> rowModel) {
 				cellItem.add(new Label(componentId,
-						getRelationValue((FocusType) rowModel.getObject().getValue())));
+						getRelationValue(rowModel.getObject().getValue())));
 			}
 
 			@Override
 			public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
-				return Model.of(getRelationValue((FocusType) rowModel.getObject().getValue()));
+				return Model.of(getRelationValue(rowModel.getObject().getValue()));
 			}
 
 		};
@@ -702,7 +703,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 		return new QName[]{FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF};
 	}
 
-	private String getRelationValue(FocusType focusObject){
+	private String getRelationValue(ObjectType focusObject){
 		StringBuilder relations = new StringBuilder();
 		if (focusObject == null){
 			return "";

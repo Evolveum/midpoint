@@ -544,7 +544,7 @@ public abstract class SchemaConstants {
 	// Misc
 
 	public static String BUNDLE_NAME = "schema";
-	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/" + BUNDLE_NAME;
+	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/" + BUNDLE_NAME;     // Do not load this bundle explicitly, see MID-4800
 	public static final QName APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE = new QName(SchemaConstants.NS_C, ApprovalLevelOutcomeType.class.getSimpleName());
 
 	// registration

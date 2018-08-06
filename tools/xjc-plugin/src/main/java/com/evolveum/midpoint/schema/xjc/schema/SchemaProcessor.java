@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Raw;
@@ -106,6 +107,7 @@ public class SchemaProcessor implements Processor {
     // The "as" prefix is chosen to avoid clash with usual "get" for the fields and also to indicate that
     //   the it returns the same object in a different representation and not a composed/aggregated object
     public static final String METHOD_AS_PRISM_OBJECT = "asPrismObject";
+    public static final String METHOD_AS_PRISM_OBJECT_VALUE = "asPrismObjectValue";
     public static final String METHOD_AS_PRISM_CONTAINER_VALUE = "asPrismContainerValue";
     private static final String METHOD_AS_PRISM_CONTAINER = "asPrismContainer";
     // The "setup" prefix is chosen avoid collision with regular setters for generated fields
@@ -180,7 +182,8 @@ public class SchemaProcessor implements Processor {
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class, XmlType.class,
                     XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class, Equals.class,
                     PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class, Containerable.class,
-					Referencable.class, Raw.class, Enum.class, XmlEnum.class, PolyStringType.class, XmlTypeConverter.class);
+					Referencable.class, Raw.class, Enum.class, XmlEnum.class, PolyStringType.class, XmlTypeConverter.class,
+					PrismObjectValue.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -1721,8 +1724,8 @@ public class SchemaProcessor implements Processor {
 
         JVar cont;
         if (isPrismContainer(param.type(), classOutline.parent())) {
-            cont = body.decl(CLASS_MAP.get(PrismObject.class), FIELD_CONTAINER_VALUE_LOCAL_VAR_NAME, JOp.cond(param.ne(JExpr._null()),
-                    JExpr.invoke(param, METHOD_AS_PRISM_CONTAINER_VALUE), JExpr._null()));
+            cont = body.decl(CLASS_MAP.get(PrismContainerValue.class), FIELD_CONTAINER_VALUE_LOCAL_VAR_NAME, 
+            		JOp.cond(param.ne(JExpr._null()), JExpr.invoke(param, METHOD_AS_PRISM_CONTAINER_VALUE), JExpr._null()));
         } else {
             cont = body.decl(CLASS_MAP.get(PrismContainerValue.class), FIELD_CONTAINER_VALUE_LOCAL_VAR_NAME,
                     JOp.cond(param.ne(JExpr._null()), JExpr.invoke(param, METHOD_AS_PRISM_CONTAINER_VALUE), JExpr._null()));

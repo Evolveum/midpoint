@@ -88,7 +88,8 @@ public class AccessCertificationCloseStageApproachingTriggerHandler implements T
 				}
 			}
 		} catch (SchemaException|RuntimeException e) {
-			LoggingUtils.logException(LOGGER, "Couldn't generate 'deadline approaching' notifications", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't generate 'deadline approaching' notifications", e);
+			// do not retry this trigger execution
 		}
 	}
 }

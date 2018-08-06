@@ -265,7 +265,7 @@ public class TestPolicyRules extends AbstractLensTest {
         assertTargetTriggers(context,  null, 0);
 	}
 
-	@Test
+	@Test(enabled = false)          // after MID-4797 the projector.project now raises PolicyViolationException on conflicting roles
     public void test110AssignRolePirateToJack() throws Exception {
 		final String TEST_NAME = "test110AssignRolePirateToJack";
         TestUtil.displayTestTitle(this, TEST_NAME);

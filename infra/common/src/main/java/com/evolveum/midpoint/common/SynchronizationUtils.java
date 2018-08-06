@@ -22,12 +22,11 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -35,7 +34,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -45,6 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 public class SynchronizationUtils {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationUtils.class);
 	
 	public static boolean isPolicyApplicable(PrismObject<? extends ShadowType> currentShadow,
 			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource)
@@ -56,6 +61,20 @@ public class SynchronizationUtils {
 		Validate.notNull(shadowObjectClass, "No objectClass in currentShadow");
 		
 		return isPolicyApplicable(shadowObjectClass, currentShadowType.getKind(), currentShadowType.getIntent(), synchronizationPolicy, resource);
+		
+	}
+	
+	public static boolean isPolicyApplicable(ObjectSynchronizationDiscriminatorType synchronizationDiscriminator,
+			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource)
+					throws SchemaException {
+		ShadowKindType kind = synchronizationDiscriminator.getKind();
+		String intent = synchronizationDiscriminator.getIntent();
+		if (kind == null && intent == null) {
+			throw new SchemaException(
+					"Illegal state, object synchronization discriminator type must have kind/intent specified. Current values are: kind="
+							+ kind + ", intent=" + intent);
+		}
+		return isPolicyApplicable(null, kind, intent, synchronizationPolicy, resource);
 		
 	}
 
@@ -89,22 +108,26 @@ public class SynchronizationUtils {
 			}
 		}
 		if (policyObjectClasses != null && !policyObjectClasses.isEmpty()) {
-			if (!QNameUtil.contains(policyObjectClasses, objectClass)) {
+			if (objectClass != null && !QNameUtil.contains(policyObjectClasses, objectClass)) {
 				return false;
 			}
 		}
 
 		// kind
 		ShadowKindType policyKind = synchronizationPolicy.getKind();
+		LOGGER.trace("Comparing kinds, policy kind: {}, current kind: {}", policyKind, kind);
 		if (policyKind != null && kind != null && !policyKind.equals(kind)) {
+			LOGGER.trace("Kinds don't match, skipping policy {}", synchronizationPolicy);
 			return false;
 		}
 
 		// intent
 		// TODO is the intent always present in shadow at this time? [med]
 		String policyIntent = synchronizationPolicy.getIntent();
+		LOGGER.trace("Comparing intents, policy intent: {}, current intent: {}", policyIntent, intent);
 		if (policyIntent != null && intent != null
 				&& !MiscSchemaUtil.equalsIntent(intent, policyIntent)) {
+			LOGGER.trace("Intents don't match, skipping policy {}", synchronizationPolicy);
 			return false;
 		}
 

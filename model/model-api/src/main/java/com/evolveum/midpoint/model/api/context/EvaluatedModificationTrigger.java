@@ -27,7 +27,7 @@ public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<Mod
 
 	public EvaluatedModificationTrigger(@NotNull PolicyConstraintKindType kind, @NotNull ModificationPolicyConstraintType constraint,
 			LocalizableMessage message, LocalizableMessage shortMessage) {
-		super(kind, constraint, message, shortMessage);
+		super(kind, constraint, message, shortMessage, false);
 	}
 
 	@Override

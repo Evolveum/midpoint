@@ -1570,7 +1570,7 @@ public abstract class ShadowCache {
 					throws SchemaException, ObjectNotFoundException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
+		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query != null ? query.getFilter() : null);
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
 		ctx.setGetOperationOptions(options);
 		ctx.assertDefinition();

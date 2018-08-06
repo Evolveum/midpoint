@@ -64,8 +64,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL,
-                label = "PageAssignmentShoppingKart.auth.requestAssignments.label",
-                description = "PageAssignmentShoppingKart.auth.requestAssignments.description")})
+                label = "PageAssignmentShoppingCart.auth.requestAssignments.label",
+                description = "PageAssignmentShoppingCart.auth.requestAssignments.description")})
 public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final String ID_ASSIGNMENT_TABLE_PANEL = "assignmentTablePanel";
     private static final String ID_FORM = "mainForm";
@@ -272,7 +272,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
             showResult(result);
             clearStorage();
-            setResponsePage(PageAssignmentShoppingKart.class);
+            setResponsePage(PageAssignmentShoppingCart.class);
             return;
         }
         showResult(result);
@@ -281,7 +281,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             target.add(PageAssignmentsList.this.get(ID_FORM));
         } else {
             clearStorage();
-            setResponsePage(PageAssignmentShoppingKart.class);
+            setResponsePage(PageAssignmentShoppingCart.class);
         }
     }
 
@@ -322,13 +322,13 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
                 result.setMessage(createStringResource("operation.com.evolveum.midpoint.web.page.self.PageRequestRole.taskCreated").getString());
                 showResult(result);
                 clearStorage();
-                setResponsePage(PageAssignmentShoppingKart.class);
+                setResponsePage(PageAssignmentShoppingCart.class);
                 return;
             }
             if (WebComponentUtil.isSuccessOrHandledError(result)
                     || OperationResultStatus.IN_PROGRESS.equals(result.getStatus())) {
                 clearStorage();
-                setResponsePage(PageAssignmentShoppingKart.class);
+                setResponsePage(PageAssignmentShoppingCart.class);
             } else {
                 showResult(result);
                 target.add(getFeedbackPanel());
