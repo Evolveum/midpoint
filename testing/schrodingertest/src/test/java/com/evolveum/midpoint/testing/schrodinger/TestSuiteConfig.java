@@ -3,6 +3,8 @@ package com.evolveum.midpoint.testing.schrodinger;
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 
+import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import org.apache.commons.lang3.ArrayUtils;
 
 import org.slf4j.Logger;
@@ -29,5 +31,6 @@ public class TestSuiteConfig extends TestBase {
 
   @AfterSuite
     public void cleanUp() {
+
     }
 }

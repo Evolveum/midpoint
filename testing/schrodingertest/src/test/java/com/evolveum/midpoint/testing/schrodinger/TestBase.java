@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.testing.schrodinger;
 
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.testng.BrowserPerClass;
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -79,6 +80,10 @@ public abstract class TestBase {
     @AfterClass
     public void afterClass() {
         LOG.info("Finished tests from class {}", getClass().getName());
+        AboutPage aboutPage = basicPage.aboutPage();
+                aboutPage
+                        .clickSwitchToFactoryDefaults()
+                        .clickYes();
     }
 
     @BeforeMethod

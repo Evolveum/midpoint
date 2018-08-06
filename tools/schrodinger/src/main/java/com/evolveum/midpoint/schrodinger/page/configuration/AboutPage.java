@@ -1,8 +1,14 @@
 package com.evolveum.midpoint.schrodinger.page.configuration;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.component.common.ConfirmationModal;
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
+import com.evolveum.midpoint.schrodinger.component.common.ModalBox;
+import com.evolveum.midpoint.schrodinger.component.common.Popover;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
+import com.evolveum.midpoint.schrodinger.page.LoginPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -127,5 +133,12 @@ public class AboutPage extends BasicPage {
         return new FeedbackBox<>(this, feedback);
     }
 
+    public ConfirmationModal<LoginPage> clickSwitchToFactoryDefaults() {
+        $(Schrodinger.byDataResourceKey("PageAbout.button.factoryDefault")).click();
+        SelenideElement confirmBox =$(Schrodinger.byElementAttributeValue("div","aria-labelledby","Confirm deletion"))
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT);
+
+        return new ConfirmationModal<>(new LoginPage(),confirmBox);
+    }
 }
 
