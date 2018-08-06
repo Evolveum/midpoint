@@ -36,6 +36,8 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -56,11 +58,14 @@ import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
@@ -120,28 +125,28 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		BoxedTablePanel<ContainerValueWrapper<C>> itemTable = initItemTable();
 		itemsContainer.add(itemTable);
 
-		AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ITEM_BUTTON, new Model<>("fa fa-plus"),
-				createStringResource("MainObjectListPanel.newObject")) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				newItemPerformed(target);
-			}
-		};
-
-		newObjectIcon.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				return enableActionNewObject();
-			}
-		});
-		itemsContainer.add(newObjectIcon);
+//		AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ITEM_BUTTON, new Model<>("fa fa-plus"),
+//				createStringResource("MainObjectListPanel.newObject")) {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				newItemPerformed(target);
+//			}
+//		};
+//
+//		newObjectIcon.add(new VisibleEnableBehaviour() {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public boolean isVisible() {
+//				return enableActionNewObject();
+//			}
+//		});
+//		itemsContainer.add(newObjectIcon);
 		
-		Fragment searchContainer = getSearchPanel(ID_SEARCH_ITEM_PANEL);
+		WebMarkupContainer searchContainer = getSearchPanel(ID_SEARCH_ITEM_PANEL);
 		itemsContainer.add(searchContainer);
 		itemsContainer.add(new VisibleEnableBehaviour() {
 
@@ -159,7 +164,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		return true;
 	}
 	
-	protected abstract Fragment getSearchPanel(String contentAreaId);
+	protected WebMarkupContainer getSearchPanel(String contentAreaId) {
+		return new WebMarkupContainer(contentAreaId);
+	}
 	
 	protected abstract boolean enableActionNewObject();
 
@@ -212,6 +219,31 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 						}));
 				return item;
 			}
+			
+			@Override
+			protected WebMarkupContainer createButtonToolbar(String id) {
+				AjaxIconButton newObjectIcon = new AjaxIconButton(id, new Model<>("fa fa-plus"),
+						createStringResource("MainObjectListPanel.newObject")) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						newItemPerformed(target);
+					}
+				};
+
+				newObjectIcon.add(new VisibleEnableBehaviour() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public boolean isVisible() {
+						return enableActionNewObject();
+					}
+				});
+				newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
+				return newObjectIcon;
+			}
 
 		};
 		itemTable.setOutputMarkupId(true);
@@ -219,6 +251,17 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		return itemTable;
 
 	}
+	
+	private IModel<String> createStyleClassModelForNewObjectIcon() {
+        return new AbstractReadOnlyModel<String>() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+            	return "btn btn-success btn-sm";
+            }
+        };
+    }
 	
 	protected abstract List<ContainerValueWrapper<C>> postSearch(List<ContainerValueWrapper<C>> items);
 
@@ -233,6 +276,14 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	}
 
 	public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
+		IModel objectModel = new LoadableModel<ContainerValueWrapper<GlobalPolicyRuleType>>(false) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected ContainerValueWrapper<GlobalPolicyRuleType> load() {
+				return ((ContainerValueWrapper<GlobalPolicyRuleType>)getModelObject().getValues().get(0));
+			}
+		};
 		ajaxRequestTarget.add(getItemContainer().addOrReplace(initItemTable()));
 	}
 
@@ -269,7 +320,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		Task task = getPageBase().createSimpleTask("Creating new object policy");
 		ContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(model.getObject(), newItem,
 				model.getObject().getObjectStatus(), ValueStatus.ADDED, model.getObject().getPath(), task);
-		valueWrapper.setShowEmpty(true, false);
+		valueWrapper.setShowEmpty(true, true);
 		model.getObject().getValues().add(valueWrapper);
 		return valueWrapper;
 	}

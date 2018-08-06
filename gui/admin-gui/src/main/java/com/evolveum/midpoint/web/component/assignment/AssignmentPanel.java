@@ -201,7 +201,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
             @Override
             protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-            	String name = AssignmentsUtil.getName(rowModel.getObject().getContainerValue().asContainerable(), getParentPage());
+            	String name = AssignmentsUtil.getName(rowModel.getObject(), getParentPage());
            		if (StringUtils.isBlank(name)) {
             		return createStringResource("AssignmentPanel.noName");
             	}

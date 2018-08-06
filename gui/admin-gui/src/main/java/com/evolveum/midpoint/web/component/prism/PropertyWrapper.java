@@ -23,6 +23,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
@@ -35,6 +37,7 @@ import java.util.List;
 public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty<T>, PrismPropertyDefinition<T>> implements Serializable, DebugDumpable {
 
 	private static final long serialVersionUID = -6347026284758253783L;
+	private LookupTableType predefinedValues;
 
 	public PropertyWrapper(@Nullable ContainerValueWrapper container, PrismProperty<T> property, boolean readonly, ValueStatus status) {
 		super(container, property, readonly, status, null);
@@ -159,6 +162,14 @@ public class PropertyWrapper<T> extends PropertyOrReferenceWrapper<PrismProperty
 
 	protected String getDebugName() {
 		return "PropertyWrapper";
+	}
+	
+	public void setPredefinedValues(LookupTableType predefinedValues) {
+		this.predefinedValues = predefinedValues;
+	}
+	
+	public LookupTableType getPredefinedValues() {
+		return predefinedValues;
 	}
 }
 

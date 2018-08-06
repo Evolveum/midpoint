@@ -51,6 +51,8 @@ import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.prism.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -244,6 +246,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+            	
                 item.add(new Label(componentId, getTenantLabelModel(rowModel.getObject())));
             }
         });
@@ -333,8 +336,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
 	        return Model.of("");
         }
-	    AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
-	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(Arrays.asList(assignment.getTenantRef()), false));
+	    PropertyOrReferenceWrapper policyRuleWrapper = (PropertyOrReferenceWrapper)assignmentContainer.findPropertyWrapper(new ItemPath(assignmentContainer.getPath(), AssignmentType.F_TENANT_REF));
+//	    AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
+	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)policyRuleWrapper.getItem().getRealValue(), false));
 
     }
 
@@ -342,8 +346,10 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
 	        return Model.of("");
         }
-	    AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
-	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(Arrays.asList(assignment.getOrgRef()), false));
+	    PropertyOrReferenceWrapper policyRuleWrapper = (PropertyOrReferenceWrapper)assignmentContainer.findPropertyWrapper(new ItemPath(assignmentContainer.getPath(), AssignmentType.F_ORG_REF));
+	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)policyRuleWrapper.getItem().getRealValue(), false));
+//	    AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
+//	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(Arrays.asList(assignment.getOrgRef()), false));
 
     }
 
@@ -367,7 +373,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
 			ContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(),
 					AssignmentType.F_CONSTRUCTION));
-			constructionWrapper.setShowEmpty(true, true);
 			
 			return Model.of(constructionWrapper);
 		}
@@ -375,7 +380,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
 			ContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(),
 					AssignmentType.F_PERSONA_CONSTRUCTION));
-			personasWrapper.setShowEmpty(true, true);
 
 			return Model.of(personasWrapper);
 		}

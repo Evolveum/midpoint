@@ -20,9 +20,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.GlobalPolicyRuleTabPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
@@ -57,6 +61,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 public class PolicyRulesPanel extends AssignmentPanel {
 
     private static final long serialVersionUID = 1L;
+    
+	private static final Trace LOGGER = TraceManager.getTrace(PolicyRulesPanel.class);
 
     public PolicyRulesPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
         super(id, assignmentContainerWrapperModel);
@@ -71,8 +77,9 @@ public class PolicyRulesPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                PolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue().getPolicyRule();
-                String constraints = PolicyRuleTypeUtil.toShortString(policyRuleType.getPolicyConstraints());
+            	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
+            	ContainerWrapper<PolicyConstraintsType> wrapper = policyRuleWrapper.getValues().get(0).findContainerWrapper(new ItemPath(policyRuleWrapper.getPath(), PolicyRuleType.F_POLICY_CONSTRAINTS));
+            	String constraints = PolicyRuleTypeUtil.toShortString(wrapper.getValues().get(0).getContainerValue().getValue());
                 cellItem.add(new MultiLineLabel(componentId, Model.of(constraints != null && !constraints.equals("null") ? constraints : "")));
             }
 
@@ -83,8 +90,9 @@ public class PolicyRulesPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-            	PolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue().getPolicyRule();
-                String situationValue = policyRuleType == null ? "" : policyRuleType.getPolicySituation();
+            	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
+            	PropertyWrapperFromContainerValueWrapperModel<String, PolicyRuleType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(policyRuleWrapper.getValues().get(0), PolicyRuleType.F_POLICY_SITUATION);
+            	String situationValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
                 cellItem.add(new Label(componentId, Model.of(situationValue)));
             }
 
@@ -95,8 +103,11 @@ public class PolicyRulesPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-            	PolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue().getPolicyRule();
-            	String action = PolicyRuleTypeUtil.toShortString(policyRuleType.getPolicyActions(), new ArrayList<>());
+            	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
+            	ContainerWrapper<PolicyActionsType> wrapper = policyRuleWrapper.getValues().get(0).findContainerWrapper(new ItemPath(policyRuleWrapper.getValues().get(0).getPath(), PolicyRuleType.F_POLICY_ACTIONS));
+//            	LOGGER.info("XXXXXXXXXXXXXXXXXXX propertyModel " + wrapper.getValues().get(0).getContainerValue());
+            	String action = PolicyRuleTypeUtil.toShortString(wrapper.getValues().get(0).getContainerValue().getValue(), new ArrayList<>());
+//            	LOGGER.info("XXXXXXXXXXXXXXXXXXX action " + action);
                 cellItem.add(new MultiLineLabel(componentId, Model.of(action != null && !action.equals("null") ? action : "")));
             }
 
@@ -107,13 +118,15 @@ public class PolicyRulesPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                AssignmentType assignment = rowModel.getObject().getContainerValue().getValue();
+            	PropertyWrapperFromContainerValueWrapperModel<Integer, AssignmentType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel.getObject(), AssignmentType.F_ORDER);
+                
+            	AssignmentType assignment = rowModel.getObject().getContainerValue().getValue();
 
                 String orderValue;
-                if (assignment == null || assignment.getOrder() == null){
+                if (propertyModel == null || propertyModel.getObject().getValues().get(0).getValue().getRealValue() == null){
                     orderValue = "";
                 } else {
-                    orderValue = Integer.toString(assignment.getOrder());
+                    orderValue = Integer.toString(propertyModel.getObject().getValues().get(0).getValue().getRealValue());
                 }
                 cellItem.add(new Label(componentId, Model.of(orderValue)));
             }
@@ -172,7 +185,6 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	@Override
 	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
 		ContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
-		policyRuleWrapper.setShowEmpty(true, true);
 		return Model.of(policyRuleWrapper);
 	}
 }

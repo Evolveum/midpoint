@@ -152,10 +152,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return null;
 	}
 
-	public ContainerWrapper<C> findContainerWrapper(ItemPath path) {
+	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ContainerValueWrapper<C> wrapper : getValues()) {
-			ContainerWrapper<C> containerWrapper = wrapper.findContainerWrapper(path);
+			ContainerWrapper<T> containerWrapper = wrapper.findContainerWrapper(path);
 			if (containerWrapper != null) {
 				return containerWrapper;
 			}

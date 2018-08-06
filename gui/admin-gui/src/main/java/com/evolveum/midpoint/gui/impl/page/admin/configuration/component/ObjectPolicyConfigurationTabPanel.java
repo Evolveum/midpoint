@@ -107,7 +107,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 	
     private static final String ID_OBJECTS_POLICY = "objectsPolicy";
     private static final String ID_SEARCH_FRAGMENT = "searchFragment";
-    private static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
     
     private List<ContainerValueWrapper<ObjectPolicyConfigurationType>> detailsPanelObjectPoliciesList = new ArrayList<>();
     
@@ -213,12 +212,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 				return new DisplayNamePanel<ObjectPolicyConfigurationType>(displayNamePanelId, displayNameModel);
 			}
 
-			@Override
-			protected  Fragment getSpecificContainers(String contentAreaId) {
-				Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, ObjectPolicyConfigurationTabPanel.this);
-				return specificContainers;
-			}
-			
 //			@Override
 //			protected ContainerValuePanel<ObjectPolicyConfigurationType> getBasicContainerValuePanel(
 //					String idPanel) {
