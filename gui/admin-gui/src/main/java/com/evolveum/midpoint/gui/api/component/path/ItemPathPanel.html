@@ -17,9 +17,18 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-	<div wicket:id="namespace"/>
-	<div wicket:id="definition"/>
-	<a class="btn" wicket:id="plus"><label>+</label></a>
-	<a class="btn" wicket:id="minus"><label>-</label></a>
+	<div wicket:id="itemPath">
+		<div wicket:id="namespace"/>
+		<div wicket:id="definition"/>
+		<button wicket:id="plus" class="btn btn-box-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
+		<button wicket:id="minus" class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
+	</div>
+	
+	<div wicket:id="itemPathContainer">
+		<div>
+			<span wicket:id="itemPathLabel"></span>
+			<a wicket:id="change" class="btn btn-primary btn-xs"></a>
+		</div>
+	</div>
 </wicket:panel>
 </html>
