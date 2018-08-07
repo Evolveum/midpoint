@@ -631,9 +631,11 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 		assertShadowName(shadowProvisioningFuture, ACCOUNT_WILL_USERNAME);
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
 		assertAttribute(shadowProvisioningFuture, ATTR_USERNAME_QNAME, ACCOUNT_WILL_USERNAME);
-		assertAttributeFromCache(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
+		// Both manual and semimanual resource can see fullname at this point.
+		// As there is no object in the CSV (no resourceShadow) the pending ADD delta will be used.
+		assertAttribute(shadowProvisioningFuture, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
 		assertNoAttribute(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME);
-		assertShadowActivationAdministrativeStatusFromCache(shadowProvisioningFuture, ActivationStatusType.ENABLED);
+		assertShadowActivationAdministrativeStatus(shadowProvisioningFuture, ActivationStatusType.ENABLED);
 		assertShadowExists(shadowProvisioningFuture, true);
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);

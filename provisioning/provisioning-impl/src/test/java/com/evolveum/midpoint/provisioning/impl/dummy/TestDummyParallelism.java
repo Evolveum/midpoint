@@ -181,7 +181,8 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 					.delta()
 						.assertDelete();
 
-		assertProvisioningNotFound(ACCOUNT_WILL_OID);
+		assertShadowProvisioning(ACCOUNT_WILL_OID)
+			.assertTombstone();
 
 		assertSteadyResource();
 	}
@@ -376,10 +377,10 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		successCounter.assertCount("Wrong number of successful operations", 1);
 
 		assertRepoShadow(accountMorganOid)
-			.assertDead()
-			.assertIsNotExists();
+			.assertTombstone();
 		
-		assertProvisioningNotFound(accountMorganOid);
+		assertShadowProvisioning(accountMorganOid)
+			.assertTombstone();
 
 		assertDummyResourceWriteOperationCountIncrement(null, 1);
 
@@ -589,10 +590,10 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		successCounter.assertCount("Wrong number of successful operations", 1);
 
 		assertRepoShadow(accountElizabethOid)
-			.assertDead()
-			.assertIsNotExists();
+			.assertTombstone();
 	
-		assertProvisioningNotFound(accountElizabethOid);
+		assertShadowProvisioning(accountElizabethOid)
+			.assertTombstone();
 
 		assertDummyResourceWriteOperationCountIncrement(null, 1);
 

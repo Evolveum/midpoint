@@ -816,7 +816,7 @@ public class ChangeExecutor {
 //			result.recordSuccess();
 //			return;
 //		}
-		LOGGER.trace("Updating synchronization situation {} -> {}", currentSynchronizationSituation, newSituation);
+//		LOGGER.trace("Updating synchronization situation {} -> {}", currentSynchronizationSituation, newSituation);
 		
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
