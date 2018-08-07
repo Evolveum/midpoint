@@ -216,4 +216,10 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		}
 		return this;
 	}
+	
+	public AssignmentsAsserter<F, ? extends FocusAsserter<F,RA>, RA> assignments() {
+		AssignmentsAsserter<F,FocusAsserter<F,RA>,RA> asserter = new AssignmentsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 }

@@ -963,10 +963,12 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display(result);
     	TestUtil.assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
 
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertAssignedRole(USER_JACK_OID, roleOid, task, result);
-        // One of the accountRefs is actually ref to an uncreated shadow
-        assertLinks(userJack, expectAccount ? 2 : 1);
+    	assertUserAfter(USER_JACK_OID)
+    		.assignments()
+    			.assertAssignedRole(roleOid)
+    			.end()
+			// One of the accountRefs is actually ref to an uncreated shadow
+    		.assertLinks(expectAccount ? 2 : 1);
 
     	assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     	assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME);

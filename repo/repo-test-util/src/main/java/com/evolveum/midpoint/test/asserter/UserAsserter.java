@@ -145,6 +145,13 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		super.assertLinks(expected);
 		return this;
 	}
+	
+	@Override
+	public AssignmentsAsserter<UserType, UserAsserter<RA>, RA> assignments() {
+		AssignmentsAsserter<UserType, UserAsserter<RA>, RA> asserter = new AssignmentsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
 
 	public UserAsserter<RA> assertFullName(String expectedOrig) {
 		assertPolyStringProperty(UserType.F_FULL_NAME, expectedOrig);

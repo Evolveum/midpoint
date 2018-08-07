@@ -108,8 +108,7 @@ public class ChangeExecutor {
 	private static final String OPERATION_EXECUTE_PROJECTION = OPERATION_EXECUTE + ".projection";
 	private static final String OPERATION_LINK_ACCOUNT = ChangeExecutor.class.getName() + ".linkShadow";
 	private static final String OPERATION_UNLINK_ACCOUNT = ChangeExecutor.class.getName() + ".unlinkShadow";
-	private static final String OPERATION_UPDATE_SITUATION_ACCOUNT = ChangeExecutor.class.getName()
-			+ ".updateSituationInShadow";
+	private static final String OPERATION_UPDATE_SITUATION_IN_SHADOW = ChangeExecutor.class.getName() + ".updateSituationInShadow";
 
 	@Autowired private transient TaskManager taskManager;
 	@Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
@@ -794,7 +793,7 @@ public class ChangeExecutor {
 
 		String projectionOid = projectionCtx.getOid();
 
-		OperationResult result = parentResult.createMinorSubresult(OPERATION_UPDATE_SITUATION_ACCOUNT);
+		OperationResult result = parentResult.createMinorSubresult(OPERATION_UPDATE_SITUATION_IN_SHADOW);
 		result.addArbitraryObjectAsParam("situation", newSituation);
 		result.addParam("accountRef", projectionOid);
 
@@ -806,6 +805,7 @@ public class ChangeExecutor {
 					SelectorOptions.createCollection(getOptions), task, result);
 		} catch (Exception ex) {
 			LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
+			result.recordHandledError(ex);
 			return;
 		}
 		
