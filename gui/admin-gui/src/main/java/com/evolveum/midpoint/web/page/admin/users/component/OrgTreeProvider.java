@@ -179,7 +179,6 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
 
         if (WebComponentUtil.showResultInPage(result)) {
             getPageBase().showResult(result);
-            throw new RestartResponseException(PageUsers.class);
         }
 
         List<SelectableBean<OrgType>> list = new ArrayList<>();

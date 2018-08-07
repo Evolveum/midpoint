@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.api.context;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -67,7 +68,8 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 
 	Collection<PolicyExceptionType> getPolicyExceptions();
 
-	void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options);
+	void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options,
+			Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector);
 
 	boolean isGlobal();
 
@@ -89,4 +91,7 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
 	<T extends PolicyActionType> List<T> getEnabledActions(Class<T> clazz);
 
 	<T extends PolicyActionType> T getEnabledAction(Class<T> clazz);
+
+	// use only if you know what you're doing
+	void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger);
 }

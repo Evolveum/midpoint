@@ -56,6 +56,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -98,6 +99,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -273,6 +275,21 @@ public final class WebComponentUtil {
 		return refs.stream()
 				.map(ref -> emptyIfNull(getDisplayNameAndName(ref)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
 				.collect(Collectors.joining(", "));
+	}
+	
+	public static String getReferencedObjectDisplayNamesAndNames(DefaultReferencableImpl ref, boolean showTypes) {
+		String name = ref.getTargetName() == null ? "" : ref.getTargetName().getOrig();
+		StringBuilder sb = new StringBuilder(name);
+		if(showTypes) {
+			sb.append(" (");
+			ObjectTypes type = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
+			ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(type);
+			if (descriptor == null) {
+				return null;
+			}
+			sb.append(emptyIfNull(createStringResourceStatic(null, descriptor.getLocalizationKey()).getString())).append(")");
+		}
+		return sb.toString();
 	}
 
 	public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
@@ -2386,6 +2403,29 @@ public final class WebComponentUtil {
 		
 		return ItemVisibility.AUTO;
 		
+	}
+
+	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, OperationResult result, PageBase pageBase){
+		List<QName> relationsList = new ArrayList<>();
+		List<RelationDefinitionType> defList = getRelationDefinitions(result, pageBase);
+		if (defList != null) {
+			defList.forEach(def -> {
+				if (def.getCategory() != null && def.getCategory().contains(category)) {
+					relationsList.add(def.getRef());
+				}
+			});
+		}
+		return relationsList;
+	}
+
+	public static List<RelationDefinitionType> getRelationDefinitions(OperationResult result, PageBase pageBase){
+		try {
+			return pageBase.getModelInteractionService().getRelationDefinitions(result);
+		} catch (ObjectNotFoundException | SchemaException ex){
+			result.computeStatus();
+			LOGGER.error("Unable to load relation definitions, " + ex.getLocalizedMessage());
+		}
+		return null;
 	}
 
 	public static <T> DropDownChoice createTriStateCombo(String id, IModel<Boolean> model) {

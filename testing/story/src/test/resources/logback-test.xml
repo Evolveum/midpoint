@@ -62,6 +62,7 @@
 	<logger name="com.evolveum.midpoint.model.impl.sync" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.common.SynchronizationUtils" level="TRACE" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.ResourceManager" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />

@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
@@ -77,6 +79,8 @@ import javax.xml.namespace.QName;
 public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>> {
 
 	private static final long serialVersionUID = 1L;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
 
 	private static final String ID_ASSIGNMENTS = "assignments";
 	protected static final String ID_SEARCH_FRAGMENT = "searchFragment";
@@ -84,7 +88,8 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	private final static String ID_ACTIVATION_PANEL = "activationPanel";
 	protected static final String ID_SPECIFIC_CONTAINER = "specificContainers";
 
-	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
+	private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
+	protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
 
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
 
@@ -143,11 +148,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			}
 
 			@Override
-			protected Fragment getSearchPanel(String contentAreaId) {
-				return getCustomSearchPanel(contentAreaId);
-			}
-
-			@Override
 			protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel(
 					ListItem<ContainerValueWrapper<AssignmentType>> item) {
 				return createMultivalueContainerDetailsPanel(item);
@@ -201,7 +201,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
             @Override
             protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-            	String name = AssignmentsUtil.getName(rowModel.getObject().getContainerValue().asContainerable(), getParentPage());
+            	String name = AssignmentsUtil.getName(rowModel.getObject(), getParentPage());
            		if (StringUtils.isBlank(name)) {
             		return createStringResource("AssignmentPanel.noName");
             	}
@@ -233,7 +233,9 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
 
-	protected abstract Fragment getCustomSearchPanel(String contentAreaId);
+	protected WebMarkupContainer getCustomSearchPanel(String contentAreaId) {
+		return new WebMarkupContainer(contentAreaId);
+	}
 	
 	private MultivalueContainerDetailsPanel<AssignmentType> createMultivalueContainerDetailsPanel(
 			ListItem<ContainerValueWrapper<AssignmentType>> item) {

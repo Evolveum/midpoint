@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.formatters;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
 import com.evolveum.midpoint.prism.*;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -63,9 +63,7 @@ public class TextFormatter {
 
     @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
     @Autowired protected NotificationFunctionsImpl functions;
-
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(
-			SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH);
+    @Autowired private LocalizationService localizationService;
 
     private static final Trace LOGGER = TraceManager.getTrace(TextFormatter.class);
 
@@ -429,11 +427,11 @@ public class TextFormatter {
     }
 
 	private String resolve(String key) {
-		if (key != null && RESOURCE_BUNDLE.containsKey(key)) {
-			return RESOURCE_BUNDLE.getString(key);
-		} else {
-			return key;
-		}
+        if (key != null) {
+            return localizationService.translate(key, null, Locale.getDefault(), key);
+        } else {
+            return null;
+        }
 	}
 
 	// we call this on filtered list of item deltas - all of they have definition set

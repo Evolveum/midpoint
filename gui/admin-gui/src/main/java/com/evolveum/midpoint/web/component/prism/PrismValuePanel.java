@@ -713,7 +713,29 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 				PrismPropertyDefinition def = property.getDefinition();
 
-				if (def.getValueEnumerationRef() != null) {
+				if(getModelObject().getItem() instanceof PropertyWrapper && ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues() != null) {
+					LookupTableType lookupTable = ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues();
+					panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
+                            baseExpression, lookupTable), type) {
+
+								private static final long serialVersionUID = 1L;
+
+								@Override
+								public Iterator<String> getIterator(String input) {
+									return prepareAutoCompleteList(input, lookupTable.asPrismObject()).iterator();
+								}
+
+								@Override
+								protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError,
+										AjaxRequestTarget target) {
+									if (isError) {
+										input.error("Entered value doesn't match any of available values and will not be saved.");
+									}
+									target.add(PrismValuePanel.this.get(ID_FEEDBACK));
+								}
+						};
+						
+				} else if (def.getValueEnumerationRef() != null) {
 					PrismReferenceValue valueEnumerationRef = def.getValueEnumerationRef();
 					String lookupTableUid = valueEnumerationRef.getOid();
 					Task task = getPageBase().createSimpleTask("loadLookupTable");

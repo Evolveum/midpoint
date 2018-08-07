@@ -6,10 +6,17 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -19,6 +26,8 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -219,16 +228,21 @@ public class AssignmentsUtil {
         };
     }
 
-    public static String getName(AssignmentType assignment, PageBase pageBase) {
+    public static String getName(ContainerValueWrapper<AssignmentType> assignmentValueWrapper, PageBase pageBase) {
+    	AssignmentType assignment = assignmentValueWrapper.getContainerValue().asContainerable();
+    	
 		if (assignment == null) {
 			return null;
 		}
 
 		if (assignment.getPolicyRule() != null){
-			PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
-			if (StringUtils.isNotEmpty(policyRuleContainer.getName())){
-                return policyRuleContainer.getName();
+			ContainerWrapper<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainerWrapper(new ItemPath(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
+			PropertyWrapperFromContainerValueWrapperModel<String, AssignmentType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(policyRuleWrapper.getValues().get(0), PolicyRuleType.F_NAME);
+	    	String name = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
+			if (StringUtils.isNotEmpty(name)){
+                return name;
             } else {
+            	PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
 			    StringBuilder sb = new StringBuilder("");
 			    PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
 			    if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0){
@@ -262,7 +276,7 @@ public class AssignmentsUtil {
 		}
 		appendTenantAndOrgName(assignment, sb, pageBase);
 
-		appendRelation(assignment, sb);
+		appendRelation(assignment, sb, pageBase);
 
 		return sb.toString();
 	}
@@ -280,14 +294,17 @@ public class AssignmentsUtil {
 
 	}
 
-    private static void appendRelation(AssignmentType assignment, StringBuilder sb) {
+    private static void appendRelation(AssignmentType assignment, StringBuilder sb, PageBase pageBase) {
     	if (assignment.getTargetRef() == null) {
     		return;
     	}
 
-        String hdrLabel = RelationTypes.getRelationType(assignment.getTargetRef().getRelation()).getHeaderLabel();
-        if (hdrLabel != null && !hdrLabel.isEmpty()) {
-            sb.append(" - "  + hdrLabel);
+    	RelationDefinitionType relationDef = ObjectTypeUtil.findRelationDefinition(
+    	        WebComponentUtil.getRelationDefinitions(new OperationResult("AssignmentsUtil.loadRelationDefinitions"), pageBase),
+                assignment.getTargetRef().getRelation());
+        if (relationDef != null && relationDef.getDisplay() != null &&
+                !relationDef.getDisplay().getLabel().isEmpty()) {
+            sb.append(" - "  + pageBase.createStringResource(relationDef.getDisplay().getLabel()).getString());
         }
 
     }
@@ -369,4 +386,36 @@ public class AssignmentsUtil {
         return ConstructionType.COMPLEX_TYPE;
 
     }
+
+    public static IModel<String> getShoppingCartAssignmentsLimitReachedTitleModel(OperationResult result, PageBase pageBase){
+                return new LoadableModel<String>(true) {
+            @Override
+            protected String load() {
+                                int assignmentsLimit = loadAssignmentsLimit(result, pageBase);
+                                return isShoppingCartAssignmentsLimitReached(assignmentsLimit, pageBase) ?
+                                                pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", loadAssignmentsLimit(result, pageBase))
+                                                        .getString() : "";
+                            }
+        };
+            }
+
+            public static boolean isShoppingCartAssignmentsLimitReached(int assignmentsLimit, PageBase pageBase){
+                RoleCatalogStorage storage = pageBase.getSessionStorage().getRoleCatalog();
+                return assignmentsLimit >= 0 && storage.getAssignmentShoppingCart().size() >= assignmentsLimit;
+            }
+
+    public static int loadAssignmentsLimit(OperationResult result, PageBase pageBase){
+        int assignmentsLimit = -1;
+        try {
+            AdminGuiConfigurationType adminGuiConfig = pageBase.getModelInteractionService().getAdminGuiConfiguration(
+                    pageBase.createSimpleTask(result.getOperation()), result);//pageBase.loadUserSelf().asObjectable().getAdminGuiConfiguration();
+            if (adminGuiConfig != null && adminGuiConfig.getRoleManagement() != null){
+                assignmentsLimit = adminGuiConfig.getRoleManagement().getAssignmentApprovalRequestLimit();
+            }
+        } catch (ObjectNotFoundException | SchemaException ex){
+            LOGGER.error("Error getting system configuration: {}", ex.getMessage(), ex);
+        }
+        return assignmentsLimit;
+    }
+
 }

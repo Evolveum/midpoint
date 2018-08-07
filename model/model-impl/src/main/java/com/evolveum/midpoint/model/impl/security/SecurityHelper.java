@@ -187,49 +187,58 @@ public class SecurityHelper implements ModelAuditRecorder {
     public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration,
     		Task task, OperationResult result) throws SchemaException {
 
+    	SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicy(user, systemConfiguration, task, result);
+    	if (focusSecurityPolicy != null) {
+    		traceSecurityPolicy(focusSecurityPolicy, user);
+    		return focusSecurityPolicy;
+    	}
+
+    	SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(user, systemConfiguration, task, result);
+		if (globalSecurityPolicy != null) {
+			traceSecurityPolicy(globalSecurityPolicy, user);
+			return globalSecurityPolicy;
+		}
+
+    	return null;
+	}
+    
+    public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration,
+    		Task task, OperationResult result) throws SchemaException {
     	PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(user, o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
     	LOGGER.trace("Found organization security policy: {}", orgSecurityPolicy);
     	if (orgSecurityPolicy != null) {
     		SecurityPolicyType orgSecurityPolicyType = orgSecurityPolicy.asObjectable();
     		postProcessSecurityPolicy(orgSecurityPolicyType, task, result);
-    		traceSecurityPolicy(orgSecurityPolicyType, user);
     		return orgSecurityPolicyType;
     	}
-
-    	if (systemConfiguration != null) {
-			SecurityPolicyType globalSecurityPolicy = resolveGlobalSecurityPolicy(user, systemConfiguration.asObjectable(), task, result);
-			if (globalSecurityPolicy != null) {
-				return globalSecurityPolicy;
-			}
-    	}
-
-
+    	
     	// DEPRECATED, legacy
     	PrismObject<ValuePolicyType> orgPasswordPolicy = objectResolver.searchOrgTreeWidthFirstReference(user, o -> o.asObjectable().getPasswordPolicyRef(), "security policy", task, result);
     	LOGGER.trace("Found organization password policy: {}", orgPasswordPolicy);
     	if (orgPasswordPolicy != null) {
     		SecurityPolicyType policy = postProcessPasswordPolicy(orgPasswordPolicy.asObjectable());
-    		traceSecurityPolicy(policy, user);
     		return policy;
     	}
-
-    	if (systemConfiguration != null) {
-			SecurityPolicyType globalPasswordPolicy = resolveGlobalPasswordPolicy(user, systemConfiguration.asObjectable(), task, result);
-			if (globalPasswordPolicy != null) {
-				return globalPasswordPolicy;
-			}
-    	}
-
+    	
     	return null;
-	}
+    }
 
-    public SecurityPolicyType locateGlobalSecurityPolicy(SystemConfigurationType systemConfiguration, Task task, OperationResult result) {
-    	if (systemConfiguration != null) {
-			SecurityPolicyType globalSecurityPolicy = resolveGlobalSecurityPolicy(null, systemConfiguration, task, result);
-			if (globalSecurityPolicy != null) {
-				return globalSecurityPolicy;
-			}
+    public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) {
+    	if (systemConfiguration == null) {
+    		return null;
     	}
+    	SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
+    	
+		SecurityPolicyType globalSecurityPolicy = resolveGlobalSecurityPolicy(user, systemConfigurationType, task, result);
+		if (globalSecurityPolicy != null) {
+			return globalSecurityPolicy;
+		}
+	
+		// DEPRECATED, legacy
+		SecurityPolicyType globalPasswordPolicy = resolveGlobalPasswordPolicy(user, systemConfigurationType, task, result);
+		if (globalPasswordPolicy != null) {
+			return globalPasswordPolicy;
+		}
 
     	return null;
     }

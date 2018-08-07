@@ -99,6 +99,11 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 			private static final long serialVersionUID = 1L;
 
 			@Override
+			protected boolean isFocusHistoryPage(){
+				return PageRole.this.isFocusHistoryPage();
+			}
+
+			@Override
 			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<RoleType> object, String date){
 				PageRole.this.navigateToNext(new PageRoleHistory(object, date));
 			}

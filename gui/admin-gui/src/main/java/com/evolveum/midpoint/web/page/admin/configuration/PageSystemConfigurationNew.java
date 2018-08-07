@@ -32,6 +32,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.GlobalPolicyRuleTabPanel;
@@ -132,41 +133,8 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 	
 	@Override
 	protected void initializeModel(final PrismObject<SystemConfigurationType> objectToEdit, boolean isNewObject, boolean isReadonly) {
-		super.initializeModel(loadSystemConfigurationAsWrapperObject().getObject(), false, isReadonly);
+		super.initializeModel(WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(this).getObject(), false, isReadonly);
     }
-
-
-	private ObjectWrapper<SystemConfigurationType> loadSystemConfigurationAsWrapperObject() {
-		Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
-		OperationResult result = new OperationResult(TASK_GET_SYSTEM_CONFIG);
-
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-			GetOperationOptions.createResolve(), SystemConfigurationType.F_DEFAULT_USER_TEMPLATE,
-			SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
-
-		ObjectWrapper<SystemConfigurationType> wrapper = null;
-		try {
-			PrismObject<SystemConfigurationType> systemConfig = WebModelServiceUtils.loadObject(
-				SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
-				this, task, result);
-		
-			ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
-		
-			wrapper = owf.createObjectWrapper("adminPage.systemConfiguration", null, systemConfig, ContainerStatus.MODIFYING, task);
-		
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
-			result.recordFatalError("Couldn't load system configuration.", ex);
-		}
-
-		if (!WebComponentUtil.isSuccessOrHandledError(result) || wrapper == null) {
-			showResult(result, false);
-			throw getRestartResponseException(PageError.class);
-		}
-
-		return wrapper;
-	}
 	
 	private List<ITab> getTabs(){
 		List<ITab> tabs = new ArrayList<>();

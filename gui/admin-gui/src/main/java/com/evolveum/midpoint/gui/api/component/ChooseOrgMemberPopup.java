@@ -29,13 +29,13 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
-import java.util.ArrayList;
+import javax.xml.namespace.QName;
 import java.util.List;
 
-public abstract class ChooseMemberForOrgPopup<O extends ObjectType> extends ChooseMemberPopup<O, OrgType> {
+public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseMemberPopup<O, OrgType> {
     private static final long serialVersionUID = 1L;
 
-    public ChooseMemberForOrgPopup(String id, List<RelationTypes> availableRelationList){
+    public ChooseOrgMemberPopup(String id, List<QName> availableRelationList){
         super(id, availableRelationList);
     }
 
@@ -58,7 +58,7 @@ public abstract class ChooseMemberForOrgPopup<O extends ObjectType> extends Choo
 
                     @Override
                     protected OrgType getAbstractRoleTypeObject(){
-                        return ChooseMemberForOrgPopup.this.getAssignmentTargetRefObject();
+                        return ChooseOrgMemberPopup.this.getAssignmentTargetRefObject();
                     }
                 };
             }

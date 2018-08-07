@@ -23,6 +23,8 @@ import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
@@ -99,6 +101,7 @@ public class FocusProcessor {
 	@Autowired private PolicyRuleProcessor policyRuleProcessor;
 	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
 	@Autowired private ClockworkMedic medic;
+	@Autowired private PolicyRuleEnforcer policyRuleEnforcer;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -276,6 +279,13 @@ public class FocusProcessor {
 		        medic.partialExecute("focusPolicyRules",
 						() -> policyRuleProcessor.evaluateObjectPolicyRules(context, activityDescription, now, task, result),
 						partialProcessingOptions::getFocusPolicyRules);
+
+		        // to mimic operation of the original enforcer hook, we execute the following only in the initial state
+		        if (context.getState() == ModelState.INITIAL) {
+			        // If partial execution for focus policy rules and for assignments is turned off, this method call is a no-op.
+			        // So we don't need to check the partial execution flags for its invocation.
+			        policyRuleEnforcer.execute(context);
+		        }
 
 		        // Processing done, check for success
 

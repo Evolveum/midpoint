@@ -127,7 +127,6 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -291,6 +290,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			RepositoryCache.enter();
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
 			context = contextFactory.createContext(clonedDeltas, options, task, result);
+			context.setPreview(true);
+
 //			context.setOptions(options);
 			LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
 			context.setProgressListeners(listeners);
@@ -1196,13 +1197,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		// user-level policy
 		CredentialsPolicyType policy = null;
+		PrismObject<UserType> user = null;
 		if (object != null && object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
-			policy = getCredentialsPolicy((PrismObject<UserType>) object, task, parentResult);
+			user = (PrismObject<UserType>) object;
+			policy = getCredentialsPolicy(user, task, parentResult);
 		}
 
 		SystemConfigurationType systemConfigurationType = getSystemConfiguration(parentResult);
 		if (!containsValuePolicyDefinition(policy)) {
-			SecurityPolicyType securityPolicy = securityHelper.locateGlobalSecurityPolicy(systemConfigurationType, task, parentResult);
+			SecurityPolicyType securityPolicy = securityHelper.locateGlobalSecurityPolicy(user, systemConfigurationType.asPrismObject(), task, parentResult);
 			if (securityPolicy != null) {
 				policy = securityPolicy.getCredentials();
 			}

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
@@ -60,20 +61,21 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     	displayNamePanel.setOutputMarkupId(true);
     	add(displayNamePanel);
 
-		add(getBasicContainerValuePanel(ID_BASIC_PANEL));
+		getBasicContainerValuePanel(ID_BASIC_PANEL);
 		add(getSpecificContainers(ID_SPECIFIC_CONTAINERS_PANEL));
     }
     
-    protected abstract Fragment getSpecificContainers(String contentAreaId);
+    protected WebMarkupContainer getSpecificContainers(String contentAreaId) {
+    	return new WebMarkupContainer(contentAreaId);
+    }
     
-    protected ContainerValuePanel<C> getBasicContainerValuePanel(String idPanel){
+    protected void getBasicContainerValuePanel(String idPanel){
     	Form form = new Form<>("form");
     	ItemPath itemPath = getModelObject().getPath();
     	IModel<ContainerValueWrapper<C>> model = getModel();
-    	model.getObject().setShowEmpty(true, true);
     	model.getObject().getContainer().setShowOnTopLevel(true);
-		return new ContainerValuePanel<C>(idPanel, getModel(), true, form,
-				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
+		add(new ContainerValuePanel<C>(idPanel, getModel(), true, form,
+				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase()));
     }
     
     protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentPath) {

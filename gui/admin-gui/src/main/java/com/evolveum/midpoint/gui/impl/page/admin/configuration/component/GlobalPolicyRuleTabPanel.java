@@ -49,9 +49,11 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -94,6 +96,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -108,9 +112,6 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 	private static final Trace LOGGER = TraceManager.getTrace(GlobalPolicyRuleTabPanel.class);
 	
     private static final String ID_GLOBAL_POLICY_RULE = "globalPolicyRule";
-    private static final String ID_SEARCH_FRAGMENT = "searchFragment";
-    protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
-    protected static final String ID_SPECIFIC_CONTAINER = "specificContainers";
     
     private List<ContainerValueWrapper<GlobalPolicyRuleType>> detailsPanelObjectPoliciesList = new ArrayList<>();
     
@@ -153,11 +154,6 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 			}
 			
 			@Override
-			protected Fragment getSearchPanel(String contentAreaId) {
-				return new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, GlobalPolicyRuleTabPanel.this);
-			}
-			
-			@Override
 			protected boolean enableActionNewObject() {
 				return true;
 			}
@@ -191,7 +187,7 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
     protected void newGlobalPolicuRuleClickPerformed(AjaxRequestTarget target) {
         PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModel().getObject().getItem().createNewValue();
         ContainerValueWrapper<GlobalPolicyRuleType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModel());
-        newObjectPolicyWrapper.setShowEmpty(true, false);
+        newObjectPolicyWrapper.setShowEmpty(true, true);
         newObjectPolicyWrapper.computeStripes();
         getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
 	}
@@ -217,11 +213,6 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 				return new DisplayNamePanel<GlobalPolicyRuleType>(displayNamePanelId, displayNameModel);
 			}
 
-			@Override
-			protected  Fragment getSpecificContainers(String contentAreaId) {
-				Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, GlobalPolicyRuleTabPanel.this);
-				return specificContainers;
-			}
 		};
 		return detailsPanel;
 	}
@@ -268,8 +259,8 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 
             @Override
             protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-            	GlobalPolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue();
-            	String name = policyRuleType.getName();
+            	PropertyWrapperFromContainerValueWrapperModel<String, GlobalPolicyRuleType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel, GlobalPolicyRuleType.F_NAME);
+            	String name = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
            		if (StringUtils.isBlank(name)) {
             		return createStringResource("AssignmentPanel.noName");
             	}
@@ -288,8 +279,8 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-            	GlobalPolicyRuleType policyRuleType = rowModel.getObject().getContainerValue().getValue();
-                String constraints = PolicyRuleTypeUtil.toShortString(policyRuleType.getPolicyConstraints());
+            	ContainerWrapper<PolicyConstraintsType> wrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS));
+            	String constraints = PolicyRuleTypeUtil.toShortString(wrapper.getValues().get(0).getContainerValue().getValue());
                 cellItem.add(new MultiLineLabel(componentId, Model.of(constraints != null && !constraints.equals("null") ? constraints : "")));
             }
 
@@ -300,8 +291,8 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-            	GlobalPolicyRuleType globalPolicyRuleTypeModel = rowModel.getObject().getContainerValue().getValue();
-                String situationValue = globalPolicyRuleTypeModel == null ? "" : globalPolicyRuleTypeModel.getPolicySituation();
+            	PropertyWrapperFromContainerValueWrapperModel<String, GlobalPolicyRuleType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel, GlobalPolicyRuleType.F_POLICY_SITUATION);
+            	String situationValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
                 cellItem.add(new Label(componentId, Model.of(situationValue)));
             }
 
@@ -312,8 +303,8 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
                                      final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-            	GlobalPolicyRuleType globalPolicyRuleTypeModel = rowModel.getObject().getContainerValue().getValue();
-            	String action = PolicyRuleTypeUtil.toShortString(globalPolicyRuleTypeModel.getPolicyActions(), new ArrayList<>());
+            	ContainerWrapper<PolicyActionsType> wrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), GlobalPolicyRuleType.F_POLICY_ACTIONS));
+            	String action = PolicyRuleTypeUtil.toShortString(wrapper.getValues().get(0).getContainerValue().getValue(), new ArrayList<>());
                 cellItem.add(new MultiLineLabel(componentId, Model.of(action != null && !action.equals("null") ? action : "")));
             }
 
@@ -324,65 +315,5 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 		
         return columns;
 	}
-    
-//    protected Fragment getSearchPanel(String contentAreaId){
-//    	Fragment searchContainer = new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, this);
-//    	
-//    	WebMarkupContainer typeContainer = new WebMarkupContainer(ID_TYPE_CONTAINER);
-//        
-//        typeContainer.setOutputMarkupId(true);
-//        typeContainer.add(new VisibleEnableBehaviour() {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return ObjectPolicyConfigurationTabPanel.this.isTypeVisible();
-//            }
-//
-//        });
-//        searchContainer.addOrReplace(typeContainer);
-//
-//        this.model.getObject().findContainerWrapper(new ItemPath(ObjectPolicyConfigurationType.F_TYPE));
-//    	DropDownChoicePanel<QName> type = new DropDownChoicePanel(ID_TYPE, 
-//    			new IModel<QName>() {
-//            		@Override
-//            		public QName getObject() {
-//            			return objectTypeValue;
-//            		}
-//
-//            		@Override
-//            		public void setObject(QName objectType) {
-//            			objectTypeValue = objectType;
-//            		}
-//
-//            		@Override
-//            		public void detach() {
-//
-//            		}
-//    			},
-//    			new AbstractReadOnlyModel<List<QName>>() {
-//
-//					private static final long serialVersionUID = 1L;
-//			
-//					@Override
-//					public List<QName> getObject() {
-//						return WebComponentUtil.createFocusTypeList();
-//					}
-//				});
-//        type.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-////            	refreshTable(target);
-//            }
-//        });
-//        type.setOutputMarkupId(true);
-//        type.setOutputMarkupPlaceholderTag(true);
-//        typeContainer.addOrReplace(type);
-//    	
-//    	return searchContainer;
-//    }
 }
 

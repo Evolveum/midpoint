@@ -23,8 +23,8 @@ import java.util.ArrayList;
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_ASSIGNMENT_DETAILS_URL,
-                label = "PageAssignmentShoppingKart.auth.assignmentDetails.label",
-                description = "PageAssignmentShoppingKart.auth.assignmentDetails.description")})
+                label = "PageAssignmentShoppingCart.auth.assignmentDetails.label",
+                description = "PageAssignmentShoppingCart.auth.assignmentDetails.description")})
 public class PageAssignmentDetails extends PageBase{
     private static final String ID_FORM = "mainForm";
     private static final String ID_DETAILS_PANEL = "detailsPanel";

@@ -42,7 +42,7 @@ public abstract class EditableTextColumnForContainerWrapper<ConValWrapp extends 
     public void populateItem(Item<ICellPopulator<ConValWrapp>> cellItem, String componentId,
             final IModel<ConValWrapp> rowModel) {
         if (!rowModel.getObject().isSelected()) {
-        	cellItem.add(staticPanel(componentId, rowModel));
+        	cellItem.add(createStaticPanel(componentId, rowModel));
         } else {
             cellItem.add(createInputPanel(componentId, rowModel));
         }
@@ -50,5 +50,5 @@ public abstract class EditableTextColumnForContainerWrapper<ConValWrapp extends 
     
     protected abstract Component createInputPanel(String componentId, IModel<ConValWrapp> rowModel);
 
-    protected abstract Component staticPanel(String componentId, IModel<ConValWrapp> rowModel);
+    protected abstract Component createStaticPanel(String componentId, IModel<ConValWrapp> rowModel);
 }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~    Licensed under the Apache License, Version 2.0 (the "License");
   ~    you may not use this file except in compliance with the License.
@@ -20,35 +20,34 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
-        <div class="main-form-panel">
-            <div class="row" wicket:id="headerPanel">
-                <div class="col-md-2">
-                    <select class="form-control input-sm col-md-2" wicket:id="viewTypeSelect"/>
+
+        <div wicket:id="viewsTabPanel" class="nav-tabs-custom" />
+
+        <div wicket:id="parametersPanel">
+            <div class="row">
+                <div class="form-group col-md-3">
+                    <div class="col-md-4">
+                        <wicket:message key="AbstractShoppingCartTabPanel.requestingForLabel"/>
+                    </div>
+                    <div class="col-md-6" wicket:id="targetUserPanel"/>
                 </div>
-
-                <div class="col-md-2" wicket:id="targetUserPanel"/>
-                <div class="col-md-3" wicket:id="sourceUserPanel"/>
-
-                <form class="col-md-4 search-form" wicket:id="searchForm">
-                    <div wicket:id="search"/>
-                </form>
-
                 <div class="col-md-1 pull-right">
                     <a wicket:id="cartButton">
                         <i class="fa fa-shopping-cart fa-2x"></i>
-                        <span wicket:id="itemsCount" class="badge bg-red" style="position: absolute; top: -1px; left: 30px;"></span>
+                        <span wicket:id="itemsCount" class="badge bg-red"
+                              style="position: absolute; top: -1px; left: 30px;"></span>
                     </a>
                 </div>
             </div>
-
-            <div wicket:id="contentPanel" class="row">
-                <div wicket:id="treePanelContainer" class="col-md-3" style="margin-top: 10px;">
-                    <div wicket:id="treePanel"/>
+            <div wicket:id="relationContainer" class="row">
+                <div class="form-group col-md-3">
+                    <div class="col-md-4">
+                        <wicket:message key="AssignmentEditorPanel.relation"/>
+                    </div>
+                    <div class="col-md-7">
+                        <span wicket:id="relation"/>
+                    </div>
                 </div>
-                <div wicket:id="noCatalogRefDefinedLabel" class="col-md-12"/>
-
-                <div wicket:id="catalogItemsGridPanel"/>
-
             </div>
         </div>
     </form>

@@ -343,7 +343,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			ctx.evalAssignment.setVirtual(isVirtual);
 		}
 		
-		LOGGER.info("evalAssignment isVirtual {} ", ctx.evalAssignment.isVirtual());
+		LOGGER.trace("evalAssignment isVirtual {} ", ctx.evalAssignment.isVirtual());
 	}
 	
 	private <R extends AbstractRoleType> boolean isForcedAssignment(AssignmentPathSegmentImpl segment, EvaluationContext ctx) {
