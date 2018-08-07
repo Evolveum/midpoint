@@ -348,10 +348,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	        return Model.of("");
         }
 	    PropertyOrReferenceWrapper policyRuleWrapper = (PropertyOrReferenceWrapper)assignmentContainer.findPropertyWrapper(new ItemPath(assignmentContainer.getPath(), AssignmentType.F_ORG_REF));
-	    LOGGER.info("XXXXXXXXXXXXXXX " + policyRuleWrapper.getItem().getRealValue().getClass().getName());
 	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
-//	    AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
-//	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(Arrays.asList(assignment.getOrgRef()), false));
 
     }
 

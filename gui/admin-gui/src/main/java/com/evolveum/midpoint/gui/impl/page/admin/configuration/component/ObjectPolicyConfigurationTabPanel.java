@@ -111,7 +111,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectPolicyConfigurationTabPanel.class);
 	
     private static final String ID_OBJECTS_POLICY = "objectsPolicy";
-    private static final String ID_SEARCH_FRAGMENT = "searchFragment";
     
     private List<ContainerValueWrapper<ObjectPolicyConfigurationType>> detailsPanelObjectPoliciesList = new ArrayList<>();
     
@@ -150,11 +149,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			@Override
 			protected void initPaging() {
 				ObjectPolicyConfigurationTabPanel.this.initPaging(); 
-			}
-			
-			@Override
-			protected Fragment getSearchPanel(String contentAreaId) {
-				return new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, ObjectPolicyConfigurationTabPanel.this);
 			}
 			
 			@Override

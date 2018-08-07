@@ -105,9 +105,7 @@ public class PolicyRulesPanel extends AssignmentPanel {
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
             	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
             	ContainerWrapper<PolicyActionsType> wrapper = policyRuleWrapper.getValues().get(0).findContainerWrapper(new ItemPath(policyRuleWrapper.getValues().get(0).getPath(), PolicyRuleType.F_POLICY_ACTIONS));
-//            	LOGGER.info("XXXXXXXXXXXXXXXXXXX propertyModel " + wrapper.getValues().get(0).getContainerValue());
             	String action = PolicyRuleTypeUtil.toShortString(wrapper.getValues().get(0).getContainerValue().getValue(), new ArrayList<>());
-//            	LOGGER.info("XXXXXXXXXXXXXXXXXXX action " + action);
                 cellItem.add(new MultiLineLabel(componentId, Model.of(action != null && !action.equals("null") ? action : "")));
             }
 
@@ -167,13 +165,6 @@ public class PolicyRulesPanel extends AssignmentPanel {
                 .exists(AssignmentType.F_POLICY_RULE)
                 .build();
     }
-
-	@Override
-	protected Fragment getCustomSearchPanel(String contentAreaId){
-		Fragment searchContainer = new Fragment(contentAreaId, AssignmentPanel.ID_SEARCH_FRAGMENT, this);
-    	searchContainer.setVisible(false);
-    	return searchContainer;
-	}
 
 	@Override
 	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {

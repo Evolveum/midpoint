@@ -112,7 +112,6 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 	private static final Trace LOGGER = TraceManager.getTrace(GlobalPolicyRuleTabPanel.class);
 	
     private static final String ID_GLOBAL_POLICY_RULE = "globalPolicyRule";
-    private static final String ID_SEARCH_FRAGMENT = "searchFragment";
     
     private List<ContainerValueWrapper<GlobalPolicyRuleType>> detailsPanelObjectPoliciesList = new ArrayList<>();
     
@@ -152,11 +151,6 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 			@Override
 			protected void initPaging() {
 				GlobalPolicyRuleTabPanel.this.initPaging(); 
-			}
-			
-			@Override
-			protected Fragment getSearchPanel(String contentAreaId) {
-				return new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, GlobalPolicyRuleTabPanel.this);
 			}
 			
 			@Override
@@ -321,65 +315,5 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 		
         return columns;
 	}
-    
-//    protected Fragment getSearchPanel(String contentAreaId){
-//    	Fragment searchContainer = new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, this);
-//    	
-//    	WebMarkupContainer typeContainer = new WebMarkupContainer(ID_TYPE_CONTAINER);
-//        
-//        typeContainer.setOutputMarkupId(true);
-//        typeContainer.add(new VisibleEnableBehaviour() {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return ObjectPolicyConfigurationTabPanel.this.isTypeVisible();
-//            }
-//
-//        });
-//        searchContainer.addOrReplace(typeContainer);
-//
-//        this.model.getObject().findContainerWrapper(new ItemPath(ObjectPolicyConfigurationType.F_TYPE));
-//    	DropDownChoicePanel<QName> type = new DropDownChoicePanel(ID_TYPE, 
-//    			new IModel<QName>() {
-//            		@Override
-//            		public QName getObject() {
-//            			return objectTypeValue;
-//            		}
-//
-//            		@Override
-//            		public void setObject(QName objectType) {
-//            			objectTypeValue = objectType;
-//            		}
-//
-//            		@Override
-//            		public void detach() {
-//
-//            		}
-//    			},
-//    			new AbstractReadOnlyModel<List<QName>>() {
-//
-//					private static final long serialVersionUID = 1L;
-//			
-//					@Override
-//					public List<QName> getObject() {
-//						return WebComponentUtil.createFocusTypeList();
-//					}
-//				});
-//        type.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-////            	refreshTable(target);
-//            }
-//        });
-//        type.setOutputMarkupId(true);
-//        type.setOutputMarkupPlaceholderTag(true);
-//        typeContainer.addOrReplace(type);
-//    	
-//    	return searchContainer;
-//    }
 }
 

@@ -77,7 +77,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	private static final long serialVersionUID = 1L;
 
 	public static final String ID_ITEMS = "items";
-	private static final String ID_NEW_ITEM_BUTTON = "newItemButton";
 	private static final String ID_ITEMS_TABLE = "itemsTable";
 	public static final String ID_SEARCH_ITEM_PANEL = "search";
 

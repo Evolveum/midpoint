@@ -148,11 +148,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			}
 
 			@Override
-			protected Fragment getSearchPanel(String contentAreaId) {
-				return getCustomSearchPanel(contentAreaId);
-			}
-
-			@Override
 			protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel(
 					ListItem<ContainerValueWrapper<AssignmentType>> item) {
 				return createMultivalueContainerDetailsPanel(item);
@@ -238,7 +233,9 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected abstract void newAssignmentClickPerformed(AjaxRequestTarget target);
 
-	protected abstract Fragment getCustomSearchPanel(String contentAreaId);
+	protected WebMarkupContainer getCustomSearchPanel(String contentAreaId) {
+		return new WebMarkupContainer(contentAreaId);
+	}
 	
 	private MultivalueContainerDetailsPanel<AssignmentType> createMultivalueContainerDetailsPanel(
 			ListItem<ContainerValueWrapper<AssignmentType>> item) {

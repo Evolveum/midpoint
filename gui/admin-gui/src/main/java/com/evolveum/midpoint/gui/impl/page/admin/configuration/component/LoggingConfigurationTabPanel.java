@@ -108,12 +108,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 	private static final String ID_LOGGERS_HEADER = "loggersHeader";
     private static final String ID_LOGGERS = "loggers";
     private static final String ID_AUDITING = "audit";
-    private static final String ID_APPENDER_SEARCH_FRAGMENT = "appenderSearchFragment";
-    private static final String ID_LOGGER_SEARCH_FRAGMENT = "appenderSearchFragment";
-//    protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
-//    protected static final String ID_SPECIFIC_CONTAINER = "specificContainers";
-
-//	private static final String TASK_CREATE_APPENDER = "createAppender";
     
     
     IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel = null;
@@ -193,11 +187,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			}
 			
 			@Override
-			protected Fragment getSearchPanel(String contentAreaId) {
-				return new Fragment(contentAreaId, ID_LOGGER_SEARCH_FRAGMENT, LoggingConfigurationTabPanel.this);
-			}
-			
-			@Override
 			protected boolean enableActionNewObject() {
 				return true;
 			}
@@ -271,11 +260,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			@Override
 			protected void initPaging() {
 				initAppenderPaging(); 
-			}
-			
-			@Override
-			protected Fragment getSearchPanel(String contentAreaId) {
-				return new Fragment(contentAreaId, ID_APPENDER_SEARCH_FRAGMENT, LoggingConfigurationTabPanel.this);
 			}
 			
 			@Override
