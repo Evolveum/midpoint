@@ -650,8 +650,14 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 				if(getModelObject().getItem() instanceof PropertyWrapper && ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues() != null) {
 					LookupTableType lookupTable = ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues();
+					
+					boolean isStrict = true;
+					if(getModelObject().getItem().getName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
+						isStrict=false;
+					}
+					
 					panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),
-                            baseExpression, lookupTable), type) {
+                            baseExpression, lookupTable, isStrict), type) {
 
 								private static final long serialVersionUID = 1L;
 
@@ -659,15 +665,13 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 								public Iterator<String> getIterator(String input) {
 									return prepareAutoCompleteList(input, lookupTable.asPrismObject()).iterator();
 								}
-
+								
 								@Override
-								protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError,
-										AjaxRequestTarget target) {
-									if (isError) {
-										input.error("Entered value doesn't match any of available values and will not be saved.");
-									}
-									target.add(PrismValuePanel.this.get(ID_FEEDBACK));
-								}
+								public void checkInputValue(AutoCompleteTextField input, AjaxRequestTarget target, LookupPropertyModel model){
+									model.setObject(input.getInput());
+							    }
+								
+								
 						};
 						
 				} else if (def.getValueEnumerationRef() != null) {
