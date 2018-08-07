@@ -21,8 +21,8 @@ public class ResourceAssociationWrapper extends AbstractAssociationWrapper<Resou
 
     private static transient Trace LOGGER = TraceManager.getTrace(ResourceAssociationWrapper.class);
 
-    ResourceAssociationWrapper(PrismContainer<ResourceObjectAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
-        super(container, objectStatus, status, path);
+    ResourceAssociationWrapper(ObjectWrapper objectWrapper, PrismContainer<ResourceObjectAssociationType> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+        super(objectWrapper, container, objectStatus, status, path);
     }
 
     private static final long serialVersionUID = 1L;
