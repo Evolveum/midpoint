@@ -79,6 +79,8 @@ import javax.xml.namespace.QName;
 public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<AssignmentType>> {
 
 	private static final long serialVersionUID = 1L;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
 
 	private static final String ID_ASSIGNMENTS = "assignments";
 	protected static final String ID_SEARCH_FRAGMENT = "searchFragment";
@@ -86,7 +88,6 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	private final static String ID_ACTIVATION_PANEL = "activationPanel";
 	protected static final String ID_SPECIFIC_CONTAINER = "specificContainers";
 
-	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
 	private static final String DOT_CLASS = AssignmentPanel.class.getName() + ".";
 	protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
 

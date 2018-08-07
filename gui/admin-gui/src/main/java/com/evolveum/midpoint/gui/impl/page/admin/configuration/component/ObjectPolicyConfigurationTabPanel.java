@@ -48,7 +48,9 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -79,7 +81,9 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -88,6 +92,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -279,7 +284,9 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
             
 			@Override
 			public IModel<String> createLinkModel(IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				QName typeValue = WebComponentUtil.getValue(rowModel.getObject().getContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
+				PropertyWrapperFromContainerValueWrapperModel<QName, ObjectPolicyConfigurationType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel, ObjectPolicyConfigurationType.F_TYPE);
+				QName typeValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
+//				QName typeValue = WebComponentUtil.getValue(rowModel.getObject().getContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
 				return Model.of(typeValue != null ? typeValue.getLocalPart() : "");
 			}
 			
@@ -295,7 +302,9 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				String subtypeValue = WebComponentUtil.getValue(rowModel.getObject().getContainerValue(), ObjectPolicyConfigurationType.F_SUBTYPE, String.class);
+//				String subtypeValue = WebComponentUtil.getValue(rowModel.getObject().getContainerValue(), ObjectPolicyConfigurationType.F_SUBTYPE, String.class);
+				PropertyWrapperFromContainerValueWrapperModel<String, ObjectPolicyConfigurationType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel, ObjectPolicyConfigurationType.F_SUBTYPE);
+				String subtypeValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
 				item.add(new Label(componentId, Model.of(subtypeValue)));
 			}
         });
@@ -307,14 +316,17 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				
-				ObjectReferenceType objectTemplate = rowModel.getObject().getContainerValue().getValue().getObjectTemplateRef();
+				PropertyOrReferenceWrapper objectPolicyWrapper = (PropertyOrReferenceWrapper)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF));
+				item.add(new Label(componentId, Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)objectPolicyWrapper.getValues().get(0)).getValue().getRealValue(), false))));
 				
-				if(objectTemplate != null) {
-					String objectTemplateNameValue = WebModelServiceUtils.resolveReferenceName(objectTemplate, getPageBase());
-					item.add(new Label(componentId, Model.of(objectTemplateNameValue)));
-				} else {
-					item.add(new Label(componentId, Model.of("")));
-				}
+//				ObjectReferenceType objectTemplate = rowModel.getObject().getContainerValue().getValue().getObjectTemplateRef();
+//				
+//				if(objectTemplate != null) {
+//					String objectTemplateNameValue = WebModelServiceUtils.resolveReferenceName(objectTemplate, getPageBase());
+//					item.add(new Label(componentId, Model.of(objectTemplateNameValue)));
+//				} else {
+//					item.add(new Label(componentId, Model.of("")));
+//				}
 			}
         });
 		
@@ -325,8 +337,10 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				
-				ContainerWrapper<Containerable> lifecycleState = rowModel.getObject().findContainerWrapper(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL);
-				if(lifecycleState == null) {
+				ContainerWrapper<LifecycleStateModelType> lifecycleState = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
+				
+				if(lifecycleState.getValues().get(0).getContainerValue().getValue().getState()==null ||
+						lifecycleState.getValues().get(0).getContainerValue().getValue().getState().isEmpty()) {
 					item.add(new Label(componentId, createStringResource("ObjectPolicyConfigurationTabPanel.lifecycleState.value.no")));
 				} else {
 					item.add(new Label(componentId, createStringResource("ObjectPolicyConfigurationTabPanel.lifecycleState.value.yes")));
