@@ -9459,6 +9459,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="objectSynchronizationSorter" type="tns:ObjectSynchronizationSorterType" minOccurs="0" maxOccurs="1"/>
         	<xsd:element name="objectSynchronization" type="tns:ObjectSynchronizationType" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
 	</xsd:complexType>
@@ -9636,7 +9637,114 @@
             <xsd:element name="reaction" type="tns:SynchronizationReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-
+    
+    <xsd:complexType name="ObjectSynchronizationSorterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines a synchronization properties (configuration) for a
+                resource. This applies to all flavors of synchronization
+                (live sync, reconciliation, import, ...)
+            </xsd:documentation>
+           <xsd:appinfo>
+  				<a:container/>
+   				<a:since>3.9</a:since>
+   			</xsd:appinfo>
+       	</xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Expression used to divide resource objects to the appropriate kind/intent, objectClass.
+        				Can contain also focus and synchronization situation. It should be used in the cases that 
+        				the resource supports more intents for the same kind and there is a need to have 
+        				a sycnrhonization for each one. Instead of writing condition to each objectSynchronization
+        				part this can simplify configuration. 
+        				Another usage is for re-classification, e.g. in the first reconciliation run, there were bad
+        				conditions for some kind/intents and as s result, the shadow was classified to bad kind/intent,
+        				but there is a need to repair it. 
+        				The expected result is of type ObjectSynchronizationDiscriminatorType
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="objectSynchronizationSorter" type="tns:ObjectSynchronizationSorterType"/>
+	
+	 <xsd:complexType name="ObjectSynchronizationDiscriminatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines a synchronization properties (configuration) for a
+                resource. This applies to all flavors of synchronization
+                (live sync, reconciliation, import, ...)
+            </xsd:documentation>
+            <xsd:appinfo>
+<!--   				<a:container/> --> <!-- it's not container beacuse of the owner property. -->
+   				<a:since>3.9</a:since>
+   			</xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The resulting kind of the resource object. According to this kind specification
+        				appropriate objectSynchronization is chosen.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The resulting intent of the resource object. According to this intent specification
+        				appropriate objectSynchronization is chosen.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="synchronizationSituation" type="tns:SynchronizationSituationType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The synchronization situation for the resource object. If set, reaction for the situation is find
+        				and the actions are run,
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="owner" type="tns:FocusType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				The owner of the resource object if known.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="skip" type="xsd:boolean" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Overriding sycnrhonization settings if the synchronization of concrete object should be skipped.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="objectSynchronizationDiscriminator" type="tns:ObjectSynchronizationDiscriminatorType"/>
+	
     <xsd:complexType name="ConditionalSearchFilterType">
         <xsd:annotation>
             <xsd:documentation>

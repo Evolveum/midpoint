@@ -1936,12 +1936,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotLinked(user, accountOid);
 	}
 
-	protected void assertNotLinked(PrismObject<UserType> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
+	protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
 		assertNotLinked(user, account.getOid());
 	}
 
-	protected void assertNotLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
-		PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
+	protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, String accountOid) throws ObjectNotFoundException, SchemaException {
+		PrismReference linkRef = user.findReference(FocusType.F_LINK_REF);
 		if (linkRef == null) {
 			return;
 		}
@@ -1954,7 +1954,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertFalse("User " + user + " IS linked to account " + accountOid + " but not expecting it", found);
 	}
 
-	protected void assertNoLinkedAccount(PrismObject<UserType> user) {
+	protected <F extends FocusType> void assertNoLinkedAccount(PrismObject<F> user) {
 		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		if (accountRef == null) {
 			return;

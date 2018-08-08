@@ -1041,6 +1041,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ExpressionEvaluationException, CommunicationException {
 		return modelService.findShadowOwner(accountOid, getCurrentTask(), getCurrentResult());
 	}
+	
+	@Override
+	public <F extends FocusType> PrismObject<F> searchShadowOwner(String accountOid)
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException,
+			ExpressionEvaluationException, CommunicationException {
+		return (PrismObject<F>) modelService.searchShadowOwner(accountOid, null, getCurrentTask(), getCurrentResult());
+	}
 
 	@Override
 	public <T extends ObjectType> List<T> searchObjects(
