@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.init;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -32,7 +33,7 @@ public class ApplicationHomeSetup {
     private boolean silent = false;
 
     public void init(String midpointHomeSystemPropertyName) {
-        this.silent = Boolean.getBoolean(StartupConfiguration.MIDPOINT_SILENT_PROPERTY_NAME);
+        this.silent = Boolean.getBoolean(MidpointConfiguration.MIDPOINT_SILENT_PROPERTY);
 
         LOGGER.info(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
         printToSysout(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));

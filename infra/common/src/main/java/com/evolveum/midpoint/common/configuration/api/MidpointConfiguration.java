@@ -23,9 +23,18 @@ import org.w3c.dom.Document;
 
 public interface MidpointConfiguration {
 	
-	public static final String SYSTEM_CONFIGURATION_SECTION = "midpoint.system";
-	
-	public String getMidpointHome();
+	String SYSTEM_CONFIGURATION_SECTION = "midpoint.system";
+
+	String MIDPOINT_SILENT_PROPERTY = "midpoint.silent";
+	String MIDPOINT_HOME_PROPERTY = "midpoint.home";
+	String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
+	String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
+	String MIDPOINT_LOGGING_CONSOLE_ENABLED_PROPERTY = "midpoint.logging.console.enabled";
+	String MIDPOINT_LOGGING_CONSOLE_PREFIX_PROPERTY = "midpoint.logging.console.prefix";
+	String MIDPOINT_LOGGING_CONSOLE_TIMEZONE_PROPERTY = "midpoint.logging.console.timezone";
+	String MIDPOINT_SCHRODINGER_PROPERTY = "midpoint.schrodinger";
+
+	String getMidpointHome();
 	
 	/**
 	 * get configuration for symbolic name of the component from configuration
@@ -51,7 +60,7 @@ public interface MidpointConfiguration {
 	 *         Sample how to get config value:
 	 *         {@code config.getInt("port", 1234);}
 	 */
-	public Configuration getConfiguration(String componetID);
+	Configuration getConfiguration(String componetID);
 
     /**
      * If there's a need to retrieve original midpoint config as XML.
