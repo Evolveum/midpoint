@@ -36,6 +36,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.H2;
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.MissingSchemaAction.CREATE;
+
 /**
  *
  * @author Pavol Mederly
@@ -150,7 +153,9 @@ public class WfConfiguration implements BeanFactoryAware {
             LOGGER.info("Activiti database is at " + jdbcUrl + " (a JDBC URL)");
         }
 
-		boolean defaultSchemaUpdate = sqlConfig == null || "update".equals(sqlConfig.getHibernateHbm2ddl());
+		boolean defaultSchemaUpdate = sqlConfig == null ||
+                        "update".equals(sqlConfig.getHibernateHbm2ddl()) ||
+                        sqlConfig.getDatabase() == H2 && sqlConfig.getMissingSchemaAction() == CREATE;      // this is an approximation
         activitiSchemaUpdate = c.getBoolean(KEY_ACTIVITI_SCHEMA_UPDATE, defaultSchemaUpdate);
 		LOGGER.info("Activiti automatic schema update: {}", activitiSchemaUpdate);
 
