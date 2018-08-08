@@ -1059,14 +1059,17 @@ public class ContextLoader {
 							}
 						}
 						projContext.setLoadedObject(objectOld);
-                        ShadowType oldShadow = objectOld.asObjectable();
 						if (projContext.isDoReconciliation()) {
-	                        projContext.determineFullShadowFlag(oldShadow.getFetchResult());
+	                        projContext.determineFullShadowFlag(objectOld);
 						} else {
 							projContext.setFullShadow(false);
 						}
-						projContext.setExists(ShadowUtil.isExists(objectOld.asObjectable()));
 						projectionObject = objectOld;
+						if (!ShadowUtil.isExists(objectOld.asObjectable())) {
+							projContext.setExists(false);
+							LOGGER.debug("Foud only dead {} for projection context {}.", objectOld, projectionHumanReadableName);
+							refreshContextAfterShadowNotFound(context, projContext, options, task, result);
+						}
 
 					} catch (ObjectNotFoundException ex) {
 						LOGGER.debug("Could not find object with oid {} for projection context {}.", projectionObjectOid, projectionHumanReadableName);
@@ -1268,17 +1271,16 @@ public class ContextLoader {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
 		applyAttributesToGet(projCtx, options);
 		try {
-			PrismObject<ShadowType> objectCurrent = provisioningService.getObject(ShadowType.class,
-					projCtx.getOid(), options, task, result);
+			PrismObject<ShadowType> objectCurrent = provisioningService.getObject(ShadowType.class, projCtx.getOid(), options, task, result);
 			Validate.notNull(objectCurrent.getOid());
 			// TODO: use setLoadedObject() instead?
 			projCtx.setObjectCurrent(objectCurrent);
-			ShadowType oldShadow = objectCurrent.asObjectable();
-			projCtx.determineFullShadowFlag(oldShadow.getFetchResult());
-			// The getObject may return different OID than we have requested in case that compensation happened
-			// TODO: this probably need to be fixed in the consistency mechanism
-			// TODO: the following line is a temporary fix
-			projCtx.setOid(objectCurrent.getOid());
+			projCtx.determineFullShadowFlag(objectCurrent);
+			if (!ShadowUtil.isExists(objectCurrent.asObjectable())) {
+				LOGGER.debug("Load of full resource object {} ended with non-existent shadow (options={})", projCtx, getOptions);
+				projCtx.setExists(false);
+				refreshContextAfterShadowNotFound(context, projCtx, options, task, result);
+			}
 
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.debug("Load of full resource object {} ended with ObjectNotFoundException (options={})", projCtx, getOptions);

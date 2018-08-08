@@ -1401,7 +1401,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     // determines whether full shadow is present, based on operation result got from provisioning
-    public void determineFullShadowFlag(OperationResultType fetchResult) {
+    public void determineFullShadowFlag(PrismObject<ShadowType> loadedShadow) {
+    	ShadowType shadowType = loadedShadow.asObjectable();
+    	if (ShadowUtil.isDead(shadowType) || !ShadowUtil.isExists(shadowType)) {
+    		setFullShadow(false);
+    		return;
+    	}
+    	OperationResultType fetchResult = shadowType.getFetchResult();
         if (fetchResult != null
                 && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
                     || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)

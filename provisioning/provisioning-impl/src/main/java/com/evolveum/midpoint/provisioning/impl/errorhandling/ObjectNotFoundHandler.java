@@ -94,11 +94,23 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 		}
 		
 		if (repositoryShadow != null) {
-			// We always want to return repository shadow it such shadow is available.
-			// The shadow may be dead, or it may be marked as "not exists", but we want
-			// to return something if shadow exists in the repo. Otherwise model may
-			// unlink the shadow or otherwise "forget" about it.
-			LOGGER.debug("Shadow {} not found on the resource. However still have it in the repository. Therefore returning repository version.", repositoryShadow);
+			
+			if (ShadowUtil.isExists(repositoryShadow.asObjectable())) {
+				// This is some kind of reality mismatch. We obviously have shadow that is supposed
+				// to be alive (exists=true). But it does not exist on resource.
+				// This is NOT gestation quantum state, as that is handled directly in ShadowCache.
+				// This may be "lost shadow" - shadow which exists but the resource object has disappeared without trace.
+				// Or this may be a corpse - quantum state that has just collapsed to to tombstone.
+				// Either way, it should be safe to set exists=false.
+				LOGGER.trace("Setting {} as tombstone. This may be a quntum state collapse. Or maybe a lost shadow.", repositoryShadow);
+				repositoryShadow = shadowManager.markShadowDead(repositoryShadow, parentResult);
+			} else {
+				// We always want to return repository shadow it such shadow is available.
+				// The shadow may be dead, or it may be marked as "not exists", but we want
+				// to return something if shadow exists in the repo. Otherwise model may
+				// unlink the shadow or otherwise "forget" about it.
+				LOGGER.debug("Shadow {} not found on the resource. However still have it in the repository. Therefore returning repository version.", repositoryShadow);
+			}
 			parentResult.setStatus(OperationResultStatus.HANDLED_ERROR);
 			return repositoryShadow;
 		}
