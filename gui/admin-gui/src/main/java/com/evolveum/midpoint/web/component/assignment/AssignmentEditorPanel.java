@@ -273,21 +273,20 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				GuiStyleConstants.CLASS_ICON_COLLAPSE) {
 			private static final long serialVersionUID = 1L;
 
-				@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
 				nameClickPerformed(target);
 			}
-
-			@Override
-    		protected void onError(AjaxRequestTarget target, Form<?> form) {
-    	target.add(getPageBase().getFeedbackPanel());
-    		}
+			
 			@Override
 			public boolean isOn() {
 				return !AssignmentEditorPanel.this.getModelObject().isMinimized();
 			}
 		};
 		expandButton.add(new VisibleEnableBehaviour(){
+			
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible(){
 				return !getModel().getObject().isSimpleView();
