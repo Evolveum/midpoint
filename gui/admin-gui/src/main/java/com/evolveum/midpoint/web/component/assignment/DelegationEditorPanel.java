@@ -200,14 +200,10 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                nameClickPerformed(target);
+            public void onClick(AjaxRequestTarget target) {
+            	nameClickPerformed(target);
             }
-
-        	@Override
-    		protected void onError(AjaxRequestTarget target, Form<?> form) {
-    	target.add(getPageBase().getFeedbackPanel());
-    		}
+            
             @Override
             public boolean isOn() {
                 return !DelegationEditorPanel.this.getModelObject().isMinimized();
