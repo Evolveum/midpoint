@@ -119,11 +119,26 @@ public class AssignmentsAsserter<F extends FocusType, FA extends FocusAsserter<F
 			.find();
 	}
 	
-	public AssignmentsAsserter<F,FA,RA> assertAssignedRole(String roleOid) throws ObjectNotFoundException, SchemaException {
+	public AssignmentsAsserter<F,FA,RA> assertRole(String roleOid) throws ObjectNotFoundException, SchemaException {
 		by()
 			.targetOid(roleOid)
 			.targetType(RoleType.COMPLEX_TYPE)
 			.find();
+		return this;
+	}
+	
+	public AssignmentsAsserter<F,FA,RA> assertNoRole(String roleOid) throws ObjectNotFoundException, SchemaException {
+		by()
+			.targetOid(roleOid)
+			.targetType(RoleType.COMPLEX_TYPE)
+			.assertNone();
+		return this;
+	}
+	
+	public AssignmentsAsserter<F,FA,RA> assertNoRole() throws ObjectNotFoundException, SchemaException {
+		by()
+			.targetType(RoleType.COMPLEX_TYPE)
+			.assertNone();
 		return this;
 	}
 

@@ -267,6 +267,7 @@ public class ResourceObjectConverter {
 		entitlementConverter.processEntitlementsAdd(ctx, shadowClone);
 		
 		ConnectorInstance connector = ctx.getConnector(CreateCapabilityType.class, result);
+		AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> connectorAsyncOpRet = null;
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -280,8 +281,8 @@ public class ResourceObjectConverter {
 				throw new UnsupportedOperationException("Resource does not support 'create' operation");
 			}
 			
-			AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = connector.addObject(shadowClone, additionalOperations, ctx, result);
-			resourceAttributesAfterAdd = ret.getReturnValue();
+			connectorAsyncOpRet = connector.addObject(shadowClone, additionalOperations, ctx, result);
+			resourceAttributesAfterAdd = connectorAsyncOpRet.getReturnValue();
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
@@ -314,7 +315,11 @@ public class ResourceObjectConverter {
 
 		computeResultStatus(result);
 		
-		return AsynchronousOperationReturnValue.wrap(shadow, result);
+		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncOpRet = AsynchronousOperationReturnValue.wrap(shadow, result);
+		if (connectorAsyncOpRet != null) {
+			asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
+		}
+		return asyncOpRet;
 	}
 
 	/**
@@ -396,6 +401,7 @@ public class ResourceObjectConverter {
 				result);
 
 		ConnectorInstance connector = ctx.getConnector(DeleteCapabilityType.class, result);
+		AsynchronousOperationResult connectorAsyncOpRet = null;
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -412,7 +418,7 @@ public class ResourceObjectConverter {
 				throw e;
 			}
 
-			connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, shadow, identifiers, ctx, result);
+			connectorAsyncOpRet = connector.deleteObject(ctx.getObjectClassDefinition(), additionalOperations, shadow, identifiers, ctx, result);
 
 			computeResultStatus(result);
 			LOGGER.debug("PROVISIONING DELETE: {}", result.getStatus());
@@ -449,6 +455,9 @@ public class ResourceObjectConverter {
 		LOGGER.trace("Deleted resource object {}", shadow);
 		AsynchronousOperationResult aResult = AsynchronousOperationResult.wrap(result);
 		updateQuantum(ctx, connector, aResult, parentResult);
+		if (connectorAsyncOpRet != null) {
+			aResult.setOperationType(connectorAsyncOpRet.getOperationType());
+		}
 		return aResult;
 	}
 	
@@ -547,6 +556,7 @@ public class ResourceObjectConverter {
 			
 			PrismObject<ShadowType> preReadShadow = null;
 			Collection<PropertyModificationOperation> sideEffectOperations = null;
+			AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyAsyncRet = null;
 			
 			//check identifier if it is not null
 			if (primaryIdentifiers.isEmpty() && repoShadow.asObjectable().getFailedOperationType()!= null){
@@ -588,7 +598,8 @@ public class ResourceObjectConverter {
 				}
 				
 				// Execute primary ICF operation on this shadow
-				sideEffectOperations = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, result);
+				modifyAsyncRet = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, result);
+				sideEffectOperations = modifyAsyncRet.getReturnValue();
 				
 			} else {
 				// We have to check BEFORE we add script operations, otherwise the check would be pointless
@@ -654,7 +665,11 @@ public class ResourceObjectConverter {
 	        
 	        computeResultStatus(result);
 	        
-			return AsynchronousOperationReturnValue.wrap(sideEffectDeltas, result);
+			AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> aResult = AsynchronousOperationReturnValue.wrap(sideEffectDeltas, result);
+			if (modifyAsyncRet != null) {
+				aResult.setOperationType(modifyAsyncRet.getOperationType());
+			}
+			return aResult;
 			
 		} catch (Throwable e) {
 			result.recordFatalError(e);
@@ -675,7 +690,7 @@ public class ResourceObjectConverter {
 	}
 
 	@SuppressWarnings("rawtypes")
-	private Collection<PropertyModificationOperation> executeModify(ProvisioningContext ctx, 
+	private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(ProvisioningContext ctx, 
 			PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers, 
 			Collection<Operation> operations, OperationResult parentResult) 
 			throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
@@ -685,7 +700,7 @@ public class ResourceObjectConverter {
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		if (operations.isEmpty()){
 			LOGGER.trace("No modifications for resource object. Skipping modification.");
-			return new ArrayList<>(0);
+			return null;
 		} else {
 			LOGGER.trace("Resource object modification operations: {}", operations);
 		}
@@ -700,6 +715,7 @@ public class ResourceObjectConverter {
 		
 		// Invoke ICF
 		ConnectorInstance connector = ctx.getConnector(UpdateCapabilityType.class, parentResult);
+		AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> connectorAsyncOpRet = null;
 		try {
 			
 			if (ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource())) {
@@ -742,7 +758,7 @@ public class ResourceObjectConverter {
 					if (filteredOperations.isEmpty()) {
 						LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
 						parentResult.recordSuccess();
-						return new ArrayList<>(0);
+						return null;
 					}
 					operations = filteredOperations;
 				}
@@ -759,7 +775,7 @@ public class ResourceObjectConverter {
 				if (operations == null || operations.isEmpty()){
 					LOGGER.debug("No modifications for connector object specified (after filtering). Skipping processing.");
 					parentResult.recordSuccess();
-					return new ArrayList<>(0);
+					return null;
 				}
 				UnsupportedOperationException e = new UnsupportedOperationException("Resource does not support 'update' operation");
 				parentResult.recordFatalError(e);
@@ -786,15 +802,15 @@ public class ResourceObjectConverter {
 					operationsWave = convertToReplace(ctx, operationsWave, currentShadow);
 				}
 				if (!operationsWave.isEmpty()) {
-					AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> ret = connector.modifyObject(objectClassDefinition, currentShadow, identifiersWorkingCopy, operationsWave, ctx, parentResult);
-					Collection<PropertyModificationOperation> sideEffects = ret.getReturnValue();
+					connectorAsyncOpRet = connector.modifyObject(objectClassDefinition, currentShadow, identifiersWorkingCopy, operationsWave, ctx, parentResult);
+					Collection<PropertyModificationOperation> sideEffects = connectorAsyncOpRet.getReturnValue();
 					if (sideEffects != null) {
 						sideEffectChanges.addAll(sideEffects);
 						// we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
 					}
-					if (ret.isInProgress()) {
+					if (connectorAsyncOpRet.isInProgress()) {
 						inProgress = true;
-						asynchronousOperationReference = ret.getOperationResult().getAsynchronousOperationReference();
+						asynchronousOperationReference = connectorAsyncOpRet.getOperationResult().getAsynchronousOperationReference();
 					}
 				}
 			}
@@ -838,7 +854,11 @@ public class ResourceObjectConverter {
 			throw new ObjectAlreadyExistsException("Conflict during modify: " + ex.getMessage(), ex);
 		}
 		
-		return sideEffectChanges;
+		AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> asyncOpRet = AsynchronousOperationReturnValue.wrap(sideEffectChanges, parentResult);
+		if (connectorAsyncOpRet != null) {
+			asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
+		}
+		return asyncOpRet;
 	}
 
 	@SuppressWarnings("rawtypes")

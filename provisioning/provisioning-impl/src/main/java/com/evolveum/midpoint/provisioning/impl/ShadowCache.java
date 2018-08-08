@@ -1075,12 +1075,15 @@ public class ShadowCache {
 			}
 		}
 		
+		repoShadow = cancelAllPendingOperations(ctx, repoShadow, task, parentResult);
+		
 		ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
 		opState.setRepoShadow(repoShadow);
 		
 		return deleteShadowAttempt(ctx, options, scripts, opState, task, parentResult);
 	}
 	
+
 	private PrismObject<ShadowType> deleteShadowAttempt(ProvisioningContext ctx,
 			ProvisioningOperationOptions options,
 			OperationProvisioningScriptsType scripts,
@@ -1145,7 +1148,7 @@ public class ShadowCache {
 		
 		PrismObject<ShadowType> resultShadow;
 		try {
-			resultShadow = shadowManager.recordDeleteResult(ctx, repoShadow, opState, now, parentResult);			
+			resultShadow = shadowManager.recordDeleteResult(ctx, repoShadow, opState, options, now, parentResult);			
 		} catch (ObjectNotFoundException ex) {
 			parentResult.recordFatalError("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(),
 					ex);
@@ -1501,6 +1504,44 @@ public class ShadowCache {
 		XMLGregorianCalendar lastAttemptTimestamp = pendingOperation.getLastAttemptTimestamp();
 		XMLGregorianCalendar scheduledRetryTimestamp = XmlTypeConverter.addDuration(lastAttemptTimestamp, retryPeriod);
 		return XmlTypeConverter.compare(now, scheduledRetryTimestamp) == DatatypeConstants.GREATER;
+	}
+	
+	// This is very simple code that essentially works only for postponed operations (retries).
+	// TODO: better support for async and manual operations
+	private PrismObject<ShadowType> cancelAllPendingOperations(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+		List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
+		if (pendingOperations.isEmpty()) {
+			return repoShadow;
+		}
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
+		for (PendingOperationType pendingOperation: pendingOperations) {
+			if (pendingOperation.getExecutionStatus() == PendingOperationExecutionStatusType.COMPLETED) {
+				continue;
+			}
+			if (pendingOperation.getType() != PendingOperationTypeType.RETRY) {
+				// Other operations are not cancellable now
+				continue;
+			}
+			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+			PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_EXECUTION_STATUS));
+			executionStatusDelta.setValuesToReplace(new PrismPropertyValue<>(PendingOperationExecutionStatusType.COMPLETED));
+			shadowDelta.addModification(executionStatusDelta);
+			PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
+			completionTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+			shadowDelta.addModification(completionTimestampDelta);
+			PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
+			resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(OperationResultStatusType.NOT_APPLICABLE));
+			shadowDelta.addModification(resultStatusDelta);
+		}
+		if (shadowDelta.isEmpty()) {
+			return repoShadow;
+		}
+		LOGGER.debug("Cancelling pending operations on {}", repoShadow);
+		shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
+		shadowDelta.applyTo(repoShadow);
+		return repoShadow;
 	}
 	
 	private PrismObject<ShadowType> cleanUpDeadShadow(ProvisioningContext ctx,

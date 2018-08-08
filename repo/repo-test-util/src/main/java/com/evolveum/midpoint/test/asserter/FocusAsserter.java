@@ -153,7 +153,7 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		return this;
 	}
 	
-	public ShadowReferenceAsserter<FocusAsserter<F,RA>> singleLink() {
+	public ShadowReferenceAsserter<? extends FocusAsserter<F,RA>> singleLink() {
 		PrismReference linkRef = getObject().findReference(FocusType.F_LINK_REF);
 		if (linkRef == null) {
 			fail("Expected single link, but is no linkRef in "+desc());
@@ -221,5 +221,10 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		AssignmentsAsserter<F,FocusAsserter<F,RA>,RA> asserter = new AssignmentsAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
+	}
+	
+	public FocusAsserter<F,RA> assertAssignments(int expected) {
+		assignments().assertAssignments(expected);
+		return this;
 	}
 }

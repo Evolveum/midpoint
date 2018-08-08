@@ -128,5 +128,9 @@ public class PrismObjectAsserter<O extends ObjectType,R> extends AbstractAsserte
 		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
 		PrismAsserts.assertEqualsPolyString("Wrong "+propName.getLocalPart()+" in "+desc(), expectedOrig, prop.getRealValue());
 	}
+	
+	public String getOid() {
+		return getObject().getOid();
+	}
 
 }

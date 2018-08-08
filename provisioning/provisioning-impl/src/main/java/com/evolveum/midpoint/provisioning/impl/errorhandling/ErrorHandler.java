@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -106,6 +107,7 @@ public abstract class ErrorHandler {
 		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
 		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncResult = new AsynchronousOperationReturnValue<>();
 		asyncResult.setOperationResult(failedOperationResult);
+		asyncResult.setOperationType(PendingOperationTypeType.RETRY);
 		opState.setAsyncResult(asyncResult);
 		if (opState.getAttemptNumber() == null) {
 			opState.setAttemptNumber(1);
@@ -137,6 +139,7 @@ public abstract class ErrorHandler {
 		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
 		AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncResult = new AsynchronousOperationReturnValue<>();
 		asyncResult.setOperationResult(failedOperationResult);
+		asyncResult.setOperationType(PendingOperationTypeType.RETRY);
 		opState.setAsyncResult(asyncResult);
 		if (opState.getAttemptNumber() == null) {
 			opState.setAttemptNumber(1);
@@ -154,6 +157,7 @@ public abstract class ErrorHandler {
 		opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
 		AsynchronousOperationResult asyncResult = new AsynchronousOperationResult();
 		asyncResult.setOperationResult(failedOperationResult);
+		asyncResult.setOperationType(PendingOperationTypeType.RETRY);
 		opState.setAsyncResult(asyncResult);
 		if (opState.getAttemptNumber() == null) {
 			opState.setAttemptNumber(1);

@@ -81,6 +81,24 @@ public class PendingOperationFinder<R> {
 		return pendingOperationsAsserter.forOperation(found);
 	}
 	
+	public PendingOperationsAsserter<R> assertNone() {
+		for (PendingOperationType operation: pendingOperationsAsserter.getOperations()) {
+			if (matches(operation)) {
+				fail("Found operation that matches search criteria while expecting none");
+			}
+		}
+		return pendingOperationsAsserter;
+	}
+
+	public PendingOperationsAsserter<R> assertAll() {
+		for (PendingOperationType operation: pendingOperationsAsserter.getOperations()) {
+			if (!matches(operation)) {
+				fail("Found operation that does not match search criteria while expecting all operations to match");
+			}
+		}
+		return pendingOperationsAsserter;
+	}
+
 	private boolean matches(PendingOperationType operation) {
 		ObjectDeltaType delta = operation.getDelta();
 		

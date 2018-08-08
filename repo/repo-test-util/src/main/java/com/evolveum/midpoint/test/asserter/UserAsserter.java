@@ -179,4 +179,17 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		super.displayWithProjections();
 		return this;
 	}
+
+	@Override
+	public ShadowReferenceAsserter<UserAsserter<RA>> singleLink() {
+		return (ShadowReferenceAsserter<UserAsserter<RA>>) super.singleLink();
+	}
+
+	@Override
+	public UserAsserter<RA> assertAssignments(int expected) {
+		super.assertAssignments(expected);
+		return this;
+	}
+	
+	
 }

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -85,6 +86,14 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 
 	public void setAttemptNumber(Integer attemptNumber) {
 		this.attemptNumber = attemptNumber;
+	}
+	
+	public PendingOperationTypeType getOperationType() {
+		if (asyncResult == null) {
+			return null;
+		} else {
+			return asyncResult.getOperationType();
+		}
 	}
 
 	public boolean isQuantumOperation() {
@@ -174,7 +183,7 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 			sb.append(", ").append(pendingOperations.size()).append(" pending operations");
 		}
 		if (asyncResult != null) {
-			sb.append(", result=");
+			sb.append(", result: ");
 			asyncResult.shortDump(sb);
 		}
 	}

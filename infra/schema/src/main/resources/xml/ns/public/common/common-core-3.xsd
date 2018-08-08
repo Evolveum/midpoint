@@ -10696,7 +10696,20 @@
             </xsd:appinfo>
         </xsd:annotation>
 	    <xsd:sequence>
-	        <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0">
+	        <xsd:element name="type" type="tns:PendingOperationTypeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Type of pending operation. It tells whether this is asynchronous
+						resource operation, manual operation, retried operation and so on.
+						It is used mostly for diagnostic purposes. But it also has some
+						meaning in the logic for some special cases.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			 <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Operation delta. This is the change that is executed by the operation.
@@ -10824,6 +10837,42 @@
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    
+    <xsd:simpleType name="PendingOperationTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of pending operation. It tells whether this is asynchronous
+				resource operation, manual operation, retried operation and so on.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="manual">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Operation using manual action (e.g. "manual" resources)
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MANUAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="retry">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Regular operation that has failed and it will be retried. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RETRY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO (later): asynchronous resource operation -->
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:simpleType name="PendingOperationExecutionStatusType">
         <xsd:annotation>

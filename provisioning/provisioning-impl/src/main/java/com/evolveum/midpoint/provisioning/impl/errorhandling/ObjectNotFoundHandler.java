@@ -67,6 +67,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -133,8 +134,10 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 			discoverDeletedShadow(ctx, repoShadow, cause, task, parentResult);
 		}
 		
-		return super.handleDeleteError(ctx, repoShadow, options, opState, cause, failedOperationResult, task,
-				parentResult);
+		// Error deleting shadow because the shadow is already deleted. This means someone has done our job already.
+		failedOperationResult.setStatus(OperationResultStatus.HANDLED_ERROR);
+		opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+		return OperationResultStatus.HANDLED_ERROR;
 	}
 
 	private void discoverDeletedShadow(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,

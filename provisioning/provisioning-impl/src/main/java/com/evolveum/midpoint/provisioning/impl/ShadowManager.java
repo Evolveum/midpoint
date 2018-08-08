@@ -67,6 +67,7 @@ import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -1139,6 +1140,7 @@ public class ShadowManager {
 			String asyncOperationReference) throws SchemaException {
 		ObjectDeltaType deltaType = DeltaConvertor.toObjectDeltaType(requestDelta);
 		PendingOperationType pendingOperation = new PendingOperationType();
+		pendingOperation.setType(opState.getOperationType());
 		pendingOperation.setDelta(deltaType);
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		pendingOperation.setRequestTimestamp(now);
@@ -1555,7 +1557,7 @@ public class ShadowManager {
 	 */
 	public void modifyShadowAttributes(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications, 
 			OperationResult parentResult) 
-			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException { 
+			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException { 
 		Collection<? extends ItemDelta> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
 		if (shadowChanges != null && !shadowChanges.isEmpty()) {
 			LOGGER.trace(
@@ -1609,7 +1611,7 @@ public class ShadowManager {
 
 	@SuppressWarnings("rawtypes")
 	private Collection<? extends ItemDelta> extractRepoShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, EncryptionException {
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
@@ -1655,7 +1657,7 @@ public class ShadowManager {
 		return repoChanges;
 	}
 	
-	private void addPasswordDelta(Collection<ItemDelta> repoChanges, ItemDelta requestedPasswordDelta, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException, EncryptionException {
+	private void addPasswordDelta(Collection<ItemDelta> repoChanges, ItemDelta requestedPasswordDelta, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 		if (!(requestedPasswordDelta.getPath().equivalent(SchemaConstants.PATH_PASSWORD_VALUE))) {
 			return;
 		}
@@ -1673,7 +1675,7 @@ public class ShadowManager {
 	}
 
 	
-	private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> pvals) throws SchemaException, EncryptionException {
+	private void hashValues(Collection<PrismPropertyValue<ProtectedStringType>> pvals) throws SchemaException {
 		if (pvals == null) {
 			return;
 		}
@@ -1685,7 +1687,11 @@ public class ShadowManager {
 			if (psVal.isHashed()) {
 				return;
 			}
-			protector.hash(psVal);
+			try {
+				protector.hash(psVal);
+			} catch (EncryptionException e) {
+				throw new SchemaException("Cannot hash value", e);
+			}
 		}
 	}
 
@@ -1924,18 +1930,26 @@ public class ShadowManager {
 			ProvisioningContext ctx, 
 			PrismObject<ShadowType> oldRepoShadow, 
 			ProvisioningOperationState<AsynchronousOperationResult> opState,
+			ProvisioningOperationOptions options,
 			XMLGregorianCalendar now,
 			OperationResult parentResult) 
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 		
+		if (ProvisioningOperationOptions.isForce(options)) {
+			LOGGER.trace("Deleting repository {} (force delete): {}", oldRepoShadow, opState);
+			repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
+			return null;
+		}
+		
 		if (!opState.hasPendingOperations() && opState.isCompleted()) {
-			if (oldRepoShadow.asObjectable().getPendingOperation().isEmpty()) {
+			if (oldRepoShadow.asObjectable().getPendingOperation().isEmpty() && opState.isSuccess()) {
 				LOGGER.trace("Deleting repository {}: {}", oldRepoShadow, opState);
 				repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
 				return null;
 			} else {
 				// There are unexpired pending operations in the shadow. We cannot delete the shadow yet.
 				// Therefore just mark shadow as dead.
+				LOGGER.trace("Keeping dead {} because of pending operations or operation result", oldRepoShadow);
 				return markShadowDead(oldRepoShadow, parentResult);
 			}
 		}

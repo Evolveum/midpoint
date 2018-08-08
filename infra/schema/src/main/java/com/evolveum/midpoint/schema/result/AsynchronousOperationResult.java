@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema.result;
 
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 
 /**
  * Primary goal of this class is to support asynchronous operations.
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.util.ShortDumpable;
 public class AsynchronousOperationResult implements ShortDumpable {
 
 	private OperationResult operationResult;
+	private PendingOperationTypeType operationType;
 	
 	/**
 	 * Quantum operation is an operation where the results may not be immediately obvious.
@@ -49,6 +51,14 @@ public class AsynchronousOperationResult implements ShortDumpable {
 
 	public void setOperationResult(OperationResult operationResult) {
 		this.operationResult = operationResult;
+	}
+	
+	public PendingOperationTypeType getOperationType() {
+		return operationType;
+	}
+
+	public void setOperationType(PendingOperationTypeType operationType) {
+		this.operationType = operationType;
 	}
 
 	public boolean isQuantumOperation() {
@@ -71,11 +81,14 @@ public class AsynchronousOperationResult implements ShortDumpable {
 
 	@Override
 	public void shortDump(StringBuilder sb) {
+		if (operationType != null) {
+			sb.append("type=").append(operationType.value()).append(",");
+		}
 		if (quantumOperation) {
-			sb.append("[QUANTUM]");
+			sb.append("QUANTUM,");
 		}
 		if (operationResult != null) {
-			sb.append(operationResult.getStatus());
+			sb.append("status=").append(operationResult.getStatus());
 		}
 	}
 

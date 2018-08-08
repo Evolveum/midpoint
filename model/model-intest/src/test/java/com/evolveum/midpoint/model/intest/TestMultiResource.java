@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -62,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -222,9 +225,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test116JackUnAssignRoleDummiesFullErrorIvory";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		getDummyResource().setAddBreakMode(BreakMode.NETWORK);
-		jackUnAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_IVORY_OID);
+		jackUnassignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_IVORY_OID, RESOURCE_DUMMY_IVORY_OID);
 	}
 
+	/**
+	 * Beige resource has relaxed dependency on default dummy resource.
+	 * There is an error provisioning default dummy resource. Therefore provisioning
+	 * of beige resource is skipped entirely.
+	 */
 	@Test
     public void test117JackAssignRoleDummiesFullErrorBeige() throws Exception {
 		final String TEST_NAME = "test117JackAssignRoleDummiesFullErrorBeige";
@@ -238,7 +246,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test118JackUnAssignRoleDummiesFullErrorBeige";
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 		getDummyResource().setAddBreakMode(BreakMode.NETWORK);
-		jackUnAssignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_BEIGE_OID);
+		jackUnassignRoleDummiesError(TEST_NAME, ROLE_DUMMIES_BEIGE_OID, null);
 	}
 
 	@Test
@@ -923,17 +931,26 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        
+        List<String> linkOidsBefore = assertUserBefore(USER_JACK_OID)
+        	.links()
+        		.getOids();
 
         // WHEN
+        displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
 
         // THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-        PrismObject<UserType> user = getUser(USER_JACK_OID);
-        assertAssignedNoRole(user);
-        assertLinks(user, 0);
+        assertUserAfter(USER_JACK_OID)
+        	.assignments()
+        		.assertNoRole()
+        		.end()
+        	.assertLinks(0);
+        
+        assertNoShadows(linkOidsBefore);
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -954,18 +971,24 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         clearJackOrganizationalUnit(task, result);
+        
+        assertUserBefore(USER_JACK_OID)
+        	.assertAssignments(0)
+        	.assertLinks(0);
 
         // WHEN
+        displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, roleOid, task, result);
 
         // THEN
+        displayThen(TEST_NAME);
         result.computeStatus();
         display(result);
     	TestUtil.assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
 
     	assertUserAfter(USER_JACK_OID)
     		.assignments()
-    			.assertAssignedRole(roleOid)
+    			.assertRole(roleOid)
     			.end()
 			// One of the accountRefs is actually ref to an uncreated shadow
     		.assertLinks(expectAccount ? 2 : 1);
@@ -986,11 +1009,31 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 	}
 
-	public void jackUnAssignRoleDummiesError(final String TEST_NAME, String roleOid) throws Exception {
+	public void jackUnassignRoleDummiesError(final String TEST_NAME, String roleOid, String otherResourceOid) throws Exception {
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        
+        UserAsserter<Void> userBeforeAsserter = assertUserBefore(USER_JACK_OID);
+        String dummyShadowOid = userBeforeAsserter
+        	.links()
+        		.by()
+        			.resourceOid(RESOURCE_DUMMY_OID)
+        		.find()
+        			.resolveTarget()
+        				.assertConception()
+        				.hasUnfinishedPendingOperations()
+        				.getOid();
+        String dummyOtherShadowOid = null;
+        if (otherResourceOid != null) {
+        	dummyOtherShadowOid = userBeforeAsserter
+            	.links()
+            		.by()
+            			.resourceOid(otherResourceOid)
+            		.find()
+            			.getOid();
+        }
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1007,9 +1050,22 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         	AssertJUnit.fail("Expected result success or partial error status, but was "+status);
         }
 
-        PrismObject<UserType> user = getUser(USER_JACK_OID);
-        assertAssignedNoRole(user);
-        assertLinks(user, 0);
+        assertUserAfter(USER_JACK_OID)
+        	.assignments()
+        		.assertNoRole()
+        		.end()
+        	.assertLinks(1);
+        
+        assertRepoShadow(dummyShadowOid)
+        	.assertTombstone()
+        	.pendingOperations()
+        		.by()
+        			.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+        			.assertAll();
+        
+        if (dummyOtherShadowOid != null) {
+        	assertNoShadow(dummyOtherShadowOid);
+        }
 
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1017,6 +1073,14 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
+        
+        display("FORCE DELETE");
+        // Force delete of dead shadow
+        forceDeleteShadow(dummyShadowOid);
+        
+        assertNoShadow(dummyShadowOid);
+        assertUserAfter(USER_JACK_OID)
+        	.assertLinks(0);
 	}
 
     @Test

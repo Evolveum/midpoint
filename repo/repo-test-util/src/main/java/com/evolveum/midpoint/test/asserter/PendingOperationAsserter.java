@@ -31,6 +31,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -89,6 +90,11 @@ public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperati
 	
 	public PendingOperationAsserter<R> assertAttemptNumber(Integer expected) {
 		assertEquals("Wrong attempt number in "+desc(), expected, pendingOperation.getAttemptNumber());
+		return this;
+	}
+	
+	public PendingOperationAsserter<R> assertType(PendingOperationTypeType expected) {
+		assertEquals("Wrong type in "+desc(), expected, pendingOperation.getType());
 		return this;
 	}
 	

@@ -74,6 +74,35 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
 		return assignmentsAsserter.forAssignment(found, foundTarget);
 	}
 	
+	public AssignmentsAsserter<F,FA,RA> assertNone() throws ObjectNotFoundException, SchemaException {
+		for (AssignmentType assignment: assignmentsAsserter.getAssignments()) {
+			PrismObject<ShadowType> assignmentTarget = null;
+//			PrismObject<ShadowType> assignmentTarget = assignmentsAsserter.getTarget(assignment.getOid());
+			if (matches(assignment, assignmentTarget)) {
+				fail("Found assignment target while not expecting it: "+formatTarget(assignment, assignmentTarget));
+			}
+		}
+		return assignmentsAsserter;
+	}
+	
+	public AssignmentsAsserter<F,FA,RA> assertAll() throws ObjectNotFoundException, SchemaException {
+		for (AssignmentType assignment: assignmentsAsserter.getAssignments()) {
+			PrismObject<ShadowType> assignmentTarget = null;
+//			PrismObject<ShadowType> assignmentTarget = assignmentsAsserter.getTarget(assignment.getOid());
+			if (!matches(assignment, assignmentTarget)) {
+				fail("Found assignment that does not match search criteria: "+formatTarget(assignment, assignmentTarget));
+			}
+		}
+		return assignmentsAsserter;
+	}
+	
+	private String formatTarget(AssignmentType assignment, PrismObject<ShadowType> assignmentTarget) {
+		if (assignmentTarget != null) {
+			return assignmentTarget.toString();
+		}
+		return assignment.getTargetRef().toString();
+	}
+
 	private boolean matches(AssignmentType assignment, PrismObject<?> targetObject) throws ObjectNotFoundException, SchemaException {
 		ObjectReferenceType targetRef = assignment.getTargetRef();
 		ObjectType targetObjectType = null;

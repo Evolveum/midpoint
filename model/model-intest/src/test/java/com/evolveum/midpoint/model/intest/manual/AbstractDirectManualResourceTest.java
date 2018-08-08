@@ -1517,6 +1517,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	 * Unassign account before anybody had the time to do anything about it.
 	 * Create ticket is not closed, the account is not yet created and we
 	 * want to delete it.
+	 * The shadow should exist, all the operations are should be cancelled.
 	 * MID-4037
 	 */
 	@Test
@@ -1540,52 +1541,45 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		accountWillSecondReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertPendingOperationDeltas(shadowRepo, 2);
-
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.ADD);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.IN_PROGRESS,
-				null, null);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
-
-		assertWillUnassignPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
-
+		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
+			.pendingOperations()
+				.assertOperations(2)
+				.by()
+					.changeType(ChangeTypeType.ADD)
+				.find()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+					.assertId()
+				.end()
+			.end()
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+			.end();
+		assertWillUnassignPendingOperationExecuting(shadowRepoAsserter);
 		// Still old data in the repo. The operation is not completed yet.
-		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
+		assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
+		assertModelShadow(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+			.end()
+			.pendingOperations()
+				.assertOperations(2);
 
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-
-		assertPendingOperationDeltas(shadowModel, 2);
-
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_WILL_NAME);
-		assertWillUnassignedFuture(shadowModelFuture, false);
+		assertModelShadowFuture(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertTombstone();
 
 		// Make sure that the account is still linked
-		PrismObject<UserType> userAfter = getUser(userWillOid);
-		display("User after", userAfter);
-		String accountWillOidAfter = getSingleLinkOid(userAfter);
-		assertEquals(accountWillOid, accountWillOidAfter);
-		assertNoAssignments(userAfter);
+		assertUserAfter(userWillOid)
+			.singleLink()
+				.assertOid(accountWillOid)
+				.end()
+			.assignments()
+				.assertNone();
 
 		assertNotNull("No async reference in result", willSecondLastCaseOid);
 
@@ -1614,75 +1608,47 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		display("result", result);
 		assertSuccess(result);
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertPendingOperationDeltas(shadowRepo, 2);
+		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
+				.pendingOperations()
+					.assertOperations(2)
+					.by()
+						.changeType(ChangeTypeType.ADD)
+					.find()
+						.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+						.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+						.assertId()
+					.end()
+				.end()
+				.attributes()
+					.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.end();
+		assertWillUnassignPendingOperationExecuting(shadowRepoAsserter);
+		assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
+		assertAttributeFromCache(shadowRepoAsserter, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
 
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.ADD);
-		assertPendingOperation(shadowRepo, pendingOperation,
-				accountWillReqestTimestampStart, accountWillReqestTimestampEnd,
-				OperationResultStatusType.IN_PROGRESS,
-				null, null);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
-
-		assertWillUnassignPendingOperation(shadowRepo, OperationResultStatusType.IN_PROGRESS);
-
-		// Still old data in the repo. The operation is not completed yet.
-		assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
-		assertAttribute(shadowRepo, ATTR_USERNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_NAME), ATTR_USERNAME_QNAME, prismContext));
-		assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME,
-				new RawType(new PrismPropertyValue(USER_WILL_FULL_NAME_PIRATE), ATTR_FULLNAME_QNAME, prismContext));
-
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountWillOid, null, task, result);
-
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-
-		assertPendingOperationDeltas(shadowModel, 2);
-
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_WILL_NAME);
-		assertWillUnassignedFuture(shadowModelFuture, false);
-
+		assertModelShadow(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+			.end()
+			.pendingOperations()
+				.assertOperations(2);
+	
+		assertModelShadowFuture(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertTombstone();
+	
 		// Make sure that the account is still linked
-		PrismObject<UserType> userAfter = getUser(userWillOid);
-		display("User after", userAfter);
-		String accountWillOidAfter = getSingleLinkOid(userAfter);
-		assertEquals(accountWillOid, accountWillOidAfter);
-		assertNoAssignments(userAfter);
+		assertUserAfter(userWillOid)
+			.singleLink()
+				.assertOid(accountWillOid)
+				.end()
+			.assignments()
+				.assertNone();
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
-	}
-
-	protected void assertWillUnassignPendingOperation(PrismObject<ShadowType> shadowRepo, OperationResultStatusType expectedStatus) {
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
-				OperationResultStatusType.IN_PROGRESS, ChangeTypeType.DELETE);
-		if (expectedStatus == OperationResultStatusType.IN_PROGRESS) {
-			assertPendingOperation(shadowRepo, pendingOperation,
-					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-					OperationResultStatusType.IN_PROGRESS,
-					null, null);
-		} else {
-			pendingOperation = findPendingOperation(shadowRepo,
-					OperationResultStatusType.SUCCESS, ChangeTypeType.DELETE);
-			assertPendingOperation(shadowRepo, pendingOperation,
-					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-					OperationResultStatusType.SUCCESS,
-					accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-			assertNotNull("No ID in pending operation", pendingOperation.getId());
-		}
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
 	}
 
 	/**
@@ -1727,7 +1693,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 					.assertId()
 					.end()
 				.end();
-		assertWillUnassignPendingOperation(shadowRepoAsserter.getObject(), OperationResultStatusType.SUCCESS);
+		assertWillUnassignPendingOperationCompleted(shadowRepoAsserter);
 		assertUnassignedShadow(shadowRepoAsserter, true, null);
 
 		ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountWillOid)
@@ -1746,6 +1712,35 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
+	protected void assertWillUnassignPendingOperationExecuting(ShadowAsserter<Void> shadowRepoAsserter) {
+		shadowRepoAsserter
+			.pendingOperations()
+				.by()
+					.changeType(ChangeTypeType.DELETE)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+					.assertId()
+					.end()
+				.end();
+	}
+	
+	protected void assertWillUnassignPendingOperationCompleted(ShadowAsserter<Void> shadowRepoAsserter) {
+		shadowRepoAsserter
+			.pendingOperations()
+				.by()
+					.changeType(ChangeTypeType.DELETE)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+					.assertId()
+					.end()
+				.end();
+	}
+	
 	/**
 	 * ff 20min, grace period expired, But we keep pending operation and shadow
 	 * because they are not expired yet.

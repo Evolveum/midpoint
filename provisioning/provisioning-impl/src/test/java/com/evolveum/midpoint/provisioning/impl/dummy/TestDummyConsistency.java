@@ -64,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -2001,17 +2002,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		try {
-			provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
-			assertNotReached();
-		} catch (ObjectNotFoundException e) {
-			displayThen(TEST_NAME);
-			display("expected exception", e);
-		}
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_ELIZABETH_OID, null, null, task, result);
 
 		// THEN
+		displayThen(TEST_NAME);
 		display("Result", result);
-		assertFailure(result);
+		assertHadnledError(result);
 		
 		syncServiceMock
 			.assertNotifyChange()
@@ -2127,6 +2123,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 			.pendingOperations()
 				.singleOperation()
 					.display()
+					.assertType(PendingOperationTypeType.RETRY)
 					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
 					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
 					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
@@ -2149,6 +2146,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 				.end()
 			.pendingOperations()
 				.singleOperation()
+					.assertType(PendingOperationTypeType.RETRY)
 					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
 					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
 					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
@@ -2187,6 +2185,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 			.pendingOperations()
 				.singleOperation()
 					.display()
+					.assertType(PendingOperationTypeType.RETRY)
 					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
 					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
 					.assertResultStatus(OperationResultStatusType.SUCCESS)
@@ -2210,6 +2209,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 				.end()
 			.pendingOperations()
 				.singleOperation()
+					.assertType(PendingOperationTypeType.RETRY)
 					.assertRequestTimestamp(lastRequestStartTs, lastRequestEndTs)
 					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
 					.assertResultStatus(OperationResultStatusType.SUCCESS)

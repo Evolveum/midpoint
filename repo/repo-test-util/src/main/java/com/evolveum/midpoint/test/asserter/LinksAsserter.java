@@ -126,5 +126,12 @@ public class LinksAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,
 			.find();
 	}
 	
+	public List<String> getOids() {
+		List<String> oids = new ArrayList<>();
+		for (PrismReferenceValue link: getLinks()) {
+			oids.add(link.getOid());
+		}
+		return oids;
+	}
 
 }

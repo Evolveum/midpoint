@@ -1723,11 +1723,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertLinks(user, numAccounts);
 	}
 
+	protected void assertNoShadows(Collection<String> shadowOids) throws SchemaException {
+		for (String shadowOid: shadowOids) {
+			assertNoShadow(shadowOid);
+		}
+	}
+	
 	protected void assertNoShadow(String shadowOid) throws SchemaException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoShadow");
 		// Check is shadow is gone
         try {
-        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        	PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        	display("Unexpected shadow", shadow);
         	AssertJUnit.fail("Shadow "+shadowOid+" still exists");
         } catch (ObjectNotFoundException e) {
         	// This is OK
@@ -3393,19 +3400,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
-		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+		executeChanges(delta, null, task, result);
 	}
 
 	protected <O extends ObjectType> void deleteObjectRaw(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
-		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), ModelExecuteOptions.createRaw(), task, result);
+		executeChanges(delta, ModelExecuteOptions.createRaw(), task, result);
 	}
 
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".deleteObject");
 		OperationResult result = task.getResult();
 		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
-		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+		executeChanges(delta, null, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 	}
@@ -3416,6 +3423,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 	}
+	
+	protected <O extends ObjectType> void forceDeleteShadow(String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".forceDeleteShadow");
+		OperationResult result = task.getResult();
+		forceDeleteObject(ShadowType.class, oid, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}	
+	
+	protected <O extends ObjectType> void forceDeleteShadow(String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		forceDeleteObject(ShadowType.class, oid, task, result);
+	}
+	
+	protected <O extends ObjectType> void forceDeleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		ModelExecuteOptions options = ModelExecuteOptions.createForce();
+		executeChanges(delta, options, task, result);
+	}
 
 	protected void addTrigger(String oid, XMLGregorianCalendar timestamp, String uri) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addTrigger");
@@ -3425,7 +3450,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         triggerType.setHandlerUri(uri);
         ObjectDelta<ObjectType> delta = ObjectDelta.createModificationAddContainer(ObjectType.class, oid,
         		new ItemPath(ObjectType.F_TRIGGER), prismContext, triggerType);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 	}
@@ -3439,7 +3464,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<ObjectType> delta = DeltaBuilder.deltaFor(ObjectType.class, prismContext)
 		       .item(ObjectType.F_TRIGGER).addRealValues(triggers)
 		       .asObjectDeltaCast(oid);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 	}
@@ -3453,7 +3478,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<ObjectType> delta = DeltaBuilder.deltaFor(ObjectType.class, prismContext)
 		       .item(ObjectType.F_TRIGGER).replaceRealValues(triggers)
 		       .asObjectDeltaCast(oid);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 	}
