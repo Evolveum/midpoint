@@ -38,7 +38,6 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -56,14 +55,10 @@ import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,9 +68,6 @@ import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.mapper.MountedMapper;
-import org.apache.wicket.core.util.objects.checker.CheckingObjectOutputStream;
-import org.apache.wicket.core.util.objects.checker.IObjectChecker;
-import org.apache.wicket.core.util.objects.checker.ObjectSerializationChecker;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
 import org.apache.wicket.core.util.resource.locator.caching.CachingResourceStreamLocator;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
@@ -87,7 +79,6 @@ import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
-import org.apache.wicket.serialize.java.JavaSerializer;
 import org.apache.wicket.settings.ApplicationSettings;
 import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
@@ -113,9 +104,7 @@ import java.util.*;
  */
 public class MidPointApplication extends AuthenticatedWebApplication {
 
-    public static final String SYSTEM_PROPERTY_SCHRODINGER = "midpoint.schrodinger";
-
-    /**
+	/**
      * Max. photo size for user/jpegPhoto
      */
     public static final Bytes FOCUS_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
@@ -132,14 +121,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
     
-    
-
     static {
         SchemaDebugUtil.initialize();
     }
 
     static {
-        String midpointHome = System.getProperty(WebApplicationConfiguration.MIDPOINT_HOME);
+        String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
         File file = new File(midpointHome, LOCALIZATION_DESCRIPTOR);
 
         Resource[] localeDescriptorResources = new Resource[]{
@@ -320,7 +307,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         	return;
         }
 
-        String value = environment.getProperty(SYSTEM_PROPERTY_SCHRODINGER);
+        String value = environment.getProperty(MidpointConfiguration.MIDPOINT_SCHRODINGER_PROPERTY);
         Boolean enabled = Boolean.parseBoolean(value);
 
         if (enabled) {
@@ -394,7 +381,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     }
 
     private URL buildMidpointHomeLocalizationFolderUrl() {
-        String midpointHome = System.getProperty(WebApplicationConfiguration.MIDPOINT_HOME);
+        String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);
 
         File file = new File(midpointHome, "localization");
         try {
@@ -422,20 +409,15 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     private void mountFiles(String path, Class<?> clazz) {
         try {
-            List<Resource> list = new ArrayList<>();
             String packagePath = clazz.getPackage().getName().replace('.', '/');
 
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            Resource[] res = resolver.getResources("classpath:" + packagePath + "/*.png");
-            if (res != null) {
-                list.addAll(Arrays.asList(res));
-            }
-            res = resolver.getResources("classpath:" + packagePath + "/*.gif");
-            if (res != null) {
-                list.addAll(Arrays.asList(res));
-            }
+            Resource[] pngResources = resolver.getResources("classpath:" + packagePath + "/*.png");
+            Resource[] gifResources = resolver.getResources("classpath:" + packagePath + "/*.gif");
+            List<Resource> allResources = new ArrayList<>(Arrays.asList(pngResources));
+            allResources.addAll(Arrays.asList(gifResources));
 
-            for (Resource resource : list) {
+            for (Resource resource : allResources) {
                 URI uri = resource.getURI();
                 File file = new File(uri.toString());
                 mountResource(path + "/" + file.getName(), new SharedResourceReference(clazz, file.getName()));

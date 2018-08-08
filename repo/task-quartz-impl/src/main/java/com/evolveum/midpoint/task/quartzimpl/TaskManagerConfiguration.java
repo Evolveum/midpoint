@@ -86,8 +86,6 @@ public class TaskManagerConfiguration {
     private static final String WORK_ALLOCATION_INITIAL_DELAY_ENTRY = "workAllocationInitialDelay";
     private static final String WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY = "workAllocationDefaultFreeBucketWaitInterval";
 
-    private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
-    private static final String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
     private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
     private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
 
@@ -245,12 +243,12 @@ public class TaskManagerConfiguration {
         clustered = c.getBoolean(CLUSTERED_CONFIG_ENTRY, CLUSTERED_DEFAULT);
         jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
-        nodeId = System.getProperty(MIDPOINT_NODE_ID_PROPERTY);
+        nodeId = System.getProperty(MidpointConfiguration.MIDPOINT_NODE_ID_PROPERTY);
         if (StringUtils.isEmpty(nodeId) && !clustered) {
             nodeId = NODE_ID_DEFAULT;
         }
 
-        jmxHostName = System.getProperty(MIDPOINT_JMX_HOST_NAME_PROPERTY);
+        jmxHostName = System.getProperty(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY);
 
         String portString = System.getProperty(JMX_PORT_PROPERTY);
         if (StringUtils.isEmpty(portString)) {

@@ -41,10 +41,7 @@ import java.util.Iterator;
 
 public class StartupConfiguration implements MidpointConfiguration {
 
-    public static final String MIDPOINT_SILENT_PROPERTY_NAME = "midpoint.silent";
-
     private static final String USER_HOME_SYSTEM_PROPERTY_NAME = "user.home";
-    private static final String MIDPOINT_HOME_SYSTEM_PROPERTY_NAME = "midpoint.home";
     private static final String MIDPOINT_CONFIGURATION_SECTION = "midpoint";
     private static final String SAFE_MODE = "safeMode";
     private static final String PROFILING_ENABLED = "profilingEnabled";
@@ -105,14 +102,14 @@ public class StartupConfiguration implements MidpointConfiguration {
         // Insert replacement for relative path to midpoint.home else clean
         // replace
         if (getMidpointHome() != null) {
-            sub.addProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, getMidpointHome());
+            sub.addProperty(MIDPOINT_HOME_PROPERTY, getMidpointHome());
         } else {
             @SuppressWarnings("unchecked")
             Iterator<String> i = sub.getKeys();
             while (i.hasNext()) {
                 String key = i.next();
-                sub.setProperty(key, sub.getString(key).replace("${" + MIDPOINT_HOME_SYSTEM_PROPERTY_NAME + "}/", ""));
-                sub.setProperty(key, sub.getString(key).replace("${" + MIDPOINT_HOME_SYSTEM_PROPERTY_NAME + "}", ""));
+                sub.setProperty(key, sub.getString(key).replace("${" + MIDPOINT_HOME_PROPERTY + "}/", ""));
+                sub.setProperty(key, sub.getString(key).replace("${" + MIDPOINT_HOME_PROPERTY + "}", ""));
             }
         }
 
@@ -132,12 +129,12 @@ public class StartupConfiguration implements MidpointConfiguration {
      * Initialize system configuration
      */
     public void init() {
-        this.silent = Boolean.getBoolean(MIDPOINT_SILENT_PROPERTY_NAME);
+        this.silent = Boolean.getBoolean(MIDPOINT_SILENT_PROPERTY);
 
         if (midPointHomePath == null) {
 
-            if (System.getProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME) == null || System.getProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME).isEmpty()) {
-                LOGGER.info("{} system property is not set, using default configuration", MIDPOINT_HOME_SYSTEM_PROPERTY_NAME);
+            if (System.getProperty(MIDPOINT_HOME_PROPERTY) == null || System.getProperty(MIDPOINT_HOME_PROPERTY).isEmpty()) {
+                LOGGER.info("{} system property is not set, using default configuration", MIDPOINT_HOME_PROPERTY);
 
                 midPointHomePath = System.getProperty(USER_HOME_SYSTEM_PROPERTY_NAME);
                 if (!midPointHomePath.endsWith("/")) {
@@ -147,7 +144,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 
             } else {
 
-                midPointHomePath = System.getProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME);
+                midPointHomePath = System.getProperty(MIDPOINT_HOME_PROPERTY);
             }
         }
 
@@ -159,7 +156,7 @@ public class StartupConfiguration implements MidpointConfiguration {
         }
 
         // This is not really good practice. But some components such as reports rely on well-formatted midpoint.home system property.
-        System.setProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, midPointHomePath);
+        System.setProperty(MIDPOINT_HOME_PROPERTY, midPointHomePath);
 
         File midpointHome = new File(midPointHomePath);
 
@@ -193,7 +190,7 @@ public class StartupConfiguration implements MidpointConfiguration {
         if (midpointHome != null) {
 
             ApplicationHomeSetup ah = new ApplicationHomeSetup();
-            ah.init(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME);
+            ah.init(MIDPOINT_HOME_PROPERTY);
 
             File configFile = new File(midpointHome, this.getConfigFilename());
             printToSysout("Loading midPoint configuration from file " + configFile);
@@ -220,7 +217,7 @@ public class StartupConfiguration implements MidpointConfiguration {
                 }
 
                 //Load and parse properties
-                config.addProperty(MIDPOINT_HOME_SYSTEM_PROPERTY_NAME, midPointHomePath);
+                config.addProperty(MIDPOINT_HOME_PROPERTY, midPointHomePath);
                 createXmlConfiguration(documentBuilder, configFile.getPath());
             } catch (ConfigurationException e) {
                 String message = "Unable to read configuration file [" + configFile + "]: " + e.getMessage();
