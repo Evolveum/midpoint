@@ -213,13 +213,10 @@
 						owner = midpoint.searchShadowOwner(shadow.getOid());
 						
 						if (owner == null) {
-							accountNamePath = new QName("http://midpoint.evolveum.com/xml/ns/story/serviceAccountsClassifier/ext", "accountName");
-							query = QueryBuilder.queryFor(ServiceType.class, midpoint.getPrismContext())
-								.item(new ItemPath(ServiceType.F_EXTENSION, accountNamePath)).eq(ShadowUtil.getSecondaryIdentifierRealValue(shadow.asPrismObject()))
-							.build()
+						
+							applicableServices = midpoint.getFocusesByCorrelationRule(ServiceType.class, "1169ac14-8377-11e8-b404-5b5a1a8af0db", ShadowKindType.ACCOUNT, "service", shadow);
 							
-							applicableServices = midpoint.searchObjects(ServiceType.class, query)
-							if (applicableServices.isEmpty()) {
+							if (applicableServices == null || applicableServices.isEmpty()) {
 								log.info("No applicable services found, returning UNMATCHED situation for account/default")
 								discriminator.setSynchronizationSituation(SynchronizationSituationType.UNMATCHED)
 								discriminator.setKind(ShadowKindType.ACCOUNT)
@@ -265,6 +262,24 @@
 			<intent>service</intent>
 			<focusType>ServiceType</focusType>
 			<enabled>true</enabled>
+			<correlation>
+				<q:and>
+					<q:equal>
+						<q:path>extension/ext:accountName</q:path>
+						<expression>
+							<path>
+								$shadow/attributes/icfs:name
+                            </path>
+						</expression>
+					</q:equal>
+					<q:ref>
+						<q:path>assignment/construction/resourceRef</q:path>
+						<q:value>
+							<q:oid>1169ac14-8377-11e8-b404-5b5a1a8af0db</q:oid>
+						</q:value>
+					</q:ref>
+				</q:and>
+			</correlation>
 			<reaction>
 	            <situation>linked</situation>
 	            <synchronize>true</synchronize>

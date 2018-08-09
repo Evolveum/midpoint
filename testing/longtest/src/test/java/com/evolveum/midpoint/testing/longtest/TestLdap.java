@@ -222,7 +222,7 @@ public class TestLdap extends AbstractLongTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);

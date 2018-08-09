@@ -641,7 +641,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, task, result  /* no value */);
         modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString(USER_JACK_GIVEN_NAME));
 
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, SchemaConstants.ORG_MANAGER, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_RUM_OID, null, task, result);
         unassignOrg(USER_JACK_OID, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER, task, result);

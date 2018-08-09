@@ -1152,4 +1152,6 @@ public interface MidpointFunctions {
 	 */
 	@NotNull
 	Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException;
+	
+	<F extends FocusType> List<F> getFocusesByCorrelationRule(Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow);
 }

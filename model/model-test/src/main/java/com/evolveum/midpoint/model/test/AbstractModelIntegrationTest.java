@@ -1415,8 +1415,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return userDelta;
     }
 
-	protected ObjectDelta<UserType> createAccountAssignmentUserDelta(String userOid, String resourceOid, String intent, boolean add) throws SchemaException {
-		return createAssignmentDelta(UserType.class, userOid, resourceOid, ShadowKindType.ACCOUNT, intent, add);
+	protected ObjectDelta<UserType> createAccountAssignmentUserDelta(String focusOid, String resourceOid, String intent, boolean add) throws SchemaException {
+		return createAssignmentDelta(UserType.class, focusOid, resourceOid, ShadowKindType.ACCOUNT, intent, add);
 	}
 
 	protected <F extends FocusType> ObjectDelta<F> createAssignmentDelta(Class<F> type, String focusOid,
@@ -1438,28 +1438,44 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertSuccess(result);
 		return rv;
 	}
+	
+	protected <F extends FocusType> void assignAccountToUser(String focusOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		assignAccount(UserType.class, focusOid, resourceOid, intent);
+	}
 
-	protected void assignAccount(String userOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <F extends FocusType> void assignAccount(Class<F> type, String focusOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assignAccount");
 		OperationResult result = task.getResult();
-		assignAccount(userOid, resourceOid, intent, task, result);
+		assignAccount(type, focusOid, resourceOid, intent, task, result);
 		assertSuccess(result);
 	}
 
-	protected void assignAccount(String userOid, String resourceOid, String intent, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(userOid, resourceOid, intent, true);
+	protected <F extends FocusType> void assignAccountToUser(String focusOid, String resourceOid, String intent, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		assignAccount(UserType.class, focusOid, resourceOid, intent, task, result);
+	}
+	
+	protected <F extends FocusType> void assignAccount(Class<F> type, String focusOid, String resourceOid, String intent, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> userDelta = createAssignmentDelta(type, focusOid, resourceOid, ShadowKindType.ACCOUNT, intent, true);
 		executeChanges(userDelta, null, task, result);
 	}
+	
+	protected void unassignAccountFromUser(String focusOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		unassignAccount(UserType.class, focusOid, resourceOid, intent);
+	}
 
-	protected void unassignAccount(String userOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <F extends FocusType> void unassignAccount(Class<F> type, String focusOid, String resourceOid, String intent) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assignAccount");
 		OperationResult result = task.getResult();
-		unassignAccount(userOid, resourceOid, intent, task, result);
+		unassignAccount(type, focusOid, resourceOid, intent, task, result);
 		assertSuccess(result);
 	}
 	
-	protected void unassignAccount(String userOid, String resourceOid, String intent, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(userOid, resourceOid, intent, false);
+	protected void unassignAccountFromUser(String focusOid, String resourceOid, String intent, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		unassignAccount(UserType.class, focusOid, resourceOid, intent, task, result);
+	}
+	
+	protected <F extends FocusType> void unassignAccount(Class<F> type, String focusOid, String resourceOid, String intent, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> userDelta = createAssignmentDelta(type, focusOid, resourceOid, ShadowKindType.ACCOUNT, intent, false);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		modelService.executeChanges(deltas, null, task, result);
 	}
@@ -1922,9 +1938,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         MidPointAsserts.assertNotAssignedResource(user, resourceOid);
     }
 
-    protected void assertAssignedResource(String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-        MidPointAsserts.assertAssignedResource(user, resourceOid);
+    protected <F extends FocusType> void assertAssignedResource(Class<F> type, String userOid, String resourceOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<F> focus = repositoryService.getObject(type, userOid, null, result);
+        MidPointAsserts.assertAssignedResource(focus, resourceOid);
     }
 
     protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {

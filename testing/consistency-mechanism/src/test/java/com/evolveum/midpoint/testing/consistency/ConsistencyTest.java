@@ -958,7 +958,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userGuybrushFromFile = PrismTestUtil.parseObject(new File(USER_GUYBRUSH_FILENAME));
 		userGuybrushFromFile.asObjectable().getLinkRef().clear();
 		repoAddObject(userGuybrushFromFile, result);
-		assignAccount(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null);
+		assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_OPENDJ_OID, null);
 		
 		PrismObject<UserType> userBefore = getUser(USER_GUYBRUSH_OID);
 		display("User before", userBefore);

@@ -231,7 +231,7 @@ public class TestSemiManualDisable extends TestSemiManual {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+		assignAccountToUser(USER_PHOENIX_OID, getResourceOid(), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
