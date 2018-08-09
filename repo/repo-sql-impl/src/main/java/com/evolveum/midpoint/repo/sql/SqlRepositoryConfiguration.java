@@ -237,6 +237,8 @@ public class SqlRepositoryConfiguration {
 
 	public static final String PROPERTY_MISSING_SCHEMA_ACTION = "missingSchemaAction";
 
+	public static final String PROPERTY_INITIALIZATION_FAIL_TIMEOUT = "initializationFailTimeout";
+
     private static final String DRIVER_H2 = Driver.class.getName();
     private static final String DRIVER_MYSQL = "com.mysql.cj.jdbc.Driver";
     private static final String DRIVER_MARIADB = "org.mariadb.jdbc.Driver";
@@ -298,6 +300,8 @@ public class SqlRepositoryConfiguration {
     private final OrgClosureManager.StartupAction orgClosureStartupAction;
     private final boolean skipOrgClosureStructureCheck;
     private final boolean stopOnOrgClosureStartupFailure;
+
+    private final long initializationFailTimeout;
 
     @NotNull private final MissingSchemaAction missingSchemaAction;
 
@@ -389,6 +393,7 @@ public class SqlRepositoryConfiguration {
         stopOnOrgClosureStartupFailure = configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true);
 
         missingSchemaAction = MissingSchemaAction.fromValue(configuration.getString(PROPERTY_MISSING_SCHEMA_ACTION));
+        initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
     }
 
 	private String getDefaultEmbeddedJdbcUrl() {
@@ -802,5 +807,9 @@ public class SqlRepositoryConfiguration {
     @NotNull
 	public MissingSchemaAction getMissingSchemaAction() {
 		return missingSchemaAction;
+	}
+
+	public long getInitializationFailTimeout() {
+		return initializationFailTimeout;
 	}
 }
