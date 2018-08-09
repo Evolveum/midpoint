@@ -24,13 +24,14 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.h2.Driver;
 import org.hibernate.dialect.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -210,6 +211,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_HIBERNATE_HBM2DDL = "hibernateHbm2ddl";
     public static final String PROPERTY_HIBERNATE_DIALECT = "hibernateDialect";
     public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
+    public static final String PROPERTY_JDBC_PASSWORD_FILE = "jdbcPasswordFile";
     public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
     public static final String PROPERTY_JDBC_URL = "jdbcUrl";
     public static final String PROPERTY_DATASOURCE = "dataSource";
@@ -358,7 +360,17 @@ public class SqlRepositoryConfiguration {
 
         hibernateHbm2ddl = configuration.getString(PROPERTY_HIBERNATE_HBM2DDL, getDefaultHibernateHbm2ddl(database));
         jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, embedded ? DEFAULT_EMBEDDED_H2_JDBC_USERNAME : null);
-	    jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, embedded ? DEFAULT_EMBEDDED_H2_JDBC_PASSWORD : null);
+
+	    String jdbcPasswordFile = configuration.getString(PROPERTY_JDBC_PASSWORD_FILE);
+	    if (jdbcPasswordFile != null) {
+		    try {
+			    jdbcPassword = readFile(jdbcPasswordFile);
+		    } catch (IOException e) {
+			    throw new SystemException("Couldn't read JDBC password from specified file '" + jdbcPasswordFile + "': " + e.getMessage(), e);
+		    }
+	    } else {
+		    jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, embedded ? DEFAULT_EMBEDDED_H2_JDBC_PASSWORD : null);
+	    }
         port = configuration.getInt(PROPERTY_PORT, DEFAULT_EMBEDDED_H2_PORT);
         tcpSSL = configuration.getBoolean(PROPERTY_TCP_SSL, false);
         dropIfExists = configuration.getBoolean(PROPERTY_DROP_IF_EXISTS, false);
@@ -395,6 +407,13 @@ public class SqlRepositoryConfiguration {
         missingSchemaAction = MissingSchemaAction.fromValue(configuration.getString(PROPERTY_MISSING_SCHEMA_ACTION));
         initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
     }
+
+	private String readFile(String filename) throws IOException {
+		try (FileReader reader = new FileReader(filename)) {
+			List<String> lines = IOUtils.readLines(reader);
+			return String.join("\n", lines);
+		}
+	}
 
 	private String getDefaultEmbeddedJdbcUrl() {
 		return getDefaultEmbeddedJdbcUrlPrefix()
