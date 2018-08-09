@@ -679,7 +679,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	}
 
 	private File getLogFile() throws SchemaException {
-		Configuration c = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
+		Configuration c = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION);
 		if (c == null || !c.containsKey(LOG_FILE_CONFIG_KEY)) {
 			throw new SchemaException("No log file specified in system configuration. Please set logFile in <midpoint><system> section.");
 		}

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.init;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -26,30 +25,32 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_HOME_PROPERTY;
+import static com.evolveum.midpoint.common.configuration.api.MidpointConfiguration.MIDPOINT_SILENT_PROPERTY;
+
 public class ApplicationHomeSetup {
 
     private static final Trace LOGGER = TraceManager.getTrace(ApplicationHomeSetup.class);
 
     private boolean silent = false;
 
-    public void init(String midpointHomeSystemPropertyName) {
-        this.silent = Boolean.getBoolean(MidpointConfiguration.MIDPOINT_SILENT_PROPERTY);
+    public void init() {
+        this.silent = Boolean.getBoolean(MIDPOINT_SILENT_PROPERTY);
 
-        LOGGER.info(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
-        printToSysout(midpointHomeSystemPropertyName + " = " + System.getProperty(midpointHomeSystemPropertyName));
+        String midpointHomePath = System.getProperty(MIDPOINT_HOME_PROPERTY);
 
-        String midpointHomePath = System.getProperty(midpointHomeSystemPropertyName);
+        String homeMessage = MIDPOINT_HOME_PROPERTY + " = " + midpointHomePath;
+        LOGGER.info(homeMessage);
+        printToSysout(homeMessage);
 
         createMidpointHomeDirectories(midpointHomePath);
         setupMidpointHomeDirectory(midpointHomePath);
     }
 
     private void printToSysout(String message) {
-        if (silent) {
-            return;
+        if (!silent) {
+            System.out.println(message);
         }
-
-        System.out.println(message);
     }
     
     /**
@@ -62,7 +63,7 @@ public class ApplicationHomeSetup {
             createDir(midpointHomePath);
         }
 
-        if (!midpointHomePath.endsWith("/")){
+        if (!midpointHomePath.endsWith("/")) {
             midpointHomePath = midpointHomePath + "/";
         }
         String[] directories = {
@@ -80,7 +81,7 @@ public class ApplicationHomeSetup {
             if (checkDirectoryExistence(directory)) {
                 continue;
             }
-            LOGGER.warn("Missing midPoint home directory '{}'. Creating.", new Object[]{directory});
+            LOGGER.warn("Missing midPoint home directory '{}'. Creating.", directory);
             createDir(directory);
         }
     }
@@ -112,14 +113,11 @@ public class ApplicationHomeSetup {
 
     private void createDir(String dir) {
         File d = new File(dir);
-        if (d.exists() && d.isDirectory()) {
-            return;
-        }
-        Boolean st = d.mkdirs();
-        if (!st) {
-            LOGGER.error("Unable to create directory " + dir + " as user " + System.getProperty("user.name"));
-            //throw new SystemException("Unable to create directory " + dir + " as user "
-            //		+ System.getProperty("user.name"));
+        if (!d.exists() || !d.isDirectory()) {
+            boolean created = d.mkdirs();
+            if (!created) {
+                LOGGER.error("Unable to create directory " + dir + " as user " + System.getProperty("user.name"));
+            }
         }
     }
 }

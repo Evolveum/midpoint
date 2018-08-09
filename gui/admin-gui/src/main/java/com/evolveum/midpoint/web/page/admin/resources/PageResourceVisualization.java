@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.model.api.DataModelVisualizer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -62,7 +63,6 @@ public class PageResourceVisualization extends PageAdmin {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageResourceVisualization.class);
 
-	private static final String DOT_CONFIGURATION = "midpoint.dot";
 	private static final String RENDERER = "renderer";
 	private static final String DEFAULT_RENDERER = "dot";
 
@@ -117,7 +117,7 @@ public class PageResourceVisualization extends PageAdmin {
 		}
 
 		String renderer = DEFAULT_RENDERER;
-		Configuration dotConfig = getMidpointConfiguration().getConfiguration(DOT_CONFIGURATION);
+		Configuration dotConfig = getMidpointConfiguration().getConfiguration(MidpointConfiguration.DOT_CONFIGURATION);
 		if (dotConfig != null) {
 			renderer = dotConfig.getString(RENDERER, renderer);
 		}

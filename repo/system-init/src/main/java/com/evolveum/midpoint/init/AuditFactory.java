@@ -39,7 +39,6 @@ import java.util.List;
  */
 public class AuditFactory implements ApplicationContextAware, RuntimeConfiguration {
 
-    private static final String AUDIT_CONFIGURATION = "midpoint.audit";
     private static final String CONF_AUDIT_SERVICE = "auditService";
     private static final String CONF_AUDIT_SERVICE_FACTORY = "auditServiceFactoryClass";
     private static final Trace LOGGER = TraceManager.getTrace(AuditFactory.class);
@@ -54,7 +53,7 @@ public class AuditFactory implements ApplicationContextAware, RuntimeConfigurati
         //TODO FIX CONFIGURATION, CLEANUP REALLY NEEDED
         List<SubnodeConfiguration> auditServices = ((XMLConfiguration) ((CompositeConfiguration)
                 ((SubsetConfiguration) config).getParent()).getConfiguration(0))
-                .configurationsAt(AUDIT_CONFIGURATION + "." + CONF_AUDIT_SERVICE);
+                .configurationsAt(MidpointConfiguration.AUDIT_CONFIGURATION + "." + CONF_AUDIT_SERVICE);
 
         for (SubnodeConfiguration serviceConfig : auditServices) {
             try {
@@ -125,11 +124,11 @@ public class AuditFactory implements ApplicationContextAware, RuntimeConfigurati
 
     @Override
     public String getComponentId() {
-        return AUDIT_CONFIGURATION;
+        return MidpointConfiguration.AUDIT_CONFIGURATION;
     }
 
     @Override
     public Configuration getCurrentConfiguration() {
-        return midpointConfiguration.getConfiguration(AUDIT_CONFIGURATION);
+        return midpointConfiguration.getConfiguration(MidpointConfiguration.AUDIT_CONFIGURATION);
     }
 }

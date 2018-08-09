@@ -15,52 +15,60 @@
  */
 package com.evolveum.midpoint.common.configuration.api;
 
-/**
- * @author mamut
- */
 import org.apache.commons.configuration.Configuration;
 import org.w3c.dom.Document;
 
+/**
+ * @author mamut
+ */
+
 public interface MidpointConfiguration {
 	
-	String SYSTEM_CONFIGURATION_SECTION = "midpoint.system";
-
+	// Names of system properties. Note that they are also copied into config.xml-loaded configuration.
 	String MIDPOINT_SILENT_PROPERTY = "midpoint.silent";
 	String MIDPOINT_HOME_PROPERTY = "midpoint.home";
-	String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
-	String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
 	String MIDPOINT_LOGGING_CONSOLE_ENABLED_PROPERTY = "midpoint.logging.console.enabled";
 	String MIDPOINT_LOGGING_CONSOLE_PREFIX_PROPERTY = "midpoint.logging.console.prefix";
 	String MIDPOINT_LOGGING_CONSOLE_TIMEZONE_PROPERTY = "midpoint.logging.console.timezone";
+
+	// TODO read these from the MidpointConfiguration instead of system properties.
+	// It will provide greater flexibility, as the administrator will be able to set them permanently in config.xml.
+	String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
+	String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
 	String MIDPOINT_SCHRODINGER_PROPERTY = "midpoint.schrodinger";
+
+	// names of configuration sections
+	String AUDIT_CONFIGURATION = "midpoint.audit";
+	String SYSTEM_CONFIGURATION = "midpoint.system";
+	String GLOBAL_CONFIGURATION = "midpoint.global";
+	String PROTECTOR_CONFIGURATION = "midpoint.keystore";
+	String REPOSITORY_CONFIGURATION = "midpoint.repository";
+	String ROOT_MIDPOINT_CONFIGURATION = "midpoint";
+	String CONSTANTS_CONFIGURATION = "midpoint.constants";
+	String ICF_CONFIGURATION = "midpoint.icf";
+	String TASK_MANAGER_CONFIGURATION = "midpoint.taskManager";
+	String DOT_CONFIGURATION = "midpoint.dot";
+	String WEB_APP_CONFIGURATION = "midpoint.webApplication";
+	String WORKFLOW_CONFIGURATION = "midpoint.workflow";
 
 	String getMidpointHome();
 	
 	/**
-	 * get configuration for symbolic name of the component from configuration
-	 * subsytem.
-	 * 
-	 * 
-	 * @param componetID
-	 *            name of the component Samples of names: <li>
-	 *            <ul>
-	 *            repository -> midpoint.repository
-	 *            </ul>
-	 *            <ul>
-	 *            provisioning -> midpoint.provisioning
-	 *            </ul>
-	 *            <ul>
-	 *            model -> midpoint.model
-	 *            </ul>
+	 * Get configuration for symbolic name of the component from configuration subsystem.
+	 *
+	 * @param component
+	 *            name of the component
+	 *            Samples of names:
+	 *            <li>
+	 *              <ul>repository -> midpoint.repository</ul>
+	 *              <ul> provisioning -> midpoint.provisioning</ul>
+	 *              <ul> model -> midpoint.model</ul>
 	 *            </li>
 	 * 
-	 * @return Configuration object {@link http
-	 *         ://commons.apache.org/configuration
-	 *         /apidocs/org/apache/commons/configuration/Configuration.html}
-	 *         Sample how to get config value:
-	 *         {@code config.getInt("port", 1234);}
+	 * @return Configuration object
+	 *         Sample how to get config value: {@code config.getInt("port", 1234);}
 	 */
-	Configuration getConfiguration(String componetID);
+	Configuration getConfiguration(String component);
 
     /**
      * If there's a need to retrieve original midpoint config as XML.
@@ -68,8 +76,9 @@ public interface MidpointConfiguration {
      * XMLConfiguration does not work well - sometimes it omits values from the document.
      * So it's best to parse the config ourselves.
      *
-     * @return
+     * Note that values overridden by using Java system properties are *NOT* reflected in this document.
      */
+    @Deprecated
     Document getXmlConfigAsDocument();
 
     boolean isSafeMode();

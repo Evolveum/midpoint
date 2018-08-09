@@ -51,7 +51,6 @@ public class TaskManagerConfiguration {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);
 
-    private static final String TASK_MANAGER_CONFIG_SECTION = "midpoint.taskManager";
     private static final String STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY = "stopOnInitializationFailure";
     private static final String THREADS_CONFIG_ENTRY = "threads";
     private static final String CLUSTERED_CONFIG_ENTRY = "clustered";
@@ -210,7 +209,7 @@ public class TaskManagerConfiguration {
     );
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
-        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
+        Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
         checkAllowedKeys(c);
     }
 
@@ -235,7 +234,7 @@ public class TaskManagerConfiguration {
     }
 
     void setBasicInformation(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
-        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
+        Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
         stopOnInitializationFailure = c.getBoolean(STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY, STOP_ON_INITIALIZATION_FAILURE_DEFAULT);
 
@@ -327,7 +326,7 @@ public class TaskManagerConfiguration {
 
     void setJdbcJobStoreInformation(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig, String defaultJdbcUrlPrefix) {
 
-        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
+        Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
         jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
 
