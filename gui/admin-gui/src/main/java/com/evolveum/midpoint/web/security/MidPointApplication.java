@@ -109,8 +109,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
      */
     public static final Bytes FOCUS_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
 
-    public static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
-
     public static final List<LocaleDescriptor> AVAILABLE_LOCALES;
 
     private static final String LOCALIZATION_DESCRIPTOR = "localization/locale.properties";
@@ -429,7 +427,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public WebApplicationConfiguration getWebApplicationConfiguration() {
         if (webApplicationConfiguration == null) {
-            Configuration config = configuration.getConfiguration(WEB_APP_CONFIGURATION);
+            Configuration config = configuration.getConfiguration(MidpointConfiguration.WEB_APP_CONFIGURATION);
             webApplicationConfiguration = new WebApplicationConfiguration(config);
         }
         return webApplicationConfiguration;

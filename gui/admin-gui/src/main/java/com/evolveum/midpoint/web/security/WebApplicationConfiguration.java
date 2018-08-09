@@ -43,7 +43,7 @@ public class WebApplicationConfiguration implements Serializable {
         abortEnabled = config.getBoolean("abortEnabled", true);
 
         if (abortEnabled && !isProgressReportingEnabled()) {
-            LOGGER.warn("Abort functionality requires progress reporting to be enabled - set progressRefreshInterval in '"+MidPointApplication.WEB_APP_CONFIGURATION+"' section to a non-zero value");
+            LOGGER.warn("Abort functionality requires progress reporting to be enabled - set progressRefreshInterval in '"+ MidpointConfiguration.WEB_APP_CONFIGURATION+"' section to a non-zero value");
             abortEnabled = false;
         }
         String midpointHome = System.getProperty(MidpointConfiguration.MIDPOINT_HOME_PROPERTY);

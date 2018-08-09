@@ -117,6 +117,8 @@ public class DataSourceFactory {
 //            config.addDataSourceProperty("maintainTimeStats", "false");
         }
 
+        config.setInitializationFailTimeout(configuration.getInitializationFailTimeout());
+
         return config;
     }
 
