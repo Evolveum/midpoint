@@ -116,7 +116,8 @@ public class AssignmentPolicyAspectPart {
 		int instructionsAdded = instructions.size() - instructionsBefore;
 		LOGGER.trace("Assignment-related approval instructions: {}", instructionsAdded);
 		AdminGuiConfigurationType adminGuiConfiguration = modelInteractionService.getAdminGuiConfiguration(ctx.taskFromModel, result);
-		Integer limit = adminGuiConfiguration.getAssignmentApprovalRequestLimit();
+		Integer limit = adminGuiConfiguration.getRoleManagement() != null ?
+				adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit() : null;
 		LOGGER.trace("Allowed approval instructions: {}", limit);
 		if (limit != null && instructionsAdded > limit) {
 			// TODO think about better error reporting
@@ -305,8 +306,12 @@ public class AssignmentPolicyAspectPart {
 		instruction.setObjectRef(modelContext, result);
 		instruction.setTargetRef(createObjectRef(target), result);
 
-		String andExecution = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
-		instruction.setTaskName("Approval " + andExecution + "of: " + processNameInDefaultLocale);
+		String taskNameInDefaultLocale = localizationService.translate(
+				new LocalizableMessageBuilder()
+						.key(instruction.isExecuteApprovedChangeImmediately() ? "ApprovalAndExecutionOf" : "ApprovalOf")
+						.arg(processNameInDefaultLocale)
+						.build(), Locale.getDefault());
+		instruction.setTaskName(taskNameInDefaultLocale);
 		instruction.setProcessInstanceName(processNameInDefaultLocale);
 		instruction.setLocalizableProcessInstanceName(processName);
 

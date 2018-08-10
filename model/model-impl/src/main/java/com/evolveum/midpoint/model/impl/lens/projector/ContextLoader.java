@@ -1389,20 +1389,34 @@ public class ContextLoader {
 			LOGGER.trace("Skipping load of security policy because focus is not user");
 			return;
 		}
-		SecurityPolicyType securityPolicy = focusContext.getSecurityPolicy();
-		if (forceReload || securityPolicy == null) {
-			securityPolicy = securityHelper.locateSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
+		SecurityPolicyType globalSecurityPolicy = context.getGlobalSecurityPolicy();
+		if (globalSecurityPolicy == null) {
+			globalSecurityPolicy = securityHelper.locateGlobalSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
 					context.getSystemConfiguration(), task, result);
-			if (securityPolicy == null) {
+			if (globalSecurityPolicy == null) {
 				// store empty policy to avoid repeated lookups
-				securityPolicy = new SecurityPolicyType();
+				globalSecurityPolicy = new SecurityPolicyType();
 			}
-			focusContext.setSecurityPolicy(securityPolicy);
+			context.setGlobalSecurityPolicy(globalSecurityPolicy);
+		}
+		SecurityPolicyType focusSecurityPolicy = focusContext.getSecurityPolicy();
+		if (forceReload || focusSecurityPolicy == null) {
+			focusSecurityPolicy = securityHelper.locateFocusSecurityPolicy((PrismObject<UserType>)focusContext.getObjectAny(),
+					context.getSystemConfiguration(), task, result);
+			if (focusSecurityPolicy == null) {
+				// Not very clean. In fact we should store focus security policy separate from global
+				// policy to avoid confusion. But need to do this to fix MID-4793 and backport the fix.
+				// Therefore avoiding big changes. TODO: fix properly later
+				focusSecurityPolicy = globalSecurityPolicy;
+			}
+			focusContext.setSecurityPolicy(focusSecurityPolicy);
 		}
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Security policy:\n{}", securityPolicy==null?null:securityPolicy.asPrismObject().debugDump(1));
+			LOGGER.trace("Security policy:\n  Global:\n{}\n  Focus:\n{}", 
+					globalSecurityPolicy==null?null:globalSecurityPolicy.asPrismObject().debugDump(2),
+					focusSecurityPolicy==null?null:focusSecurityPolicy.asPrismObject().debugDump(2));
 		} else {
-			LOGGER.debug("Security policy: {}", securityPolicy);
+			LOGGER.debug("Security policy: global: {}, focus: {}", globalSecurityPolicy, focusSecurityPolicy);
 		}
 	}
 }

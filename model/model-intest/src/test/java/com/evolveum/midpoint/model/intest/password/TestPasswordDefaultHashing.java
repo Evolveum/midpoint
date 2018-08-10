@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -141,6 +142,143 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 		if (!body.contains("activate/accounts")) {
 			fail("Link seems to be missing in "+dummyResourceName+" dummy account activation notification message : "+body);
 		}
+	}
+	
+	/**
+	 * Monkey has password that does not comply with current password policy.
+	 * Attempt to create account on blue account should pass in this case.
+	 * User password is hashed, therefore account password is not set from user.
+	 * No need to panic.
+	 * MID-4791
+	 */
+	@Test
+	@Override
+    public void test345AssignMonkeyAccountBlue() throws Exception {
+		final String TEST_NAME = "test345AssignMonkeyAccountBlue";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+	        
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+	        
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
+		
+		// CLEANUP
+		displayCleanup(TEST_NAME);
+		
+		unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+		
+		PrismObject<UserType> userCleanup = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User cleanup", userCleanup);
+		assertAssignments(userCleanup, 1);
+		assertUserPassword(userCleanup, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
+	}
+	
+	/**
+	 * Monkey has password that does not comply with current password policy.
+	 * Let's assign yellow account. Attempt to create account on blue account
+	 * should pass in this case. User password is hashed, therefore account
+	 * password is not set from user. No need to panic.
+	 * MID-4791
+	 */
+	@Test
+	@Override
+    public void test346AssignMonkeyAccountYellow() throws Exception {
+		final String TEST_NAME = "test346AssignMonkeyYellow";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 2);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_THREE_HEADED_MONKEY_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
+		
+		// CLEANUP
+		displayCleanup(TEST_NAME);
+		
+		unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+		
+		PrismObject<UserType> userCleanup = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User cleanup", userCleanup);
+		assertAssignments(userCleanup, 1);
+		assertUserPassword(userCleanup, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_THREE_HEADED_MONKEY_NAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
+	}
+	
+	/**
+	 * Monkey has password that does not comply with current password policy.
+	 * Let's assign yellow account. Yellow resource has a minimum password length
+	 * (resource-enforced). User password is hashed, therefore account
+	 * password is not set from user. No need to panic.
+	 * MID-4793
+	 */
+	@Test
+	@Override
+    public void test966AssignMonkeyAccountYellow() throws Exception {
+		final String TEST_NAME = "test966AssignMonkeyAccountYellow";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        prepareTest();
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+	        
+		// THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+        PrismObject<UserType> userAfter = getUser(USER_THREE_HEADED_MONKEY_OID);
+		display("User after", userAfter);
+		assertAssignments(userAfter, 4);
+		assertUserPassword(userAfter, USER_PASSWORD_A_CLEAR);
+		
+		assertDummyAccount(null, USER_THREE_HEADED_MONKEY_NAME);
+		assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, USER_THREE_HEADED_MONKEY_NAME);
+		assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, USER_THREE_HEADED_MONKEY_NAME);
 	}
 
 }

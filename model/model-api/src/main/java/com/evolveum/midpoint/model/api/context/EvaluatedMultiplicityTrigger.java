@@ -27,7 +27,7 @@ public class EvaluatedMultiplicityTrigger extends EvaluatedPolicyRuleTrigger<Mul
 
 	public EvaluatedMultiplicityTrigger(@NotNull PolicyConstraintKindType kind, @NotNull MultiplicityPolicyConstraintType constraint,
 			LocalizableMessage message, LocalizableMessage shortMessage) {
-		super(kind, constraint, message, shortMessage);
+		super(kind, constraint, message, shortMessage, false);
 	}
 
 	@Override

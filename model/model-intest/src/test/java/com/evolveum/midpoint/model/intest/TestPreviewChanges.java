@@ -724,7 +724,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_GUYBRUSH_OID, new ItemPath(UserType.F_EXTENSION, PIRACY_WEAPON), task, result,
 				"tongue");
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -981,7 +981,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		// WHEN
 		displayWhen(TEST_NAME);
-        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, task, result);
+        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1007,7 +1007,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		// WHEN
 		displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_RELATIVE_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_RELATIVE_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1169,7 +1169,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
 		// WHEN
 		displayWhen(TEST_NAME);
-        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_RELATIVE_OID, null, task, result);
+        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_RELATIVE_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);

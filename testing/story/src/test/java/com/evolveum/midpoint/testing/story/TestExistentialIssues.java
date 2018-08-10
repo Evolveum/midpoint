@@ -105,7 +105,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
 		// WHEN
 		displayWhen(TEST_NAME);
 		
-		assignAccount(USER_DESCARTES_OID, RESOURCE_DUMMY_LAZY_OID, null, task, result);
+		assignAccountToUser(USER_DESCARTES_OID, RESOURCE_DUMMY_LAZY_OID, null, task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);
@@ -221,7 +221,7 @@ public class TestExistentialIssues extends AbstractStoryTest {
 		// WHEN
 		displayWhen(TEST_NAME);
 		
-		unassignAccount(USER_DESCARTES_OID, RESOURCE_DUMMY_LAZY_OID, null, task, result);
+		unassignAccountFromUser(USER_DESCARTES_OID, RESOURCE_DUMMY_LAZY_OID, null, task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);

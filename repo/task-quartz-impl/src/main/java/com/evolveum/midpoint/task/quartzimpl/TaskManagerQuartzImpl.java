@@ -33,6 +33,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -121,8 +122,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private static final String CLEANUP_TASKS = DOT_INTERFACE + "cleanupTasks";
 	public static final String CONTENTION_LOG_NAME = TaskManagerQuartzImpl.class.getName() + ".contention";
 
-    @Autowired
-    private TaskManagerConfiguration configuration;
+    @Autowired private TaskManagerConfiguration configuration;
+    @Autowired private LocalizationService localizationService;
 
     // instances of all the helper classes (see their definitions for their description)
     private ExecutionManager executionManager = new ExecutionManager(this);
@@ -2219,5 +2220,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	public void setFreeBucketWaitInterval(long value) {
 		workStateManager.setFreeBucketWaitIntervalOverride(value);
+	}
+
+	public LocalizationService getLocalizationService() {
+		return localizationService;
 	}
 }

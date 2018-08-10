@@ -176,7 +176,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		
 		//when
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_OPENDJ_OID, "default");
+		assignAccountToUser(USER_JACK_OID, RESOURCE_OPENDJ_OID, "default");
 		
 		//then
 		displayThen(TEST_NAME);

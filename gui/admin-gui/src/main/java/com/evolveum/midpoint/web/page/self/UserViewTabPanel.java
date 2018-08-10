@@ -16,13 +16,17 @@
 package com.evolveum.midpoint.web.page.self;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.web.component.assignment.GridViewComponent;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.UserSelectionButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.github.sommeri.less4j.utils.ArraysUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -45,11 +49,14 @@ import java.util.List;
 public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleType> {
     private static final long serialVersionUID = 1L;
 
+    private static final String DOT_CLASS = UserViewTabPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_RELATION_DEFINITIONS = DOT_CLASS + "loadRelationDefinitions";
+    private static final Trace LOGGER = TraceManager.getTrace(UserViewTabPanel.class);
+
     private static final String ID_SOURCE_USER_PANEL = "sourceUserPanel";
     private static final String ID_SOURCE_USER_BUTTON = "sourceUserButton";
     private static final String ID_SOURCE_USER_RELATIONS = "sourceUserRelations";
     private static final String ID_RELATION_LINK = "relationLink";
-    private static final String ID_RELATION_LINK_LABEL = "relationLinkLabel";
 
     private QName selectedRelation = null;
 
@@ -59,7 +66,9 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
 
     @Override
     protected void initLeftSidePanel(){
-        getRoleCatalogStorage().setAssignmentsUserOwner(getPageBase().loadUserSelf().asObjectable());
+        if (getRoleCatalogStorage().getAssignmentsUserOwner() == null) {
+            getRoleCatalogStorage().setAssignmentsUserOwner(getPageBase().loadUserSelf().asObjectable());
+        }
 
         WebMarkupContainer sourceUserPanel = new WebMarkupContainer(ID_SOURCE_USER_PANEL);
         sourceUserPanel.setOutputMarkupId(true);
@@ -88,8 +97,6 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
             protected void singleUserSelectionPerformed(AjaxRequestTarget target, UserType user){
                 super.singleUserSelectionPerformed(target, user);
                 getRoleCatalogStorage().setAssignmentsUserOwner(user);
-
-//                searchModel.reset();
                 target.add(UserViewTabPanel.this);
             }
 
@@ -99,33 +106,20 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
             }
 
             @Override
-            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
-                super.onDeleteSelectedUsersPerformed(target);
-                getRoleCatalogStorage().setAssignmentsUserOwner(null);
-//                initProvider();
-//                searchModel.reset();
-
-//                target.add(getTabbedPanel());
-//                target.add(getHeaderPanel());
+            protected boolean isDeleteButtonVisible(){
+                return false;
             }
         };
-//        sourceUserPanel.add(new VisibleEnableBehaviour(){
-//            private static final long serialVersionUID = 1L;
-//
-//            public boolean isVisible(){
-//                return getRoleCatalogStorage().getShoppingCartConfigurationDto().isUserAssignmentsViewAllowed();
-//            }
-//        });
         sourceUserButton.setOutputMarkupId(true);
         sourceUserPanel.add(sourceUserButton);
     }
 
     private String getSourceUserSelectionButtonLabel(){
         UserType user = getRoleCatalogStorage().getAssignmentsUserOwner();
-        if (user ==  null){
-            return createStringResource("AssignmentCatalogPanel.selectSourceUser").getString();
+        if (user.getOid().equals(getPageBase().loadUserSelf().getOid())){
+            return createStringResource("UserSelectionButton.myAssignmentsLabel").getString();
         } else {
-            return createStringResource("AssignmentCatalogPanel.sourceUserSelected", user.getName().getOrig()).getString();
+            return createStringResource("UserSelectionButton.userAssignmentsLabel", user.getName().getOrig()).getString();
         }
     }
 
@@ -150,12 +144,11 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
 
     private List<QName> getRelationsList(){
         List<QName> relationsList = new ArrayList<>();
+        //null value is needed for ALL relations to be displayed
         relationsList.add(null);
-        for (RelationTypes relation : RelationTypes.values()){
-            if (relation.getCategories() != null && ArraysUtils.asList(relation.getCategories()).contains(AreaCategoryType.SELF_SERVICE)){
-                relationsList.add(relation.getRelation());
-            }
-        }
+
+        relationsList.addAll(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE,
+                new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS), getPageBase()));
         return relationsList;
     }
 
@@ -165,8 +158,22 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
             @Override
             public IModel<String> getBody() {
                 QName relation = model.getObject();
-                return relation == null ? createStringResource("RelationTypes.ANY") :
-                        createStringResource("RelationTypes." + relation.getLocalPart());
+                if (relation == null){
+                    return createStringResource("RelationTypes.ANY");
+                }
+                List<RelationDefinitionType> defList = WebComponentUtil.getRelationDefinitions(new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS),
+                        UserViewTabPanel.this.getPageBase());
+                RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(defList, model.getObject());
+                if (def != null) {
+                    DisplayType display = def.getDisplay();
+                    if (display != null) {
+                        String label = display.getLabel();
+                        if (StringUtils.isNotEmpty(label)) {
+                            return getPageBase().createStringResource(label);
+                        }
+                    }
+                }
+                return Model.of(model.getObject().getLocalPart());
             }
 
             @Override
@@ -192,13 +199,13 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
     }
 
     @Override
-    protected void appendItemsPanelStyle(GridViewComponent itemsPanel){
-        itemsPanel.add(AttributeAppender.append("class", "col-md-9"));
+    protected void appendItemsPanelStyle(WebMarkupContainer container){
+        container.add(AttributeAppender.append("class", "col-md-9"));
     }
 
     @Override
-    protected ObjectQuery createContentQuery(ObjectQuery searchQuery) {
-        ObjectQuery query = super.createContentQuery(searchQuery);
+    protected ObjectQuery createContentQuery() {
+        ObjectQuery query = super.createContentQuery();
         if (getRoleCatalogStorage().getAssignmentsUserOwner() != null) {
             UserType assignmentsOwner =  getRoleCatalogStorage().getAssignmentsUserOwner();
             List<String> assignmentTargetObjectOidsList = collectTargetObjectOids(assignmentsOwner.getAssignment());

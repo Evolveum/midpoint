@@ -35,10 +35,17 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 	private final ObjectType conflictingTarget;
 	private final AssignmentPath conflictingPath;
 
+	// we keep thisTarget and thisPath here because in the future they might be useful
 	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
 			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
 			ObjectType thisTarget, ObjectType conflictingTarget, AssignmentPath thisPath, AssignmentPath conflictingPath) {
-		super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage);
+		this(constraint, message, shortMessage, conflictingAssignment, conflictingTarget, conflictingPath, false);
+	}
+
+	public EvaluatedExclusionTrigger(@NotNull ExclusionPolicyConstraintType constraint,
+			LocalizableMessage message, LocalizableMessage shortMessage, @NotNull EvaluatedAssignment conflictingAssignment,
+			ObjectType conflictingTarget, AssignmentPath conflictingPath, boolean enforcementOverride) {
+		super(PolicyConstraintKindType.EXCLUSION, constraint, message, shortMessage, enforcementOverride);
 		this.conflictingAssignment = conflictingAssignment;
 		this.conflictingTarget = conflictingTarget;
 		this.conflictingPath = conflictingPath;
@@ -46,6 +53,10 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 
 	public <F extends FocusType> EvaluatedAssignment<F> getConflictingAssignment() {
 		return conflictingAssignment;
+	}
+
+	public ObjectType getConflictingTarget() {
+		return conflictingTarget;
 	}
 
 	public AssignmentPath getConflictingPath() {

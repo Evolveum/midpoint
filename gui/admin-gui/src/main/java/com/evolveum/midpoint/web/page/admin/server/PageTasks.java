@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
@@ -1956,13 +1955,9 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             CleanupPolicyType policy = new CleanupPolicyType();
             policy.setMaxAge(XmlTypeConverter.createDuration(0));
 
-            CleanupPoliciesType policies = new CleanupPoliciesType();
+            CleanupPoliciesType policies = new CleanupPoliciesType(getPrismContext());
             policies.setClosedTasks(policy);
-
-            PrismProperty<CleanupPoliciesType> policiesProperty = getPrismContext().getSchemaRegistry()
-                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES).instantiate();
-            policiesProperty.setRealValue(policies);
-            task.setExtensionProperty(policiesProperty);
+            task.setExtensionContainerValue(SchemaConstants.MODEL_EXTENSION_CLEANUP_POLICIES, policies);
         } catch (SchemaException e) {
             LOGGER.error("Error dealing with schema (task {})", task, e);
             launchResult.recordFatalError("Error dealing with schema", e);

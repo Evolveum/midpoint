@@ -72,7 +72,7 @@ import static java.util.Collections.singletonList;
  * @author mederly
  */
 @Component
-@DependsOn("repositoryService")
+@DependsOn("schemaChecker")
 public class OrgClosureManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureManager.class);
@@ -86,11 +86,11 @@ public class OrgClosureManager {
 
     private static boolean DUMP_TABLES = false;
     private static final boolean COUNT_CLOSURE_RECORDS = false;
-    static final String CLOSURE_TABLE_NAME = "m_org_closure";
-    public static final String TEMP_DELTA_TABLE_NAME_FOR_ORACLE = "m_org_closure_temp_delta";
+    private static final String CLOSURE_TABLE_NAME = "m_org_closure";
+    private static final String TEMP_DELTA_TABLE_NAME_FOR_ORACLE = "m_org_closure_temp_delta";
 
     // only for single-thread performance testing
-    long lastOperationDuration;
+    private long lastOperationDuration;
 
     //region Public interface
     /**

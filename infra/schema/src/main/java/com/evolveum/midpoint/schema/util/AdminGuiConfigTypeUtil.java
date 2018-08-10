@@ -125,14 +125,20 @@ public class AdminGuiConfigTypeUtil {
 			composite.setFeedbackMessagesHook(adminGuiConfiguration.getFeedbackMessagesHook().clone());
 		}
 
-		if (adminGuiConfiguration.getAssignmentApprovalRequestLimit() != null) {
-			if (composite.getAssignmentApprovalRequestLimit() != null) {
+		if (adminGuiConfiguration.getRoleManagement() != null &&
+				adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit() != null) {
+			if (composite.getRoleManagement() != null && composite.getRoleManagement().getAssignmentApprovalRequestLimit() != null) {
 				// the greater value wins (so it is possible to give an exception to selected users)
-				composite.setAssignmentApprovalRequestLimit(Math.max(
-						adminGuiConfiguration.getAssignmentApprovalRequestLimit(),
-						composite.getAssignmentApprovalRequestLimit()));
+				Integer newValue = Math.max(
+						adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit(),
+						composite.getRoleManagement().getAssignmentApprovalRequestLimit());
+				composite.getRoleManagement().setAssignmentApprovalRequestLimit(newValue);
 			} else {
-				composite.setAssignmentApprovalRequestLimit(adminGuiConfiguration.getAssignmentApprovalRequestLimit());
+				if (composite.getRoleManagement() == null) {
+					composite.setRoleManagement(new AdminGuiConfigurationRoleManagementType());
+				}
+				composite.getRoleManagement().setAssignmentApprovalRequestLimit(
+						adminGuiConfiguration.getRoleManagement().getAssignmentApprovalRequestLimit());
 			}
 		}
 	}

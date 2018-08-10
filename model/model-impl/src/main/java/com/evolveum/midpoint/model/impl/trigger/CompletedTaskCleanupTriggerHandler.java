@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -88,7 +89,8 @@ public class CompletedTaskCleanupTriggerHandler implements TriggerHandler {
 			LOGGER.debug("Deleting completed task {}", completedTask);
 			taskManager.deleteTask(object.getOid(), result);
 		} catch (CommonException | RuntimeException | Error e) {
-			LOGGER.error(e.getMessage(), e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete completed task {}", e, object);
+			// do not retry this trigger execution
 		}
 	}
 }

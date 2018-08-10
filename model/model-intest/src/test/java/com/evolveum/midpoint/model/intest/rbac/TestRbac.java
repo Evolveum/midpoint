@@ -351,7 +351,7 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 
         // WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);		// TODO options?
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);		// TODO options?
 
         // THEN
         result.computeStatus();
@@ -385,7 +385,7 @@ public class TestRbac extends AbstractRbacTest {
         assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
 
         // WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);		// TODO options?
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);		// TODO options?
 
         // THEN
         result.computeStatus();
@@ -415,7 +415,7 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);			// TODO options?
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);			// TODO options?
 
         // THEN
         result.computeStatus();
@@ -444,7 +444,7 @@ public class TestRbac extends AbstractRbacTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);		// TODO options?
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);		// TODO options?
 
         // THEN
         result.computeStatus();

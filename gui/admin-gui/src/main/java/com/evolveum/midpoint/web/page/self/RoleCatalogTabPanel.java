@@ -100,8 +100,8 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     }
 
     @Override
-    protected void appendItemsPanelStyle(GridViewComponent itemsPanel){
-        itemsPanel.add(AttributeAppender.append("class", "col-md-9"));
+    protected void appendItemsPanelStyle(WebMarkupContainer container){
+        container.add(AttributeAppender.append("class", "col-md-9"));
     }
 
     private boolean isRootOrgExists(){
@@ -124,11 +124,11 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     }
 
     @Override
-    protected ObjectQuery createContentQuery(ObjectQuery searchQuery) {
-        ObjectQuery query = super.createContentQuery(searchQuery);
+    protected ObjectQuery createContentQuery() {
+        ObjectQuery query = super.createContentQuery();
         String oid = getRoleCatalogStorage().getSelectedOid();
         if (StringUtils.isEmpty(oid)) {
-            return searchQuery;
+            return query;
         }
         ObjectFilter filter = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
 
@@ -140,7 +140,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
 
     @Override
     protected QName getQueryType(){
-        return null;
+        return AbstractRoleType.COMPLEX_TYPE;
     }
 
 }

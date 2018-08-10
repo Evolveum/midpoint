@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
@@ -97,6 +99,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 	private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
 	private static final String OPERATION_LOAD_TARGET_OBJECT = DOT_CLASS + "loadItemSecurityDecisions";
+	private static final String OPERATION_LOAD_RELATION_DEFINITIONS = DOT_CLASS + "loadRelationDefinitions";
 
 	private static final String ID_HEADER_ROW = "headerRow";
 	private static final String ID_SELECTED = "selected";
@@ -274,21 +277,20 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				GuiStyleConstants.CLASS_ICON_COLLAPSE) {
 			private static final long serialVersionUID = 1L;
 
-				@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			@Override
+			public void onClick(AjaxRequestTarget target) {
 				nameClickPerformed(target);
 			}
-
-			@Override
-    		protected void onError(AjaxRequestTarget target, Form<?> form) {
-    	target.add(getPageBase().getFeedbackPanel());
-    		}
+			
 			@Override
 			public boolean isOn() {
 				return !AssignmentEditorPanel.this.getModelObject().isMinimized();
 			}
 		};
 		expandButton.add(new VisibleEnableBehaviour(){
+			
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isVisible(){
 				return !getModel().getObject().isSimpleView();
@@ -981,22 +983,32 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	}
 
 	private void addRelationDropDown(WebMarkupContainer relationContainer){
-		List<RelationTypes> availableRelations = getModelObject().getNotAssignedRelationsList();
-		DropDownChoicePanel relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
-				getModelObject().isMultyAssignable() ?
-						WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class) : Model.ofList(availableRelations),
-				getRelationModel(availableRelations), this, false);
-		relation.setEnabled(getModel().getObject().isEditable());
-		relation.setOutputMarkupId(true);
-		relation.setOutputMarkupPlaceholderTag(true);
-		relation.add(new VisibleEnableBehaviour() {
+		QName assignmentRelation = getModelObject().getTargetRef() != null ? getModelObject().getTargetRef().getRelation() : null;
+		RelationDropDownChoicePanel relationDropDown = new RelationDropDownChoicePanel(ID_RELATION,
+				Model.of(assignmentRelation != null ? assignmentRelation : SchemaConstants.ORG_DEFAULT), AreaCategoryType.SELF_SERVICE){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected List<QName> getChoicesList(){
+				AssignmentConstraintsType constraints = AssignmentEditorPanel.this.getModelObject().getDefaultAssignmentConstraints();
+				if (constraints == null ||
+						constraints.isAllowSameTarget() && constraints.isAllowSameRelation()){
+					return super.getChoicesList();
+				} else {
+					return AssignmentEditorPanel.this.getModelObject().getNotAssignedRelationsList();
+				}
+			}
+
+		};
+		relationDropDown.setEnabled(getModel().getObject().isEditable());
+		relationDropDown.add(new VisibleEnableBehaviour() {
 
 			@Override
 			public boolean isVisible() {
 				return isCreatingNewAssignment();
 			}
 		});
-		relationContainer.add(relation);
+		relationContainer.add(relationDropDown);
 
 	}
 

@@ -15,29 +15,25 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -66,13 +62,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
-        DropDownChoicePanel<RelationTypes> relationSelector = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
-                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class), Model.of(RelationTypes.MEMBER),
-                FocusTypeAssignmentPopupTabPanel.this, false);
-        relationSelector.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-        relationSelector.setOutputMarkupId(true);
-        relationSelector.setOutputMarkupPlaceholderTag(true);
-        relationContainer.add(relationSelector);
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, AreaCategoryType.ADMINISTRATION));
     }
 
     @Override
@@ -88,16 +78,12 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     public QName getRelationValue(){
-        DropDownChoicePanel<RelationTypes> relationPanel = getRelationDropDown();
-        RelationTypes relation = relationPanel.getModel().getObject();
-        if (relation == null) {
-            return SchemaConstants.ORG_DEFAULT;
-        }
-        return relation.getRelation();
+        RelationDropDownChoicePanel relationPanel = getRelationDropDown();
+        return relationPanel.getRelationValue();
     }
 
-    private DropDownChoicePanel getRelationDropDown(){
-        return (DropDownChoicePanel)get(ID_PARAMETERS_PANEL).get(ID_RELATION_CONTAINER).get(ID_RELATION);
+    private RelationDropDownChoicePanel getRelationDropDown(){
+        return (RelationDropDownChoicePanel)get(ID_PARAMETERS_PANEL).get(ID_RELATION_CONTAINER).get(ID_RELATION);
     }
 
     @Override

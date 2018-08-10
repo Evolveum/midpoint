@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
@@ -69,6 +71,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMainPanel.class);
     private static final String DOT_CLASS = AbstractRoleMainPanel.class.getName();
     private static final String OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM = DOT_CLASS + "canSearchRoleMembershipItem";
+	private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     private static final String ID_SHOPPING_CART_BUTTONS_PANEL = "shoppingCartButtonsPanel";
     private static final String ID_ADD_TO_CART_BUTTON = "addToCartButton";
     private static final String ID_SHOPPING_CART_BUTTON = "shoppingCartButton";
@@ -125,10 +128,15 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public boolean isEnabled(){
-				AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(getObject().asObjectable(), UserDtoStatus.ADD, parentPage);
-				return storage.isMultiUserRequest() || dto.isAssignable();
-			}
+				int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+												parentPage);
+								AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(AbstractRoleMainPanel.this.getObject().asObjectable(),
+												UserDtoStatus.ADD, parentPage);
+								return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, parentPage)
+												&& (storage.isMultiUserRequest() || dto.isAssignable());			}
 		});
+		addToCartButton.add(AttributeAppender.append("title",
+				AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), parentPage)));
 		shoppingCartButtonsPanel.add(addToCartButton);
 
 		AjaxButton shoppingCartButton = new AjaxButton(ID_SHOPPING_CART_BUTTON) {

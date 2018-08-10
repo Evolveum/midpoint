@@ -90,4 +90,6 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
 	@Nullable
 	<T> T getHookPreviewResult(@NotNull Class<T> clazz);
+
+	boolean isPreview();
 }
