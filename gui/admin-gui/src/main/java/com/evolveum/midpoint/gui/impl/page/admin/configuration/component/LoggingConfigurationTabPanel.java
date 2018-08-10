@@ -399,8 +399,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		    		FileAppenderConfigurationType appender = (FileAppenderConfigurationType) item.getModelObject().getContainerValue().getValue();
 		    		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
 		    		Task task = LoggingConfigurationTabPanel.this.getPageBase().createSimpleTask("create appender");
-		    		ContainerWrapper<FileAppenderConfigurationType> wrapper = cwf.createContainerWrapper((PrismContainer<FileAppenderConfigurationType>)appender.asPrismContainerValue().getContainer(), item.getModelObject().getObjectStatus(), 
-		    				item.getModelObject().getObjectStatus(), new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
+		    		ContainerWrapper<FileAppenderConfigurationType> wrapper = cwf.createContainerWrapper(item.getModelObject().getContainer().getObjectWrapper(), (PrismContainer<FileAppenderConfigurationType>)appender.asPrismContainerValue().getContainer(), item.getModelObject().getObjectStatus(), 
+		    				new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
 		    		wrapper.setShowOnTopLevel(true);
 		    		ContainerValueWrapper<FileAppenderConfigurationType> value = cwf.createContainerValueWrapper(wrapper, (PrismContainerValue<FileAppenderConfigurationType>)appender.asPrismContainerValue(), item.getModelObject().getObjectStatus(), item.getModelObject().getStatus(), new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
 		    		
