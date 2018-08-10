@@ -5,6 +5,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
@@ -23,6 +25,9 @@ public class SynchronizationContext<F extends FocusType> {
 	private PrismObject<SystemConfigurationType> systemConfiguration;
 	private String chanel;
 	
+	private Task task;
+	private OperationResult result;
+	
 	private ObjectSynchronizationType objectSynchronization;
 	private Class<F> focusClass;
 	private F currentOwner;
@@ -31,11 +36,13 @@ public class SynchronizationContext<F extends FocusType> {
 	
 	private SynchronizationReactionType reaction;
 	
-	public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String chanel) {
+	public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String chanel, Task task, OperationResult result) {
 		this.applicableShadow = applicableShadow;
 		this.currentShadow = currentShadow;
 		this.resource = resource;
 		this.chanel = chanel;
+		this.task = task;
+		this.result = result;
 	}
 	
 	public PrismObject<ShadowType> getApplicableShadow() {
@@ -135,6 +142,22 @@ public class SynchronizationContext<F extends FocusType> {
 	
 	public void setReaction(SynchronizationReactionType reaction) {
 		this.reaction = reaction;
+	}
+	
+	public Task getTask() {
+		return task;
+	}
+	
+	public void setTask(Task task) {
+		this.task = task;
+	}
+	
+	public OperationResult getResult() {
+		return result;
+	}
+	
+	public void setResult(OperationResult result) {
+		this.result = result;
 	}
 
 	

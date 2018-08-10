@@ -172,7 +172,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -976,7 +976,7 @@ public class TestMapping extends AbstractMappingTest {
 		assertNoDummyAccount(RESOURCE_DUMMY_COBALT_NAME, USER_JACK_USERNAME);
         
 		// WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_COBALT_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_COBALT_OID, null, task, result);
 
 		// THEN
         assertSuccess(result);
@@ -1377,7 +1377,7 @@ public class TestMapping extends AbstractMappingTest {
 		display("User before", userBefore);
         
 		// WHEN
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_COBALT_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_COBALT_OID, null, task, result);
 
 		// THEN
         assertSuccess(result);
@@ -2216,7 +2216,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CRIMSON_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CRIMSON_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -2641,7 +2641,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CRIMSON_OID, null, task, result);
+        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CRIMSON_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -2676,7 +2676,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -3102,7 +3102,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, null, task, result);
+        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_LIGHT_CRIMSON_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -3135,7 +3135,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -3203,7 +3203,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -3231,7 +3231,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -3367,7 +3367,7 @@ public class TestMapping extends AbstractMappingTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
         
         PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
         display("User before", userBefore);
@@ -3440,7 +3440,7 @@ public class TestMapping extends AbstractMappingTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);

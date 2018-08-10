@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.gui.api.component.togglebutton;
 
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -25,7 +25,7 @@ import org.apache.wicket.model.Model;
  *
  * @author semancik
  */
-public abstract class ToggleIconButton<T> extends AjaxSubmitLink {
+public abstract class ToggleIconButton<T> extends AjaxLink<T> {
 	private static final long serialVersionUID = 1L;
 
 	private String cssClassOff;
@@ -43,13 +43,13 @@ public abstract class ToggleIconButton<T> extends AjaxSubmitLink {
 		initLayout();
 	}
 
-	public ToggleIconButton(String id, IModel model) {
-		super(id);
+	public ToggleIconButton(String id, IModel<T> model) {
+		super(id, model);
 		initLayout();
 	}
 
-	public ToggleIconButton(String id, IModel model, String cssClassOff, String cssClassOn) {
-		super(id);
+	public ToggleIconButton(String id, IModel<T> model, String cssClassOff, String cssClassOn) {
+		super(id, model);
 		this.cssClassOff = cssClassOff;
 		this.cssClassOn = cssClassOn;
 		initLayout();
@@ -57,7 +57,6 @@ public abstract class ToggleIconButton<T> extends AjaxSubmitLink {
 
 	private void initLayout() {
 		setEscapeModelStrings(false);
-		
 		setBody(new Model<String>(){
 			private static final long serialVersionUID = 1L;
 

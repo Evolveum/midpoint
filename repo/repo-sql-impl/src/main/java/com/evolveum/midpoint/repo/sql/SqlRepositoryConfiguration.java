@@ -24,13 +24,14 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.h2.Driver;
 import org.hibernate.dialect.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -131,6 +132,63 @@ public class SqlRepositoryConfiguration {
 	    }
     }
 
+	/**
+	 * What to do if the DB schema is missing.
+	 */
+	public enum MissingSchemaAction {
+
+		/**
+		 * This check is not carried out. Usually because hbm2ddl takes care of the schema.
+		 */
+		NONE("none"),
+		/**
+		 * The problem is reported and midPoint startup is cancelled.
+		 */
+	    STOP("stop"),
+		/**
+		 * MidPoint will attempt to create the schema using standard DB scripts, and then it will be verified using hibernate.
+		 */
+	    CREATE("create");
+
+	    private String value;
+
+		MissingSchemaAction(String value) {
+			this.value = value;
+		}
+
+		@NotNull
+		public static MissingSchemaAction fromValue(String text) {
+			if (StringUtils.isEmpty(text)) {
+				return NONE;
+			}
+			for (MissingSchemaAction a : values()) {
+				if (text.equals(a.value)) {
+					return a;
+				}
+			}
+			throw new IllegalArgumentException("Unknown MissingSchemaAction: " + text);
+		}
+	}
+
+	/**
+	 * What to do if the DB schema is correct but outdated.
+	 * (Not implemented yet.) TODO.
+	 */
+	public enum OutdatedSchemaAction {
+		NONE,
+	    STOP,
+	    UPGRADE
+    }
+
+	/**
+	 * What to do if the DB schema is wrong.
+	 * (Not implemented yet.) TODO.
+	 */
+	public enum WrongSchemaAction {
+		NONE,
+		STOP
+	}
+
 	private static final String DEFAULT_FILE_NAME = "midpoint";
 	private static final String DEFAULT_EMBEDDED_H2_JDBC_USERNAME = "sa";
 	private static final String DEFAULT_EMBEDDED_H2_JDBC_PASSWORD = "";
@@ -153,6 +211,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_HIBERNATE_HBM2DDL = "hibernateHbm2ddl";
     public static final String PROPERTY_HIBERNATE_DIALECT = "hibernateDialect";
     public static final String PROPERTY_JDBC_PASSWORD = "jdbcPassword";
+    public static final String PROPERTY_JDBC_PASSWORD_FILE = "jdbcPasswordFile";
     public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
     public static final String PROPERTY_JDBC_URL = "jdbcUrl";
     public static final String PROPERTY_DATASOURCE = "dataSource";
@@ -177,6 +236,10 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_ORG_CLOSURE_STARTUP_ACTION = "orgClosureStartupAction";
     public static final String PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK = "skipOrgClosureStructureCheck";
     public static final String PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE = "stopOnOrgClosureStartupFailure";
+
+	public static final String PROPERTY_MISSING_SCHEMA_ACTION = "missingSchemaAction";
+
+	public static final String PROPERTY_INITIALIZATION_FAIL_TIMEOUT = "initializationFailTimeout";
 
     private static final String DRIVER_H2 = Driver.class.getName();
     private static final String DRIVER_MYSQL = "com.mysql.cj.jdbc.Driver";
@@ -240,6 +303,10 @@ public class SqlRepositoryConfiguration {
     private final boolean skipOrgClosureStructureCheck;
     private final boolean stopOnOrgClosureStartupFailure;
 
+    private final long initializationFailTimeout;
+
+    @NotNull private final MissingSchemaAction missingSchemaAction;
+
 	/*
 	 * Notes:
 	 * - In testing mode, the configuration is already updated from .properties file.
@@ -293,7 +360,17 @@ public class SqlRepositoryConfiguration {
 
         hibernateHbm2ddl = configuration.getString(PROPERTY_HIBERNATE_HBM2DDL, getDefaultHibernateHbm2ddl(database));
         jdbcUsername = configuration.getString(PROPERTY_JDBC_USERNAME, embedded ? DEFAULT_EMBEDDED_H2_JDBC_USERNAME : null);
-	    jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, embedded ? DEFAULT_EMBEDDED_H2_JDBC_PASSWORD : null);
+
+	    String jdbcPasswordFile = configuration.getString(PROPERTY_JDBC_PASSWORD_FILE);
+	    if (jdbcPasswordFile != null) {
+		    try {
+			    jdbcPassword = readFile(jdbcPasswordFile);
+		    } catch (IOException e) {
+			    throw new SystemException("Couldn't read JDBC password from specified file '" + jdbcPasswordFile + "': " + e.getMessage(), e);
+		    }
+	    } else {
+		    jdbcPassword = configuration.getString(PROPERTY_JDBC_PASSWORD, embedded ? DEFAULT_EMBEDDED_H2_JDBC_PASSWORD : null);
+	    }
         port = configuration.getInt(PROPERTY_PORT, DEFAULT_EMBEDDED_H2_PORT);
         tcpSSL = configuration.getBoolean(PROPERTY_TCP_SSL, false);
         dropIfExists = configuration.getBoolean(PROPERTY_DROP_IF_EXISTS, false);
@@ -326,7 +403,17 @@ public class SqlRepositoryConfiguration {
 				        OrgClosureManager.StartupAction.REBUILD_IF_NEEDED.toString()));
         skipOrgClosureStructureCheck = configuration.getBoolean(PROPERTY_SKIP_ORG_CLOSURE_STRUCTURE_CHECK, false);
         stopOnOrgClosureStartupFailure = configuration.getBoolean(PROPERTY_STOP_ON_ORG_CLOSURE_STARTUP_FAILURE, true);
+
+        missingSchemaAction = MissingSchemaAction.fromValue(configuration.getString(PROPERTY_MISSING_SCHEMA_ACTION));
+        initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
     }
+
+	private String readFile(String filename) throws IOException {
+		try (FileReader reader = new FileReader(filename)) {
+			List<String> lines = IOUtils.readLines(reader);
+			return String.join("\n", lines);
+		}
+	}
 
 	private String getDefaultEmbeddedJdbcUrl() {
 		return getDefaultEmbeddedJdbcUrlPrefix()
@@ -735,4 +822,13 @@ public class SqlRepositoryConfiguration {
     public Database getDatabase() {
         return database;
     }
+
+    @NotNull
+	public MissingSchemaAction getMissingSchemaAction() {
+		return missingSchemaAction;
+	}
+
+	public long getInitializationFailTimeout() {
+		return initializationFailTimeout;
+	}
 }

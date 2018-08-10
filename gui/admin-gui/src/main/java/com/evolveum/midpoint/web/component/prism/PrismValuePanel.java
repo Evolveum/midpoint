@@ -413,7 +413,13 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				DateValidator validator = WebComponentUtil.getRangeValidator(form, activation);
 				validator.setDateTo((DateTimeField) inputPanel.getBaseFormComponent());
 			} else if (valueWrapper.getItem().getFormItemValidator() != null) {
-				ExpressionValidator<T> expressionValidator = new ExpressionValidator<>(valueWrapper.getItem().getFormItemValidator(), getPageBase());
+				ExpressionValidator<T> expressionValidator = new ExpressionValidator<T>(valueWrapper.getItem().getFormItemValidator(), getPageBase()) {
+					
+					@Override
+					protected <O extends ObjectType> O getObjectType() {
+						return getObject(valueWrapper);
+					}
+				};
 				inputPanel.getBaseFormComponent().add(expressionValidator);
 //				form.add(expressionValidator);
 			}
@@ -430,7 +436,16 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 					@Override
 					protected void onUpdate(AjaxRequestTarget target) {
+						target.add(getPageBase().getFeedbackPanel());
+						target.add(get(ID_FEEDBACK));
 					}
+					
+					@Override
+					protected void onError(AjaxRequestTarget target, RuntimeException e) {
+						target.add(getPageBase().getFeedbackPanel());
+						target.add(get(ID_FEEDBACK));
+					}
+					
 				});
 			}
 		}
@@ -439,6 +454,30 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 					"Cannot create input component for item " + property + " (" + valueWrapper + ") in " + objectWrapper);
 		}
 		return component;
+	}
+	
+	private <O extends ObjectType, C extends Containerable> O getObject(ValueWrapper valueWrapper) {
+		ItemWrapper itemWrapper = valueWrapper.getItem();
+		if (itemWrapper == null) {
+			return null;
+		}
+		
+		ContainerWrapper<C> cWrapper = itemWrapper.getParent();
+		if (cWrapper == null) {
+			return null;
+		}
+		
+		ObjectWrapper<O> objectWrapper = cWrapper.getObjectWrapper();
+		PrismObject<O> newObject = objectWrapper.getObject().clone();
+		
+		try {
+			objectWrapper.getObjectDelta().applyTo(newObject);
+		} catch (SchemaException e) {
+			return null;
+		}
+		
+		return newObject.asObjectable();
+		
 	}
 
 	// normally this method returns an InputPanel;

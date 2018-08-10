@@ -827,7 +827,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -988,7 +988,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
 		// WHEN
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
 		// THEN
 		assertSuccess(result);
@@ -1029,7 +1029,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1387,7 +1387,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1924,7 +1924,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         addObject(USER_JACK_FILE);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
         // Delete the assignment from the repo. Really use the repo directly. We do not want the model to notice.
@@ -2305,7 +2305,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
 		// WHEN
-        assignAccount(userMancombOid, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+        assignAccountToUser(userMancombOid, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2332,7 +2332,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
 		// WHEN
-        assignAccount(userMancombOid, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        assignAccountToUser(userMancombOid, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2417,7 +2417,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
 		// WHEN
-        assignAccount(USER_HERMAN_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
+        assignAccountToUser(USER_HERMAN_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();

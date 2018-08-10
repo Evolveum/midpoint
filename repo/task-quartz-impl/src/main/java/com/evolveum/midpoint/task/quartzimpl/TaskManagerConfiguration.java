@@ -51,7 +51,6 @@ public class TaskManagerConfiguration {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerConfiguration.class);
 
-    private static final String TASK_MANAGER_CONFIG_SECTION = "midpoint.taskManager";
     private static final String STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY = "stopOnInitializationFailure";
     private static final String THREADS_CONFIG_ENTRY = "threads";
     private static final String CLUSTERED_CONFIG_ENTRY = "clustered";
@@ -86,8 +85,6 @@ public class TaskManagerConfiguration {
     private static final String WORK_ALLOCATION_INITIAL_DELAY_ENTRY = "workAllocationInitialDelay";
     private static final String WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY = "workAllocationDefaultFreeBucketWaitInterval";
 
-    private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
-    private static final String MIDPOINT_JMX_HOST_NAME_PROPERTY = "midpoint.jmxHostName";
     private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
     private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
 
@@ -212,7 +209,7 @@ public class TaskManagerConfiguration {
     );
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
-        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
+        Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
         checkAllowedKeys(c);
     }
 
@@ -237,7 +234,7 @@ public class TaskManagerConfiguration {
     }
 
     void setBasicInformation(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
-        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
+        Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
         stopOnInitializationFailure = c.getBoolean(STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY, STOP_ON_INITIALIZATION_FAILURE_DEFAULT);
 
@@ -245,12 +242,12 @@ public class TaskManagerConfiguration {
         clustered = c.getBoolean(CLUSTERED_CONFIG_ENTRY, CLUSTERED_DEFAULT);
         jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
-        nodeId = System.getProperty(MIDPOINT_NODE_ID_PROPERTY);
+        nodeId = System.getProperty(MidpointConfiguration.MIDPOINT_NODE_ID_PROPERTY);
         if (StringUtils.isEmpty(nodeId) && !clustered) {
             nodeId = NODE_ID_DEFAULT;
         }
 
-        jmxHostName = System.getProperty(MIDPOINT_JMX_HOST_NAME_PROPERTY);
+        jmxHostName = System.getProperty(MidpointConfiguration.MIDPOINT_JMX_HOST_NAME_PROPERTY);
 
         String portString = System.getProperty(JMX_PORT_PROPERTY);
         if (StringUtils.isEmpty(portString)) {
@@ -329,7 +326,7 @@ public class TaskManagerConfiguration {
 
     void setJdbcJobStoreInformation(MidpointConfiguration masterConfig, SqlRepositoryConfiguration sqlConfig, String defaultJdbcUrlPrefix) {
 
-        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
+        Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
         jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
 

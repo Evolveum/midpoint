@@ -11,8 +11,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Created by honchar.
  */
 public abstract class AbstractAssociationWrapper<C extends Containerable> extends ContainerWrapper<C> {
-    AbstractAssociationWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
-        super(container, objectStatus, status, path);
+	
+	
+    AbstractAssociationWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+        super(objectWrapper, container, objectStatus, status, path);
     }
 
     private static final long serialVersionUID = 1L;

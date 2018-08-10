@@ -1433,7 +1433,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+		assignAccountToUser(USER_PHOENIX_OID, getResourceOid(), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1555,7 +1555,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+		unassignAccountFromUser(USER_PHOENIX_OID, getResourceOid(), null, task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);
@@ -1647,7 +1647,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_PHOENIX_OID, getResourceOid(), null, task, result);
+		assignAccountToUser(USER_PHOENIX_OID, getResourceOid(), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);

@@ -102,7 +102,7 @@ public class TestLimitedResources extends AbstractStoryTest {
 		
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NO_ATTRIBUTE_ADD_DELETE_OID, null, task, result);
 
 		
 		// THEN

@@ -1128,7 +1128,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -1299,7 +1299,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);

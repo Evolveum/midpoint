@@ -394,18 +394,18 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		    	ContainerValuePanel panel;
 		    	if(item.getModelObject().getContainerValue().getValue() instanceof FileAppenderConfigurationType) {
 		    		
-		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX FileAppenderConfigurationType");
+//		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX FileAppenderConfigurationType");
 		    		
 		    		FileAppenderConfigurationType appender = (FileAppenderConfigurationType) item.getModelObject().getContainerValue().getValue();
 		    		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
 		    		Task task = LoggingConfigurationTabPanel.this.getPageBase().createSimpleTask("create appender");
-		    		ContainerWrapper<FileAppenderConfigurationType> wrapper = cwf.createContainerWrapper((PrismContainer<FileAppenderConfigurationType>)appender.asPrismContainerValue().getContainer(), item.getModelObject().getObjectStatus(), 
+		    		ContainerWrapper<FileAppenderConfigurationType> wrapper = cwf.createContainerWrapper(null, (PrismContainer<FileAppenderConfigurationType>)appender.asPrismContainerValue().getContainer(),
 		    				item.getModelObject().getObjectStatus(), new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
 		    		wrapper.setShowOnTopLevel(true);
 		    		ContainerValueWrapper<FileAppenderConfigurationType> value = cwf.createContainerValueWrapper(wrapper, (PrismContainerValue<FileAppenderConfigurationType>)appender.asPrismContainerValue(), item.getModelObject().getObjectStatus(), item.getModelObject().getStatus(), new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
 		    		
-		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX wrapper: " + wrapper);
-		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX value: " + value);
+//		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX wrapper: " + wrapper);
+//		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX value: " + value);
 		    		
 		    		IModel<ContainerValueWrapper<FileAppenderConfigurationType>> valueModel = new LoadableModel<ContainerValueWrapper<FileAppenderConfigurationType>>(false) {
 

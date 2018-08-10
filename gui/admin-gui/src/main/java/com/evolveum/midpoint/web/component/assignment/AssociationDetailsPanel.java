@@ -78,16 +78,11 @@ public class AssociationDetailsPanel extends BasePanel<ContainerValueWrapper<Res
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-//                isChildContainersSelectorPanelVisible = true;
-//                target.add(PrismContainerValueHeaderPanel.this);
+            public void onClick(AjaxRequestTarget target) {
+//              isChildContainersSelectorPanelVisible = true;
+//              target.add(PrismContainerValueHeaderPanel.this);            			
             }
-
             
-        	@Override
-    		protected void onError(AjaxRequestTarget target, Form<?> form) {
-    	target.add(getPageBase().getFeedbackPanel());
-    		}
             @Override
             public boolean isOn() {
                 return true;

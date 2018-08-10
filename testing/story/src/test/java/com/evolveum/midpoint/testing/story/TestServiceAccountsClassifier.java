@@ -15,12 +15,18 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -86,11 +92,44 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 		addObject(SERVICE_JIRA_FILE);
 		
 		//THEN
+		displayThen(TEST_NAME);
 		PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_JIRA_OID);
 		display("Service magazine after", service);
 		assertNotNull("No magazine service", service);
 		
 		assertNoLinkedAccount(service);
+	}
+	
+	@Test
+	public void test101assignResourceNoneEnforcement() throws Exception {
+		final String TEST_NAME = "test100createService";
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		//GIVEN
+		
+		assumeResourceAssigmentPolicy(RESOURCE_DUMMY_CLASSIFIER_OID, AssignmentPolicyEnforcementType.NONE, false);
+//		AssignmentType assignment = new AssignmentType(prismContext);
+//		assignment.construction(new ConstructionType(prismContext).resourceRef(RESOURCE_DUMMY_CLASSIFIER_OID, ObjectTypes.RESOURCE.getTypeQName()));
+//		
+//		ObjectDelta<ServiceType> assignResourceDelta = (ObjectDelta<ServiceType>) DeltaBuilder.deltaFor(ServiceType.class, prismContext).item(ServiceType.F_ASSIGNMENT).add(assignment).asObjectDelta(SERVICE_JIRA_OID);
+//	
+		//WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(ServiceType.class, SERVICE_JIRA_OID, RESOURCE_DUMMY_CLASSIFIER_OID, "service");
+//		executeChanges(assignResourceDelta, null, task, result);
+		
+		//THEN
+		displayThen(TEST_NAME);
+		PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_JIRA_OID);
+		display("Service magazine after", service);
+		assertNotNull("No magazine service", service);
+		assertAssignedResource(ServiceType.class, SERVICE_JIRA_OID, RESOURCE_DUMMY_CLASSIFIER_OID, task, result);
+		
+		assertNoLinkedAccount(service);
+		
+		assumeResourceAssigmentPolicy(RESOURCE_DUMMY_CLASSIFIER_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
 	}
 	
 	@Test

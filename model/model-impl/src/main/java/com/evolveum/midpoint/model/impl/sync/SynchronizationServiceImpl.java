@@ -229,8 +229,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		SynchronizationContext<F> syncCtx = new SynchronizationContext<F>(applicableShadow, currentShadow, resource, sourceChanel);
+		SynchronizationContext<F> syncCtx = new SynchronizationContext<F>(applicableShadow, currentShadow, resource, sourceChanel, task, result);
 		syncCtx.setSystemConfiguration(configuration);
+
 		
 		SynchronizationType synchronization = resource.asObjectable().getSynchronization();
 		if (synchronization == null) {
@@ -251,18 +252,18 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		}
 		
 		for (ObjectSynchronizationType objectSynchronization : synchronization.getObjectSynchronization()) {
-			if (isPolicyApplicable(synchronizationDiscriminator, objectSynchronization, syncCtx.getResource())) {
+			if (isPolicyApplicable(objectSynchronization, synchronizationDiscriminator, syncCtx)) {
 				syncCtx.setObjectSynchronization(objectSynchronization);
 				return syncCtx;
 			}
 		}
 		
-		for (ObjectSynchronizationType objectSynchronization : synchronization.getObjectSynchronization()) {
-			if (isPolicyApplicable(syncCtx, objectSynchronization, task, result)) {
-				syncCtx.setObjectSynchronization(objectSynchronization);
-				return syncCtx;
-			}
-		}
+//		for (ObjectSynchronizationType objectSynchronization : synchronization.getObjectSynchronization()) {
+//			if (isPolicyApplicable(objectSynchronization, syncCtx)) {
+//				syncCtx.setObjectSynchronization(objectSynchronization);
+//				return syncCtx;
+//			}
+//		}
 		return syncCtx;
 	}
 	
@@ -284,23 +285,21 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 	}
 
-	private boolean isPolicyApplicable(ObjectSynchronizationDiscriminatorType synchronizationDiscriminator, ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource) throws SchemaException {
-		if (synchronizationDiscriminator == null) {
-			return false;
-		}
-		return SynchronizationUtils.isPolicyApplicable(synchronizationDiscriminator, synchronizationPolicy, resource);
-	}
+//	private boolean isPolicyApplicable(ObjectSynchronizationDiscriminatorType synchronizationDiscriminator, ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource) throws SchemaException {
+//		if (synchronizationDiscriminator == null) {
+//			return false;
+//		}
+//		return SynchronizationUtils.isPolicyApplicable(synchronizationDiscriminator, synchronizationPolicy, expressionFactory, resource);
+//	}
 	
-	private <F extends FocusType> boolean isPolicyApplicable(SynchronizationContext<F> syncCtx, ObjectSynchronizationType synchronizationPolicy, Task task, OperationResult result)
+	private <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy, ObjectSynchronizationDiscriminatorType synchronizationDiscriminator, SynchronizationContext<F> syncCtx)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-		if (!SynchronizationUtils.isPolicyApplicable(syncCtx.getApplicableShadow(), synchronizationPolicy, syncCtx.getResource())) {
-			return false;
-		}
+		return SynchronizationServiceUtils.isPolicyApplicable(synchronizationPolicy, synchronizationDiscriminator, expressionFactory, syncCtx);
 
-		Boolean conditionResult = evaluateSynchronizationPolicyCondition(synchronizationPolicy, syncCtx.getApplicableShadow(),
-				syncCtx.getResource(), syncCtx.getSystemConfiguration(), task, result);
-		return conditionResult != null ? conditionResult : true;
+//		Boolean conditionResult = evaluateSynchronizationPolicyCondition(synchronizationPolicy, syncCtx.getApplicableShadow(),
+//				syncCtx.getResource(), syncCtx.getSystemConfiguration(), task, result);
+//		return conditionResult != null ? conditionResult : true;
 	}
 	
 	private <F extends FocusType> ObjectSynchronizationDiscriminatorType evaluateSynchronizationDivision(ObjectSynchronizationSorterType synchronizationSorterType,
@@ -1154,34 +1153,34 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		if (shadow == null) {
 			return null;
 		}
-
-		ShadowType shadowType = shadow.asObjectable();
-		// new situation description
-		List<PropertyDelta<?>> deltas = SynchronizationUtils
-				.createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
-						change.getSourceChannel(), true);
-
-		if (shadowType.getKind() == null) {
-			ShadowKindType kind = syncCtx.getObjectSynchronization().getKind();
-			if (kind == null) {
-				kind = ShadowKindType.ACCOUNT;
-			}
-			PropertyDelta<ShadowKindType> kindDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
-					ShadowType.F_KIND, kind);
-			deltas.add(kindDelta);
-		}
-
-		if (shadowType.getIntent() == null) {
-			String intent = syncCtx.getObjectSynchronization().getIntent();
-			if (intent == null) {
-				intent = SchemaConstants.INTENT_DEFAULT;
-			}
-			PropertyDelta<String> intentDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
-					ShadowType.F_INTENT, intent);
-			deltas.add(intentDelta);
-		}
-
+		
 		try {
+			ShadowType shadowType = shadow.asObjectable();
+			// new situation description
+			List<PropertyDelta<?>> deltas = SynchronizationUtils
+					.createSynchronizationSituationAndDescriptionDelta(shadow, syncCtx.getSituation(),
+							change.getSourceChannel(), true);
+
+			if (shadowType.getKind() == null) {
+				ShadowKindType kind = syncCtx.getObjectSynchronization().getKind();
+				if (kind == null) {
+					kind = ShadowKindType.ACCOUNT;
+				}
+				PropertyDelta<ShadowKindType> kindDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
+						ShadowType.F_KIND, kind);
+				deltas.add(kindDelta);
+			}
+
+			if (shadowType.getIntent() == null) {
+				String intent = syncCtx.getObjectSynchronization().getIntent();
+				if (intent == null) {
+					intent = SchemaConstants.INTENT_DEFAULT;
+				}
+				PropertyDelta<String> intentDelta = PropertyDelta.createReplaceDelta(shadow.getDefinition(),
+						ShadowType.F_INTENT, intent);
+				deltas.add(intentDelta);
+			}
+
 			repositoryService.modifyObject(shadowType.getClass(), shadow.getOid(), deltas, parentResult);
 			ItemDelta.applyTo(deltas, shadow);
 			task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, null);

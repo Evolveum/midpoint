@@ -24,6 +24,7 @@ import static org.testng.Assert.assertTrue;
 import java.io.File;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.testng.annotations.Test;
 
@@ -47,7 +48,7 @@ public class TestConfigurationLoad {
 		StartupConfiguration sc = new StartupConfiguration();
 		assertNotNull(sc);
 		sc.init();
-		Configuration c = sc.getConfiguration("midpoint.repository");
+		Configuration c = sc.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
 		assertEquals(c.getString("repositoryServiceFactoryClass"),
 				"com.evolveum.midpoint.repo.sql.SqlRepositoryFactory");
 		LOGGER.info(sc.toString());

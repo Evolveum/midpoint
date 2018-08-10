@@ -343,7 +343,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -531,8 +531,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
 		// WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_UGLY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_UGLY_OID, null, task, result);
 
 		// THEN
 		assertSuccess(result);
@@ -758,7 +758,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
 		// WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
 		// THEN
 		assertSuccess(result);
@@ -827,7 +827,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         prepareTest();
 
 		// WHEN
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
 		// THEN
 		assertSuccess(result);
@@ -871,7 +871,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -976,7 +976,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1535,7 +1535,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		OperationResult result = task.getResult();
 		prepareTest();
 
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 		unassignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, null, task, result);
 		unassignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER, task, result);
 		modifyObjectReplaceReference(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
@@ -1543,8 +1543,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -2082,7 +2082,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 			// WHEN
 	        displayWhen(TEST_NAME);
 	        
-	        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+	        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 	        
 	        assertNotReached();
         } catch (PolicyViolationException e) {
@@ -2122,7 +2122,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 			// WHEN
 	        displayWhen(TEST_NAME);
 	        
-	        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+	        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 	        
 	        assertNotReached();
         } catch (PolicyViolationException e) {
@@ -2458,7 +2458,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_RAPP_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+		assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -2716,7 +2716,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
-		assignAccount(USER_RAPP_OID, RESOURCE_DUMMY_LIFECYCLE_OID, null, task, result);
+		assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_LIFECYCLE_OID, null, task, result);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -3000,7 +3000,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_SOUVENIR_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_SOUVENIR_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -3101,7 +3101,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_MAVERICK_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_MAVERICK_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -3299,7 +3299,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_SOUVENIR_OID, null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_SOUVENIR_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -3408,7 +3408,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_MAVERICK_OID, null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_MAVERICK_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4233,7 +4233,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// WHEN
         displayWhen(TEST_NAME);
         
-        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 	        
 		// THEN
         displayThen(TEST_NAME);
@@ -4268,7 +4268,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		// WHEN
         displayWhen(TEST_NAME);
         
-        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 	        
 		// THEN
         displayThen(TEST_NAME);

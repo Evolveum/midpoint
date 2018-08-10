@@ -28,8 +28,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 @Component
 public class ConstantsManager {
 
-	public static final String SYSTEM_CONFIGURATION_SECTION = "midpoint.constants";
-
 	@Autowired
 	private MidpointConfiguration midpointConfiguration;
 
@@ -47,7 +45,7 @@ public class ConstantsManager {
 
 	private Configuration getConstConfig() {
 		if (constConfig == null) {
-			constConfig = midpointConfiguration.getConfiguration(SYSTEM_CONFIGURATION_SECTION);
+			constConfig = midpointConfiguration.getConfiguration(MidpointConfiguration.CONSTANTS_CONFIGURATION);
 		}
 		return constConfig;
 	}

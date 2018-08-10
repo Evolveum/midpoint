@@ -116,7 +116,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         OperationResult result = task.getResult();
 
 		// WHEN
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
 		// THEN
 		assertSuccess(result);
@@ -341,7 +341,7 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
         OperationResult result = task.getResult();
 
 		// WHEN
-		assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+		assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
 		// THEN
 		assertSuccess(result);

@@ -1079,7 +1079,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-                assertAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
+                assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
                 //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(DUMMYBOSS_OID), result);
@@ -1129,7 +1129,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-                assertAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
+                assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentValidity(jack, validFrom, validTo);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
@@ -1187,7 +1187,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-                assertAssignedResource(USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
+                assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, task, result);
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentConstruction(jack, "drink", "water");
                 checkDummyTransportMessages("simpleUserNotifier", 1);
