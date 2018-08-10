@@ -902,6 +902,11 @@
             <version>3.9-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-cache</artifactId>
+            <version>3.9-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

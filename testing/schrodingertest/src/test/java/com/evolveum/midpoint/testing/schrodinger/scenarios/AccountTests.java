@@ -40,6 +40,11 @@ public class AccountTests extends TestBase {
 
     protected static final String CSV_RESOURCE_NAME= "Test CSV: username";
 
+    protected static final String CSV_RESOURCE_ATTR_FILE_PATH= "File path";
+
+    //TODO seems that some problems with property files in the csv resource which is being used for tests, replace value after resolution
+    protected static final String CSV_RESOURCE_ATTR_UNIQUE= "UI_CSV_NAME_ATTRIBUTE";
+
     protected static final String TEST_USER_MIKE_NAME= "michelangelo";
     protected static final String TEST_USER_MIKE_LAST_NAME_OLD= "di Lodovico Buonarroti Simoni";
     protected static final String TEST_USER_MIKE_LAST_NAME_NEW= "di Lodovico Buonarroti Simoni Il Divino";
@@ -94,15 +99,17 @@ public class AccountTests extends TestBase {
 
         Assert.assertTrue(listResourcesPage
                 .table()
-                .clickByName("Test CSV: username")
+                .clickByName(CSV_RESOURCE_NAME)
                     .clickEditResourceConfiguration()
                         .form()
-                        .changeAttributeValue("File path",CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue(CSV_RESOURCE_ATTR_FILE_PATH,CSV_SOURCE_OLDVALUE,CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue(CSV_RESOURCE_ATTR_UNIQUE,"","username")
                     .and()
                 .and()
                 .clickSaveAndTestConnection()
                 .isTestSuccess()
         );
+        refreshResourceSchema(CSV_RESOURCE_NAME);
     }
 
     @Test(dependsOnMethods = {CREATE_MP_USER_DEPENDENCY,CHANGE_RESOURCE_FILE_PATH_DEPENDENCY},groups = TEST_GROUP_BEFORE_USER_DELETION)
