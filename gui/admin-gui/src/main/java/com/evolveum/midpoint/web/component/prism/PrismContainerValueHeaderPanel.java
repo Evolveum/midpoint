@@ -216,6 +216,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 				containerValueWrapper.setStatus(ValueStatus.DELETED);
 				target.add(PrismContainerValueHeaderPanel.this);
 				PrismContainerValueHeaderPanel.this.reloadParentContainerPanel(target);
+				onButtonClick(target);
 			}
 		};
 		removeContainerButton.add(new VisibleEnableBehaviour(){
