@@ -2,8 +2,8 @@ package com.evolveum.midpoint.web.util;
 
 import java.util.Collection;
 
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
-public class ExpressionValidator<T> implements IValidator<T> {
+public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -46,6 +46,7 @@ public class ExpressionValidator<T> implements IValidator<T> {
 		this.serviceLocator = serviceLocator;
 //		this.realValue = realValue;
 	}
+	
 
 //	@Override
 //	public FormComponent<?>[] getDependentFormComponents() {
