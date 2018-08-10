@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -59,7 +60,7 @@ public class PageServiceHistory extends PageService {
     }
 
     @Override
-    protected void setSummaryPanelVisibility(FocusSummaryPanel summaryPanel) {
+    protected void setSummaryPanelVisibility(ObjectSummaryPanel summaryPanel) {
         summaryPanel.setVisible(true);
     }
 

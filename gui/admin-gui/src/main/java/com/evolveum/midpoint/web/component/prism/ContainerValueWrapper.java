@@ -124,7 +124,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	@Nullable
-	ContainerWrapper<C> getContainer() {
+	public ContainerWrapper<C> getContainer() {
 		return containerWrapper;
 	}
 
@@ -786,19 +786,24 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
-	public boolean containsMultivalueContainer(){
+	public boolean containsMultipleMultivalueContainer(){
+		int count = 0;
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
 			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
+				count++;
+			}
+			
+			if (count > 1) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public List<QName> getChildMultivalueContainersToBeAdded(){
+	public List<QName> getChildMultivalueContainersToBeAdded(ItemVisibilityHandler isPanelVisible){
 		List<QName> pathList = new ArrayList<>();
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
@@ -808,9 +813,22 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 					!((ContainerWrapper<C>)wrapper).getItemDefinition().canModify()){
 				continue;
 			}
+			if(isPanelVisible != null) {
+				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.HIDDEN)) {
+					continue;
+				}
+				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && !((ContainerWrapper<C>)wrapper).isVisible()) {
+					continue;
+				}
+			} else {
+				if(!((ContainerWrapper<C>)wrapper).isVisible()) {
+					continue;
+				}
+			}
 			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
 				pathList.add(((ContainerWrapper<C>) wrapper).getName());
 			}
+
 		}
 		return pathList;
 	}
@@ -830,5 +848,4 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		}
 		return WebComponentUtil.getDisplayName(containerValue);
 	}
-
 }

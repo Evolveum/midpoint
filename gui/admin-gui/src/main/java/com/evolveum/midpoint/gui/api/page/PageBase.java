@@ -1501,7 +1501,40 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
         debugs.getItems().add(menu);
         
-        addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic.new", PageSystemConfigurationNew.class);
+        MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic.new", PageSystemConfigurationNew.class);
+        
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.basic",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_BASIC);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.objectPolicy",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_OBJECT_POLICY);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.globalPolicyRule",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_GLOBAL_POLICY_RULE);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.globalAccountSynchronization",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_GLOBAL_ACCOUNT_SYNCHRONIZATION);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.cleanupPolicy",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_CLEANUP_POLICY);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.notifications",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_NOTIFICATION);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.logging",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_LOGGING);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.profiling",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_PROFILING);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.adminGui",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_ADMIN_GUI);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.workflow",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_WORKFLOW);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.roleManagement",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_ROLE_MANAGEMENT);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.internals",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_INTERNALS);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.deploymentInformation",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_DEPLOYMENT_INFORMATION);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.accessCertification",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_ACCESS_CERTIFICATION);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.infrastructure",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_INFRASTRUCTURE);
+        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.fullTextSearch",
+                PageSystemConfigurationNew.CONFIGURATION_TAB_FULL_TEXT_SEARCH);
 
         MainMenuItem systemItem = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null);
 
@@ -1534,6 +1567,24 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             @Override
             public boolean isMenuActive(WebPage page) {
                 if (!PageSystemConfiguration.class.equals(page.getClass())) {
+                    return false;
+                }
+
+                int index = getSelectedTabForConfiguration(page);
+                return tabIndex == index ? true : false;
+            }
+        };
+        mainItem.getItems().add(menu);
+    }
+    
+    private void addSystemMenuItemNew(MainMenuItem mainItem, String key, int tabIndex) {
+        PageParameters params = new PageParameters();
+        params.add(PageSystemConfigurationNew.SELECTED_TAB_INDEX, tabIndex);
+        MenuItem menu = new MenuItem(createStringResource(key), PageSystemConfigurationNew.class, params, null) {
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (!PageSystemConfigurationNew.class.equals(page.getClass())) {
                     return false;
                 }
 

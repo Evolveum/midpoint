@@ -26,20 +26,28 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 
 	private static final long serialVersionUID = 1L;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(DisplayNamePanel.class);
 
     private final static String ID_TYPE_IMAGE = "typeImage";
     private final static String ID_DISPLAY_NAME = "displayName";
@@ -59,7 +67,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
         typeImage.setOutputMarkupId(true);
         typeImage.add(AttributeModifier.append("class", createImageModel()));
         add(typeImage);
-
+        
         Label name = new Label(ID_DISPLAY_NAME, createHeaderModel());
         name.setOutputMarkupId(true);
         add(name);
@@ -79,8 +87,19 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		kindIntent.setOutputMarkupId(true);
 		kindIntent.add(new VisibleBehaviour(() -> isKindIntentVisible(kindIntentLabelModel)));
         add(kindIntent);
-
-        add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart())));
+        
+        if(getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
+        	add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart())));
+        } else {
+        	add(new Label(ID_DESCRIPTION, Model.of("")));
+        }
+	}
+	
+	private boolean isObjectPolicyConfigurationType() {
+		if(QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName())) {
+			return true;
+		}
+		return false;
 	}
 	
 	private String createImageModel() {
@@ -103,6 +122,17 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		if (ObjectType.class.isAssignableFrom(getModelObject().getClass())) {
 			return Model.of(WebComponentUtil.getEffectiveName((ObjectType) getModelObject(), AbstractRoleType.F_DISPLAY_NAME));
 		}
+		if (isObjectPolicyConfigurationType()) {
+			QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
+			ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType)getModel().getObject()).getObjectTemplateRef();
+			if(objectTemplate == null){
+				return Model.of("");
+			}
+			String objectTemplateNameValue = objectTemplate.getTargetName().toString();
+			StringBuilder sb = new StringBuilder();
+			sb.append(typeValue.getLocalPart()).append(" - ").append(objectTemplateNameValue);
+			return Model.of(sb.toString());
+        } 
 		PrismProperty<String> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
 		if (name == null || name.isEmpty()) {
 			return Model.of("");
