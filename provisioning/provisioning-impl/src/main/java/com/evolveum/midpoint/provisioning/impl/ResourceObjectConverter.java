@@ -599,7 +599,9 @@ public class ResourceObjectConverter {
 				
 				// Execute primary ICF operation on this shadow
 				modifyAsyncRet = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, result);
-				sideEffectOperations = modifyAsyncRet.getReturnValue();
+				if (modifyAsyncRet != null) {
+					sideEffectOperations = modifyAsyncRet.getReturnValue();
+				}
 				
 			} else {
 				// We have to check BEFORE we add script operations, otherwise the check would be pointless
