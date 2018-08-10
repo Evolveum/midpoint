@@ -27,6 +27,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.ClassUtils;
@@ -512,8 +513,19 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				panel = new DatePanel(id, new PropertyModel<>(getModel(), baseExpression));
 
 			} else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
+				
+				ContainerWrapper passwordWrapper = getModelObject().getItem().getParent();
+				if (passwordWrapper.getPath().equivalent(SchemaConstants.PATH_PASSWORD)) {
+					PropertyWrapper<Boolean> forceChangeWrapper = (PropertyWrapper<Boolean>) passwordWrapper.findPropertyWrapper(PasswordType.F_FORCE_CHANGE);
+					if (forceChangeWrapper != null && forceChangeWrapper.getItem().getRealValue() != null && !(getPageBase() instanceof PageUser)) {
+						return new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
+								getModel().getObject().isReadonly(), forceChangeWrapper.getItem().getRealValue().booleanValue());
+					}
+				} 
+				
 				panel = new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
-						getModel().getObject().isReadonly());
+							getModel().getObject().isReadonly());
+				
 			} else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
 				panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
 
