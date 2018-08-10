@@ -32,6 +32,7 @@ import org.apache.wicket.model.Model;
 /**
  * @author lazyman
  */
+@Deprecated
 public class CheckFormGroup extends BasePanel<Boolean> {
 
     private static final String ID_CHECK = "check";

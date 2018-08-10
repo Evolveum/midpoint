@@ -21,12 +21,13 @@
         <span wicket:id="label"/>
         <span wicket:id="required" style="color: #f00; font-weight: bold;"
               wicket:message="title:prismPropertyPanel.required">*</span>
-        <i wicket:id="tooltip" />
+        <i wicket:id="tooltip"/>
     </div>
+    
 	<div class="col-md-10 prism-property-value">
-    	<div wicket:id="textWrapper">
-        	<input type="text" class="form-control input-sm" wicket:id="text">
-        	<span class="text-danger" wicket:id="feedback"/>
+    	<div wicket:id="valueWrapper">
+                <div wicket:id="value"/>
+                <span class="text-danger" wicket:id="feedback"/>
     	</div>
     </div>
 </wicket:panel>

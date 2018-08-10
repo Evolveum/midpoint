@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.form;
+package com.evolveum.midpoint.gui.impl.component.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -33,35 +34,36 @@ import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
+ * @author skublik
  */
-public class TextFormGroup extends BasePanel<String> {
+public class TriStateFormGroup extends BasePanel<Boolean> {
 
-    private static final String ID_TEXT = "text";
-    private static final String ID_TEXT_WRAPPER = "textWrapper";
+	private static final long serialVersionUID = 1L;
+	
+	private static final String ID_VALUE = "value";
+    private static final String ID_VALUE_WRAPPER = "valueWrapper";
     private static final String ID_LABEL_CONTAINER = "labelContainer";
     private static final String ID_LABEL = "label";
     private static final String ID_TOOLTIP = "tooltip";
-	private static final String ID_REQUIRED = "required";
+    private static final String ID_REQUIRED = "required";
     private static final String ID_FEEDBACK = "feedback";
 
-    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelCssClass, String textCssClass,
-                         boolean required) {
-        this(id, value, label, null, false, labelCssClass, textCssClass, required, required);
+    public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String labelCssClass, String textCssClass, boolean required) {
+        this(id, value, label, null, false, labelCssClass, textCssClass, required);
     }
 
-    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, boolean isTooltipInModel, String labelCssClass,
-                         String textCssClass, boolean required, boolean markAsRequired) {
+    public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String tooltipKey,
+                          boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required) {
         super(id, value);
 
-        initLayout(label, tooltipKey, isTooltipInModel, labelCssClass, textCssClass, required, markAsRequired);
+        initLayout(label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required);
     }
 
-    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
-			final boolean markAsRequired) {
+    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
-
         Label l = new Label(ID_LABEL, label);
+
         if (StringUtils.isNotEmpty(labelCssClass)) {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
         }
@@ -86,40 +88,31 @@ public class TextFormGroup extends BasePanel<String> {
         tooltipLabel.setOutputMarkupId(true);
         tooltipLabel.setOutputMarkupPlaceholderTag(true);
         labelContainer.add(tooltipLabel);
-
-		WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
+        
+        WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
 		requiredContainer.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {
-				return markAsRequired;
+				return required;
 			}
 		});
 		labelContainer.add(requiredContainer);
 
-		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
+        WebMarkupContainer valueWrapper = new WebMarkupContainer(ID_VALUE_WRAPPER);
         if (StringUtils.isNotEmpty(textCssClass)) {
-            textWrapper.add(AttributeAppender.prepend("class", textCssClass));
+            valueWrapper.add(AttributeAppender.prepend("class", textCssClass));
         }
-        add(textWrapper);
-
-        TextField text = createText(getModel(), label, required);
-        text.setLabel(label);
-        textWrapper.add(text);
-
-        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ContainerFeedbackMessageFilter(this));
+        add(valueWrapper);
+        
+        TriStateComboPanel triStateCombo = new TriStateComboPanel(ID_VALUE, getModel());;
+        valueWrapper.add(triStateCombo);
+        
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(triStateCombo.getBaseFormComponent()));
         feedback.setOutputMarkupId(true);
-        textWrapper.add(feedback);
+        valueWrapper.add(feedback);
     }
 
-    protected TextField createText(IModel<String> model, IModel<String> label, boolean required) {
-        TextField text = new TextField(ID_TEXT, model);
-        text.setRequired(required);
-//        text.add(AttributeAppender.replace("placeholder", label));
-
-        return text;
-    }
-
-    public TextField getField(){
-        return (TextField) get(ID_TEXT_WRAPPER + ":" + ID_TEXT);
+    public CheckBox getValue(){
+        return (CheckBox) get(ID_VALUE_WRAPPER + ":" + ID_VALUE);
     }
 }

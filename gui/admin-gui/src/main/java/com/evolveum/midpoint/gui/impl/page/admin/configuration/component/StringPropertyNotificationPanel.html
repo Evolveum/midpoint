@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,19 +14,15 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="col-xs-2 prism-property-label" wicket:id="labelContainer">
+    <div wicket:id="labelContainer" class="col-xs-2 prism-property-label">
         <span wicket:id="label"/>
-        <span wicket:id="required" style="color: #f00; font-weight: bold;"
-              wicket:message="title:prismPropertyPanel.required">*</span>
-        <i wicket:id="tooltip" />
+        <i wicket:id="help"/>
     </div>
-	<div class="col-md-10 prism-property-value">
-    	<div wicket:id="textWrapper">
-        	<input type="text" class="form-control input-sm" wicket:id="text">
-        	<span class="text-danger" wicket:id="feedback"/>
-    	</div>
+    <div class="col-md-10 prism-property-value">
+    	<div wicket:id="value" />
     </div>
 </wicket:panel>
 </html>
