@@ -594,8 +594,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(afterFirstModify);
         ShadowType afterFirstModifyType = afterFirstModify.asObjectable();
         assertEquals(1, afterFirstModifyType.getSynchronizationSituationDescription().size());
-        SynchronizationSituationDescriptionType afterFirstDescription = afterFirstModifyType.getSynchronizationSituationDescription().get(0);
-        assertEquals(SynchronizationSituationType.LINKED, afterFirstDescription.getSituation());
+        SynchronizationSituationDescriptionType description = afterFirstModifyType.getSynchronizationSituationDescription().get(0);
+        assertEquals(SynchronizationSituationType.LINKED, description.getSituation());
 
 
         syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false);
@@ -606,14 +606,14 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(afterSecondModify);
         ShadowType afterSecondModifyType = afterSecondModify.asObjectable();
         assertEquals(1, afterSecondModifyType.getSynchronizationSituationDescription().size());
-        SynchronizationSituationDescriptionType description = afterSecondModifyType.getSynchronizationSituationDescription().get(0);
+        description = afterSecondModifyType.getSynchronizationSituationDescription().get(0);
         AssertJUnit.assertNull(description.getSituation());
         XMLGregorianCalendar afterModifytimestamp = afterSecondModifyType.getSynchronizationTimestamp();
         AssertJUnit.assertNotNull(afterModifytimestamp);
         assertEquals(afterSecondModifyType.getSynchronizationTimestamp(), description.getTimestamp());
 
         ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
-                .item(ShadowType.F_SYNCHRONIZATION_TIMESTAMP).gt(afterFirstDescription.getTimestamp())
+                .item(ShadowType.F_SYNCHRONIZATION_TIMESTAMP).lt(description.getTimestamp())
                 .build();
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
         AssertJUnit.assertNotNull(shadows);
