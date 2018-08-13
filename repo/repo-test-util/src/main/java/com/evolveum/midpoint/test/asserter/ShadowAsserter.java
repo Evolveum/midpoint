@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -115,6 +116,21 @@ public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 	
 	public ShadowAsserter<R> assertKind(ShadowKindType expected) {
 		assertEquals("Wrong kind in "+desc(), expected, getObject().asObjectable().getKind());
+		return this;
+	}
+	
+	public ShadowAsserter<R> assertIteration(Integer expected) {
+		assertEquals("Wrong iteration in "+desc(), expected, getObject().asObjectable().getIteration());
+		return this;
+	}
+	
+	public ShadowAsserter<R> assertIterationToken(String expected) {
+		assertEquals("Wrong iteration token in "+desc(), expected, getObject().asObjectable().getIterationToken());
+		return this;
+	}
+	
+	public ShadowAsserter<R> assertSynchronizationSituation(SynchronizationSituationType expected) {
+		assertEquals("Wrong synchronization situation in "+desc(), expected, getObject().asObjectable().getSynchronizationSituation());
 		return this;
 	}
 	

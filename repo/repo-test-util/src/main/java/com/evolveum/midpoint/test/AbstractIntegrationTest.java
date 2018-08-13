@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -249,6 +250,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
 		// Nothing to do by default
 	};
+	
+	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
+		return DeltaBuilder.deltaFor(objectClass, prismContext);
+	}
 
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {

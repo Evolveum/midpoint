@@ -188,6 +188,17 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
         }
         return null;
 	}
+	
+	public FocusAsserter<F,RA> assertLinked(String targetOid) throws ObjectNotFoundException, SchemaException {
+		F focusType = getObject().asObjectable();
+		for (ObjectReferenceType linkRefType: focusType.getLinkRef()) {
+			if (targetOid.equals(linkRefType.getOid())) {
+				return this;
+			}
+		}
+        fail("Target "+targetOid+" not linked to "+desc());
+        return null; // not reached
+	}
 
 	private List<PrismObject<ShadowType>> getLinkTargets() throws ObjectNotFoundException, SchemaException {
 		F focusType = getObject().asObjectable();

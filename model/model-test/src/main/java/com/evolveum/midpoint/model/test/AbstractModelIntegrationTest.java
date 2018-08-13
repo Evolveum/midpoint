@@ -1113,6 +1113,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		executeChanges(focusDelta, options, task, result);
 	}
 	
+	protected <F extends FocusType> void unlink(Class<F> focusClass, String focusOid, String targetOid, Task task, OperationResult result)
+			throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		ObjectDelta<F> delta = ObjectDelta.createModificationDeleteReference(focusClass, focusOid, FocusType.F_LINK_REF, prismContext, targetOid);
+		executeChanges(delta, null, task, result);
+	}
+	
+	protected void unlinkUser(String userOid, String targetOid)
+			throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		Task task = createTask("unlinkUser");
+		OperationResult result = task.getResult();
+		unlink(UserType.class, userOid, targetOid, task, result);
+		assertSuccess(result);
+	}
+	
 	/**
 	 * Executes unassign delta by removing each assignment individually by id.
 	 */

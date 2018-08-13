@@ -37,6 +37,7 @@ import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.sync.action.UnlinkAction;
 import com.evolveum.midpoint.model.impl.util.mock.MockLensDebugListener;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.schema.util.DiagnosticContext;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -178,11 +180,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -354,11 +356,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		change.setObjectDelta(syncDelta);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -375,18 +378,23 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
 		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
 
-		assertNotLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
+		UserAsserter.forUser(context.getFocusContext().getObjectOld(), "old focus in lens context)")
+			.assertLinked(accountShadowJackDummyOid);
 
-		shadowRepo = repositoryService.getObject(ShadowType.class, accountShadowJackDummyOid, null, result);
-        assertIteration(shadowRepo, 0, "");
-        assertSituation(shadowRepo, SynchronizationSituationType.DELETED);
+        assertUserAfter(USER_JACK_OID)
+        	.links()
+        		.single()
+        			.assertOid(accountShadowJackDummyOid);
+        
+		assertRepoShadow(accountShadowJackDummyOid)
+			.assertTombstone()
+			.assertIteration(0)
+			.assertIterationToken("")
+			.assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		assertLinks(userAfter, 0);
-
+		// Cleanup
+		unlinkUser(USER_JACK_OID, accountShadowJackDummyOid);
         repositoryService.deleteObject(ShadowType.class, accountShadowJackDummyOid, result);
 	}
 
@@ -422,9 +430,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
 		// WHEN
+        displayWhen(TEST_NAME);
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
+        displayThen(TEST_NAME);
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -436,8 +446,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
         assertSituation(shadow, null);
 
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 	}
 
 	/**
@@ -469,11 +478,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         display("Change notification", change);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         LensContext<UserType> context = cleanDebugListener();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -498,8 +507,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
-		assertLinks(userBefore, 0);
+        assertUserBefore(USER_JACK_OID)
+        	.assertLinks(0);
 		setDebugListener();
 
         PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, result);
@@ -979,11 +988,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(getDummyResourceObject());
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         synchronizationService.notifyChange(change, task, result);
 
         // THEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
