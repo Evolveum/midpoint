@@ -271,21 +271,21 @@
 				<resourceRef oid="28b699cc-107c-11e6-8277-034841879377"/> <!-- LDAP resource -->
 				<kind>account</kind>
 				<association>
-				    <ref>ri:ldapGroup</ref>
-				    <outbound>
-				       <expression>
-					  <associationTargetSearch>
-					     <filter>
-						<q:equal>
-						   <q:path>attributes/cn</q:path>
-						   <q:value>devel</q:value>
-						</q:equal>
-					     </filter>
-					     <searchOnResource>true</searchOnResource>
-					  </associationTargetSearch>
-				       </expression>
-				    </outbound>
-				 </association>
+					<ref>ri:ldapGroup</ref>
+					<outbound>
+						<expression>
+							<associationTargetSearch>
+								<filter>
+									<q:equal>
+										<q:path>attributes/cn</q:path>
+										<q:value>devel</q:value>
+									</q:equal>
+								</filter>
+								<searchOnResource>true</searchOnResource>
+							</associationTargetSearch>
+						</expression>
+					</outbound>
+				</association>
 			</construction>
 		</inducement>
 		<requestable>false</requestable>
