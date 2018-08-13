@@ -5800,6 +5800,11 @@
                     <xsd:documentation>
                         Currently not implemented.
                     </xsd:documentation>
+                     <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>3.9</a:deprecatedSince>
+                        <a:plannedRemoval>4.0</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="volatility" type="tns:ResourceObjectVolatilityType" minOccurs="0">
@@ -5883,7 +5888,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-
+			<xsd:element name="projection" type="tns:ProjectionPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object type related account synchronization settings.
+                    </xsd:documentation>
+                     <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

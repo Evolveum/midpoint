@@ -813,7 +813,7 @@ public class ConsolidationProcessor {
     }
 
 	private <V extends PrismValue, D extends ItemDefinition, F extends FocusType> Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> sqeeze(
-			LensProjectionContext projCtx, MappingExtractor<V,D,F> extractor) {
+			LensProjectionContext projCtx, MappingExtractor<V,D,F> extractor) throws SchemaException {
 		Map<QName, DeltaSetTriple<ItemValueWithOrigin<V,D>>> squeezedMap = new HashMap<>();
 		if (projCtx.getConstructionDeltaSetTriple() != null) {
 			sqeezeAttributesFromConstructionTriple(squeezedMap, (PrismValueDeltaSetTriple)projCtx.getConstructionDeltaSetTriple(),

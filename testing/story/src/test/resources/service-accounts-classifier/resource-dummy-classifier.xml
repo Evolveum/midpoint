@@ -188,6 +188,9 @@
 					</target>
 				</inbound>
 			</attribute>
+			<projection>
+				<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+			</projection>
 		</objectType>
 		
 	</schemaHandling>

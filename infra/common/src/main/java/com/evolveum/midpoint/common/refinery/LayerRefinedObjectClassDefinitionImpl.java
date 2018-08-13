@@ -613,6 +613,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public ResourceObjectVolatilityType getVolatility() {
 		return refinedObjectClassDefinition.getVolatility();
 	}
+	
+	@Override
+	public ProjectionPolicyType getProjection() {
+		return refinedObjectClassDefinition.getProjection();
+	}
 
 	@Override
 	public Class getTypeClassIfKnown() {
