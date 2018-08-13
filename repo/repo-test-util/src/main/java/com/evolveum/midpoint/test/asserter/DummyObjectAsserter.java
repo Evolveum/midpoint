@@ -70,15 +70,21 @@ public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAssert
 	public D getDummyObject() {
 		return dummyObject;
 	}
+	
+	protected D getDummyObjectAssertExists() {
+		D dummyObject = getDummyObject();
+		assertNotNull(desc()+" does not exist", dummyObject);
+		return dummyObject;
+	}
 
 	public DummyObjectAsserter<D,R> assertName(String expected) {
-		assertEquals("Wrong name in "+desc(), expected, getDummyObject().getName());
+		assertEquals("Wrong name in "+desc(), expected, getDummyObjectAssertExists().getName());
 		return this;
 	}
 	
 	public <T> DummyObjectAsserter<D,R> assertAttribute(String attributeName, T... expectedAttributeValues) {
 		
-		Set<Object> values = getDummyObject().getAttributeValues(attributeName, Object.class);
+		Set<Object> values = getDummyObjectAssertExists().getAttributeValues(attributeName, Object.class);
 		if ((values == null || values.isEmpty()) && (expectedAttributeValues == null || expectedAttributeValues.length == 0)) {
 			return this;
 		}
@@ -96,7 +102,7 @@ public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAssert
 	}
 	
 	public DummyObjectAsserter<D,R> assertEnabled() {
-		assertTrue(desc() + " is disabled", getDummyObject().isEnabled());
+		assertTrue(desc() + " is disabled", getDummyObjectAssertExists().isEnabled());
 		return this;
 	}
 	

@@ -319,6 +319,10 @@ public class ChangeExecutor {
 						}
 
 						shadowAfterModification = executeDelta(projDelta, projCtx, context, null, null, projCtx.getResource(), task, subResult);
+						
+						if (projCtx.isAdd() && shadowAfterModification != null) {
+							projCtx.setExists(true);
+						}
 
 					}
 
@@ -911,7 +915,7 @@ public class ChangeExecutor {
 		try {
 
 			if (objectDelta.getChangeType() == ChangeType.ADD) {
-				executeAddition(objectDelta, context, objectContext, options, resource, task, result);
+				objectAfterModification = executeAddition(objectDelta, context, objectContext, options, resource, task, result);
 			} else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
 				executeModification(objectDelta, context, objectContext, options, conflictResolution, resource, task, result);
 			} else if (objectDelta.getChangeType() == ChangeType.DELETE) {
@@ -1203,7 +1207,7 @@ public class ChangeExecutor {
 		return new LensOwnerResolver<>(context, objectResolver, task, result);
 	}
 
-	private <T extends ObjectType, F extends ObjectType> void executeAddition(ObjectDelta<T> change,
+	private <T extends ObjectType, F extends ObjectType> PrismObject<T> executeAddition(ObjectDelta<T> change,
 			final LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options,
 			ResourceType resource, Task task, OperationResult result) throws ObjectAlreadyExistsException,
 					ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -1265,8 +1269,10 @@ public class ChangeExecutor {
 				}
 			}
 			change.setOid(oid);
+			objectToAdd.setOid(oid);
 			task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), oid,
 					ChangeType.ADD, context.getChannel(), null);
+			return objectToAdd;
 		} catch (Throwable t) {
 			task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), null,
 					ChangeType.ADD, context.getChannel(), t);

@@ -884,9 +884,16 @@ public class ContextLoader {
 							LOGGER.trace("Projection {} already exists in context\nExisting:\n{}\nNew:\n{}", rsd,
 									existingShadow.debugDump(1), newShadow.debugDump(1));
 						}
-						throw new PolicyViolationException("Projection "+rsd+" already exists in context (existing "+existingShadow+", new "+projection);
+						if (!ShadowUtil.isDead(newShadow.asObjectable())) {
+							throw new PolicyViolationException("Projection "+rsd+" already exists in context (existing "+existingShadow+", new "+projection);
+						}
+						// Dead shadow. This is somehow expected, fix it and we can go on
+						rsd.setTombstone(true);
+						projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
+						projectionContext.setExists(ShadowUtil.isExists(newShadow.asObjectable()));
+						projectionContext.setFullShadow(false);
 					} catch (ObjectNotFoundException e) {
-						// This is somehow expected, fix it and we can go on
+						// This is somehow expected, fix it and we can go on						
 						result.muteLastSubresultError();
 						// We have to create new context in this case, but it has to have thumbstone set
 						rsd.setTombstone(true);
@@ -909,7 +916,7 @@ public class ContextLoader {
 		}
 		return projectionContext;
 	}
-
+	
 	private void markShadowDead(String oid, OperationResult result) {
 		if (oid == null) {
 			// nothing to mark

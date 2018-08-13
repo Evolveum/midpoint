@@ -78,7 +78,7 @@ public class DummyAccountAsserter<R> extends DummyObjectAsserter<DummyAccount,R>
 	}
 		
 	public DummyAccountAsserter<R> assertPassword(String expected) {
-		assertEquals("Wrong password in "+desc(), expected, getDummyObject().getPassword());
+		assertEquals("Wrong password in "+desc(), expected, getDummyObjectAssertExists().getPassword());
 		return this;
 	}
 	

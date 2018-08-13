@@ -831,41 +831,51 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         clearJackOrganizationalUnit(task, result);
 
         // WHEN
+        displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
 
         // THEN
-        result.computeStatus();
-    	TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
-        assertLinks(userJack, 4);
+    	assertUserAfter(USER_JACK_OID)
+    		.displayWithProjections()
+    		.assignments()
+    			.assertRole(ROLE_DUMMIES_OID)
+    			.end()
+    		.links()
+    			.assertLinks(4)
+    			.end()
+			// This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
+    		.assertOrganizationalUnit("The crew of The Lost Souls");
 
-        assertDefaultDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "The Great Voodoo Master");
-        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
+    	assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+    		.assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+    		.assertEnabled()
+    		.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "The Great Voodoo Master")
+    		.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The Lost Souls");
 
-        // This is set up by "feedback" using an inbound expression. It has nothing with dependencies yet.
-        assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
+    	assertDummyAccountByUsername(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+	    	.assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+			.assertEnabled()
+			// This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
+	        // after user's organizationUnit is set and it will have the same value as above.
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls")
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Jack Sparrow must be the best CAPTAIN the Caribbean has ever seen");
 
-        display("LAVENDER dummy account", getDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME));
-        assertDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
-        // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
-        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "Jack Sparrow must be the best CAPTAIN the Caribbean has ever seen");
-
-        assertDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
-        // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
-
-        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        // This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
-        // after user's organizationUnit is set and it will have the same value as above.
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+    	assertDummyAccountByUsername(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+	    	.assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+			.assertEnabled()
+			// This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
+	        // after user's organizationUnit is set and it will have the same value as above.
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
+    	
+    	assertDummyAccountByUsername(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+	    	.assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+			.assertEnabled()
+			// This is set by red's outbound from user's organizationalUnit. If dependencies work this outbound is processed
+	        // after user's organizationUnit is set and it will have the same value as above.
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "The crew of The Lost Souls");
 	}
 
     public void jackRename(final String TEST_NAME) throws Exception {
