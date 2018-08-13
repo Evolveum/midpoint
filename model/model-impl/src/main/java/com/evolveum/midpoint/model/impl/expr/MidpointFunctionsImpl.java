@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -36,6 +37,9 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -49,6 +53,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -118,6 +124,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Autowired private WorkflowService workflowService;
 	@Autowired private ConstantsManager constantsManager;
 	@Autowired private LocalizationService localizationService;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -1761,4 +1769,59 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	private Collection<SelectorOptions<GetOperationOptions>> getDefaultGetOptionCollection() {
 		return SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
 	}
+
+	@Override
+	public <F extends FocusType> List<F> getFocusesByCorrelationRule(Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow) {
+		ResourceType resource;
+		try {
+			resource = getObject(ResourceType.class, resourceOid, GetOperationOptions.createNoFetchCollection());
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
+				| SecurityViolationException | ExpressionEvaluationException e) {
+			LOGGER.error("Cannot get resource, reason: {}", e);
+			return null;
+		}
+		SynchronizationType synchronization = resource.getSynchronization();
+		if (synchronization == null) {
+			return null;
+		}
+
+		ObjectSynchronizationDiscriminatorType discriminator = new ObjectSynchronizationDiscriminatorType();
+		discriminator.setKind(kind);
+		discriminator.setIntent(intent);
+		
+		SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
+				resource.asPrismObject(), getCurrentTask().getChannel(), getCurrentTask(), getCurrentResult());
+		
+		ObjectSynchronizationType applicablePolicy = null;
+		
+		try {
+			
+			SystemConfigurationType systemConfiguration = modelInteractionService.getSystemConfiguration(getCurrentResult());
+			syncCtx.setSystemConfiguration(systemConfiguration.asPrismObject());
+			
+			for (ObjectSynchronizationType objectSync : synchronization.getObjectSynchronization()) {
+				
+				if (SynchronizationServiceUtils.isPolicyApplicable(objectSync, discriminator, expressionFactory, syncCtx)) {
+					applicablePolicy = objectSync;
+					break;
+				}
+			}
+			
+			if (applicablePolicy == null) {
+				return null;
+			}
+			
+			List<PrismObject<F>> correlatedFocuses = correlationConfirmationEvaluator.findFocusesByCorrelationRule(type, shadow, applicablePolicy.getCorrelation(), resource, systemConfiguration, syncCtx.getTask(), syncCtx.getResult());
+			return MiscSchemaUtil.toObjectableList(correlatedFocuses);
+			
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+				| ConfigurationException | SecurityViolationException e) {
+			LOGGER.error("Cannot find applicable policy for kind={}, intent={}. Reason: {}", kind, intent, e.getMessage(), e);
+			return null;
+		}
+		
+		
+
+	}
+	
 }

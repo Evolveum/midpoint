@@ -323,7 +323,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 
 		// WHEN
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_IVORY_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_IVORY_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -357,7 +357,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result);
 
 		// WHEN
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_IVORY_OID, null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_IVORY_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -391,7 +391,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -429,7 +429,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_BEIGE_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -799,7 +799,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		try {
 			// WHEN
-			assignAccount(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_OID, null, task, result);
+			assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_LAVENDER_OID, null, task, result);
 
 			AssertJUnit.fail("Unexpected success");
 		} catch (PolicyViolationException e) {
@@ -1113,7 +1113,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1152,7 +1152,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1193,7 +1193,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2572,7 +2572,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -2600,7 +2600,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -2632,7 +2632,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_DARK_PERU_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -2661,7 +2661,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_DARK_YELLOW_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);

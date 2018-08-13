@@ -35,7 +35,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class RepositoryFactory implements ApplicationContextAware, RuntimeConfiguration {
 
-    private static final String REPOSITORY_CONFIGURATION = "midpoint.repository";
     private static final String REPOSITORY_FACTORY_CLASS = "repositoryServiceFactoryClass";
     private static final String REPOSITORY_FACTORY_CACHE_CLASS = "com.evolveum.midpoint.repo.cache.RepositoryCacheFactory";
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryFactory.class);
@@ -50,7 +49,7 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
     private RepositoryService repositoryService;
 
     public void init() {
-        Configuration config = midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
+        Configuration config = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
         try {
             String className = getFactoryClassName(config);
             LOGGER.info("Repository factory class name from configuration '{}'.", new Object[]{className});
@@ -96,12 +95,12 @@ public class RepositoryFactory implements ApplicationContextAware, RuntimeConfig
 
     @Override
     public String getComponentId() {
-        return REPOSITORY_CONFIGURATION;
+        return MidpointConfiguration.REPOSITORY_CONFIGURATION;
     }
 
     @Override
     public Configuration getCurrentConfiguration() {
-        return midpointConfiguration.getConfiguration(REPOSITORY_CONFIGURATION);
+        return midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
     }
 
     public synchronized RepositoryService getRepositoryService() {

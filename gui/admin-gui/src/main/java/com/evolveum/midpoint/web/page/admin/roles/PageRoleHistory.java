@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -58,7 +59,7 @@ public class PageRoleHistory extends PageRole {
     }
 
     @Override
-    protected void setSummaryPanelVisibility(FocusSummaryPanel summaryPanel) {
+    protected void setSummaryPanelVisibility(ObjectSummaryPanel summaryPanel) {
         summaryPanel.setVisible(true);
     }
 

@@ -95,41 +95,33 @@ public class CorrelationConfirmationEvaluator {
 		}
 
 		List<PrismObject<F>> users = null;
-		if (conditionalFilters.size() == 1){
-			if (satisfyCondition(currentShadow, conditionalFilters.get(0), resourceType, configurationType, "Condition expression", task, result)){
-				LOGGER.trace("Condition {} in correlation expression evaluated to true", conditionalFilters.get(0).getCondition());
-				users = findUsersByCorrelationRule(focusType, currentShadow, conditionalFilters.get(0), resourceType, configurationType, task, result);
-			}
-			
-		} else {
+		for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
+			// TODO: better description
+			if (satisfyCondition(currentShadow, conditionalFilter, resourceType, configurationType, "Condition expression", task,
+					result)) {
+				LOGGER.trace("Condition {} in correlation expression evaluated to true", conditionalFilter.getCondition());
+				List<PrismObject<F>> foundUsers = findFocusesByCorrelationRule(focusType, currentShadow, conditionalFilter,
+						resourceType, configurationType, task, result);
+				if (foundUsers == null && users == null) {
+					continue;
+				}
+				if (foundUsers != null && foundUsers.isEmpty() && users == null) {
+					users = new ArrayList<>();
+				}
 
-			for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
-				//TODO: better description
-				if (satisfyCondition(currentShadow, conditionalFilter, resourceType, configurationType, "Condition expression", task, result)) {
-					LOGGER.trace("Condition {} in correlation expression evaluated to true", conditionalFilter.getCondition());
-					List<PrismObject<F>> foundUsers = findUsersByCorrelationRule(focusType,
-							currentShadow, conditionalFilter, resourceType, configurationType, task, result);
-					if (foundUsers == null && users == null) {
-						continue;
-					}
-					if (foundUsers != null && foundUsers.isEmpty() && users == null) {
-						users = new ArrayList<>();
-					}
-
-					if (users == null && foundUsers != null) {
-						users = foundUsers;
-					}
-					if (users != null && !users.isEmpty() && foundUsers != null && !foundUsers.isEmpty()) {
-						for (PrismObject<F> foundUser : foundUsers) {
-							if (!contains(users, foundUser)) {
-								users.add(foundUser);
-							}
+				if (users == null && foundUsers != null) {
+					users = foundUsers;
+				}
+				if (users != null && !users.isEmpty() && foundUsers != null && !foundUsers.isEmpty()) {
+					for (PrismObject<F> foundUser : foundUsers) {
+						if (!contains(users, foundUser)) {
+							users.add(foundUser);
 						}
 					}
 				}
 			}
 		}
-		
+
 		if (users != null) {
 			LOGGER.debug(
 					"SYNCHRONIZATION: CORRELATION: expression for {} returned {} users: {}", currentShadow, users.size(),
@@ -179,7 +171,7 @@ public class CorrelationConfirmationEvaluator {
 	}
 	
 	
-	private <F extends FocusType> List<PrismObject<F>> findUsersByCorrelationRule(Class<F> focusType,
+	private <F extends FocusType> List<PrismObject<F>> findFocusesByCorrelationRule(Class<F> focusType,
 			ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter, ResourceType resourceType, SystemConfigurationType configurationType,
 			Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException{

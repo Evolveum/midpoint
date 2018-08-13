@@ -156,16 +156,11 @@ public class CheckTableHeader<O extends ObjectType> extends BasePanel<ObjectWrap
         ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND,
         		GuiStyleConstants.CLASS_ICON_EXPAND, GuiStyleConstants.CLASS_ICON_COLLAPSE) {
         	private static final long serialVersionUID = 1L;
-
-        	@Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-        		onClickPerformed(target);
-            }
         	
         	@Override
-    		protected void onError(AjaxRequestTarget target, Form<?> form) {
-    	target.add(getPageBase().getFeedbackPanel());
-    		}
+        	public void onClick(AjaxRequestTarget target) {
+        		onClickPerformed(target);
+        	}
 
         	@Override
 			public boolean isOn() {

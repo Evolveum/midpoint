@@ -165,7 +165,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 		// WHEN
         displayWhen(TEST_NAME);
 	        
-        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 	        
 		// THEN
         displayThen(TEST_NAME);
@@ -182,7 +182,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 		// CLEANUP
 		displayCleanup(TEST_NAME);
 		
-		unassignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+		unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 		
 		PrismObject<UserType> userCleanup = getUser(USER_THREE_HEADED_MONKEY_OID);
 		display("User cleanup", userCleanup);
@@ -214,7 +214,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 		// WHEN
         displayWhen(TEST_NAME);
         
-        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -232,7 +232,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 		// CLEANUP
 		displayCleanup(TEST_NAME);
 		
-		unassignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+		unassignAccountFromUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 		
 		PrismObject<UserType> userCleanup = getUser(USER_THREE_HEADED_MONKEY_OID);
 		display("User cleanup", userCleanup);
@@ -265,7 +265,7 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 		// WHEN
         displayWhen(TEST_NAME);
         
-        assignAccount(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
+        assignAccountToUser(USER_THREE_HEADED_MONKEY_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 	        
 		// THEN
         displayThen(TEST_NAME);

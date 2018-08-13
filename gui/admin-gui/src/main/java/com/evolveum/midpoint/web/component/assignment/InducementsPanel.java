@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -22,6 +24,8 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -38,7 +42,7 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
     }
     
     @Override
-    protected void initPaging() {
+    protected void initCustomPaging() {
         getInducementsTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
 
     }
@@ -53,17 +57,12 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
         return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCEMENTS_TAB_TABLE);
     }
 
-    private AssignmentsTabStorage getInducementsTabStorage(){
+    private ObjectTabStorage getInducementsTabStorage(){
         return getParentPage().getSessionStorage().getInducementsTabStorage();
     }
 
     @Override
     protected boolean showAllAssignmentsVisible(){
         return false;
-    }
-
-    @Override
-    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-        return new InducementDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
     }
 }

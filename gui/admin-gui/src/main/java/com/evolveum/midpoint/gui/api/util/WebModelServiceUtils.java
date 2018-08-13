@@ -26,6 +26,10 @@ import com.evolveum.midpoint.schema.RelationalValueSearchQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -81,6 +85,7 @@ public class WebModelServiceUtils {
     private static final String OPERATION_COUNT_OBJECT = DOT_CLASS + "countObjects";
 	private static final String OPERATION_ASSUME_POWER_OF_ATTORNEY = DOT_CLASS + "assumePowerOfAttorney";
 	private static final String OPERATION_DROP_POWER_OF_ATTORNEY = DOT_CLASS + "dropPowerOfAttorney";
+	private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
 	public static String resolveReferenceName(ObjectReferenceType ref, PageBase page) {
 		Task task = page.createSimpleTask(WebModelServiceUtils.class.getName() + ".resolveReferenceName");
@@ -797,5 +802,37 @@ public class WebModelServiceUtils {
 			}
     	}
     	return false;
+	}
+	
+	public static ObjectWrapper<SystemConfigurationType> loadSystemConfigurationAsObjectWrapper(PageBase pageBase) {
+		Task task = pageBase.createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
+		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
+
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
+			GetOperationOptions.createResolve(), SystemConfigurationType.F_DEFAULT_USER_TEMPLATE,
+			SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
+
+		ObjectWrapper<SystemConfigurationType> wrapper = null;
+		try {
+			PrismObject<SystemConfigurationType> systemConfig = loadObject(
+				SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
+				pageBase, task, result);
+		
+			ObjectWrapperFactory owf = new ObjectWrapperFactory(pageBase);
+		
+			wrapper = owf.createObjectWrapper("adminPage.systemConfiguration", null, systemConfig, ContainerStatus.MODIFYING, task);
+		
+			result.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
+			result.recordFatalError("Couldn't load system configuration.", ex);
+		}
+
+		if (!WebComponentUtil.isSuccessOrHandledError(result) || wrapper == null) {
+			pageBase.showResult(result, false);
+			throw pageBase.getRestartResponseException(PageError.class);
+		}
+
+		return wrapper;
 	}
 }

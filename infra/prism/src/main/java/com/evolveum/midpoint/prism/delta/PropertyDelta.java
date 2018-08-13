@@ -376,6 +376,12 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
 		propertyDelta.addValuesToAdd(pValues);
     	return propertyDelta;
     }
+    
+    public static <T> PropertyDelta<T> createModificationAddProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
+    		T... propertyValues) {
+    	PrismPropertyDefinition<T> propertyDefinition = objectDefinition.findPropertyDefinition(propertyPath);
+    	return createModificationAddProperty(propertyPath, propertyDefinition, propertyValues);
+    }
 
     public static <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismPropertyDefinition propertyDefinition,
     		T... propertyValues) {
@@ -386,6 +392,12 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     	}
 		propertyDelta.addValuesToDelete(pValues);
     	return propertyDelta;
+    }
+    
+    public static <T> PropertyDelta<T> createModificationDeleteProperty(ItemPath propertyPath, PrismObjectDefinition<?> objectDefinition,
+    		T... propertyValues) {
+    	PrismPropertyDefinition<T> propertyDefinition = objectDefinition.findPropertyDefinition(propertyPath);
+    	return createModificationDeleteProperty(propertyPath, propertyDefinition, propertyValues);
     }
 
     /**

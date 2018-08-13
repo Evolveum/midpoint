@@ -32,7 +32,7 @@ public class InitializationBeanPostprocessor implements BeanPostProcessor {
         }
 
         MidpointConfiguration config = (MidpointConfiguration) bean;
-        Configuration repositoryConfig = config.getConfiguration("midpoint.repository");
+        Configuration repositoryConfig = config.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
         repositoryConfig.setProperty(SqlRepositoryConfiguration.PROPERTY_DATABASE, getDatabase(jdbcUrl));
         repositoryConfig.setProperty(SqlRepositoryConfiguration.PROPERTY_JDBC_URL, jdbcUrl);
         repositoryConfig.setProperty(SqlRepositoryConfiguration.PROPERTY_JDBC_USERNAME, jdbcUsername);

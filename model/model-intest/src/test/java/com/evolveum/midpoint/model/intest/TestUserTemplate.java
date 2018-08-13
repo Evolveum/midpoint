@@ -599,7 +599,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
 		// WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
@@ -634,7 +634,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
 		// WHEN
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);

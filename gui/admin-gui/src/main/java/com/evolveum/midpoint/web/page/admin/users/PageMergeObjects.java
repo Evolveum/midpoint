@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -199,7 +200,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
     }
 
     @Override
-    protected void setSummaryPanelVisibility(FocusSummaryPanel summaryPanel){
+    protected void setSummaryPanelVisibility(ObjectSummaryPanel summaryPanel){
         summaryPanel.setVisible(false);
     }
 

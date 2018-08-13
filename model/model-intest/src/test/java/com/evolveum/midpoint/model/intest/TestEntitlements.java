@@ -916,8 +916,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
-        assignAccount(USER_RAPP_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
+        assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1027,8 +1027,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
-        unassignAccount(USER_RAPP_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
+        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
+        unassignAccountFromUser(USER_RAPP_OID, RESOURCE_DUMMY_ORANGE_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1430,7 +1430,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 		OperationResult result = task.getResult();
 
 		// GIVEN
-		assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, "default", task, result);
+		assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_ORANGE_OID, "default", task, result);
 		dumpUserAndAccounts(USER_GUYBRUSH_OID);
 
 		PrismObject<ShadowType> orangeAccount = findAccountShadowByUsername(USER_GUYBRUSH_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_ORANGE_NAME), result);
@@ -2227,7 +2227,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2465,7 +2465,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);

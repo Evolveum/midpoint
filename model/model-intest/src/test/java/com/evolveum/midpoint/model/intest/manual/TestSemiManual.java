@@ -152,7 +152,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, getResourceOid(), null, task, result);
+		assignAccountToUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -204,7 +204,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, getResourceOid(), null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, getResourceOid(), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);

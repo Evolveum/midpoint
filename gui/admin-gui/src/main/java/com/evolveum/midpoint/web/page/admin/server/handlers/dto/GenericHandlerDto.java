@@ -106,7 +106,7 @@ public class GenericHandlerDto extends HandlerDto {
 		PrismContainerDefinition<?> containerDefinition = new PrismContainerDefinitionImpl<>(new QName("Handler data"), ctd, prismContext);
 		container.setDefinition(containerDefinition);
 		Task task = pageBase.createSimpleTask("Adding new container wrapper");
-		containerWrapper = cwf.createContainerWrapper(container, ContainerStatus.MODIFYING, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true, task);
+		containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true, task);
 	}
 
 	public ContainerWrapper getContainer() {

@@ -165,7 +165,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
 		cleanUpBeforeTest(task, result);
 
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
 		PrismObject<UserType> jack = getUser(USER_JACK_OID);
 		display("Jack with account", jack);
 		assertEquals("Unexpected # of accounts for jack", 1, jack.asObjectable().getLinkRef().size());
@@ -272,7 +272,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 		PrismObject<UserType> jack = getUser(USER_JACK_OID);
 		display("Jack on start", jack);
 		if (!jack.asObjectable().getAssignment().isEmpty()) {
-			unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+			unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
 			jack = getUser(USER_JACK_OID);
 			display("Jack after initial unassign", jack);
 		}
@@ -291,7 +291,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 	}
 
 	private void cleanUpAfterTest(Task task, OperationResult result) throws Exception {
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, SchemaConstants.INTENT_DEFAULT, task, result);
 		PrismObject<UserType> jack = getUser(USER_JACK_OID);
 		display("Jack after cleanup", jack);
 		assertEquals("Unexpected # of accounts for jack after cleanup", 0, jack.asObjectable().getLinkRef().size());

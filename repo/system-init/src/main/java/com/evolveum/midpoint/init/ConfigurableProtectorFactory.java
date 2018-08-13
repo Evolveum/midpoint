@@ -39,14 +39,13 @@ import java.security.KeyStore;
  */
 public class ConfigurableProtectorFactory {
 
-    private static final String PROTECTOR_CONFIGURATION = "midpoint.keystore";
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurableProtectorFactory.class);
-    @Autowired(required = true)
+    @Autowired
     private MidpointConfiguration configuration;
     private ProtectorConfiguration protectorConfig;
 
     public void init() {
-        Configuration config = configuration.getConfiguration(PROTECTOR_CONFIGURATION);
+        Configuration config = configuration.getConfiguration(MidpointConfiguration.PROTECTOR_CONFIGURATION);
         protectorConfig = new ProtectorConfiguration(config);
 
         //Extract file if not exists
