@@ -2441,4 +2441,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return new RawType(new PrismPropertyValue(value), attrName, prismContext);
 	}
 	
+	protected void markShadowTombstone(String oid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		Task task = createTask("markShadowTombstone");
+        OperationResult result = task.getResult();
+        List<ItemDelta<?, ?>> deadModifications = deltaFor(ShadowType.class)
+            	.item(ShadowType.F_DEAD).replace(true)
+            	.item(ShadowType.F_EXISTS).replace(false)
+            	.asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, oid, deadModifications, result);
+        assertSuccess(result);
+	}
+	
 }

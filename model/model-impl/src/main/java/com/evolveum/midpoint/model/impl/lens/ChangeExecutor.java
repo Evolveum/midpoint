@@ -674,6 +674,10 @@ public class ChangeExecutor {
 	}
 
 	private boolean linkShouldExist(LensProjectionContext projCtx, PrismObject<ShadowType> shadowAfterModification, OperationResult result) {
+		if (!projCtx.isShadowExistsInRepo()) {
+			// Nothing to link to
+			return false;
+		}
 		if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
 			return false;
 		}
@@ -696,7 +700,7 @@ public class ChangeExecutor {
 	 */
 	private boolean isEmptyThombstone(LensProjectionContext projCtx) {
 		return projCtx.getResourceShadowDiscriminator() != null
-				&& projCtx.getResourceShadowDiscriminator().isThombstone()
+				&& projCtx.getResourceShadowDiscriminator().isTombstone()
 				&& projCtx.getObjectCurrent() == null;
 	}
 
@@ -809,8 +813,14 @@ public class ChangeExecutor {
 			return;
 		}
 		
+		SynchronizationSituationType currentSynchronizationSituation = currentShadow.asObjectable().getSynchronizationSituation();
+		if (SynchronizationSituationType.DELETED.equals(currentSynchronizationSituation) && ShadowUtil.isDead(currentShadow.asObjectable())) {
+			LOGGER.trace("Skipping update of synchronization situation for deleted dead shadow");
+			result.recordSuccess();
+			return;
+		}
+		
 		// TODO: can we skip the update or cannot we? Do we always need to update sync timestamp?
-//		SynchronizationSituationType currentSynchronizationSituation = currentShadow.asObjectable().getSynchronizationSituation();
 //		if (newSituation.equals(currentSynchronizationSituation)) {
 //			LOGGER.trace("Skipping update of synchronization situation because there is no change ({})", currentSynchronizationSituation);
 //			result.recordSuccess();

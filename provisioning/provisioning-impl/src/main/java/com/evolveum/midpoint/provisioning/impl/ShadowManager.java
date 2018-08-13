@@ -2197,6 +2197,9 @@ public class ShadowManager {
 		if (modifyTimestampDelta != null) {
 			return;
 		}
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Metadata not found, adding minimal metadata. Modifications:\n{}", DebugUtil.debugDump(shadowChanges, 1));
+		}
 		PrismPropertyDefinition<XMLGregorianCalendar> def = repoShadow.getDefinition().findPropertyDefinition(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
 		modifyTimestampDelta = def.createEmptyDelta(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
 		modifyTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));

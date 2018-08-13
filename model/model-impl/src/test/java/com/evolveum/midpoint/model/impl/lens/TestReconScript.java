@@ -249,8 +249,8 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 			.assertIsNotExists();
 
 		PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
-		display("Unexpected owner", user);
-		AssertJUnit.assertNull("Owner for account " + ACCOUNT_BEFORE_SCRIPT_OID + " was found, but it should be not.", user);
+		display("Account owner", user);
+		AssertJUnit.assertNotNull("Owner for account " + ACCOUNT_BEFORE_SCRIPT_OID + " was not found", user);
 
 
 	}

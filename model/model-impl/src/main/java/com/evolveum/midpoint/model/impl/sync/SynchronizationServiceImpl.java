@@ -1012,6 +1012,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		projectionContext.setResource(resource);
 		projectionContext.setOid(getOidFromChange(change));
 		projectionContext.setSynchronizationSituationDetected(syncCtx.getSituation());
+		projectionContext.setShadowExistsInRepo(syncCtx.isShadowExistsInRepo());
 
 		// insert object delta if available in change
 		ObjectDelta<? extends ShadowType> delta = change.getObjectDelta();
@@ -1195,6 +1196,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			LOGGER.debug(
 					"Could not update situation in account, because shadow {} does not exist any more (this may be harmless)",
 					shadow.getOid());
+			syncCtx.setShadowExistsInRepo(false);
 			parentResult.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
 		} catch (ObjectAlreadyExistsException | SchemaException ex) {
 			task.recordObjectActionExecuted(shadow, ChangeType.MODIFY, ex);

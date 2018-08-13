@@ -119,6 +119,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * isExists will in fact be true.
      */
     private boolean isExists;
+    
+    /**
+     * True if shadow exists in the repo. It is set to false after projector discovers that a shadow is gone.
+     * This is a corner case, but it may happen: if shadow is unintentionally deleted, if the shadow is 
+     * cleaned up by another thread and so on. 
+     */
+    private transient boolean shadowExistsInRepo = true;
 
     /**
      * Decision regarding the account. It indicated what the engine has DECIDED TO DO with the context.
@@ -340,7 +347,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	if (!rsd.getKind().equals(resourceShadowDiscriminator.getKind())) {
     		return false;
     	}
-    	if (rsd.isThombstone() != resourceShadowDiscriminator.isThombstone()) {
+    	if (rsd.isTombstone() != resourceShadowDiscriminator.isTombstone()) {
     		return false;
     	}
     	if (rsd.getIntent() == null) {
@@ -366,7 +373,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (resourceShadowDiscriminator == null) {
 			return false;
 		}
-		return resourceShadowDiscriminator.isThombstone();
+		return resourceShadowDiscriminator.isTombstone();
 	}
 
 	public void addAccountSyncDelta(ObjectDelta<ShadowType> delta) throws SchemaException {
@@ -482,6 +489,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
 	public void setExists(boolean exists) {
 		this.isExists = exists;
+	}
+	
+	public boolean isShadowExistsInRepo() {
+		return shadowExistsInRepo;
+	}
+
+	public void setShadowExistsInRepo(boolean shadowExistsInRepo) {
+		this.shadowExistsInRepo = shadowExistsInRepo;
 	}
 
 	public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
@@ -931,7 +946,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			return;
 		}
-    	if (fresh && !force && resourceShadowDiscriminator != null && !resourceShadowDiscriminator.isThombstone()) {
+    	if (fresh && !force && resourceShadowDiscriminator != null && !resourceShadowDiscriminator.isTombstone()) {
     		if (resource == null) {
 	    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 	    	}
@@ -1220,6 +1235,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         	sb.append(", shadow");
         }
         sb.append(", exists=").append(isExists);
+        if (!shadowExistsInRepo) {
+        	sb.append(" (shadow not in repo)");
+        }
         sb.append(", assigned=").append(isAssignedOld).append("->").append(isAssigned);
         sb.append(", active=").append(isActive);
         sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
@@ -1229,7 +1247,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (!isFresh()) {
         	sb.append(", NOT FRESH");
         }
-        if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isThombstone()) {
+        if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isTombstone()) {
         	sb.append(", THOMBSTONE");
         }
         if (syncAbsoluteTrigger) {

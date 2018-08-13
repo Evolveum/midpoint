@@ -272,7 +272,7 @@ public class ContextLoader {
 		ResourceShadowDiscriminator rsd = projectionContext.getResourceShadowDiscriminator();
 		if (rsd != null) {
 			resourceOid = rsd.getResourceOid();
-			isThombstone = rsd.isThombstone();
+			isThombstone = rsd.isTombstone();
 			kind = rsd.getKind();
 			intent = rsd.getIntent();
 			order = rsd.getOrder();
@@ -532,9 +532,10 @@ public class ContextLoader {
 					shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
 				} catch (ObjectNotFoundException e) {
 					// Broken accountRef. We need to mark it for deletion
-					LensProjectionContext accountContext = getOrCreateEmptyThombstoneProjectionContext(context, oid);
-					accountContext.setFresh(true);
-					accountContext.setExists(false);
+					LensProjectionContext projectionContext = getOrCreateEmptyThombstoneProjectionContext(context, oid);
+					projectionContext.setFresh(true);
+					projectionContext.setExists(false);
+					projectionContext.setShadowExistsInRepo(false);
 					OperationResult getObjectSubresult = result.getLastSubresult();
 					getObjectSubresult.setErrorsHandled();
 					continue;
@@ -675,6 +676,7 @@ public class ContextLoader {
 							projectionContext.setPrimaryDelta(accountPrimaryDelta);
 							projectionContext.setFullShadow(true);
 							projectionContext.setExists(false);
+							projectionContext.setShadowExistsInRepo(false);
 							isCombinedAdd = true;
 						}
 					}
@@ -711,6 +713,7 @@ public class ContextLoader {
 						projectionContext = getOrCreateEmptyThombstoneProjectionContext(context, oid);
 						projectionContext.setFresh(true);
 						projectionContext.setExists(false);
+						projectionContext.setShadowExistsInRepo(false);
 						OperationResult getObjectSubresult = result.getLastSubresult();
 						getObjectSubresult.setErrorsHandled();
 						} catch (ObjectNotFoundException ex){
@@ -795,6 +798,7 @@ public class ContextLoader {
 						LOGGER.trace("Loading shadow {} from sync delta failed: not found", oid);
 						projCtx.setExists(false);
 						projCtx.setObjectCurrent(null);
+						projCtx.setShadowExistsInRepo(false);
 					}
 
 					// We will not set old account if the delta is delete. The
@@ -803,7 +807,7 @@ public class ContextLoader {
 					// shadow)
 					if (syncDelta.getChangeType() == ChangeType.DELETE) {
 						projCtx.setExists(false);
-						projCtx.getResourceShadowDiscriminator().setThombstone(true);
+						projCtx.getResourceShadowDiscriminator().setTombstone(true);
 					} else if (shadow != null) {
 						syncDelta.applyTo(shadow);
 						projCtx.setLoadedObject(shadow);
@@ -885,17 +889,19 @@ public class ContextLoader {
 						// This is somehow expected, fix it and we can go on
 						result.muteLastSubresultError();
 						// We have to create new context in this case, but it has to have thumbstone set
-						rsd.setThombstone(true);
+						rsd.setTombstone(true);
 						projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
 						// We have to mark it as dead right now, otherwise the uniqueness check may fail
 						markShadowDead(projection.getOid(), result);
+						projectionContext.setShadowExistsInRepo(false);
 					}
 				} catch (ObjectNotFoundException e) {
 					// This is somehow expected, fix it and we can go on
 					result.muteLastSubresultError();
 					String shadowOid = projectionContext.getOid();
-					projectionContext.getResourceShadowDiscriminator().setThombstone(true);
+					projectionContext.getResourceShadowDiscriminator().setTombstone(true);
 					projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
+					projectionContext.setShadowExistsInRepo(false);
 					// We have to mark it as dead right now, otherwise the uniqueness check may fail
 					markShadowDead(shadowOid, result);
 				}
@@ -968,7 +974,7 @@ public class ContextLoader {
 		if (projContext.getResourceShadowDiscriminator() == null) {
 			projContext.setResourceShadowDiscriminator(new ResourceShadowDiscriminator(null, null, null, true));
 		} else {
-			projContext.getResourceShadowDiscriminator().setThombstone(true);
+			projContext.getResourceShadowDiscriminator().setTombstone(true);
 		}
 
 		projContext.setFullShadow(false);
@@ -1077,6 +1083,7 @@ public class ContextLoader {
 						// Consistency mechanism might have kicked in and fixed the shadow.
 						// What we really want here is a thombstone projection or a refreshed projection.
 						result.muteLastSubresultError();
+						projContext.setShadowExistsInRepo(false);
 						refreshContextAfterShadowNotFound(context, projContext, options, task, result);
 
 					} catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException
@@ -1155,7 +1162,7 @@ public class ContextLoader {
 		} else {
 			if (thombstone) {
 				// We do not want to reset thombstone flag if it was set before
-				discr.setThombstone(thombstone);
+				discr.setTombstone(thombstone);
 			}
 		}
 
@@ -1285,6 +1292,7 @@ public class ContextLoader {
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.debug("Load of full resource object {} ended with ObjectNotFoundException (options={})", projCtx, getOptions);
 			result.muteLastSubresultError();
+			projCtx.setShadowExistsInRepo(false);
 			refreshContextAfterShadowNotFound(context, projCtx, options, task, result);
 		}
 
@@ -1355,8 +1363,10 @@ public class ContextLoader {
 		}
 
 		if (!compensated) {
-			LOGGER.trace("ObjectNotFound error is not compensated, setting context to thombstone");
-			projCtx.getResourceShadowDiscriminator().setThombstone(true);
+			LOGGER.trace("ObjectNotFound error is not compensated, setting context to tombstone");
+			if (projCtx.getResourceShadowDiscriminator() != null) {
+				projCtx.getResourceShadowDiscriminator().setTombstone(true);
+			}
 			projCtx.setExists(false);
 			projCtx.setFullShadow(false);
 		}

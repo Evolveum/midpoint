@@ -19,6 +19,9 @@ import java.io.File;
 
 import javax.xml.namespace.QName;
 
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.impl.util.mock.MockClockworkHook;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
@@ -38,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author semancik
  *
  */
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class AbstractInternalModelIntegrationTest extends AbstractModelImplementationIntegrationTest {
 
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
