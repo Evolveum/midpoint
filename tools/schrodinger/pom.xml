@@ -115,11 +115,6 @@
             </exclusions>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>schrodinger</artifactId>
-            <version>3.9-SNAPSHOT</version>
-        </dependency>
     </dependencies>
     <!-- POSSIBLY OBSOLETE END-->
     <dependencyManagement>
