@@ -520,13 +520,9 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 
 			} else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
 				
-				ContainerWrapper passwordWrapper = getModelObject().getItem().getParent();
-				if (passwordWrapper.getPath().equivalent(SchemaConstants.PATH_PASSWORD)) {
-					PropertyWrapper<Boolean> forceChangeWrapper = (PropertyWrapper<Boolean>) passwordWrapper.findPropertyWrapper(PasswordType.F_FORCE_CHANGE);
-					if (forceChangeWrapper != null && forceChangeWrapper.getItem().getRealValue() != null && !(getPageBase() instanceof PageUser)) {
-						return new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
-								getModel().getObject().isReadonly(), forceChangeWrapper.getItem().getRealValue().booleanValue());
-					}
+				if (!(getPageBase() instanceof PageUser)) {
+					return new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
+						getModel().getObject().isReadonly(), true);
 				} 
 				
 				panel = new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
