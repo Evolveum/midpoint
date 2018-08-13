@@ -1,6 +1,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -12,6 +14,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -23,6 +26,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -48,7 +52,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
-    protected void initPaging() {
+    protected void initCustomPaging() {
         getInducedEntitlementsTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
     }
 
@@ -62,7 +66,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE);
     }
 
-    private AssignmentsTabStorage getInducedEntitlementsTabStorage(){
+    private ObjectTabStorage getInducedEntitlementsTabStorage(){
         return getParentPage().getSessionStorage().getInducedEntitlementsTabStorage();
     }
 
@@ -120,10 +124,19 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         }
         return query;
     }
-
+    
     @Override
-    protected InducementDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-        return new InducedEntitlementDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
+	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
+		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+		specificContainers.add(getConstructionAssociationPanel(modelObject));
+		return specificContainers;
+	}
+    
+    private ConstructionAssociationPanel getConstructionAssociationPanel(ContainerValueWrapper<AssignmentType> modelObject) {
+    	ContainerWrapper<ConstructionType> constructionContainer = modelObject.findContainerWrapper(modelObject.getPath().append((AssignmentType.F_CONSTRUCTION)));
+        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, Model.of(constructionContainer));
+        constructionDetailsPanel.setOutputMarkupId(true);
+        return constructionDetailsPanel;
     }
 
     @Override
@@ -200,7 +213,7 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     }
 
     @Override
-    protected List<ContainerValueWrapper<AssignmentType>> postSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
+    protected List<ContainerValueWrapper<AssignmentType>> customPostSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
         List<ContainerValueWrapper<AssignmentType>> filteredAssignments = new ArrayList<>();
         if (assignments == null){
             return filteredAssignments;

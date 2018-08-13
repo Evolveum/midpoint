@@ -5800,6 +5800,11 @@
                     <xsd:documentation>
                         Currently not implemented.
                     </xsd:documentation>
+                     <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>3.9</a:deprecatedSince>
+                        <a:plannedRemoval>4.0</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="volatility" type="tns:ResourceObjectVolatilityType" minOccurs="0">
@@ -5883,7 +5888,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-
+			<xsd:element name="projection" type="tns:ProjectionPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object type related account synchronization settings.
+                    </xsd:documentation>
+                     <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -11915,12 +11930,21 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element ref="tns:description" minOccurs="0"/>
+        	<xsd:element ref="tns:description" minOccurs="0">
+				<xsd:annotation>
+                    <xsd:appinfo>
+            			<a:displayName>ObjectSelectorType.description</a:displayName>
+            		</xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
         	<xsd:element name="type" minOccurs="0" type="xsd:QName">
         		<xsd:annotation>
         			<xsd:documentation>
         				Type of the object to select.
         			</xsd:documentation>
+					<xsd:appinfo>
+            			<a:displayName>ObjectSelectorType.type</a:displayName>
+            		</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="subtype" minOccurs="0" type="xsd:string">
@@ -11928,6 +11952,9 @@
         			<xsd:documentation>
         				Subtype of the object to select.
         			</xsd:documentation>
+					<xsd:appinfo>
+            			<a:displayName>ObjectSelectorType.subtype</a:displayName>
+            		</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
 			<xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
@@ -11940,6 +11967,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+						<a:displayName>ObjectSelectorType.orgRef</a:displayName>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -11950,6 +11978,9 @@
         				This filter MUST NOT contain organization unit clauses. It may only contain
         				property clauses, logical operations and so on.
         			</xsd:documentation>
+					<xsd:appinfo>
+            			<a:displayName>ObjectSelectorType.filter</a:displayName>
+            		</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         </xsd:sequence>
@@ -13814,6 +13845,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:SecurityPolicyType</a:objectReferenceTargetType>
+								<a:displayName>SystemConfigurationType.globalSecurityPolicyRef</a:displayName>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -13824,6 +13856,9 @@
                             <xsd:documentation>
                                 Persistent configuration of logging levels, categories, etc.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>SystemConfigurationType.logging</a:displayName>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="defaultUserTemplate" type="tns:ObjectTemplateType" minOccurs="0" maxOccurs="1">
@@ -13902,6 +13937,9 @@
                                 A configuration for user notifications. In future, it might be overridden e.g. at a level
                                 of a user.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>SystemConfigurationType.notificationConfiguration</a:displayName>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     
@@ -14670,6 +14708,9 @@
 					<xsd:documentation>
 						Specification of the type (class) of the object to apply this definition to.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ObjectPolicyConfigurationType.type</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="subtype" type="xsd:string" minOccurs="0">
@@ -14680,6 +14721,9 @@
 						The subtype is compared against the subtype property but it is also compared to the
 						deprecated employeeType, roleType, orgType and serviceType properties.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ObjectPolicyConfigurationType.subtype</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType">
@@ -14689,10 +14733,17 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+						<a:displayName>ObjectPolicyConfigurationType.objectTemplateRef</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="propertyConstraint" type="tns:PropertyConstraintType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -14711,6 +14762,7 @@
 					<xsd:appinfo>
 						<a:since>3.6.1</a:since>
 						<a:experimental>true</a:experimental>
+						<a:displayName>ObjectPolicyConfigurationType.conflictResolution</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -14722,6 +14774,7 @@
 					<xsd:appinfo>
 						<a:since>3.7.1</a:since>
 						<a:experimental>true</a:experimental>
+						<a:displayName>ObjectPolicyConfigurationType.lifecycleStateModel</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -14736,6 +14789,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.8</a:since>
+						<a:displayName>ObjectPolicyConfigurationType.applicablePolicies</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -14770,6 +14824,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+						<a:displayName>ApplicablePoliciesType.policyGroupRef</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -14793,6 +14848,9 @@
 					<xsd:documentation>
 						What action to take.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ConflictResolutionType.action</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="maxAttempts" type="xsd:int" minOccurs="0" default="1">	<!-- synchronize with Clockwork.java -->
@@ -14800,6 +14858,9 @@
 					<xsd:documentation>
 						How many attempts to undertake at most.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ConflictResolutionType.maxAttempts</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="delayUnit" type="xsd:int" minOccurs="0" default="5000">	<!-- synchronize with Clockwork.java -->
@@ -14810,6 +14871,9 @@
 						starting at 1. (In other words, the potential delay is multiplied by two after each unsuccessful
 						resolution attempt.)
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ConflictResolutionType.delayUnit</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -14916,6 +14980,11 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="path" type="t:ItemPathType" minOccurs="1" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>PropertyConstraintType.path</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
 			</xsd:element>
 			<!-- TODO: uniqueness constraint -->
              <xsd:element name="oidBound" type="xsd:boolean" minOccurs="0" default="false">
@@ -15141,10 +15210,34 @@
             <xsd:element name="subSystemLogger" type="tns:SubSystemLoggerConfigurationType" minOccurs="0"
                          maxOccurs="unbounded"/>
             <xsd:element name="classLogger" type="tns:ClassLoggerConfigurationType" minOccurs="0"
-                         maxOccurs="unbounded"/>
-            <xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="rootLoggerAppender" type="xsd:string"/>
-            <xsd:element name="rootLoggerLevel" type="tns:LoggingLevelType"/>
+                         maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.classLogger</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
+            <xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.appender</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
+            <xsd:element name="rootLoggerAppender" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.rootLoggerAppender</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
+            <xsd:element name="rootLoggerLevel" type="tns:LoggingLevelType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.rootLoggerLevel</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
             <xsd:element name="auditing" type="tns:AuditingConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -15152,6 +15245,9 @@
                         available auditing option is to use logging.
                         THIS WILL CHANGE IN THE FUTURE.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.auditing</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="advanced" type="tns:AdvancedLoggingConfigurationType" minOccurs="0" maxOccurs="1"/>
@@ -15174,6 +15270,9 @@
                 Auditing configuration
                 UNSTABLE. THIS WILL CHANGE IN THE FUTURE.
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true"/>
@@ -15187,6 +15286,9 @@
             <xsd:documentation>
                 Contains free form logging configuration.
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:any maxOccurs="unbounded"/>
@@ -15199,6 +15301,9 @@
     			Configuration of the logger: the facility that
                 collects log messages from the code.
     		</xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
     	</xsd:annotation>
     	<xsd:sequence>
     		<xsd:element name="level" type="tns:LoggingLevelType">
@@ -15225,6 +15330,9 @@
                 Configuration of the logger: the facility that
                 collects log messages from the code.
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
 			<xsd:extension base="tns:AbstractLoggerConfigurationType">
@@ -15249,6 +15357,9 @@
                 Configuration of the logger: the facility that
                 collects log messages from subsystem code.
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
 			<xsd:extension base="tns:AbstractLoggerConfigurationType">
@@ -15442,14 +15553,24 @@
 
                 TODO
             </xsd:documentation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="pattern" type="xsd:string"/>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+    		</xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string"/>
+        <!-- <xsd:attribute name="name" type="xsd:string"/> -->
     </xsd:complexType>
 
     <xsd:complexType name="FileAppenderConfigurationType">
+		<xsd:annotation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>
@@ -15471,6 +15592,11 @@
     </xsd:complexType>
     
     <xsd:complexType name="SyslogAppenderConfigurationType">
+		<xsd:annotation>
+			<xsd:appinfo>
+            	<a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AppenderConfigurationType">
                 <xsd:sequence>
@@ -16001,6 +16127,9 @@
 		    					(in object modification situations) or the focus object that contains
 		    					the assignments (in assignment/inducement situations).
 		    				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GlobalPolicyRuleType.focusSelector</a:displayName>
+							</xsd:appinfo>
 		    			</xsd:annotation>
 		    		</xsd:element>
 		        	<xsd:element name="targetSelector" type="tns:ObjectSelectorType" minOccurs="0">
@@ -16009,6 +16138,9 @@
 		    					Selector for assignment/inducement target object. It is used only in
 		    					assignment situations.
 		    				</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GlobalPolicyRuleType.targetSelector</a:displayName>
+							</xsd:appinfo>
 		    			</xsd:annotation>
 		    		</xsd:element>
 		 		    <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
@@ -16017,6 +16149,9 @@
 		                        The rule is applied only if the condition is evaluated to true.
 		                        If condition is not present, it is assumed to be always true.
 		                    </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GlobalPolicyRuleType.condition</a:displayName>
+							</xsd:appinfo>
 		                </xsd:annotation>
 		            </xsd:element>
 		        </xsd:sequence>

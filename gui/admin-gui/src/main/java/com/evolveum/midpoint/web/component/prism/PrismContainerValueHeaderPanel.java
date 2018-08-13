@@ -4,24 +4,32 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.wicket.model.Model;
@@ -43,9 +51,13 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
     private static final String ID_ADD_BUTTON = "addButton";
 
     private boolean isChildContainersSelectorPanelVisible = false;
+    
+    private static final Trace LOGGER = TraceManager.getTrace(PrismContainerValueHeaderPanel.class);
+    private ItemVisibilityHandler isPanelVisible;
 	
-	public PrismContainerValueHeaderPanel(String id, IModel<ContainerValueWrapper<C>> model) {
+	public PrismContainerValueHeaderPanel(String id, IModel<ContainerValueWrapper<C>> model, ItemVisibilityHandler isPanelVisible) {
 		super(id, model);
+		this.isPanelVisible = isPanelVisible;
 	}
 
 	@Override
@@ -87,7 +99,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		showMetadataButton.add(new VisibleEnableBehaviour() {
 			
 			private static final long serialVersionUID = 1L;
-
+			
 			@Override
 			public boolean isVisible() {
 				for (ItemWrapper wrapper : getModelObject().getItems()) {
@@ -103,6 +115,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_SHOW_EMPTY_FIELDS,
 				GuiStyleConstants.CLASS_ICON_SHOW_EMPTY_FIELDS, GuiStyleConstants.CLASS_ICON_NOT_SHOW_EMPTY_FIELDS) {
+			
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -122,6 +135,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
         ToggleIconButton sortPropertiesButton = new ToggleIconButton(ID_SORT_PROPERTIES,
         		GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
+        	
         	private static final long serialVersionUID = 1L;
 
         	@Override
@@ -142,8 +156,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
         sortPropertiesButton.add(buttonsVisibleBehaviour);
         add(sortPropertiesButton);
 		
-        ToggleIconButton addChildContainerButton = new ToggleIconButton(ID_ADD_CHILD_CONTAINER,
-        		GuiStyleConstants.CLASS_PLUS_CIRCLE_SUCCESS, GuiStyleConstants.CLASS_PLUS_CIRCLE_SUCCESS) {
+        AjaxLink addChildContainerButton = new AjaxLink(ID_ADD_CHILD_CONTAINER) {
         	private static final long serialVersionUID = 1L;
 
         	@Override
@@ -151,70 +164,50 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
         		isChildContainersSelectorPanelVisible = true;
 				target.add(PrismContainerValueHeaderPanel.this);
         	}
-        	
-        	@Override
-			public boolean isOn() {
-				return true;
-			}
         };
 		addChildContainerButton.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible(){
-				return getModelObject().containsMultivalueContainer() && getModelObject().getContainer() != null
-						&& getModelObject().getContainer().isAddContainerButtonVisible()
-						&& getModelObject().getDefinition().canModify();
+				return getModelObject().containsMultipleMultivalueContainer() && getModelObject().getContainer() != null
+						&& getModelObject().getDefinition().canModify()
+						&& !getModelObject().getChildMultivalueContainersToBeAdded(isPanelVisible).isEmpty();
 			}
 		});
         add(addChildContainerButton);
 
-		WebMarkupContainer childContainersSelectorPanel = new WebMarkupContainer(ID_CHILD_CONTAINERS_SELECTOR_PANEL);
+        List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded(isPanelVisible);
+        
+       	WebMarkupContainer childContainersSelectorPanel = new WebMarkupContainer(ID_CHILD_CONTAINERS_SELECTOR_PANEL);
 		childContainersSelectorPanel.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible(){
-				return isChildContainersSelectorPanelVisible;
+				return pathsList.size() > 1 && isChildContainersSelectorPanelVisible;
 			}
 		});
 		childContainersSelectorPanel.setOutputMarkupId(true);
 		add(childContainersSelectorPanel);
-
-		List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded();
+		 
 		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
-            Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
-            new IChoiceRenderer<QName>() {
-                @Override
-                public Object getDisplayValue(QName qName) {
-                    return getPageBase().createStringResource(getModelObject().getDefinition().getCompileTimeClass().getSimpleName() + "." + qName.getLocalPart()).getString();
-                }
-
-                @Override
-                public String getIdValue(QName qName, int i) {
-                    return Integer.toString(i);
-                }
-
-                @Override
-                public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
-                    if (StringUtils.isBlank(id)) {
-                        return null;
-                    }
-                    return choices.getObject().get(Integer.parseInt(id));
-                }
-            });
+				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
+				new QNameIChoiceRenderer(getModelObject().getDefinition().getDefaultNamespace()));
 		multivalueContainersList.setOutputMarkupId(true);
 		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		childContainersSelectorPanel.add(multivalueContainersList);
 		childContainersSelectorPanel.add(new AjaxButton(ID_ADD_BUTTON, createStringResource("prismValuePanel.add")) {
+
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
 				addNewContainerValuePerformed(ajaxRequestTarget);
 			}
 		});
-		childContainersSelectorPanel.add(multivalueContainersList);
-
-		ToggleIconButton removeContainerButton = new ToggleIconButton(ID_REMOVE_CONTAINER,
-				GuiStyleConstants.CLASS_MINUS_CIRCLE_DANGER, GuiStyleConstants.CLASS_MINUS_CIRCLE_DANGER) {
+		
+		AjaxLink removeContainerButton = new AjaxLink(ID_REMOVE_CONTAINER) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -223,11 +216,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 				containerValueWrapper.setStatus(ValueStatus.DELETED);
 				target.add(PrismContainerValueHeaderPanel.this);
 				PrismContainerValueHeaderPanel.this.reloadParentContainerPanel(target);
-			}
-			
-			@Override
-			public boolean isOn() {
-				return true;
+				onButtonClick(target);
 			}
 		};
 		removeContainerButton.add(new VisibleEnableBehaviour(){
@@ -235,11 +224,15 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 			@Override
 			public boolean isVisible(){
-				return getModelObject().getContainer() != null ? getModelObject().getContainer().isRemoveContainerButtonVisible() : false;
+				return getModelObject().getContainer() != null && !getModelObject().getContainer().isShowOnTopLevel() ? getModelObject().getContainer().getItemDefinition().isMultiValue() : false;
 			}
 		});
 		add(removeContainerButton);
 
+	}
+
+	private String getPathDisplayName(QName qName) {
+		return getModelObject().getDefinition().getCompileTimeClass().getSimpleName() + "." + qName.getLocalPart();
 	}
 
 	@Override
@@ -250,6 +243,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		}
 		StringResourceModel headerLabelModel = createStringResource(displayName);
 		AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				onShowEmptyClick(target);
@@ -260,7 +254,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		add(labelComponent);
 
 	}
-
+	
 	protected void reloadParentContainerPanel(AjaxRequestTarget target){
 	}
 
@@ -268,10 +262,15 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		isChildContainersSelectorPanelVisible = false;
 		getModelObject().setShowEmpty(true, false);
 		createNewContainerValue(getModelObject(), getSelectedContainerQName());
+		onButtonClick(ajaxRequestTarget);
 		ajaxRequestTarget.add(getChildContainersSelectorPanel().getParent());
 	}
 
 	private QName getSelectedContainerQName(){
+		List<QName> pathsList = getModelObject().getChildMultivalueContainersToBeAdded(isPanelVisible);
+		if(pathsList.size() == 1) {
+			return pathsList.get(0);
+		}
 		DropDownChoicePanel<QName> panel = (DropDownChoicePanel)getChildContainersSelectorPanel().get(ID_CHILD_CONTAINERS_LIST);
 		return panel.getModel().getObject();
 	}
@@ -296,8 +295,9 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	}
 	
 	public void createNewContainerValue(ContainerValueWrapper<C> containerValueWrapper, QName path){
-		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(new ItemPath(containerValueWrapper.getPath(),
-				path));
+		ItemPath newPath = new ItemPath(containerValueWrapper.getPath(), path);
+		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(newPath);
+		
 		if (childContainerWrapper == null){
 			return;
 		}
@@ -312,13 +312,10 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
 		ContainerValueWrapper<C> newValueWrapper = factory.createContainerValueWrapper(childContainerWrapper,
 				newContainerValue, containerValueWrapper.getObjectStatus(),
-				ValueStatus.ADDED, new ItemPath(path), task);
+				ValueStatus.ADDED, newPath, task);
 		newValueWrapper.setShowEmpty(true, false);
 		newValueWrapper.computeStripes();
 		childContainerWrapper.getValues().add(newValueWrapper);
 
 	}
-
-
-
 }

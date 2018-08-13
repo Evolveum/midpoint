@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.gui.impl.util;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
 
 /**
@@ -31,6 +33,18 @@ public class GuiImplUtil {
 			return aItem.getBinding().getPath().getItemPath();
 		} else {
 			return null;
+		}
+	}
+	
+	public static String getObjectStatus(final ContainerValueWrapper<Containerable> object) {
+		switch (object.getStatus()) {
+        case ADDED:
+            return "success";
+        case DELETED:
+            return "danger";
+        case NOT_CHANGED:
+        default:
+            return null;
 		}
 	}
 

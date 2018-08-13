@@ -409,7 +409,7 @@ public class ContainerWrapperFactory {
         if (reference == null) {
         	PrismReference newReference = def.instantiate();
         	refWrapper = new ReferenceWrapper(cWrapper, newReference, propertyIsReadOnly,
-                    ValueStatus.ADDED, cWrapper.getPath().append(newReference.getPath()));
+                    ValueStatus.ADDED, containerValue.getPath().subPath(newReference.getElementName()));
         } else {
         
         	refWrapper = new ReferenceWrapper(cWrapper, reference, propertyIsReadOnly,

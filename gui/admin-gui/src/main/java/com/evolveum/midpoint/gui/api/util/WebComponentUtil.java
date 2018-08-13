@@ -99,6 +99,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -274,6 +275,21 @@ public final class WebComponentUtil {
 		return refs.stream()
 				.map(ref -> emptyIfNull(getDisplayNameAndName(ref)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
 				.collect(Collectors.joining(", "));
+	}
+	
+	public static String getReferencedObjectDisplayNamesAndNames(DefaultReferencableImpl ref, boolean showTypes) {
+		String name = ref.getTargetName() == null ? "" : ref.getTargetName().getOrig();
+		StringBuilder sb = new StringBuilder(name);
+		if(showTypes) {
+			sb.append(" (");
+			ObjectTypes type = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
+			ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(type);
+			if (descriptor == null) {
+				return null;
+			}
+			sb.append(emptyIfNull(createStringResourceStatic(null, descriptor.getLocalizationKey()).getString())).append(")");
+		}
+		return sb.toString();
 	}
 
 	public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
@@ -1463,6 +1479,10 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON_COLORED;
 		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON_COLORED;
+		} else if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
+		} else if (QNameUtil.match(GlobalPolicyRuleType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
 		} else {
 			return "";
 		}
@@ -1494,6 +1514,8 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON;
 		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON;
+		} else if (QNameUtil.match(SystemConfigurationType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
 		} else {
 			return "";
 		}

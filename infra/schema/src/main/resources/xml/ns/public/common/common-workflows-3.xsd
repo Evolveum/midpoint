@@ -51,8 +51,20 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalSchemaType.name</a:displayName>
+			        </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalSchemaType.description</a:displayName>
+			        </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
 			<xsd:element name="level" type="c:ApprovalStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -71,6 +83,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalSchemaType.stage</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -95,6 +108,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.6</a:deprecatedSince>
+						<a:displayName>ApprovalStageDefinitionType.order</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -105,12 +119,31 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.number</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="displayName" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.name</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.displayName</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.description</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -118,6 +151,9 @@
 						by someone from a group of users (if this points to a Org object; representing
 						all users that belong to that organization).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.approverRef</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
@@ -130,6 +166,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.5</a:since>
+						<a:displayName>ApprovalStageDefinitionType.approverRelation</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -140,6 +177,9 @@
 						is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
 						May be used with approverRef element(s).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.approverExpression</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="evaluationStrategy" type="c:LevelEvaluationStrategyType" minOccurs="0">
@@ -148,6 +188,9 @@
 						Must all approvers at this stage approve the thing (allMustApprove),
 						or first decision is taken as authoritative (firstDecides)?
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.evaluationStrategy</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="outcomeIfNoApprovers" type="c:ApprovalLevelOutcomeType" minOccurs="0">
@@ -158,6 +201,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.outcomeIfNoApprovers</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -169,6 +213,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.groupExpansion</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -180,6 +225,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.formRef</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -191,6 +237,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.additionalInformation</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -205,6 +252,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.6</a:deprecatedSince>
+						<a:displayName>ApprovalStageDefinitionType.automaticallyApproved</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -216,6 +264,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.automaticallyCompleted</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -227,6 +276,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.duration</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -238,6 +288,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.timedActions</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>

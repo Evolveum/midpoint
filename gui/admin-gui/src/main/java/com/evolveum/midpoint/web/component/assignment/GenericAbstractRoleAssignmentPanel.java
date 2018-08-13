@@ -50,7 +50,11 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
 //	}
 	
 	@Override
-	protected List<ContainerValueWrapper<AssignmentType>> postSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
+	protected List<ContainerValueWrapper<AssignmentType>> customPostSearch(List<ContainerValueWrapper<AssignmentType>> assignments) {
+		
+		if(assignments == null) {
+			return null;
+		}
 		
 		List<ContainerValueWrapper<AssignmentType>> resultList = new ArrayList<>();
 		Task task = getPageBase().createSimpleTask("load assignment targets");

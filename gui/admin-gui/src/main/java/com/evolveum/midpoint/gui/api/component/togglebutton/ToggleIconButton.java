@@ -70,7 +70,7 @@ public abstract class ToggleIconButton<T> extends AjaxLink<T> {
 			}
         });
 	}
-
+	
 	public abstract boolean isOn();
 
 }

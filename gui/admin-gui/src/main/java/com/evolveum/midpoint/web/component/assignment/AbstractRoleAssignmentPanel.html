@@ -16,9 +16,27 @@
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
+	<wicket:panel>
+		<div wicket:id="assignments">
+		</div>
+		<wicket:fragment wicket:id="searchFragment">
+           <div wicket:id="relationContainer" class="col-xs-6">
+                <label class="col-xs-2 prism-property" ><wicket:message key="AbstractRoleAssignmentPanel.relationLabel" /></label>
+                <div class="col-xs-3" wicket:id="relation" />
+            </div>
+            <div class="col-xs-3 pull-right">
+                <div class="btn btn-default pull-right" wicket:id="showAllAssignmentsButton" />
+            </div>
+    	</wicket:fragment>
+    	<wicket:fragment wicket:id="specificContainersFragment">
+           <div class="container-fluid prism-object" wicket:id="activationPanel" />
+           <div wicket:id="specificContainers" />
+    	</wicket:fragment>
+	</wicket:panel>
+	
+<!-- <wicket:panel>
 
-    <div wicket:id="assignments" class="main-form-panel">
+    <div wicket:id="items" class="main-form-panel">
         <div class="row">
             <div wicket:id="relationContainer" class="col-xs-6">
                 <label class="col-xs-2 prism-property" ><wicket:message key="AbstractRoleAssignmentPanel.relationLabel" /></label>
@@ -30,23 +48,23 @@
         </div>
 
         <div class="row" >
-            <div class="col-md-12" wicket:id="assignmentsTable"  style="margin: 5px 0;"/>
+            <div class="col-md-12" wicket:id="itemsTable"  style="margin: 5px 0;"/>
         </div>
         <div>
-            <div class="btn btn-success btn-sm" wicket:id="newAssignmentButton"/>
+            <div class="btn btn-success btn-sm" wicket:id="newItemButton"/>
         </div>
     </div>
     <div wicket:id="details">
-    	<div wicket:id="assignmentsDetails">
-    		<div wicket:id="assignmentDetails" />
+    	<div wicket:id="itemsDetails">
+    		<div wicket:id="itemDetails" />
     	</div>
     	
     	<div class="row">
-        <div class="container-fluid prism-container">
-        	<div class="btn btn-default" wicket:id="cancelButton"/>
-            <div class="btn btn-primary" wicket:id="doneButton"/>
-        </div>
+        	<div class="container-fluid prism-container">
+        		<div class="btn btn-default" wicket:id="cancelButton"/>
+            	<div class="btn btn-primary" wicket:id="doneButton"/>
+        	</div>
+    	</div>
     </div>
-    </div>
-</wicket:panel>
+</wicket:panel> -->
 </html>
