@@ -154,6 +154,7 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>testng-integration-schrodinger.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                    <!--<skipITs>true</skipITs>-->
                     <skipITs>${skipTests}</skipITs>
                 </configuration>
                 <executions>
