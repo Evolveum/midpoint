@@ -359,7 +359,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 
 		});
         
-        columns.add(new EditableLinkColumn<MailServerConfiguration>(createStringResource("MailConfigurationType.host")){
+        columns.add(new EditableLinkColumn<MailServerConfiguration>(createStringResource("MailServerConfigurationType.host")){
             private static final long serialVersionUID = 1L;
             
             @Override
@@ -381,7 +381,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
             }
         });
         
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailConfigurationType.port")){
+        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.port")){
         	
 			private static final long serialVersionUID = 1L;
 
@@ -399,7 +399,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
         	}
         });
         
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailConfigurationType.username")){
+        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.username")){
         	
 			private static final long serialVersionUID = 1L;
 
@@ -417,7 +417,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
         	}
         });
         
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailConfigurationType.password")){
+        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.password")){
         	
 			private static final long serialVersionUID = 1L;
 
@@ -433,7 +433,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
         	}
         });
         
-        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailConfigurationType.transportSecurity")){
+        columns.add(new EditableColumn<MailServerConfiguration, String>(createStringResource("MailServerConfigurationType.transportSecurity")){
         	
 			private static final long serialVersionUID = 1L;
 

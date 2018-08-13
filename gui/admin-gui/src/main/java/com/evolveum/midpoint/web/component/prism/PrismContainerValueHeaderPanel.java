@@ -193,7 +193,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		 
 		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
 				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
-				new QNameIChoiceRenderer(getModelObject().getDefinition().getCompileTimeClass().getSimpleName()));
+				new QNameIChoiceRenderer(getModelObject().getDefinition().getDefaultNamespace()));
 		multivalueContainersList.setOutputMarkupId(true);
 		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		childContainersSelectorPanel.add(multivalueContainersList);
