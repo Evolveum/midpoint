@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package schrodinger;
+package com.evolveum.midpoint.testing.schrodinger;
 
-import com.evolveum.midpoint.schrodinger.component.common.Paging;
-import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import org.testng.annotations.Test;
 
 import static com.codeborne.selenide.Selenide.screenshot;
@@ -25,29 +23,17 @@ import static com.codeborne.selenide.Selenide.screenshot;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class UsersTest extends TestBase {
+public class BasicTest extends TestBase {
 
     @Test
-    public void testUserTablePaging() {
-        ListUsersPage users = basicPage.listUsers();
+    public void login() {
 
-        screenshot("listUsers");
+    }
 
-        Paging paging = users
-                .table()
-                .paging();
+    @Test
+    public void logout() {
+        basicPage.loggedUser().logout();
 
-        paging.pageSize(5);
-
-        screenshot("paging");
-
-        paging.next()
-                .last()
-                .previous()
-                .first()
-                .actualPagePlusOne()
-                .actualPagePlusTwo()
-                .actualPageMinusTwo()
-                .actualPageMinusOne();
+        screenshot("logout");
     }
 }

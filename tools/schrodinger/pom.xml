@@ -97,13 +97,7 @@
             <version>2.1.8</version>
         </dependency>
 
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.6</version>
-        </dependency>
-
-        <!-- TEST -->
+        <!-- POSSIBLY OBSOLETE BEGIN-->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -121,8 +115,13 @@
             </exclusions>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>schrodinger</artifactId>
+            <version>3.9-SNAPSHOT</version>
+        </dependency>
     </dependencies>
-
+    <!-- POSSIBLY OBSOLETE END-->
     <dependencyManagement>
         <dependencies>
             <dependency>

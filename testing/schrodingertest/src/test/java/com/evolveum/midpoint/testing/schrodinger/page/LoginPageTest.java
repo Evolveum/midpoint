@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package schrodinger;
+package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.codeborne.selenide.Condition;
 import com.evolveum.midpoint.schrodinger.page.LoginPage;
 import org.openqa.selenium.By;
 import org.testng.annotations.Test;
+import com.evolveum.midpoint.testing.schrodinger.TestBase;
 
 import static com.codeborne.selenide.Selenide.$;
 

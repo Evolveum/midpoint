@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.AllFilter;
@@ -32,6 +33,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -65,6 +68,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -74,6 +79,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
@@ -140,6 +146,9 @@ public class PageAbout extends PageAdminConfiguration {
 
     private IModel<RepositoryDiag> repoDiagModel;
     private IModel<ProvisioningDiag> provisioningDiagModel;
+
+    @Autowired RepositoryCache repositoryCache;
+    @Autowired protected SystemObjectCache systemObjectCache;
 
     public PageAbout() {
         repoDiagModel = new LoadableModel<RepositoryDiag>(false) {
@@ -507,27 +516,28 @@ public class PageAbout extends PageAdminConfiguration {
 					return null;
 				}
 
-			});
-			
-			InitialDataImport initialDataImport = new InitialDataImport();
+	    });
+
+
+            InitialDataImport initialDataImport = new InitialDataImport();
 			initialDataImport.setModel(getModelService());
 			initialDataImport.setTaskManager(getTaskManager());
 			initialDataImport.setPrismContext(getPrismContext());
 			initialDataImport.setConfiguration(getMidpointConfiguration());
 			initialDataImport.init();
-			
-			getModelService().postInit(result);
-			
-		} catch (Exception ex) {
-			result.recomputeStatus();
-			result.recordFatalError("Couldn't import initial objects.", ex);
 
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
-		}
-		
-		
-		
-		showResult(result);
+    getModelService().postInit(result);
+
+} catch (Exception ex) {
+        result.recomputeStatus();
+        result.recordFatalError("Couldn't import initial objects.", ex);
+
+        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
+        }
+
+
+
+        showResult(result);
 		target.add(getFeedbackPanel());
     }
 

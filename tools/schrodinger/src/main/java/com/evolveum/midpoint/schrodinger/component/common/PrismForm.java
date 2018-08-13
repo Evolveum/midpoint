@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schrodinger.component.common;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
@@ -168,6 +169,8 @@ public class PrismForm<T> extends Component<T> {
 
     private SelenideElement findProperty(String name) {
 
+        Selenide.sleep(5000);
+
         SelenideElement element = null;
 
         boolean doesElementAttrValueExist = $(Schrodinger.byElementAttributeValue(null, "contains",
@@ -175,11 +178,11 @@ public class PrismForm<T> extends Component<T> {
 
         if (doesElementAttrValueExist) {
             element = $(Schrodinger.byElementAttributeValue(null, "contains",
-                    Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT);
+                    Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT);
 
         } else {
-            element = $(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/.."))
-                    .parent().waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT);
+            element = $(By.xpath("//span[@data-s-id=\"label\"][contains(.,\"" + name + "\")]/..")).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM)
+                    .parent().waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM);
         }
 
         return element;

@@ -5800,6 +5800,11 @@
                     <xsd:documentation>
                         Currently not implemented.
                     </xsd:documentation>
+                     <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>3.9</a:deprecatedSince>
+                        <a:plannedRemoval>4.0</a:plannedRemoval>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="volatility" type="tns:ResourceObjectVolatilityType" minOccurs="0">
@@ -5883,7 +5888,17 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-
+			<xsd:element name="projection" type="tns:ProjectionPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object type related account synchronization settings.
+                    </xsd:documentation>
+                     <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:since>3.9</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -13841,6 +13856,9 @@
                             <xsd:documentation>
                                 Persistent configuration of logging levels, categories, etc.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>SystemConfigurationType.logging</a:displayName>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="defaultUserTemplate" type="tns:ObjectTemplateType" minOccurs="0" maxOccurs="1">
@@ -13919,6 +13937,9 @@
                                 A configuration for user notifications. In future, it might be overridden e.g. at a level
                                 of a user.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>SystemConfigurationType.notificationConfiguration</a:displayName>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     
@@ -15189,10 +15210,34 @@
             <xsd:element name="subSystemLogger" type="tns:SubSystemLoggerConfigurationType" minOccurs="0"
                          maxOccurs="unbounded"/>
             <xsd:element name="classLogger" type="tns:ClassLoggerConfigurationType" minOccurs="0"
-                         maxOccurs="unbounded"/>
-            <xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="rootLoggerAppender" type="xsd:string"/>
-            <xsd:element name="rootLoggerLevel" type="tns:LoggingLevelType"/>
+                         maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.classLogger</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
+            <xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.appender</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
+            <xsd:element name="rootLoggerAppender" type="xsd:string">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.rootLoggerAppender</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
+            <xsd:element name="rootLoggerLevel" type="tns:LoggingLevelType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.rootLoggerLevel</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
             <xsd:element name="auditing" type="tns:AuditingConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -15200,6 +15245,9 @@
                         available auditing option is to use logging.
                         THIS WILL CHANGE IN THE FUTURE.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LoggingConfigurationType.auditing</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="advanced" type="tns:AdvancedLoggingConfigurationType" minOccurs="0" maxOccurs="1"/>

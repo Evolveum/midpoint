@@ -109,16 +109,11 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 		
 		//GIVEN
 		
-		assumeResourceAssigmentPolicy(RESOURCE_DUMMY_CLASSIFIER_OID, AssignmentPolicyEnforcementType.NONE, false);
-//		AssignmentType assignment = new AssignmentType(prismContext);
-//		assignment.construction(new ConstructionType(prismContext).resourceRef(RESOURCE_DUMMY_CLASSIFIER_OID, ObjectTypes.RESOURCE.getTypeQName()));
-//		
-//		ObjectDelta<ServiceType> assignResourceDelta = (ObjectDelta<ServiceType>) DeltaBuilder.deltaFor(ServiceType.class, prismContext).item(ServiceType.F_ASSIGNMENT).add(assignment).asObjectDelta(SERVICE_JIRA_OID);
-//	
+//		assumeResourceAssigmentPolicy(RESOURCE_DUMMY_CLASSIFIER_OID, AssignmentPolicyEnforcementType.NONE, false);
+
 		//WHEN
 		displayWhen(TEST_NAME);
 		assignAccount(ServiceType.class, SERVICE_JIRA_OID, RESOURCE_DUMMY_CLASSIFIER_OID, "service");
-//		executeChanges(assignResourceDelta, null, task, result);
 		
 		//THEN
 		displayThen(TEST_NAME);
@@ -129,7 +124,7 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 		
 		assertNoLinkedAccount(service);
 		
-		assumeResourceAssigmentPolicy(RESOURCE_DUMMY_CLASSIFIER_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
+//		assumeResourceAssigmentPolicy(RESOURCE_DUMMY_CLASSIFIER_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
 	}
 	
 	@Test

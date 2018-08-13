@@ -334,7 +334,7 @@ public class AssignmentProcessor {
 				}
 
 				@Override
-				public void onAssigned(ResourceShadowDiscriminator rat, String desc) {
+				public void onAssigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
 					LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
 					projectionContext.setAssigned(true);
 					projectionContext.setAssignedOld(false);
@@ -348,7 +348,7 @@ public class AssignmentProcessor {
 				}
 
 				@Override
-				public void onUnchangedValid(ResourceShadowDiscriminator key, String desc) {
+				public void onUnchangedValid(ResourceShadowDiscriminator key, String desc) throws SchemaException {
 					LensProjectionContext projectionContext = context.findProjectionContext(key);
 					if (projectionContext == null) {
 						if (processOnlyExistingProjCxts) {
@@ -373,7 +373,7 @@ public class AssignmentProcessor {
 				}
 
 				@Override
-				public void onUnchangedInvalid(ResourceShadowDiscriminator rat, String desc) {
+				public void onUnchangedInvalid(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
 					LensProjectionContext projectionContext = context.findProjectionContext(rat);
 					if (projectionContext == null) {
 						if (processOnlyExistingProjCxts) {
@@ -400,7 +400,7 @@ public class AssignmentProcessor {
 				}
 
 				@Override
-				public void onUnassigned(ResourceShadowDiscriminator rat, String desc) {
+				public void onUnassigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
 					if (accountExists(context, rat)) {
 						LensProjectionContext projectionContext = context.findProjectionContext(rat);
 						if (projectionContext == null) {
@@ -792,7 +792,7 @@ public class AssignmentProcessor {
 	}
 
 	public <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context,
-			OperationResult result) throws PolicyViolationException {
+			OperationResult result) throws PolicyViolationException, SchemaException {
 		for(LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()){
 				continue;

@@ -1,11 +1,11 @@
-package schrodinger.scenarios;
+package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-import schrodinger.TestBase;
+import com.evolveum.midpoint.testing.schrodinger.TestBase;
 
 /**
  * Created by matus on 5/21/2018.
