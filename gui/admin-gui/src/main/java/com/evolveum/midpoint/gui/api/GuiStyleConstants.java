@@ -143,6 +143,8 @@ public class GuiStyleConstants {
 
 	public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
 	public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";
+	public static final String CLASS_BUTTON_TOGGLE_COLLAPSE = "glyphicon-triangle-bottom";
+	public static final String CLASS_BUTTON_TOGGLE_EXPAND = "glyphicon-triangle-right";
 
 	public static final String CLASS_BADGE_ACTIVE = "badge-active";
 	public static final String CLASS_BADGE_PASSIVE = "badge-passive";

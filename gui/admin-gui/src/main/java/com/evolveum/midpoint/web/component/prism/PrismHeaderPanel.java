@@ -50,12 +50,15 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 
 		setOutputMarkupId(true);
 		
+		initExpandCollapseButtons();
 		initButtons();
 		initHeaderLabel();
 
     }
 
-    protected void initHeaderLabel(){
+    protected abstract void initExpandCollapseButtons();
+
+	protected void initHeaderLabel(){
         String displayName = getLabel();
         if (StringUtils.isEmpty(displayName)) {
             displayName = "displayName.not.set";
