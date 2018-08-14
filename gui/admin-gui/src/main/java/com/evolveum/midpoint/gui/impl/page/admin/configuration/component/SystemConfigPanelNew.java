@@ -55,21 +55,11 @@ public class SystemConfigPanelNew extends BasePanel<ObjectWrapper<SystemConfigur
     }
     
     protected void initLayout() {
-    	
     	Form form = new Form<>("form");
-    	
 		PrismPanel<SystemConfigurationType> panel = new PrismPanel<SystemConfigurationType>(ID_SYSTEM_CONFIG, 
 		new ContainerWrapperListFromObjectWrapperModel(getModel(), getVisibleContainers()), null, form, null, getPageBase());
 		add(panel);
     }
-    
-//    private ItemVisibility getActivationVisibileItems(ItemPath pathToCheck) {
-//    	if(pathToCheck.isSubPathOrEquivalent(PATH_GLOBAL_SECURITY_POLICY_REF) || pathToCheck.isSubPathOrEquivalent(PATH_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS) || pathToCheck.isSubPathOrEquivalent(PATH_CLEANUP_POLICY)
-//				|| pathToCheck.isSuperPathOrEquivalent(PATH_DEFAULT_OBJECT_POLICY_CONFIGURATION) || pathToCheck.equivalent(PATH_ENABLE_EXPERIMENTAL_CODE) || pathToCheck.isSuperPathOrEquivalent(PATH_DEPLOYMENT_INFORMATION)){
-//			return ItemVisibility.AUTO;
-//		}
-//		return ItemVisibility.HIDDEN;
-//    }
     
 	private List<ItemPath> getVisibleContainers() {
 		List<ItemPath> paths = new ArrayList<>();
