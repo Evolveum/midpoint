@@ -442,7 +442,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			if (target == null) {
 				continue;
 			}
-			Collection<String> targetSubtypes = ObjectTypeUtil.getSubtypeValues((PrismObject) target);
+			Collection<String> targetSubtypes = FocusTypeUtil.determineSubTypes((PrismObject) target);
 			if (targetSubtypes.contains(roleSubtype)) {
 				return true;
 			}

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -86,12 +87,13 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	@Override
 	protected ResultHandler<OrgType> getOrgSanityCheckHandler() {
 		return (org, parentResult) -> {
-			OrgType orgType = org.asObjectable();
-			if (orgType.getOrgType().contains("functional")) {
+			OrgType orgBean = org.asObjectable();
+			List<String> orgType = FocusTypeUtil.determineSubTypes(orgBean);
+			if (orgType.contains("functional")) {
 				assertAssigned(org, ROLE_META_FUNCTIONAL_ORG_OID, RoleType.COMPLEX_TYPE);
-			} else if (orgType.getOrgType().contains("project")) {
+			} else if (orgType.contains("project")) {
 				// Nothing to check (yet)
-			} else if (orgType.getOrgType().contains("fictional")) {
+			} else if (orgType.contains("fictional")) {
 				// Nothing to check (yet)
 			} else {
 				AssertJUnit.fail("Unexpected orgType in "+org);
@@ -123,7 +125,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
 		List<PolyStringType> expextedOrgs = new ArrayList<>();
 		for (String orgOid: orgOids) {
 			PrismObject<OrgType> org = getObject(OrgType.class, orgOid);
-			List<String> orgType = org.asObjectable().getOrgType();
+			List<String> orgType = FocusTypeUtil.determineSubTypes(org);
 			if (orgType.contains("functional")) {
 				PolyStringType orgName = org.asObjectable().getName();
 				assertTrue("Value "+orgName+" not found in user organization property: "+userOrganizations, userOrganizations.contains(orgName));

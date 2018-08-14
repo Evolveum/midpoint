@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -216,7 +217,7 @@ public class AssociationFromLinkExpressionEvaluator
 
 	private boolean matchesForRecursion(OrgType thisOrg) {
 		for (String recurseUpOrgType: evaluatorType.getRecurseUpOrgType()) {
-			if (thisOrg.getOrgType().contains(recurseUpOrgType)) {
+			if (FocusTypeUtil.determineSubTypes(thisOrg).contains(recurseUpOrgType)) {
 				return true;
 			}
 		}
