@@ -19,3 +19,5 @@ dependency-reduced-pom.xml
 .DS_Store
 
 tools/schrodinger/build
+
+_mess
