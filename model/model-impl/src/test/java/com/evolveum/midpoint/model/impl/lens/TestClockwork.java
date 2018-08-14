@@ -354,7 +354,7 @@ public class TestClockwork extends AbstractLensTest {
         LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
 
-        assertEquals(SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
+        assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<?> executedDelta = getExecutedDelta(accContext);
         assertNotNull("No executed delta in "+accContext, executedDelta);
