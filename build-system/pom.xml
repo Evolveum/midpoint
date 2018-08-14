@@ -60,7 +60,7 @@
         <opendj.version>2.6.2</opendj.version>
         <mockito.version>1.10.8</mockito.version>
         <quartz.version>2.3.0.e2</quartz.version>
-        <selenium.version>1.0.1</selenium.version>
+        <selenium.version>3.6.0</selenium.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <spring.boot.version>2.0.3.RELEASE</spring.boot.version>
@@ -93,6 +93,8 @@
         <reflections.version>0.9.11</reflections.version>
         <guava.version>20.0</guava.version>
         <jcommander.version>1.72</jcommander.version>
+		<failsafe.version>2.22.0</failsafe.version>
+		<antrun.version>1.8</antrun.version>
     </properties>
     <dependencyManagement>
         <dependencies>

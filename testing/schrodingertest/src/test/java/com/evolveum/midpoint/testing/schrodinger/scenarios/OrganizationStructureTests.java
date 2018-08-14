@@ -1,14 +1,13 @@
-package schrodinger.scenarios;
+package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Selenide;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
+import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import org.apache.commons.io.FileUtils;
 import org.testng.Assert;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import schrodinger.TestBase;
 
 import javax.naming.ConfigurationException;
 import java.io.File;
@@ -44,6 +43,8 @@ public class OrganizationStructureTests extends TestBase {
     private static final String DIRECTORY_CURRENT_TEST = "organizationStructureTests";
     private static final String FILE_RESOUCE_NAME = "midpoint-advanced-sync.csv";
 
+    //TODO seems that some problems with property files in the csv resource which is being used for tests, replace value after resolution
+    protected static final String CSV_RESOURCE_ATTR_UNIQUE= "UI_CSV_NAME_ATTRIBUTE";
 
     @Test
     public void importOrgStructure() throws IOException, ConfigurationException {
@@ -58,13 +59,14 @@ public class OrganizationStructureTests extends TestBase {
                 importPage
                     .getObjectsFromFile()
                     .chooseFile(ORG_MONKEY_ISLAND_SOURCE_FILE)
+                    .checkOverwriteExistingObject()
                     .clickImport()
                         .feedback()
                         .isSuccess()
         );
     }
 
-    @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
+   // @Test (dependsOnMethods ={IMPORT_ORG_STRUCT_DEPENDENCY})
     public void assignOrgUnit(){
          ListUsersPage users = basicPage.listUsers();
             users
@@ -96,7 +98,7 @@ public class OrganizationStructureTests extends TestBase {
 
     }
 
-    @Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
+   // @Test (dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
     public void unassignOrgUnit(){
         ListUsersPage users = basicPage.listUsers();
             users
@@ -118,9 +120,9 @@ public class OrganizationStructureTests extends TestBase {
                     .isSuccess();
     }
 
-    @Test
+    @Test ///(dependsOnMethods ={ASSIGN_ORG_UNIT_DEPENDENCY})
     public void orgUnitAccountInducement(){
-        importObject(CSV_RESOURCE_ADVANCED_SYNC);
+        importObject(CSV_RESOURCE_ADVANCED_SYNC,true);
         importObject(ORG_ACCOUNT_INDUCEMENT_FILE);
         importObject(USER_TEST_RAPHAEL_FILE);
 
@@ -163,11 +165,13 @@ public class OrganizationStructureTests extends TestBase {
                     .clickEditResourceConfiguration()
                         .form()
                         .changeAttributeValue("File path",AccountTests.CSV_SOURCE_OLDVALUE, CSV_TARGET_FILE.getAbsolutePath())
+                        .changeAttributeValue(CSV_RESOURCE_ATTR_UNIQUE,"","login")
                     .and()
                 .and()
                 .clickSaveAndTestConnection()
                 .isTestSuccess()
         );
+       // Selenide.sleep(11000);
     }
 
 
