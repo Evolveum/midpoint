@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -316,7 +317,7 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 									task, task.getResult());
 
 							if (org != null) {
-								if (org.asObjectable().getOrgType().contains("access")) {
+								if (FocusTypeUtil.determineSubTypes(org).contains("access")) {
 									count++;
 								}
 							}

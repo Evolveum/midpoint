@@ -36,6 +36,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
+
+import static java.util.Collections.emptyList;
 
 /**
  * @author semancik
@@ -171,9 +174,15 @@ public class FocusTypeUtil {
 		return passwd.getValue();
 	}
 
+	@NotNull    // to eliminate the need for extensive NPE avoidance
+	public static <O extends ObjectType> List<String> determineSubTypes(O object) {
+		return object != null ? determineSubTypes(object.asPrismObject()) : emptyList();
+	}
+
+	@NotNull    // to eliminate the need for extensive NPE avoidance
 	public static <O extends ObjectType> List<String> determineSubTypes(PrismObject<O> object) {
 		if (object == null) {
-			return null;
+			return emptyList();
 		}
 		
 		List<String> subtypes = object.asObjectable().getSubtype();
@@ -188,6 +197,7 @@ public class FocusTypeUtil {
 			return (((OrgType)object.asObjectable()).getOrgType());
 		}
 		if (object.canRepresent(RoleType.class)) {
+			// TODO why not return simply .getRoleType() [pmed]
 			List<String> roleTypes = new ArrayList<>(1);
 			roleTypes.add((((RoleType)object.asObjectable()).getRoleType()));
 			return roleTypes;
@@ -195,7 +205,7 @@ public class FocusTypeUtil {
 		if (object.canRepresent(ServiceType.class)) {
 			return (((ServiceType)object.asObjectable()).getServiceType());
 		}
-		return null;
+		return emptyList();
 	}
 
 	public static <O extends ObjectType> boolean hasSubtype(PrismObject<O> object, String subtype) {

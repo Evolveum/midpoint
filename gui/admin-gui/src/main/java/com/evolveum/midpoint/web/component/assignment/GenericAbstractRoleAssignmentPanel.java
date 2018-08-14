@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -61,7 +62,7 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
 			if (QNameUtil.match(assignment.getTargetRef().getType(), OrgType.COMPLEX_TYPE)) {
 				PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, task.getResult());
 				if (org != null) {
-					if (org.asObjectable().getOrgType().contains("access")) {
+					if (FocusTypeUtil.determineSubTypes(org).contains("access")) {
 						resultList.add(ass);
 					}
 				}
