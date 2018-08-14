@@ -757,6 +757,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		
 	private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException {
 		RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+		if (refinedSchema == null) {
+			return null;
+		}
+		
 		RefinedObjectClassDefinition objectClassDef = refinedSchema.getRefinedDefinition(resourceShadowDiscriminator.getKind(),
 				resourceShadowDiscriminator.getIntent());
 
