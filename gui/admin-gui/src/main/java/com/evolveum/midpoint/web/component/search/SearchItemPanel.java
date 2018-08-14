@@ -203,9 +203,12 @@ public class SearchItemPanel extends BasePanel<SearchItem> {
         IModel<? extends List> choices = null;
 
         switch (item.getType()) {
-            case BROWSER:
-                popup = new BrowserPopupPanel(ID_VALUE, data);
-                break;
+        	case REFERENCE:
+        		popup = new ReferencePopupPanel(ID_VALUE, data);
+        		break;
+//            case BROWSER:
+//                popup = new BrowserPopupPanel(ID_VALUE, data);
+//                break;
             case BOOLEAN:
                 choices = createBooleanChoices();
             case ENUM:

@@ -16,8 +16,20 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -31,13 +43,32 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -123,11 +154,33 @@ public class SearchFactory {
                 new ItemPath(TaskType.F_CATEGORY),
                 new ItemPath(TaskType.F_RESULT_STATUS)
         ));
+        
+        SEARCHABLE_OBJECTS.put(AssignmentType.class, Arrays.asList(
+                new ItemPath(AssignmentType.F_TARGET_REF),
+                new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
+                new ItemPath(AssignmentType.F_TENANT_REF),
+                new ItemPath(AssignmentType.F_ORG_REF)
+        ));
+        
+        SEARCHABLE_OBJECTS.put(ObjectPolicyConfigurationType.class, Arrays.asList(
+                new ItemPath(ObjectPolicyConfigurationType.F_SUBTYPE),
+                new ItemPath(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF),
+                new ItemPath(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME)
+        ));
     }
 
     public static <T extends ObjectType> Search createSearchForShadow(
             ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         return createSearch(ShadowType.class, discriminator, modelServiceLocator, true);
+    }
+    
+    public static <C extends Containerable> Search createContainerSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
+    	
+    	PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+    	Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
+    	
+    	Search search = new Search(type, availableDefs);
+    	return search;
     }
 
     public static <T extends ObjectType> Search createSearch(Class<T> type, ModelServiceLocator modelServiceLocator) {
@@ -184,13 +237,17 @@ public class SearchFactory {
         }
     }
 
-    private static <T extends ObjectType> Map<ItemPath, ItemDefinition> getAvailableDefinitions(
-            PrismObjectDefinition<T> objectDef, boolean useDefsFromSuperclass) {
+    private static <C extends Containerable> Map<ItemPath, ItemDefinition> getAvailableDefinitions(
+            PrismContainerDefinition<C> objectDef, boolean useDefsFromSuperclass) {
         Map<ItemPath, ItemDefinition> map = new HashMap<>();
 
+        if (objectDef == null) {
+        	return map;
+        }
+        
         map.putAll(createExtensionDefinitionList(objectDef));
 
-        Class<T> typeClass = objectDef.getCompileTimeClass();
+        Class<C> typeClass = objectDef.getCompileTimeClass();
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
             List<ItemPath> paths = SEARCHABLE_OBJECTS.get(typeClass);
             if (paths != null) {
@@ -206,7 +263,7 @@ public class SearchFactory {
                 break;
             }
 
-            typeClass = (Class<T>) typeClass.getSuperclass();
+            typeClass = (Class<C>) typeClass.getSuperclass();
         }
 
         return map;
@@ -243,14 +300,18 @@ public class SearchFactory {
         }
     }
 
-    private static <T extends ObjectType> Map<ItemPath, ItemDefinition> createExtensionDefinitionList(
-            PrismObjectDefinition<T> objectDef) {
+    private static <C extends Containerable> Map<ItemPath, ItemDefinition> createExtensionDefinitionList(
+            PrismContainerDefinition<C> objectDef) {
 
         Map<ItemPath, ItemDefinition> map = new HashMap<>();
 
         ItemPath extensionPath = new ItemPath(ObjectType.F_EXTENSION);
 
         PrismContainerDefinition ext = objectDef.findContainerDefinition(ObjectType.F_EXTENSION);
+        if (ext == null) {
+        	return map;
+        }
+        
         for (ItemDefinition def : (List<ItemDefinition>) ext.getDefinitions()) {
             if (!(def instanceof PrismPropertyDefinition)
                     && !(def instanceof PrismReferenceDefinition)) {

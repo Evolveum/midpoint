@@ -34,6 +34,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -152,7 +155,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					ListItem<ContainerValueWrapper<AssignmentType>> item) {
 				return createMultivalueContainerDetailsPanel(item);
 			}
-
+		
 		};
 		
 		add(multivalueContainerListPanel);

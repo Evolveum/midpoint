@@ -421,7 +421,7 @@ public class SearchPanel extends BasePanel<Search> {
 		Search search = getModelObject();
 		PageRepositoryQuery pageQuery;
 		if (search != null) {
-			ObjectTypes type = search.getType() != null ? ObjectTypes.getObjectType(search.getType()) : null;
+			ObjectTypes type = search.getType() != null ? ObjectTypes.getObjectType(search.getType().getSimpleName()) : null;
 			QName typeName = type != null ? type.getTypeQName() : null;
 			String inner = search.getAdvancedQuery();
 			if (StringUtils.isNotBlank(inner)) {

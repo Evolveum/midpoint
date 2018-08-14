@@ -40,7 +40,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
     public static final String F_VALUES = "values";
 
     public enum Type {
-        TEXT, BOOLEAN, ENUM, BROWSER
+        TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE
     }
 
     private Search search;
@@ -98,7 +98,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
 
     public Type getType() {
         if (definition instanceof PrismReferenceDefinition) {
-            return Type.BROWSER;
+            return Type.REFERENCE;
         }
 
         PrismPropertyDefinition def = (PrismPropertyDefinition) definition;

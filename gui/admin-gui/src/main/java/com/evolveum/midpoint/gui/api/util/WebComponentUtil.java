@@ -2405,7 +2405,7 @@ public final class WebComponentUtil {
 		
 	}
 
-	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, OperationResult result, PageBase pageBase){
+	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, OperationResult result, ModelServiceLocator pageBase){
 		List<QName> relationsList = new ArrayList<>();
 		List<RelationDefinitionType> defList = getRelationDefinitions(result, pageBase);
 		if (defList != null) {
@@ -2417,8 +2417,16 @@ public final class WebComponentUtil {
 		}
 		return relationsList;
 	}
+	
+	public static List<QName> getAllRelations(ModelServiceLocator pageBase) {
+		OperationResult result = new OperationResult("get all relations");
+		List<RelationDefinitionType> allRelationdefinitions = getRelationDefinitions(result, pageBase);
+		List<QName> allRelationsQName = new ArrayList<>(allRelationdefinitions.size());
+		allRelationdefinitions.stream().forEach(relation -> allRelationsQName.add(relation.getRef()));
+		return allRelationsQName;
+	}
 
-	public static List<RelationDefinitionType> getRelationDefinitions(OperationResult result, PageBase pageBase){
+	public static List<RelationDefinitionType> getRelationDefinitions(OperationResult result, ModelServiceLocator pageBase){
 		try {
 			return pageBase.getModelInteractionService().getRelationDefinitions(result);
 		} catch (ObjectNotFoundException | SchemaException ex){

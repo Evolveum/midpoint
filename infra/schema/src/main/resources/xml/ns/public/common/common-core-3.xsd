@@ -14893,6 +14893,8 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	<xsd:element name="objectPolicyConfiguration" type="tns:ObjectPolicyConfigurationType"/>
+	
 	<xsd:complexType name="ApplicablePoliciesType">
 		<xsd:annotation>
 			<xsd:documentation>

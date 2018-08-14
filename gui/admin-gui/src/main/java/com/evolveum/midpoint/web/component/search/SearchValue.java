@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -64,7 +66,22 @@ public class SearchValue<T extends Serializable> implements DisplayableValue<T>,
         	if (displayName != null) {
         		return displayName;
         	} else if (value != null){
-
+        		if (value instanceof ObjectReferenceType) {
+        			String valueToShow = "";
+        			ObjectReferenceType ort = (ObjectReferenceType) value;
+        			if (ort.getOid() != null) {
+        				valueToShow += "oid=" + ort.getOid() + "/";
+        			}
+        			
+        			if (ort.getType() != null) {
+        				valueToShow += "type=" + ort.getType().getLocalPart() +"/";
+        			}
+        			
+        			if (ort.getRelation() != null) {
+        				valueToShow += "relation=" + ort.getRelation().getLocalPart();
+        			}
+        			return valueToShow;
+        		}
             return value.toString();
         	}
         }
