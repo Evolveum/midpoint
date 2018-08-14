@@ -108,6 +108,7 @@ public class ShadowCache {
 	public static String OP_PROCESS_SYNCHRONIZATION = ShadowCache.class.getName() + ".processSynchronization";
 	public static String OP_DELAYED_OPERATION = ShadowCache.class.getName() + ".delayedOperation";
 	public static String OP_OPERATION_RETRY = ShadowCache.class.getName() + ".operationRetry";
+	public static String OP_RESOURCE_OPERATION = ShadowCache.class.getName() + ".resourceOperation";
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -1102,13 +1103,26 @@ public class ShadowCache {
 			return repoShadow;
 		}
 		
-		LOGGER.trace("Deleting object {} from the resource {}.", repoShadow, ctx.getResource());
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow, now);
+		
+		LOGGER.trace("Deleting object {} from {}, options={}, shadowState={}", repoShadow, ctx.getResource(), options, shadowState);
 		OperationResultStatus finalOperationStatus = null;
 		
 		if (shouldExecuteResourceOperationDirectly(ctx)) {
-			if (repoShadow.asObjectable().getFailedOperationType() == null
-					|| (repoShadow.asObjectable().getFailedOperationType() != null
-							&& FailedOperationTypeType.ADD != repoShadow.asObjectable().getFailedOperationType())) {
+			
+			if (shadowState == ShadowState.TOMBSTONE) {
+			
+				// Do not even try to delete resource object for tombstone shadows.
+				// There may be dead shadow and live shadow for the resource object with the same identifiers.
+				// If we try to delete dead shadow then we might delete existing object by mistake
+				LOGGER.trace("DELETE {}: skipping resource deletion on tombstone shadow", repoShadow);
+				
+				opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+				OperationResult delayedSubresult = parentResult.createSubresult(OP_RESOURCE_OPERATION);
+				delayedSubresult.setStatus(OperationResultStatus.NOT_APPLICABLE);
+				
+			} else {
 				
 				LOGGER.trace("DELETE {}: resource deletion, execution starting", repoShadow);
 				
@@ -1130,11 +1144,8 @@ public class ShadowCache {
 				}
 				
 				LOGGER.debug("DELETE {}: resource operation executed, operation state: {}", repoShadow, opState.shortDumpLazily());
-				
-			} else {
-				LOGGER.trace("DELETE {}: resource deletion skipped (failed ADD operation)", repoShadow);
 			}
-			
+						
 		} else {
 			opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
 			// Create dummy subresult with IN_PROGRESS state. 
@@ -1144,7 +1155,7 @@ public class ShadowCache {
 			LOGGER.debug("DELETE {}: resource operation NOT executed, execution pending", repoShadow);
 		}
 
-		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		now = clock.currentTimeXMLGregorianCalendar();
 		
 		PrismObject<ShadowType> resultShadow;
 		try {
@@ -1162,6 +1173,7 @@ public class ShadowCache {
 		
 		setParentOperationStatus(parentResult, opState, finalOperationStatus);
 		
+		LOGGER.trace("Delete operation for {} finished, result shadow: {}", repoShadow, resultShadow);
 		return resultShadow;
 	}
 	

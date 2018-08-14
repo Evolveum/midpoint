@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -127,7 +128,7 @@ public class ActivationProcessor {
 	    	processActivationUserFuture(context, projectionContext, now, task, result);
 	    	
     	} catch (ObjectNotFoundException e) {
-    		if (projectionContext.isThombstone()) {
+    		if (projectionContext.isTombstone()) {
     			// This is not critical. The projection is marked as thombstone and we can go on with processing
     			// No extra action is needed.
     		} else {
@@ -157,12 +158,18 @@ public class ActivationProcessor {
     		return;
     	}
 
-    	if (projCtx.isThombstone()) {
-    		// Let's keep thombstones linked until they expire. So we do not have shadows without owners.
-    		// This is also needed for async delete operations.
-    		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-    		LOGGER.trace("Evaluated decision for {} to {} because it is thombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
-    		return;
+    	if (projCtx.isTombstone()) {
+    		if (projCtx.isDelete() && ModelExecuteOptions.isForce(context.getOptions())) {
+    			projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+        		LOGGER.trace("Evaluated decision for tombstone {} to {} (force), skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
+        		return;
+    		} else {
+	    		// Let's keep thombstones linked until they expire. So we do not have shadows without owners.
+	    		// This is also needed for async delete operations.
+	    		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+	    		LOGGER.trace("Evaluated decision for {} to {} because it is tombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
+	    		return;
+    		}
     	}
 
     	if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
@@ -392,7 +399,7 @@ public class ActivationProcessor {
     	SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
     	SynchronizationIntent synchronizationIntent = accCtx.getSynchronizationIntent();
 
-    	if (accCtx.isThombstone() || decision == SynchronizationPolicyDecision.BROKEN
+    	if (accCtx.isTombstone() || decision == SynchronizationPolicyDecision.BROKEN
     			|| decision == SynchronizationPolicyDecision.IGNORE
     			|| decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
     		return;

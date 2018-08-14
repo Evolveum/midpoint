@@ -330,6 +330,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
         return resourceShadowDiscriminator;
     }
+    
+    public void markTombstone() {
+    	if (resourceShadowDiscriminator != null) {
+    		resourceShadowDiscriminator.setTombstone(true);
+    	}
+    	setExists(false);
+		setFullShadow(false);
+    	humanReadableName = null;
+    }
 
     public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
 		this.resourceShadowDiscriminator = resourceShadowDiscriminator;
@@ -369,7 +378,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return true;
 	}
 
-	public boolean isThombstone() {
+	public boolean isTombstone() {
 		if (resourceShadowDiscriminator == null) {
 			return false;
 		}

@@ -601,17 +601,73 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 					.target()
 						.assertLife()
 						.end()
-					.end();
+					.end()
+				.end();
 
         display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
-        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+        	.assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+        	.assertEnabled();
+        
+        assertDummyAccountByUsername(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+	        .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+	    	.assertEnabled()
+	    	// No value for ship ... no place to get it from
+	    	.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	@Test
+    public void test225ForceDeleteDeadShadow() throws Exception {
+		final String TEST_NAME = "test225ForceDeleteDeadShadow";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        String deadBeigeShadowOid = assertUserBefore(USER_JACK_OID)
+			.links()
+				.assertLinks(3)
+	    		.by()
+					.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+					.dead(true)
+				.find()
+					.getOid();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		forceDeleteObject(ShadowType.class, deadBeigeShadowOid, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertNoShadow(deadBeigeShadowOid);
+
+		UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID)
+			.displayWithProjections();
+		
+		// Make sure that only the dead shadow was deleted and live shadow stays
+        userAfterAsserter
+			.links()
+				.assertLinks(2)
+	    		.by()
+    				.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+    			.find()
+    				.resolveTarget()
+    					.assertLife();
+                
+        // Make sure that only the dead shadow was deleted and the account stays
+        assertDummyAccountByUsername(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+	        .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+	    	.assertEnabled()
+	    	// No value for ship ... no place to get it from
+	    	.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+
 	}
 
 	/**
@@ -620,13 +676,16 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	 * MID-2134, MID-3093
 	 */
 	@Test
-    public void test225JackKillBothAccounsAndRecompute() throws Exception {
-		final String TEST_NAME = "test225JackKillBothAccounsAndRecompute";
+    public void test226JackKillBothAccounsAndRecompute() throws Exception {
+		final String TEST_NAME = "test226JackKillBothAccounsAndRecompute";
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        
+        assertUserBefore(USER_JACK_OID)
+        	.assertLinks(2);
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
         display("dummy resource before", getDummyResource());
@@ -642,8 +701,29 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertLinks(userJack, 2);
+		assertUserAfter(USER_JACK_OID)
+			.links()
+				.assertLinks(4)
+				.by()
+					.resourceOid(RESOURCE_DUMMY_OID)
+					.dead(true)
+				.find()
+					.end()
+				.by()
+					.resourceOid(RESOURCE_DUMMY_OID)
+					.dead(false)
+				.find()
+					.end()
+				.by()
+					.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+					.dead(true)
+				.find()
+					.end()
+				.by()
+					.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+					.dead(false)
+				.find()
+					.end();
 
         display("dummy resource after", getDummyResource());
         display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
@@ -1084,7 +1164,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         assertUserProperty(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, PrismTestUtil.createPolyString("The crew of The Lost Souls"));
         
-        display("FORCE DELETE");
+        display("FORCE DELETE", dummyShadowOid);
         // Force delete of dead shadow
         forceDeleteShadow(dummyShadowOid);
         

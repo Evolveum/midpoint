@@ -63,7 +63,7 @@ public class ProjectionMappingLoader<F extends ObjectType> implements MappingLoa
 			LOGGER.debug("Attempt to load full object for {} failed, projection context is broken", projectionContext.getHumanReadableName());
 			throw new ObjectNotFoundException("Projection loading failed, projection broken");
 		}
-		if (projectionContext.isThombstone()) {
+		if (projectionContext.isTombstone()) {
 			LOGGER.debug("Projection {} got thombstoned", projectionContext.getHumanReadableName());
 			throw new ObjectNotFoundException("Projection loading failed, projection thombstoned");
 		}

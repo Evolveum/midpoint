@@ -101,6 +101,14 @@ public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAssert
 		return this;
 	}
 	
+	public <T> DummyObjectAsserter<D,R> assertNoAttribute(String attributeName) {
+		Set<Object> values = getDummyObjectAssertExists().getAttributeValues(attributeName, Object.class);
+		if ((values != null && !values.isEmpty())) {
+			fail("Unexpected values for attribute " + attributeName + " of " + desc() + values);
+		}
+		return this;
+	}
+	
 	public DummyObjectAsserter<D,R> assertEnabled() {
 		assertTrue(desc() + " is disabled", getDummyObjectAssertExists().isEnabled());
 		return this;

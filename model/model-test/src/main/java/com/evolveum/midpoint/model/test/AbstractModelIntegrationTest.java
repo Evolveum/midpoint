@@ -3462,8 +3462,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".forceDeleteShadow");
 		OperationResult result = task.getResult();
 		forceDeleteObject(ShadowType.class, oid, task, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 	}	
 	
 	protected <O extends ObjectType> void forceDeleteShadow(String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {

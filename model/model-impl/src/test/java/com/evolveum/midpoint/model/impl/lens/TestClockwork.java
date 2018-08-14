@@ -354,6 +354,8 @@ public class TestClockwork extends AbstractLensTest {
         LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
 
+        // ADD might be expected here. But projector goes over several iterations. And in the last
+        // iteration the account already exists. Hence KEEP and not ADD.
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<?> executedDelta = getExecutedDelta(accContext);

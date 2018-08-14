@@ -550,6 +550,11 @@ public class ContextLoader {
 				projectionContext.setExists(false);
 			} else {
 				projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
+				if (ShadowUtil.isDead(shadow.asObjectable())) {
+					projectionContext.markTombstone();
+					LOGGER.trace("Loading dead shadow {} for projection", shadow, projectionContext.getHumanReadableName());
+					continue;
+				}
 			}
 			if (context.isDoReconciliationForAllProjections()) {
 				projectionContext.setDoReconciliation(true);
@@ -806,8 +811,7 @@ public class ContextLoader {
 					// (but the OID and resource will be set from the repo
 					// shadow)
 					if (syncDelta.getChangeType() == ChangeType.DELETE) {
-						projCtx.setExists(false);
-						projCtx.getResourceShadowDiscriminator().setTombstone(true);
+						projCtx.markTombstone();
 					} else if (shadow != null) {
 						syncDelta.applyTo(shadow);
 						projCtx.setLoadedObject(shadow);
@@ -981,7 +985,7 @@ public class ContextLoader {
 		if (projContext.getResourceShadowDiscriminator() == null) {
 			projContext.setResourceShadowDiscriminator(new ResourceShadowDiscriminator(null, null, null, true));
 		} else {
-			projContext.getResourceShadowDiscriminator().setTombstone(true);
+			projContext.markTombstone();
 		}
 
 		projContext.setFullShadow(false);
@@ -998,8 +1002,6 @@ public class ContextLoader {
 			LensProjectionContext projContext, Task task, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
-
-		String projectionHumanReadableName = projContext.getHumanReadableName();
 
 		if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
 			return;
@@ -1020,7 +1022,7 @@ public class ContextLoader {
 		}
 
 		// Load current object
-		boolean thombstone = false;
+		boolean tombstone = false;
 		PrismObject<ShadowType> projectionObject = projContext.getObjectCurrent();
 		if (projContext.getObjectCurrent() == null || needToReload(context, projContext)) {
 			if (projContext.isAdd()) {
@@ -1033,7 +1035,7 @@ public class ContextLoader {
 					projContext.setExists(false);
 					if (projContext.getResourceShadowDiscriminator() == null || projContext.getResourceShadowDiscriminator().getResourceOid() == null) {
 						throw new SystemException(
-								"Projection "+projectionHumanReadableName+" with null OID, no representation and no resource OID in account sync context "+projContext);
+								"Projection "+projContext.getHumanReadableName()+" with null OID, no representation and no resource OID in account sync context "+projContext);
 					}
 				} else {
 					GetOperationOptions rootOptions = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
@@ -1049,7 +1051,7 @@ public class ContextLoader {
 					rootOptions.setAllowNotFound(true);
 					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Loading shadow {} for projection {}, options={}", projectionObjectOid, projectionHumanReadableName, options);
+						LOGGER.trace("Loading shadow {} for projection {}, options={}", projectionObjectOid, projContext.getHumanReadableName(), options);
 					}
 
 					try {
@@ -1058,7 +1060,7 @@ public class ContextLoader {
 						if (LOGGER.isTraceEnabled()) {
 							if (!GetOperationOptions.isNoFetch(rootOptions) && !GetOperationOptions.isRaw(rootOptions)) {
 								if (LOGGER.isTraceEnabled()) {
-									LOGGER.trace("Full shadow loaded for {}:\n{}", projectionHumanReadableName, objectOld.debugDump(1));
+									LOGGER.trace("Full shadow loaded for {}:\n{}", projContext.getHumanReadableName(), objectOld.debugDump(1));
 								}
 							}
 						}
@@ -1068,7 +1070,7 @@ public class ContextLoader {
 							if (resourceOid != null && !resourceOid.equals(objectOld.asObjectable().getResourceRef().getOid())) {
 								throw new IllegalStateException("Loaded shadow with wrong resourceRef. Loading shadow "+projectionObjectOid+", got "+
 										objectOld.getOid()+", expected resourceRef "+resourceOid+", but was "+objectOld.asObjectable().getResourceRef().getOid()+
-										" for context "+projectionHumanReadableName);
+										" for context "+projContext.getHumanReadableName());
 							}
 						}
 						projContext.setLoadedObject(objectOld);
@@ -1080,12 +1082,15 @@ public class ContextLoader {
 						projectionObject = objectOld;
 						if (!ShadowUtil.isExists(objectOld.asObjectable())) {
 							projContext.setExists(false);
-							LOGGER.debug("Foud only dead {} for projection context {}.", objectOld, projectionHumanReadableName);
-							refreshContextAfterShadowNotFound(context, projContext, options, task, result);
+							if (ShadowUtil.isDead(objectOld.asObjectable())) {
+								projContext.markTombstone();
+							}
+							LOGGER.debug("Foud only dead {} for projection context {}.", objectOld, projContext.getHumanReadableName());
+							tombstone = true;
 						}
 
 					} catch (ObjectNotFoundException ex) {
-						LOGGER.debug("Could not find object with oid {} for projection context {}.", projectionObjectOid, projectionHumanReadableName);
+						LOGGER.debug("Could not find object with oid {} for projection context {}.", projectionObjectOid, projContext.getHumanReadableName());
 						// This does not mean BROKEN. The projection was there, but it gone now.
 						// Consistency mechanism might have kicked in and fixed the shadow.
 						// What we really want here is a thombstone projection or a refreshed projection.
@@ -1097,7 +1102,7 @@ public class ContextLoader {
 			    			| RuntimeException | Error e) {
 
 						LOGGER.warn("Problem while getting object with oid {}. Projection context {} is marked as broken: {}: {}",
-								projectionObjectOid, projectionHumanReadableName, e.getClass().getSimpleName(), e.getMessage());
+								projectionObjectOid, projContext.getHumanReadableName(), e.getClass().getSimpleName(), e.getMessage());
 						projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 
 						ResourceType resourceType = projContext.getResource();
@@ -1147,8 +1152,8 @@ public class ContextLoader {
 				resourceOid = ShadowUtil.getResourceOid(shadowType);
 			} else if (projContext.getResourceShadowDiscriminator() != null) {
 				resourceOid = projContext.getResourceShadowDiscriminator().getResourceOid();
-			} else if (!thombstone) {
-				throw new IllegalStateException("No shadow, no discriminator and not thombstone? That won't do. Projection "+projectionHumanReadableName);
+			} else if (!tombstone) {
+				throw new IllegalStateException("No shadow, no discriminator and not thombstone? That won't do. Projection "+projContext.getHumanReadableName());
 			}
 		} else {
 			resourceOid = resourceType.getOid();
@@ -1161,15 +1166,15 @@ public class ContextLoader {
 				ShadowType accountShadowType = projectionObject.asObjectable();
 				String intent = ShadowUtil.getIntent(accountShadowType);
 				ShadowKindType kind = ShadowUtil.getKind(accountShadowType);
-				discr = new ResourceShadowDiscriminator(resourceOid, kind, intent, thombstone);
+				discr = new ResourceShadowDiscriminator(resourceOid, kind, intent, tombstone);
 			} else {
-				discr = new ResourceShadowDiscriminator(null, null, null, thombstone);
+				discr = new ResourceShadowDiscriminator(null, null, null, tombstone);
 			}
 			projContext.setResourceShadowDiscriminator(discr);
 		} else {
-			if (thombstone) {
-				// We do not want to reset thombstone flag if it was set before
-				discr.setTombstone(thombstone);
+			if (tombstone) {
+				// We do not want to reset tombstone flag if it was set before
+				projContext.markTombstone();
 			}
 		}
 
@@ -1257,7 +1262,7 @@ public class ContextLoader {
 			// nothing to load yet
 			return;
 		}
-		if (projCtx.isThombstone()) {
+		if (projCtx.isTombstone()) {
 			// loading is futile
 			return;
 		}
@@ -1371,11 +1376,7 @@ public class ContextLoader {
 
 		if (!compensated) {
 			LOGGER.trace("ObjectNotFound error is not compensated, setting context to tombstone");
-			if (projCtx.getResourceShadowDiscriminator() != null) {
-				projCtx.getResourceShadowDiscriminator().setTombstone(true);
-			}
-			projCtx.setExists(false);
-			projCtx.setFullShadow(false);
+			projCtx.markTombstone();
 		}
 	}
 

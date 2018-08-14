@@ -67,6 +67,12 @@ public class DummyAccountAsserter<R> extends DummyObjectAsserter<DummyAccount,R>
 	}
 	
 	@Override
+	public <T> DummyAccountAsserter<R> assertNoAttribute(String attrName) {
+		super.assertNoAttribute(attrName);
+		return this;
+	}
+	
+	@Override
 	public DummyAccountAsserter<R> assertEnabled() {
 		super.assertEnabled();
 		return this;
