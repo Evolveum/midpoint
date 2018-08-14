@@ -335,7 +335,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);

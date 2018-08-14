@@ -50,6 +50,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
 
+	private ObjectWrapper objectWrapper;
+	
 	private String displayName;
 	private PrismContainer<C> container;
 	private ContainerStatus status;
@@ -66,8 +68,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	//TODO: HACK to have custom filter for association contianer here becasue of creating new association:
 	private ObjectFilter filter;
+	
+	public ObjectWrapper getObjectWrapper() {
+		return objectWrapper;
+	}
 
-	ContainerWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+	ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 		Validate.notNull(container.getDefinition(), "container definition must not be null.");
@@ -76,11 +82,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		this.objectStatus = objectStatus;
 		this.status = status;
 		this.path = path;
+		this.objectWrapper = objectWrapper;
 
 	}
 
-	ContainerWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
-		this(container, objectStatus, status, path);
+	ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
+		this(objectWrapper, container, objectStatus, status, path);
 		this.readonly = readOnly;
 	}
 

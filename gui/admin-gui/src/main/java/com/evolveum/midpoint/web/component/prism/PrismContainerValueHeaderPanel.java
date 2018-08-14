@@ -75,19 +75,13 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 				GuiStyleConstants.CLASS_ICON_SHOW_METADATA, GuiStyleConstants.CLASS_ICON_SHOW_METADATA) {
 			private static final long serialVersionUID = 1L;
 
-			
 			@Override
-					protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			public void onClick(AjaxRequestTarget target) {
 				ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
 				wrapper.setShowMetadata(!wrapper.isShowMetadata());
 				onButtonClick(target);
-					}
+			}
 			
-			@Override
-					protected void onError(AjaxRequestTarget target, Form<?> form) {
-						target.add(getPageBase().getFeedbackPanel());
-					}
-
 			@Override
 			public boolean isOn() {
 				return PrismContainerValueHeaderPanel.this.getModelObject().isShowMetadata();
@@ -105,6 +99,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		showMetadataButton.add(new VisibleEnableBehaviour() {
 			
 			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				for (ItemWrapper wrapper : getModelObject().getItems()) {
@@ -124,15 +119,10 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+			public void onClick(AjaxRequestTarget target) {
 				onShowEmptyClick(target);
 			}
-			
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				target.add(getPageBase().getFeedbackPanel());
-			}
-
+						
 			@Override
 			public boolean isOn() {
 				return PrismContainerValueHeaderPanel.this.getModelObject().isShowEmpty();
@@ -149,15 +139,15 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
         	private static final long serialVersionUID = 1L;
 
         	@Override
-        	protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-	        		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
-	        		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
-	        		containerValueWrapper.sort();
-	        		containerValueWrapper.computeStripes();
+        	public void onClick(AjaxRequestTarget target) {
+        		ContainerValueWrapper<C> containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
+        		containerValueWrapper.setSorted(!containerValueWrapper.isSorted());
+        		containerValueWrapper.sort();
+        		containerValueWrapper.computeStripes();
 
-                onButtonClick(target);
-            }
-
+        		onButtonClick(target);
+        	}
+        	
         	@Override
 			public boolean isOn() {
 				return PrismContainerValueHeaderPanel.this.getModelObject().isSorted();
@@ -169,11 +159,11 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
         AjaxLink addChildContainerButton = new AjaxLink(ID_ADD_CHILD_CONTAINER) {
         	private static final long serialVersionUID = 1L;
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				isChildContainersSelectorPanelVisible = true;
+        	@Override
+        	public void onClick(AjaxRequestTarget target) {
+        		isChildContainersSelectorPanelVisible = true;
 				target.add(PrismContainerValueHeaderPanel.this);
-			}
+        	}
         };
 		addChildContainerButton.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
@@ -221,9 +211,11 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			private static final long serialVersionUID = 1L;
 
 			@Override
-            public void onClick(AjaxRequestTarget target) {
+			public void onClick(AjaxRequestTarget target) {
 				ContainerValueWrapper containerValueWrapper = PrismContainerValueHeaderPanel.this.getModelObject();
 				containerValueWrapper.setStatus(ValueStatus.DELETED);
+				target.add(PrismContainerValueHeaderPanel.this);
+				PrismContainerValueHeaderPanel.this.reloadParentContainerPanel(target);
 				onButtonClick(target);
 			}
 		};
@@ -261,6 +253,9 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		labelComponent.add(AttributeAppender.append("style", "cursor: pointer;"));
 		add(labelComponent);
 
+	}
+	
+	protected void reloadParentContainerPanel(AjaxRequestTarget target){
 	}
 
 	protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){

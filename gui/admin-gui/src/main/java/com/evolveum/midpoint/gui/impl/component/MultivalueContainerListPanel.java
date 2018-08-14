@@ -275,14 +275,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	}
 
 	public void refreshTable(AjaxRequestTarget ajaxRequestTarget) {
-		IModel objectModel = new LoadableModel<ContainerValueWrapper<GlobalPolicyRuleType>>(false) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected ContainerValueWrapper<GlobalPolicyRuleType> load() {
-				return ((ContainerValueWrapper<GlobalPolicyRuleType>)getModelObject().getValues().get(0));
-			}
-		};
 		ajaxRequestTarget.add(getItemContainer().addOrReplace(initItemTable()));
 	}
 
@@ -373,7 +365,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	
 	public List<InlineMenuItem> getDefaultMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
-		PrismObject obj = getFocusObject();
 		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
 			new Model<>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
 			DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));

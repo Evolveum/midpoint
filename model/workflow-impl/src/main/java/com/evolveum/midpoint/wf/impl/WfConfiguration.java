@@ -36,6 +36,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.H2;
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.MissingSchemaAction.CREATE;
+
 /**
  *
  * @author Pavol Mederly
@@ -47,7 +50,6 @@ public class WfConfiguration implements BeanFactoryAware {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WfConfiguration.class);
 
-    private static final String WF_CONFIG_SECTION = "midpoint.workflow";
     private static final String CHANGE_PROCESSORS_SECTION = "changeProcessors";         // deprecated
 
     public static final String KEY_ENABLED = "enabled";
@@ -98,7 +100,7 @@ public class WfConfiguration implements BeanFactoryAware {
     @PostConstruct
     void initialize() {
 
-        Configuration c = midpointConfiguration.getConfiguration(WF_CONFIG_SECTION);
+        Configuration c = midpointConfiguration.getConfiguration(MidpointConfiguration.WORKFLOW_CONFIGURATION);
 
         checkAllowedKeys(c, KNOWN_KEYS, DEPRECATED_KEYS);
 
@@ -150,7 +152,9 @@ public class WfConfiguration implements BeanFactoryAware {
             LOGGER.info("Activiti database is at " + jdbcUrl + " (a JDBC URL)");
         }
 
-		boolean defaultSchemaUpdate = sqlConfig == null || "update".equals(sqlConfig.getHibernateHbm2ddl());
+		boolean defaultSchemaUpdate = sqlConfig == null ||
+                        "update".equals(sqlConfig.getHibernateHbm2ddl()) ||
+                        sqlConfig.getDatabase() == H2 && sqlConfig.getMissingSchemaAction() == CREATE;      // this is an approximation
         activitiSchemaUpdate = c.getBoolean(KEY_ACTIVITI_SCHEMA_UPDATE, defaultSchemaUpdate);
 		LOGGER.info("Activiti automatic schema update: {}", activitiSchemaUpdate);
 
@@ -192,7 +196,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
 //    public Configuration getChangeProcessorsConfig() {
 //        Validate.notNull(midpointConfiguration, "midpointConfiguration was not initialized correctly (check spring beans initialization order)");
-//        return midpointConfiguration.getConfiguration(WF_CONFIG_SECTION).subset(CHANGE_PROCESSORS_SECTION); // via subset, because getConfiguration puts 'midpoint.home' property to the result
+//        return midpointConfiguration.getConfiguration(WORKFLOW_CONFIGURATION).subset(CHANGE_PROCESSORS_SECTION); // via subset, because getConfiguration puts 'midpoint.home' property to the result
 //    }
 
     void validate() {

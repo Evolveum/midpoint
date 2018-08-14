@@ -887,7 +887,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -953,7 +953,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -992,7 +992,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1090,7 +1090,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1161,7 +1161,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
+        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1229,7 +1229,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
+        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_EBONY_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1262,7 +1262,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         try {
 			// WHEN
 	        displayWhen(TEST_NAME);
-	        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BROKEN_VIOLET_OID, null, task, result);
+	        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BROKEN_VIOLET_OID, null, task, result);
 	        
 	        assertNotReached();
         } catch (ExpressionEvaluationException e) {

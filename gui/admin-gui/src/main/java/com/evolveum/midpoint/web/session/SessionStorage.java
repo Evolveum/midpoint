@@ -57,6 +57,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_GLOBAL_POLICY_RULES_TAB = "globalPolicyRulesTab";
     public static final String KEY_LOGGING_TAB_APPENDER_TABLE = "loggingTabAppenderTable";
     public static final String KEY_LOGGING_TAB_LOGGER_TABLE = "loggingTabLoggerTable";
+    public static final String KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE = "notificationTabMailServerTable";
 
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
@@ -198,6 +199,10 @@ public class SessionStorage implements Serializable, DebugDumpable {
     
     public ObjectTabStorage getLoggingConfigurationTabLoggerTableStorage() {
         return getObjectTabStorage(KEY_LOGGING_TAB_LOGGER_TABLE);
+	}
+    
+    public ObjectTabStorage getNotificationConfigurationTabMailServerTableStorage() {
+        return getObjectTabStorage(KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE);
 	}
 
     private String getContentStorageKey(ShadowKindType kind, String searchMode) {

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public class ExpressionValidator<T> implements IValidator<T> {
@@ -136,7 +137,8 @@ public class ExpressionValidator<T> implements IValidator<T> {
 			return;
 		}
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, valueToValidate);
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, valueToValidate);
+		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, getObjectType());
 //		addAdditionalExpressionVariables(variables);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple;
@@ -189,6 +191,8 @@ public class ExpressionValidator<T> implements IValidator<T> {
 		
 	}
 	
-	
+	protected <O extends ObjectType> O getObjectType() {
+		return null;
+	}
 
 }

@@ -283,7 +283,7 @@ public class ClusterManager {
             // we do not try to determine which one is "newer" - we simply use the one from repo
             if (!versionInRepo.equals(versionApplied)) {
                 Configuration systemConfigFromFile = taskManager.getMidpointConfiguration()
-                        .getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
+                        .getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION);
                 if (systemConfigFromFile != null && versionApplied == null && systemConfigFromFile
 						.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false)) {
                     LOGGER.warn("Skipping application of repository logging configuration because {}=true (version={})",

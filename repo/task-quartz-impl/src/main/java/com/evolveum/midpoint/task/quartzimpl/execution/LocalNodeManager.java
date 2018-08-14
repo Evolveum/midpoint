@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.sql.ScriptRunner;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
 
@@ -210,7 +211,7 @@ public class LocalNodeManager {
     }
 
     private Connection getConnection(TaskManagerConfiguration configuration) throws TaskManagerInitializationException {
-        Connection connection = null;
+        Connection connection;
         try {
             if (configuration.getDataSource() != null) {
                 DataSource dataSource;
@@ -246,7 +247,7 @@ public class LocalNodeManager {
         }
     }
 
-    private Reader getResourceReader(String name) throws IOException, TaskManagerInitializationException {
+    private Reader getResourceReader(String name) throws TaskManagerInitializationException {
         InputStream stream = getClass().getResourceAsStream(name);
         if (stream == null) {
             throw new TaskManagerInitializationException("Quartz DB schema (" + name + ") cannot be found.");

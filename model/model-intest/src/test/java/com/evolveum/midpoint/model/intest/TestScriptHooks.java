@@ -103,7 +103,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         StaticHookRecorder.reset();
 
 		// WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_HOOK_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_HOOK_OID, null, task, result);
 
 		// THEN
 		assertSuccess(result);

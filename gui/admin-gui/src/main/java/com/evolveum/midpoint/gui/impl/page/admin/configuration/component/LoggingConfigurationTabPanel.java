@@ -18,39 +18,28 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AbstractAutoCompleteRenderer;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.Response;
-import org.apache.wicket.util.string.Strings;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkColumnForContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditablePropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.EditableTextColumnForContainerWrapper;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -75,9 +64,6 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyColumn;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLoggerType;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -85,13 +71,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author skublik
@@ -413,18 +394,18 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		    	ContainerValuePanel panel;
 		    	if(item.getModelObject().getContainerValue().getValue() instanceof FileAppenderConfigurationType) {
 		    		
-		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX FileAppenderConfigurationType");
+//		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX FileAppenderConfigurationType");
 		    		
 		    		FileAppenderConfigurationType appender = (FileAppenderConfigurationType) item.getModelObject().getContainerValue().getValue();
 		    		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getPageBase());
 		    		Task task = LoggingConfigurationTabPanel.this.getPageBase().createSimpleTask("create appender");
-		    		ContainerWrapper<FileAppenderConfigurationType> wrapper = cwf.createContainerWrapper((PrismContainer<FileAppenderConfigurationType>)appender.asPrismContainerValue().getContainer(), item.getModelObject().getObjectStatus(), 
+		    		ContainerWrapper<FileAppenderConfigurationType> wrapper = cwf.createContainerWrapper(null, (PrismContainer<FileAppenderConfigurationType>)appender.asPrismContainerValue().getContainer(),
 		    				item.getModelObject().getObjectStatus(), new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
 		    		wrapper.setShowOnTopLevel(true);
 		    		ContainerValueWrapper<FileAppenderConfigurationType> value = cwf.createContainerValueWrapper(wrapper, (PrismContainerValue<FileAppenderConfigurationType>)appender.asPrismContainerValue(), item.getModelObject().getObjectStatus(), item.getModelObject().getStatus(), new ItemPath(FileAppenderConfigurationType.COMPLEX_TYPE), task);
 		    		
-		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX wrapper: " + wrapper);
-		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX value: " + value);
+//		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX wrapper: " + wrapper);
+//		    		LOGGER.info("XXXXXXXXXXXXXXXXXXXXXXX value: " + value);
 		    		
 		    		IModel<ContainerValueWrapper<FileAppenderConfigurationType>> valueModel = new LoadableModel<ContainerValueWrapper<FileAppenderConfigurationType>>(false) {
 
