@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package schrodinger;
+package com.evolveum.midpoint.testing.schrodinger;
 
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
 import com.evolveum.midpoint.schrodinger.page.user.UserPage;

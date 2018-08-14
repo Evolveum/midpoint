@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package schrodinger;
+package com.evolveum.midpoint.testing.schrodinger;
 
 import com.codeborne.selenide.testng.BrowserPerClass;
 import com.evolveum.midpoint.schrodinger.EnvironmentConfiguration;
@@ -23,6 +23,8 @@ import com.evolveum.midpoint.schrodinger.page.BasicPage;
 import com.evolveum.midpoint.schrodinger.page.LoginPage;
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
 import com.evolveum.midpoint.schrodinger.page.configuration.ImportObjectPage;
+import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
+import com.evolveum.midpoint.schrodinger.page.resource.ViewResourcePage;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,12 +42,14 @@ import java.lang.reflect.Method;
 @Listeners({BrowserPerClass.class})
 public abstract class TestBase {
 
-    public static final String BASE_URL = "http://localhost:8080/midpoint";
+    //public static final String BASE_URL = "http://localhost:8080/midpoint";
 
-    public static final String USERNAME = "administrator";
-    public static final String PASSWORD = "5ecr3t";
+    //public static final String USERNAME = "administrator";
+    //public static final String PASSWORD = "5ecr3t";
 
     public static final String PROPERTY_NAME_MIDPOINT_HOME = "-Dmidpoint.home";
+    public static final String PROPERTY_NAME_USER_HOME = "user.home";
+    public static final String PROPERTY_NAME_FILE_SEPARATOR = "file.separator";
 
     private static final Logger LOG = LoggerFactory.getLogger(TestBase.class);
     protected static File CSV_TARGET_DIR;
@@ -53,22 +57,36 @@ public abstract class TestBase {
     protected MidPoint midPoint;
     protected BasicPage basicPage;
 
+
     @BeforeClass
     public void beforeClass() throws IOException {
         LOG.info("Starting tests in class {}", getClass().getName());
 
-        EnvironmentConfiguration config = new EnvironmentConfiguration();
-        config.baseUrl(BASE_URL);
+        //config.baseUrl(BASE_URL);
 
+        if (midPoint !=null){
+
+        }else{
+
+        EnvironmentConfiguration config = new EnvironmentConfiguration();
         midPoint = new MidPoint(config);
 
+        }
+
         LoginPage login = midPoint.login();
-        basicPage = login.login(USERNAME, PASSWORD);
+
+
+        basicPage = login.login(midPoint.getUsername(),midPoint.getPassword());
+
     }
 
     @AfterClass
     public void afterClass() {
         LOG.info("Finished tests from class {}", getClass().getName());
+        AboutPage aboutPage = basicPage.aboutPage();
+                aboutPage
+                        .clickSwitchToFactoryDefaults();
+                        //.clickYes();
     }
 
     @BeforeMethod
@@ -107,18 +125,22 @@ public abstract class TestBase {
     protected String fetchMidpointHome() throws ConfigurationException {
 
         AboutPage aboutPage = basicPage.aboutPage();
-        String homeDir = aboutPage.getJVMproperty(PROPERTY_NAME_MIDPOINT_HOME);
+        String mpHomeDir = aboutPage.getJVMproperty(PROPERTY_NAME_MIDPOINT_HOME);
 
-        if (homeDir != null && !homeDir.isEmpty()) {
+        if (mpHomeDir != null && !mpHomeDir.isEmpty() && !PROPERTY_NAME_MIDPOINT_HOME.equalsIgnoreCase(mpHomeDir)) {
 
-            return homeDir;
+            return mpHomeDir;
         } else {
 
-            LOG.error("Midpoint home parameter is empty!");
-            throw new ConfigurationException("Midpoint home parameter is empty ,please add the -Dmidpoint.home parameter to the jvm configuration");
+            mpHomeDir = new StringBuilder(aboutPage.getSystemProperty(PROPERTY_NAME_USER_HOME))
+                    .append(aboutPage.getSystemProperty(PROPERTY_NAME_FILE_SEPARATOR)).append("midpoint").toString();
+
+            LOG.info("Midpoint home parameter is empty! Using defaults: "+ mpHomeDir);
+
+
 
         }
-
+        return mpHomeDir;
     }
 
     protected File initTestDirectory(String dir) throws ConfigurationException, IOException {
@@ -138,9 +160,20 @@ public abstract class TestBase {
                 return CSV_TARGET_DIR;
             } else {
 
-                throw new IOException("Creation of directory \"" + CSV_TARGET_DIR.getName() + "\" unsuccessful");
+                throw new IOException("Creation of directory \"" + CSV_TARGET_DIR.getAbsolutePath() + "\" unsuccessful");
             }
         }
+    }
+
+    // TODO workaround -> factory reset during clean up seems to leave some old cached information breaking the resource until version change
+    public ViewResourcePage refreshResourceSchema(String resourceName){
+
+        ListResourcesPage listResourcesPage = basicPage.listResources();
+        ViewResourcePage resourcePage= listResourcesPage
+                                            .table()
+                                                .clickByName(resourceName)
+                                                .refreshSchema();
+        return resourcePage;
     }
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package schrodinger;
+package com.evolveum.midpoint.testing.schrodinger;
 
 import org.testng.annotations.Test;
 

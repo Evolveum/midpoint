@@ -318,6 +318,13 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return schemaHandlingObjectTypeDefinitionType.getVolatility();
 	}
 
+	@Override
+	public ProjectionPolicyType getProjection() {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return null;
+		}
+		return schemaHandlingObjectTypeDefinitionType.getProjection();
+	}
 	//endregion
 
 	//region Generating and matching artifacts ========================================================
@@ -976,7 +983,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
         if (rOcDef.schemaHandlingObjectTypeDefinitionType.getBaseContext() != null) {
         	rOcDef.setBaseContext(rOcDef.schemaHandlingObjectTypeDefinitionType.getBaseContext());
         }
-
+       
         return rOcDef;
 	}
 

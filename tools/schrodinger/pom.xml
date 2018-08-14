@@ -97,13 +97,7 @@
             <version>2.1.8</version>
         </dependency>
 
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.6</version>
-        </dependency>
-
-        <!-- TEST -->
+        <!-- POSSIBLY OBSOLETE BEGIN-->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -122,7 +116,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    <!-- POSSIBLY OBSOLETE END-->
     <dependencyManagement>
         <dependencies>
             <dependency>

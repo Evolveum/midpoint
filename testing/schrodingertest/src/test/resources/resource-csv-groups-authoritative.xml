@@ -47,6 +47,7 @@
             <icfi:quoteMode>ALL</icfi:quoteMode>
             <icfi:fieldDelimiter>,</icfi:fieldDelimiter>
             <icfi:multivalueDelimiter>;</icfi:multivalueDelimiter>
+            <icfi:nameAttribute>login</icfi:nameAttribute>
             <icfi:uniqueAttribute>login</icfi:uniqueAttribute>
             <icfi:passwordAttribute>password</icfi:passwordAttribute>
         </icfc:configurationProperties>

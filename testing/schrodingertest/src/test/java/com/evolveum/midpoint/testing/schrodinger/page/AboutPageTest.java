@@ -1,6 +1,7 @@
-package schrodinger;
+package com.evolveum.midpoint.testing.schrodinger.page;
 
 import com.evolveum.midpoint.schrodinger.page.configuration.AboutPage;
+import com.evolveum.midpoint.testing.schrodinger.TestBase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -16,7 +17,7 @@ public class AboutPageTest extends TestBase {
     private static final String REINDEX_REPO_TASK_CATEGORY_EXPECTED = "Utility";
     private static final String REINDEX_REPO_TASK_DISPLAY_NAME_EXPECTED = "Reindex repository objects";
 
-    private static final String PROPERTY_NAME_XMX = "-Xmx";
+    private static final String PROPERTY_JVM_NAME_XMX = "-Xmx";
 
     private AboutPage aboutPage;
 
@@ -112,8 +113,14 @@ public class AboutPageTest extends TestBase {
     public void checkJVMPropertiesXmx(){
 
         Assert.assertTrue(
-                !aboutPage.getJVMproperty(PROPERTY_NAME_XMX).isEmpty()
+                !aboutPage.getJVMproperty(PROPERTY_JVM_NAME_XMX).isEmpty()
         );
 
+    }
+    @Test
+    public void checkSystemProperty(){
+        Assert.assertTrue(
+                !aboutPage.getSystemProperty(TestBase.PROPERTY_NAME_USER_HOME).isEmpty()
+        );
     }
 }

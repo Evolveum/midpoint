@@ -127,6 +127,8 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	String getHumanReadableName();
 
 	ResourceObjectVolatilityType getVolatility();
+	
+	ProjectionPolicyType getProjection();
 	//endregion
 
 
