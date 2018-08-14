@@ -26,7 +26,7 @@
 		<description>The office of the most respectful Governor.</description>
 		<displayName>Governor Office</displayName>
 		<identifier>0001</identifier>
-		<orgType>functional</orgType>
+		<subtype>functional</subtype>
 		<costCenter>CC0</costCenter>
 		<locality>The Governor's Mansion</locality>
 	</org>
@@ -37,7 +37,7 @@
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
 		<displayName>Ministry of Defense</displayName>
 		<identifier>0002</identifier>
-		<orgType>functional</orgType>
+		<subtype>functional</subtype>
 		<locality>The towers, bastions and bars</locality>
 	</org>
 
@@ -47,7 +47,7 @@
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
 		<displayName>Ministry of Offense</displayName>
 		<identifier>0003</identifier>
-		<orgType>functional</orgType>
+		<subtype>functional</subtype>
 		<costCenter>CC666</costCenter>
 	</org>
 
@@ -57,7 +57,7 @@
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/>
 		<displayName>Ministry of Rum</displayName>
 		<identifier>0004</identifier>
-		<orgType>functional</orgType>
+		<subtype>functional</subtype>
 		<costCenter>CCRUM</costCenter>
 	</org>
 
@@ -67,7 +67,7 @@
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
 		<displayName>Swashbuckler Section</displayName>
 		<identifier>0005</identifier>
-		<orgType>functional</orgType>
+		<subtype>functional</subtype>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-100000000006">
@@ -77,7 +77,7 @@
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000004" type="c:OrgType"/>
 		<displayName>Scumm Bar</displayName>
 		<identifier>0006</identifier>
-		<orgType>functional</orgType>
+		<subtype>functional</subtype>
 		<locality>Mêlée Island</locality>
 	</org>
 
@@ -87,7 +87,7 @@
 		<name>PRoot</name>
 		<description>Project organizational structure root</description>
 		<displayName>Projects</displayName>
-		<orgType>project</orgType>
+		<subtype>project</subtype>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-200000000001">
@@ -95,7 +95,7 @@
 		<parentOrgRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
 		<displayName>Save Elaine</displayName>
 		<identifier>0001</identifier>
-		<orgType>project</orgType>
+		<subtype>project</subtype>
 	</org>
 
 	<org oid="00000000-8888-6666-0000-200000000002">
@@ -103,7 +103,7 @@
 		<parentOrgRef oid="00000000-8888-6666-0000-200000000000" type="c:OrgType"/>
 		<displayName>Kidnap and marry Elaine</displayName>
 		<identifier>0002</identifier>
-		<orgType>project</orgType>
+		<subtype>project</subtype>
 	</org>
 
 	<!-- Extra organizational structure -->
@@ -112,7 +112,7 @@
 		<name>ERoot</name>
 		<description>Extra organizational structure root</description>
 		<displayName>Extra structure root</displayName>
-		<orgType>extra</orgType>
+		<subtype>extra</subtype>
 	</org>
 
 	<!-- Users -->

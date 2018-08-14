@@ -45,6 +45,8 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 import java.util.*;
 
+import static com.evolveum.midpoint.schema.util.FocusTypeUtil.determineSubTypes;
+
 /**
  * @author mederly
  */
@@ -130,10 +132,10 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             for (String orgOid : orgOids) {
                 if (orgType != null) {
                     OrgType org = getOrgByOid(orgOid, preAuthorized);
-                    if (org == null || org.getOrgType() == null) {
+                    if (org == null) {
                     	continue;
                     }
-                    if (!org.getOrgType().contains(orgType)) {
+                    if (!determineSubTypes(org).contains(orgType)) {
                         continue;
                     } else {
                         thisLevelOrgs.add(org);
@@ -276,7 +278,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
                 // This should not happen.
                 throw new SystemException(e.getMessage(), e);
             }
-            if (orgType == null || parentOrg.getOrgType().contains(orgType)) {
+            if (orgType == null || determineSubTypes(parentOrg).contains(orgType)) {
                 parentOrgs.add(parentOrg);
             }
         }
@@ -329,7 +331,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         for (ObjectReferenceType objectReferenceType : user.getParentOrgRef()) {
             if (ObjectTypeUtil.isManagerRelation(objectReferenceType.getRelation())) {
                 OrgType org = getOrgByOid(objectReferenceType.getOid(), preAuthorized);
-                if (org.getOrgType().contains(orgType)) {
+                if (determineSubTypes(org).contains(orgType)) {
                     return true;
                 }
             }
