@@ -278,6 +278,9 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     		}
 
     	};
+    	
+    	
+    	
 		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<AuditingConfigurationType>(ID_AUDITING, auditModel, true, new Form<>("form"), null, getPageBase());
     	add(auditPanel);
     	
@@ -334,8 +337,11 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 				loggerEditPerformed(target, rowModel, null);
 			}
 		});
+		
 		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.level"), ClassLoggerConfigurationType.F_LEVEL, getPageBase()));
+		
 		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.appender"), ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
+		
 		List<InlineMenuItem> menuActionsList = getLoggersMultivalueContainerListPanel().getDefaultMenuActions();
 		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
 		

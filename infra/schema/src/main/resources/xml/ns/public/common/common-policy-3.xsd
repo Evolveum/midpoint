@@ -1469,6 +1469,7 @@
                 <a:container />
                 <a:since>3.5</a:since>
                 <a:experimental>true</a:experimental>
+				<a:displayName>ApprovalPolicyActionType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1824,6 +1825,7 @@
                 <a:container/>
                 <a:since>3.7</a:since>
                 <a:experimental>true</a:experimental>
+				<a:displayName>DeltaSourceSpecificationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -1935,6 +1937,7 @@
                 <a:container />
                 <a:since>3.5</a:since>
                 <a:experimental>true</a:experimental>
+				<a:displayName>NotificationPolicyActionType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -2083,6 +2086,7 @@
                 <a:container />
                 <a:since>3.7.1</a:since>
                 <a:experimental>true</a:experimental>
+				<a:displayName>LifecycleStateType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2356,6 +2360,7 @@
                 <a:container />
                 <a:since>3.7.1</a:since>
                 <a:experimental>true</a:experimental>
+				<a:displayName>LifecycleStateActionType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2366,6 +2371,9 @@
                             Short name of the action. It may be used in log files, user interface, etc.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateActionType.name</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -2376,6 +2384,9 @@
                             Used for documentation purposes (comment).
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateActionType.description</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="dataReduction" type="tns:LifecycleStateActionDataReductionType" minOccurs="0" maxOccurs="1">
@@ -2385,6 +2396,9 @@
                             Action that reduces (purges) object data.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateActionType.dataReduction</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: assign, (mass) unassign -->
@@ -2411,6 +2425,9 @@
                             Remove all values of the item.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateActionDataReductionType.purgeItem</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: keepItem -->
