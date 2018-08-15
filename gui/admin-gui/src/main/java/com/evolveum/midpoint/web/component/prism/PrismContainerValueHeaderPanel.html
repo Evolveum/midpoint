@@ -17,10 +17,10 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 	<wicket:extend>
-		<button wicket:id="expandCollapseContainer" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
-                    class="btn text-warning" trigger="hover"><i class="glyphicon"></i></button>
-	</wicket:extend>
-	<wicket:extend>
+		<wicket:fragment wicket:id="expandCollapseFragment">
+    		<button wicket:id="expandCollapseButton" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                    class="btn btn-box-tool text-warning" trigger="hover" style="color:orange;"><i class="fa fa-caret-down"></i></button>
+    	</wicket:fragment>
     	<div class="row">
         	<div class="col-xs-2">
             	<button wicket:id="showMetadata" class="btn btn-box-tool"><i class="fa fa-asterisk"></i></button>

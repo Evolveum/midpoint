@@ -4,26 +4,20 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -49,7 +43,8 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
     private static final String ID_CHILD_CONTAINERS_SELECTOR_PANEL = "childContainersSelectorPanel";
     private static final String ID_CHILD_CONTAINERS_LIST = "childContainersList";
     private static final String ID_ADD_BUTTON = "addButton";
-    private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseContainer";
+    private static final String ID_EXPAND_COLLAPSE_FRAGMENT = "expandCollapseFragment";
+    private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
 
     private boolean isChildContainersSelectorPanelVisible = false;
     
@@ -328,9 +323,11 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	}
 
 	@Override
-	protected void initExpandCollapseButtons() {
-		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_EXPAND_COLLAPSE_BUTTON,
-				GuiStyleConstants.CLASS_BUTTON_TOGGLE_COLLAPSE, GuiStyleConstants.CLASS_BUTTON_TOGGLE_EXPAND) {
+	protected WebMarkupContainer initExpandCollapseButton(String contentAreaId) {
+		Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
+		
+		ToggleIconButton expandCollapseButton = new ToggleIconButton(ID_EXPAND_COLLAPSE_BUTTON,
+				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
 			
 			private static final long serialVersionUID = 1L;
 
@@ -344,6 +341,9 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 				return PrismContainerValueHeaderPanel.this.getModelObject().isExpanded();
 			}
         };
-		showEmptyFieldsButton.setOutputMarkupId(true);
+        expandCollapseButton.setOutputMarkupId(true);
+        expandCollapseFragment.add(expandCollapseButton);
+        
+        return expandCollapseFragment;
 	}
 }

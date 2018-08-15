@@ -110,7 +110,7 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
 
         initLayout(model, form);
     }
-
+    
     public IModel<IW> getModel() {
         return model;
     }

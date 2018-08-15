@@ -133,6 +133,10 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 						
 						@Override
 						public boolean isVisible() {
+							if(!model.getObject().isExpanded()) {
+								return false;
+							}
+							
 							if (model.getObject().containsMultipleMultivalueContainer()
 									&& item.getModelObject().getItemDefinition().isMultiValue()
 									&& CollectionUtils.isEmpty(item.getModelObject().getValues())) {
@@ -148,6 +152,18 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 				
 				PrismPropertyPanel propertyPanel = new PrismPropertyPanel("property", item.getModel(), form, isPanaleVisible, pageBase);
 				propertyPanel.setOutputMarkupId(true);
+				propertyPanel.add(new VisibleEnableBehaviour() {
+					
+					private static final long serialVersionUID = 1L;
+					
+					@Override
+					public boolean isVisible() {
+						if(!model.getObject().isExpanded()) {
+							return false;
+						}
+						return propertyPanel.isVisible();
+					}
+				});
                 item.add(propertyPanel);
                 item.add(AttributeModifier.append("class", createStyleClassModel((IModel<ItemWrapper>) item.getModel())));
                

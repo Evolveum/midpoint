@@ -142,6 +142,15 @@ public class PrismContainerPanel<C extends Containerable> extends Panel {
 			protected void populateItem(ListItem<ContainerValueWrapper<C>> item) {
                     ContainerValuePanel<C> containerPanel = new ContainerValuePanel<C>("value", item.getModel(), true, form, isPanelVisible, pageBase);
                     containerPanel.setOutputMarkupId(true);
+                    containerPanel.add(new VisibleEnableBehaviour() {
+                    	@Override
+                    	public boolean isVisible() {
+                    		if(!model.getObject().isExpanded()) {
+    							return false;
+    						}
+    						return containerPanel.isVisible();
+                    	}
+                    });
                     item.add(containerPanel);
                     item.setOutputMarkupId(true);
 

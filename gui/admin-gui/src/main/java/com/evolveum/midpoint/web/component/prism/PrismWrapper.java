@@ -7,7 +7,7 @@ public abstract class PrismWrapper {
 	    private boolean minimalized;
 	    private boolean sorted;
 	    private boolean showMetadata;
-	    private boolean expanded;
+	    private boolean expanded = true;
 	
 	    public boolean isMinimalized() {
 	        return minimalized;

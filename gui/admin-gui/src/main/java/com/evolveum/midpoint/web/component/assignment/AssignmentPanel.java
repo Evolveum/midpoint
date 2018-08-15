@@ -143,6 +143,11 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					ListItem<ContainerValueWrapper<AssignmentType>> item) {
 				return createMultivalueContainerDetailsPanel(item);
 			}
+			
+			@Override
+			protected WebMarkupContainer getSearchPanel(String contentAreaId) {
+				return getCustomSearchPanel(contentAreaId);
+			}
 
 		};
 		
