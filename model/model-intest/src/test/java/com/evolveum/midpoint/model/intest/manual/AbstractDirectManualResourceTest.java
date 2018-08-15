@@ -1084,12 +1084,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		pendingOperation = findPendingOperation(shadowModel, OperationResultStatusType.IN_PROGRESS);
 		assertPendingOperation(shadowModel, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, true);
+		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 		
 		assertSteadyResources();
 
@@ -1158,12 +1153,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		pendingOperation = findPendingOperation(shadowModel, OperationResultStatusType.IN_PROGRESS);
 		assertPendingOperation(shadowModel, pendingOperation, accountWillReqestTimestampStart, accountWillReqestTimestampEnd);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, true);
+		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 
 		// Make sure that the account is still linked
 		PrismObject<UserType> userAfter = getUser(userWillOid);
@@ -1238,9 +1228,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertUnassignedShadow(shadowModelAsserter, false, ActivationStatusType.ENABLED); // backing store not yet updated
 		assertShadowPassword(shadowModelAsserter);
 
-		PrismObject<ShadowType> shadowModelFuture = assertModelShadowFuture(accountWillOid)
-				.getObject();
-		assertWillUnassignedFuture(shadowModelFuture, true);
+		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
@@ -1297,12 +1285,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		assertUnassignedShadow(shadowModelAsserter, false, ActivationStatusType.ENABLED); // backing store not yet updated
 		assertShadowPassword(shadowModelAsserter);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, true);
+		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
@@ -1346,7 +1329,7 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 				.end();
 		assertUnassignedShadow(shadowRepoAsserter, true, null);
 	
-		ShadowAsserter<Void> shadowModelAsserter = assertModelShadowNoFetch(accountWillOid)
+		ShadowAsserter<Void> shadowModelAsserterNoFetch = assertModelShadowNoFetch(accountWillOid)
 			.assertName(USER_WILL_NAME)
 			.assertKind(ShadowKindType.ACCOUNT)
 			.pendingOperations()
@@ -1357,17 +1340,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 					.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
 					.end()
 				.end();
-		assertUnassignedShadow(shadowModelAsserter, true, ActivationStatusType.DISABLED);
+		assertUnassignedShadow(shadowModelAsserterNoFetch, true, null);
 		// Do NOT assert password here. There is no password even for semi-manual case as the shadow is dead and account gone.
 
-		assertModelShadow(accountWillOid)
-			.assertTombstone();
-		
-		assertModelShadowFuture(accountWillOid)
-			.assertTombstone();
-		
-		assertModelShadowFutureNoFetch(accountWillOid)
-			.assertTombstone();
+		assertUnassignedShadow(assertModelShadow(accountWillOid), true, ActivationStatusType.DISABLED);
+		assertUnassignedShadow(assertModelShadowFuture(accountWillOid), true, ActivationStatusType.DISABLED);
+		assertUnassignedShadow(assertModelShadowFutureNoFetch(accountWillOid), true, ActivationStatusType.DISABLED);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
@@ -1402,11 +1380,18 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		assertUserAfter(userWillOid)
 			.singleLink()
-				.resolveTarget()
-					.assertOid(accountWillOid)
-					.assertDead()
-					.pendingOperations()
-						.singleOperation();
+				.assertOid(accountWillOid);
+		
+		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
+				.pendingOperations()
+					.singleOperation()
+						.assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
+						.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+						.assertResultStatus(OperationResultStatusType.SUCCESS)
+						.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+						.end()
+					.end();
+		assertUnassignedShadow(shadowRepoAsserter, true, null);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
@@ -1439,12 +1424,14 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 		
 		assertUserAfter(userWillOid)
 			.singleLink()
-				.resolveTarget()
-					.assertOid(accountWillOid)
-					.assertDead()
-					.pendingOperations()
-						.assertNone();
+				.assertOid(accountWillOid);
 
+		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
+				.pendingOperations()
+					.assertNone()
+					.end();
+		assertUnassignedShadow(shadowRepoAsserter, true, null);
+		
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
 		assertSteadyResources();
@@ -1515,9 +1502,10 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 	/**
 	 * Unassign account before anybody had the time to do anything about it.
+	 * Snapshot (backing store) is never updated.
 	 * Create ticket is not closed, the account is not yet created and we
 	 * want to delete it.
-	 * The shadow should exist, all the operations are should be cancelled.
+	 * The shadow should exist, all the operations should be cancelled.
 	 * MID-4037
 	 */
 	@Test
@@ -1569,9 +1557,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 			.pendingOperations()
 				.assertOperations(2);
 
-		assertModelShadowFuture(accountWillOid)
-			.assertName(USER_WILL_NAME)
-			.assertTombstone();
+		ShadowAsserter<Void> shadowFutureAsserter = assertModelShadowFuture(accountWillOid)
+			.assertName(USER_WILL_NAME);
+		assertUnassignedShadow(shadowFutureAsserter, true, ActivationStatusType.DISABLED);
 
 		// Make sure that the account is still linked
 		assertUserAfter(userWillOid)
@@ -1635,9 +1623,9 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 			.pendingOperations()
 				.assertOperations(2);
 	
-		assertModelShadowFuture(accountWillOid)
-			.assertName(USER_WILL_NAME)
-			.assertTombstone();
+		ShadowAsserter<Void> shadowFutureAsserter = assertModelShadowFuture(accountWillOid)
+				.assertName(USER_WILL_NAME);
+		assertUnassignedShadow(shadowFutureAsserter, true, ActivationStatusType.DISABLED);
 	
 		// Make sure that the account is still linked
 		assertUserAfter(userWillOid)
@@ -1652,7 +1640,14 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	}
 
 	/**
-	 * Close both cases at the same time.
+	 * Close both cases (assign and unassign) at the same time.
+	 * 
+	 * This is an interesting case for SemiManualDisable. In that case
+	 * we would expect that the account was created and that it was disabled.
+	 * But snapshot (backing store) is never updated as the account was not
+	 * created at all. But as long as the pending operations are in
+	 * grace period we have to pretend that the account was created.
+	 * 
 	 * MID-4037
 	 */
 	@Test
@@ -1680,6 +1675,8 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 
 		accountWillCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
+		// For SemiManualDisable case the shadow is not dead yet. We do not know whether
+		// the account was created or not. We have to assume that it was created.
 		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountWillOid)
 			.pendingOperations()
 				.assertOperations(2)
@@ -1701,12 +1698,12 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 			.assertKind(ShadowKindType.ACCOUNT);
 		assertUnassignedShadow(shadowModelAsserter, true, null); // Shadow in not in the backing store
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, false);
+		// For SemiManualDisable case we still pretend that the shadow will exist
+		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), false);
+		
+		assertUserAfter(userWillOid)
+			.singleLink()
+				.assertOid(accountWillOid);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		assertCase(willSecondLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
@@ -1744,6 +1741,14 @@ public abstract class AbstractDirectManualResourceTest extends AbstractManualRes
 	/**
 	 * ff 20min, grace period expired, But we keep pending operation and shadow
 	 * because they are not expired yet.
+	 * 
+	 * SemiManualDisable case gets even more interesting here.
+	 * Snapshot (backing store) was never updated as the account was in fact not
+	 * created at all. As pending operations are over grace period now, we stop
+	 * pretending that the account was created. And the reality shows that the
+	 * account was in fact not created at all. This is the point where we should
+	 * end up with a dead shadow.
+	 * 
 	 * MID-4037
 	 */
 	@Test

@@ -1257,7 +1257,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         	sb.append(", NOT FRESH");
         }
         if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isTombstone()) {
-        	sb.append(", THOMBSTONE");
+        	sb.append(", TOMBSTONE");
         }
         if (syncAbsoluteTrigger) {
         	sb.append(", SYNC TRIGGER");

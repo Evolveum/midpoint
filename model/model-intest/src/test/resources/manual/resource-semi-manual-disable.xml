@@ -200,6 +200,8 @@
 		<avoidDuplicateValues>true</avoidDuplicateValues>
 		<shadowConstraintsCheck>light</shadowConstraintsCheck>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+		<pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
+		<deadShadowRetentionPeriod>PT2H</deadShadowRetentionPeriod>
 		<reshreshOnRead>true</reshreshOnRead>
 	</consistency>
 	
@@ -224,9 +226,6 @@
 	        <reaction>
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>

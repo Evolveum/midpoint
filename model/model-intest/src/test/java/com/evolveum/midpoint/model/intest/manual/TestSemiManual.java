@@ -238,13 +238,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		pendingOperation = findPendingOperation(shadowModel, OperationResultStatusType.IN_PROGRESS);
 		assertPendingOperation(shadowModel, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountJackOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
-		assertUnassignedFuture(shadowModelFuture, true);
+		assertUnassignedFuture(assertModelShadowFuture(accountJackOid), true);
 
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
@@ -302,13 +296,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 			.end();
 		assertUnassignedShadow(shadowModelAsserter, true, ActivationStatusType.DISABLED);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountJackOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
-		assertUnassignedFuture(shadowModelFuture, false);
+		assertUnassignedFuture(assertModelShadowFuture(accountJackOid), false);
 
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}

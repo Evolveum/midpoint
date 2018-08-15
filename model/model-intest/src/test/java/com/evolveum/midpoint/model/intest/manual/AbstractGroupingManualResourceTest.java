@@ -695,12 +695,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 				PendingOperationExecutionStatusType.EXECUTION_PENDING, null,
 				null, null);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, true);
+		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 
 		// Make sure that the account is still linked
 		PrismObject<UserType> userAfter = getUser(userWillOid);
@@ -779,12 +774,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 				null, null);
 		assertEquals("Case ID mismatch", willLastCaseOid, pendingOperation.getAsynchronousOperationReference());
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, true);
+		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 
 		// Make sure that the account is still linked
 		PrismObject<UserType> userAfter = getUser(userWillOid);
@@ -846,12 +836,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, true);
+		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
@@ -897,12 +882,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 				OperationResultStatusType.SUCCESS,
 				accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertWillUnassignedFuture(shadowModelFuture, false);
+		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), false);
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}

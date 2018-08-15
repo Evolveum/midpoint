@@ -116,10 +116,12 @@ public class TestSemiManualDisable extends TestSemiManual {
 	}
 
 	@Override
-	protected void assertUnassignedFuture(PrismObject<ShadowType> shadowModelFuture, boolean assertPassword) {
-		assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.DISABLED);
+	protected void assertUnassignedFuture(ShadowAsserter<?> shadowModelAsserterFuture, boolean assertPassword) {
+		shadowModelAsserterFuture
+			.assertLife()
+			.assertAdministrativeStatus(ActivationStatusType.DISABLED);
 		if (assertPassword) {
-			assertShadowPassword(shadowModelFuture);
+			assertShadowPassword(shadowModelAsserterFuture);
 		}
 	}
 
