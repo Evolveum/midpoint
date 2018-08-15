@@ -685,6 +685,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         assertUserBefore(USER_JACK_OID)
+        	.displayWithProjections()
         	.assertLinks(2);
 
         getDummyResource().deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -702,13 +703,17 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertSuccess(result);
 
 		assertUserAfter(USER_JACK_OID)
+			.displayWithProjections()
 			.links()
-				.assertLinks(4)
-				.by()
-					.resourceOid(RESOURCE_DUMMY_OID)
-					.dead(true)
-				.find()
-					.end()
+				.assertLinks(3)
+				// No reason to keep default dummy dead shadow here.
+				// The "delete" operation is "complete", there are no pending operations
+				// in the shadow. Therefore provisioning just deletes it.
+//				.by()
+//					.resourceOid(RESOURCE_DUMMY_OID)
+//					.dead(true)
+//				.find()
+//					.end()
 				.by()
 					.resourceOid(RESOURCE_DUMMY_OID)
 					.dead(false)
@@ -728,18 +733,23 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         display("dummy resource after", getDummyResource());
         display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
-        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
-
+        assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+	        .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+	    	.assertEnabled();
+        
+        assertDummyAccountByUsername(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+	        .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+	    	.assertEnabled()
+	    	// No value for ship ... no place to get it from
+	    	.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
 	/**
 	 * Cause schema violation on the account during a provisioning operation. This should fail
-	 * the operation, but other operations should proceed and the account should definitelly NOT
+	 * the operation, but other operations should proceed and the account should definitely NOT
 	 * be unlinked.
 	 * MID-2134
 	 */
@@ -758,24 +768,48 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-        		new PolyString("Cpt. Jack Sparrow", null));
+        		createPolyString("Cpt. Jack Sparrow"));
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-		display("Result", result);
-		TestUtil.assertPartialError(result);
+		assertPartialError(result);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertLinks(userJack, 2);
+		assertUserAfter(USER_JACK_OID)
+			.links()
+				.assertLinks(3)
+				.by()
+					.resourceOid(RESOURCE_DUMMY_OID)
+					.dead(false)
+				.find()
+					.end()
+				.by()
+					// dead shadow from previous test. We leave it here
+					// by purpose. It causes some nuisance. But it should not
+					// ruin anything.
+					.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+					.dead(true)
+				.find()
+					.end()
+				.by()
+					.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+					.dead(false)
+				.find()
+					.end();
 
         display("dummy resource after", getDummyResource());
         display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
 
-        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Cpt. Jack Sparrow", true);
-        // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+        assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+        	// Full name is NOT modified here because of (simulated) schema exception.
+	        .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+	    	.assertEnabled();
+	    
+	    assertDummyAccountByUsername(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+	    	// Full name is modified here. Operation done.
+	        .assertFullName("Cpt. Jack Sparrow")
+	    	.assertEnabled()
+	    	// No value for ship ... no place to get it from
+	    	.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
 
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -801,27 +835,49 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		// WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result,
-        		new PolyString(USER_JACK_FULL_NAME, null));
+        		createPolyString(USER_JACK_FULL_NAME));
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-		display("Result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
-		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertLinks(userJack, 2);
-
-        display("dummy resource after", getDummyResource());
-        display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
-
-        assertDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        assertDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
-        // No value for ship ... no place to get it from
-        assertDummyAccountAttribute(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
-
-        assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+		assertUserAfter(USER_JACK_OID)
+			.links()
+				.assertLinks(3)
+				.by()
+					.resourceOid(RESOURCE_DUMMY_OID)
+					.dead(false)
+				.find()
+					.end()
+				.by()
+					// dead shadow from previous test. We leave it here
+					// by purpose. It causes some nuisance. But it should not
+					// ruin anything.
+					.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+					.dead(true)
+				.find()
+					.end()
+				.by()
+					.resourceOid(RESOURCE_DUMMY_BEIGE_OID)
+					.dead(false)
+				.find()
+					.end();
+	
+	    display("dummy resource after", getDummyResource());
+	    display("beige dummy resource after", getDummyResource(RESOURCE_DUMMY_BEIGE_NAME));
+	
+	    assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+	        .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+	    	.assertEnabled();
+	    
+	    assertDummyAccountByUsername(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+	        .assertFullName(ACCOUNT_JACK_DUMMY_FULLNAME)
+	    	.assertEnabled()
+	    	// No value for ship ... no place to get it from
+	    	.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+	
+	    assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+	    assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
 	/**
@@ -848,16 +904,31 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
-        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertLinks(userJack, 0);
-
+		String deadShadowOid = assertUserAfter(USER_JACK_OID)
+			.links()
+				.single()
+					// dead shadow from previous test. We leave it here
+					// by purpose. It causes some nuisance. But it should not
+					// ruin anything.
+					.resolveTarget()
+						.assertResource(RESOURCE_DUMMY_BEIGE_OID)
+						.assertDead()
+						.getOid();
+		
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_LAVENDER_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_IVORY_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BEIGE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        // CLEANUP - make sure we have clean slate for next tests
+        displayCleanup(TEST_NAME);
+        forceDeleteShadow(deadShadowOid);
+        
+        assertNoShadow(deadShadowOid);
+        assertUserAfter(USER_JACK_OID)
+        	.assertLinks(0);
 	}
 
 
@@ -2128,8 +2199,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result, 2);
+        assertSuccess(result, 2);
 
         assertUserAfter(userBefore.getOid())
         	.assertName(USER_FIELD_NAME)
@@ -2151,7 +2221,6 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(2,2);
         dummyAuditService.assertHasDelta(1,ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
-        dummyAuditService.assertExecutionSuccess();
 	}
 
     @Test
@@ -2417,7 +2486,6 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(2,1);
         dummyAuditService.assertHasDelta(1,ChangeType.DELETE, ShadowType.class);
-        dummyAuditService.assertExecutionSuccess();
 	}
     
     /**

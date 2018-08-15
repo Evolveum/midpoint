@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -144,6 +145,15 @@ public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 			}
 		}
 		assertEquals("Wrong activation administrativeStatus in "+desc(), expected, activation.getAdministrativeStatus());
+		return this;
+	}
+	
+	public ShadowAsserter<R> assertResource(String expectedResourceOid) {
+		ObjectReferenceType resourceRef = getObject().asObjectable().getResourceRef();
+		if (resourceRef == null) {
+			fail("No resourceRef in "+desc());
+		}
+		assertEquals("Wrong resourceRef OID in "+desc(), expectedResourceOid, resourceRef.getOid());
 		return this;
 	}
 	

@@ -34,6 +34,7 @@ import org.testng.AssertJUnit;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -221,13 +222,33 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	}
 	
 	public  FocusAsserter<F,RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
-		display();
+		StringBuilder sb = new StringBuilder();
+		List<PrismObject<ShadowType>> linkTargets = getLinkTargets();
+		sb.append(getObject()).append(" ").append(linkTargets.size()).append(" projections:");
 		for (PrismObject<ShadowType> linkTarget: getLinkTargets()) {
-			IntegrationTestTools.display("projetion of "+desc(), linkTarget);
+			sb.append("\n  ");
+			sb.append(linkTarget);
+			ShadowType shadowType = linkTarget.asObjectable();
+			ObjectReferenceType resourceRef = shadowType.getResourceRef();
+			sb.append(", resource=").append(resourceRef.getOid());
+			appendFlag(sb, "dead", shadowType.isDead());
+			appendFlag(sb, "exists", shadowType.isExists());
+			List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
+			if (!pendingOperations.isEmpty()) {
+				sb.append(", ").append(pendingOperations.size()).append(" pending operations");
+			}
+			
 		}
+		IntegrationTestTools.display(desc(), sb.toString());
 		return this;
 	}
 	
+	private void appendFlag(StringBuilder sb, String label, Boolean val) {
+		if (val != null) {
+			sb.append(", ").append(label).append("=").append(val);
+		}	
+	}
+
 	public AssignmentsAsserter<F, ? extends FocusAsserter<F,RA>, RA> assignments() {
 		AssignmentsAsserter<F,FocusAsserter<F,RA>,RA> asserter = new AssignmentsAsserter<>(this, getDetails());
 		copySetupTo(asserter);

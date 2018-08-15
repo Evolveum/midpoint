@@ -1080,7 +1080,9 @@ public class ContextLoader {
 							projContext.setFullShadow(false);
 						}
 						projectionObject = objectOld;
-						if (!ShadowUtil.isExists(objectOld.asObjectable())) {
+						if (ShadowUtil.isExists(objectOld.asObjectable())) {
+							projContext.setExists(true);
+						} else {
 							projContext.setExists(false);
 							if (ShadowUtil.isDead(objectOld.asObjectable())) {
 								projContext.markTombstone();
