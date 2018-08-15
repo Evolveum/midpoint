@@ -4595,8 +4595,25 @@
         			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
-        
-        	<xsd:element ref="tns:extension" minOccurs="0">
+
+			<xsd:element name="subtype" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Type of the assignment. It is used to describe the assignment e.g. from the point of view
+							of its origin or purpose. A typical use could be marking assignments created by a given
+							inbound mapping in order to efficiently delineate the mapping's range.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>AssignmentType.subtype</a:displayName>
+						<a:help>AssignmentType.subtype.help</a:help>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+
+			<xsd:element ref="tns:extension" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				The assignment extension used to add parameters to the assignment.
@@ -9306,11 +9323,10 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-	<xsd:complexType name="SearchObjectRefExpressionEvaluatorType">
+	<xsd:complexType name="AssignmentTargetSearchExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
-                Create an expression based on search results. This is supposed to create an object reference.
-                Therefore it has additional parameter (relation).
+                Create an expression that provides an assignment based on search results.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -9352,8 +9368,31 @@
 	        </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-	<xsd:element name="assignmentTargetSearch" type="tns:SearchObjectRefExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
-	<xsd:element name="referenceSearch" type="tns:SearchObjectRefExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	<xsd:element name="assignmentTargetSearch" type="tns:AssignmentTargetSearchExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+	<xsd:complexType name="ReferenceSearchExpressionEvaluatorType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Create an expression that provides a reference based on search results.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:SearchObjectExpressionEvaluatorType">
+				<xsd:sequence>
+					<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Relation that will be set for new reference.
+							</xsd:documentation>
+							<xsd:appinfo>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:element name="referenceSearch" type="tns:ReferenceSearchExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 	<xsd:complexType name="ShadowDiscriminatorExpressionEvaluatorType">
         <xsd:annotation>
@@ -11613,6 +11652,16 @@
 					<xsd:documentation>
 						Relation that will be set for new assignment.
 					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="subtype" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Subtype(s) that will be set for new assignment.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<!-- TODO: later: activation, lifecycle -->
