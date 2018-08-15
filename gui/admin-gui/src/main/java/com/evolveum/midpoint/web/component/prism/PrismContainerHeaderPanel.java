@@ -78,10 +78,9 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	public String getLabel() {
 		return getModelObject() != null ? getModelObject().getDisplayName() : "";
 	}
+
+	@Override
+	protected void initExpandCollapseButtons() {
 		
-
-	
-
-	
-	
+	}
 }

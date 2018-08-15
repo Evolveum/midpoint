@@ -636,7 +636,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			if (itemName == null) {
 				continue;
 			}
-			if (QNameUtil.match(RoleType.F_ROLE_TYPE, itemName)) {
+			if (QNameUtil.match(RoleType.F_ROLE_TYPE, itemName)) {      // TODO what about roleType->subtype migration (MID-4818)?
 				ObjectReferenceType valueEnumerationRef = itemDef.getValueEnumerationRef();
 				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
 					return allEntries;

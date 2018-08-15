@@ -29,6 +29,9 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -37,8 +40,12 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,6 +64,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.ibm.icu.text.UFieldPosition;
 
 @PageDescriptor(urls = {@Url(mountUrl = "/self/postAuthentication", matchUrlForSecurity="/self/postAuthentication")}, 
 		action = {
@@ -91,9 +99,23 @@ public class PagePostAuthentication extends PageAbstractFlow {
 
 			@Override
 			protected UserType load() {
-				MidPointPrincipal principal = null;
-				principal = SecurityUtils.getPrincipalUser();
-				return principal.getUser();
+				//TODO: fix this... part of this is executed in object wrapper facotry.. 
+				// but the prism object in object wrapper was overriden with this loading.. 
+				MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+				Task task = createSimpleTask("load self");
+				PrismObject<UserType> user = WebModelServiceUtils.loadObject(UserType.class, principal.getOid(), PagePostAuthentication.this, task, task.getResult());
+				try {
+					PrismObjectDefinition<UserType> userDef = getModelInteractionService().getEditObjectDefinition(user, null, task, task.getResult());
+					if (userDef != null) {
+						user.setDefinition(userDef);
+					}
+				} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
+						| CommunicationException | SecurityViolationException e) {
+					//TODO: nothing critical even by the error. for now just log it
+					LoggingUtils.logException(LOGGER, "Cannot apply edited obejct definition", e);
+				}
+				
+				return user.asObjectable();
 			}
 		};
 		
@@ -142,12 +164,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 		OperationResult result = new OperationResult(OPERATION_SAVE_USER);
 		ObjectDelta<UserType> userDelta = null;
 		try {
-			if (!isCustomFormDefined()) {
-				userDelta = objectWrapper.getObjectDelta();
-			} else {
-				userDelta = getDynamicFormPanel().getObjectDelta();
-			}
-
+			userDelta = getUserDelta();
 			getPrismContext().adopt(userDelta);
 			WebModelServiceUtils.save(userDelta, result, this);
 			result.recordSuccessIfUnknown();
@@ -163,6 +180,17 @@ public class PagePostAuthentication extends PageAbstractFlow {
 				ObjectDelta<UserType> lifecycleDelta = ObjectDelta.createModificationDeleteProperty(UserType.class,
 						userModel.getObject().getOid(), UserType.F_LIFECYCLE_STATE, getPrismContext(),
 						getPostAuthenticationConfiguration().getRequiredLifecycleState());
+				
+//				try {
+//					if (getUserDelta().findItemDelta(SchemaConstants.PATH_PASSWORD_VALUE) != null) {
+//						PrismProperty<Boolean> forceChangeProperty = userModel.getObject().asPrismObject().findProperty(SchemaConstants.PATH_PASSWORD_FORCE_CHANGE);
+//						if (forceChangeProperty != null && !forceChangeProperty.isEmpty()) {
+//							lifecycleDelta.addModificationDeleteProperty(SchemaConstants.PATH_PASSWORD_FORCE_CHANGE, forceChangeProperty.getRealValue());
+//						}
+//					}
+//				} catch (SchemaException e) {
+//					LoggingUtils.logException(LOGGER, "Cannot create delete delta for property: force change", e);
+//				}
 				OperationResult opResult = new OperationResult(OPERATION_SAVE_USER);
 				Task task = createAnonymousTask(OPERATION_SAVE_USER);
 				WebModelServiceUtils.save(lifecycleDelta, opResult, task, PagePostAuthentication.this);
@@ -190,7 +218,16 @@ public class PagePostAuthentication extends PageAbstractFlow {
 		target.add(getFeedbackPanel());
 		
 	}
+	
+	private ObjectDelta<UserType> getUserDelta() throws SchemaException {
+		if (!isCustomFormDefined()) {
+			return objectWrapper.getObjectDelta();
+		}
 		
+		return getDynamicFormPanel().getObjectDelta();
+		
+	}
+	
 	@Override
 	protected boolean isBackButtonVisible() {
 		return false;

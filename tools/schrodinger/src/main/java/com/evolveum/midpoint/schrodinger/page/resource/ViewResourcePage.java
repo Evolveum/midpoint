@@ -39,4 +39,10 @@ public class ViewResourcePage extends BasicPage {
 
         return new FeedbackBox<>(this, feedback);
     }
+
+    public ViewResourcePage refreshSchema() {
+        $(Schrodinger.byDataResourceKey("a", "pageResource.button.refreshSchema")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        return this;
+    }
 }

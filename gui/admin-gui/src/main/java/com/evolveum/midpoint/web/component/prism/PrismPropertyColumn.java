@@ -30,40 +30,22 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AllFilter;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.StandardLoggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author katkav
+ * @author skublik
  */
 public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
 	private static final long serialVersionUID = 1L;
@@ -81,18 +63,9 @@ public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
         LOGGER.trace("Creating property panel for {}", model.getObject());
         
         if(model.getObject().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_APPENDER))){
-        	LookupTableType lookupTable = new LookupTableType();
-	        List<LookupTableRowType> list = lookupTable.createRowList();
 	        
-	        for (AppenderConfigurationType appender : WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(pageBase).getObject().getRealValue().getLogging().getAppender()) {
-	        		LookupTableRowType row = new LookupTableRowType();
-	        		String name = appender.getName();
-	        		row.setKey(name);
-	        		row.setValue(name);
-	        		row.setLabel(new PolyStringType(name));
-	        		list.add(row);
-	        }
-	        ((PropertyWrapper)model.getObject()).setPredefinedValues(lookupTable);
+        	((PropertyWrapper)model.getObject()).setPredefinedValues(WebComponentUtil.createAppenderChoices(pageBase));
+        
         } else if(model.getObject().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_PACKAGE))){
         	LookupTableType lookupTable = new LookupTableType();
 	        List<LookupTableRowType> list = lookupTable.createRowList();
@@ -122,10 +95,6 @@ public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
 
             @Override
             public boolean isVisible() {
-//            	IW propertyWrapper = model.getObject();
-//            	boolean visible = propertyWrapper.isVisible();
-//                LOGGER.trace("isVisible: {}: {}", propertyWrapper, visible);
-//                return visible;
                 return true;
             }
 
@@ -204,7 +173,6 @@ public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
                 return i;
             }
         }
-
         return -1;
     }
 

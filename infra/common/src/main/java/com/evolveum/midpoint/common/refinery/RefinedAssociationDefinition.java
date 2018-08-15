@@ -17,15 +17,12 @@ package com.evolveum.midpoint.common.refinery;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -91,25 +88,36 @@ public class RefinedAssociationDefinition implements Serializable, Visitable {
     }
     
     public boolean isIgnored(LayerType layer) {
-    	RefinedAttributeDefinition<?> assocationAttributeDef = associationTarget.findAttributeDefinition(resourceObjectAssociationType.getAssociationAttribute());
-    	if (assocationAttributeDef == null) {
-			throw new IllegalStateException("No such attribute :" + resourceObjectAssociationType.getAssociationAttribute()
+		QName name = getAssociationAttribute();
+		RefinedAttributeDefinition<?> associationAttributeDef = associationTarget.findAttributeDefinition(name);
+		if (associationAttributeDef == null) {
+			throw new IllegalStateException("No such attribute :" + name
 					+ " in kind: " + associationTarget.getKind() + ", intent: " + associationTarget.getIntent()
 					+ " as defined for association: " + resourceObjectAssociationType.getDisplayName());
     	}
     	
-    	return assocationAttributeDef.isIgnored(layer);
+    	return associationAttributeDef.isIgnored(layer);
     }
+
+    private QName getAssociationAttribute() {
+		ResourceObjectAssociationDirectionType direction = resourceObjectAssociationType.getDirection();
+		if (ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT.equals(direction)) {
+			return resourceObjectAssociationType.getAssociationAttribute();
+		}
+
+		return resourceObjectAssociationType.getValueAttribute();
+	}
     
     public PropertyLimitations getLimitations(LayerType layer) {
-    	RefinedAttributeDefinition<?> assocationAttributeDef = associationTarget.findAttributeDefinition(resourceObjectAssociationType.getAssociationAttribute());
-    	if (assocationAttributeDef == null) {
-			throw new IllegalStateException("No such attribute :" + resourceObjectAssociationType.getAssociationAttribute()
+		QName name = getAssociationAttribute();
+		RefinedAttributeDefinition<?> associationAttributeDef = associationTarget.findAttributeDefinition(name);
+		if (associationAttributeDef == null) {
+			throw new IllegalStateException("No such attribute :" + name
 					+ " in kind: " + associationTarget.getKind() + ", intent: " + associationTarget.getIntent()
 					+ " as defined for association: " + resourceObjectAssociationType.getDisplayName());
     	}
     	
-    	return assocationAttributeDef.getLimitations(layer);
+    	return associationAttributeDef.getLimitations(layer);
     }
         
     public boolean isTolerant() {

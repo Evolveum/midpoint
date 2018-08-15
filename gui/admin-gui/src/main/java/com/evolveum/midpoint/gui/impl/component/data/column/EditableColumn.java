@@ -24,11 +24,11 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.util.Editable;
 
 /**
  * @author lazyman
+ * @author skublik
  */
 public abstract class EditableColumn<T  extends Editable, S> extends AbstractColumn<T, S> {
 

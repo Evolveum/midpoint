@@ -45,9 +45,10 @@
             <xsd:documentation>
                 Where and how to send mail notifications (or any other mail messages).
             </xsd:documentation>
-            <!--<xsd:appinfo>-->
-            <!--<a:container/>-->
-            <!--</xsd:appinfo>-->
+            <xsd:appinfo>
+				<a:displayName>MailConfigurationType.details</a:displayName>
+				<!--<a:container/>-->
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="server" type="tns:MailServerConfigurationType" minOccurs="0" maxOccurs="unbounded">
@@ -63,6 +64,9 @@
                     <xsd:documentation>
                         What to put into "From" field of mail messages (unless overridden by specific situation).
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MailConfigurationType.defaultFrom</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="debug" type="xsd:boolean" minOccurs="0">
@@ -70,6 +74,9 @@
                     <xsd:documentation>
                         Enables quite crude debugging of javamail - sending diagnostics to standard output (console).
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MailConfigurationType.debug</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
@@ -77,6 +84,9 @@
                     <xsd:documentation>
                         Instead of sending mail via SMTP, writes all messages to a file. Useful for debugging.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MailConfigurationType.redirectToFile</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
@@ -84,6 +94,9 @@
                     <xsd:documentation>
                         In addition to sending mail via SMTP, writes all messages to a file. Useful for debugging.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MailConfigurationType.logToFile</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -94,9 +107,10 @@
             <xsd:documentation>
                 Configuration of a particular mail server host.
             </xsd:documentation>
-            <!--<xsd:appinfo>-->
-            <!--<a:container/>-->
-            <!--</xsd:appinfo>-->
+            <xsd:appinfo>
+				<!--<a:container/>-->
+				<a:displayName>MailServerConfigurationType.details</a:displayName>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="host" type="xsd:string">
@@ -104,6 +118,9 @@
                     <xsd:documentation>
                         Mail server host (FQDN or IP address).
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MailServerConfigurationType.host</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="port" type="xsd:int" minOccurs="0">
@@ -111,6 +128,9 @@
                     <xsd:documentation>
                         Mail server port (25 by default).
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MailServerConfigurationType.port</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="username" type="xsd:string" minOccurs="0">
@@ -118,6 +138,9 @@
                     <xsd:documentation>
                         How to authenticate to the mail server.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MailServerConfigurationType.username</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
@@ -125,6 +148,9 @@
                     <xsd:documentation>
                         How to authenticate to the mail server.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MailServerConfigurationType.password</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="transportSecurity" type="tns:MailTransportSecurityType" minOccurs="0">
@@ -132,6 +158,9 @@
                     <xsd:documentation>
                         How to ensure transport-level security when sending the message.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>MailServerConfigurationType.transportSecurity</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -157,6 +186,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NONE"/>
+						<a:displayName>MailTransportSecurityType.none</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -167,6 +197,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="STARTTLS_ENABLED"/>
+						<a:displayName>MailTransportSecurityType.starttlsEnabled</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -177,6 +208,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="STARTTLS_REQUIRED"/>
+						<a:displayName>MailTransportSecurityType.starttlsRequired</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -187,6 +219,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SSL"/>
+						<a:displayName>MailTransportSecurityType.ssl</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -245,9 +278,10 @@
             <xsd:documentation>
                 Where and how to store "file" notifications.
             </xsd:documentation>
-            <!--<xsd:appinfo>-->
-            <!--<a:container/>-->
-            <!--</xsd:appinfo>-->
+            <xsd:appinfo>
+				<!--<a:container/>-->
+				<a:displayName>FileConfigurationType.details</a:displayName>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:NamedConfigurationType">
@@ -257,6 +291,9 @@
                             <xsd:documentation>
                                 File to store notifications into.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FileConfigurationType.f</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -424,6 +461,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+				<a:displayName>NotificationConfigurationType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

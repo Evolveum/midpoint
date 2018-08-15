@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.ClassUtils;
@@ -572,8 +573,15 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				panel = new DatePanel(id, new PropertyModel<>(getModel(), baseExpression));
 
 			} else if (ProtectedStringType.COMPLEX_TYPE.equals(valueType)) {
+				
+				if (!(getPageBase() instanceof PageUser)) {
+					return new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
+						getModel().getObject().isReadonly(), true);
+				} 
+				
 				panel = new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
-						getModel().getObject().isReadonly());
+							getModel().getObject().isReadonly());
+				
 			} else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
 				panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
 			} else if (DOMUtil.XSD_QNAME.equals(valueType)) {
@@ -751,13 +759,17 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				// }
 
 				PrismPropertyDefinition def = property.getDefinition();
+				
+				if(getModelObject().getItem() instanceof PropertyWrapper && getModelObject().getItem().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING, AuditingConfigurationType.F_APPENDER))){
+					((PropertyWrapper)getModelObject().getItem()).setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
+				}
 
 				if(getModelObject().getItem() instanceof PropertyWrapper && ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues() != null) {
 					LookupTableType lookupTable = ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues();
 					
 					boolean isStrict = true;
 					if(getModelObject().getItem().getName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
-						isStrict=false;
+						isStrict = false;
 					}
 					
 					panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),

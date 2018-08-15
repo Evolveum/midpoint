@@ -49,6 +49,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
     private static final String ID_CHILD_CONTAINERS_SELECTOR_PANEL = "childContainersSelectorPanel";
     private static final String ID_CHILD_CONTAINERS_LIST = "childContainersList";
     private static final String ID_ADD_BUTTON = "addButton";
+    private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseContainer";
 
     private boolean isChildContainersSelectorPanelVisible = false;
     
@@ -193,7 +194,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		 
 		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
 				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
-				new QNameIChoiceRenderer(getModelObject().getDefinition().getCompileTimeClass().getSimpleName()));
+				new QNameIChoiceRenderer(getModelObject().getDefinition().getDefaultNamespace()));
 		multivalueContainersList.setOutputMarkupId(true);
 		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		childContainersSelectorPanel.add(multivalueContainersList);
@@ -294,6 +295,13 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		
 	}
 	
+	private void onExpandClick(AjaxRequestTarget target) {
+		
+		ContainerValueWrapper<C> wrapper = PrismContainerValueHeaderPanel.this.getModelObject();
+		wrapper.setExpanded(!wrapper.isExpanded());
+		onButtonClick(target);
+	}
+	
 	public void createNewContainerValue(ContainerValueWrapper<C> containerValueWrapper, QName path){
 		ItemPath newPath = new ItemPath(containerValueWrapper.getPath(), path);
 		ContainerWrapper<C> childContainerWrapper = containerValueWrapper.getContainer().findContainerWrapper(newPath);
@@ -319,6 +327,23 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 	}
 
+	@Override
+	protected void initExpandCollapseButtons() {
+		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_EXPAND_COLLAPSE_BUTTON,
+				GuiStyleConstants.CLASS_BUTTON_TOGGLE_COLLAPSE, GuiStyleConstants.CLASS_BUTTON_TOGGLE_EXPAND) {
+			
+			private static final long serialVersionUID = 1L;
 
-
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				onExpandClick(target);
+			}
+						
+			@Override
+			public boolean isOn() {
+				return PrismContainerValueHeaderPanel.this.getModelObject().isExpanded();
+			}
+        };
+		showEmptyFieldsButton.setOutputMarkupId(true);
+	}
 }
