@@ -22,14 +22,14 @@
 	<oid>00000000-8888-6666-0000-100000000005</oid>
 	<itemDelta>
 		<t:modificationType>add</t:modificationType>
-		<t:path>c:assignment</t:path>
+		<t:path>assignment</t:path>
 		<t:value>
             <c:targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="c:RoleType"/>
 		</t:value>
 	</itemDelta>
 	<itemDelta>
 		<t:modificationType>add</t:modificationType>
-		<t:path>c:assignment</t:path>
+		<t:path>assignment</t:path>
 		<t:value>
 			<c:targetRef oid="12345678-d34d-b33f-f00d-987987987989" type="c:RoleType"/>
 		</t:value>
