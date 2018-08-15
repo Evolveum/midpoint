@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,9 @@ import java.util.Arrays;
  */
 public class SearchValue<T extends Serializable> implements DisplayableValue<T>, Serializable {
 
-    public static final String F_VALUE = "value";
+    private static final long serialVersionUID = 1L;
+    
+	public static final String F_VALUE = "value";
     public static final String F_LABEL = "label";
 
     private T value;

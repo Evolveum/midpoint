@@ -128,13 +128,13 @@ public class SearchItem<T extends Serializable> implements Serializable {
         return search;
     }
 
-    public List<DisplayableValue> getAllowedValues() {
-        List<DisplayableValue> list = new ArrayList();
+    public List<DisplayableValue<T>> getAllowedValues() {
+        List<DisplayableValue<T>> list = new ArrayList<>();
         if (!(definition instanceof PrismPropertyDefinition)) {
             return list;
         }
 
-        PrismPropertyDefinition def = (PrismPropertyDefinition) definition;
+        PrismPropertyDefinition<T> def = (PrismPropertyDefinition<T>) definition;
         list.addAll(def.getAllowedValues());
 
         return list;

@@ -89,6 +89,7 @@ public class SearchFactory {
                 new ItemPath(ObjectType.F_SUBTYPE)));
         SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
                 new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+                new ItemPath(FocusType.F_ROLE_MEMBERSHIP_REF),
                 new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)));
         SEARCHABLE_OBJECTS.put(UserType.class, Arrays.asList(
                 new ItemPath(UserType.F_TITLE),
@@ -164,8 +165,7 @@ public class SearchFactory {
         
         SEARCHABLE_OBJECTS.put(ObjectPolicyConfigurationType.class, Arrays.asList(
                 new ItemPath(ObjectPolicyConfigurationType.F_SUBTYPE),
-                new ItemPath(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF),
-                new ItemPath(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME)
+                new ItemPath(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF)
         ));
     }
 

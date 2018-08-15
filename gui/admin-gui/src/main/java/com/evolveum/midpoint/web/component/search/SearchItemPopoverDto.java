@@ -25,13 +25,13 @@ import java.util.List;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SearchItemPopoverDto implements Serializable {
+public class SearchItemPopoverDto<T extends Serializable> implements Serializable {
 
     public static final String F_VALUES = "values";
 
-    private List<DisplayableValue> values;
+    private List<DisplayableValue<T>> values;
 
-    public List<DisplayableValue> getValues() {
+    public List<DisplayableValue<T>> getValues() {
         if (values == null) {
             values = new ArrayList<>();
         }

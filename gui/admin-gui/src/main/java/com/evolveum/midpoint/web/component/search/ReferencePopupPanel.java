@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.web.component.search;
 
-import java.io.Serializable;
-
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -12,9 +10,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-public class ReferencePopupPanel<T extends Serializable> extends SearchPopupPanel<T>{
+public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -23,7 +23,7 @@ public class ReferencePopupPanel<T extends Serializable> extends SearchPopupPane
 	private static final String ID_RELATION = "relation";
 	
 	
-	public ReferencePopupPanel(String id, IModel<T> model) {
+	public ReferencePopupPanel(String id, IModel<DisplayableValue<ObjectReferenceType>> model) {
 		super(id, model);
 	}
 	

@@ -19,9 +19,18 @@
 <head/>
 <body>
 <wicket:panel>
-	<input wicket:id=oid type="text" class="form-control input-sm" style="width: 150px; min-width: 150px;">
-	<select wicket:id="type" class="form-control input-sm" style="width: auto; min-width: 150px;"/>
-    <select wicket:id="relation" class="form-control input-sm" style="width: auto; min-width: 150px;"/>
+	<div>
+		<wicket:message key="ReferencePopupPanel.oid"/>
+		<input wicket:id=oid type="text" class="form-control input-sm" style="width: 150px; min-width: 150px;">
+	</div>
+	<div>
+		<wicket:message key="ReferencePopupPanel.targetType"/>
+		<select wicket:id="type" class="form-control input-sm" style="width: auto; min-width: 150px;"/>
+	</div>
+	<div>
+    	<wicket:message key="ReferencePopupPanel.relation"/>
+    	<select wicket:id="relation" class="form-control input-sm" style="width: auto; min-width: 150px;"/>
+    </div>
     <span class="input-group-btn">
         <a wicket:id="remove" class="btn btn-danger" wicket:message="title:SearchItemPanel.remove">
             <i class="fa fa-minus"/>
