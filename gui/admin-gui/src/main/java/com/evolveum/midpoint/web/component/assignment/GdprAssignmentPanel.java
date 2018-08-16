@@ -59,7 +59,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 				}
 		});
 
-		columns.add(new CheckBoxColumn<ContainerValueWrapper<AssignmentType>>(createStringResource("AssignmnetType.accepted")) {
+		columns.add(new CheckBoxColumn<ContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.accepted")) {
 
 			private static final long serialVersionUID = 1L;
 

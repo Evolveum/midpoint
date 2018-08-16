@@ -34,7 +34,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
 
 import org.apache.commons.lang.Validate;
 
@@ -62,7 +62,7 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createReferenceSearch(new SearchObjectRefExpressionEvaluatorType()).getName();
+		return new ObjectFactory().createReferenceSearch(new ReferenceSearchExpressionEvaluatorType()).getName();
 	}
 
 	/* (non-Javadoc)
@@ -86,10 +86,10 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
         }
-        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectRefExpressionEvaluatorType)) {
+        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof ReferenceSearchExpressionEvaluatorType)) {
             throw new SchemaException("reference search expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject,
+        ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator((ReferenceSearchExpressionEvaluatorType)evaluatorTypeObject,
         		(PrismReferenceDefinition) outputDefinition, protector, getObjectResolver(), modelService, prismContext, securityContextManager, getLocalizationService());
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}
