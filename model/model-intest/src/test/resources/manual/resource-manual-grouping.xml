@@ -130,6 +130,8 @@
 		<shadowConstraintsCheck>light</shadowConstraintsCheck>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
 		<operationGroupingInterval>PT2M</operationGroupingInterval>
+		<pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
+		<deadShadowRetentionPeriod>PT2H</deadShadowRetentionPeriod>
 		<reshreshOnRead>true</reshreshOnRead>
 	</consistency>
 	

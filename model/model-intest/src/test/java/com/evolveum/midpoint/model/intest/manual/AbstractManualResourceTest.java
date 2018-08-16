@@ -1090,12 +1090,12 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertSuccess(result);
 
 		assertRepoShadow(accountWillOid)
-		.pendingOperations()
-			.assertNone();
+			.pendingOperations()
+				.assertNone();
 
 		assertModelShadow(accountWillOid)
-		.pendingOperations()
-			.assertNone();
+			.pendingOperations()
+				.assertNone();
 
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 		
@@ -2143,7 +2143,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 				.singleOperation()
 					.assertId()
 					.assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertExecutionStatus(getExpectedExecutionStatus(propagationExecutionStage))
 					.delta()
 						.display()
 						.end()
@@ -2167,7 +2167,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 			.pendingOperations()
 				.singleOperation()
 					.assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertExecutionStatus(getExpectedExecutionStatus(propagationExecutionStage))
 					.end()
 				.end();
 		assertAttributeFromCache(shadowModelAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
@@ -2302,15 +2302,17 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
-	protected void assertWillUnassignedFuture(PrismObject<ShadowType> shadowModelFuture, boolean assertPassword) {
-		assertShadowName(shadowModelFuture, USER_WILL_NAME);
-		assertUnassignedFuture(shadowModelFuture, assertPassword);
+	protected void assertWillUnassignedFuture(ShadowAsserter<?> shadowModelAsserterFuture, boolean assertPassword) {
+		shadowModelAsserterFuture
+			.assertName(USER_WILL_NAME);
+		assertUnassignedFuture(shadowModelAsserterFuture, assertPassword);
 	}
 
-	protected void assertUnassignedFuture(PrismObject<ShadowType> shadowModelFuture, boolean assertPassword) {
-		assertShadowDead(shadowModelFuture);
+	protected void assertUnassignedFuture(ShadowAsserter<?> shadowModelAsserterFuture, boolean assertPassword) {
+		shadowModelAsserterFuture
+			.assertDead();
 		if (assertPassword) {
-			assertShadowPassword(shadowModelFuture);
+			assertShadowPassword(shadowModelAsserterFuture);
 		}
 	}
 

@@ -558,6 +558,10 @@ public class ShadowCache {
 				addedShadow = asyncReturnValue.getReturnValue();
 
 			} catch (ObjectAlreadyExistsException e) {
+				
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Object already exists error when trying to add {}, exploring the situation", ProvisioningUtil.shortDumpShadow(shadowToAdd));
+				}
 			
 				// This exception may still be OK in some cases. Such as:
 				// We are trying to add a shadow to a semi-manual connector.
@@ -582,12 +586,24 @@ public class ShadowCache {
 								resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, true, parentResult);
 						opState.processAsyncResult(asyncReturnValue);
 						addedShadow = asyncReturnValue.getReturnValue();
-						
+					
+					} catch (ObjectAlreadyExistsException innerException) {
+						// Mark shadow dead before we handle the error. ADD operation obviously failed. Therefore this particular
+						// shadow was not created as resource object. It is dead on the spot. Make sure that error handler won't confuse
+						// this shadow with the conflicting shadow that it is going to discover.
+						// This may also be a gestation quantum state collapsing to tombstone
+						shadowManager.markShadowTombstone(opState.getRepoShadow(), parentResult);
+						finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, innerException, failedOperationResult, task, parentResult);
 					} catch (Exception innerException) {
 						finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, innerException, parentResult.getLastSubresult(), task, parentResult);
 					}
 						
 				} else {
+					// Mark shadow dead before we handle the error. ADD operation obviously failed. Therefore this particular
+					// shadow was not created as resource object. It is dead on the spot. Make sure that error handler won't confuse
+					// this shadow with the conflicting shadow that it is going to discover.
+					// This may also be a gestation quantum state collapsing to tombstone
+					shadowManager.markShadowTombstone(opState.getRepoShadow(), parentResult);
 					finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, e, failedOperationResult, task, parentResult);
 				}
 				
@@ -843,6 +859,9 @@ public class ShadowCache {
 	}
 	
 	private boolean shouldExecuteResourceOperationDirectly(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		if (ctx.isPropagation()) {
+			return true;
+		}
 		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
 		if (consistency == null) {
 			return true;
@@ -1796,7 +1815,7 @@ public class ShadowCache {
 					// Try to find shadow that corresponds to the resource
 					// object.
 					if (readFromRepository) {
-						PrismObject<ShadowType> repoShadow = lookupOrCreateShadowInRepository(
+						PrismObject<ShadowType> repoShadow = lookupOrCreateLiveShadowInRepository(
 								estimatedShadowCtx, resourceShadow, true, isDoDiscovery, parentResult);
 
 						// This determines the definitions exactly. How the repo
@@ -2035,7 +2054,7 @@ public class ShadowCache {
 		}
 	}
 	
-	private PrismObject<ShadowType> lookupOrCreateShadowInRepository(ProvisioningContext ctx,
+	private PrismObject<ShadowType> lookupOrCreateLiveShadowInRepository(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, boolean isDoDiscovery, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
 					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
@@ -2044,16 +2063,14 @@ public class ShadowCache {
 
 		if (repoShadow == null) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace(
-						"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
-						SchemaDebugUtil.prettyPrint(resourceShadow));
+				LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
+						+ "The repo shadow will be created. The resource object:\n{}", resourceShadow);
 			}
 
 			repoShadow = createShadowInRepository(ctx, resourceShadow, unknownIntent, isDoDiscovery, parentResult);
 		} else {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Found shadow object in the repository {}",
-						SchemaDebugUtil.prettyPrint(repoShadow));
+				LOGGER.trace("Found shadow object in the repository {}", ProvisioningUtil.shortDumpShadow(repoShadow));
 			}
 		}
 
@@ -2770,7 +2787,7 @@ public class ShadowCache {
 								continue;
 							}
 						} else {
-							entitlementRepoShadow = lookupOrCreateShadowInRepository(ctxEntitlement,
+							entitlementRepoShadow = lookupOrCreateLiveShadowInRepository(ctxEntitlement,
 									entitlementShadow, false, isDoDiscovery, parentResult);
 						}
 						ObjectReferenceType shadowRefType = ObjectTypeUtil.createObjectRef(entitlementRepoShadow);
@@ -2996,6 +3013,7 @@ public class ShadowCache {
 		}
 		
 		ProvisioningContext ctx = ctxFactory.create(shadow, task, result);
+		ctx.setPropagation(true);
 		shadowCaretaker.applyAttributesDefinition(ctx, shadow);
 		shadowCaretaker.applyAttributesDefinition(ctx, operationDelta);
 		LOGGER.trace("Merged operation for {}:\n{} ", shadow, operationDelta.debugDumpLazily(1));
@@ -3004,6 +3022,7 @@ public class ShadowCache {
 			PrismObject<ShadowType> shadowToAdd = operationDelta.getObjectToAdd();
 			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState = 
 					ProvisioningOperationState.fromPendingOperations(shadow, sortedOperations);
+			shadowToAdd.setOid(shadow.getOid());
 			addShadowAttempt(ctx, shadowToAdd, null, opState, null, task, result);
 			opState.determineExecutionStatusFromResult();
 			

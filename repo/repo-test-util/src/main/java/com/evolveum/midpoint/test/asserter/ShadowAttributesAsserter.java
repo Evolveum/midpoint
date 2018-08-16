@@ -149,14 +149,14 @@ public class ShadowAttributesAsserter<R> extends AbstractAsserter<ShadowAsserter
 	
 	public <T> ShadowAttributesAsserter<R> assertValue(QName attrName, T... expectedValues) {
 		PrismProperty<T> property = findAttribute(attrName);
-		assertNotNull("No attribute "+attrName+" in "+desc());
+		assertNotNull("No attribute "+attrName+" in "+desc(), property);
 		PrismAsserts.assertPropertyValueDesc(property, desc(), expectedValues);
 		return this;
 	}
 	
 	public <T> ShadowAttributesAsserter<R> assertValueRaw(QName attrName, T... expectedValues) {
 		PrismProperty<T> property = findAttribute(attrName);
-		assertNotNull("No attribute "+attrName+" in "+desc());
+		assertNotNull("No attribute "+attrName+" in "+desc(), property);
 		RawType[] expectedRaw = rawize(attrName, getPrismContext(), expectedValues);
 		PrismAsserts.assertPropertyValueDesc(property, desc(), (T[])expectedRaw);
 		return this;

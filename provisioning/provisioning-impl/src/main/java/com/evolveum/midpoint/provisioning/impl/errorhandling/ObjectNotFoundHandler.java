@@ -103,7 +103,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 				// Or this may be a corpse - quantum state that has just collapsed to to tombstone.
 				// Either way, it should be safe to set exists=false.
 				LOGGER.trace("Setting {} as tombstone. This may be a quntum state collapse. Or maybe a lost shadow.", repositoryShadow);
-				repositoryShadow = shadowManager.markShadowDead(repositoryShadow, parentResult);
+				repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, parentResult);
 			} else {
 				// We always want to return repository shadow it such shadow is available.
 				// The shadow may be dead, or it may be marked as "not exists", but we want
@@ -168,7 +168,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 		
 		LOGGER.debug("DISCOVERY: discovered deleted shadow {}", repositoryShadow);		
 		
-		repositoryShadow = shadowManager.markShadowDead(repositoryShadow, result);
+		repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, result);
 		
 		ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
 		change.setResource(ctx.getResource().asPrismObject());

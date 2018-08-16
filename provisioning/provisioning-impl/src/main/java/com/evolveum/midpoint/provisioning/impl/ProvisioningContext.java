@@ -58,6 +58,7 @@ public class ProvisioningContext extends StateReporter {
 	private ResourceShadowDiscriminator shadowCoordinates;
 	private Collection<QName> additionalAuxiliaryObjectClassQNames;
 	private boolean useRefinedDefinition = true;
+	private boolean isPropagation;
 
 	private RefinedObjectClassDefinition objectClassDefinition;
 
@@ -115,6 +116,14 @@ public class ProvisioningContext extends StateReporter {
 
 	public void setUseRefinedDefinition(boolean useRefinedDefinition) {
 		this.useRefinedDefinition = useRefinedDefinition;
+	}
+	
+	public boolean isPropagation() {
+		return isPropagation;
+	}
+
+	public void setPropagation(boolean isPropagation) {
+		this.isPropagation = isPropagation;
 	}
 
 	public void setObjectClassDefinition(RefinedObjectClassDefinition objectClassDefinition) {
