@@ -121,6 +121,8 @@ public class ObjectDeltaUpdater {
 
         ManagedType mainEntityType = entityRegistry.getJaxbMapping(type);
 
+        boolean modifiesShadowPendingOperation = false;
+
         for (ItemDelta delta : processedModifications) {
             ItemPath path = delta.getPath();
 
@@ -176,6 +178,10 @@ public class ObjectDeltaUpdater {
                     continue;
                 }
 
+                if (isShadowPendingOperation(object, delta)) {
+                    modifiesShadowPendingOperation = true;
+                }
+
                 Attribute attribute = findAttribute(attributeStep, nameLocalPart, path, segments, nameSegment);
                 if (attribute == null) {
                     // there's no table/column that needs update
@@ -198,7 +204,12 @@ public class ObjectDeltaUpdater {
             }
         }
 
+        // the following will apply deltas to prismObject
         handleObjectCommonAttributes(type, processedModifications, prismObject, object, idGenerator);
+
+        if (modifiesShadowPendingOperation) {
+            handleShadowPendingOperation(object, prismObject);
+        }
 
         LOGGER.trace("Entity changes applied");
 
@@ -311,6 +322,26 @@ public class ObjectDeltaUpdater {
             Mapper mapper = prismEntityMapper.getMapper(OperationResultType.class, OperationResult.class);
             mapper.map(null, context);
         }
+    }
+
+
+    private boolean isShadowPendingOperation(RObject<?> object, ItemDelta delta) {
+        return object instanceof RShadow && new ItemPath(ShadowType.F_PENDING_OPERATION).equals(delta.getPath());
+    }
+
+    private <T extends ObjectType> void handleShadowPendingOperation(RObject<T> bean, PrismObject<T> prismObject) throws SchemaException {
+        if (!(bean instanceof RShadow)) {
+            throw new SystemException("Bean is not instance of " + RShadow.class + ", shouldn't happen");
+        }
+        RShadow shadow = (RShadow) bean;
+
+        T objectable = prismObject.asObjectable();
+        if (!(objectable instanceof ShadowType)) {
+            throw new SystemException("PrismObject is not instance of " + ShadowType.class + ", shouldn't happen");
+        }
+        ShadowType shadowType = (ShadowType) objectable;
+
+        shadow.setPendingOperationCount(shadowType.getPendingOperation().size());
     }
 
     private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta> modifications,
