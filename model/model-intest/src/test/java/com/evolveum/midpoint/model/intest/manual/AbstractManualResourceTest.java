@@ -2143,7 +2143,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 				.singleOperation()
 					.assertId()
 					.assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertExecutionStatus(getExpectedExecutionStatus(propagationExecutionStage))
 					.delta()
 						.display()
 						.end()
@@ -2167,7 +2167,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 			.pendingOperations()
 				.singleOperation()
 					.assertRequestTimestamp(accountWillReqestTimestampStart, accountWillReqestTimestampEnd)
-					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertExecutionStatus(getExpectedExecutionStatus(propagationExecutionStage))
 					.end()
 				.end();
 		assertAttributeFromCache(shadowModelAsserter, ATTR_FULLNAME_QNAME, expectedFullName);

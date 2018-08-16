@@ -137,16 +137,25 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 		ObjectQuery query = createQueryBySecondaryIdentifier(newShadow.asObjectable());
 		
 		final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, task, result);
-		PrismObject<ShadowType> oldShadow = shadowManager.reduceLiveShadows(conflictingRepoShadows, result);
+		PrismObject<ShadowType> oldShadow = shadowManager.eliminateDeadShadows(conflictingRepoShadows, result);
 		if (oldShadow != null) {
 			shadowCaretaker.applyAttributesDefinition(ctx, oldShadow);
 		}
 		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}",  ProvisioningUtil.shortDumpShadow(newShadow));
+		}
+		
 		final List<PrismObject<ShadowType>> conflictingResourceShadows = findConflictingShadowsOnResource(query, task, result);
-		PrismObject<ShadowType> conflictingShadow = shadowManager.reduceLiveShadows(conflictingResourceShadows, result);
+		PrismObject<ShadowType> conflictingShadow = shadowManager.eliminateDeadShadows(conflictingResourceShadows, result);
 		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", newShadow, conflictingShadow==null?"  no conflicting shadow":conflictingShadow.debugDump(1));
+		}
 		
-		LOGGER.debug("DISCOVERY: discovered new shadow {}", conflictingShadow);
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("DISCOVERY: discovered new shadow {}", ProvisioningUtil.shortDumpShadow(conflictingShadow));
+		}
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Processing \"already exists\" error for shadow:\n{}\nConflicting repo shadow:\n{}\nConflicting resource shadow:\n{}",

@@ -601,24 +601,36 @@ public class ProvisioningUtil {
 		if (shadow == null) {
 			return "null";
 		}
-		PolyString name = shadow.getName();
-		if (name != null) {
-			return shadow.toString();
-		}
-		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
-		if (primaryIdentifiers != null && !primaryIdentifiers.isEmpty()) {
-			return shortDumpShadowIdentifiers(shadow, primaryIdentifiers);
-		}
-		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-		if (secondaryIdentifiers != null && !secondaryIdentifiers.isEmpty()) {
-			return shortDumpShadowIdentifiers(shadow, secondaryIdentifiers);
-		}
-		return shadow.toString();
-	}
-
-	private static String shortDumpShadowIdentifiers(PrismObject<ShadowType> shadow, Collection<ResourceAttribute<?>> identifiers) {
 		StringBuilder sb = new StringBuilder("shadow:");
 		sb.append(shadow.getOid()).append("(");
+		PolyString name = shadow.getName();
+		if (name != null) {
+			sb.append(name);
+		} else {
+			Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+			if (primaryIdentifiers != null && !primaryIdentifiers.isEmpty()) {
+				shortDumpShadowIdentifiers(sb, shadow, primaryIdentifiers);
+			} else {
+				Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+				if (secondaryIdentifiers != null && !secondaryIdentifiers.isEmpty()) {
+					shortDumpShadowIdentifiers(sb, shadow, secondaryIdentifiers);
+				}
+			}
+		}
+		ShadowType shadowType = shadow.asObjectable();
+		Boolean dead = shadowType.isDead();
+		if (dead != null && dead) {
+			sb.append(";DEAD");
+		}
+		Boolean exists = shadowType.isExists();
+		if (exists != null && !exists) {
+			sb.append(";NOTEXISTS");
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+
+	private static void shortDumpShadowIdentifiers(StringBuilder sb, PrismObject<ShadowType> shadow, Collection<ResourceAttribute<?>> identifiers) {
 		Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
 		while (iterator.hasNext()) {
 			ResourceAttribute<?> identifier = iterator.next();
@@ -629,8 +641,6 @@ public class ProvisioningUtil {
 				sb.append(";");
 			}
 		}
-		sb.append(")");
-		return sb.toString();
 	};
 	
 	public static boolean resourceReadIsCachingOnly(ResourceType resource) {

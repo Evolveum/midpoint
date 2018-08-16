@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -519,6 +520,10 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		assertAccountWillAfterChangePasswordAndEnableCaseClosed(TEST_NAME, null);
 	}
 	
+	/**
+	 * ff 7min. Backing store updated. Grace expired.
+	 * But operation is still in the shadow. Not expired yet.
+	 */
 	@Test
 	public void test272UpdateBackingStoreAndGetAccountWill() throws Exception {
 		final String TEST_NAME = "test272UpdateBackingStoreAndGetAccountWill";
@@ -527,7 +532,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		//  ff 7min. Refresh. Oldest delta should expire.
+		//  ff 7min. Refresh. Oldest delta over grace. But not expired yet.
 		clockForward("PT7M");
 
 		backingStoreUpdateWill(USER_WILL_FULL_NAME_PIRATE, INTEREST_ONE, ActivationStatusType.ENABLED, USER_WILL_PASSWORD_NEW);
@@ -541,33 +546,89 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeProvisioning = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowTypeProvisioning.getKind());
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowModel);
+		ShadowAsserter<Void> shadowModelAsserter = ShadowAsserter.forShadow(shadowModel, "model")
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end()
+			.pendingOperations()
+				.assertOperations(3)
+				.end();
+		assertAttributeFromBackingStore(shadowModelAsserter, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowModelAsserter);
 
-		assertPendingOperationDeltas(shadowModel, 2);
+		assertRepoShadow(accountWillOid)
+			.pendingOperations()
+				.assertOperations(3);
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountWillOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertPendingOperationDeltas(shadowRepo, 2);
+		ShadowAsserter<Void> shadowModelFutureAsserter = assertModelShadowFuture(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end();
+		assertAttributeFromBackingStore(shadowModelFutureAsserter, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		// TODO
+//		assertShadowPassword(shadowProvisioningFuture);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountWillOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_WILL_NAME);
-		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, shadowModelFuture.asObjectable().getKind());
-		assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.ENABLED);
-		assertAttribute(shadowModelFuture, ATTR_USERNAME_QNAME, USER_WILL_NAME);
-		assertAttribute(shadowModelFuture, ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE);
-		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+	}
+	
+	/**
+	 * ff 15min. One pending operation exipired.
+	 */
+	@Test
+	public void test273GetAccountWill() throws Exception {
+		final String TEST_NAME = "test273GetAccountWill";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		//  ff 15min. Oldest delta should expire.
+		clockForward("PT15M");
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
+				accountWillOid, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		ShadowAsserter<Void> shadowModelAsserter = ShadowAsserter.forShadow(shadowModel, "model")
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end()
+			.pendingOperations()
+				.assertOperations(2)
+				.end();
+		assertAttributeFromBackingStore(shadowModelAsserter, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowModelAsserter);
+
+		assertRepoShadow(accountWillOid)
+			.pendingOperations()
+				.assertOperations(2);
+
+		ShadowAsserter<Void> shadowModelFutureAsserter = assertModelShadowFuture(accountWillOid)
+			.assertName(USER_WILL_NAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_WILL_NAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_WILL_FULL_NAME_PIRATE)
+				.end();
+		assertAttributeFromBackingStore(shadowModelFutureAsserter, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 

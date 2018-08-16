@@ -68,6 +68,11 @@ public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperati
 		return this;
 	}
 	
+	public PendingOperationAsserter<R> assertHasCompletionTimestamp() {
+		assertNotNull("No completion timestamp in "+desc(), pendingOperation.getCompletionTimestamp());
+		return this;
+	}
+	
 	public PendingOperationAsserter<R> assertLastAttemptTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
 		TestUtil.assertBetween("Wrong last attempt timestamp in "+desc(), start, end, pendingOperation.getLastAttemptTimestamp());
 		return this;

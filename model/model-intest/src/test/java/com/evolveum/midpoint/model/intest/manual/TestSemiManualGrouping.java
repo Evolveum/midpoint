@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
@@ -134,7 +135,7 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 	 * Create phantom account in the backing store. MidPoint does not know anything about it.
 	 * At the same time, there is phantom user that has the account assigned. But it is not yet
 	 * provisioned. MidPoint won't figure out that there is already an account, as the propagation
-	 * is not execute immediatelly. The conflict will be discovered only later, when propagation
+	 * is not executed immediately. The conflict will be discovered only later, when propagation
 	 * task is run.
 	 * MID-4614
 	 */
@@ -160,27 +161,28 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 		// No case OID yet. The case would be created after propagation is run.
 		assertNull("Unexpected case 1 OID", caseOid1);
 		
-		PrismObject<UserType> userMid1 = getUser(USER_PHANTOM_OID);
-		display("User mid1", userMid1);
-		String shadowOid = getSingleLinkOid(userMid1);
-		PrismObject<ShadowType> shadowMid1NoFetch = getShadowModelNoFetch(shadowOid);
-		display("Shadow mid1 (model, noFetch)", shadowMid1NoFetch);
-
-		assertAttribute(shadowMid1NoFetch, ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME);
-
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowMid1NoFetch, 
-				PendingOperationExecutionStatusType.EXECUTION_PENDING, null);
+		String shadowOid = assertUser(USER_PHANTOM_OID, "mid1")
+			.singleLink()
+				.getOid();
+		
+		assertModelShadowNoFetch(shadowOid)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME)
+				.end()
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
 		
 		clockForward("PT3M");
 		
 		// WHEN (mid2)
 		displayWhen(TEST_NAME, "mid2");
 		// Existing account is detected now. Hence partial error.		
-		runPropagation();
+		runPropagation(OperationResultStatusType.PARTIAL_ERROR);
 		
 		// Synchronization service kicks in, reconciliation detects wrong full name.
 		// It tries to fix it. But as we are in propagation mode, the data are not
-		// fixed immediatelly. Instead there is a pending delta to fix the problem.
+		// fixed immediately. Instead there is a pending delta to fix the problem.
 
 		// THEN (mid2)
 		displayThen(TEST_NAME, "mid2");
@@ -189,24 +191,47 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 		// No case OID yet. The case will be created after propagation is run.
 		assertNull("Unexpected case 2 OID", caseOid2);
 		
-		PrismObject<UserType> userMid2 = getUser(USER_PHANTOM_OID);
-		display("User mid2", userMid2);
-		String shadowOidMid2 = getSingleLinkOid(userMid2);
-		PrismObject<ShadowType> shadowMid2NoFetch = getShadowModelNoFetch(shadowOidMid2);
-		display("Shadow mid2 (model, noFetch)", shadowMid2NoFetch);
-
-		assertAttribute(shadowMid2NoFetch, ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME);
-
-		assertPendingOperationDeltas(shadowMid2NoFetch, 2);
-		PendingOperationType fizzledAddOperation = findPendingOperation(shadowMid2NoFetch, OperationResultStatusType.HANDLED_ERROR, ChangeTypeType.ADD);
-		assertPendingOperation(shadowMid2NoFetch, fizzledAddOperation,
-						PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.HANDLED_ERROR);
-		assertNotNull("Null completion timestamp", fizzledAddOperation.getCompletionTimestamp());
-		PendingOperationType reconOperation = findPendingOperation(shadowMid2NoFetch, null, ChangeTypeType.MODIFY);
-		assertPendingOperation(shadowMid2NoFetch, reconOperation,
-				PendingOperationExecutionStatusType.EXECUTION_PENDING, null);
-		assertHasModification(reconOperation.getDelta(), new ItemPath(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "fullname")));
-		
+		assertUser(USER_PHANTOM_OID, "mid2")
+				.displayWithProjections()
+				.links()
+					.assertLinks(2)
+					.by()
+						.dead(true)
+					.find()
+						.resolveTarget()
+							.assertTombstone()
+							.pendingOperations()
+								.singleOperation()
+									.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+									// Fatal error. Add operation failed. It could not proceed as there was existing account already.
+									.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+									.assertHasCompletionTimestamp()
+									.delta()
+										.assertAdd()
+										.end()
+									.end()
+								.end()
+							.end()
+						.end()
+					.by()
+						.dead(false)
+					.find()
+						.resolveTarget()
+							.assertLife()
+							.pendingOperations()
+								.singleOperation()
+									.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING)
+									.delta()
+										.assertModify()
+										.assertHasModification(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(MidPointConstants.NS_RI, "fullname")))
+										.end()
+									.end()
+								.end()
+							.end()
+						.end()
+					.end()
+				.end();
+					
 		clockForward("PT20M");
 
 		// WHEN (final)
@@ -216,24 +241,57 @@ public class TestSemiManualGrouping extends AbstractGroupingManualResourceTest {
 		// THEN
 		displayThen(TEST_NAME, "final");
 		
-		PrismObject<UserType> userAfter = getUser(USER_PHANTOM_OID);
-		display("User after", userAfter);
-		shadowOid = getSingleLinkOid(userAfter);
-		PrismObject<ShadowType> shadowModel = getShadowModel(shadowOid);
-		display("Shadow after (model)", shadowModel);
+		String liveShadowOid = assertUser(USER_PHANTOM_OID, "final")
+			.displayWithProjections()
+			.links()
+				.assertLinks(2)
+				.by()
+					.dead(true)
+				.find()
+					.resolveTarget()
+						.assertTombstone()
+						.pendingOperations()
+							.singleOperation()
+								.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+								.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+								.assertHasCompletionTimestamp()
+								.delta()
+									.assertAdd()
+									.end()
+								.end()
+							.end()
+						.end()
+					.end()
+				.by()
+					.dead(false)
+				.find()
+					.getOid();
+		
+		ShadowAsserter<Void> shadowModelAfterAsserter = assertModelShadow(liveShadowOid)
+			.assertLife()
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_PHANTOM_FULL_NAME_WRONG)
+				.end()
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+					.delta()
+						.assertModify()
+						.end()
+					.end()
+				.end();
+		assertAttributeFromBackingStore(shadowModelAfterAsserter, ATTR_DESCRIPTION_QNAME, ACCOUNT_PHANTOM_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowModelAfterAsserter);
 
-		assertAttribute(shadowModel, ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME);
-		assertAttribute(shadowModel, ATTR_FULLNAME_QNAME, USER_PHANTOM_FULL_NAME_WRONG);
-		assertAttributeFromBackingStore(shadowModel, ATTR_DESCRIPTION_QNAME, ACCOUNT_PHANTOM_DESCRIPTION_MANUAL);
-		assertShadowPassword(shadowModel);
-
-		assertPendingOperationDeltas(shadowModel, 1);
-//		fizzledAddOperation = findPendingOperation(shadowModel, OperationResultStatusType.HANDLED_ERROR, ChangeTypeType.ADD);
-//		assertPendingOperation(shadowModel, fizzledAddOperation,
-//						PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.HANDLED_ERROR);
-		reconOperation = findPendingOperation(shadowModel, null, ChangeTypeType.MODIFY);
-		assertPendingOperation(shadowModel, reconOperation,
-				PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+		ShadowAsserter<Void> shadowModelAfterAsserterFuture = assertModelShadowFuture(liveShadowOid)
+			.attributes()
+				.assertValue(ATTR_USERNAME_QNAME, USER_PHANTOM_USERNAME)
+				.assertValue(ATTR_FULLNAME_QNAME, USER_PHANTOM_FULL_NAME)
+				.end();
+		assertAttributeFromBackingStore(shadowModelAfterAsserterFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_PHANTOM_DESCRIPTION_MANUAL);
+		assertShadowPassword(shadowModelAfterAsserterFuture);
 
 		// TODO: assert the case
 		

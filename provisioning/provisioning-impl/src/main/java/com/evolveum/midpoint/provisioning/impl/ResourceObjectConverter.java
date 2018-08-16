@@ -328,6 +328,9 @@ public class ResourceObjectConverter {
 	 * itself will not indicate "already exist" error. We have to explicitly check for that.
 	 */
 	private void checkForAddConflicts(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Checking for add conflicts for {}", ProvisioningUtil.shortDumpShadow(shadow));
+		}
 		PrismObject<ShadowType> existingObject = null;
 		ConnectorInstance readConnector = null;
 		try {
@@ -358,9 +361,15 @@ public class ResourceObjectConverter {
 			result.recordFatalError(e);
 			throw e;
 		}
-		if (existingObject != null) {
+		if (existingObject == null) {
+			LOGGER.trace("No add conflicts for {}", shadow);
+		} else {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Detected add conflict for {}, conflicting shadow: {}", ProvisioningUtil.shortDumpShadow(shadow), ProvisioningUtil.shortDumpShadow(existingObject));
+			}
+			LOGGER.trace("Conflicting shadow:\n{}", existingObject.debugDumpLazily(1));
 			ObjectAlreadyExistsException e = new ObjectAlreadyExistsException("Object " + ProvisioningUtil.shortDumpShadow(shadow) +
-					" already exists in the backing store of " + ctx.getResource() + " as " + ProvisioningUtil.shortDumpShadow(existingObject));
+					" already exists in the snapshot of " + ctx.getResource() + " as " + ProvisioningUtil.shortDumpShadow(existingObject));
 			result.recordFatalError(e);
 			throw e;
 		}
