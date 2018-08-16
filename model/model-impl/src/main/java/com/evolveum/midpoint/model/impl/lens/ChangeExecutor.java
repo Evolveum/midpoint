@@ -811,9 +811,13 @@ public class ChangeExecutor {
 		try {
 			currentShadow = provisioning.getObject(ShadowType.class, projectionOid,
 					SelectorOptions.createCollection(getOptions), task, result);
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.trace("Shadow is gone, skipping modifying situation in shadow.");
+			result.recordSuccess();
+			return;			
 		} catch (Exception ex) {
-			LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
-			result.recordHandledError(ex);
+			LOGGER.trace("Problem with getting shadow, skipping modifying situation in shadow.");
+			result.recordPartialError(ex);
 			return;
 		}
 		
