@@ -31,7 +31,7 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
 
 /**
  * @author Radovan Semancik
@@ -41,7 +41,7 @@ public class ReferenceSearchExpressionEvaluator
 
 	private static final Trace LOGGER = TraceManager.getTrace(ReferenceSearchExpressionEvaluator.class);
 
-	public ReferenceSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType,
+	public ReferenceSearchExpressionEvaluator(ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
 			PrismReferenceDefinition outputDefinition, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
 			LocalizationService localizationService) {
@@ -54,7 +54,7 @@ public class ReferenceSearchExpressionEvaluator
 
 		refVal.setOid(oid);
 		refVal.setTargetType(targetTypeQName);
-		refVal.setRelation(((SearchObjectRefExpressionEvaluatorType)getExpressionEvaluatorType()).getRelation());
+		refVal.setRelation(((ReferenceSearchExpressionEvaluatorType)getExpressionEvaluatorType()).getRelation());
 
 		return refVal;
 	}

@@ -74,11 +74,6 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     }
 
     @Override
-	public PrismContainerDefinition<V> getDefinition() {
-		return (PrismContainerDefinition<V>) super.getDefinition();
-	}
-
-    @Override
 	public void setDefinition(PrismContainerDefinition<V> definition) {
     	if (!(definition instanceof PrismContainerDefinition)) {
 			throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
