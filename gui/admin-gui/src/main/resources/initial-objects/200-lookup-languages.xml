@@ -66,6 +66,10 @@
 		<label>Italiano</label>
 	</row>
 	<row>
+		<key>jp</key>
+		<label>日本語</label>
+	</row>
+	<row>
 		<key>pl</key>
 		<label>Język polski</label>
 	</row>
