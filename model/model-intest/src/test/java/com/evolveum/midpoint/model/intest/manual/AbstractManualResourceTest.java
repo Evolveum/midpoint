@@ -2190,8 +2190,6 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 			if (caseShouldExist(propagationExecutionStage)) {
 				assertNotNull("No async reference in pending operation", pendingOperationRef);
 				assertCase(pendingOperationRef, expectedCaseState);
-			} else {
-				assertNull("Unexpected async reference in result", pendingOperationRef);
 			}
 			willLastCaseOid = pendingOperationRef;
 		}

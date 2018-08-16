@@ -808,7 +808,13 @@ public class ShadowManager {
 			return;
 		}
 		
-		PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, shadowToAdd);
+		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+		if (repoShadow != null) {
+			// TODO: should we add pending operation here?
+			return;
+		}
+		
+		repoShadow = createRepositoryShadow(ctx, shadowToAdd);
 		repoShadow.asObjectable().setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
 		opState.setExecutionStatus(PendingOperationExecutionStatusType.REQUESTED);
 		addPendingOperationAdd(repoShadow, shadowToAdd, opState, task.getTaskIdentifier());
@@ -2000,6 +2006,9 @@ public class ShadowManager {
 	}
 	
 	public PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
+		if (repoShadow == null) {
+			return null;
+		}
 		List<ItemDelta<?, ?>> shadowChanges = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
 			.item(ShadowType.F_DEAD).replace(true)
 			.item(ShadowType.F_EXISTS).replace(false)
