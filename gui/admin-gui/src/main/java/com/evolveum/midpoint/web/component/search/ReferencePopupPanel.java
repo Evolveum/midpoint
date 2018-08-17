@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.web.component.search;
 
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -12,6 +14,7 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
@@ -22,9 +25,11 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
 	private static final String ID_TYPE = "type";
 	private static final String ID_RELATION = "relation";
 	
+//	private List<QName> allowedRelations;
 	
 	public ReferencePopupPanel(String id, IModel<DisplayableValue<ObjectReferenceType>> model) {
 		super(id, model);
+//		this.allowedRelations = allowedRelations;
 	}
 	
 	@Override
@@ -50,16 +55,43 @@ public class ReferencePopupPanel extends SearchPopupPanel<ObjectReferenceType> {
 		add(oidField);
 		
 		DropDownChoice<QName> type = new DropDownChoice<>(ID_TYPE, new PropertyModel<QName>(getModel(), SearchValue.F_VALUE + ".type"),
-				WebComponentUtil.createFocusTypeList(), new QNameObjectTypeChoiceRenderer()); 
+				getSupportedTargetList(), new QNameObjectTypeChoiceRenderer()); 
         type.setNullValid(true);
         type.setOutputMarkupId(true);
+        type.add(new VisibleEnableBehaviour() {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public boolean isEnabled() {
+        		return getSupportedTargetList().size() > 1;
+        	}
+        });
+        
         add(type);
         
         DropDownChoice<QName> relation = new DropDownChoice<>(ID_RELATION, new PropertyModel<QName>(getModel(), SearchValue.F_VALUE + ".relation"),
-				WebComponentUtil.getAllRelations(getPageBase()), new QNameObjectTypeChoiceRenderer()); 
+				getAllowedRelations(), new QNameObjectTypeChoiceRenderer()); 
         relation.setNullValid(true);
         relation.setOutputMarkupId(true);
+        relation.add(new VisibleEnableBehaviour() {
+        	
+        	private static final long serialVersionUID = 1L;
+
+			@Override
+        	public boolean isEnabled() {
+        		return getAllowedRelations().size() > 1;
+        	}
+        });
         add(relation);
+	}
+	
+	protected List<QName> getAllowedRelations() {
+		return WebComponentUtil.getAllRelations(getPageBase());
+	}
+	
+	protected List<QName> getSupportedTargetList() {
+		return WebComponentUtil.createFocusTypeList();
 	}
 
 

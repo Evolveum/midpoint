@@ -32,6 +32,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author Viliam Repan (lazyman)
  */
@@ -48,11 +50,16 @@ public class SearchItem<T extends Serializable> implements Serializable {
     private ItemPath path;
     private ItemDefinition definition;
     private List<DisplayableValue<T>> values;
+    
+    //TODO: think about dividing searchItem to searchProperty, searchReference?
+    private List<QName> allowedRelations;
 
     private boolean fixed;
     private boolean editWhenVisible;
 
-    public SearchItem(Search search, ItemPath path, ItemDefinition definition) {
+//    public SearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations) {
+    
+    public SearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations) {
         Validate.notNull(path, "Item path must not be null.");
         Validate.notNull(definition, "Item definition must not be null.");
 
@@ -64,6 +71,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
         this.search = search;
         this.path = path;
         this.definition = definition;
+        this.allowedRelations = allowedRelations;
     }
 
     public ItemPath getPath() {
@@ -155,6 +163,10 @@ public class SearchItem<T extends Serializable> implements Serializable {
     public void setEditWhenVisible(boolean editWhenVisible) {
         this.editWhenVisible = editWhenVisible;
     }
+    
+    public List<QName> getAllowedRelations() {
+		return allowedRelations;
+	}
 
     @Override
     public String toString() {

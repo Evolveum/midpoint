@@ -665,6 +665,22 @@ public final class WebComponentUtil {
 
 		return focusTypeList;
 	}
+	
+	public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
+		 if (targetTypeFromDef == null || ObjectType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+    		 return WebComponentUtil.createObjectTypeList();
+    	 } 
+		 
+		 if (AbstractRoleType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+    		 return WebComponentUtil.createAbstractRoleTypeList();
+    	 } 
+		 
+		 if (FocusType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+    		 return WebComponentUtil.createFocusTypeList();
+    	 } 
+
+		 return Arrays.asList(targetTypeFromDef);
+	}
 
 	/**
 	 * Takes a collection of object types (classes) that may contain abstract types. Returns a collection

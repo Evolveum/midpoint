@@ -22,6 +22,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.GlobalPolicyRuleTabPanel;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -177,5 +180,21 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
 		ContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
 		return Model.of(policyRuleWrapper);
+	}
+
+	@Override
+	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+		List<SearchItemDefinition> defs = new ArrayList<>();
+		
+		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs);
+		SearchFactory.addSearchRefDef(containerDef, 
+				new ItemPath(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS, 
+						PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+		
+		defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+		
+		return defs;
 	}
 }

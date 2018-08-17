@@ -251,11 +251,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	@Override
 	public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values, boolean nullTypeAsAny) {
         RefFilter filter = RefFilter.createReferenceEqual(itemPath, referenceDefinition, values);
-//        if (nullTypeAsAny) {
-        	filter.setTargetTypeNullAsAny(nullTypeAsAny);
-        	filter.setOidNullAsAny(nullTypeAsAny);
-        	filter.setRelationNullAsAny(nullTypeAsAny);
-//        }
+        filter.setTargetTypeNullAsAny(nullTypeAsAny);
         return new R_AtomicFilter(this, filter);
 	}
 

@@ -17,12 +17,15 @@
 package com.evolveum.midpoint.web.component.search;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -46,6 +50,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
@@ -177,13 +182,22 @@ public class SearchFactory {
     public static <C extends Containerable> Search createContainerSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
     	
     	PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-    	Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
+    	List<SearchItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
     	
     	Search search = new Search(type, availableDefs);
     	return search;
     }
-
-    public static <T extends ObjectType> Search createSearch(Class<T> type, ModelServiceLocator modelServiceLocator) {
+    
+//    public static <C extends Containerable> Search createContainerSearch(Class<C> type, List<SearchItemDefinition> availableDefs, ModelServiceLocator modelServiceLocator) {
+//    	
+////    	PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+////    	List<SearchItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
+//    	
+//    	Search search = new Search(type, availableDefs);
+//    	return search;
+//    }
+    
+        public static <T extends ObjectType> Search createSearch(Class<T> type, ModelServiceLocator modelServiceLocator) {
         return createSearch(type, null, modelServiceLocator, true);
     }
 
@@ -193,7 +207,7 @@ public class SearchFactory {
 
         PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, modelServiceLocator);
 
-        Map<ItemPath, ItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
+        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
         boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type);
 
         Search search = new Search(type, availableDefs, isFullTextSearchEnabled,
@@ -237,15 +251,16 @@ public class SearchFactory {
         }
     }
 
-    private static <C extends Containerable> Map<ItemPath, ItemDefinition> getAvailableDefinitions(
+    private static <C extends Containerable> List<SearchItemDefinition> getAvailableDefinitions(
             PrismContainerDefinition<C> objectDef, boolean useDefsFromSuperclass) {
-        Map<ItemPath, ItemDefinition> map = new HashMap<>();
+//        Map<ItemPath, ItemDefinition> map = new HashMap<>();
+    	List<SearchItemDefinition> definitions = new ArrayList<>();
 
         if (objectDef == null) {
-        	return map;
+        	return definitions;
         }
         
-        map.putAll(createExtensionDefinitionList(objectDef));
+        definitions.addAll(createExtensionDefinitionList(objectDef));
 
         Class<C> typeClass = objectDef.getCompileTimeClass();
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
@@ -254,7 +269,8 @@ public class SearchFactory {
                 for (ItemPath path : paths) {
                     ItemDefinition def = objectDef.findItemDefinition(path);
                     if (def != null) {
-                        map.put(path, def);
+                    	SearchItemDefinition searchItemDef = new SearchItemDefinition(path, def, null);
+                    	definitions.add(searchItemDef);
                     }
                 }
             }
@@ -266,7 +282,7 @@ public class SearchFactory {
             typeClass = (Class<C>) typeClass.getSuperclass();
         }
 
-        return map;
+        return definitions;
     }
 
     private static <T extends ObjectType> boolean isFullTextSearchEnabled(ModelServiceLocator modelServiceLocator, Class<T> type) {
@@ -300,33 +316,64 @@ public class SearchFactory {
         }
     }
 
-    private static <C extends Containerable> Map<ItemPath, ItemDefinition> createExtensionDefinitionList(
+    public static <C extends Containerable> List<SearchItemDefinition> createExtensionDefinitionList(
             PrismContainerDefinition<C> objectDef) {
 
-        Map<ItemPath, ItemDefinition> map = new HashMap<>();
+//        Map<ItemPath, ItemDefinition> map = new HashMap<>();
+    	List<SearchItemDefinition> searchItemDefinitions = new ArrayList<>();
 
         ItemPath extensionPath = new ItemPath(ObjectType.F_EXTENSION);
 
         PrismContainerDefinition ext = objectDef.findContainerDefinition(ObjectType.F_EXTENSION);
         if (ext == null) {
-        	return map;
+        	return searchItemDefinitions;
         }
         
         for (ItemDefinition def : (List<ItemDefinition>) ext.getDefinitions()) {
+        	ItemPath itemPath = new ItemPath(extensionPath, def.getName());
+        	
+        	if (!isIndexed(def)) {
+            	continue;
+            }
+        	
+        	if (def instanceof PrismPropertyDefinition) {
+        		addSearchPropertyDef(objectDef, itemPath, searchItemDefinitions);
+        	}
+        	
+        	if (def instanceof PrismReferenceDefinition) {
+        		addSearchRefDef(objectDef, itemPath, searchItemDefinitions, null, null);
+        	}
+        	
             if (!(def instanceof PrismPropertyDefinition)
                     && !(def instanceof PrismReferenceDefinition)) {
                 continue;
             }
 
-            if (!isIndexed(def)) {
-            	continue;
-            }
-            
-            map.put(new ItemPath(extensionPath, def.getName()), def);
         }
 
-        return map;
+        return searchItemDefinitions;
     }
+    
+    public static <C extends Containerable> void addSearchRefDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs, AreaCategoryType category, PageBase pageBase) {
+		PrismReferenceDefinition refDef = containerDef.findReferenceDefinition(path);
+		if (refDef == null) {
+			return;
+		}
+		if (pageBase == null) {
+			defs.add(new SearchItemDefinition(path, refDef, Arrays.asList(SchemaConstants.ORG_DEFAULT)));
+			return;
+		}
+		OperationResult result = new OperationResult("resolve applicable relations");
+		defs.add(new SearchItemDefinition(path, refDef, WebComponentUtil.getCategoryRelationChoices(category, result, pageBase)));
+	}
+	
+	public static <C extends Containerable> void addSearchPropertyDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs) {
+		PrismPropertyDefinition propDef = containerDef.findPropertyDefinition(path);
+		if (propDef == null) {
+			return;
+		}
+		defs.add(new SearchItemDefinition(path, propDef, null));
+	}
     
     private static boolean isIndexed(ItemDefinition def) {
     	if (!(def instanceof PrismPropertyDefinition)) {

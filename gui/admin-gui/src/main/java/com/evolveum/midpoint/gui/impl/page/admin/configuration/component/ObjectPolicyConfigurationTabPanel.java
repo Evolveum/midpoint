@@ -51,6 +51,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.DefaultReferencableImpl;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -84,16 +85,22 @@ import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -170,6 +177,18 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			protected MultivalueContainerDetailsPanel<ObjectPolicyConfigurationType> getMultivalueContainerDetailsPanel(
 					ListItem<ContainerValueWrapper<ObjectPolicyConfigurationType>> item) {
 				return ObjectPolicyConfigurationTabPanel.this.getMultivalueContainerDetailsPanel(item);
+			}
+
+			@Override
+			protected List<SearchItemDefinition> initSearchableItems(
+					PrismContainerDefinition<ObjectPolicyConfigurationType> containerDef) {
+				List<SearchItemDefinition> defs = new ArrayList<>();
+				
+				SearchFactory.addSearchRefDef(containerDef, new ItemPath(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+				SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(ObjectPolicyConfigurationType.F_SUBTYPE), defs);
+				SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE, LifecycleStateType.F_NAME), defs);
+				
+				return defs;
 			}
 		};
 		

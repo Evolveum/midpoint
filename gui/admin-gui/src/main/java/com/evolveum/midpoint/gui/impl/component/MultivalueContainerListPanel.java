@@ -43,6 +43,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -69,6 +70,7 @@ import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -112,10 +114,18 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 			@Override
 			protected Search load() {
-				return SearchFactory.createContainerSearch(getModelObject().getItem().getCompileTimeClass(), getPageBase());
+				PrismContainerDefinition<C> containerDef = model.getObject().getItemDefinition();
+		    	List<SearchItemDefinition> availableDefs = initSearchableItems(containerDef);
+		    	
+		    	Search search = new Search(model.getObject().getItem().getCompileTimeClass(), availableDefs);
+				return search;
 			}
+
+			
 		};
 	}
+	
+	protected abstract List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef);
 	
 	@Override
 	protected void onInitialize() {

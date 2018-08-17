@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -57,6 +58,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -228,7 +231,20 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
         switch (item.getType()) {
         	case REFERENCE:
-        		return (SearchPopupPanel) new ReferencePopupPanel(ID_VALUE, (IModel) data);
+        		return (SearchPopupPanel) new ReferencePopupPanel(ID_VALUE, (IModel) data) {
+        			
+        			private static final long serialVersionUID = 1L;
+
+					@Override
+        			protected List<QName> getAllowedRelations() {
+        				return item.getAllowedRelations();
+        			}
+					
+					@Override
+					protected List<QName> getSupportedTargetList() {
+						return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) item.getDefinition()).getTargetTypeName());
+					}
+        		};
 //        		break;
 //            case BROWSER:
 //                popup = new BrowserPopupPanel(ID_VALUE, data);

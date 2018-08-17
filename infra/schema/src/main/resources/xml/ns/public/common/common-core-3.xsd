@@ -4685,11 +4685,12 @@
                 <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Target of assignment or inducement. This is the role, org or service that is assigned.
+                            Target of assignment or inducement. This is the user, role, org or service that is assigned.
                         </xsd:documentation>
                         <xsd:appinfo>
                             <a:displayName>AssignmentType.target</a:displayName>
                             <a:help>AssignmentType.target.help</a:help>
+                            <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
