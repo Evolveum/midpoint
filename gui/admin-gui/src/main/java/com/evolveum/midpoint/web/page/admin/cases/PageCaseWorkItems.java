@@ -85,8 +85,6 @@ import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType.F_OUTCOME;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_OUTPUT;
 
 /**
  * @author bpowers
@@ -174,7 +172,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         if (onlyOutcomeItems != null && onlyOutcomeItems.getValue()) {
             query.addFilter(
                 QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
-                        .item(F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).isNull()
+                        .item(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq("SUCCESS")
                             .build().getFilter()
             );
         }

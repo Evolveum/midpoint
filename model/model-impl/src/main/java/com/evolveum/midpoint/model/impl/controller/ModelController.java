@@ -72,6 +72,7 @@ import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -2171,7 +2172,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 			XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 			ObjectDelta<CaseType> delta = DeltaBuilder.deltaFor(CaseType.class, prismContext)
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT).replace(output)
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).replace(output.getOutcome())
+					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT).replace(output.getComment())
 					.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
 					.item(CaseType.F_OUTCOME).replace(output != null ? output.getOutcome() : null)
 					.item(CaseType.F_CLOSE_TIMESTAMP).replace(now)
