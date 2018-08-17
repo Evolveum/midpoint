@@ -533,7 +533,15 @@ public class ShadowCache {
 			attributesContainer = shadowToAdd.findContainer(ShadowType.F_ATTRIBUTES);
 		}
 		
-		preAddChecks(ctx, shadowToAdd, task, parentResult);
+//		if (opState.getRepoShadow() != null) {
+//			// HACK HACK HACK, not really right solution.
+//			// We need this for reliable uniqueness check in preAddChecks() and addResourceObject()
+//			// Maybe the right solution would be to pass opState as a parameter to addResourceObject()?
+//			// Or maybe addResourceObject() should not check uniqueness and we shoudl check it here?
+//			shadowToAdd.setOid(opState.getRepoShadow().getOid());
+//		}
+		
+		preAddChecks(ctx, shadowToAdd, opState, task, parentResult);
 		
 		shadowManager.addNewProposedShadow(ctx, shadowToAdd, opState, task, parentResult);
 
@@ -823,15 +831,20 @@ public class ShadowCache {
 		}
 	}
 
-	private void preAddChecks(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
-		checkConstraints(ctx, shadow, task, result);
+	private void preAddChecks(ProvisioningContext ctx, PrismObject<ShadowType> shadow, ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+		checkConstraints(ctx, shadow, opState, task, result);
 		validateSchema(ctx, shadow, task, result);
 	}
 		
-	private void checkConstraints(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+	private void checkConstraints(ProvisioningContext ctx, PrismObject<ShadowType> shadow, ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
 		ShadowCheckType shadowConstraintsCheck = ResourceTypeUtil.getShadowConstraintsCheck(ctx.getResource());
 		if (shadowConstraintsCheck == ShadowCheckType.NONE) {
 			return;
+		}
+		
+		String shadowOid = shadow.getOid();
+		if (opState.getRepoShadow() != null) {
+			shadowOid = opState.getRepoShadow().getOid();
 		}
 		
 		ConstraintsChecker checker = new ConstraintsChecker();
@@ -840,7 +853,7 @@ public class ShadowCache {
 		checker.setPrismContext(prismContext);
 		checker.setProvisioningContext(ctx);
 		checker.setShadowObject(shadow);
-		checker.setShadowOid(shadow.getOid());
+		checker.setShadowOid(shadowOid);
 		checker.setConstraintViolationConfirmer(conflictingShadowCandidate -> !Boolean.TRUE.equals(conflictingShadowCandidate.asObjectable().isDead()) );
 		checker.setUseCache(false);
 		
@@ -1319,7 +1332,14 @@ public class ShadowCache {
 				continue;
 			}
 			
-			AsynchronousOperationResult refreshAsyncResult = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
+			AsynchronousOperationResult refreshAsyncResult;
+			try {
+				refreshAsyncResult = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
+			} catch (CommunicationException e) {
+				LOGGER.debug("Communication error while trying to refresh pending operation of {}. Skipping refresh of this operation.", repoShadow, e);
+				parentResult.recordPartialError(e);
+				continue;
+			}
 			OperationResultStatus newStatus = refreshAsyncResult.getOperationResult().getStatus();
 					
 			if (newStatus == null) {
@@ -1588,6 +1608,8 @@ public class ShadowCache {
 		XMLGregorianCalendar lastActivityTimestamp = null;
 		
 		for (PendingOperationType pendingOperation: shadowType.getPendingOperation()) {
+			lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getRequestTimestamp());
+			lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getLastAttemptTimestamp());
 			lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getCompletionTimestamp());
 		}
 		if (lastActivityTimestamp == null) {

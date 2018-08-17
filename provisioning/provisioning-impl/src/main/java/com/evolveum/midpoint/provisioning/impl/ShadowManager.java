@@ -117,6 +117,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RecordPendingOperationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
@@ -1130,6 +1131,12 @@ public class ShadowManager {
 				if (asynchronousOperationReference != null && !asynchronousOperationReference.equals(pendingOperation.getAsynchronousOperationReference())) {
 					PropertyDelta<String> executionStatusDelta = createPendingOperationDelta(containerDefinition, containerPath,
 							PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE, asynchronousOperationReference);
+					shadowChanges.add(executionStatusDelta);
+				}
+				
+				if (opState.getOperationType() != null && !opState.getOperationType().equals(pendingOperation.getType())) {
+					PropertyDelta<PendingOperationTypeType> executionStatusDelta = createPendingOperationDelta(containerDefinition, containerPath,
+							PendingOperationType.F_TYPE, opState.getOperationType());
 					shadowChanges.add(executionStatusDelta);
 				}
 			}

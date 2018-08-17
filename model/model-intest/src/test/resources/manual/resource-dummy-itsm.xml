@@ -129,6 +129,8 @@
 	<consistency>
 		<shadowConstraintsCheck>light</shadowConstraintsCheck>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+		<pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
+		<deadShadowRetentionPeriod>PT2H</deadShadowRetentionPeriod>
 		<reshreshOnRead>true</reshreshOnRead>
 		<connectorErrorCriticality>			
 			<network>false</network>
