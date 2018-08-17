@@ -61,6 +61,12 @@
 			</modules>
 		</profile>
 		<profile>
+			<id>schrodinger</id>
+			<modules>
+				<module>schrodingertest</module>
+			</modules>
+		</profile>
+		<profile>
 			<id>wstest</id>
 			<modules>
 				<module>wstest</module>

@@ -1460,6 +1460,9 @@
                         What response types are available to reviewers? Empty list means all responses.
                         TODO should we configure also names of the responses? (probably no)
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>AccessCertificationConfigurationType.availableResponse</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="reviewerCommentsFormatting" minOccurs="0" type="tns:PerformerCommentsFormattingType">
@@ -1471,6 +1474,7 @@
                     <xsd:appinfo>
                         <a:experimental>true</a:experimental>
                         <a:since>3.7.1</a:since>
+						<a:displayName>AccessCertificationConfigurationType.reviewerCommentsFormatting</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

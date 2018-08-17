@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -741,9 +743,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.accountPasswordPolicy = accountPasswordPolicy;
 	}
 
-	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() {
+	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() throws SchemaException {
 		// TODO: per-resource assignment enforcement
 		ResourceType resource = getResource();
+		ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
+		
+		if (objectClassProjectionPolicy != null && objectClassProjectionPolicy.getAssignmentPolicyEnforcement() != null) {
+			return MiscSchemaUtil.getAssignmentPolicyEnforcementType(objectClassProjectionPolicy);
+		}
+		
 		ProjectionPolicyType globalAccountSynchronizationSettings = null;
 		if (resource != null){
 			globalAccountSynchronizationSettings = resource.getProjection();
@@ -755,9 +763,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
 		return globalAssignmentPolicyEnforcement;
 	}
-
-	public boolean isLegalize(){
+	
+	public boolean isLegalize() throws SchemaException {
 		ResourceType resource = getResource();
+		
+		ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
+		if (objectClassProjectionPolicy != null) {
+			return BooleanUtils.isTrue(objectClassProjectionPolicy.isLegalize());
+		}
 		ProjectionPolicyType globalAccountSynchronizationSettings = null;
 		if (resource != null){
 			globalAccountSynchronizationSettings = resource.getProjection();
@@ -771,11 +784,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			return false;
 		}
 
-		if (globalAccountSynchronizationSettings.isLegalize() == null){
-			return false;
+		return BooleanUtils.isTrue(globalAccountSynchronizationSettings.isLegalize());
+	}
+		
+	private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException {
+		RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+		if (refinedSchema == null) {
+			return null;
 		}
+		
+		RefinedObjectClassDefinition objectClassDef = refinedSchema.getRefinedDefinition(resourceShadowDiscriminator.getKind(),
+				resourceShadowDiscriminator.getIntent());
 
-		return globalAccountSynchronizationSettings.isLegalize();
+		if (objectClassDef == null) {
+			return null;
+		}
+		return objectClassDef.getProjection();
 	}
 
 	/**

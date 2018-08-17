@@ -81,18 +81,9 @@ public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
         LOGGER.trace("Creating property panel for {}", model.getObject());
         
         if(model.getObject().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_APPENDER))){
-        	LookupTableType lookupTable = new LookupTableType();
-	        List<LookupTableRowType> list = lookupTable.createRowList();
 	        
-	        for (AppenderConfigurationType appender : WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(pageBase).getObject().getRealValue().getLogging().getAppender()) {
-	        		LookupTableRowType row = new LookupTableRowType();
-	        		String name = appender.getName();
-	        		row.setKey(name);
-	        		row.setValue(name);
-	        		row.setLabel(new PolyStringType(name));
-	        		list.add(row);
-	        }
-	        ((PropertyWrapper)model.getObject()).setPredefinedValues(lookupTable);
+        	((PropertyWrapper)model.getObject()).setPredefinedValues(WebComponentUtil.createAppenderChoices(pageBase));
+        
         } else if(model.getObject().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER, ClassLoggerConfigurationType.F_PACKAGE))){
         	LookupTableType lookupTable = new LookupTableType();
 	        List<LookupTableRowType> list = lookupTable.createRowList();

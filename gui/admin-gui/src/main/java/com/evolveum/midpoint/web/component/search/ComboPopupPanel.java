@@ -21,6 +21,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
 
+import com.evolveum.midpoint.util.DisplayableValue;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -29,11 +31,13 @@ import java.util.List;
  */
 public class ComboPopupPanel<T extends Serializable> extends SearchPopupPanel<T> {
 
-    private static final String ID_COMBO_INPUT = "comboInput";
+    private static final long serialVersionUID = 1L;
 
-    private IModel<List<T>> choices;
+	private static final String ID_COMBO_INPUT = "comboInput";
 
-    public ComboPopupPanel(String id, IModel<T> model, IModel<List<T>> choices) {
+    private IModel<List<DisplayableValue<T>>> choices;
+
+    public ComboPopupPanel(String id, IModel<DisplayableValue<T>> model, IModel<List<DisplayableValue<T>>> choices) {
         super(id, model);
         this.choices = choices;
 
@@ -41,12 +45,14 @@ public class ComboPopupPanel<T extends Serializable> extends SearchPopupPanel<T>
     }
 
     private void initLayout() {
-        IModel data = new PropertyModel(getModel(), SearchValue.F_VALUE);
+        IModel<T> data = new PropertyModel<>(getModel(), SearchValue.F_VALUE);
 
-        final DisplayableRenderer renderer = new DisplayableRenderer(choices);
-        final DropDownChoice input = new DropDownChoice(ID_COMBO_INPUT, data, choices, renderer) {
+        final DisplayableRenderer<T> renderer = new DisplayableRenderer<>(choices);
+        final DropDownChoice<T> input = new DropDownChoice(ID_COMBO_INPUT, data, choices, renderer) {
 
-            @Override
+        	private static final long serialVersionUID = 1L;
+
+			@Override
             public IConverter getConverter(Class type) {
                 return renderer;
             }

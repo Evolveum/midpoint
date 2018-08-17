@@ -658,13 +658,14 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					ex);
 		} finally {
 			subResult.computeStatus();
+			String syncSituationValue = syncCtx.getSituation() != null ? syncCtx.getSituation().value() : null;
 			if (isLogDebug(change)) {
 				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', currentOwner={}, correlatedOwner={}",
-						syncCtx.getSituation().value(), syncCtx.getCurrentOwner(),
+						syncSituationValue, syncCtx.getCurrentOwner(),
 						syncCtx.getCorrelatedOwner());
 			} else {
 				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', currentOwner={}, correlatedOwner={}",
-						syncCtx.getSituation().value(), syncCtx.getCurrentOwner(),
+						syncSituationValue, syncCtx.getCurrentOwner(),
 						syncCtx.getCorrelatedOwner());
 			}
 			eventInfo.setOriginalSituation(syncCtx.getSituation());
@@ -915,7 +916,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			} catch (ConfigurationException | ObjectNotFoundException | SchemaException |
 					PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
-					CommunicationException | SecurityViolationException | PreconditionViolationException e) {
+					CommunicationException | SecurityViolationException | PreconditionViolationException | RuntimeException e) {
 				LOGGER.error("SYNCHRONIZATION: Error in synchronization on {} for situation {}: {}: {}. Change was {}",
 						syncCtx.getResource(), syncCtx.getSituation(), e.getClass().getSimpleName(), e.getMessage(), change, e);
 				// what to do here? We cannot throw the error back. All that the notifyChange method

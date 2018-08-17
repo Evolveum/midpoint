@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,20 +35,23 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
  * @author Viliam Repan (lazyman)
  */
-public class TextPopupPanel extends SearchPopupPanel<DisplayableValue> {
+public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> {
 
-    private static final String ID_TEXT_INPUT = "textInput";
+   private static final long serialVersionUID = 1L;
+
+	private static final String ID_TEXT_INPUT = "textInput";
 
     private static final int MAX_ITEMS = 10;
 
     private PrismObject<LookupTableType> lookup;
 
-    public TextPopupPanel(String id, IModel<DisplayableValue> model, PrismObject<LookupTableType> lookup) {
+    public TextPopupPanel(String id, IModel<DisplayableValue<T>> model, PrismObject<LookupTableType> lookup) {
         super(id, model);
         this.lookup = lookup;
 
@@ -60,12 +63,16 @@ public class TextPopupPanel extends SearchPopupPanel<DisplayableValue> {
 
         input.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
-            @Override
+            private static final long serialVersionUID = 1L;
+
+			@Override
             protected void onUpdate(AjaxRequestTarget target) {
                 //nothing to do, just update model data
             }
         });
         input.add(new Behavior() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void bind(Component component) {

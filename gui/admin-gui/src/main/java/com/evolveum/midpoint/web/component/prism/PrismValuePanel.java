@@ -694,13 +694,17 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				// }
 
 				PrismPropertyDefinition def = property.getDefinition();
+				
+				if(getModelObject().getItem() instanceof PropertyWrapper && getModelObject().getItem().getPath().removeIdentifiers().equivalent(new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING, AuditingConfigurationType.F_APPENDER))){
+					((PropertyWrapper)getModelObject().getItem()).setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
+				}
 
 				if(getModelObject().getItem() instanceof PropertyWrapper && ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues() != null) {
 					LookupTableType lookupTable = ((PropertyWrapper)getModelObject().getItem()).getPredefinedValues();
 					
 					boolean isStrict = true;
 					if(getModelObject().getItem().getName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
-						isStrict=false;
+						isStrict = false;
 					}
 					
 					panel = new AutoCompleteTextPanel<String>(id, new LookupPropertyModel<>(getModel(),

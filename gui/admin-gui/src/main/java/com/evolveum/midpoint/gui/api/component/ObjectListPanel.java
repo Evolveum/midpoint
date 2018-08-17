@@ -411,11 +411,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			}
 		};
 		if (options == null){
-			if (ResourceType.class.equals(type)) {
+			if (ResourceType.class.equals(type.getClassDefinition())) {
 				options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 			}
 		} else {
-			if (ResourceType.class.equals(type)) {
+			if (ResourceType.class.equals(type.getClassDefinition())) {
 				GetOperationOptions root = SelectorOptions.findRootOptions(options);
 				root.setNoFetch(Boolean.TRUE);
 			}

@@ -665,6 +665,22 @@ public final class WebComponentUtil {
 
 		return focusTypeList;
 	}
+	
+	public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
+		 if (targetTypeFromDef == null || ObjectType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+    		 return WebComponentUtil.createObjectTypeList();
+    	 } 
+		 
+		 if (AbstractRoleType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+    		 return WebComponentUtil.createAbstractRoleTypeList();
+    	 } 
+		 
+		 if (FocusType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+    		 return WebComponentUtil.createFocusTypeList();
+    	 } 
+
+		 return Arrays.asList(targetTypeFromDef);
+	}
 
 	/**
 	 * Takes a collection of object types (classes) that may contain abstract types. Returns a collection
@@ -2405,7 +2421,7 @@ public final class WebComponentUtil {
 		
 	}
 
-	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, OperationResult result, PageBase pageBase){
+	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, OperationResult result, ModelServiceLocator pageBase){
 		List<QName> relationsList = new ArrayList<>();
 		List<RelationDefinitionType> defList = getRelationDefinitions(result, pageBase);
 		if (defList != null) {
@@ -2417,8 +2433,16 @@ public final class WebComponentUtil {
 		}
 		return relationsList;
 	}
+	
+	public static List<QName> getAllRelations(ModelServiceLocator pageBase) {
+		OperationResult result = new OperationResult("get all relations");
+		List<RelationDefinitionType> allRelationdefinitions = getRelationDefinitions(result, pageBase);
+		List<QName> allRelationsQName = new ArrayList<>(allRelationdefinitions.size());
+		allRelationdefinitions.stream().forEach(relation -> allRelationsQName.add(relation.getRef()));
+		return allRelationsQName;
+	}
 
-	public static List<RelationDefinitionType> getRelationDefinitions(OperationResult result, PageBase pageBase){
+	public static List<RelationDefinitionType> getRelationDefinitions(OperationResult result, ModelServiceLocator pageBase){
 		try {
 			return pageBase.getModelInteractionService().getRelationDefinitions(result);
 		} catch (ObjectNotFoundException | SchemaException ex){
@@ -2506,5 +2530,20 @@ public final class WebComponentUtil {
 				return list;
 			}
 		};
+	}
+	
+	public static LookupTableType createAppenderChoices(PageBase pageBase) {
+		LookupTableType lookupTable = new LookupTableType();
+        List<LookupTableRowType> list = lookupTable.createRowList();
+        
+        for (AppenderConfigurationType appender : WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(pageBase).getObject().getRealValue().getLogging().getAppender()) {
+        		LookupTableRowType row = new LookupTableRowType();
+        		String name = appender.getName();
+        		row.setKey(name);
+        		row.setValue(name);
+        		row.setLabel(new PolyStringType(name));
+        		list.add(row);
+        }
+        return lookupTable;
 	}
 }

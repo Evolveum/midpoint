@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -65,14 +67,14 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
 	@Override
 	protected Search createSearch() {
-		Map<ItemPath, ItemDefinition> availableDefs = new HashMap<>();
-		availableDefs.putAll(createAttributeDefinitionList());
+		List<SearchItemDefinition> availableDefs = new ArrayList<>();
+		availableDefs.addAll(createAttributeDefinitionList());
 		return new Search(ShadowType.class, availableDefs);
 	}
 
-	private <T extends ObjectType> Map<ItemPath, ItemDefinition> createAttributeDefinitionList() {
+	private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
 
-		Map<ItemPath, ItemDefinition> map = new HashMap<>();
+		List<SearchItemDefinition> map = new ArrayList<>();
 
 		RefinedObjectClassDefinition ocDef = null;
 		try {
@@ -101,7 +103,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 				continue;
 			}
 
-			map.put(new ItemPath(attributePath, def.getName()), def);
+			map.add(new SearchItemDefinition(new ItemPath(attributePath, def.getName()), def, null));
 		}
 
 		return map;

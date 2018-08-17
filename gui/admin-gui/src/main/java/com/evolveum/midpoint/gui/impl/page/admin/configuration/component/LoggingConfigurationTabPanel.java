@@ -41,6 +41,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditablePropertyWrapperColumn;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AllFilter;
@@ -64,14 +65,20 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -193,6 +200,14 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 					List<ContainerValueWrapper<ClassLoggerConfigurationType>> listItems) {
 				loggerEditPerformed(target, rowModel, listItems);
 			}
+
+			@Override
+			protected List<SearchItemDefinition> initSearchableItems(
+					PrismContainerDefinition<ClassLoggerConfigurationType> containerDef) {
+				List<SearchItemDefinition> defs = new ArrayList<>();
+				
+				return defs;
+			}
 		};
 		
 		add(loggersMultivalueContainerListPanel);
@@ -263,6 +278,14 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 					ListItem<ContainerValueWrapper<AppenderConfigurationType>> item) {
 				return LoggingConfigurationTabPanel.this.getAppendersMultivalueContainerDetailsPanel(item);
 			}
+
+			@Override
+			protected List<SearchItemDefinition> initSearchableItems(
+					PrismContainerDefinition<AppenderConfigurationType> containerDef) {
+				List<SearchItemDefinition> defs = new ArrayList<>();
+				
+				return defs;
+			}
 		};
 		
 		add(appendersMultivalueContainerListPanel);
@@ -278,6 +301,9 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     		}
 
     	};
+    	
+    	
+    	
 		PrismContainerPanel<AuditingConfigurationType> auditPanel = new PrismContainerPanel<AuditingConfigurationType>(ID_AUDITING, auditModel, true, new Form<>("form"), null, getPageBase());
     	add(auditPanel);
     	
@@ -334,8 +360,11 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 				loggerEditPerformed(target, rowModel, null);
 			}
 		});
+		
 		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.level"), ClassLoggerConfigurationType.F_LEVEL, getPageBase()));
+		
 		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.appender"), ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
+		
 		List<InlineMenuItem> menuActionsList = getLoggersMultivalueContainerListPanel().getDefaultMenuActions();
 		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
 		
