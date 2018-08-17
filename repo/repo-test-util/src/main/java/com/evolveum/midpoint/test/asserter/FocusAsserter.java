@@ -229,20 +229,30 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	
 	public  FocusAsserter<F,RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
 		StringBuilder sb = new StringBuilder();
-		List<PrismObject<ShadowType>> linkTargets = getLinkTargets();
-		sb.append(getObject()).append(" ").append(linkTargets.size()).append(" projections:");
-		for (PrismObject<ShadowType> linkTarget: getLinkTargets()) {
+		List<ObjectReferenceType> linkRefs = getObject().asObjectable().getLinkRef();
+		sb.append(getObject()).append(" ").append(linkRefs.size()).append(" projections:");
+		for (ObjectReferenceType linkRefType: linkRefs) {
 			sb.append("\n  ");
-			sb.append(linkTarget);
-			ShadowType shadowType = linkTarget.asObjectable();
-			ObjectReferenceType resourceRef = shadowType.getResourceRef();
-			sb.append(", resource=").append(resourceRef.getOid());
-			appendFlag(sb, "dead", shadowType.isDead());
-			appendFlag(sb, "exists", shadowType.isExists());
-			List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
-			if (!pendingOperations.isEmpty()) {
-				sb.append(", ").append(pendingOperations.size()).append(" pending operations");
-			}
+			String linkTargetOid = linkRefType.getOid();
+	        assertFalse("No linkRef oid in "+desc(), StringUtils.isBlank(linkTargetOid));
+	        try {
+		        PrismObject<ShadowType> linkTarget = getLinkTarget(linkTargetOid);
+				sb.append(linkTarget);
+				ShadowType shadowType = linkTarget.asObjectable();
+				ObjectReferenceType resourceRef = shadowType.getResourceRef();
+				sb.append(", resource=").append(resourceRef.getOid());
+				appendFlag(sb, "dead", shadowType.isDead());
+				appendFlag(sb, "exists", shadowType.isExists());
+				List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
+				if (!pendingOperations.isEmpty()) {
+					sb.append(", ").append(pendingOperations.size()).append(" pending operations");
+				}
+	        } catch (ObjectNotFoundException e) {
+	        	sb.append("shadow(").append(linkTargetOid).append(": NOT FOUND");
+	        } catch (Exception e) {
+	        	sb.append("shadow(").append(linkTargetOid).append("): ERROR(")
+	        		.append(e.getClass().getSimpleName()).append("): ").append(e.getMessage());
+	        }
 			
 		}
 		IntegrationTestTools.display(desc(), sb.toString());

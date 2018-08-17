@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -69,7 +70,7 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
 	@Override
 	public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
 		final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(AbstractInboundSyncTest.class.getName() + "." + TEST_NAME);
@@ -81,29 +82,28 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
         assertUsers(6);
 
 		/// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
 		dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         waitForSyncTaskNextRun(resourceDummyEmerald);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyEmerald);
         display("Account mancomb", accountMancomb);
         assertNull("Account shadow mancomb not gone", accountMancomb);
 
-        PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        display("User mancomb", userMancomb);
-        assertNotNull("User mancomb is gone", userMancomb);
-        assertLinks(userMancomb, 0);
-        // Disabled by sync reaction
-        assertAdministrativeStatusDisabled(userMancomb);
-//        assertNull("Unexpected valid from in user", userMancomb.asObjectable().getActivation().getValidFrom());
-//        assertNull("Unexpected valid to in user", userMancomb.asObjectable().getActivation().getValidTo());
-        assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
-        assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
+        assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
+        	.displayWithProjections()
+        		.activation()
+	        	// Disabled by sync reaction
+	        	.assertAdministrativeStatus(ActivationStatusType.DISABLED)
+	        	.assertValidFrom(ACCOUNT_MANCOMB_VALID_FROM_DATE)
+	        	.assertValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE)
+	        	.end()
+        	.assertLinks(0);
 
         assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
