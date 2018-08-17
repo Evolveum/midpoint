@@ -87,6 +87,11 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
 		return this;
 	}
 	
+	public ObjectReferenceAsserter<O,R> assertOidDifferentThan(String expected) {
+		assertFalse("Wrong OID in "+desc(), expected.equals(refVal.getOid()));
+		return this;
+	}
+	
 	public PrismObjectAsserter<O,ObjectReferenceAsserter<O,R>> object() {
 		return new PrismObjectAsserter<>((PrismObject<O>)refVal.getObject(), this, "object in "+desc());
 	}

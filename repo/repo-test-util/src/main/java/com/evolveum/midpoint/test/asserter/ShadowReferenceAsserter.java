@@ -64,8 +64,15 @@ public class ShadowReferenceAsserter<R> extends ObjectReferenceAsserter<ShadowTy
 		return this;
 	}
 	
+	@Override
 	public ShadowReferenceAsserter<R> assertOid(String expected) {
 		super.assertOid(expected);
+		return this;
+	}
+	
+	@Override
+	public ShadowReferenceAsserter<R> assertOidDifferentThan(String expected) {
+		super.assertOidDifferentThan(expected);
 		return this;
 	}
 	

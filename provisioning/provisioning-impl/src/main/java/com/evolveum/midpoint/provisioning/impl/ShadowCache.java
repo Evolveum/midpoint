@@ -2421,14 +2421,9 @@ public class ShadowCache {
 			notifyChangeResult.computeStatus("Error in notify change operation.");
 			
 			if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
-				deleteShadowFromRepoIfNeeded(change, result);
+				// Do not delete dead shadows. TODO: review
+//				deleteShadowFromRepoIfNeeded(change, result);
 				successfull = true;
-				// // get updated token from change,
-				// // create property modification from new token
-				// // and replace old token with the new one
-				// PrismProperty<?> newToken = change.getToken();
-				// task.setExtensionProperty(newToken);
-				// processedChanges++;
 	
 			} else {
 				successfull = false;

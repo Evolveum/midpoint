@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.testng.AssertJUnit.assertEquals;
 import java.util.List;
 
 import org.testng.AssertJUnit;
@@ -76,6 +77,18 @@ public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA>
 			fail("Found no link that matches search criteria");
 		}
 		return linksAsserter.forLink(found, foundTarget);
+	}
+	
+	public LinksAsserter<F,FA,RA> assertCount(int expectedCount) throws ObjectNotFoundException, SchemaException {
+		int foundCount = 0;
+		for (PrismReferenceValue link: linksAsserter.getLinks()) {
+			PrismObject<ShadowType> linkTarget = linksAsserter.getLinkTarget(link.getOid());
+			if (matches(link, linkTarget)) {
+				foundCount++;
+			}
+		}
+		assertEquals("Wrong number of links for specified criteria in "+linksAsserter.desc(), expectedCount, foundCount);
+		return linksAsserter;
 	}
 	
 	private boolean matches(PrismReferenceValue refVal, PrismObject<ShadowType> linkTarget) throws ObjectNotFoundException, SchemaException {

@@ -5342,6 +5342,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected UserAsserter<Void> assertUser(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = getUser(oid);
+		return assertUser(user, message);
+	}
+	
+	protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
 		initializeAsserter(asserter);
 		return asserter;
