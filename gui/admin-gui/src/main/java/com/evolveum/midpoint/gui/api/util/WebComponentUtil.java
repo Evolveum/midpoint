@@ -1050,6 +1050,30 @@ public final class WebComponentUtil {
 			return "ContainerPanel.containerProperties";
 		}
 
+		if(prismContainerValue.canRepresent(LifecycleStateType.class)) {
+			LifecycleStateType lifecycleStateType = (LifecycleStateType) prismContainerValue.asContainerable();
+			String name = lifecycleStateType.getDisplayName();
+			if(name == null || name.isEmpty()) {
+				Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
+				name = lifecycleStateType.getName();
+			}
+			
+			if(name != null && !name.isEmpty()) {
+				return name;
+			}
+		}
+		
+		if(prismContainerValue.canRepresent(PropertyConstraintType.class)) {
+			PropertyConstraintType propertyConstraintType = (PropertyConstraintType) prismContainerValue.asContainerable();
+			String path = "";
+			if(propertyConstraintType.getPath() != null) {
+				path = propertyConstraintType.getPath().getItemPath().toString();
+			}
+			
+			if(path != null && !path.isEmpty()) {
+				return path;
+			}
+		}
 		
 		if (prismContainerValue.canRepresent(AssignmentType.class)) {
 			AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
@@ -1070,10 +1094,59 @@ public final class WebComponentUtil {
 		}
 		if (prismContainerValue.canRepresent(AbstractPolicyConstraintType.class)){
 			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) prismContainerValue.asContainerable();
-			String displayName = (StringUtils.isEmpty(constraint.getName()) ? (constraint.asPrismContainerValue().getParent().getPath().last())
-					: constraint.getName())
-					+ (StringUtils.isEmpty(constraint.getDescription()) ? "" : (" - " + constraint.getDescription()));
-			return displayName;
+			String displayName = constraint.getName();
+			if(StringUtils.isNotEmpty(displayName)) {
+				return displayName;
+			} else {
+				return constraint.asPrismContainerValue().getParent().getPath().last().toString() + ".details";
+			}
+		}
+		if (prismContainerValue.canRepresent(RichHyperlinkType.class)){
+			RichHyperlinkType richHyperlink = (RichHyperlinkType) prismContainerValue.asContainerable();
+			String label = richHyperlink.getLabel();
+			String description = richHyperlink.getDescription();
+			String targetUrl = richHyperlink.getTargetUrl();
+			if(StringUtils.isNotEmpty(label)) {
+				return label + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+			} else if(StringUtils.isNotEmpty(targetUrl)) {
+				return targetUrl;
+			}
+		}
+		if (prismContainerValue.canRepresent(UserInterfaceFeatureType.class)){
+			UserInterfaceFeatureType userInterfaceFeature = (UserInterfaceFeatureType) prismContainerValue.asContainerable();
+			String identifier = userInterfaceFeature.getIdentifier();
+			if(StringUtils.isNotEmpty(identifier)) {
+				return identifier;
+			} 
+		}
+		if (prismContainerValue.canRepresent(GuiObjectColumnType.class)){
+			GuiObjectColumnType guiObjectColumn = (GuiObjectColumnType) prismContainerValue.asContainerable();
+			String name = guiObjectColumn.getName();
+			if(StringUtils.isNotEmpty(name)) {
+				return name;
+			} 
+		}
+		if (prismContainerValue.canRepresent(GuiObjectListViewType.class)){
+			GuiObjectListViewType guiObjectListView = (GuiObjectListViewType) prismContainerValue.asContainerable();
+			String name = guiObjectListView.getName();
+			if(StringUtils.isNotEmpty(name)) {
+				return name;
+			} 
+		}
+		if (prismContainerValue.canRepresent(GenericPcpAspectConfigurationType.class)){
+			GenericPcpAspectConfigurationType genericPcpAspectConfiguration = (GenericPcpAspectConfigurationType) prismContainerValue.asContainerable();
+			String name = genericPcpAspectConfiguration.getName();
+			if(StringUtils.isNotEmpty(name)) {
+				return name;
+			} 
+		}
+		if (prismContainerValue.canRepresent(RelationDefinitionType.class)){
+			RelationDefinitionType relationDefinition = (RelationDefinitionType) prismContainerValue.asContainerable();
+			String name = (relationDefinition.getRef().getLocalPart());
+			String description = relationDefinition.getDescription();
+			if(StringUtils.isNotEmpty(name)) {
+				return name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+			}
 		}
 		Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
 		if (cvalClass != null){

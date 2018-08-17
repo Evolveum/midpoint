@@ -24,7 +24,12 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
@@ -36,6 +41,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 public class SystemConfigPanelNew extends BasePanel<ObjectWrapper<SystemConfigurationType>> {
 	
     private static final long serialVersionUID = 1L;
+    
+    private static final Trace LOGGER = TraceManager.getTrace(SystemConfigPanelNew.class);
 
     private static final String ID_SYSTEM_CONFIG = "basicSystemConfiguration";
 
@@ -57,7 +64,7 @@ public class SystemConfigPanelNew extends BasePanel<ObjectWrapper<SystemConfigur
     protected void initLayout() {
     	Form form = new Form<>("form");
 		PrismPanel<SystemConfigurationType> panel = new PrismPanel<SystemConfigurationType>(ID_SYSTEM_CONFIG, 
-		new ContainerWrapperListFromObjectWrapperModel(getModel(), getVisibleContainers()), null, form, null, getPageBase());
+		new ContainerWrapperListFromObjectWrapperModel(getModel(), getVisibleContainers()), null, form, itemWrapper -> getBasicTabVisibity(itemWrapper), getPageBase());
 		add(panel);
     }
     
@@ -66,4 +73,11 @@ public class SystemConfigPanelNew extends BasePanel<ObjectWrapper<SystemConfigur
 		paths.addAll(Arrays.asList(ItemPath.EMPTY_PATH));
 		return paths;
 	}
+	
+	private ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper) {
+		if(itemWrapper.getPath().isSubPathOrEquivalent(new ItemPath(ItemPath.EMPTY_PATH, SystemConfigurationType.F_DESCRIPTION)) || itemWrapper.getPath().isSubPathOrEquivalent(new ItemPath(ItemPath.EMPTY_PATH, SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF))) {
+			return ItemVisibility.AUTO;
+		}
+		return ItemVisibility.HIDDEN;
+    }
 }

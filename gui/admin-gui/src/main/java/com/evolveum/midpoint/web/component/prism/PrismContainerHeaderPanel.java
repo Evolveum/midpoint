@@ -90,7 +90,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 		Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
 		
 		ToggleIconButton expandCollapseButton = new ToggleIconButton(ID_EXPAND_COLLAPSE_BUTTON,
-				GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER, GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER) {
+				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
 			
 			private static final long serialVersionUID = 1L;
 

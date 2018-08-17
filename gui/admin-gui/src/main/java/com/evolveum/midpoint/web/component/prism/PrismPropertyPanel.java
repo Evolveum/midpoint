@@ -315,7 +315,10 @@ public class PrismPropertyPanel<IW extends ItemWrapper> extends Panel {
         ItemDefinition def = property.getItemDefinition();
         String doc = def.getHelp();
         if (StringUtils.isEmpty(doc)) {
-            return null;
+        	doc = def.getDocumentation();
+        	if (StringUtils.isEmpty(doc)) {
+            	return null;
+            }
         }
 
         return PageBase.createStringResourceStatic(this, doc).getString();

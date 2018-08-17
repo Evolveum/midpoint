@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.hibernate.validator.internal.engine.ValueContext.ValueState;
 
 import javax.xml.namespace.QName;
 
@@ -49,6 +50,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
     private boolean isChildContainersSelectorPanelVisible = false;
     
     private static final Trace LOGGER = TraceManager.getTrace(PrismContainerValueHeaderPanel.class);
+    
     private ItemVisibilityHandler isPanelVisible;
 	
 	public PrismContainerValueHeaderPanel(String id, IModel<ContainerValueWrapper<C>> model, ItemVisibilityHandler isPanelVisible) {
@@ -189,7 +191,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		 
 		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
 				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
-				new QNameIChoiceRenderer(getModelObject().getDefinition().getDefaultNamespace()));
+				new QNameIChoiceRenderer(getModelObject().getContainerValue().getValue().getClass().getSimpleName()));
 		multivalueContainersList.setOutputMarkupId(true);
 		multivalueContainersList.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		childContainersSelectorPanel.add(multivalueContainersList);
@@ -236,6 +238,10 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		String displayName = getLabel();
 		if (org.apache.commons.lang3.StringUtils.isEmpty(displayName)) {
 			displayName = "displayName.not.set";
+		}
+		
+		if(getModelObject().getStatus().equals(ValueStatus.ADDED) && getModelObject().getDefinition().isMultiValue() && !getModelObject().getContainer().isShowOnTopLevel()) {
+			displayName = displayName +".newValue";
 		}
 		StringResourceModel headerLabelModel = createStringResource(displayName);
 		AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
