@@ -1177,11 +1177,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         
         // WHEN
         displayWhen(TEST_NAME);
-        recomputeUser(USER_GUYBRUSH_OID);
+        recomputeUser(USER_GUYBRUSH_OID, task, result);
 
         // THEN
         displayThen(TEST_NAME);
-        assertSuccess(result);
+        assertSuccess(result, 2);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
@@ -1196,6 +1196,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	}
 	
 	/**
+	 * Exclusive roles with pruning. Account not assigned, but it exists
+	 * on resource. Error handled by consistency.
 	 * MID-4463
 	 */
 	@Test
@@ -1220,7 +1222,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         // THEN
         displayThen(TEST_NAME);
-        assertSuccess(result);
+        assertSuccess(result, 2);
 
         PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);

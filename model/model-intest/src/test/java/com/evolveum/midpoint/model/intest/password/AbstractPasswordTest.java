@@ -343,11 +343,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
+        displayWhen(TEST_NAME);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+		assertSuccess(result);
 
         XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
 
@@ -2938,7 +2939,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		PrismObject<ShadowType> accountShadowLifecycle = repositoryService.getObject(ShadowType.class, accountLifecycleOid, null, result);
 		display("Repo shadow LIFECYCLE", accountShadowLifecycle);
 		assertAccountShadowRepo(accountShadowLifecycle, accountLifecycleOid, USER_RAPP_USERNAME, getDummyResourceType(RESOURCE_DUMMY_LIFECYCLE_NAME));
-        assertShadowLifecycle(accountShadowLifecycle, SchemaConstants.LIFECYCLE_ARCHIVED);
 
         // RED shadows
         String accountRedOid = getLinkRefOid(userAfter, RESOURCE_DUMMY_RED_OID);

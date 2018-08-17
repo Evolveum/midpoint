@@ -347,13 +347,24 @@ public class ChangeExecutor {
 					}
 
 				} catch (ObjectAlreadyExistsException e) {
+					
+					// This exception is quite special. We have to decide how bad this really is.
+					// This may be rename conflict. Which would be bad.
+					// Or this may be attempt to create account that already exists and just needs
+					// to be linked. Which is no big deal and consistency mechanism (discovery) will
+					// easily handle that. In that case it is done in "another task" which is
+					// quasi-asynchornously executed from provisioning by calling notifyChange.
+					// Once that is done then the account is already linked. And all we need to do
+					// is to restart this whole operation.
 
 					// check if this is a repeated attempt - OAEE was not handled
 					// correctly, e.g. if creating "Users" user in AD, whereas
 					// "Users" is SAM Account Name which is used by a built-in group
 					// - in such case, mark the context as broken
-
 					if (isRepeatedAlreadyExistsException(projCtx)) {
+						// This is the bad case. Currently we do not do anything more intelligent than to look for
+						// repeated error. If we get OAEE twice then this is bad and we thow up.
+						// TODO: do something smarter here
 						LOGGER.debug("Repeated ObjectAlreadyExistsException detected, marking projection {} as broken", projCtx.toHumanReadableString());
 						recordProjectionExecutionException(e, projCtx, subResult,
 								SynchronizationPolicyDecision.BROKEN);

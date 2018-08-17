@@ -800,11 +800,7 @@ public class ShadowManager {
 	public void addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd, 
 			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, 
 			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException, EncryptionException {
-		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
-		if (consistency == null) {
-			return;
-		}
-		if (!BooleanUtils.isTrue(consistency.isUseProposedShadows())) {
+		if (!isUseProposedShadows(ctx)) {
 			return;
 		}
 		
@@ -814,6 +810,7 @@ public class ShadowManager {
 			return;
 		}
 		
+		// This is wrong: MID-4833
 		repoShadow = createRepositoryShadow(ctx, shadowToAdd);
 		repoShadow.asObjectable().setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
 		opState.setExecutionStatus(PendingOperationExecutionStatusType.REQUESTED);
@@ -824,6 +821,14 @@ public class ShadowManager {
 		repoShadow.setOid(oid);
 		LOGGER.trace("Proposed shadow added to the repository: {}", repoShadow);
 		opState.setRepoShadow(repoShadow);
+	}
+	
+	private boolean isUseProposedShadows(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency == null) {
+			return false;
+		}
+		return BooleanUtils.isTrue(consistency.isUseProposedShadows());
 	}
 	
 	/**
@@ -927,8 +932,8 @@ public class ShadowManager {
 
 		ObjectDelta<ShadowType> requestDelta = resourceShadow.createAddDelta();
 		Collection<ItemDelta> internalShadowModifications = computeInternalShadowModifications(ctx, opState, requestDelta);
-		
 		computeUpdateShadowAttributeChanges(ctx, internalShadowModifications, resourceShadow, repoShadow);
+		addModifyMetadataDeltas(repoShadow, internalShadowModifications);
 				
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Updading repository shadow\n{}", DebugUtil.debugDump(internalShadowModifications, 1));
@@ -943,7 +948,7 @@ public class ShadowManager {
 	
 	private List<ItemDelta> computeInternalShadowModifications(ProvisioningContext ctx,
 			ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
-			ObjectDelta<ShadowType> requestDelta) throws SchemaException {
+			ObjectDelta<ShadowType> requestDelta) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
 		List<ItemDelta> shadowModifications = new ArrayList<>();
 		
@@ -976,12 +981,13 @@ public class ShadowManager {
 			}
 		}
 		
-		String currentLifecycleState = repoShadow.asObjectable().getLifecycleState();
-		if (currentLifecycleState != null && !currentLifecycleState.equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
-			shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE));
+		// TODO: this is wrong. Provisioning should not change lifecycle states. Just for compatibility. MID-4833
+		if (isUseProposedShadows(ctx)) {
+			String currentLifecycleState = repoShadow.asObjectable().getLifecycleState();
+			if (currentLifecycleState != null && !currentLifecycleState.equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
+				shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE));
+			}
 		}
-		
-		addModifyMetadataDeltas(repoShadow, shadowModifications);
 		
 		return shadowModifications;
 	}
@@ -1561,6 +1567,7 @@ public class ShadowManager {
 		} else {
 			modifications = internalShadowModifications;
 		}
+		addModifyMetadataDeltas(opState.getRepoShadow(), modifications);
 		LOGGER.trace("Updating repository {} after MODIFY operation {}, {} repository shadow modifications", oldRepoShadow, opState, requestedModifications.size());
 		
 		modifyShadowAttributes(ctx, oldRepoShadow, modifications, parentResult);
@@ -1972,6 +1979,7 @@ public class ShadowManager {
 		LOGGER.trace("Recording pending delete operation in repository {}: {}", oldRepoShadow, opState);
 		ObjectDelta<ShadowType> requestDelta = oldRepoShadow.createDeleteDelta();
 		List<ItemDelta> internalShadowModifications = computeInternalShadowModifications(ctx, opState, requestDelta);
+		addModifyMetadataDeltas(opState.getRepoShadow(), internalShadowModifications);
 		
 		LOGGER.trace("Updating repository {} after DELETE operation {}, {} repository shadow modifications", oldRepoShadow, opState, internalShadowModifications.size());
 		modifyShadowAttributes(ctx, oldRepoShadow, internalShadowModifications, parentResult);

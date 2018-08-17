@@ -134,6 +134,13 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	}
 	
 	@Override
+	public ActivationAsserter<UserType, UserAsserter<RA>, RA> activation() {
+		ActivationAsserter<UserType, UserAsserter<RA>, RA> asserter = new ActivationAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+
+	@Override
 	public LinksAsserter<UserType, UserAsserter<RA>, RA> links() {
 		LinksAsserter<UserType, UserAsserter<RA>, RA> asserter = new LinksAsserter<>(this, getDetails());
 		copySetupTo(asserter);

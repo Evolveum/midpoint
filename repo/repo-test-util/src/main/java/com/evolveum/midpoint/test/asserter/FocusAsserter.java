@@ -116,6 +116,12 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		return this;
 	}
 	
+	public ActivationAsserter<F, ? extends FocusAsserter<F,RA>, RA> activation() {
+		ActivationAsserter<F,FocusAsserter<F,RA>,RA> asserter = new ActivationAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
 	public FocusAsserter<F,RA> assertAdministrativeStatus(ActivationStatusType expected) {
 		ActivationType activation = getActivation();
 		if (activation == null) {

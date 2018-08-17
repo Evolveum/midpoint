@@ -5319,6 +5319,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return asserter;
 	}
 	
+	protected UserAsserter<Void> assertUserAfterByUsername(String username) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		UserAsserter<Void> asserter = assertUserByUsername(username, "after");
+		asserter.display();
+		asserter.assertName(username);
+		return asserter;
+	}
+	
 	protected UserAsserter<Void> assertUserBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		UserAsserter<Void> asserter = assertUser(oid, "before");
 		asserter.display();
