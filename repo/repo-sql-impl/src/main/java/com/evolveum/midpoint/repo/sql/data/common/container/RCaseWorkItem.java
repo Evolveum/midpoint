@@ -66,6 +66,7 @@ public class RCaseWorkItem implements Container<RCase> {
     private Set<RCaseWorkItemReference> assigneeRef = new HashSet<>();
     private REmbeddedReference performerRef;
     private String outcome;
+    private String comment;
     private XMLGregorianCalendar closeTimestamp;
     private XMLGregorianCalendar deadline;
 
@@ -160,6 +161,16 @@ public class RCaseWorkItem implements Container<RCase> {
         this.outcome = outcome;
     }
 
+    @JaxbPath(itemPath = {@JaxbName(localPart = "output"), @JaxbName(localPart = "comment")})
+    @Column
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
     @Column
     public XMLGregorianCalendar getCloseTimestamp() {
         return closeTimestamp;
@@ -238,6 +249,7 @@ public class RCaseWorkItem implements Container<RCase> {
                 workItem.getAssigneeRef(), context.prismContext, rWorkItem));
         rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.prismContext));
         rWorkItem.setOutcome(WorkItemTypeUtil.getOutcome(workItem));
+        rWorkItem.setComment(WorkItemTypeUtil.getComment(workItem));
         rWorkItem.setCloseTimestamp(workItem.getCloseTimestamp());
         rWorkItem.setDeadline(workItem.getDeadline());
     }
