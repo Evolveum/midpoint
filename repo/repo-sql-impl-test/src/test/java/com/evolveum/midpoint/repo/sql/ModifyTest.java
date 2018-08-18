@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -34,6 +35,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.schema.SearchResultList;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
@@ -95,19 +97,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -1009,6 +998,86 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectFilter filterExpectedParsed = QueryJaxbConvertor.createObjectFilter(UserType.class, filterExpected, prismContext);
         //noinspection ConstantConditions
         assertTrue("Filters differ", filterExpectedParsed.equals(filterFromRepoParsed, false));
+    }
+
+    /**
+     * Add shadow pendingOperations; MID-4831
+     */
+    @Test
+    public void test250AddShadowPendingOperations() throws Exception {
+        final String TEST_NAME = "test250AddShadowPendingOperations";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
+                .name("shadow1")
+                .oid("000-aaa-bbb-ccc")
+                .asPrismObject();
+        repositoryService.addObject(shadow, null, result);
+
+        ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_NAME).eqPoly("shadow1")
+                .and().exists(ShadowType.F_PENDING_OPERATION)
+                .build();
+
+        List<PrismObject<ShadowType>> objectsBefore = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertEquals("Wrong # of shadows found (before)", 0, objectsBefore.size());
+
+        // WHEN
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_PENDING_OPERATION).add(new PendingOperationType(prismContext).executionStatus(COMPLETED))
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, getModifyOptions(), result);
+
+        // THEN
+
+        List<PrismObject<ShadowType>> objectsAfter = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertEquals("Wrong # of shadows found (after)", 1, objectsAfter.size());
+        display("object found (after)", objectsAfter.get(0));
+    }
+
+    /**
+     * Delete shadow pendingOperations; MID-4831
+     */
+    @Test
+    public void test260DeleteShadowPendingOperations() throws Exception {
+        final String TEST_NAME = "test260DeleteShadowPendingOperations";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
+                .name("shadow2")
+                .oid("000-aaa-bbb-ddd")
+                .beginPendingOperation()
+                    .executionStatus(COMPLETED)
+                .<ShadowType>end()
+                .asPrismObject();
+        repositoryService.addObject(shadow, null, result);
+
+        ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_NAME).eqPoly("shadow2")
+                .and().exists(ShadowType.F_PENDING_OPERATION)
+                .build();
+        List<PrismObject<ShadowType>> objectsBefore = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertEquals("Wrong # of shadows found (before)", 1, objectsBefore.size());
+        display("object found (before)", objectsBefore.get(0));
+
+        // WHEN
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_PENDING_OPERATION).replace()
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, getModifyOptions(), result);
+
+        // THEN
+
+        List<PrismObject<ShadowType>> objectsAfter = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertEquals("Wrong # of shadows found (after)", 0, objectsAfter.size());
     }
 
 }
