@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -25,9 +26,11 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.protocol.http.ClientProperties;
 import org.apache.wicket.protocol.http.WebSession;
@@ -102,6 +105,15 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                 addPerformed(target, assignments);
             }
         };
+        addButton.add(AttributeAppender.append("title", getAddButtonTitleModel()));
+        addButton.add(new VisibleEnableBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled(){
+                return isAssignButtonEnabled();
+            }
+        });
         addButton.setOutputMarkupId(true);
         form.add(addButton);
     }
@@ -265,7 +277,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     private void tabLabelPanelUpdate(AjaxRequestTarget target){
-        target.add(getTabbedPanel());
+        target.add(AssignmentPopup.this);
     }
 
     private TabbedPanel getTabbedPanel(){
@@ -274,6 +286,30 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
     protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {
         getPageBase().hideMainPopup(target);
+    }
+
+    private IModel<String> getAddButtonTitleModel(){
+        return new LoadableModel<String>(true) {
+            @Override
+            protected String load() {
+                return !isAssignButtonEnabled() ? createStringResource("AssignmentPopup.addButtonTitle").getString() : "";
+            }
+        };
+    }
+
+    private boolean isAssignButtonEnabled(){
+        TabbedPanel tabbedPanel = getTabbedPanel();
+        List<ITab> tabs = (List<ITab>) tabbedPanel.getTabs().getObject();
+        for (ITab tab : tabs){
+            WebMarkupContainer assignmentPanel = ((CountablePanelTab)tab).getPanel();
+            if (assignmentPanel == null){
+                continue;
+            }
+            if (((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedObjectsList().size() > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public int getWidth(){
