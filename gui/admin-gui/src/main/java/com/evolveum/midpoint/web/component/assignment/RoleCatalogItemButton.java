@@ -128,6 +128,12 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         detailsLink.add(getFooterLinksEnableBehaviour());
         detailsLink.add(AttributeAppender.append("title",
                 AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
+        detailsLink.add(AttributeAppender.append("class", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return detailsLink.isEnabled() ?  "shopping-cart-item-button-details" :  "shopping-cart-item-button-details-disabled";
+            }
+        }));
         itemButtonContainer.add(detailsLink);
 
         Label detailsLinkLabel = new Label(ID_DETAILS_LINK_LABEL, createStringResource("MultiButtonPanel.detailsLink"));
@@ -156,6 +162,12 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         addToCartLink.add(getFooterLinksEnableBehaviour());
         addToCartLink.add(AttributeAppender.append("title",
                 AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
+        addToCartLink.add(AttributeAppender.append("class", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return addToCartLink.isEnabled() ?  "shopping-cart-item-button-add" :  "shopping-cart-item-button-add-disabled";
+            }
+        }));
         itemButtonContainer.add(addToCartLink);
 
         AjaxLink addToCartLinkIcon = new AjaxLink(ID_ADD_TO_CART_LINK_ICON) {
