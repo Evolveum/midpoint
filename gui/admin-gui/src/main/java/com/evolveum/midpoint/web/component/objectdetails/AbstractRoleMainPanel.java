@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -44,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
@@ -53,12 +55,14 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
+import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -295,10 +299,31 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 						isAllowedToReadRoleMembership(getObjectWrapper().getOid(), parentPage);
 			}
 		});
+		
+		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
+				ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, isFocusHistoryPage());
 
+		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"), authorization) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer createPanel(String panelId) {
+				return createGovernancePanel(panelId);
+			}
+
+			@Override
+			public boolean isVisible() {
+				return super.isVisible() && getObjectWrapper().getStatus() != ContainerStatus.ADDING;
+			}
+		});
+		
 		return tabs;
 	}
 
+	public abstract AbstractRoleMemberPanel<R> createGovernancePanel(String panelId);
+	
+	
 	private boolean isAllowedToReadRoleMembership(String abstractRoleOid, PageBase parentPage){
 		return isAllowedToReadRoleMembershipItemForType(abstractRoleOid, UserType.class, parentPage)
 				|| isAllowedToReadRoleMembershipItemForType(abstractRoleOid, RoleType.class, parentPage)

@@ -26,7 +26,9 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -52,44 +55,19 @@ public class RoleMainPanel extends AbstractRoleMainPanel<RoleType> {
 	}
 
 	@Override
-	protected List<ITab> createTabs(final PageAdminObjectDetails<RoleType> parentPage) {
-		List<ITab> tabs = super.createTabs(parentPage);
-
-		FocusTabVisibleBehavior<RoleType> authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, isFocusHistoryPage());
-
-		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"), authorization) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public WebMarkupContainer createPanel(String panelId) {
-				return createGovernancePanel(panelId);
-			}
-
-			@Override
-			public boolean isVisible() {
-				return super.isVisible() && getObjectWrapper().getStatus() != ContainerStatus.ADDING;
-			}
-		});
-
-		return tabs;
+	public AbstractRoleMemberPanel<RoleType> createMemberPanel(String panelId) {
+		OperationResult result = new OperationResult("Create relation list");
+		return new RoleMemberPanel(panelId, new Model<>(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, result, getDetailsPage()));
 	}
 
 	@Override
-	public AbstractRoleMemberPanel<RoleType> createMemberPanel(String panelId) {
-		return new RoleMemberPanel(panelId, new Model<>(getObject().asObjectable()));
-	}
-
 	public AbstractRoleMemberPanel<RoleType> createGovernancePanel(String panelId) {
-		List<RelationTypes> relationsList = new ArrayList<>();
-		relationsList.add(RelationTypes.APPROVER);
-		relationsList.add(RelationTypes.OWNER);
-		relationsList.add(RelationTypes.MANAGER);
+//		List<RelationTypes> relationsList = new ArrayList<>();
+//		relationsList.add(RelationTypes.APPROVER);
+//		relationsList.add(RelationTypes.OWNER);
+//		relationsList.add(RelationTypes.MANAGER);
 
-		return new RoleGovernanceMemberPanel(panelId, new Model<>(getObject().asObjectable()), relationsList);
+		OperationResult result = new OperationResult("Create relation list");
+		return new RoleGovernanceMemberPanel(panelId, new Model<>(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, result, getDetailsPage()));
 	}
-
-
-
 }

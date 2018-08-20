@@ -100,7 +100,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected static final String ID_MANAGER_TABLE = "managerTable";
 	protected static final String ID_MEMBER_TABLE = "memberTable";
 
-	protected List<RelationTypes> relations = new ArrayList<>();
+	protected List<QName> relations = new ArrayList<>();
 	private TableId tableId;
 
 	private LoadableModel<List<String>> approverRelationObjectsModel;
@@ -113,7 +113,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	}
 
 	public AbstractRoleMemberPanel(String id, TableId tableId, IModel<T> model,
-								   List<RelationTypes> relations) {
+								   List<QName> relations) {
 		super(id, model);
 		this.relations = relations;
 		this.tableId = tableId;
