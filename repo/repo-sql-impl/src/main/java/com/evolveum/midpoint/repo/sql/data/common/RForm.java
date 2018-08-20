@@ -16,24 +16,17 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-import java.util.Collection;
+import javax.persistence.*;
 import java.util.Objects;
 
 /**
@@ -41,19 +34,28 @@ import java.util.Objects;
  */
 @Entity
 @ForeignKey(name = "fk_form")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_form_name", columnNames = {"name_norm"}))
+@Table(uniqueConstraints = @UniqueConstraint(name = "uc_form_name", columnNames = {"name_norm"}),
+        indexes = {
+                @Index(name = "iFormNameOrig", columnList = "name_orig"),
+        }
+)
 @Persister(impl = MidPointJoinedPersister.class)
 public class RForm extends RObject<FormType> {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     @Override
@@ -65,26 +67,16 @@ public class RForm extends RObject<FormType> {
         if (!super.equals(o))
             return false;
         RForm rForm = (RForm) o;
-        return Objects.equals(name, rForm.name);
+        return Objects.equals(nameCopy, rForm.nameCopy);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name);
+        return Objects.hash(super.hashCode(), nameCopy);
     }
 
 	public static void copyFromJAXB(FormType jaxb, RForm repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 	}
-
-
-	@Override
-    public FormType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        FormType object = new FormType();
-        RUtil.revive(object, prismContext);
-        RForm.copyToJAXB(this, object, prismContext, options);
-        return object;
-    }
 }

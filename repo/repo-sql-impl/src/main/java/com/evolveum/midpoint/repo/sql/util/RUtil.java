@@ -275,7 +275,7 @@ public final class RUtil {
         }
     }
 
-    public static void copyResultFromJAXB(ItemDefinition parentDef, QName itemName, OperationResultType jaxb,
+    public static void copyResultFromJAXB(QName itemName, OperationResultType jaxb,
                                           OperationResult repo, PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
 

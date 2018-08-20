@@ -829,6 +829,9 @@ CREATE INDEX iAutoassignEnabled
 ALTER TABLE m_acc_cert_campaign
     ADD CONSTRAINT uc_acc_cert_campaign_name  UNIQUE (name_norm) INITRANS 30;
 
+CREATE INDEX iCertCampaignNameOrig
+  ON m_acc_cert_campaign (name_orig) INITRANS 30;
+
 CREATE INDEX iCaseObjectRefTargetOid ON m_acc_cert_case (objectRef_targetOid) INITRANS 30;
 
 CREATE INDEX iCaseTargetRefTargetOid ON m_acc_cert_case (targetRef_targetOid) INITRANS 30;
@@ -839,6 +842,9 @@ CREATE INDEX iCaseOrgRefTargetOid ON m_acc_cert_case (orgRef_targetOid) INITRANS
 
 ALTER TABLE m_acc_cert_definition
     ADD CONSTRAINT uc_acc_cert_definition_name  UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iCertDefinitionNameOrig
+  ON m_acc_cert_definition (name_orig) INITRANS 30;
 
 CREATE INDEX iCertWorkItemRefTargetOid ON m_acc_cert_wi_reference (targetOid) INITRANS 30;
 
@@ -881,8 +887,20 @@ CREATE INDEX iAuditRefValRecordId
 ALTER TABLE m_case
   ADD CONSTRAINT uc_case_name UNIQUE (name_norm) INITRANS 30;
 
+CREATE INDEX iCaseNameOrig
+  ON m_case (name_orig) INITRANS 30;
+
+CREATE INDEX iConnectorNameOrig
+  ON m_connector (name_orig) INITRANS 30;
+
+CREATE INDEX iConnectorNameNorm
+  ON m_connector (name_norm) INITRANS 30;
+
 ALTER TABLE m_connector_host
 ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iConnectorHostNameOrig
+  ON m_connector_host (name_orig) INITRANS 30;
 
 CREATE INDEX iFocusAdministrative ON m_focus (administrativeStatus) INITRANS 30;
 
@@ -891,20 +909,35 @@ CREATE INDEX iFocusEffective ON m_focus (effectiveStatus) INITRANS 30;
 ALTER TABLE m_form
   ADD CONSTRAINT uc_form_name UNIQUE (name_norm) INITRANS 30;
 
+CREATE INDEX iFormNameOrig
+  ON m_form (name_orig) INITRANS 30;
+
 ALTER TABLE m_function_library
   ADD CONSTRAINT uc_function_library_name UNIQUE (name_norm) INITRANS 30;
   
+CREATE INDEX iFunctionLibraryNameOrig
+  ON m_function_library (name_orig) INITRANS 30;
+
 ALTER TABLE m_generic_object
 ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm) INITRANS 30;
 
+CREATE INDEX iGenericObjectNameOrig
+  ON m_generic_object (name_orig) INITRANS 30;
+
 ALTER TABLE m_lookup_table
 ADD CONSTRAINT uc_lookup_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iLookupTableNameOrig
+  ON m_lookup_table (name_orig) INITRANS 30;
 
 ALTER TABLE m_lookup_table_row
 ADD CONSTRAINT uc_row_key UNIQUE (owner_oid, row_key) INITRANS 30;
 
 ALTER TABLE m_node
 ADD CONSTRAINT uc_node_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iNodeNameOrig
+  ON m_node (name_orig) INITRANS 30;
 
 CREATE INDEX iObjectNameOrig ON m_object (name_orig) INITRANS 30;
 
@@ -943,6 +976,9 @@ CREATE INDEX iExtensionStringDef ON m_object_ext_string (owner_oid, ownerType) I
 ALTER TABLE m_object_template
   ADD CONSTRAINT uc_object_template_name UNIQUE (name_norm) INITRANS 30;
 
+CREATE INDEX iObjectTemplateNameOrig
+  ON m_object_template (name_orig) INITRANS 30;
+
 CREATE INDEX iOpExecTaskOid
   ON m_operation_execution (taskRef_targetOid) INITRANS 30;
 
@@ -960,6 +996,9 @@ ADD CONSTRAINT uc_org_name UNIQUE (name_norm) INITRANS 30;
 
 CREATE INDEX iDisplayOrder ON m_org (displayOrder) INITRANS 30;
 
+CREATE INDEX iOrgNameOrig
+  ON m_org (name_orig) INITRANS 30;
+
 CREATE INDEX iAncestor ON m_org_closure (ancestor_oid) INITRANS 30;
 
 CREATE INDEX iDescendant ON m_org_closure (descendant_oid) INITRANS 30;
@@ -973,17 +1012,44 @@ ADD CONSTRAINT uc_report_name UNIQUE (name_norm) INITRANS 30;
 
 CREATE INDEX iReportParent ON m_report (parent) INITRANS 30;
 
+CREATE INDEX iReportNameOrig
+  ON m_report (name_orig) INITRANS 30;
+
+CREATE INDEX iReportOutputNameOrig
+  ON m_report_output (name_orig) INITRANS 30;
+
+CREATE INDEX iReportOutputNameNorm
+  ON m_report_output (name_norm) INITRANS 30;
+
 ALTER TABLE m_resource
 ADD CONSTRAINT uc_resource_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iResourceNameOrig
+  ON m_resource (name_orig) INITRANS 30;
 
 ALTER TABLE m_role
 ADD CONSTRAINT uc_role_name UNIQUE (name_norm) INITRANS 30;
 
+CREATE INDEX iRoleNameOrig
+  ON m_role (name_orig) INITRANS 30;
+
 ALTER TABLE m_security_policy
 ADD CONSTRAINT uc_security_policy_name UNIQUE (name_norm) INITRANS 30;
 
+CREATE INDEX iSecurityPolicyNameOrig
+  ON m_security_policy (name_orig) INITRANS 30;
+
 ALTER TABLE m_sequence
 ADD CONSTRAINT uc_sequence_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iSequenceNameOrig
+  ON m_sequence (name_orig) INITRANS 30;
+
+CREATE INDEX iServiceNameOrig
+  ON m_service (name_orig) INITRANS 30;
+
+CREATE INDEX iServiceNameNorm
+  ON m_service (name_norm) INITRANS 30;
 
 CREATE INDEX iShadowResourceRef ON m_shadow (resourceRef_targetOid) INITRANS 30;
 
@@ -1001,8 +1067,17 @@ CREATE INDEX iShadowSyncSituation ON m_shadow (synchronizationSituation) INITRAN
 
 CREATE INDEX iShadowPendingOperationCount ON m_shadow (pendingOperationCount) INITRANS 30;
 
+CREATE INDEX iShadowNameOrig
+  ON m_shadow (name_orig) INITRANS 30;
+
+CREATE INDEX iShadowNameNorm
+  ON m_shadow (name_norm) INITRANS 30;
+
 ALTER TABLE m_system_configuration
 ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iSystemConfigurationNameOrig
+  ON m_system_configuration (name_orig) INITRANS 30;
 
 ALTER TABLE m_task
   ADD CONSTRAINT uc_task_identifier UNIQUE (taskIdentifier) INITRANS 30;
@@ -1021,6 +1096,9 @@ CREATE INDEX iTaskWfObjectOid ON m_task (wfObjectRef_targetOid) INITRANS 30;
 
 CREATE INDEX iTaskWfTargetOid ON m_task (wfTargetRef_targetOid) INITRANS 30;
 
+CREATE INDEX iTaskNameOrig
+  ON m_task (name_orig) INITRANS 30;
+
 CREATE INDEX iTriggerTimestamp ON m_trigger (timestampValue) INITRANS 30;
 
 ALTER TABLE m_user
@@ -1036,8 +1114,14 @@ CREATE INDEX iGivenName ON m_user (givenName_orig) INITRANS 30;
 
 CREATE INDEX iLocality ON m_user (locality_orig) INITRANS 30;
 
+CREATE INDEX iUserNameOrig
+  ON m_user (name_orig) INITRANS 30;
+
 ALTER TABLE m_value_policy
 ADD CONSTRAINT uc_value_policy_name UNIQUE (name_norm) INITRANS 30;
+
+CREATE INDEX iValuePolicyNameOrig
+  ON m_value_policy (name_orig) INITRANS 30;
 
 ALTER TABLE m_abstract_role
 ADD CONSTRAINT fk_abstract_role

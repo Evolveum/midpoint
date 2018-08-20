@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
@@ -26,35 +24,31 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
-
-import java.util.Collection;
 import java.util.Set;
 
 /**
  * @author lazyman
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(name="uc_user_name", columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_user",
-        indexes = {@Index(name = "iFullName", columnNames = "fullName_orig"),           // TODO correct indices names
-                @Index(name = "iFamilyName", columnNames = "familyName_orig"),
-                @Index(name = "iGivenName", columnNames = "givenName_orig"),
-                @Index(name = "iLocality", columnNames = "locality_orig")})
+@Table(uniqueConstraints = @UniqueConstraint(name="uc_user_name", columnNames = {"name_norm"}),
+        indexes = {@Index(name = "iFullName", columnList = "fullName_orig"),           // TODO correct indices names
+                @Index(name = "iFamilyName", columnList = "familyName_orig"),
+                @Index(name = "iGivenName", columnList = "givenName_orig"),
+                @Index(name = "iLocality", columnList = "locality_orig"),
+                @Index(name = "iUserNameOrig", columnList = "name_orig"),
+                @Index(name = "iEmployeeNumber", columnList = "employeeNumber")})
 @ForeignKey(name = "fk_user")
 @Persister(impl = MidPointJoinedPersister.class)
 public class RUser extends RFocus<UserType> implements OperationResult {
 
-    private RPolyString name;
+    private RPolyString nameCopy;
     private RPolyString fullName;
     private RPolyString givenName;
     private RPolyString familyName;
@@ -145,7 +139,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return localityUser;
     }
 
-    @Index(name = "iEmployeeNumber")            // TODO correct index name
     public String getEmployeeNumber() {
         return employeeNumber;
     }
@@ -160,9 +153,18 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return honorificSuffix;
     }
 
+    @JaxbName(localPart = "name")
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "name_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "name_norm"))
+    })
     @Embedded
-    public RPolyString getName() {
-        return name;
+    public RPolyString getNameCopy() {
+        return nameCopy;
+    }
+
+    public void setNameCopy(RPolyString nameCopy) {
+        this.nameCopy = nameCopy;
     }
 
     public String getCostCenter() {
@@ -228,10 +230,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         this.title = title;
     }
 
-    public void setName(RPolyString name) {
-        this.name = name;
-    }
-
     public void setAdditionalName(RPolyString additionalName) {
         this.additionalName = additionalName;
     }
@@ -288,7 +286,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
 
         RUser rUser = (RUser) o;
 
-        if (name != null ? !name.equals(rUser.name) : rUser.name != null) return false;
+        if (nameCopy != null ? !nameCopy.equals(rUser.nameCopy) : rUser.nameCopy != null) return false;
         if (additionalName != null ? !additionalName.equals(rUser.additionalName) : rUser.additionalName != null)
             return false;
         if (emailAddress != null ? !emailAddress.equals(rUser.emailAddress) : rUser.emailAddress != null) return false;
@@ -323,7 +321,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nameCopy != null ? nameCopy.hashCode() : 0);
         result = 31 * result + (fullName != null ? fullName.hashCode() : 0);
         result = 31 * result + (givenName != null ? givenName.hashCode() : 0);
         result = 31 * result + (familyName != null ? familyName.hashCode() : 0);
@@ -346,7 +344,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RFocus.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
-        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setFullName(RPolyString.copyFromJAXB(jaxb.getFullName()));
         repo.setGivenName(RPolyString.copyFromJAXB(jaxb.getGivenName()));
         repo.setFamilyName(RPolyString.copyFromJAXB(jaxb.getFamilyName()));
@@ -365,22 +363,11 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
 
-        ItemDefinition def = jaxb.asPrismObject().getDefinition();
-        RUtil.copyResultFromJAXB(def, jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
+        RUtil.copyResultFromJAXB(jaxb.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
 
         //sets
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
         repo.setOrganizationalUnit(RUtil.listPolyToSet(jaxb.getOrganizationalUnit()));
         repo.setOrganization(RUtil.listPolyToSet(jaxb.getOrganization()));
-    }
-
-    @Override
-    public UserType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        UserType object = new UserType();
-        RUtil.revive(object, prismContext);
-        RUser.copyToJAXB(this, object, prismContext, options);
-
-        return object;
     }
 }

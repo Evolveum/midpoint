@@ -56,7 +56,8 @@ public class JpaEntityDefinition extends JpaDataNodeDefinition implements DebugD
     public void addDefinition(JpaLinkDefinition definition) {
         JpaLinkDefinition oldDef = findRawLinkDefinition(definition.getItemPath(), JpaDataNodeDefinition.class, true);
         if (oldDef != null) {
-            definitions.remove(oldDef);
+            // we don't replace definitions. E.g. name=>nameCopy for concrete classes with name=>name in RObject
+            return;
         }
         definitions.add(definition);
     }

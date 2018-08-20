@@ -181,6 +181,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 */
 	private List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
 
+	transient private boolean preview;
+
 	transient private Map<String,Collection<Containerable>> hookPreviewResultsMap;
 
 	public LensContext(Class<F> focusClass, PrismContext prismContext,
@@ -1394,5 +1396,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	public boolean isPreview() {
+		return preview;
+	}
+
+	public void setPreview(boolean preview) {
+		this.preview = preview;
 	}
 }

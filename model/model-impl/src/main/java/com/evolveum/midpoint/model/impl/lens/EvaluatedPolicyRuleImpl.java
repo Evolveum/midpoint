@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
@@ -64,8 +65,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedPolicyRuleImpl.class);
 
 	@NotNull private final PolicyRuleType policyRuleType;
-	private final Collection<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
-	private final Collection<PolicyExceptionType> policyExceptions = new ArrayList<>();
+	@NotNull private final Collection<EvaluatedPolicyRuleTrigger<?>> triggers = new ArrayList<>();
+	@NotNull private final Collection<PolicyExceptionType> policyExceptions = new ArrayList<>();
 
 	/**
 	 * Information about exact place where the rule was found. This can be important for rules that are
@@ -151,6 +152,11 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
 	void addTriggers(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
 		this.triggers.addAll(triggers);
+	}
+
+	@Override
+	public void addTrigger(@NotNull EvaluatedPolicyRuleTrigger<?> trigger) {
+		triggers.add(trigger);
 	}
 
 	@NotNull
@@ -325,7 +331,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 	 */
 
 	@Override
-	public void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options) {
+	public void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options,
+			Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector) {
 		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
 		rv.setRuleName(getName());
 		boolean isFull = options.getTriggeredRulesStorageStrategy() == FULL;
@@ -337,9 +344,12 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			rv.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
 		}
 		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
+			if (triggerSelector != null && !triggerSelector.test(trigger)) {
+				continue;
+			}
 			if (trigger instanceof EvaluatedSituationTrigger && trigger.isHidden()) {
 				for (EvaluatedPolicyRule sourceRule : ((EvaluatedSituationTrigger) trigger).getSourceRules()) {
-					sourceRule.addToEvaluatedPolicyRuleTypes(rules, options);
+					sourceRule.addToEvaluatedPolicyRuleTypes(rules, options, null);
 				}
 			} else {
 				rv.getTrigger().add(trigger.toEvaluatedPolicyRuleTriggerType(options));

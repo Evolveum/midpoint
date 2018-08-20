@@ -133,7 +133,7 @@ public class SearchTest extends BaseSQLRepoTest {
     private void iterateGeneral(int offset, int size, int batch, final String... names) throws Exception {
         OperationResult result = new OperationResult("search general");
 
-        final List<PrismObject> objects = new ArrayList<PrismObject>();
+        final List<PrismObject> objects = new ArrayList<>();
 
         ResultHandler handler = new ResultHandler() {
 
@@ -911,4 +911,15 @@ public class SearchTest extends BaseSQLRepoTest {
 		assertEquals("Should find 1 object", 1, cases.size());
 	}
 
+    @Test
+    public void testFunctionLibrary() throws SchemaException {
+        ObjectQuery query = QueryBuilder.queryFor(FunctionLibraryType.class, prismContext)
+                .item(ObjectType.F_NAME).eqPoly("fl1", "fl1").matchingOrig()
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<FunctionLibraryType>> collections = repositoryService.searchObjects(FunctionLibraryType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find 1 object", 1, collections.size());
+    }
 }
