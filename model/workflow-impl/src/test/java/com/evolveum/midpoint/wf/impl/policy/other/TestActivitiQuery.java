@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,6 +40,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,6 +99,62 @@ public class TestActivitiQuery extends AbstractWfTestPolicy {
 			SearchResultList<WorkItemType> items3 = modelService
 					.searchContainers(WorkItemType.class, query3, null, task, result);
 			assertEquals("Wrong # of work items found using multi-assignee query", 1, items3.size());
+		}
+	}
+
+	@Test
+	public void test110SearchByCreateTimestamp() throws Exception {
+		final String TEST_NAME = "test110SearchByCreateTimestamp";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+		login(userAdministrator);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		{
+			SearchResultList<WorkItemType> itemsAll = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+			display("itemsAll", itemsAll);
+			assertEquals("Wrong # of total work items", 1, itemsAll.size());
+		}
+
+		XMLGregorianCalendar created;
+		{
+			ObjectQuery query2 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+					.item(WorkItemType.F_CREATE_TIMESTAMP).lt(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
+					.and().item(WorkItemType.F_CREATE_TIMESTAMP).gt(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()-300000))
+					.build();
+			SearchResultList<WorkItemType> items2 = modelService.searchContainers(WorkItemType.class, query2, null, task, result);
+			display("items2", items2);
+			assertEquals("Wrong # of work items found using 'create timestamp' query", 1, items2.size());
+			created = items2.get(0).getCreateTimestamp();
+		}
+
+		{
+			ObjectQuery query3 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+					.item(WorkItemType.F_CREATE_TIMESTAMP).gt(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
+					.build();
+			SearchResultList<WorkItemType> items3 = modelService.searchContainers(WorkItemType.class, query3, null, task, result);
+			display("items3", items3);
+			assertEquals("Wrong # of work items found using 'create timestamp' query (in future)", 0, items3.size());
+		}
+
+		{
+			ObjectQuery query4 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+					.item(WorkItemType.F_CREATE_TIMESTAMP).eq(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
+					.build();
+			SearchResultList<WorkItemType> items4 = modelService.searchContainers(WorkItemType.class, query4, null, task, result);
+			display("items4", items4);
+			assertEquals("Wrong # of work items found using 'create timestamp' query (in future)", 0, items4.size());
+		}
+
+		{
+			// hopefully the DBMS will match this!
+			ObjectQuery query5 = QueryBuilder.queryFor(WorkItemType.class, prismContext)
+					.item(WorkItemType.F_CREATE_TIMESTAMP).eq(created)
+					.build();
+			SearchResultList<WorkItemType> items5 = modelService.searchContainers(WorkItemType.class, query5, null, task, result);
+			display("items5", items5);
+			assertEquals("Wrong # of work items found using 'create timestamp' query", 1, items5.size());
 		}
 	}
 

@@ -21,15 +21,14 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -59,6 +58,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
 import static com.evolveum.midpoint.schema.constants.ObjectTypes.TASK;
@@ -118,20 +118,28 @@ public class WorkItemProvider {
 	// primitive 'query interpreter'
 	// returns null if no results should be returned
     private TaskQuery createTaskQuery(ObjectQuery query, boolean includeVariables, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
-        FilterComponents components = factorOutQuery(query, F_ASSIGNEE_REF, F_CANDIDATE_REF, F_EXTERNAL_ID);
-		List<ObjectFilter> remainingClauses = components.getRemainderClauses();
-		if (!remainingClauses.isEmpty()) {
-            throw new SchemaException("Unsupported clause(s) in search filter: " + remainingClauses);
-        }
-
         final ItemPath WORK_ITEM_ID_PATH = new ItemPath(F_EXTERNAL_ID);
         final ItemPath ASSIGNEE_PATH = new ItemPath(F_ASSIGNEE_REF);
         final ItemPath CANDIDATE_PATH = new ItemPath(F_CANDIDATE_REF);
         final ItemPath CREATED_PATH = new ItemPath(WorkItemType.F_CREATE_TIMESTAMP);
 
-        final Map.Entry<ItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
+	    final ObjectQueryUtil.FilterExtractor CREATED_LT_GT_EXTRACTOR = new ObjectQueryUtil.FilterExtractor(
+	    		filter -> filter instanceof ComparativeFilter && !((ComparativeFilter) filter).isEquals(),
+			    filter -> ((ComparativeFilter) filter).getPath(),
+			    filter -> new ArrayList<>());
+	    final List<ObjectQueryUtil.FilterExtractor> EXTRACTORS = new ArrayList<>(ObjectQueryUtil.DEFAULT_EXTRACTORS);
+	    EXTRACTORS.add(CREATED_LT_GT_EXTRACTOR);
+
+	    FilterComponents components = factorOutQuery(query, EXTRACTORS, ASSIGNEE_PATH, CANDIDATE_PATH, WORK_ITEM_ID_PATH, CREATED_PATH);
+	    List<ObjectFilter> remainingClauses = components.getRemainderClauses();
+	    if (!remainingClauses.isEmpty()) {
+		    throw new SchemaException("Unsupported clause(s) in search filter: " + remainingClauses);
+	    }
+
+	    final Map.Entry<ItemPath, Collection<? extends PrismValue>> workItemIdFilter = components.getKnownComponent(WORK_ITEM_ID_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> assigneeFilter = components.getKnownComponent(ASSIGNEE_PATH);
         final Map.Entry<ItemPath, Collection<? extends PrismValue>> candidateRolesFilter = components.getKnownComponent(CANDIDATE_PATH);
+        final Map.Entry<ItemPath, Collection<ObjectFilter>> createdFilters = components.getKnownComponentFilter(CREATED_PATH);
 
         TaskQuery taskQuery = activitiEngine.getTaskService().createTaskQuery();
 
@@ -155,6 +163,29 @@ public class WorkItemProvider {
 			} else {
 				return null;			// no groups -> no result
 			}
+        }
+
+        if (createdFilters != null) {
+	        for (ObjectFilter filter : createdFilters.getValue()) {
+		        PrismPropertyValue value = ((PropertyValueFilter<?>) filter).getSingleValue();
+		        if (value == null) {
+		        	throw new SchemaException("'createdTimestamp' filter contains a null value: " + filter);
+		        }
+		        Object realValue = value.getRealValue();
+		        if (!(realValue instanceof XMLGregorianCalendar)) {
+			        throw new SchemaException("'createdTimestamp' filter contains a value other than XMLGregorianCalendar: " + realValue + " in " + filter);
+		        }
+		        Date date = XmlTypeConverter.toDate((XMLGregorianCalendar) realValue);
+		        if (filter instanceof GreaterFilter) {
+		        	taskQuery = taskQuery.taskCreatedAfter(date);
+		        } else if (filter instanceof LessFilter) {
+		        	taskQuery = taskQuery.taskCreatedBefore(date);
+		        } else if (filter instanceof EqualFilter) {
+		        	taskQuery = taskQuery.taskCreatedOn(date);
+		        } else {
+		        	throw new IllegalStateException("Unexpected filter: " + filter);
+		        }
+	        }
         }
 
         if (query != null && query.getPaging() != null) {
