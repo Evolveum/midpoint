@@ -190,16 +190,16 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		form.addOrReplace(managerContainer);
 	}
 
-	@Override
-	protected void initMemberRelationObjectsModel(){
-		memberRelationObjectsModel = new LoadableModel<List<String>>(false) {
-			@Override
-			protected List<String> load() {
-				OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATION_OBJECTS);
-				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.MEMBER.getRelation()));
-			}
-		};
-	}
+//	@Override
+//	protected void initMemberRelationObjectsModel(){
+//		memberRelationObjectsModel = new LoadableModel<List<String>>(false) {
+//			@Override
+//			protected List<String> load() {
+//				OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATION_OBJECTS);
+//				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.MEMBER.getRelation()));
+//			}
+//		};
+//	}
 
 	private WebMarkupContainer createManagerContainer(ModelServiceLocator serviceLocator) {
 		WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
@@ -305,11 +305,11 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		return managerContainer;
 	}
-
+	
 	@Override
-	protected void addMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
-
-		ChooseOrgMemberPopup browser = new ChooseOrgMemberPopup(getPageBase().getMainPopupBodyId(), availableRelationList) {
+	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
+		
+		ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<O>(getPageBase().getMainPopupBodyId(), availableRelationList) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -320,7 +320,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		browser.setOutputMarkupId(true);
 
 		getPageBase().showMainPopup(browser, target);
-
 	}
 
 	private void removeManagerPerformed(FocusType manager, AjaxRequestTarget target) {
@@ -382,7 +381,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 				@Override
 				public void onClick(AjaxRequestTarget target) {
-					OrgMemberPanel.this.createFocusMemberPerformed(SchemaConstants.ORG_MANAGER, target);
+					OrgMemberPanel.this.createFocusMemberPerformed(target);
 				}
 			}));
 		}
@@ -394,7 +393,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							OrgMemberPanel.this.addMembers(target, Arrays.asList(RelationTypes.MANAGER.getRelation()));
+							OrgMemberPanel.this.assignMembers(target, Arrays.asList(RelationTypes.MANAGER.getRelation()));
 						}
 					}));
 		}
@@ -495,7 +494,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected void removeMembersPerformed(QueryScope scope, List<QName> relations, AjaxRequestTarget target) {
+	protected void removeMembersPerformed(QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
 
 		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope, false));
 
@@ -518,10 +517,10 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected void recomputeMembersPerformed(QueryScope scope, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope, false));
+	protected void recomputeMembersPerformed(AjaxRequestTarget target) {
+		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", getScope(true), false));
 		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
-				createQueryForMemberAction(scope, null, true), null, TaskCategory.RECOMPUTATION, target);
+				createQueryForMemberAction(getScope(true), null, true), null, TaskCategory.RECOMPUTATION, target);
 	}
 
 	protected void recomputeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
@@ -529,6 +528,11 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
 				createQueryForMemberAction(scope, SchemaConstants.ORG_MANAGER, true), null,
 				TaskCategory.RECOMPUTATION, target);
+	}
+	
+	@Override
+	protected QueryScope getScope(boolean isRecompute) {
+		return QueryScope.ALL_DIRECT;
 	}
 
 	@Override

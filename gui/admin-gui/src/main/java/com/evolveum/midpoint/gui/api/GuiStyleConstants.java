@@ -163,4 +163,9 @@ public class GuiStyleConstants {
 	
 	public static final String CLASS_SYSTEM_CONFIGURATION_ICON = "fa fa-cog";
 	public static final String CLASS_SYSTEM_CONFIGURATION_ICON_COLORED = CLASS_SYSTEM_CONFIGURATION_ICON + " object-shadow-color";
+	
+	public static final String CLASS_ASSIGN = "fa fa-link";
+	public static final String CLASS_UNASSIGN = "fa fa-unlink";
+	public static final String CLASS_RECONCILE = "fa fa-refresh";
+	public static final String CLASS_CREATE_FOCUS = "fa fa-user-plus";
 }
