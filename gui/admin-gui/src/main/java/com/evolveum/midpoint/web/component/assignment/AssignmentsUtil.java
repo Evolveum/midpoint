@@ -394,11 +394,12 @@ public class AssignmentsUtil {
     public static int loadAssignmentsLimit(OperationResult result, PageBase pageBase){
         int assignmentsLimit = -1;
         try {
-            SystemConfigurationType sysConfig = pageBase.getModelInteractionService().getSystemConfiguration(result);
-            if (sysConfig != null && sysConfig.getAdminGuiConfiguration() != null && sysConfig.getAdminGuiConfiguration().getRoleManagement() != null){
-                assignmentsLimit = sysConfig.getAdminGuiConfiguration().getRoleManagement().getAssignmentApprovalRequestLimit();
+            AdminGuiConfigurationType adminGuiConfig = pageBase.getModelInteractionService().getAdminGuiConfiguration(
+                    pageBase.createSimpleTask(result.getOperation()), result);
+            if (adminGuiConfig != null && adminGuiConfig.getRoleManagement() != null) {
+                assignmentsLimit = adminGuiConfig.getRoleManagement().getAssignmentApprovalRequestLimit();
             }
-        } catch (ObjectNotFoundException | SchemaException ex){
+        } catch (ObjectNotFoundException | SchemaException ex) {
             LOGGER.error("Error getting system configuration: {}", ex.getMessage(), ex);
         }
         return assignmentsLimit;
