@@ -49,9 +49,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Service(value = "syncServiceMock")
-public class SynchornizationServiceMock implements ResourceObjectChangeListener, ResourceOperationListener {
+public class SynchronizationServiceMock implements ResourceObjectChangeListener, ResourceOperationListener {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SynchornizationServiceMock.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceMock.class);
 
 	private int callCountNotifyChange = 0;
 	private int callCountNotifyOperation = 0;
@@ -144,12 +144,14 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 
 				if (change.getCurrentShadow().asObjectable().getKind() == ShadowKindType.ACCOUNT) {
 					ShadowType account = change.getCurrentShadow().asObjectable();
-					if (supportActivation) {
-						assertNotNull("Current shadow does not have activation", account.getActivation());
-						assertNotNull("Current shadow activation status is null", account.getActivation()
-								.getAdministrativeStatus());
-					} else {
-						assertNull("Activation sneaked into current shadow", account.getActivation());
+					if (ShadowUtil.isExists(account)) {
+						if (supportActivation) {
+							assertNotNull("Current shadow does not have activation", account.getActivation());
+							assertNotNull("Current shadow activation status is null", account.getActivation()
+									.getAdministrativeStatus());
+						} else {
+							assertNull("Activation sneaked into current shadow", account.getActivation());
+						}
 					}
 				}
 			}
@@ -331,12 +333,12 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		this.callCountNotifyChange = callCount;
 	}
 
-	public SynchornizationServiceMock assertNotifyChange() {
+	public SynchronizationServiceMock assertNotifyChange() {
 		assert wasCalledNotifyChange() : "Expected that notifyChange will be called but it was not";
 		return this;
 	}
 
-	public SynchornizationServiceMock assertNoNotifyChange() {
+	public SynchronizationServiceMock assertNoNotifyChange() {
 		assert !wasCalledNotifyChange() : "Expected that no notifyChange will be called but it was";
 		return this;
 	}
@@ -345,7 +347,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		return new ResourceObjectShadowChangeDescriptionAsserter(lastChange);
 	}
 	
-	public SynchornizationServiceMock assertNotifySuccessOnly() {
+	public SynchronizationServiceMock assertNotifySuccessOnly() {
 		assert wasSuccess : "Expected that notifySuccess will be called but it was not";		
 		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
 		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
@@ -353,7 +355,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		return this;
 	}
 
-	public SynchornizationServiceMock assertNotifyFailureOnly() {
+	public SynchronizationServiceMock assertNotifyFailureOnly() {
 		assert wasFailure : "Expected that notifyFailure will be called but it was not";				
 		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
 		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
@@ -361,22 +363,22 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		return this;
 	}
 	
-	public SynchornizationServiceMock assertNotifyFailure() {
+	public SynchronizationServiceMock assertNotifyFailure() {
 		assert wasFailure : "Expected that notifyFailure will be called but it was not";
 		return this;
 	}
 	
-	public SynchornizationServiceMock assertNotifyOperations(int expected) {
+	public SynchronizationServiceMock assertNotifyOperations(int expected) {
 		assert callCountNotifyOperation == expected : "Expected " + expected + " notify operations, but was " + callCountNotifyOperation;
 		return this;
 	}
 	
-	public SynchornizationServiceMock assertNotifyChangeCalls(int expected) {
+	public SynchronizationServiceMock assertNotifyChangeCalls(int expected) {
 		assert callCountNotifyChange == expected : "Expected " + expected + " notify change calls, but was " + callCountNotifyOperation;
 		return this;
 	}
 	
-	public SynchornizationServiceMock assertNotifyInProgressOnly() {
+	public SynchronizationServiceMock assertNotifyInProgressOnly() {
 		assert wasInProgress : "Expected that notifyInProgress will be called but it was not";				
 		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
 		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
@@ -384,7 +386,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 		return this;
 	}
 	
-	public SynchornizationServiceMock assertNoNotifcations() {
+	public SynchronizationServiceMock assertNoNotifcations() {
 		assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";				
 		assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
 		assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";

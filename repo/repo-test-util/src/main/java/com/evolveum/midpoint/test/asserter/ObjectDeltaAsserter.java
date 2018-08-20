@@ -79,8 +79,24 @@ public class ObjectDeltaAsserter<O extends ObjectType,R> extends AbstractAsserte
 		assertEquals("Wrong change type in "+desc(), expected, delta.getChangeType());
 		return this;
 	}
+
+	public ObjectDeltaAsserter<O,R> assertObjectTypeClass(Class<ShadowType> expected) {
+		assertEquals("Wrong object type class in "+desc(), expected, delta.getObjectTypeClass());
+		return this;
+	}
+
+	public ObjectDeltaAsserter<O,R> assertOid(String expected) {
+		assertEquals("Wrong OID in "+desc(), expected, delta.getOid());
+		return this;
+	}
+
+	public ObjectDeltaAsserter<O,R> assertOid() {
+		assertNotNull("No OID in "+desc(), delta.getOid());
+		return this;
+	}
 	
 	protected String desc() {
 		return descWithDetails(delta);
 	}
+
 }

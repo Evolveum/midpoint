@@ -329,7 +329,7 @@ public class ResourceObjectConverter {
 	 */
 	private void checkForAddConflicts(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectNotFoundException {
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Checking for add conflicts for {}", ProvisioningUtil.shortDumpShadow(shadow));
+			LOGGER.trace("Checking for add conflicts for {}", ShadowUtil.shortDumpShadow(shadow));
 		}
 		PrismObject<ShadowType> existingObject = null;
 		ConnectorInstance readConnector = null;
@@ -365,11 +365,11 @@ public class ResourceObjectConverter {
 			LOGGER.trace("No add conflicts for {}", shadow);
 		} else {
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Detected add conflict for {}, conflicting shadow: {}", ProvisioningUtil.shortDumpShadow(shadow), ProvisioningUtil.shortDumpShadow(existingObject));
+				LOGGER.debug("Detected add conflict for {}, conflicting shadow: {}", ShadowUtil.shortDumpShadow(shadow), ShadowUtil.shortDumpShadow(existingObject));
 			}
 			LOGGER.trace("Conflicting shadow:\n{}", existingObject.debugDumpLazily(1));
-			ObjectAlreadyExistsException e = new ObjectAlreadyExistsException("Object " + ProvisioningUtil.shortDumpShadow(shadow) +
-					" already exists in the snapshot of " + ctx.getResource() + " as " + ProvisioningUtil.shortDumpShadow(existingObject));
+			ObjectAlreadyExistsException e = new ObjectAlreadyExistsException("Object " + ShadowUtil.shortDumpShadow(shadow) +
+					" already exists in the snapshot of " + ctx.getResource() + " as " + ShadowUtil.shortDumpShadow(existingObject));
 			result.recordFatalError(e);
 			throw e;
 		}

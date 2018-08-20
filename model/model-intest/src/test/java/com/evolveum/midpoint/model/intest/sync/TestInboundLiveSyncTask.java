@@ -32,6 +32,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -103,7 +104,11 @@ public class TestInboundLiveSyncTask extends AbstractInboundSyncTest {
 	        	.assertValidFrom(ACCOUNT_MANCOMB_VALID_FROM_DATE)
 	        	.assertValidTo(ACCOUNT_MANCOMB_VALID_TO_DATE)
 	        	.end()
-        	.assertLinks(0);
+        	.links()
+        		.single()
+        			.resolveTarget()
+        				.assertTombstone()
+        				.assertSynchronizationSituation(SynchronizationSituationType.DELETED);
 
         assertNoDummyAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 

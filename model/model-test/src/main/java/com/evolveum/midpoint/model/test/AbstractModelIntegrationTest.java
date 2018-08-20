@@ -161,6 +161,7 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.asserter.FocusAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
@@ -1658,6 +1659,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		} else if (accounts.size() > 1) {
 			AssertJUnit.fail("Too many shadows for "+username+" on "+resource+" ("+accounts.size()+"): "+accounts);
 		}
+	}
+	
+	protected ShadowAsserter<Void> assertShadow(String username, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		ObjectQuery query = createAccountShadowQuery(username, resource);
+		OperationResult result = new OperationResult("assertShadow");
+		List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
+		if (accounts.isEmpty()) {
+			AssertJUnit.fail("No shadow for "+username+" on "+resource);
+		} else if (accounts.size() > 1) {
+			AssertJUnit.fail("Too many shadows for "+username+" on "+resource+" ("+accounts.size()+"): "+accounts);
+		}
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(accounts.get(0), "shadow for username "+username+" on "+resource);
+		initializeAsserter(asserter);
+		asserter.display();
+		return asserter;
 	}
 
 	protected ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
@@ -5307,7 +5323,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return null;
 	}
 	
-	protected void initializeAsserter(UserAsserter<Void> asserter) {
+	protected void initializeAsserter(AbstractAsserter<?> asserter) {
 		asserter.setPrismContext(prismContext);
 		asserter.setObjectResolver(repoObjectResolver);
 	}

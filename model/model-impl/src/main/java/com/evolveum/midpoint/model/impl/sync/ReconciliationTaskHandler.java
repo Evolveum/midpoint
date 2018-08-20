@@ -637,6 +637,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			Collection<SelectorOptions<GetOperationOptions>> options = null;
 			if (Utils.isDryRun(task)) {
 				 options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+			} else {
+				options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());
 			}
 			return provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, opResult);
 		} catch (ObjectNotFoundException e) {

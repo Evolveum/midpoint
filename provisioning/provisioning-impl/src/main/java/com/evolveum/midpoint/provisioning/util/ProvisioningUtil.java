@@ -20,7 +20,6 @@ import static java.util.Collections.emptyList;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,7 +51,6 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -596,52 +594,6 @@ public class ProvisioningUtil {
 		return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
 				QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
 	}
-	
-	public static String shortDumpShadow(PrismObject<ShadowType> shadow) {
-		if (shadow == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("shadow:");
-		sb.append(shadow.getOid()).append("(");
-		PolyString name = shadow.getName();
-		if (name != null) {
-			sb.append(name);
-		} else {
-			Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
-			if (primaryIdentifiers != null && !primaryIdentifiers.isEmpty()) {
-				shortDumpShadowIdentifiers(sb, shadow, primaryIdentifiers);
-			} else {
-				Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-				if (secondaryIdentifiers != null && !secondaryIdentifiers.isEmpty()) {
-					shortDumpShadowIdentifiers(sb, shadow, secondaryIdentifiers);
-				}
-			}
-		}
-		ShadowType shadowType = shadow.asObjectable();
-		Boolean dead = shadowType.isDead();
-		if (dead != null && dead) {
-			sb.append(";DEAD");
-		}
-		Boolean exists = shadowType.isExists();
-		if (exists != null && !exists) {
-			sb.append(";NOTEXISTS");
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-
-	private static void shortDumpShadowIdentifiers(StringBuilder sb, PrismObject<ShadowType> shadow, Collection<ResourceAttribute<?>> identifiers) {
-		Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
-		while (iterator.hasNext()) {
-			ResourceAttribute<?> identifier = iterator.next();
-			sb.append(identifier.getElementName().getLocalPart());
-			sb.append("=");
-			sb.append(identifier.getRealValue());
-			if (iterator.hasNext()) {
-				sb.append(";");
-			}
-		}
-	};
 	
 	public static boolean resourceReadIsCachingOnly(ResourceType resource) {
 		ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);

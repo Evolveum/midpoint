@@ -57,7 +57,7 @@ public class TestReconTaskPartitioned extends TestReconTask {
 	@SuppressWarnings("Duplicates")
 	@Override
 	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-		if (resource == resourceDummyGreen) {
+		if (resource == getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME)) {
 			importObjectFromFile(TASK_RECONCILE_DUMMY_GREEN_PARTITIONED_FILENAME);
 		} else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
 			importObjectFromFile(TASK_RECONCILE_DUMMY_BLUE_PARTITIONED_FILENAME);
@@ -71,7 +71,7 @@ public class TestReconTaskPartitioned extends TestReconTask {
 	@SuppressWarnings("Duplicates")
 	@Override
 	protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-		if (resource == resourceDummyGreen) {
+		if (resource == getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME)) {
 			return TASK_RECONCILE_DUMMY_GREEN_PARTITIONED_OID;
 		} else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
 			return TASK_RECONCILE_DUMMY_BLUE_PARTITIONED_OID;

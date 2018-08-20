@@ -142,10 +142,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		Validate.notNull(parentResult, "Parent operation result must not be null.");
 
 		boolean logDebug = isLogDebug(change);
-		if (logDebug) {
-			LOGGER.debug("SYNCHRONIZATION: received change notification {}", change);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("SYNCHRONIZATION: received change notification\n:{}", change.debugDump(1));
 		} else {
-			LOGGER.trace("SYNCHRONIZATION: received change notification {}", change);
+			if (logDebug) {
+				LOGGER.debug("SYNCHRONIZATION: received change notification {}", change);
+			}
 		}
 
 		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);

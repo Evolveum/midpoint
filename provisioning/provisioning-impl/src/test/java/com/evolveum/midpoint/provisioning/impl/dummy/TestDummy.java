@@ -4215,41 +4215,30 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 			syncServiceMock.assertNotifyChange();
 
-			ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
-			display("The change", lastChange);
-
-			PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
-			assertNotNull("Old shadow missing", oldShadow);
-			assertNotNull("Old shadow does not have an OID", oldShadow.getOid());
-			PrismAsserts.assertClass("old shadow", ShadowType.class, oldShadow);
-			ShadowType oldShadowType = oldShadow.asObjectable();
-			ResourceAttributeContainer attributesContainer = ShadowUtil
-					.getAttributesContainer(oldShadowType);
-			assertNotNull("No attributes container in old shadow", attributesContainer);
-			Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
-			assertFalse("Attributes container is empty", attributes.isEmpty());
-			assertEquals("Unexpected number of attributes", 2, attributes.size());
-			ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(SchemaConstants.ICFS_NAME);
-			assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
-			assertEquals("Wrong value of ICF name attribute in old  shadow", GROUP_CORSAIRS_NAME,
-					icfsNameAttribute.getRealValue());
-
-			ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
-			assertNotNull("Delta missing", objectDelta);
-			assertEquals("Wrong delta changetype", ChangeType.DELETE, objectDelta.getChangeType());
-			PrismAsserts.assertClass("delta", ShadowType.class, objectDelta);
-			assertNotNull("No OID in delta", objectDelta.getOid());
-
-			assertNull("Unexpected current shadow",lastChange.getCurrentShadow());
-
-			try {
-				// The shadow should be gone
-				PrismObject<ShadowType> repoShadow = getShadowRepo(corsairsShadowOid);
-
-				AssertJUnit.fail("The shadow "+repoShadow+" is not gone from repo");
-			} catch (ObjectNotFoundException e) {
-				// This is expected
-			}
+			syncServiceMock
+				.lastNotifyChange()
+					.display()
+					.oldShadow()
+						.assertOid(corsairsShadowOid)
+						.attributes()
+							.assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID)
+							.assertValue(SchemaConstants.ICFS_NAME, GROUP_CORSAIRS_NAME)
+							.end()
+						.end()
+					.delta()
+						.assertChangeType(ChangeType.DELETE)
+						.assertObjectTypeClass(ShadowType.class)
+						.assertOid(corsairsShadowOid)
+						.end()
+					.currentShadow()
+						.assertOid(corsairsShadowOid)
+						.assertTombstone();
+			
+			assertRepoShadow(corsairsShadowOid)
+				.assertTombstone();
+			
+			// Clean slate for next tests
+			repositoryService.deleteObject(ShadowType.class, corsairsShadowOid, result);
 
 		} else {
 			syncServiceMock.assertNoNotifyChange();
@@ -4290,31 +4279,31 @@ public class TestDummy extends AbstractBasicDummyTest {
 		TestUtil.assertSuccess("Synchronization result is not OK", result);
 
 		syncServiceMock.assertNotifyChange();
-
+					
 		ResourceObjectShadowChangeDescription lastChange = syncServiceMock.getLastChange();
 		display("The change", lastChange);
 
 		PrismObject<? extends ShadowType> oldShadow = lastChange.getOldShadow();
 		assertSyncOldShadow(oldShadow, getDrakeRepoIcfName());
 
-		ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
-		assertNotNull("Delta missing", objectDelta);
-		assertEquals("Wrong delta changetype", ChangeType.DELETE, objectDelta.getChangeType());
-		PrismAsserts.assertClass("delta", ShadowType.class, objectDelta);
-		assertNotNull("No OID in delta", objectDelta.getOid());
+		syncServiceMock
+			.lastNotifyChange()
+				.delta()
+					.assertChangeType(ChangeType.DELETE)
+					.assertObjectTypeClass(ShadowType.class)
+					.assertOid(drakeAccountOid)
+					.end()
+				.currentShadow()
+					.assertTombstone()
+					.assertOid(drakeAccountOid);
 
-		assertNull("Unexpected current shadow",lastChange.getCurrentShadow());
-
-		try {
-			// The shadow should be gone
-			PrismObject<ShadowType> repoShadow = getShadowRepo(drakeAccountOid);
-
-			AssertJUnit.fail("The shadow "+repoShadow+" is not gone from repo");
-		} catch (ObjectNotFoundException e) {
-			// This is expected
-		}
+		assertRepoShadow(drakeAccountOid)
+			.assertTombstone();
 
 		checkAllShadows();
+		
+		// Clean slate for next tests
+		repositoryService.deleteObject(ShadowType.class, drakeAccountOid, result);
 
 		assertSteadyResource();
 	}

@@ -143,7 +143,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 		}
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}",  ProvisioningUtil.shortDumpShadow(newShadow));
+			LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}",  ShadowUtil.shortDumpShadow(newShadow));
 		}
 		
 		final List<PrismObject<ShadowType>> conflictingResourceShadows = findConflictingShadowsOnResource(query, task, result);
@@ -154,7 +154,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 		}
 		
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("DISCOVERY: discovered new shadow {}", ProvisioningUtil.shortDumpShadow(conflictingShadow));
+			LOGGER.debug("DISCOVERY: discovered new shadow {}", ShadowUtil.shortDumpShadow(conflictingShadow));
 		}
 		
 		if (LOGGER.isTraceEnabled()) {

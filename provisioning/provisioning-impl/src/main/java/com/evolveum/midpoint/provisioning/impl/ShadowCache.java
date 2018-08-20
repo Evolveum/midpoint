@@ -568,7 +568,7 @@ public class ShadowCache {
 			} catch (ObjectAlreadyExistsException e) {
 				
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Object already exists error when trying to add {}, exploring the situation", ProvisioningUtil.shortDumpShadow(shadowToAdd));
+					LOGGER.trace("Object already exists error when trying to add {}, exploring the situation", ShadowUtil.shortDumpShadow(shadowToAdd));
 				}
 			
 				// This exception may still be OK in some cases. Such as:
@@ -2092,7 +2092,7 @@ public class ShadowCache {
 			repoShadow = createShadowInRepository(ctx, resourceShadow, unknownIntent, isDoDiscovery, parentResult);
 		} else {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Found shadow object in the repository {}", ProvisioningUtil.shortDumpShadow(repoShadow));
+				LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadow(repoShadow));
 			}
 		}
 
@@ -2311,8 +2311,7 @@ public class ShadowCache {
 					continue;
 				}
 
-				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change
-						.getObjectClassDefinition();
+				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
 
 				ProvisioningContext shadowCtx;
 				PrismObject<ShadowType> oldShadow = null;
@@ -2401,7 +2400,7 @@ public class ShadowCache {
 					change, ctx.getResource(), ctx.getChannel());
 	
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
+				LOGGER.trace("Created resource object shadow change description {}",
 						SchemaDebugUtil.prettyPrint(shadowChangeDescription));
 			}
 			OperationResult notifyChangeResult = new OperationResult(
@@ -2421,7 +2420,13 @@ public class ShadowCache {
 			notifyChangeResult.computeStatus("Error in notify change operation.");
 			
 			if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
-				// Do not delete dead shadows. TODO: review
+				// Do not delete dead shadows. Keep dead shadow around because they contain results
+				// of the synchronization. Usual shadow refresh process should delete them eventually.
+				// TODO: review. Maybe make this configuration later on.
+				// But in that case model (SynchronizationService) needs to know whether shadow is
+				// going to be deleted or whether it stays. Model needs to adjust links accordingly.
+				// And we need to modify ResourceObjectChangeListener for that. Keeping all dead
+				// shadows is much easier.
 //				deleteShadowFromRepoIfNeeded(change, result);
 				successfull = true;
 	
@@ -2566,7 +2571,7 @@ public class ShadowCache {
 		if (oldShadow != null) {
 			shadowCaretaker.applyAttributesDefinition(ctx, oldShadow);
 
-			LOGGER.trace("Old shadow: {}", oldShadow);
+			LOGGER.trace("Processing change, old shadow: {}", ShadowUtil.shortDumpShadow(oldShadow));
 
 			// skip setting other attribute when shadow is null
 			if (oldShadow == null) {
@@ -2585,19 +2590,22 @@ public class ShadowCache {
 				shadowManager.updateShadow(ctx, currentShadow, oldShadow, null, parentResult);
 			}
 
-			// FIXME: hack. the object delta must have oid specified.
 			if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-				// if (LOGGER.isTraceEnabled()) {
-				// LOGGER.trace("No OID present, assuming delta of type DELETE;
-				// change = {}\nobjectDelta: {}", change,
-				// change.getObjectDelta().debugDump());
-				// }
-				// ObjectDelta<ShadowType> objDelta = new
-				// ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE,
-				// prismContext);
-				// change.setObjectDelta(objDelta);
 				change.getObjectDelta().setOid(oldShadow.getOid());
 			}
+			
+			if (change.getObjectDelta() != null && change.getObjectDelta().isDelete()) {
+				PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
+				if (currentShadow == null) {
+					currentShadow = oldShadow.clone();
+					change.setCurrentShadow(currentShadow);
+				}
+				ShadowType currentShadowType = currentShadow.asObjectable();
+				if (!ShadowUtil.isDead(currentShadowType) || ShadowUtil.isExists(currentShadowType)) {
+					shadowManager.markShadowTombstone(currentShadow, parentResult);
+				}
+			}
+			
 		} else {
 			LOGGER.debug(
 					"No old shadow for synchronization event {}, the shadow must be gone in the meantime (this is probably harmless)",

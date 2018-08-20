@@ -291,7 +291,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// calling shadow cache to add object
 				oid = shadowCache.addShadow((PrismObject<ShadowType>) object, scripts,
 						null, options, task, result);
-				LOGGER.trace("**PROVISIONING: Added shadow object {}", oid);
+				LOGGER.trace("Added shadow object {}", oid);
 				// Status might be set already (e.g. by consistency mechanism)
 				result.computeStatusIfUnknown();
 			} catch (GenericFrameworkException ex) {
@@ -361,12 +361,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
 			ResourceType resourceType = resource.asObjectable();
 
-			LOGGER.trace("**PROVISIONING: Start synchronization of resource {} ", resourceType);
+			LOGGER.trace("Start synchronization of resource {} ", resourceType);
 
 			// getting token form task
 			PrismProperty tokenProperty = getTokenProperty(shadowCoordinates, task, result);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("**PROVISIONING: Got token property: {} from the task extension.",
+				LOGGER.trace("Got token property: {} from the task extension.",
 						SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
@@ -623,14 +623,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("*PROVISIONING: modifyObject: object modifications:\n{}", DebugUtil.debugDump(modifications));
+			LOGGER.trace("modifyObject: object modifications:\n{}", DebugUtil.debugDump(modifications));
 		}
 
 		// getting object to modify
 		PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("**PROVISIONING: modifyObject: object to modify (repository):\n{}.", repoShadow.debugDump());
+			LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDump());
 		}
 
 		try {
@@ -674,7 +674,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(oid, "Oid of object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("**PROVISIONING: Start to delete object with oid {}", oid);
+		LOGGER.trace("Start to delete object with oid {}", oid);
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".deleteObject");
 		result.addParam("oid", oid);
@@ -684,7 +684,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		//TODO: is critical when shadow does not exits anymore?? do we need to log it?? if not, change null to allowNotFound options
 		PrismObject<T> object = getRepoObject(type, oid, null, result);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.debugDump());
+			LOGGER.trace("Object from repository to delete:\n{}", object.debugDump());
 		}
 
 		PrismObject<T> deadShadow = null;
@@ -736,7 +736,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 
 		}
-		LOGGER.trace("**PROVISIONING: Finished deleting object.");
+		LOGGER.trace("Finished deleting object.");
 
 		if (!result.isInProgress()) {
 			// This is the case when there is already a conflicting pending operation.

@@ -203,7 +203,7 @@ public class ShadowManager {
 		if (ShadowUtil.isDead(repoShadowType)) {
 			// Note: never reset dead shadow flag. Once the shadow's dead, it stays dead.
 			throw new SystemException("Dead repo shadow found when expecting live shadow. "
-					+ "resourceShadow="+ProvisioningUtil.shortDumpShadow(resourceShadow)+", repoShadow="+ProvisioningUtil.shortDumpShadow(liveShadow));
+					+ "resourceShadow="+ShadowUtil.shortDumpShadow(resourceShadow)+", repoShadow="+ShadowUtil.shortDumpShadow(liveShadow));
 		}
 		if (!ShadowUtil.isExists(repoShadowType)) {
 			// This is where gestation quantum state collapses.
@@ -449,91 +449,78 @@ public class ShadowManager {
 		// Try to locate existing shadow in the repository
 		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(ctx, change, parentResult);
 
-		if (accountList.size() > 1) {
-			String message = "Found more than one shadow with the identifier " + change.getIdentifiers() + ".";
-			LOGGER.error(message);
-			parentResult.recordFatalError(message);
-			throw new IllegalArgumentException(message);
-		}
+		// We normally do not want dead shadows here. Normally we should not receive any change notifications about dead
+		// shadows anyway. And dead shadows may get into the way. E.g. account is deleted and then it is quickly re-created.
+		// In that case we will get ADD change notification and there is a dead shadow in repo. But we do not want to use that
+		// dead shadow. The notification is about a new (re-create) account. We want to create new shadow.
+		PrismObject<ShadowType> foundShadow = eliminateDeadShadows(accountList, parentResult);
 
-		PrismObject<ShadowType> newShadow = null;
-
-		if (accountList.isEmpty()) {
+		if (foundShadow == null) {
 			// account was not found in the repository, create it now
 
-			if (change.getObjectDelta() == null || change.getObjectDelta().getChangeType() != ChangeType.DELETE) {
-				newShadow = createNewShadowFromChange(ctx, change, parentResult);
+			if ((change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
+				if (accountList.isEmpty()) {
+					// Delete. No shadow is OK here.
+					return null;
+				} else {
+					// Delete of shadow that is already dead.
+					return accountList.get(0);
+				}
+				
+			} else {
+
+				foundShadow = createNewShadowFromChange(ctx, change, parentResult);
 
 				try {
-					ConstraintsChecker.onShadowAddOperation(newShadow.asObjectable());
-					String oid = repositoryService.addObject(newShadow, null, parentResult);
-					newShadow.setOid(oid);
+					ConstraintsChecker.onShadowAddOperation(foundShadow.asObjectable());
+					String oid = repositoryService.addObject(foundShadow, null, parentResult);
+					foundShadow.setOid(oid);
 					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
 						change.getObjectDelta().setOid(oid);
 					}
 				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
-							+ " to the repository. Reason: " + e.getMessage(), e);
+					parentResult.recordFatalError("Can't add " + foundShadow + " to the repository. Reason: " + e.getMessage(), e);
 					throw new IllegalStateException(e.getMessage(), e);
 				}
-				LOGGER.debug("Added new shadow (from change): {}", newShadow);
+				LOGGER.debug("Added new shadow (from change): {}", foundShadow);
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Added new shadow (from change):\n{}", newShadow.debugDump());
+					LOGGER.trace("Added new shadow (from change):\n{}", foundShadow.debugDump(1));
 				}
 			}
 
-		} else {
-			// Account was found in repository
-			newShadow = accountList.get(0);
-			
-            if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-					Collection<? extends ItemDelta> deadDeltas = PropertyDelta
-							.createModificationReplacePropertyCollection(ShadowType.F_DEAD,
-									newShadow.getDefinition(), true);
-					try {
-						ConstraintsChecker.onShadowModifyOperation(deadDeltas);
-						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas,
-								parentResult);
-					} catch (ObjectAlreadyExistsException e) {
-						parentResult.recordFatalError(
-								"Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
-										+ " to the repository. Reason: " + e.getMessage(), e);
-						throw new IllegalStateException(e.getMessage(), e);
-					} catch (ObjectNotFoundException e) {
-						parentResult.recordWarning("Shadow " + SchemaDebugUtil.prettyPrint(newShadow)
-								+ " was probably deleted from the repository in the meantime. Exception: "
-								+ e.getMessage(), e);
-						return null;
-					}
-				} 
-				
-			
-			
 		}
 
-		return newShadow;
+		return foundShadow;
 	}
 	
+	// This is really invoked only for delete case. It is mostly copy&paste with findOrAddShadowFromChange.
+	// TODO: not very elegant, cleanup
 	public PrismObject<ShadowType> findOrAddShadowFromChangeGlobalContext(ProvisioningContext globalCtx, Change change,
 			OperationResult parentResult) throws SchemaException, CommunicationException,
 			ConfigurationException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
 
 		// Try to locate existing shadow in the repository
 		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(globalCtx, change, parentResult);
-
-		if (accountList.size() > 1) {
-			String message = "Found more than one shadow with the identifier " + change.getIdentifiers() + ".";
-			LOGGER.error(message);
-			parentResult.recordFatalError(message);
-			throw new IllegalArgumentException(message);
-		}
-
-		PrismObject<ShadowType> newShadow = null;
-
-		if (accountList.isEmpty()) {
-			// account was not found in the repository, create it now
-
-			if (change.getObjectDelta() == null || change.getObjectDelta().getChangeType() != ChangeType.DELETE) {
+		
+		// We normally do not want dead shadows here. Normally we should not receive any change notifications about dead
+		// shadows anyway. And dead shadows may get into the way. E.g. account is deleted and then it is quickly re-created.
+		// In that case we will get ADD change notification and there is a dead shadow in repo. But we do not want to use that
+		// dead shadow. The notification is about a new (re-create) account. We want to create new shadow.
+		PrismObject<ShadowType> newShadow = eliminateDeadShadows(accountList, parentResult);
+		
+		if (newShadow == null) {
+			
+			if ((change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
+				if (accountList.isEmpty()) {
+					// Delete. No shadow is OK here.
+					return null;
+				} else {
+					// Delete of shadow that is already dead.
+					return accountList.get(0);
+				}
+				
+			} else {
+				// All situations except delete: create new shadow
 				newShadow = createNewShadowFromChange(globalCtx, change, parentResult);
 
 				try {
@@ -555,32 +542,28 @@ public class ShadowManager {
 			}
 
 		} else {
-			// Account was found in repository
-			newShadow = accountList.get(0);
+			// Live shadow was found in repository
 			
             if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-					Collection<? extends ItemDelta> deadDeltas = PropertyDelta
-							.createModificationReplacePropertyCollection(ShadowType.F_DEAD,
-									newShadow.getDefinition(), true);
+            		List<ItemDelta<?, ?>> deadDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+            			.item(ShadowType.F_DEAD).replace(true)
+            			.item(ShadowType.F_EXISTS).replace(false)
+            			.asItemDeltas();
 					try {
 						ConstraintsChecker.onShadowModifyOperation(deadDeltas);
-						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas,
-								parentResult);
+						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas, parentResult);
 					} catch (ObjectAlreadyExistsException e) {
 						parentResult.recordFatalError(
-								"Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
-										+ " to the repository. Reason: " + e.getMessage(), e);
+								"Can't add " + newShadow + " to the repository. Reason: " + e.getMessage(), e);
 						throw new IllegalStateException(e.getMessage(), e);
 					} catch (ObjectNotFoundException e) {
-						parentResult.recordWarning("Shadow " + SchemaDebugUtil.prettyPrint(newShadow)
-								+ " was probably deleted from the repository in the meantime. Exception: "
+						parentResult.recordWarning("Shadow " + newShadow + " was probably deleted from the repository in the meantime. Exception: "
 								+ e.getMessage(), e);
 						return null;
 					}
+					
+					ObjectDelta.applyTo(newShadow, deadDeltas);
 				} 
-				
-			
-			
 		}
 
 		return newShadow;
@@ -595,8 +578,19 @@ public class ShadowManager {
 		
 		if (shadow == null){
 			//try to look in the delta, if there exists some account to be added
-			if (change.getObjectDelta() != null && change.getObjectDelta().isAdd()){
-				shadow = (PrismObject<ShadowType>) change.getObjectDelta().getObjectToAdd();
+			if (change.getObjectDelta() != null) {
+				if (change.getObjectDelta().isAdd()) {
+					shadow = (PrismObject<ShadowType>) change.getObjectDelta().getObjectToAdd();
+				} else if (change.getObjectDelta().isDelete()) {
+					// Sanity checks. We can remove them later when entire sync code is cleaned up.
+					ShadowType shadowType = shadow.asObjectable();
+					if (!ShadowUtil.isDead(shadowType)) {
+						throw new IllegalStateException("Deleted "+shadow+" not dead");
+					}
+					if (ShadowUtil.isExists(shadowType)) {
+						throw new IllegalStateException("Deleted "+shadow+" exists");
+					}
+				}
 			}
 		}
 		

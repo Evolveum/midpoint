@@ -37,7 +37,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.dummy.TestDummyResourceAndSchemaCaching;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
+import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -82,7 +82,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractProvisioningIntegrationTest.class);
 
 	@Autowired protected ProvisioningService provisioningService;
-	@Autowired protected SynchornizationServiceMock syncServiceMock;
+	@Autowired protected SynchronizationServiceMock syncServiceMock;
 	
 	// Testing connector discovery
 	@Autowired protected ConnectorManager connectorManager;
