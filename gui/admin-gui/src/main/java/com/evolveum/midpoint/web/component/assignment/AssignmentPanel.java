@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -34,6 +35,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchFormPanel;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -153,12 +158,19 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 				return createMultivalueContainerDetailsPanel(item);
 			}
 
+			@Override
+			protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+				return createSearchableItems(containerDef);
+			}
+		
 		};
 		
 		add(multivalueContainerListPanel);
 		
 		setOutputMarkupId(true);
 	}
+	
+	protected abstract List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDe);
 	
 	protected abstract void initCustomPaging();
 	

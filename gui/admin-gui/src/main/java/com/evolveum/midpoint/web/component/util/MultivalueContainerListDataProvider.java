@@ -130,7 +130,7 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
 
     	List<ContainerValueWrapper<C>> filtered = list.stream().filter(a -> {
 			try {
-				return ObjectQuery.match(a.getContainerValue().asContainerable(), getQuery().getFilter(), null);
+				return ObjectQuery.match(a.getContainerValue().asContainerable(), getQuery().getFilter(), getPage().getMatchingRuleRegistry());
 			} catch (SchemaException e) {
 				throw new TunnelException(e.getMessage());
 			}

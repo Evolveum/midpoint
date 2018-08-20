@@ -59,6 +59,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.time.Duration;
 
 import javax.xml.namespace.QName;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -119,7 +121,9 @@ public class SearchPanel extends BasePanel<Search> {
     private void initLayout() {
         moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
 
-            @Override
+          	private static final long serialVersionUID = 1L;
+
+			@Override
             protected MoreDialogDto load() {
                 MoreDialogDto dto = new MoreDialogDto();
                 dto.setProperties(createPropertiesList());
@@ -128,15 +132,17 @@ public class SearchPanel extends BasePanel<Search> {
             }
         };
 
-        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
+        Form<?> form = new com.evolveum.midpoint.web.component.form.Form<>(ID_FORM);
         add(form);
 
-        ListView items = new ListView<SearchItem>(ID_ITEMS,
+        ListView<SearchItem<?>> items = new ListView<SearchItem<?>>(ID_ITEMS,
             new PropertyModel<>(getModel(), Search.F_ITEMS)) {
 
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
-            protected void populateItem(ListItem<SearchItem> item) {
-                SearchItemPanel searchItem = new SearchItemPanel(ID_ITEM, item.getModel());
+            protected void populateItem(ListItem<SearchItem<?>> item) {
+                SearchItemPanel<?> searchItem = new SearchItemPanel(ID_ITEM, item.getModel());
                 item.add(searchItem);
             }
         };
@@ -148,6 +154,8 @@ public class SearchPanel extends BasePanel<Search> {
         form.add(moreGroup);
 
         AjaxLink more = new AjaxLink(ID_MORE) {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -157,6 +165,8 @@ public class SearchPanel extends BasePanel<Search> {
             }
         };
         more.add(new VisibleEnableBehaviour() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -172,6 +182,8 @@ public class SearchPanel extends BasePanel<Search> {
 		form.add(searchContainer);
 
         AjaxSubmitButton searchSimple = new AjaxSubmitButton(ID_SEARCH_SIMPLE) {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
@@ -184,6 +196,8 @@ public class SearchPanel extends BasePanel<Search> {
             }
         };
         searchSimple.add(new VisibleEnableBehaviour() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isEnabled() {
@@ -205,6 +219,8 @@ public class SearchPanel extends BasePanel<Search> {
 
 		WebMarkupContainer searchDropdown = new WebMarkupContainer(ID_SEARCH_DROPDOWN);
 		searchDropdown.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isVisible() {
 				return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())
@@ -215,6 +231,8 @@ public class SearchPanel extends BasePanel<Search> {
 
 		AjaxSubmitButton searchButtonBeforeDropdown = new AjaxSubmitButton(ID_SEARCH_BUTTON_BEFORE_DROPDOWN) {
 
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			protected void onError(AjaxRequestTarget target, Form<?> form) {
 				target.add(form);
@@ -226,6 +244,8 @@ public class SearchPanel extends BasePanel<Search> {
 			}
 		};
 		searchButtonBeforeDropdown.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isEnabled() {
                 if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ||
@@ -245,6 +265,9 @@ public class SearchPanel extends BasePanel<Search> {
 		InlineMenuItem searchItem = new InlineMenuItem(
 				createStringResource("SearchPanel.search"),
 				new InlineMenuItemAction() {
+					
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						PrismContext ctx = getPageBase().getPrismContext();
@@ -257,6 +280,9 @@ public class SearchPanel extends BasePanel<Search> {
 
 		searchItem = new InlineMenuItem(createStringResource("SearchPanel.debug"),
 				new InlineMenuItemAction() {
+			
+					private static final long serialVersionUID = 1L;
+			
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						debugPerformed();
@@ -265,6 +291,8 @@ public class SearchPanel extends BasePanel<Search> {
 		searchItems.add(searchItem);
 
 		ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, Model.ofList(searchItems)) {
+			
+			private static final long serialVersionUID = 1L;
 
 		    @Override
 			protected void populateItem(ListItem<InlineMenuItem> item) {
@@ -280,6 +308,8 @@ public class SearchPanel extends BasePanel<Search> {
         form.add(linksContainer);
 
 		AjaxButton advanced = new AjaxButton(ID_ADVANCED, createStringResource("SearchPanel.advanced")) {
+			
+			private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -287,6 +317,8 @@ public class SearchPanel extends BasePanel<Search> {
             }
         };
         advanced.add(new VisibleEnableBehaviour(){
+        	
+        	private static final long serialVersionUID = 1L;
             @Override
             public boolean isVisible() {
                 return !SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType());
@@ -295,6 +327,8 @@ public class SearchPanel extends BasePanel<Search> {
         linksContainer.add(advanced);
 
 		AjaxButton fullTextButton = new AjaxButton(ID_FULL_TEXT, createStringResource("SearchPanel.fullText")) {
+			
+			private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -302,6 +336,9 @@ public class SearchPanel extends BasePanel<Search> {
             }
         };
         fullTextButton.add(new VisibleEnableBehaviour(){
+        	
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public boolean isVisible() {
                 return isFullTextSearchEnabled() &&
@@ -311,6 +348,8 @@ public class SearchPanel extends BasePanel<Search> {
         linksContainer.add(fullTextButton);
 
 		AjaxButton basicSearchButton = new AjaxButton(ID_BASIC_SEARCH, createStringResource("SearchPanel.basic")) {
+			
+			private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -318,6 +357,9 @@ public class SearchPanel extends BasePanel<Search> {
             }
         };
         basicSearchButton.add(new VisibleEnableBehaviour(){
+        	
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public boolean isVisible() {
                 return !SearchBoxModeType.BASIC.equals(getModelObject().getSearchType());
@@ -326,6 +368,9 @@ public class SearchPanel extends BasePanel<Search> {
         linksContainer.add(basicSearchButton);
 
         advanced.add(new AttributeAppender("style", new LoadableModel<String>() {
+        	
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public String load() {
                 return basicSearchButton.isVisible() ? "margin-top: -20px;" : "display: table-cell; vertical-align: top;";
@@ -350,12 +395,17 @@ public class SearchPanel extends BasePanel<Search> {
                 Search.F_FULL_TEXT));
 
         fullTextInput.add(new AjaxFormComponentUpdatingBehavior("blur") {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
             }
         });
         fullTextInput.add(new Behavior() {
+        	
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void bind(Component component) {
                 super.bind( component );
@@ -402,6 +452,8 @@ public class SearchPanel extends BasePanel<Search> {
         Label advancedError = new Label(ID_ADVANCED_ERROR,
                 new PropertyModel<String>(getModel(), Search.F_ADVANCED_ERROR));
         advancedError.add(new VisibleEnableBehaviour() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -421,7 +473,7 @@ public class SearchPanel extends BasePanel<Search> {
 		Search search = getModelObject();
 		PageRepositoryQuery pageQuery;
 		if (search != null) {
-			ObjectTypes type = search.getType() != null ? ObjectTypes.getObjectType(search.getType()) : null;
+			ObjectTypes type = search.getType() != null ? ObjectTypes.getObjectType(search.getType().getSimpleName()) : null;
 			QName typeName = type != null ? type.getTypeQName() : null;
 			String inner = search.getAdvancedQuery();
 			if (StringUtils.isNotBlank(inner)) {
@@ -438,6 +490,8 @@ public class SearchPanel extends BasePanel<Search> {
 
 	private IModel<String> createAdvancedGroupLabelStyle() {
         return new AbstractReadOnlyModel<String>() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -450,6 +504,8 @@ public class SearchPanel extends BasePanel<Search> {
 
     private IModel<String> createAdvancedGroupStyle() {
         return new AbstractReadOnlyModel<String>() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -462,6 +518,8 @@ public class SearchPanel extends BasePanel<Search> {
 
     private IModel<String> createAdvancedModel() {
         return new AbstractReadOnlyModel<String>() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
@@ -475,6 +533,8 @@ public class SearchPanel extends BasePanel<Search> {
 
     private VisibleEnableBehaviour createAdvancedVisibleBehaviour(final boolean showAdvanced) {
         return new VisibleEnableBehaviour() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -486,6 +546,8 @@ public class SearchPanel extends BasePanel<Search> {
 
     private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType searchType) {
         return new VisibleEnableBehaviour() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
@@ -512,6 +574,8 @@ public class SearchPanel extends BasePanel<Search> {
                     new PropertyModel<>(item.getModel(), Property.F_SELECTED));
                 check.add(new AjaxFormComponentUpdatingBehavior("change") {
 
+                	private static final long serialVersionUID = 1L;
+                	
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
                         //nothing, just update model.
@@ -520,6 +584,8 @@ public class SearchPanel extends BasePanel<Search> {
                 item.add(check);
 
                 AjaxLink propLink = new AjaxLink(ID_PROP_LINK) {
+                	
+                	private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -533,6 +599,8 @@ public class SearchPanel extends BasePanel<Search> {
                 propLink.add(name);
 
                 item.add(new VisibleEnableBehaviour() {
+                	
+                	private static final long serialVersionUID = 1L;
 
                     @Override
                     public boolean isVisible() {
@@ -561,6 +629,8 @@ public class SearchPanel extends BasePanel<Search> {
 
         TextField addText = new TextField(ID_ADD_TEXT, new PropertyModel(moreDialogModel, MoreDialogDto.F_NAME_FILTER));
         addText.add(new Behavior() {
+        	
+        	private static final long serialVersionUID = 1L;
             @Override
             public void bind(Component component) {
                 super.bind( component );
@@ -571,6 +641,8 @@ public class SearchPanel extends BasePanel<Search> {
 
         popover.add(addText);
         addText.add(new AjaxFormComponentUpdatingBehavior("keyup") {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -580,6 +652,8 @@ public class SearchPanel extends BasePanel<Search> {
         popover.add(addText);
 
         AjaxButton add = new AjaxButton(ID_ADD, createStringResource("SearchPanel.add")) {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -589,6 +663,8 @@ public class SearchPanel extends BasePanel<Search> {
         popover.add(add);
 
         AjaxButton close = new AjaxButton(ID_CLOSE, createStringResource("SearchPanel.close")) {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {

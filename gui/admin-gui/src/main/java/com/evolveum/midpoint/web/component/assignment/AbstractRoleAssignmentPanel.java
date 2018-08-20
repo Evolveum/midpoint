@@ -24,17 +24,21 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -51,11 +55,9 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
-import com.evolveum.midpoint.prism.DefaultReferencableImpl;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -84,6 +86,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     private static final String ID_RELATION = "relation";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
+
+    protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
 
     private RelationTypes relationValue = null;
 
@@ -262,6 +267,15 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 item.add(new Label(componentId, getOrgRefLabelModel(rowModel.getObject())));
             }
         });
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, getIdentifierLabelModel(rowModel.getObject())));
+            }
+        });
 
         return columns;
     }
@@ -352,7 +366,31 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
     }
 
-     protected boolean isRelationVisible() {
+    private <O extends ObjectType> IModel<String> getIdentifierLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
+        if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
+            return Model.of("");
+        }
+        AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
+        if (assignment.getTargetRef() == null){
+            return Model.of("");
+        }
+
+        PrismObject<O> object = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(),
+                getPageBase().createSimpleTask(OPERATION_LOAD_TARGET_REF_OBJECT), new OperationResult(OPERATION_LOAD_TARGET_REF_OBJECT));
+        if (object == null || !(object.asObjectable() instanceof AbstractRoleType)){
+            return Model.of("");
+        }
+        AbstractRoleType targetRefObject = (AbstractRoleType) object.asObjectable();
+        if (StringUtils.isNotEmpty(targetRefObject.getIdentifier())){
+            return Model.of(targetRefObject.getIdentifier());
+        }
+        if (targetRefObject.getDisplayName() != null && !targetRefObject.getName().getOrig().equals(targetRefObject.getDisplayName().getOrig())){
+            return Model.of(targetRefObject.getName().getOrig());
+        }
+        return Model.of("");
+    }
+
+    protected boolean isRelationVisible() {
 		return true;
 	}
 
@@ -384,4 +422,19 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		}
 		return Model.of();
 	}
+
+	@Override
+	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+		List<SearchItemDefinition> defs = new ArrayList<>();
+		
+		SearchFactory.addSearchRefDef(containerDef, new ItemPath(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+		SearchFactory.addSearchRefDef(containerDef, new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+		
+		defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+		
+		return defs;
+	}
+	
 }

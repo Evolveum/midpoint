@@ -94,7 +94,7 @@
             <extension>
                 <p:shipName>assignment boat</p:shipName>
             </extension>
-            <targetRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
+            <targetRef oid="12345678-d34d-b33f-f00d-55555555a020" type="c:RoleType"/>
         </assignment>
     </object>
 </objects>

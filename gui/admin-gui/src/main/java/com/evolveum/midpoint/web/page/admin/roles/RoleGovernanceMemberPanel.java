@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -41,14 +42,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 /**
  * Created by honchar.
  */
-public class RoleGovernanceMemberPanel extends RoleMemberPanel<RoleType> {
+public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleMemberPanel<R> {
 
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleGovernanceMemberPanel.class);
     private static final String DOT_CLASS = RoleGovernanceMemberPanel.class.getName() + ".";
 
-    public RoleGovernanceMemberPanel(String id, IModel<RoleType> model, List<RelationTypes> relations) {
+    public RoleGovernanceMemberPanel(String id, IModel<R> model, List<QName> relations) {
         super(id, model, relations);
     }
 
