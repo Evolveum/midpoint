@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.services;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -26,10 +28,13 @@ import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoleHistory;
+import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
+import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -92,7 +97,17 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 
 			@Override
 			public AbstractRoleMemberPanel<ServiceType> createMemberPanel(String panelId) {
-				return new ServiceMemberPanel(panelId, Model.of(getObject().asObjectable()));
+				OperationResult result = new OperationResult("Get category relations");
+				return new RoleMemberPanel<ServiceType>(panelId,  Model.of(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, result, PageService.this)) {
+					
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected boolean isRole() {
+						return false;
+					}
+				};
+//				return new ServiceMemberPanel(panelId, Model.of(getObject().asObjectable()));
 			}
 
 			@Override
@@ -103,6 +118,20 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 			@Override
 			protected boolean isFocusHistoryPage(){
 				return PageService.this.isFocusHistoryPage();
+			}
+
+			@Override
+			public AbstractRoleMemberPanel<ServiceType> createGovernancePanel(String panelId) {
+				OperationResult result = new OperationResult("Get category relations");
+				return new RoleGovernanceMemberPanel<ServiceType>(panelId, Model.of(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, result, PageService.this)) {
+					
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected boolean isRole() {
+						return false;
+					}
+				};
 			}
 		};
 	}

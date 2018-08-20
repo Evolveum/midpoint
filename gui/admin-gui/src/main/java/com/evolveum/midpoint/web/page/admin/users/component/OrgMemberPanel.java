@@ -172,7 +172,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		form.add(seachScrope);
 
 		RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION,
-				Model.of(), AreaCategoryType.ADMINISTRATION, true){
+				Model.of(), AreaCategoryType.ORGANIZATION, true){
 			private static final long serialVersionUID = 1L;
 
 			@Override
