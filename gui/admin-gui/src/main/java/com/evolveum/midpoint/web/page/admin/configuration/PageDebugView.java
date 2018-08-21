@@ -384,7 +384,12 @@ public class PageDebugView extends PageAdminConfiguration {
             target.add(getFeedbackPanel());
         } else {
             showResult(result);
-            redirectBack();
+            //to handle returning back to list objects page instead of edit object page
+            if (getBreadcrumbs().size() >= 3){
+                redirectBack(3);
+            } else {
+                redirectBack();
+            }
         }
     }
 

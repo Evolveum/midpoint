@@ -1641,46 +1641,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-		OperationResult result = getCurrentResult();
-		Task opTask = getCurrentTask();
-		MidPointPrincipal principal = securityContextManager.getPrincipal();
-		if (principal == null) {
-			throw new SecurityViolationException("No current user");
-		}
-		TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid,
-				getDefaultGetOptionCollection(), opTask, result).asObjectable();
-		newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
-		newTask.setOid(null);
-		newTask.setTaskIdentifier(null);
-		newTask.setOwnerRef(createObjectRef(principal.getUser()));
-		newTask.setExecutionStatus(RUNNABLE);
-		for (Item<?, ?> extensionItem : extensionItems) {
-			newTask.asPrismObject().getExtension().add(extensionItem.clone());
-		}
-		ObjectDelta<TaskType> taskAddDelta = ObjectDelta.createAddDelta(newTask.asPrismObject());
-		modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
-		return newTask;
+		return modelInteractionService.submitTaskFromTemplate(templateTaskOid, extensionItems, getCurrentTask(), getCurrentResult());
 	}
 
 	@Override
 	public TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-		List<Item<?, ?>> extensionItems = new ArrayList<>();
-		PrismContainerDefinition<?> extDef = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(TaskType.class).findContainerDefinition(TaskType.F_EXTENSION);
-		for (Map.Entry<QName, Object> entry : extensionValues.entrySet()) {
-			ItemDefinition<Item<PrismValue, ItemDefinition>> def = extDef.findItemDefinition(entry.getKey());
-			if (def == null) {
-				throw new SchemaException("No definition of " + entry.getKey() + " in task extension");
-			}
-			Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
-			if (entry.getValue() != null) {
-				extensionItem.add(PrismValue.fromRealValue(entry.getValue()).clone());
-			}
-			extensionItems.add(extensionItem);
-		}
-		return submitTaskFromTemplate(templateTaskOid, extensionItems);
+		return modelInteractionService.submitTaskFromTemplate(templateTaskOid, extensionValues, getCurrentTask(), getCurrentResult());
 	}
 
 	@Override
