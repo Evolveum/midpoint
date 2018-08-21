@@ -17,20 +17,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <form wicket:id="mainForm" class="form-horizontal">
-
-        <div wicket:id="tabPanel" class="nav-tabs-custom" />
-
-        <wicket:child />
-
-        <div class="options-container" wicket:id="executeOptions" />
-
-        <div class="main-button-bar">
-            <span class="button-group">
-                <a class="btn btn-default" wicket:id="back"/>
-            </span>
-            <a class="btn btn-info" wicket:id="previewChanges"/>
-            <a class="btn btn-primary" wicket:id="save"/>
+    <wicket:extend>
             <span wicket:id="shoppingCartButtonsPanel" style="margin-left: 20px;">
                 <a class="btn btn-success" wicket:id="addToCartButton">
                     <i class="fa fa-plus-circle" style="margin-left: 10px;"/>
@@ -41,8 +28,7 @@
                       style="position: relative; top: -15px; left: -10px;"></span>
                     </a>
             </span>
-        </div>
-    </form>
+    </wicket:extend>
 </wicket:panel>
 </body>
 </html>
