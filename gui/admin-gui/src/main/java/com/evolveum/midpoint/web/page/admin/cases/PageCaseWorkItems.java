@@ -221,7 +221,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         if (descriptionChoice != null) {
             query.addFilter(
                     QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
-                            .item(PrismConstants.T_PARENT, CaseType.F_DESCRIPTION).contains(descriptionChoice.getBaseFormComponent().getValue())
+                            .item(PrismConstants.T_PARENT, CaseType.F_DESCRIPTION).contains(descriptionChoice.getBaseFormComponent().getValue()).matchingCaseIgnore()
                             .build().getFilter()
             );
         }
