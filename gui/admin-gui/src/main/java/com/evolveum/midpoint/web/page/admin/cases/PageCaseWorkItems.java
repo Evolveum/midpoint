@@ -151,8 +151,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         } else {
             // not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
             query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
-                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS)
-                    .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
         }
 
         // State Filter
