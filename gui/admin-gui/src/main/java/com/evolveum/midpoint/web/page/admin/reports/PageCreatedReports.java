@@ -217,11 +217,6 @@ public class PageCreatedReports extends PageAdminReports {
 			}
 
             @Override
-            protected PrismObject<ReportOutputType> getNewObjectListObject(){
-                return (new ReportOutputType()).asPrismObject();
-            }
-
-            @Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ReportOutputType object) {
 				// TODO Auto-generated method stub
 

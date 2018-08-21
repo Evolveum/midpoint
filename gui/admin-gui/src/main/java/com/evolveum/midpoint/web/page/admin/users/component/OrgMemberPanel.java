@@ -33,10 +33,12 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
+import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -58,6 +60,7 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
@@ -82,6 +85,8 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.StringResourceChoiceRenderer;
 
@@ -89,609 +94,64 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(OrgMemberPanel.class);
 
-	protected static final String ID_SEARCH_SCOPE = "searchScope";
+	
 	protected static final String ID_SEARCH_BY_TYPE = "searchByType";
-	protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
+//	protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
 
-	protected static final String ID_MANAGER_MENU = "managerMenu";
-	protected static final String ID_MANAGER_MENU_BODY = "managerMenuBody";
+//	protected static final String ID_MANAGER_MENU = "managerMenu";
+//	protected static final String ID_MANAGER_MENU_BODY = "managerMenuBody";
 
-	protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
-	protected static final String SEARCH_SCOPE_ONE = "one";
+//	protected static final String ID_SEARCH_SCOPE = "searchScope";
+//	protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
+//	protected static final String SEARCH_SCOPE_ONE = "one";
+//	protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList(SEARCH_SCOPE_SUBTREE,
+//			SEARCH_SCOPE_ONE);
 
 	protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.USER;
 
-	protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList(SEARCH_SCOPE_SUBTREE,
-			SEARCH_SCOPE_ONE);
+	
 
 	protected static final String DOT_CLASS = OrgMemberPanel.class.getName() + ".";
-	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
-	private static final String OPERATION_LOAD_MANAGERS = DOT_CLASS + "loadManagers";
-	private static final String OPERATION_UNASSIGN_MANAGERS = DOT_CLASS + "unassignManagers";
-	private static final String OPERATION_LOAD_MEMBER_RELATION_OBJECTS = DOT_CLASS + "loadMemberRelationObjects";
-	private static final String ID_MANAGER_SUMMARY = "managerSummary";
-	private static final String ID_REMOVE_MANAGER = "removeManager";
-	private static final String ID_EDIT_MANAGER = "editManager";
-
+//	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
+	
+//	private static final String OPERATION_UNASSIGN_MANAGERS = DOT_CLASS + "unassignManagers";
+	
+	
+	
 	private static final long serialVersionUID = 1L;
 
 	public OrgMemberPanel(String id, IModel<OrgType> model) {
-		super(id, TableId.ORG_MEMEBER_PANEL, model);
+		super(id, model, TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
 		setOutputMarkupId(true);
 	}
 
 	@Override
 	protected void initSearch(Form form) {
 
-		/// TODO: move to utils class??
-		List<ObjectTypes> objectTypes = new ArrayList<>(Arrays.asList(ObjectTypes.values()));
-		//fix for MID-3629 (we don't know the resource to search shadows on)
+//		/// TODO: move to utils class??
+		List<QName> objectTypes = WebComponentUtil.createObjectTypeList();
+//		//fix for MID-3629 (we don't know the resource to search shadows on)
 		objectTypes.remove(ObjectTypes.SHADOW);
-		Collections.sort(objectTypes, new Comparator<ObjectTypes>() {
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			public int compare(ObjectTypes o1, ObjectTypes o2) {
-				Validate.notNull(o1);
-				Validate.notNull(o2);
-
-				String type1 = o1.getValue();
-				String type2 = o2.getValue();
-
-				return String.CASE_INSENSITIVE_ORDER.compare(type1, type2);
-
-			}
-		});
-
-		DropDownChoice<ObjectTypes> objectType = new DropDownChoice<>(ID_SEARCH_BY_TYPE,
-            Model.of(OBJECT_TYPES_DEFAULT), objectTypes, new EnumChoiceRenderer<>());
-		objectType.add(new OnChangeAjaxBehavior() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				refreshSearch();
-				refreshTable(target);
-			}
-		});
-		objectType.setOutputMarkupId(true);
-		form.add(objectType);
-
-		DropDownChoice<String> seachScrope = new DropDownChoice<>(ID_SEARCH_SCOPE,
-            Model.of(SEARCH_SCOPE_SUBTREE), SEARCH_SCOPE_VALUES,
-            new StringResourceChoiceRenderer("TreeTablePanel.search.scope"));
-		seachScrope.add(new OnChangeAjaxBehavior() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				refreshTable(target);
-			}
-		});
-		seachScrope.setOutputMarkupId(true);
-		form.add(seachScrope);
-
-		RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION,
-				Model.of(), AreaCategoryType.ORGANIZATION, true){
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onValueChanged(AjaxRequestTarget target){
-				refreshTable(target);
-			}
-		};
-		form.add(relationSelector);
 
 	}
 
 	@Override
-	protected void initCustomLayout(Form form, ModelServiceLocator serviceLocator) {
-		WebMarkupContainer managerContainer = createManagerContainer(serviceLocator);
-		form.addOrReplace(managerContainer);
+	protected void initLayout() {
+		super.initLayout();
 	}
 
-//	@Override
-//	protected void initMemberRelationObjectsModel(){
-//		memberRelationObjectsModel = new LoadableModel<List<String>>(false) {
-//			@Override
-//			protected List<String> load() {
-//				OperationResult result = new OperationResult(OPERATION_LOAD_MEMBER_RELATION_OBJECTS);
-//				return getObjectOidsList(loadMemberObjectsByRelation(result, RelationTypes.MEMBER.getRelation()));
-//			}
-//		};
-//	}
 
-	private WebMarkupContainer createManagerContainer(ModelServiceLocator serviceLocator) {
-		WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
-		managerContainer.setOutputMarkupId(true);
-		managerContainer.setOutputMarkupPlaceholderTag(true);
-
-		RepeatingView view = new RepeatingView(ID_MANAGER_TABLE);
-		view.setOutputMarkupId(true);
-		ObjectQuery managersQuery = createManagerQuery();
-
-		OperationResult searchManagersResult = new OperationResult(OPERATION_SEARCH_MANAGERS);
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-				FocusType.F_JPEG_PHOTO, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-		List<PrismObject<FocusType>> managers = WebModelServiceUtils.searchObjects(FocusType.class,
-				managersQuery, options, searchManagersResult, getPageBase());
-		Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
-		for (PrismObject<FocusType> manager : managers) {
-			ObjectWrapper<FocusType> managerWrapper = ObjectWrapperUtil.createObjectWrapper(
-					WebComponentUtil.getEffectiveName(manager, RoleType.F_DISPLAY_NAME), "", manager,
-					ContainerStatus.MODIFYING, task, getPageBase());
-			WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());
-
-			AjaxLink<String> link = new AjaxLink<String>(ID_EDIT_MANAGER) {
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public void onClick(AjaxRequestTarget target) {
-					FocusSummaryPanel<FocusType> summary = (FocusSummaryPanel<FocusType>) getParent()
-							.get(ID_MANAGER_SUMMARY);
-					detailsPerformed(target, summary.getModelObject());
-
-				}
-			};
-			link.add(new VisibleEnableBehaviour(){
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public boolean isVisible(){
-					boolean isVisible = false;
-					try {
-						// TODO: the modify authorization here is probably wrong.
-						// It is a model autz. UI autz should be here instead?
-						isVisible = getPageBase().isAuthorized(ModelAuthorizationAction.READ.getUrl(),
-								AuthorizationPhaseType.REQUEST, managerWrapper.getObject(), null, null, null);
-					} catch (Exception ex) {
-						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #read operation on object " +
-								managerWrapper.getObject(), ex);
-					}
-					return isVisible;
-				}
-			});
-
-			FocusSummaryPanel.addSummaryPanel(managerMarkup, manager, managerWrapper, ID_MANAGER_SUMMARY, serviceLocator);
-
-			link.setOutputMarkupId(true);
-			managerMarkup.setOutputMarkupId(true);
-			managerMarkup.add(link);
-			view.add(managerMarkup);
-
-			AjaxButton removeManager = new AjaxButton(ID_REMOVE_MANAGER) {
-
-				@Override
-				public void onClick(AjaxRequestTarget target) {
-					FocusSummaryPanel<FocusType> summary = (FocusSummaryPanel<FocusType>) getParent()
-							.get(ID_MANAGER_SUMMARY);
-					removeManagerPerformed(summary.getModelObject(), target);
-					getParent().setVisible(false);
-					target.add(OrgMemberPanel.this);
-
-				}
-			};
-			removeManager.add(new VisibleEnableBehaviour(){
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public boolean isVisible(){
-					boolean isVisible = false;
-					try {
-						// TODO: the modify authorization here is probably wrong.
-						// It is a model autz. UI autz should be here instead?
-						isVisible = getPageBase().isAuthorized(ModelAuthorizationAction.UNASSIGN.getUrl(), null,
-								managerWrapper.getObject(), null, getModelObject().asPrismObject(), null);
-					} catch (Exception ex) {
-						LoggingUtils.logUnexpectedException(LOGGER, "Failed to check authorization for #unassign operation on object " +
-								managerWrapper.getObject(), ex);
-					}
-					return isVisible;
-				}
-			});
-			removeManager.setOutputMarkupId(true);
-			managerMarkup.add(removeManager);
-
-		}
-
-		managerContainer.add(view);
-
-		InlineMenu menupanel = new InlineMenu(ID_MANAGER_MENU,
-            new Model<>((Serializable) createManagersHeaderInlineMenu()));
-
-		add(menupanel);
-		menupanel.setOutputMarkupId(true);
-		managerContainer.add(menupanel);
-
-		return managerContainer;
-	}
-	
 	@Override
-	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
-		
-		ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<O>(getPageBase().getMainPopupBodyId(), availableRelationList) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected OrgType getAssignmentTargetRefObject(){
-				return OrgMemberPanel.this.getModelObject();
-			}
-		};
-		browser.setOutputMarkupId(true);
-
-		getPageBase().showMainPopup(browser, target);
-	}
-
-	private void removeManagerPerformed(FocusType manager, AjaxRequestTarget target) {
-		OperationResult parentResult = new OperationResult(OPERATION_UNASSIGN_MANAGERS);
-		Task task = getPageBase().createSimpleTask(OPERATION_UNASSIGN_MANAGERS);
-		try {
-
-			ObjectDelta delta = ObjectDelta.createModificationDeleteContainer(
-					manager.asPrismObject().getCompileTimeClass(), manager.getOid(), FocusType.F_ASSIGNMENT,
-					getPageBase().getPrismContext(), createAssignmentToModify(SchemaConstants.ORG_MANAGER));
-
-			List<ObjectType> managerList = new ArrayList<>();
-			managerList.add(manager);
-
-			executeMemberOperation(task, FocusType.COMPLEX_TYPE,
-					createQueryForMemberAction(QueryScope.SELECTED, managerList, SchemaConstants.ORG_MANAGER, true), delta,
-					TaskCategory.EXECUTE_CHANGES, target);
-
-//			getPageBase().getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta),
-//					null, task, parentResult);
-//			parentResult.computeStatus();
-		} catch (SchemaException e) {
-//
-			parentResult.recordFatalError("Failed to remove manager " + e.getMessage(), e);
-			LoggingUtils.logUnexpectedException(LOGGER, "Failed to remove manager", e);
-			getPageBase().showResult(parentResult);
-		}
-		target.add(getPageBase().getFeedbackPanel());
-
+	protected void removeMembersPerformed(QName objectType, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+		super.removeMembersPerformed(objectType, scope, relations, target);
+		MemberOperationsHelper.removeOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
 	}
 
 	@Override
-	protected boolean isAuthorizedToUnassignMembers(){
-		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_URI);
+	protected List<QName> getSupportedRelations() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	@Override
-	protected boolean isAuthorizedToAssignMembers(){
-		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_URI);
-	}
-
-	@Override
-	protected boolean isAuthorizedToRecomputeMembers(){
-		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI);
-	}
-
-	@Override
-	protected boolean isAuthorizedToCreateMembers(){
-		return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_URI);
-	}
-
-	private List<InlineMenuItem> createManagersHeaderInlineMenu() {
-		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_URI)) {
-			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
-					false, new HeaderMenuAction(this) {
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public void onClick(AjaxRequestTarget target) {
-					OrgMemberPanel.this.createFocusMemberPerformed(target);
-				}
-			}));
-		}
-
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_URI)) {
-			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
-					new HeaderMenuAction(this) {
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							OrgMemberPanel.this.assignMembers(target, Arrays.asList(RelationTypes.MANAGER.getRelation()));
-						}
-					}));
-		}
-
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_URI)) {
-			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeManagersAll"),
-					false, new HeaderMenuAction(this) {
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public void onClick(AjaxRequestTarget target) {
-					removeManagersPerformed(QueryScope.ALL, target);
-				}
-			}));
-		}
-
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI)) {
-			headerMenuItems
-					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll"),
-							false, new HeaderMenuAction(this) {
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							recomputeManagersPerformed(QueryScope.ALL, target);
-						}
-					}));
-		}
-
-		return headerMenuItems;
-	}
-
-	protected void refreshTable(AjaxRequestTarget target) {
-		DropDownChoice<ObjectTypes> typeChoice = (DropDownChoice<ObjectTypes>) get(
-				createComponentPath(ID_FORM, ID_SEARCH_BY_TYPE));
-		ObjectTypes type = typeChoice.getModelObject();
-		target.add(get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE)));
-		getMemberTable().clearCache();
-		getMemberTable().refreshTable(WebComponentUtil
-				.qnameToClass(getPageBase().getPrismContext(), type.getTypeQName(), ObjectType.class), target);
-	}
-
-	protected void refreshSearch() {
-		getMemberTable().resetSearchModel();
-	}
-
-	private MainObjectListPanel<ObjectType> getMemberTable() {
-		return (MainObjectListPanel<ObjectType>) get(
-				createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
-	}
-
-	private ObjectTypes getSearchType() {
-		DropDownChoice<ObjectTypes> searchByTypeChoice = (DropDownChoice<ObjectTypes>) get(
-				createComponentPath(ID_FORM, ID_SEARCH_BY_TYPE));
-		return searchByTypeChoice.getModelObject();
-	}
-
-	private ObjectQuery createManagerQuery() {
-		String oid = getModelObject().getOid();
-		PrismReferenceValue referenceFilter = new PrismReferenceValue();
-		referenceFilter.setOid(oid);
-		referenceFilter.setRelation(SchemaConstants.ORG_MANAGER);
-		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
-				.item(FocusType.F_PARENT_ORG_REF).ref(referenceFilter)
-				.build();
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
-		}
-		return query;
-	}
-
-	private ObjectDelta prepareDelta(MemberOperation operaton, QName type, List<QName> relation,
-			OperationResult result, AjaxRequestTarget target) {
-		ObjectDelta delta = null;
-		try {
-			delta = createMemberDelta(operaton, type, relation);
-		} catch (SchemaException e) {
-			result.recordFatalError("Failed to prepare delta for add members");
-			getPageBase().showResult(result);
-			target.add(getPageBase().getFeedbackPanel());
-		}
-		return delta;
-	}
-
-
-	protected void removeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
-
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope, true));
-		ObjectDelta delta = prepareDelta(MemberOperation.REMOVE, FocusType.COMPLEX_TYPE,
-				Arrays.asList(SchemaConstants.ORG_MANAGER), operationalTask.getResult(), target);
-		if (delta == null) {
-			return;
-		}
-		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
-				createQueryForMemberAction(scope, SchemaConstants.ORG_MANAGER, true), delta,
-				TaskCategory.EXECUTE_CHANGES, target);
-
-	}
-
-	@Override
-	protected void removeMembersPerformed(QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
-
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Remove", scope, false));
-
-		ObjectDelta delta = prepareDelta(MemberOperation.REMOVE, FocusType.COMPLEX_TYPE, null,
-				operationalTask.getResult(), target);
-		if (delta != null) {
-			executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
-					createQueryForMemberAction(scope, null, true), delta, TaskCategory.EXECUTE_CHANGES,
-					target);
-		}
-
-		delta = prepareDelta(MemberOperation.REMOVE, ObjectType.COMPLEX_TYPE, null,
-				operationalTask.getResult(), target);
-		if (delta == null) {
-			return;
-		}
-		executeMemberOperation(operationalTask, ObjectType.COMPLEX_TYPE,
-				createQueryForMemberAction(scope, null, false), delta, TaskCategory.EXECUTE_CHANGES, target);
-
-	}
-
-	@Override
-	protected void recomputeMembersPerformed(AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", getScope(true), false));
-		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
-				createQueryForMemberAction(getScope(true), null, true), null, TaskCategory.RECOMPUTATION, target);
-	}
-
-	protected void recomputeManagersPerformed(QueryScope scope, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Recompute", scope, true));
-		executeMemberOperation(operationalTask, FocusType.COMPLEX_TYPE,
-				createQueryForMemberAction(scope, SchemaConstants.ORG_MANAGER, true), null,
-				TaskCategory.RECOMPUTATION, target);
-	}
-	
-	@Override
-	protected QueryScope getScope(boolean isRecompute) {
-		return QueryScope.ALL_DIRECT;
-	}
-
-	@Override
-	protected ObjectQuery createContentQuery() {
-		String oid = getModelObject().getOid();
-
-		DropDownChoice<String> searchScopeChoice = (DropDownChoice<String>) get(
-				createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
-		String scope = searchScopeChoice.getModelObject();
-
-		ObjectTypes searchType = getSearchType();
-		S_FilterEntryOrEmpty q = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext());
-		if (!searchType.equals(ObjectTypes.OBJECT)) {
-			q = q.type(searchType.getClassDefinition());
-		}
-
-		QName relationValue = getSelectedRelation();
-		PrismReferenceValue ref = new PrismReferenceValue(oid);
-		ref.setRelation(relationValue);
-		ObjectQuery query;
-		if (SEARCH_SCOPE_ONE.equals(scope)) {
-			query = q.isDirectChildOf(ref)
-					.build();
-		} else {
-			query = q.isChildOf(ref)
-					.build();
-		}
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
-		}
-		return query;
-	}
-
-	private QName getSelectedRelation(){
-		RelationDropDownChoicePanel relationDropDown = (RelationDropDownChoicePanel) get(ID_FORM).get(ID_SEARCH_BY_RELATION);
-		QName relationValue = relationDropDown.getRelationValue();
-		if (relationValue == null){
-			return PrismConstants.Q_ANY;
-		} else {
-			return relationValue;
-		}
-	}
-
-	private ObjectQuery createQueryForMemberAction(QueryScope scope, QName orgRelation, boolean isFocus) {
-		return createQueryForMemberAction(scope, getMemberTable().getSelectedObjects(), orgRelation, isFocus);
-	}
-
-	private ObjectQuery createQueryForMemberAction(QueryScope scope, List<ObjectType> selectedObjects, QName orgRelation, boolean isFocus) {
-
-		ObjectQuery query = null;
-		switch (scope) {
-			case SELECTED:
-				List<String> oids = new ArrayList<>();
-				for (ObjectType object : selectedObjects) {
-					if (satisfyConstraints(isFocus, object.getClass())) {
-						oids.add(object.getOid());
-					}
-				}
-
-				query = ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
-				break;
-			case ALL_DIRECT:
-			case ALL:
-				query = createQueryForAll(scope, isFocus, orgRelation);
-				break;
-			default:
-				break;
-		}
-		return query;
-
-	}
-
-	private boolean satisfyConstraints(boolean isFocus, Class<? extends ObjectType> type) {
-		if (isFocus && FocusType.class.isAssignableFrom(type)) {
-			return true;
-		}
-
-		if (!isFocus && !FocusType.class.isAssignableFrom(type)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	private ObjectQuery createQueryForAll(QueryScope scope, boolean isFocus, QName relation) {
-		OrgType org = getModelObject();
-		return QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
-				.isInScopeOf(org.getOid(), getScope(scope))
-				.build();
-	}
-
-	private Scope getScope(QueryScope queryScope) {
-		return QueryScope.ALL == queryScope ? Scope.SUBTREE : Scope.ONE_LEVEL;
-	}
-
-
-	protected ObjectDelta createMemberDelta(MemberOperation operation, QName type, List<QName> relations)
-			throws SchemaException {
-		Class classType = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), type);
-		ObjectDelta delta = null;
-		//TODO: imrpove
-		QName relation = (relations != null && !relations.isEmpty()) ? relations.iterator().next() : null;
-		switch (operation) {
-			case ADD:
-				
-				if (isFocus(type)) {
-
-					delta = ObjectDelta.createModificationAddContainer(classType, "fakeOid",
-							FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(),
-							createAssignmentToModify(relation));
-				} else {
-					delta = ObjectDelta.createModificationAddReference(classType, "fakeOid",
-							ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
-							createReference(relation).asReferenceValue());
-				}
-				break;
-
-			case REMOVE:
-				if (isFocus(type)) {
-					delta = ObjectDelta.createModificationDeleteContainer(classType, "fakeOid",
-							FocusType.F_ASSIGNMENT, getPageBase().getPrismContext(),
-							createAssignmentToModify(relation));
-				} else {
-					delta = ObjectDelta.createModificationDeleteReference(classType, "fakeOid",
-							ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
-							createReference(relation).asReferenceValue());
-				}
-				break;
-			default:
-				break;
-		}
-		return delta;
-
-	}
-
-	private boolean isFocus(QName type) {
-		return FocusType.COMPLEX_TYPE.equals(type) || UserType.COMPLEX_TYPE.equals(type)
-				|| RoleType.COMPLEX_TYPE.equals(type) || OrgType.COMPLEX_TYPE.equals(type)
-				|| ServiceType.COMPLEX_TYPE.equals(type);
-	}
-
-	@Override
-	protected Class getDefaultObjectType(){
-		ObjectTypes type = getSearchType();
-		// first we try to get type from dropdown
-		if (type != null) {
-			return type.getClassDefinition();
-		}
-
-		return OBJECT_TYPES_DEFAULT.getClassDefinition();
-	}
-
-	@Override
-	protected boolean isRelationColumnVisible(){
-		return true;
-	}
-
-//	@Override
-//	protected QName[] getMemberRelationQueryItem(){
-//		return new QName[]{FocusType.F_PARENT_ORG_REF};
-//	}
 }

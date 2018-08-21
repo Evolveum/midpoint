@@ -107,11 +107,6 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 			}
 
             @Override
-            protected PrismObject<RoleType> getNewObjectListObject(){
-                return (new RoleType()).asPrismObject();
-            }
-
-            @Override
             protected IColumn<SelectableBean<RoleType>, String> createActionsColumn() {
                 return PageRoles.this.createActionsColumn();
             }

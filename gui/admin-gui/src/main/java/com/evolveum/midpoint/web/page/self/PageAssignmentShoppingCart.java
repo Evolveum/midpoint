@@ -370,10 +370,8 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
-        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE,
-                new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS), PageAssignmentShoppingCart.this);
-        QName defaultRelation = availableRelations != null && availableRelations.size() > 0 ? availableRelations.get(0) : null;
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, Model.of(defaultRelation), AreaCategoryType.SELF_SERVICE));
+        List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, PageAssignmentShoppingCart.this);
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, availableRelations, false));
     }
 
     private QName getRelationParameterValue(){

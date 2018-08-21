@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -62,7 +63,11 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, AreaCategoryType.ADMINISTRATION));
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, getSupportedRelations(), false));
+    }
+    
+    private List<QName> getSupportedRelations() {
+    	return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getPageBase());
     }
 
     @Override

@@ -12,15 +12,15 @@ public class ServiceMemberPanel extends RoleMemberPanel<ServiceType>{
 
 	private static final long serialVersionUID = 1L;
 
-
-	public ServiceMemberPanel(String id, IModel<ServiceType> model) {
-		super(id, model);
-	}
-
-	@Override
-	protected boolean isRole() {
-		return false;
-	}
+//
+//	public ServiceMemberPanel(String id, IModel<ServiceType> model) {
+//		super(id, model);
+//	}
+//
+//	@Override
+//	protected boolean isRole() {
+//		return false;
+//	}
 
 
 }

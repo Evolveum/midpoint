@@ -43,16 +43,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 /**
  * Created by honchar.
  */
-public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleMemberPanel<R> {
+public class RoleGovernanceMemberPanel<R extends AbstractRoleType> {// extends AbstractRoleMemberPanel<R> {
 
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleGovernanceMemberPanel.class);
     private static final String DOT_CLASS = RoleGovernanceMemberPanel.class.getName() + ".";
 
-    public RoleGovernanceMemberPanel(String id, IModel<R> model, List<QName> relations) {
-        super(id, model, relations);
-    }
+//    public RoleGovernanceMemberPanel(String id, IModel<R> model, List<QName> relations) {
+//        super(id, model, relations);
+//    }
 
 //    @Override
 //    protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
@@ -132,25 +132,25 @@ public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleM
 //        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE,
 //                new OperationResult(OPERATION_RELATION_DEFINITION_TYPE), getPageBase());    }
 
-    @Override
-    protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {
-        return super.createDirectMemberQuery(relations);
-    }
-
-    @Override
-    protected boolean isAuthorizedToUnassignMembers(){
-        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_GOVERNANCE_ACTION_URI);
-    }
-
-    @Override
-    protected boolean isAuthorizedToAssignMembers(){
-        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_GOVERNANCE_ACTION_URI);
-    }
-
-    @Override
-    protected boolean isAuthorizedToCreateMembers(){
-        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_URI);
-    }
+//    @Override
+//    protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {
+//        return super.createDirectMemberQuery(relations);
+//    }
+//
+//    @Override
+//    protected boolean isAuthorizedToUnassignMembers(){
+//        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_GOVERNANCE_ACTION_URI);
+//    }
+//
+//    @Override
+//    protected boolean isAuthorizedToAssignMembers(){
+//        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_GOVERNANCE_ACTION_URI);
+//    }
+//
+//    @Override
+//    protected boolean isAuthorizedToCreateMembers(){
+//        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_URI);
+//    }
 
 //    @Override
 //    protected List<InlineMenuItem> createMemberRecomputeInlineMenuItems() {

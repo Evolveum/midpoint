@@ -171,11 +171,6 @@ public class PageResources extends PageAdminResources {
 			}
 
 			@Override
-			protected PrismObject<ResourceType> getNewObjectListObject(){
-				return (new ResourceType()).asPrismObject();
-			}
-
-			@Override
 			protected IColumn<SelectableBean<ResourceType>, String> createActionsColumn() {
 				return PageResources.this.createResourceActionsColumn();
 			}

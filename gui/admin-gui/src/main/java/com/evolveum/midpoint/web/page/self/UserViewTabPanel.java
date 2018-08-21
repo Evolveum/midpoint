@@ -147,8 +147,7 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
         //null value is needed for ALL relations to be displayed
         relationsList.add(null);
 
-        relationsList.addAll(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE,
-                new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS), getPageBase()));
+        relationsList.addAll(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase()));
         return relationsList;
     }
 
@@ -161,8 +160,7 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
                 if (relation == null){
                     return createStringResource("RelationTypes.ANY");
                 }
-                List<RelationDefinitionType> defList = WebComponentUtil.getRelationDefinitions(new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS),
-                        UserViewTabPanel.this.getPageBase());
+                List<RelationDefinitionType> defList = WebComponentUtil.getRelationDefinitions(UserViewTabPanel.this.getPageBase());
                 RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(defList, model.getObject());
                 if (def != null) {
                     DisplayType display = def.getDisplay();
