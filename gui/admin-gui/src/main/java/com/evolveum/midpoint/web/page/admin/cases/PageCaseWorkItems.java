@@ -158,25 +158,48 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         // State Filter
         DropDownChoicePanel<String> filterCasesChoice = (DropDownChoicePanel<String>) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_CASES);
         if (filterCasesChoice == null || filterCasesChoice.getModel().getObject().equals(SEARCH_FILTER_CASES_OPEN)) {
+            // Open Case Work Items
             query.addFilter(
                 QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
                             .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq(SEARCH_FILTER_CASES_OPEN).build().getFilter()
             );
         } else if(filterCasesChoice.getModel().getObject().equals(SEARCH_FILTER_CASES_CLOSED)) {
+            // Closed Case Work Items
             query.addFilter(
                 QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
                             .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq(SEARCH_FILTER_CASES_CLOSED).build().getFilter()
             );
-        }
 
-        //WorkItem Outcome Filter
-        IsolatedCheckBoxPanel onlyOutcomeItems = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_OUTCOME_ITEMS);
-        if (onlyOutcomeItems != null && onlyOutcomeItems.getValue()) {
-            query.addFilter(
-                QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
-                        .item(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq("SUCCESS")
-                            .build().getFilter()
-            );
+            // WorkItem Outcome Filter - only applicable for closed case work items
+            IsolatedCheckBoxPanel onlyOutcomeItems = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_OUTCOME_ITEMS);
+            if (onlyOutcomeItems != null && onlyOutcomeItems.getValue()) {
+                query.addFilter(
+                        QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+                                .item(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq("SUCCESS")
+                                .build().getFilter()
+                );
+            }
+        } else {
+            // Open or Closed case work items
+
+            // WorkItem Outcome Filter
+            IsolatedCheckBoxPanel onlyOutcomeItems = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_OUTCOME_ITEMS);
+            if (onlyOutcomeItems != null && onlyOutcomeItems.getValue()) {
+                query.addFilter(
+                        QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+                                .block()
+                                    // Either Open cases work items
+                                    .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq(SEARCH_FILTER_CASES_OPEN)
+                                    .or()
+                                        .block()
+                                            // or directly closed case work items
+                                            .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq(SEARCH_FILTER_CASES_CLOSED)
+                                            .and().item(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq("SUCCESS")
+                                        .endBlock()
+                                .endBlock()
+                                .build().getFilter()
+                );
+            }
         }
 
         // Resource Filter
@@ -443,7 +466,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 		});
         searchFilterForm.add(filterCases);
 
-        IsolatedCheckBoxPanel onlyOutcomeItems = new IsolatedCheckBoxPanel(ID_SEARCH_FILTER_OUTCOME_ITEMS, new Model<Boolean>(false)) {
+        IsolatedCheckBoxPanel onlyOutcomeItems = new IsolatedCheckBoxPanel(ID_SEARCH_FILTER_OUTCOME_ITEMS, new Model<Boolean>(true)) {
             private static final long serialVersionUID = 1L;
             public void onUpdate(AjaxRequestTarget target) {
                 searchFilterPerformed(target);
