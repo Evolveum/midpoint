@@ -19,6 +19,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -54,6 +55,9 @@ import static com.evolveum.midpoint.schema.util.CertCampaignTypeUtil.norm;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.CLOSED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 public class ReportFunctions {
 
@@ -334,13 +338,39 @@ public class ReportFunctions {
 //    Object parseObjectFromXML (String xml) throws SchemaException {
 //        return prismContext.parserFor(xml).xml().parseAnyData();
 //    }
-
     public List<PrismContainerValue<WorkItemType>> searchApprovalWorkItems()
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
+        return searchApprovalWorkItems(0, null);
+    }
+    
+    /*
+     * @param days - return only workitems with createTimestamp older than (now-days), 0 to return all
+     * @sortColumn - optionally AbstractWorkItemType QName to asc sort results (e.g. AbstractWorkItemType.F_CREATE_TIMESTAMP)
+    */
+    public List<PrismContainerValue<WorkItemType>> searchApprovalWorkItems(int days, QName sortColumn)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
         Task task = taskManager.createTaskInstance();
         OperationResult result = task.getResult();
-        SearchResultList<WorkItemType> workItems = model.searchContainers(WorkItemType.class, null,
+        ObjectQuery query = QueryBuilder.queryFor(AbstractWorkItemType.class, prismContext).build();
+        
+        if (days > 0) {
+            XMLGregorianCalendar since = (new Clock()).currentTimeXMLGregorianCalendar();
+            DatatypeFactory df = DatatypeFactory.newInstance();        
+            since.add (df.newDuration(false, 0, 0, days, 0, 0, 0));
+
+            query.addFilter(QueryBuilder.queryFor(AbstractWorkItemType.class, prismContext)
+                         .item(AbstractWorkItemType.F_CREATE_TIMESTAMP).lt(since).buildFilter());
+        } 
+        
+        if (sortColumn != null) {
+            query.addFilter(QueryBuilder.queryFor(AbstractWorkItemType.class, prismContext)
+                        .asc(sortColumn)
+                        .buildFilter());
+        }
+        
+        SearchResultList<WorkItemType> workItems = model.searchContainers(WorkItemType.class, query,
                 resolveItemsNamed(
                         WorkItemType.F_ASSIGNEE_REF,
                         new ItemPath(PrismConstants.T_PARENT, WfContextType.F_OBJECT_REF),

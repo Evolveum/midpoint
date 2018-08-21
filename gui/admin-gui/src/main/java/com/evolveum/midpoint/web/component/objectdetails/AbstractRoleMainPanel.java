@@ -126,6 +126,12 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 				target.add(shoppingCartButtonsPanel);
 			}
 		};
+		addToCartButton.add(AttributeAppender.append("class", new LoadableModel<String>() {
+			@Override
+			protected String load() {
+				return addToCartButton.isEnabled() ? "btn btn-success" : "btn btn-success disabled";
+			}
+		}));
 		addToCartButton.setOutputMarkupId(true);
 		addToCartButton.add(new VisibleEnableBehaviour(){
 			private static final long serialVersionUID = 1L;
