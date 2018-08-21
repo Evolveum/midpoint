@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.schema.util;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import javax.xml.namespace.QName;
 
@@ -25,7 +27,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -43,6 +45,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
+import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 public class ObjectQueryUtil {
@@ -515,63 +518,125 @@ public class ObjectQueryUtil {
 	}
 
 	public static FilterComponents factorOutQuery(ObjectQuery query, ItemPath... paths) {
-		return factorOutFilter(query != null ? query.getFilter() : null, paths);
+		return factorOutQuery(query, DEFAULT_EXTRACTORS, paths);
 	}
 
+	public static FilterComponents factorOutQuery(ObjectQuery query, List<FilterExtractor> extractors, ItemPath... paths) {
+		return factorOutFilter(query != null ? query.getFilter() : null, extractors, paths);
+	}
+
+	@SuppressWarnings("unused")
 	public static FilterComponents factorOutFilter(ObjectFilter filter, ItemPath... paths) {
+		return factorOutFilter(filter, DEFAULT_EXTRACTORS, paths);
+	}
+
+	public static FilterComponents factorOutFilter(ObjectFilter filter, List<FilterExtractor> extractors, ItemPath... paths) {
 		FilterComponents components = new FilterComponents();
-		factorOutFilter(components, simplify(filter), Arrays.asList(paths), true);
+		factorOutFilter(components, simplify(filter), extractors, Arrays.asList(paths), true);
 		return components;
 	}
 
 	// TODO better API
+	@SuppressWarnings("unused")
 	public static FilterComponents factorOutOrFilter(ObjectFilter filter, ItemPath... paths) {
 		FilterComponents components = new FilterComponents();
-		factorOutFilter(components, simplify(filter), Arrays.asList(paths), false);
+		factorOutFilter(components, simplify(filter), DEFAULT_EXTRACTORS, Arrays.asList(paths), false);
 		return components;
 	}
 
-	private static void factorOutFilter(FilterComponents filterComponents, ObjectFilter filter, List<ItemPath> paths, boolean connectedByAnd) {
-		if (filter instanceof EqualFilter) {
-			EqualFilter equalFilter = (EqualFilter) filter;
-			if (ItemPath.containsEquivalent(paths, equalFilter.getPath())) {
-				filterComponents.addToKnown(equalFilter.getPath(), equalFilter.getValues());
-			} else {
-				filterComponents.addToRemainder(equalFilter);
-			}
-		} else if (filter instanceof RefFilter) {
-			RefFilter refFilter = (RefFilter) filter;
-			if (ItemPath.containsEquivalent(paths, refFilter.getPath())) {
-				filterComponents.addToKnown(refFilter.getPath(), refFilter.getValues());
-			} else {
-				filterComponents.addToRemainder(refFilter);
-			}
-		} else if (connectedByAnd && filter instanceof AndFilter) {
-			for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
-				factorOutFilter(filterComponents, condition, paths, true);
-			}
-		} else if (!connectedByAnd && filter instanceof OrFilter) {
-			for (ObjectFilter condition : ((OrFilter) filter).getConditions()) {
-				factorOutFilter(filterComponents, condition, paths, false);
-			}
-		} else if (filter instanceof TypeFilter) {
-			// this is a bit questionable...
-			factorOutFilter(filterComponents, ((TypeFilter) filter).getFilter(), paths, connectedByAnd);
-		} else if (filter != null) {
-			filterComponents.addToRemainder(filter);
-		} else {
-			// nothing to do with a null filter
+	/**
+	 * Describes how to treat a filter when factoring out a query/filter.
+	 */
+	public static class FilterExtractor {
+		@NotNull private final Predicate<ObjectFilter> selector;                    // does this extractor apply?
+		@NotNull private final Function<ObjectFilter, ItemPath> pathExtractor;      // give me the item path!
+		@NotNull private final Function<ObjectFilter, List<? extends PrismValue>> valueExtractor;   // give me values! (optional)
+		public FilterExtractor(@NotNull Predicate<ObjectFilter> selector,
+				@NotNull Function<ObjectFilter, ItemPath> pathExtractor,
+				@NotNull Function<ObjectFilter, List<? extends PrismValue>> valueExtractor) {
+			this.selector = selector;
+			this.pathExtractor = pathExtractor;
+			this.valueExtractor = valueExtractor;
 		}
 	}
 
+	public static final FilterExtractor EQUAL_EXTRACTOR = new FilterExtractor(
+			filter -> filter instanceof EqualFilter,
+			filter -> ((EqualFilter<?>) filter).getPath(),
+			filter -> ((EqualFilter<?>) filter).getValues());
+
+	public static final FilterExtractor REF_EXTRACTOR = new FilterExtractor(
+			filter -> filter instanceof RefFilter,
+			filter -> ((RefFilter) filter).getPath(),
+			filter -> ((RefFilter) filter).getValues());
+
+	public static final List<FilterExtractor> DEFAULT_EXTRACTORS = Arrays.asList(EQUAL_EXTRACTOR, REF_EXTRACTOR);
+
+	private static void factorOutFilter(FilterComponents filterComponents, ObjectFilter filter, @NotNull List<FilterExtractor> extractors,
+			List<ItemPath> paths, boolean connectedByAnd) {
+
+		if (connectedByAnd && filter instanceof AndFilter) {
+			for (ObjectFilter condition : ((AndFilter) filter).getConditions()) {
+				factorOutFilter(filterComponents, condition, extractors, paths, true);
+			}
+		} else if (!connectedByAnd && filter instanceof OrFilter) {
+			for (ObjectFilter condition : ((OrFilter) filter).getConditions()) {
+				factorOutFilter(filterComponents, condition, extractors, paths, false);
+			}
+		} else if (filter instanceof TypeFilter) {
+			// this is a bit questionable...
+			factorOutFilter(filterComponents, ((TypeFilter) filter).getFilter(), extractors, paths, connectedByAnd);
+		} else {
+			boolean found = false;
+			for (FilterExtractor extractor : extractors) {
+				if (extractor.selector.test(filter)) {
+					ItemPath filterPath = extractor.pathExtractor.apply(filter);
+					if (ItemPath.containsEquivalent(paths, filterPath)) {
+						filterComponents.addToKnown(filterPath, extractor.valueExtractor.apply(filter), filter);
+						found = true;
+						break;
+					}
+				}
+			}
+			if (!found) {
+				if (filter != null) {
+					filterComponents.addToRemainder(filter);
+				} else {
+					// nothing to do with a null filter
+				}
+			}
+		}
+	}
+
+	/**
+	 * Result of the query/filter factorization.
+	 */
 	public static class FilterComponents {
+		/**
+		 * "Value" components: intersection of values found. Useful for equality-type filters.
+		 * Usually ignored for other kinds of filters.
+		 */
 		private Map<ItemPath,Collection<? extends PrismValue>> knownComponents = new HashMap<>();
+		/**
+		 * "Filter" components: collection of all related filters found. Useful e.g. for GT/LT-type filters.
+		 */
+		private Map<ItemPath, Collection<ObjectFilter>> knownComponentFilters = new HashMap<>();
+		/**
+		 * All the rest.
+		 */
 		private List<ObjectFilter> remainderClauses = new ArrayList<>();
 
+		@SuppressWarnings("unused")
 		public Map<ItemPath, Collection<? extends PrismValue>> getKnownComponents() {
 			return knownComponents;
 		}
 
+		@SuppressWarnings("unused")
+		public Map<ItemPath, Collection<ObjectFilter>> getKnownComponentFilters() {
+			return knownComponentFilters;
+		}
+
+		@SuppressWarnings("unused")
 		public ObjectFilter getRemainder() {
 			if (remainderClauses.size() == 0) {
 				return null;
@@ -582,12 +647,18 @@ public class ObjectQueryUtil {
 			}
 		}
 
-		public void addToKnown(ItemPath path, List values) {
+		void addToKnown(ItemPath path, List<? extends PrismValue> values, ObjectFilter filter) {
 			Map.Entry<ItemPath, Collection<? extends PrismValue>> entry = getKnownComponent(path);
 			if (entry != null) {
 				entry.setValue(CollectionUtils.intersection(entry.getValue(), values));
 			} else {
 				knownComponents.put(path, values);
+			}
+			Map.Entry<ItemPath, Collection<ObjectFilter>> entryFilter = getKnownComponentFilter(path);
+			if (entryFilter != null) {
+				entryFilter.getValue().add(filter);
+			} else {
+				knownComponentFilters.put(path, new ArrayList<>(singletonList(filter)));
 			}
 		}
 
@@ -600,10 +671,20 @@ public class ObjectQueryUtil {
 			return null;
 		}
 
+		public Map.Entry<ItemPath, Collection<ObjectFilter>> getKnownComponentFilter(ItemPath path) {
+			for (Map.Entry<ItemPath, Collection<ObjectFilter>> entry : knownComponentFilters.entrySet()) {
+				if (path.equivalent(entry.getKey())) {
+					return entry;
+				}
+			}
+			return null;
+		}
+
 		public void addToRemainder(ObjectFilter filter) {
 			remainderClauses.add(filter);
 		}
 
+		@SuppressWarnings("unused")
 		public boolean hasRemainder() {
 			return !remainderClauses.isEmpty();
 		}
@@ -611,6 +692,5 @@ public class ObjectQueryUtil {
 		public List<ObjectFilter> getRemainderClauses() {
 			return remainderClauses;
 		}
-
 	}
 }
