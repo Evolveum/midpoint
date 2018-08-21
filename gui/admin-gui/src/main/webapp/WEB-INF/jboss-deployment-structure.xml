@@ -8,6 +8,52 @@
             <subsystem name="resteasy" />
         </exclude-subsystems>
 
+        <exclusions>
+            <!-- Jackson -->
+            <module name="com.fasterxml.jackson.core.jackson-core"/>
+            <module name="com.fasterxml.jackson.core.jackson-databind" />
+            <module name="com.fasterxml.jackson.core.jackson-annotations"/>
+            <module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
+            <module name="org.jboss.resteasy.resteasy-jackson2-provider"/>
+
+            <!-- Hibernate -->
+            <module name="org.hibernate"/>
+            <module name="org.hibernate.commons-annotations"/>
+            <module name="org.hibernate.hql"/>
+
+            <!-- Jsoup -->
+            <module name="org.jsoup"/>
+
+            <!-- antlr -->
+            <module name="org.antlr"/>
+
+            <!-- guava -->
+            <module name="com.google.guava"/>
+
+            <!-- apache commons -->
+            <module name="org.apache.commons.beanutils"/>
+            <module name="org.apache.commons.cli"/>
+            <module name="org.apache.commons.codec"/>
+            <module name="org.apache.commons.collections"/>
+            <module name="org.apache.commons.configuration"/>
+            <module name="org.apache.commons.io"/>
+            <module name="org.apache.commons.lang"/>
+            <module name="org.apache.commons.pool"/>
+
+            <!-- apache http components -->
+            <module name="org.apache.httpcomponents"/>
+
+            <!-- jaxen -->
+            <module name="org.jaxen"/>
+
+            <!-- joda -->
+            <module name="org.joda.time"/>
+
+            <!--opensaml-->
+            <module name="org.opensaml"/>
+
+        </exclusions>
+
         <dependencies>
             <module name="javax.xml.ws.api" export="true" />
             <module name="javax.jws.api" export="true" />
