@@ -25,6 +25,7 @@ import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -105,6 +106,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private static final String ID_SEARCH_FILTER_ASSIGNEE = "filterAssignee";
     private static final String ID_SEARCH_FILTER_CASES = "filterCases";
     private static final String ID_SEARCH_FILTER_OUTCOME_ITEMS = "filterOutcomeItems";
+    private static final String ID_SEARCH_FILTER_DESCRIPTION = "filterDescription";
     // Data Table
     private static final String ID_CASE_WORK_ITEMS_TABLE = "caseWorkItemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
@@ -190,6 +192,16 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                     );
                 }
             }
+        }
+
+        // Description Filter
+        TextPanel<String> descriptionChoice = (TextPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_DESCRIPTION);
+        if (descriptionChoice != null) {
+            query.addFilter(
+                    QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+                            .item(PrismConstants.T_PARENT, CaseType.F_DESCRIPTION).contains(descriptionChoice.getBaseFormComponent().getValue())
+                            .build().getFilter()
+            );
         }
 
         // Assignee Filter
@@ -408,6 +420,17 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
             }
         });
         searchFilterForm.add(assigneeContainer);
+
+        TextPanel<String> description = new TextPanel<>(ID_SEARCH_FILTER_DESCRIPTION, new Model<String>(""));
+        description.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                searchFilterPerformed(target);
+            }
+        });
+        searchFilterForm.add(description);
 
         DropDownChoicePanel<String> filterCases = new DropDownChoicePanel<String> (ID_SEARCH_FILTER_CASES, Model.of(SEARCH_FILTER_CASES_OPEN), Model.ofList(SEARCH_FILTER_CASES_VALUES), new StringResourceChoiceRenderer("PageCaseWorkItems.search.caseState.value"));
         filterCases.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
