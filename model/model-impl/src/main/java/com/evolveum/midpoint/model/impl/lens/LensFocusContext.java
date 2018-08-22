@@ -276,7 +276,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     	}
     	return getWaveDelta(wave);
     }
-
+    
     @Override
 	public void cleanup() {
 		// Clean up only delta in current wave. The deltas in previous waves are already done.

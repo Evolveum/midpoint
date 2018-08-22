@@ -78,11 +78,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -152,6 +156,56 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
 	}
 
+	/**
+	 * Simple end-user password change. But clear Jack's credentials before
+	 * the change. Make sure all password metadata is set correctly.
+	 * This also sets the stage for following persona tests.
+	 * 
+	 * MID-4830
+	 */
+	@Test
+    public void test080AutzJackEndUserPassword() throws Exception {
+		final String TEST_NAME = "test080AutzJackEndUserPassword";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+
+        assignRole(USER_JACK_OID, ROLE_END_USER_OID);
+        
+        clearUserPassword(USER_JACK_OID);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User with cleared password", user);
+        assertAssignments(user, 1);
+        assertLinks(user, 0);
+        assertUserNoPassword(user);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+
+        login(USER_JACK_USERNAME);
+
+        XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        
+        assertAllow("set jack's password",
+        		(task, result) -> modifyUserSetPassword(USER_JACK_OID, "nbusr123", task, result) );
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+        
+        user = getUser(USER_JACK_OID);
+        display("user after password change", user);
+        PasswordType passwordType = assertUserPassword(user, "nbusr123");
+        MetadataType metadata = passwordType.getMetadata();
+        assertNotNull("No password metadata", metadata);
+        assertMetadata("password metadata", metadata, true, false, startTs, endTs, USER_JACK_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
+
+        assertGlobalStateUntouched();
+	}
 
 	@Test
     public void test100AutzJackPersonaManagement() throws Exception {
@@ -208,6 +262,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
+    /**
+     * MID-4830
+     */
     @Test
     public void test110AutzJackPersonaAdmin() throws Exception {
 		final String TEST_NAME = "test110AutzJackAddPersonaAdmin";
@@ -224,6 +281,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         		(task,result) -> assignRole(USER_JACK_OID, ROLE_PERSONA_ADMIN_OID, task, result));
 
         PrismObject<UserType> userJack = assertGetAllow(UserType.class, USER_JACK_OID);
+        display("User jack after persona assign", userJack);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_LECHUCK_OID);
         assertGetDeny(UserType.class, USER_CHARLES_OID);
@@ -232,6 +290,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         String personaJackOid = userJack.asObjectable().getPersonaRef().get(0).getOid();
 
         PrismObject<UserType> personaJack = assertGetAllow(UserType.class, personaJackOid);
+        display("Persona jack", personaJack);
         assertEquals("Wrong jack persona givenName before change", USER_JACK_GIVEN_NAME, personaJack.asObjectable().getGivenName().getOrig());
 
 //      TODO: MID-3899

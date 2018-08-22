@@ -301,7 +301,7 @@ public class PersonaProcessor {
 
 		LOGGER.trace("Creating persona:\n{}", target.debugDumpLazily());
 
-		executePersonaDelta(targetDelta, task, result);
+		executePersonaDelta(targetDelta, focus.getOid(), task, result);
 
 		link(context, target.asObjectable(), result);
 	}
@@ -332,7 +332,7 @@ public class PersonaProcessor {
 			targetDelta.addModification(itemDelta);
 		}
 
-		executePersonaDelta(targetDelta, task, result);
+		executePersonaDelta(targetDelta, focus.getOid(), task, result);
 	}
 
 	public <F extends FocusType> void personaDelete(LensContext<F> context, PersonaKey key, FocusType existingPersona, 
@@ -343,7 +343,7 @@ public class PersonaProcessor {
 		LOGGER.debug("Deleting persona {} for {}: ", key, focus, existingPersona);
 		ObjectDelta<? extends FocusType> targetDelta = existingPersona.asPrismObject().createDeleteDelta();
 
-		executePersonaDelta(targetDelta, task, result);
+		executePersonaDelta(targetDelta, focus.getOid(), task, result);
 
 		unlink(context, existingPersona, result);
 	}
@@ -368,7 +368,7 @@ public class PersonaProcessor {
 		repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
 	}
 
-	private <O extends ObjectType> void executePersonaDelta(ObjectDelta<O> delta, Task task, OperationResult result) 
+	private <O extends ObjectType> void executePersonaDelta(ObjectDelta<O> delta, String ownerOid, Task task, OperationResult result) 
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException, PreconditionViolationException {
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
@@ -376,6 +376,7 @@ public class PersonaProcessor {
 		// Persona changes are all "secondary" changes, trigerred by roles and policies. We do not want to authorize
 		// them as REQUEST. Assignment of the persona role was REQUEST. Changes in persona itself is all EXECUTION.
 		context.setExecutionPhaseOnly(true);
+		context.setOwnerOid(ownerOid);
 		clockwork.run(context, task, result);
 	}
 

@@ -1402,6 +1402,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
         login(USER_ADMINISTRATOR_USERNAME);
+        task.setOwner(getSecurityContextPrincipalUser());
+		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         try {
         	attempt.run(task, result);
         } catch (Throwable e) {
@@ -1415,6 +1417,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected <O extends ObjectType> void assertDeny(String opname, Attempt attempt) throws Exception {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertDeny."+opname);
+		task.setOwner(getSecurityContextPrincipalUser());
+		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         OperationResult result = task.getResult();
         try {
         	logAttempt(opname);
@@ -1430,6 +1434,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected <O extends ObjectType> void assertAllow(String opname, Attempt attempt) throws Exception {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertAllow."+opname);
+		task.setOwner(getSecurityContextPrincipalUser());
+		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
         OperationResult result = task.getResult();
         try {
         	logAttempt(opname);

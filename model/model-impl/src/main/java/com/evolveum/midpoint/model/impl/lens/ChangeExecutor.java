@@ -1352,14 +1352,16 @@ public class ChangeExecutor {
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException {
 		Class<T> objectTypeClass = delta.getObjectTypeClass();
 
-		// We need old object here. The old object is used to get data for id-only container delete deltas,
+		// We need current object here. The current object is used to get data for id-only container delete deltas,
 		// replace deltas and so on. The authorization code can figure out new object if needed, but it needs
-		// old object to start from.
-		PrismObject<T> objectOld = objectContext.getObjectOld();
+		// current object to start from.
+		// We cannot use old object here. That would fail in multi-wave executions. We want object that has all the previous
+		// wave changes already applied.
+		PrismObject<T> baseObject = objectContext.getObjectCurrent();
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(),
-					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectDelta(objectOld, delta), ownerResolver, task, result);
+					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta), ownerResolver, task, result);
 
 			metadataManager.applyMetadataModify(delta, objectContext, objectTypeClass,
 					clock.currentTimeXMLGregorianCalendar(), task, context, result);
@@ -1396,10 +1398,10 @@ public class ChangeExecutor {
 				cacheRepositoryService.modifyObject(objectTypeClass, delta.getOid(),
 						delta.getModifications(), precondition, null, result);
 			}
-			task.recordObjectActionExecuted(objectOld, objectTypeClass, delta.getOid(), ChangeType.MODIFY,
+			task.recordObjectActionExecuted(baseObject, objectTypeClass, delta.getOid(), ChangeType.MODIFY,
 					context.getChannel(), null);
 		} catch (Throwable t) {
-			task.recordObjectActionExecuted(objectOld, objectTypeClass, delta.getOid(), ChangeType.MODIFY,
+			task.recordObjectActionExecuted(baseObject, objectTypeClass, delta.getOid(), ChangeType.MODIFY,
 					context.getChannel(), t);
 			throw t;
 		}
