@@ -141,7 +141,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 		});
 		addToCartButton.add(AttributeAppender.append("title",
-				AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), parentPage)));
+				AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(parentPage)));
 
 		shoppingCartButtonsPanel.add(addToCartButton);
 

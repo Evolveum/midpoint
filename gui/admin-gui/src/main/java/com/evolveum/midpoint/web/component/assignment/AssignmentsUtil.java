@@ -374,11 +374,11 @@ public class AssignmentsUtil {
 
     }
 
-    public static IModel<String> getShoppingCartAssignmentsLimitReachedTitleModel(OperationResult result, PageBase pageBase){
+    public static IModel<String> getShoppingCartAssignmentsLimitReachedTitleModel(PageBase pageBase){
         return new LoadableModel<String>(true) {
             @Override
             protected String load() {
-                int assignmentsLimit = loadAssignmentsLimit(result, pageBase);
+                int assignmentsLimit = pageBase.getSessionStorage().getRoleCatalog().getAssignmentRequestLimit();
                 return isShoppingCartAssignmentsLimitReached(assignmentsLimit, pageBase) ?
                         pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", assignmentsLimit)
                         .getString() : "";

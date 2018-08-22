@@ -55,6 +55,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private List<ConflictDto> conflictsList;
     private String requestDescription = "";
     private ObjectPaging roleCatalogPaging;
+    private int assignmentRequestLimit = -1;
 
     private ShoppingCartConfigurationDto shoppingCartConfigurationDto = null;
 
@@ -204,5 +205,13 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
 
     public void setShoppingCartConfigurationDto(ShoppingCartConfigurationDto shoppingCartConfigurationDto) {
         this.shoppingCartConfigurationDto = shoppingCartConfigurationDto;
+    }
+
+    public int getAssignmentRequestLimit() {
+        return assignmentRequestLimit;
+    }
+
+    public void setAssignmentRequestLimit(int assignmentRequestLimit) {
+        this.assignmentRequestLimit = assignmentRequestLimit;
     }
 }
