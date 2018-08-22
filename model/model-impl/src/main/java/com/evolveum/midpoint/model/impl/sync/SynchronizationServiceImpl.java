@@ -773,10 +773,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				
 			} catch (ConfigurationException | ObjectNotFoundException | SchemaException |
 					PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
-					CommunicationException | SecurityViolationException e) {
+					CommunicationException | SecurityViolationException | RuntimeException e) {
 				LOGGER.error("SYNCHRONIZATION: Error in synchronization on {} for situation {}: {}: {}. Change was {}",
-						new Object[] {resource, situation.getSituation(), e.getClass().getSimpleName(), 
-								e.getMessage(), change, e});
+						resource, situation.getSituation(), e.getClass().getSimpleName(),
+						e.getMessage(), change, e);
 				// what to do here? We cannot throw the error back. All that the notifyChange method
 				// could do is to convert it to SystemException. But that indicates an internal error and it will
 				// break whatever code called the notifyChange in the first place. We do not want that.

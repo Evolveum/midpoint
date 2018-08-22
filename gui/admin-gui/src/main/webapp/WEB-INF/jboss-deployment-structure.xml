@@ -2,12 +2,56 @@
 <jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
     <deployment>
         <exclude-subsystems>
-            <!--<subsystem name="jaxrs" />-->
-            <subsystem name="webservices" /> 
+            <subsystem name="webservices" />
+            <subsystem name="logging" />
+            <subsystem name="jaxrs" />
+            <subsystem name="resteasy" />
         </exclude-subsystems>
-        <!-- Exclusions allow you to prevent the server from automatically adding some dependencies     -->
+
         <exclusions>
-            <!--<module name="org.apache.xerces"></module>-->
+            <!-- Jackson -->
+            <module name="com.fasterxml.jackson.core.jackson-core"/>
+            <module name="com.fasterxml.jackson.core.jackson-databind" />
+            <module name="com.fasterxml.jackson.core.jackson-annotations"/>
+            <module name="com.fasterxml.jackson.jaxrs.jackson-jaxrs-json-provider"/>
+            <module name="org.jboss.resteasy.resteasy-jackson2-provider"/>
+
+            <!-- Hibernate -->
+            <module name="org.hibernate"/>
+            <module name="org.hibernate.commons-annotations"/>
+            <module name="org.hibernate.hql"/>
+
+            <!-- Jsoup -->
+            <module name="org.jsoup"/>
+
+            <!-- antlr -->
+            <module name="org.antlr"/>
+
+            <!-- guava -->
+            <module name="com.google.guava"/>
+
+            <!-- apache commons -->
+            <module name="org.apache.commons.beanutils"/>
+            <module name="org.apache.commons.cli"/>
+            <module name="org.apache.commons.codec"/>
+            <module name="org.apache.commons.collections"/>
+            <module name="org.apache.commons.configuration"/>
+            <module name="org.apache.commons.io"/>
+            <module name="org.apache.commons.lang"/>
+            <module name="org.apache.commons.pool"/>
+
+            <!-- apache http components -->
+            <module name="org.apache.httpcomponents"/>
+
+            <!-- jaxen -->
+            <module name="org.jaxen"/>
+
+            <!-- joda -->
+            <module name="org.joda.time"/>
+
+            <!--opensaml-->
+            <module name="org.opensaml"/>
+
         </exclusions>
 
         <dependencies>
@@ -19,8 +63,8 @@
                     <path name="com/sun/org/apache/xml/internal/utils"/>
                 </paths>
             </system>
+            <module name="deployment.midpoint-apos-config.war" meta-inf="import"/>
         </dependencies>
-
     </deployment>
 </jboss-deployment-structure>
 
