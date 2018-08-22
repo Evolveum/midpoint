@@ -291,7 +291,10 @@ public class PageAssignmentShoppingKart extends PageSelf {
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        target.add(getCatalogItemsPanelContainer());
+                        int assignmentsLimit = getRoleCatalogStorage().getAssignmentRequestLimit();
+                        if (AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, PageAssignmentShoppingKart.this)){
+                            target.add(getCatalogItemsPanelContainer());
+                        }
                         PageAssignmentShoppingKart.this.reloadCartButton(target);
 
                     }
