@@ -277,15 +277,16 @@ public class ProjectionValuesProcessor {
 			        	LOGGER.trace("Current shadow satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
 			        	conflict = false;
 			        } else {
-			        	LOGGER.trace("Current shadow does not satisfy constraints. Conflicting shadow exists. Needed to found out what's wrong.");
-			        	if (checker.getConflictingShadow() != null){
+			        	PrismObject conflictingShadow = checker.getConflictingShadow();
+			        	if (conflictingShadow != null) {
+			        		LOGGER.debug("Current shadow does not satisfy constraints. It conflicts with {}. Needed to found out what's wrong.", conflictingShadow);
 			        		PrismObject<ShadowType> fullConflictingShadow = null;
 			        		try{
 			        			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
-								fullConflictingShadow = provisioningService.getObject(ShadowType.class, checker.getConflictingShadow().getOid(), options, task, result);
+								fullConflictingShadow = provisioningService.getObject(ShadowType.class, conflictingShadow.getOid(), options, task, result);
 			        		} catch (ObjectNotFoundException ex){
 			        			//if object not found exception occurred, its ok..the account was deleted by the discovery, so there esits no more conflicting shadow
-			        			LOGGER.trace("Conflicting shadow was deleted by discovery. It does not exist anymore. Continue with adding current shadow.");
+			        			LOGGER.debug("Conflicting shadow was deleted by discovery. It does not exist anymore. Continue with adding current shadow.");
 			        			conflict = false;
 			
 			        		}
@@ -301,14 +302,13 @@ public class ProjectionValuesProcessor {
 		        			}
 			
 			        		if (conflict) {
-								PrismObject<F> focus = repositoryService.searchShadowOwner(checker
-										.getConflictingShadow().getOid(), SelectorOptions
-										.createCollection(GetOperationOptions.createAllowNotFound()), result);
+								PrismObject<F> focus = repositoryService.searchShadowOwner(conflictingShadow.getOid(), 
+										SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), result);
 				
 				
 				        		//the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
 				        		if (focus != null && focus.getOid().equals(context.getFocusContext().getOid())) {
-				        			LOGGER.trace("Conflicting projection already linked to the current focus, no recompute needed, continue processing with conflicting projection.");
+				        			LOGGER.debug("Conflicting projection already linked to the current focus, no recompute needed, continue processing with conflicting projection.");
 			//	        			accountContext.setSecondaryDelta(null);
 				        			cleanupContext(projContext, fullConflictingShadow);
 				        			projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
@@ -336,7 +336,7 @@ public class ProjectionValuesProcessor {
 				        		}
 				
 				        		if (focus == null) {
-					        		LOGGER.trace("There is no owner linked with the conflicting projection.");
+					        		LOGGER.debug("There is no owner linked with the conflicting projection.");
 					        		ResourceType resourceType = projContext.getResource();
 					
 					        		if (ResourceTypeUtil.isSynchronizationOpportunistic(resourceType)) {
@@ -405,7 +405,9 @@ public class ProjectionValuesProcessor {
 				        			LOGGER.trace("Recomputing shadow identifier, because shadow with the some identifier exists and it belongs to other user.");
 				        		}
 			        		}
-			        	}			
+			        	} else {
+			        		LOGGER.debug("Current shadow does not satisfy constraints, but there is no conflicting shadow. Strange.");
+			        	}
 			        }
 		        }
 

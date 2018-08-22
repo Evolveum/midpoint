@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -127,7 +128,7 @@ public class ActivationProcessor {
 	    	processActivationUserFuture(context, projectionContext, now, task, result);
 	    	
     	} catch (ObjectNotFoundException e) {
-    		if (projectionContext.isThombstone()) {
+    		if (projectionContext.isTombstone()) {
     			// This is not critical. The projection is marked as thombstone and we can go on with processing
     			// No extra action is needed.
     		} else {
@@ -157,17 +158,18 @@ public class ActivationProcessor {
     		return;
     	}
 
-    	if (projCtx.isThombstone()) {
-    		if (shouldKeepThombstone(projCtx)) {
+    	if (projCtx.isTombstone()) {
+    		if (projCtx.isDelete() && ModelExecuteOptions.isForce(context.getOptions())) {
+    			projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+        		LOGGER.trace("Evaluated decision for tombstone {} to {} (force), skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
+        		return;
+    		} else {
 	    		// Let's keep thombstones linked until they expire. So we do not have shadows without owners.
 	    		// This is also needed for async delete operations.
 	    		projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-	    		LOGGER.trace("Evaluated decision for {} to {} because it is thombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
-    		} else {
-    			projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
-    			LOGGER.trace("Evaluated decision for {} to {} because it is thombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
+	    		LOGGER.trace("Evaluated decision for {} to {} because it is tombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
+	    		return;
     		}
-    		return;
     	}
 
     	if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
@@ -334,18 +336,6 @@ public class ActivationProcessor {
 
     }
 
-    private boolean shouldKeepThombstone(LensProjectionContext projCtx) {
-    	PrismObject<ShadowType> objectCurrent = projCtx.getObjectCurrent();
-    	if (objectCurrent != null) {
-    		ShadowType objectCurrentType = objectCurrent.asObjectable();
-    		if (!objectCurrentType.getPendingOperation().isEmpty()) {
-    			return true;
-    		}
-    	}
-    	// TODO: thombstone expiration
-    	return false;
-	}
-
 	public <F extends FocusType> void processActivationMetadata(LensContext<F> context, LensProjectionContext accCtx,
     		XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	ObjectDelta<ShadowType> projDelta = accCtx.getDelta();
@@ -409,7 +399,7 @@ public class ActivationProcessor {
     	SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
     	SynchronizationIntent synchronizationIntent = accCtx.getSynchronizationIntent();
 
-    	if (accCtx.isThombstone() || decision == SynchronizationPolicyDecision.BROKEN
+    	if (accCtx.isTombstone() || decision == SynchronizationPolicyDecision.BROKEN
     			|| decision == SynchronizationPolicyDecision.IGNORE
     			|| decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
     		return;

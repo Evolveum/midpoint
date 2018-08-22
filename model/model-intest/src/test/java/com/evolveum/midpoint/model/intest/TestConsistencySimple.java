@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,10 +46,9 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 /**
- * Tests various aspects of consistency mechanism. Unlike tests in consistency-mechanism module,
- * tests here are much simpler (e.g. use dummy resource instead of OpenDJ) and relatively isolated.
- *
- * TODO - move to testing/consistency-mechanism?
+ * Tests various aspects of consistency mechanism. Unlike the complex story test,
+ * those tests here are much simpler (e.g. use dummy resource instead of OpenDJ)
+ * and relatively isolated.
  *
  * @author mederly
  *
@@ -157,10 +157,10 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
     private void executeTest(final String TEST_NAME, FocusOperation focusOperation, ShadowOperation shadowOperation,
 			ResourceObjectOperation resourceObjectOperation) throws Exception {
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestConsistencySimple.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME + ".given");
         OperationResult result = task.getResult();
 
 		cleanUpBeforeTest(task, result);
@@ -170,8 +170,8 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 		display("Jack with account", jack);
 		assertEquals("Unexpected # of accounts for jack", 1, jack.asObjectable().getLinkRef().size());
 
-		ShadowType shadow = getObject(ShadowType.class, jack.asObjectable().getLinkRef().get(0).getOid()).asObjectable();
-		display("Shadow", shadow);
+		ShadowType shadowBefore = getObject(ShadowType.class, jack.asObjectable().getLinkRef().get(0).getOid()).asObjectable();
+		display("Shadow", shadowBefore);
 
 		if (shadowOperation != ShadowOperation.KEEP) {
 			@SuppressWarnings("unchecked")
@@ -183,17 +183,17 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 			assertEquals("Unexpected # of accounts for jack after linkRef removal", 0, jack.asObjectable().getLinkRef().size());
 
 			if (shadowOperation == ShadowOperation.DELETE) {
-				deleteObjectRaw(ShadowType.class, shadow.getOid(), task, result);
-				assertNoObject(ShadowType.class, shadow.getOid());
+				deleteObjectRaw(ShadowType.class, shadowBefore.getOid(), task, result);
+				assertNoObject(ShadowType.class, shadowBefore.getOid());
 			} else {
 				if (shadowOperation == ShadowOperation.UNLINK_AND_TOMBSTONE) {
 					@SuppressWarnings("unchecked")
 					ObjectDelta<ShadowType> markAsDead = (ObjectDelta<ShadowType>) DeltaBuilder.deltaFor(ShadowType.class, prismContext)
 							.item(ShadowType.F_DEAD).replace(Boolean.TRUE)
-							.asObjectDelta(shadow.getOid());
+							.asObjectDelta(shadowBefore.getOid());
 					executeChanges(markAsDead, ModelExecuteOptions.createRaw(), task, result);
 				}
-				assertNotNull("jack's shadow does not exist", getObject(ShadowType.class, shadow.getOid()));
+				assertNotNull("jack's shadow does not exist", getObject(ShadowType.class, shadowBefore.getOid()));
 			}
 		}
 
@@ -204,7 +204,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 			assertDummyAccount(null, "jack");
 		}
 
+		task = createTask(TEST_NAME);
+        result = task.getResult();
+		
 		// WHEN
+		displayWhen(TEST_NAME);
 		switch (focusOperation) {
 			case RECOMPUTE:
 				recomputeUser(USER_JACK_OID, task, result);
@@ -218,9 +222,12 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 		}
 
 		// THEN
+		displayThen(TEST_NAME);
 		result.computeStatus();
+		display("Result", result);
 		if (ASSERT_SUCCESS) {
-			TestUtil.assertSuccess(result);
+			// Do not look too deep into the result. There may be failures deep inside.
+			TestUtil.assertSuccess(result, 2);
 		}
 
 		jack = getUser(USER_JACK_OID);
@@ -231,17 +238,36 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 		// check the shadow really exists
 		assertNotNull("jack's shadow does not exist after " + focusOperation, getObject(ShadowType.class, shadowOidAfter));
 
-		// check number of jack's shadows
-		List<PrismObject<ShadowType>> shadows = getJacksShadows(result);
-		display("Shadows for 'jack' on dummy resource", shadows);
-		assertEquals("Unexpected # of dummy shadows for 'jack'", 1, shadows.size());        // TODO some of them may be marked as dead (solve if this occurs)
-
+		assertLiveShadows(1, result);
+		
 		// other checks
 		assertDummyAccount(null, "jack");
 
 		cleanUpAfterTest(task, result);
 	}
 
+    private List<PrismObject<ShadowType>> assertLiveShadows(int expected, OperationResult result) throws SchemaException {
+    	List<PrismObject<ShadowType>> shadowsAfter = getJacksShadows(result);
+		display("Shadows for 'jack' on dummy resource", shadowsAfter);
+		PrismObject<ShadowType> liveShadowAfter = null;
+		for (PrismObject<ShadowType> shadowAfter : shadowsAfter) {
+			if (!ShadowUtil.isDead(shadowAfter.asObjectable())) {
+				if (liveShadowAfter == null) {
+					liveShadowAfter = shadowAfter;
+				} else {
+					fail("More than one live shadow "+liveShadowAfter + ", " + shadowAfter);
+				}
+			}
+		}
+		if (expected == 0 && liveShadowAfter != null) {
+			fail("Unexpected live shadow: "+liveShadowAfter);
+		}
+		if (expected == 1 && liveShadowAfter == null) {
+			fail("No live shadow");
+		}
+		return shadowsAfter;
+    }
+    
 	private void cleanUpBeforeTest(Task task, OperationResult result) throws Exception {
 		PrismObject<UserType> jack = getUser(USER_JACK_OID);
 		display("Jack on start", jack);
@@ -270,9 +296,11 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 		display("Jack after cleanup", jack);
 		assertEquals("Unexpected # of accounts for jack after cleanup", 0, jack.asObjectable().getLinkRef().size());
 
-		List<PrismObject<ShadowType>> shadowsAfterCleanup = getJacksShadows(result);
-		display("Shadows for 'jack' on dummy resource after cleanup", shadowsAfterCleanup);
-		assertEquals("Unexpected # of dummy shadows for 'jack' after cleanup", 0, shadowsAfterCleanup.size());		// TODO some of them may be marked as dead (solve if this occurs)
+		List<PrismObject<ShadowType>> deadShadows = assertLiveShadows(0, result);
+		for (PrismObject<ShadowType> deadShadow : deadShadows) {
+			repositoryService.deleteObject(ShadowType.class, deadShadow.getOid(), result);
+		}
+		
 		assertNoDummyAccount(null, "jack");
 	}
 

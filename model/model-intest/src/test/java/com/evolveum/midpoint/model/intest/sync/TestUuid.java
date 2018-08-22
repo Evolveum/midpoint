@@ -48,6 +48,7 @@ import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -55,9 +56,11 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -127,7 +130,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test200ReconcileDummyUuid() throws Exception {
 		final String TEST_NAME = "test200ReconcileDummyUuid";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
@@ -142,16 +145,16 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         importObjectFromFile(TASK_RECONCILE_DUMMY_UUID_FILE);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         waitForTaskFinish(TASK_RECONCILE_DUMMY_UUID_OID, false);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 0, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -177,7 +180,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test210ReconcileDummyUuidAddAugustus() throws Exception {
 		final String TEST_NAME = "test210ReconcileDummyUuidAddAugustus";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
@@ -197,16 +200,16 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         Task taskBefore = taskManager.getTask(TASK_RECONCILE_DUMMY_UUID_OID, result);
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         waitForTaskNextRunAssertSuccess(taskBefore, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 0);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -245,7 +248,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test220ReconcileDummyUuidDeleteAddAugustus() throws Exception {
 		final String TEST_NAME = "test220ReconcileDummyUuidDeleteAddAugustus";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
@@ -276,17 +279,17 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         waitForTaskNextRunAssertSuccess(taskBefore, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 0);
+        displayThen(TEST_NAME);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 1);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -311,12 +314,19 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         display("Recon task result", reconTaskResult);
         TestUtil.assertSuccess(reconTaskResult);
 
-        PrismObject<UserType> user = findUserByUsername(USER_AUGUSTUS_NAME);
-        display("Augustus after recon", user);
-        String newAugustusShadowOid = getSingleLinkOid(user);
-        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, newAugustusShadowOid, null, result);
-        assertFalse("Shadow OID is not changed", augustusShadowOid.equals(newAugustusShadowOid));
-        augustusShadowOid = newAugustusShadowOid;
+        augustusShadowOid = assertUserAfterByUsername(USER_AUGUSTUS_NAME)
+        	.links()
+        		.assertLinks(2)
+        		.by()
+        			.dead(true)
+        			.find()
+        			.assertOid(augustusShadowOid)
+        			.end()
+        		.by()
+        			.dead(false)
+        			.find()
+        			.assertOidDifferentThan(augustusShadowOid)
+        			.getOid();
 	}
 
 	/**
@@ -326,7 +336,7 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test230ReconcileDummyUuidDeleteAugustusAddAugustina() throws Exception {
 		final String TEST_NAME = "test230ReconcileDummyUuidDeleteAugustusAddAugustina";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestUuid.class.getName() + "." + TEST_NAME);
@@ -357,17 +367,17 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         reconciliationTaskResultListener.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         restartTask(TASK_RECONCILE_DUMMY_UUID_OID);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         waitForTaskNextRunAssertSuccess(taskBefore, true);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 0);
+        displayThen(TEST_NAME);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_UUID_OID, 0, 1, 0, 2);
 
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -391,12 +401,18 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
         OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
         display("Recon task result", reconTaskResult);
         TestUtil.assertSuccess(reconTaskResult);
-
-        PrismObject<UserType> user = findUserByUsername(USER_AUGUSTUS_NAME);
-        display("Augustus after recon", user);
-        String newAugustusShadowOid = getSingleLinkOid(user);
-        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, newAugustusShadowOid, null, result);
-        assertFalse("Shadow OID is not changed", augustusShadowOid.equals(newAugustusShadowOid));
+        
+        assertUserAfterByUsername(USER_AUGUSTUS_NAME)
+        	.displayWithProjections()
+        	.links()
+        		.assertLinks(3)
+        		.by()
+        			.dead(true)
+        			.assertCount(2)
+        		.by()
+        			.dead(false)
+        			.find()
+        			.assertOidDifferentThan(augustusShadowOid);
 	}
 
 	private void assertReconAuditModifications(int expectedModifications, String taskOid) {
@@ -486,11 +502,24 @@ public class TestUuid extends AbstractInitializedModelIntegrationTest {
 	}
 
 	private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        assertLinks(user, resourceOids.length);
+		UserAsserter<Void> userAsserter = assertUser(user,"imported")
+			.displayWithProjections()
+			.links()
+				.by()
+					.dead(false)
+					.assertCount(resourceOids.length)
+				.end()
+			.assertAdministrativeStatus(ActivationStatusType.ENABLED);
         for (String resourceOid: resourceOids) {
-        	assertAccount(user, resourceOid);
+        	userAsserter
+        		.links()
+        			.by()
+        				.resourceOid(resourceOid)
+        				.dead(false)
+        				.find()
+        				.resolveTarget()
+        					.assertKind(ShadowKindType.ACCOUNT);
         }
-        assertAdministrativeStatusEnabled(user);
 	}
 
 }

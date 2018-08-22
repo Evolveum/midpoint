@@ -179,7 +179,7 @@ public class InboundProcessor {
 
 		try {
             for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-            	if (projectionContext.isThombstone()) {
+            	if (projectionContext.isTombstone()) {
             		if (LOGGER.isTraceEnabled()) {
             			LOGGER.trace("Skipping processing of inbound expressions for projection {} because is is thombstone", projectionContext.getHumanReadableName());
             		}
@@ -241,7 +241,7 @@ public class InboundProcessor {
         }
 
         PrismObject<ShadowType> accountCurrent = projContext.getObjectCurrent();
-        if (hasAnyStrongMapping(projectionDefinition) && !projContext.isFullShadow() && !projContext.isThombstone()) {
+        if (hasAnyStrongMapping(projectionDefinition) && !projContext.isFullShadow() && !projContext.isTombstone()) {
         	LOGGER.trace("There are strong inbound mapping, but the shadow hasn't be fully loaded yet. Trying to load full shadow now.");
 			accountCurrent = loadProjection(context, projContext, task, result, accountCurrent);
 			if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {

@@ -40,6 +40,7 @@ import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyOrg;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
+import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -415,6 +417,10 @@ public class DummyResourceContoller extends AbstractResourceController {
 		group.setEnabled(true);
 		dummyResource.addGroup(group);
 	}
+	
+	public void deleteAccount(String name) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException, SchemaViolationException, ConflictException {
+		dummyResource.deleteAccountByName(name);
+	}
 
 	public QName getOrgObjectClassQName() {
 		return new QName(getNamespace(), OBJECTCLASS_ORG_LOCAL_PART);
@@ -432,5 +438,25 @@ public class DummyResourceContoller extends AbstractResourceController {
 		dummyResource.setBlockOperations(false);
 		dummyResource.unblockAll();
 	}
+	
+	public DummyAccountAsserter<Void> assertAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyAccount account = dummyResource.getAccountByUsername(username);
+		assertNotNull("Account "+username+" does not exist on dummy resource "+getName(), account);
+		return assertAccount(account);
+	}
+	
+	public DummyAccountAsserter<Void> assertAccountById(String id) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyAccount account = dummyResource.getAccountById(id);
+		assertNotNull("Account id="+id+" does not exist on dummy resource "+getName());
+		return assertAccount(account);
+	}
 
+	private DummyAccountAsserter<Void> assertAccount(DummyAccount account) {
+		return new DummyAccountAsserter<>(account, getName());
+	}
+
+	public void assertNoAccountByUsername(String username) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		DummyAccount account = dummyResource.getAccountByUsername(username);
+		assertNull("Unexpected account "+username+" on dummy resource "+getName(), account);
+	}
 }

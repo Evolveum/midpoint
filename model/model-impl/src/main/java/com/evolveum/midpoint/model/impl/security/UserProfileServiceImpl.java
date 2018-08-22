@@ -106,7 +106,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-	@Autowired private ObjectResolver objectResolver;
+	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private MappingFactory mappingFactory;
 	@Autowired private MappingEvaluator mappingEvaluator;

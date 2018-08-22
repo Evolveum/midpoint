@@ -79,18 +79,18 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test100ImportLiveSyncTaskDummyTeaGreen() throws Exception {
         final String TEST_NAME = "test100ImportLiveSyncTaskDummyTeaGreen";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         importSyncTask();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         waitForSyncTaskStart();
     }
@@ -98,7 +98,7 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test110AddDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test110AddDummyTeaGreenAccountMancomb";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
@@ -113,14 +113,14 @@ public class TestMappingInbound extends AbstractMappingTest {
         account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         dummyResourceTeaGreen.addAccount(account);
 
         waitForSyncTaskNextRun();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyTeaGreen);
         display("Account mancomb", accountMancomb);
@@ -146,7 +146,7 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test150UserReconcile() throws Exception {
         final String TEST_NAME = "test150UserReconcile";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
@@ -157,7 +157,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         //assertUsers(5);
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
@@ -165,7 +165,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         reconcileUser(userMancomb.getOid(), task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 
         PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyTeaGreen);
         display("Account mancomb", accountMancomb);
@@ -194,14 +194,14 @@ public class TestMappingInbound extends AbstractMappingTest {
     @Test
     public void test300DeleteDummyTeaGreenAccountMancomb() throws Exception {
         final String TEST_NAME = "test300DeleteDummyTeaGreenAccountMancomb";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
         Task task = createTask(TestMappingInbound.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
         /// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         dummyResourceTeaGreen.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
 
         display("Dummy (tea green) resource", dummyResourceTeaGreen.debugDump());
@@ -210,17 +210,18 @@ public class TestMappingInbound extends AbstractMappingTest {
         waitForSyncTaskNextRun();
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-
+        displayThen(TEST_NAME);
+        
         assertNoDummyAccount(RESOURCE_DUMMY_TEA_GREEN_NAME, ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        assertNoShadow(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyTeaGreen, task, result);
-
-        PrismObject<UserType> user = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
-        display("User mancomb", user);
-        assertNotNull("User mancomb disappeared", user);
-        assertUser(user, null, ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", null, null);
-        assertLinks(user, 0);
-
+        
+        assertUserAfterByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME)
+        	.assertFullName("Mancomb Seepgood")
+        	.links()
+        		.single()
+        			.resolveTarget()
+        				.assertTombstone()
+        				.assertSynchronizationSituation(SynchronizationSituationType.DELETED);
+        
 //        assertUsers(7 + getNumberOfExtraDummyUsers());
 
         // notifications

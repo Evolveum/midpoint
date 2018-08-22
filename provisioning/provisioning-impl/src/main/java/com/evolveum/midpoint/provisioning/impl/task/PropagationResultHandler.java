@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.provisioning.impl.task;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -56,7 +57,7 @@ public class PropagationResultHandler extends AbstractSearchIterativeResultHandl
 			throws CommonException, PreconditionViolationException {
 		try {
 			shadowCache.propagateOperations(resource, shadow, workerTask, result);
-		} catch (GenericFrameworkException e) {
+		} catch (GenericFrameworkException | EncryptionException e) {
 			throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
 		}
 		return true;

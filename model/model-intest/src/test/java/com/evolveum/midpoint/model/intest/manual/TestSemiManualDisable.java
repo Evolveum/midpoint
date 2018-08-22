@@ -38,6 +38,8 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -107,50 +109,64 @@ public class TestSemiManualDisable extends TestSemiManual {
 	}
 	
 	@Override
-	protected void assertUnassignedShadow(PrismObject<ShadowType> shadow, ActivationStatusType expectAlternativeActivationStatus) {
-		assertShadowNotDead(shadow);
-		assertShadowActivationAdministrativeStatus(shadow, expectAlternativeActivationStatus);
+	protected void assertUnassignedShadow(ShadowAsserter<?> shadowModelAsserter, boolean backingStoreUpdated, ActivationStatusType expectAlternativeActivationStatus) {
+		shadowModelAsserter
+			.assertLife()
+			.assertAdministrativeStatus(expectAlternativeActivationStatus);
 	}
 
 	@Override
-	protected void assertUnassignedFuture(PrismObject<ShadowType> shadowModelFuture, boolean assertPassword) {
-		assertShadowActivationAdministrativeStatus(shadowModelFuture, ActivationStatusType.DISABLED);
+	protected void assertUnassignedFuture(ShadowAsserter<?> shadowModelAsserterFuture, boolean assertPassword) {
+		shadowModelAsserterFuture
+			.assertLife()
+			.assertAdministrativeStatus(ActivationStatusType.DISABLED);
 		if (assertPassword) {
-			assertShadowPassword(shadowModelFuture);
+			assertShadowPassword(shadowModelAsserterFuture);
 		}
 	}
 
 	@Override
-	protected void assertDeprovisionedTimedOutUser(PrismObject<UserType> userAfter, String accountOid) throws Exception {
-		assertLinks(userAfter, 1);
-		PrismObject<ShadowType> shadowModel = getShadowModel(accountOid);
-		display("Model shadow", shadowModel);
-		assertShadowActivationAdministrativeStatus(shadowModel, ActivationStatusType.DISABLED);
+	protected <R> void assertDeprovisionedTimedOutUser(UserAsserter<R> userAsserter, String accountOid) throws Exception {
+		userAsserter
+			.assertLinks(1);
+		
+		assertModelShadow(accountOid)
+			.assertAdministrativeStatus(ActivationStatusType.DISABLED);
 	}
 
 	@Override
-	protected void assertWillUnassignPendingOperation(PrismObject<ShadowType> shadowRepo, OperationResultStatusType expectedStatus) {
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo,
-				null, OperationResultStatusType.IN_PROGRESS, 
-				ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-		if (expectedStatus == OperationResultStatusType.IN_PROGRESS) {
-			assertPendingOperation(shadowRepo, pendingOperation,
-					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-					OperationResultStatusType.IN_PROGRESS,
-					null, null);
-		} else {
-			pendingOperation = findPendingOperation(shadowRepo, 
-					null, OperationResultStatusType.SUCCESS, 
-					ChangeTypeType.MODIFY, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-			assertPendingOperation(shadowRepo, pendingOperation,
-					accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd,
-					OperationResultStatusType.SUCCESS,
-					accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd);
-			assertNotNull("No ID in pending operation", pendingOperation.getId());
-		}
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
+	protected void assertWillUnassignPendingOperationExecuting(ShadowAsserter<Void> shadowRepoAsserter) {
+		shadowRepoAsserter
+			.pendingOperations()
+				.by()
+					.changeType(ChangeTypeType.MODIFY)
+					.item(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+					.assertId()
+					.end()
+				.end();
 	}
-
+	
+	@Override
+	protected void assertWillUnassignPendingOperationCompleted(ShadowAsserter<Void> shadowRepoAsserter) {
+		shadowRepoAsserter
+			.pendingOperations()
+				.by()
+					.changeType(ChangeTypeType.MODIFY)
+					.item(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)
+				.find()
+					.assertRequestTimestamp(accountWillSecondReqestTimestampStart, accountWillSecondReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountWillCompletionTimestampStart, accountWillCompletionTimestampEnd)
+					.assertId()
+					.end()
+				.end();
+	}
+	
 	@Override
 	protected void cleanupUser(final String TEST_NAME, String userOid, String username, String accountOid) throws Exception {
 

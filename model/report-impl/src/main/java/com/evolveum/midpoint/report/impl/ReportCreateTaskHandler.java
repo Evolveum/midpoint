@@ -57,6 +57,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -128,7 +129,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     @Autowired private ModelService modelService;
     @Autowired private PrismContext prismContext;
     @Autowired private ReportService reportService;
-    @Autowired private ObjectResolver objectResolver;
+    @Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
 
     @PostConstruct

@@ -154,7 +154,7 @@ public class TestDummyExtra extends TestDummy {
 		assertNotNull("No dummy account", dummyAccount);
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 
-		checkConsistency(accountProvisioning);
+		checkUniqueness(accountProvisioning);
 		assertSteadyResource();
 	}
 

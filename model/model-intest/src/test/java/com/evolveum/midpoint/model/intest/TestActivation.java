@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -2235,15 +2235,15 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		/// WHEN
         displayWhen(TEST_NAME);
 
-		dummyResourceGreen.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(account);
 
         // THEN
         displayThen(TEST_NAME);
 
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyGreen);
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
         display("Account shadow after", accountMancomb);
 
-        DummyAccount dummyAccountAfter = dummyResourceGreen.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount dummyAccountAfter = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("Account after", dummyAccountAfter);
 
         assertNotNull("No mancomb account shadow", accountMancomb);
@@ -2273,7 +2273,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(dummyResourceCtlGreen.getNamespace(), "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).getNamespace(), "AccountObjectClass"), task, result);
 
         // THEN
         displayThen(TEST_NAME);

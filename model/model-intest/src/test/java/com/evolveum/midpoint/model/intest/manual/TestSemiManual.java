@@ -44,10 +44,13 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -123,6 +126,8 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 	}
 
 	/**
+	 * Trying to assign an account that already exists in the backing store.
+	 * But midPoint does not know about it.
 	 * MID-4002
 	 */
 	@Test
@@ -152,7 +157,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		// THEN
 		displayThen(TEST_NAME);
 		display("result", result);
-		assertSuccess(result);
+		assertSuccess(result, 2);
 		assertNull("Unexpected ticket in result", result.getAsynchronousOperationReference());
 
 		accountJackReqestTimestampEnd = clock.currentTimeXMLGregorianCalendar();
@@ -233,13 +238,7 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		pendingOperation = findPendingOperation(shadowModel, OperationResultStatusType.IN_PROGRESS);
 		assertPendingOperation(shadowModel, pendingOperation, accountJackReqestTimestampStart, accountJackReqestTimestampEnd);
 
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountJackOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
-		assertUnassignedFuture(shadowModelFuture, true);
+		assertUnassignedFuture(assertModelShadowFuture(accountJackOid), true);
 
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
@@ -273,35 +272,31 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 
 		accountJackCompletionTimestampEnd = clock.currentTimeXMLGregorianCalendar();
 
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertSinglePendingOperation(shadowRepo,
-				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd);
-		assertUnassignedShadow(shadowRepo, null);
+		ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(accountJackOid)
+			.pendingOperations()
+				.singleOperation()
+					.assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
+				.end()
+			.end();
+		assertUnassignedShadow(shadowRepoAsserter, true, null);
 
-		PrismObject<ShadowType> shadowModel = modelService.getObject(ShadowType.class,
-				accountJackOid, null, task, result);
+		ShadowAsserter<Void> shadowModelAsserter = assertModelShadow(accountJackOid)
+			.assertName(USER_JACK_USERNAME)
+			.assertKind(ShadowKindType.ACCOUNT)
+			.pendingOperations()
+				.singleOperation()
+					.assertRequestTimestamp(accountJackReqestTimestampStart, accountJackReqestTimestampEnd)
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertCompletionTimestamp(accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd)
+				.end()
+			.end();
+		assertUnassignedShadow(shadowModelAsserter, true, ActivationStatusType.DISABLED);
 
-		display("Model shadow", shadowModel);
-		ShadowType shadowTypeModel = shadowModel.asObjectable();
-		assertShadowName(shadowModel, USER_JACK_USERNAME);
-		assertEquals("Wrong kind (model)", ShadowKindType.ACCOUNT, shadowTypeModel.getKind());
-		assertUnassignedShadow(shadowModel, ActivationStatusType.DISABLED);
-
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowModel,
-				accountJackReqestTimestampStart, accountJackReqestTimestampEnd,
-				OperationResultStatusType.SUCCESS,
-				accountJackCompletionTimestampStart, accountJackCompletionTimestampEnd);
-
-		PrismObject<ShadowType> shadowModelFuture = modelService.getObject(ShadowType.class,
-				accountJackOid,
-				SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE)),
-				task, result);
-		display("Model shadow (future)", shadowModelFuture);
-		assertShadowName(shadowModelFuture, USER_JACK_USERNAME);
-		assertUnassignedFuture(shadowModelFuture, false);
+		assertUnassignedFuture(assertModelShadowFuture(accountJackOid), false);
 
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
@@ -310,14 +305,14 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 	 * MID-4002
 	 */
 	@Test
-	public void test717RecomputeJackAfter30min() throws Exception {
-		final String TEST_NAME = "test717RecomputeJackAfter30min";
+	public void test717RecomputeJackAfter130min() throws Exception {
+		final String TEST_NAME = "test717RecomputeJackAfter130min";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		clock.overrideDuration("PT30M");
+		clock.overrideDuration("PT130M");
 
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -329,9 +324,9 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		display("result", result);
 		assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		assertDeprovisionedTimedOutUser(userAfter, accountJackOid);
+		UserAsserter<Void> userAfterAsserter = assertUserAfter(USER_JACK_OID);
+		userAfterAsserter.displayWithProjections();
+		assertDeprovisionedTimedOutUser(userAfterAsserter, accountJackOid);
 
 		assertCase(jackLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
@@ -352,5 +347,14 @@ public class TestSemiManual extends AbstractDirectManualResourceTest {
 		// CSV password is readable
 		PrismProperty<PolyStringType> passValProp = shadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 		assertNotNull("No password value property in "+shadow+": "+passValProp, passValProp);
+	}
+	
+	@Override
+	protected void assertUnassignedShadow(ShadowAsserter<?> shadowModelAsserter, boolean backingStoreUpdated, ActivationStatusType expectAlternativeActivationStatus) {
+		if (backingStoreUpdated) {
+			shadowModelAsserter.assertTombstone();
+		} else {
+			shadowModelAsserter.assertCorpse();
+		}
 	}
 }

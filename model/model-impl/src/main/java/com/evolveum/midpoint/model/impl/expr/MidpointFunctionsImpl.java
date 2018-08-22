@@ -304,7 +304,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			return false;
 		}
 
-		if (projectionContext.isThombstone()) {
+		if (projectionContext.isTombstone()) {
 			return false;
 		}
 
@@ -1787,9 +1787,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			LOGGER.error("Cannot find applicable policy for kind={}, intent={}. Reason: {}", kind, intent, e.getMessage(), e);
 			return null;
 		}
-		
-		
-
 	}
-	
+
+	@Override
+	public <F extends ObjectType> ModelContext<F> previewChanges(Collection<ObjectDelta<? extends ObjectType>> deltas,
+			ModelExecuteOptions options)
+			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+			SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+		return modelInteractionService.previewChanges(deltas, options, getCurrentTask(), getCurrentResult());
+	}
 }
