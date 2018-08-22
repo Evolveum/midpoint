@@ -2458,7 +2458,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		}
 
 		assertEquals("Wrong number of found objects ("+foundObjects+"): "+foundObjects, expectedAccountNames.length, foundObjects.size());
-        checkConsistency(foundObjects);
+		checkUniqueness(foundObjects);
         assertSteadyResource();
         
         return searchMetadata;

@@ -280,6 +280,8 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			throw new AlreadyExistsException(e.getMessage(),e);
 		} catch (ConnectException e) {
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			throw new ConnectorIOException(e.getMessage(), e);
 		} catch (SchemaViolationException e) {
@@ -360,6 +362,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		} catch (ConnectException e) {
 	        log.info("delete::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			log.info("delete::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("delete::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
@@ -653,6 +658,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		} catch (ConnectException e) {
 	        log.info("executeQuery::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			log.info("executeQuery::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("executeQuery::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
@@ -1077,6 +1085,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		} catch (ConnectException e) {
 	        log.info("sync::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			log.info("sync::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("sync::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
@@ -1248,6 +1259,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 		} catch (ConnectException e) {
 			log.error(e, e.getMessage());
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			log.error(e, e.getMessage());
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.error(e, e.getMessage());
 			throw new ConnectorIOException(e.getMessage(), e);
