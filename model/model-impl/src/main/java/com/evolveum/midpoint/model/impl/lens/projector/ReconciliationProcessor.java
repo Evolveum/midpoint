@@ -161,10 +161,9 @@ public class ReconciliationProcessor {
 				PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
 						projCtx.getOid(), SelectorOptions.createCollection(rootOps),
 						task, result);
-				ShadowType oldShadow = objectOld.asObjectable();
-				projCtx.determineFullShadowFlag(oldShadow.getFetchResult());
+				projCtx.determineFullShadowFlag(objectOld);
 				projCtx.setLoadedObject(objectOld);
-
+				projCtx.setExists(ShadowUtil.isExists(objectOld.asObjectable()));
 				projCtx.recompute();
 			}
 

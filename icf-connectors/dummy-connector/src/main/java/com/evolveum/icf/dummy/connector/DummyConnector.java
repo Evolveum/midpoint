@@ -499,6 +499,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (ConnectException e) {
 	        log.info("update::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+	        log.info("update::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("update::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
@@ -691,6 +694,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (ConnectException e) {
 	        log.info("addAttributeValues::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+	        log.info("addAttributeValues::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("addAttributeValues::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
@@ -866,6 +872,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (ConnectException e) {
 	        log.info("removeAttributeValues::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+	        log.info("removeAttributeValues::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("removeAttributeValues::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
@@ -937,6 +946,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (ConnectException e) {
 	        log.info("delete::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+	        log.info("delete::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("delete::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
@@ -1224,6 +1236,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (ConnectException e) {
 	        log.info("executeQuery::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+	        log.info("executeQuery::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("executeQuery::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
@@ -1548,6 +1563,9 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (ConnectException e) {
 	        log.info("sync::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+	        log.info("sync::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("sync::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);
@@ -1709,6 +1727,8 @@ public class DummyConnector implements PoolableConnector, AuthenticateOp, Resolv
 		} catch (ConnectException e) {
 			log.error(e, e.getMessage());
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.error(e, e.getMessage());
 			throw new ConnectorIOException(e.getMessage(), e);

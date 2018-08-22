@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		dummyResourceGreen.setSyncStyle(DummySyncStyle.SMART);
+		getDummyResource(RESOURCE_DUMMY_GREEN_NAME).setSyncStyle(DummySyncStyle.SMART);
 		getDummyResource().setSyncStyle(DummySyncStyle.DUMB);
 		getDummyResource(RESOURCE_DUMMY_BLUE_NAME).setSyncStyle(DummySyncStyle.SMART);
 	}
@@ -52,7 +52,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 
 	@Override
 	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-		if (resource == resourceDummyGreen) {
+		if (resource == getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME)) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_GREEN_FILENAME);
 		} else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
 			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_BLUE_FILENAME);
@@ -65,7 +65,7 @@ public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
 
 	@Override
 	protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-		if (resource == resourceDummyGreen) {
+		if (resource == getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME)) {
 			return TASK_LIVE_SYNC_DUMMY_GREEN_OID;
 		} else if (resource == getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME)) {
 			return TASK_LIVE_SYNC_DUMMY_BLUE_OID;

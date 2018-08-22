@@ -144,6 +144,14 @@ public class PrismContainerValue<C extends Containerable> extends PrismValue imp
 		}
 		return rv;
 	}
+    
+    public int size() {
+    	if (items == null) {
+    		return 0;
+    	} else {
+    		return items.size();
+    	}
+    }
 
 	public Item<?,?> getNextItem(Item<?,?> referenceItem) {
     	if (items == null) {

@@ -327,7 +327,7 @@ public class Projector {
 				return;
 	    	}
 	
-	    	if (projectionContext.isThombstone()) {
+	    	if (projectionContext.isTombstone()) {
 	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a thombstone");
 				return;
 	    	}
@@ -358,7 +358,7 @@ public class Projector {
 					},
 					partialProcessingOptions::getProjectionValues);
 	
-	    	if (projectionContext.isThombstone()) {
+	    	if (projectionContext.isTombstone()) {
 	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a thombstone");
 				return;
 	    	}

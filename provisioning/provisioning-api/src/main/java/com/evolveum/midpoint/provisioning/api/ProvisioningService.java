@@ -312,6 +312,10 @@ public interface ProvisioningService {
 	/**
 	 * <p>Deletes object with specified OID.</p>
 	 * <p>
+	 *   Delete operation always deletes the resource object - or at least tries to. But this operation may
+	 *   or may not delete  the repository shadow. The shadow may remain in a dead (thombstone) state.
+	 *   In that case the delete operation returns such shadow to indicate that repository shadow was not deleted.
+	 * <p>
 	 * Must fail if object with specified OID
 	 * does not exists. Should be atomic.
 	 * </p>
@@ -322,6 +326,8 @@ public interface ProvisioningService {
 	 *            scripts that should be executed before of after operation
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
+	 *            
+	 * @return Dead repository shadow - if it exists after delete. Otherwise returns null.
 	 *
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
@@ -333,7 +339,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	<T extends ObjectType> void deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
+	<T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions option, OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	/**

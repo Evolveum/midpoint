@@ -95,6 +95,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -797,39 +798,32 @@ public class TestOpenDj extends AbstractOpenDjTest {
 	@Test
 	public void test112GetObjectNotFoundResource() throws Exception {
 		final String TEST_NAME = "test112GetObjectNotFoundResource";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		try {
-			ObjectType object = provisioningService.getObject(ObjectType.class, ACCOUNT_BAD_OID, null, task, result).asObjectable();
-			Assert.fail("Expected exception, but haven't got one");
-		} catch (ObjectNotFoundException e) {
-			// This is expected
+		// WHEN
+		displayWhen(TEST_NAME);
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_BAD_OID, null, task, result);
 
-			// Just to close the top-level result.
-			result.recordFatalError("Error :-)");
+		// THEN
+		displayWhen(TEST_NAME);
+		
+		ShadowAsserter.forShadow(shadow, "provisioning")
+			.assertTombstone();
+	}		
+		
+	@Test
+	public void test119Cleanup() throws Exception {
+		final String TEST_NAME = "test119Cleanup";
+		displayTestTitle(TEST_NAME);
 
-			System.out.println("NOT FOUND RESOURCE result:");
-			System.out.println(result.debugDump());
-
-			assertFalse(result.hasUnknownStatus());
-			// TODO: check result
-		} catch (CommunicationException e) {
-			Assert.fail("Expected ObjectNotFoundException, but got" + e);
-		} catch (SchemaException e) {
-			Assert.fail("Expected ObjectNotFoundException, but got" + e);
-		} finally {
-			try {
-				repositoryService.deleteObject(ShadowType.class, ACCOUNT_JBOND_OID, result);
-			} catch (Exception ex) {
-			}
-			try {
-				repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
-			} catch (Exception ex) {
-			}
-		}
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		repositoryService.deleteObject(ShadowType.class, ACCOUNT_BAD_OID, result);
+		repositoryService.deleteObject(ShadowType.class, ACCOUNT_JBOND_OID, result);
 
 		assertShadows(0 + getNumberOfBaseContextShadows());
 	}

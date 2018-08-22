@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<!-- IVORY dummy resource for testing. It is used in multi-resource tests.
+<!-- BEIGE dummy resource for testing. It is used in multi-resource tests.
       Similar to lavender resource but it has only relaxed dependency on default dummy resource. -->
 
 <resource oid="10000000-0000-0000-0000-00000001b504"

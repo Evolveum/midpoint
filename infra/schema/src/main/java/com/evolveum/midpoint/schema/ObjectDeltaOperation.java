@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.evolveum.midpoint.schema;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -29,9 +30,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author Radovan Semancik
  *
  */
-public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable {
+public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable {
 
-	private ObjectDelta<T> objectDelta;
+	private ObjectDelta<O> objectDelta;
 	private OperationResult executionResult;
 	private PolyString objectName;
 	private String resourceOid;
@@ -41,22 +42,22 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		super();
 	}
 
-	public ObjectDeltaOperation(ObjectDelta<T> objectDelta) {
+	public ObjectDeltaOperation(ObjectDelta<O> objectDelta) {
 		super();
 		this.objectDelta = objectDelta;
 	}
 
-    public ObjectDeltaOperation(ObjectDelta<T> objectDelta, OperationResult executionResult) {
+    public ObjectDeltaOperation(ObjectDelta<O> objectDelta, OperationResult executionResult) {
         super();
         this.objectDelta = objectDelta;
         this.executionResult = executionResult;
     }
 
-    public ObjectDelta<T> getObjectDelta() {
+    public ObjectDelta<O> getObjectDelta() {
 		return objectDelta;
 	}
 
-	public void setObjectDelta(ObjectDelta<T> objectDelta) {
+	public void setObjectDelta(ObjectDelta<O> objectDelta) {
 		this.objectDelta = objectDelta;
 	}
 
@@ -92,7 +93,7 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		this.resourceName = resourceName;
 	}
 
-	public boolean containsDelta(ObjectDelta<T> delta) {
+	public boolean containsDelta(ObjectDelta<O> delta) {
 		return objectDelta.equals(delta);
 	}
 
@@ -108,13 +109,13 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		return false;
 	}
 
-	public ObjectDeltaOperation<T> clone() {
-		ObjectDeltaOperation<T> clone = new ObjectDeltaOperation<>();
+	public ObjectDeltaOperation<O> clone() {
+		ObjectDeltaOperation<O> clone = new ObjectDeltaOperation<>();
 		copyToClone(clone);
 		return clone;
 	}
 
-	protected void copyToClone(ObjectDeltaOperation<T> clone) {
+	protected void copyToClone(ObjectDeltaOperation<O> clone) {
 		if (this.objectDelta != null) {
 			clone.objectDelta = this.objectDelta.clone();
 		}
@@ -213,28 +214,54 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
+		debugDump(sb, indent, true);
+		return sb.toString();
+	}
+	
+	public String shorterDebugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		debugDump(sb, indent, false);
+		return sb.toString();
+	}
+		
+	private void debugDump(StringBuilder sb, int indent, boolean detailedResultDump) {
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(getDebugDumpClassName()).append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Delta", objectDelta, indent + 1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "Execution result", executionResult, indent + 1);
+		if (detailedResultDump) {
+			DebugUtil.debugDumpWithLabel(sb, "Execution result", executionResult, indent + 1);
+		} else {
+			DebugUtil.debugDumpLabel(sb, "Execution result", indent + 1);
+			if (executionResult == null) {
+				sb.append("null");
+			} else {
+				executionResult.shortDump(sb);
+			}
+		}
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Object name", objectName, indent + 1);
 		if (resourceName != null || resourceOid != null) {
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "Resource", resourceName + " (" + resourceOid + ")", indent + 1);
 		}
-		return sb.toString();
 	}
 
     protected String getDebugDumpClassName() {
         return "ObjectDeltaOperation";
     }
+    
+    public static <O extends ObjectType> String shorterDebugDump(List<? extends ObjectDeltaOperation<O>> deltaOps, int indent) {
+    	StringBuilder sb = new StringBuilder();
+    	DebugUtil.indentDebugDump(sb, indent);
+    	sb.append("[\n");
+    	for (ObjectDeltaOperation<O> deltaOp: deltaOps) {
+    		deltaOp.debugDump(sb, indent + 1, false);
+    		sb.append("\n");
+    	}
+    	sb.append("]");
+		return sb.toString();
+	}
 }

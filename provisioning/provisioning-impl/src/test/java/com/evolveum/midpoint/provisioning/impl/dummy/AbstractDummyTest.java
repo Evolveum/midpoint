@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -90,6 +92,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final File ACCOUNT_ELIZABETH_FILE = new File(TEST_DIR, "account-elizabeth.xml");
 	protected static final String ACCOUNT_ELIZABETH_OID = "ca42f312-3bc3-11e7-a32d-73a68a0f363b";
 	protected static final String ACCOUNT_ELIZABETH_USERNAME = "elizabeth";
+	protected static final String ACCOUNT_ELIZABETH_FULLNAME = "Elizabeth Swan";
 
 	protected static final String ACCOUNT_DAEMON_USERNAME = "daemon";
 	protected static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
@@ -100,6 +103,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");
 	protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	protected static final String ACCOUNT_MORGAN_NAME = "morgan";
+	protected static final String ACCOUNT_MORGAN_FULLNAME = "Captain Morgan";
 	protected static final String ACCOUNT_MORGAN_PASSWORD = "sh1verM3T1mb3rs";
 
 	protected static final File ACCOUNT_LECHUCK_FILE = new File(TEST_DIR, "account-lechuck.xml");
@@ -225,13 +229,13 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		return true;
 	}
 
-	protected <T extends ShadowType> void checkConsistency(Collection<PrismObject<T>> shadows) throws SchemaException {
+	protected <T extends ShadowType> void checkUniqueness(Collection<PrismObject<T>> shadows) throws SchemaException {
 		for (PrismObject<T> shadow: shadows) {
-			checkConsistency(shadow);
+			checkUniqueness(shadow);
 		}
 	}
 
-	protected void checkConsistency(PrismObject<? extends ShadowType> object) throws SchemaException {
+	protected void checkUniqueness(PrismObject<? extends ShadowType> object) throws SchemaException {
 
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".checkConsistency");
@@ -278,7 +282,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 
 	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-//		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
@@ -287,7 +290,6 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	}
 
 	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
-//		if (isNameUnique()) {
 		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
@@ -295,6 +297,14 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 			 assertNotNull("No dummy account with ICF UID "+icfUid+" (expected name "+icfName+")", account);
 			 assertEquals("Unexpected name in "+account, icfName, account.getName());
 			 return account;
+		}
+	}
+	
+	protected DummyAccountAsserter assertDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		if (isIcfNameUidSame()) {
+			return dummyResourceCtl.assertAccountByUsername(icfName);
+		} else {
+			return dummyResourceCtl.assertAccountById(icfUid);
 		}
 	}
 
@@ -394,5 +404,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected void assertEntitlementPriv(PrismObject<ShadowType> account, String entitlementOid) {
 		assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
 	}
+	
+	protected void checkRepoAccountShadow(PrismObject<ShadowType> shadowFromRepo) {
+		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
+	}
+
 
 }

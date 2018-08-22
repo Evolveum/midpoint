@@ -73,10 +73,7 @@ public class SynchronizationUtils {
 	}
 
 	public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject<ShadowType> shadow,
-			SynchronizationSituationType situation, String sourceChannel, boolean full) throws SchemaException {
-		
-		XMLGregorianCalendar timestamp = XmlTypeConverter
-				.createXMLGregorianCalendar(System.currentTimeMillis());
+			SynchronizationSituationType situation, String sourceChannel, boolean full, XMLGregorianCalendar timestamp) throws SchemaException {
 		
 		List<PropertyDelta<?>> propertyDeltas = new ArrayList<>();
 		
@@ -219,4 +216,5 @@ public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind,
 		
 		return true;
 	}
+
 }

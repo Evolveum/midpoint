@@ -116,6 +116,7 @@ public class AssignmentProcessor {
     private RepositoryService repositoryService;
 
     @Autowired
+    @Qualifier("modelObjectResolver")
     private ObjectResolver objectResolver;
 
     @Autowired
@@ -661,7 +662,7 @@ public class AssignmentProcessor {
 								+" while the synchronization enforcement policy is FULL and the projection is not assigned");
 					}
 
-				} else if (enforcementType == AssignmentPolicyEnforcementType.NONE && !projectionContext.isThombstone()) {
+				} else if (enforcementType == AssignmentPolicyEnforcementType.NONE && !projectionContext.isTombstone()) {
 					if (projectionContext.isAdd()) {
 						LOGGER.trace("Projection {} legal: added in NONE policy", desc);
 						projectionContext.setLegal(true);
@@ -677,13 +678,13 @@ public class AssignmentProcessor {
 						projectionContext.setLegalOld(projectionContext.isExists());
 					}
 
-				} else if (enforcementType == AssignmentPolicyEnforcementType.POSITIVE && !projectionContext.isThombstone()) {
+				} else if (enforcementType == AssignmentPolicyEnforcementType.POSITIVE && !projectionContext.isTombstone()) {
 					// Everything that is not yet dead is legal in POSITIVE enforcement mode
 					LOGGER.trace("Projection {} legal: not dead in POSITIVE policy", desc);
 					projectionContext.setLegal(true);
 					projectionContext.setLegalOld(true);
 
-				} else if (enforcementType == AssignmentPolicyEnforcementType.RELATIVE && !projectionContext.isThombstone() &&
+				} else if (enforcementType == AssignmentPolicyEnforcementType.RELATIVE && !projectionContext.isTombstone() &&
 						projectionContext.isLegal() == null && projectionContext.isLegalOld() == null) {
 					// RELATIVE mode and nothing has changed. Maintain status quo. Pretend that it is legal.
 					LOGGER.trace("Projection {} legal: no change in RELATIVE policy", desc);
@@ -694,7 +695,7 @@ public class AssignmentProcessor {
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Finishing legal decision for {}, thombstone {}, enforcement mode {}, legalize {}: {} -> {}",
-						projectionContext.toHumanReadableString(), projectionContext.isThombstone(),
+						projectionContext.toHumanReadableString(), projectionContext.isTombstone(),
 						projectionContext.getAssignmentPolicyEnforcementType(),
 						projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal());
 			}
@@ -795,6 +796,9 @@ public class AssignmentProcessor {
 			OperationResult result) throws PolicyViolationException, SchemaException {
 		for(LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()){
+				continue;
+			}
+			if (projectionContext.isTombstone()) {
 				continue;
 			}
 			if (projectionContext.isAssigned()) {

@@ -1030,7 +1030,8 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 
 		// THEN
         displayThen(TEST_NAME);
-		assertSuccess(result);
+        // Errors deep inside the results are expected
+		assertSuccess(result, 2);
 
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
@@ -1226,6 +1227,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         prepareTest5xx();
+        
+        assertUserBefore(USER_GUYBRUSH_OID)
+        	.displayWithProjections()
+        	.assertAssignments(1)
+        	.assertLinks(1);
 
 		// WHEN
         displayWhen(TEST_NAME);
@@ -1235,14 +1241,29 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         displayThen(TEST_NAME);
         assertPartialError(result);
 
-		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
-        display("User after", userAfter);
-        assertAssignments(userAfter, 0);
-        assertLinks(userAfter, 0);
+        String shadowOid = assertUserAfter(USER_GUYBRUSH_OID)
+        	.displayWithProjections()
+        	.assertAssignments(0)
+        	.singleLink()
+        		.resolveTarget()
+        			.display()
+        			// TODO: not sure whether this should be dead or alive
+        			.assertTombstone()
+        			.getOid();
 
         assertNoDummyAccount(RESOURCE_DUMMY_EBONY_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
 		assertDummyScripts(RESOURCE_DUMMY_EBONY_NAME, "delete/after", DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
+		
+		// CLEANUP
+		displayCleanup(TEST_NAME);
+		forceDeleteShadow(shadowOid);
+		
+		assertUserAfter(USER_GUYBRUSH_OID)
+    		.assertAssignments(0)
+    		.assertLinks(0);
+		
+		assertNoShadow(shadowOid);
 	}
 	
 	/**

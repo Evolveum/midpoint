@@ -15,75 +15,52 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
-import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
-import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
-import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Component that takes care of some shadow maintenance, such as applying definitions, applying pending
@@ -257,41 +234,42 @@ public class ShadowCaretaker {
 		return shadowCtx;
 	}
 	
-	public PrismObject<ShadowType> applyPendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now)
-			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-		if (shadow == null) {
-			return null;
-		}
-		return applyPendingOperations(ctx, shadow, shadow.asObjectable().getPendingOperation(), false, now);
-	}
-	
 	public PrismObject<ShadowType> applyPendingOperations(ProvisioningContext ctx,
-			PrismObject<ShadowType> shadow, 
-			List<PendingOperationType> pendingOperations,
+			PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow,
 			boolean skipExecutionPendingOperations,
 			XMLGregorianCalendar now)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-		if (shadow == null) {
-			return null;
+		if (repoShadow == null) {
+			return resourceShadow;
 		}
-		PrismObject<ShadowType> resultShadow = shadow;
-		ShadowType resultShadowType = resultShadow.asObjectable();
+		List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
+		PrismObject<ShadowType> resultShadow;
+		if (resourceShadow == null) {
+			resultShadow = repoShadow;
+		} else {
+			resultShadow = resourceShadow;
+		}
 		if (pendingOperations.isEmpty()) {
-			return shadow;
+			return resultShadow;
 		}
+		ShadowType resultShadowType = resultShadow.asObjectable();
 		List<PendingOperationType> sortedOperations = sortPendingOperations(pendingOperations);
 		Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
 		boolean resourceReadIsCachingOnly = ProvisioningUtil.resourceReadIsCachingOnly(ctx.getResource());
 		for (PendingOperationType pendingOperation: sortedOperations) {
 			OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
 			PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
-			if (resultStatus == OperationResultStatusType.FATAL_ERROR || resultStatus == OperationResultStatusType.NOT_APPLICABLE) {
+			if (OperationResultStatusType.NOT_APPLICABLE.equals(resultStatus)) {
+				// Not applicable means: "no point trying this, will not retry". Therefore it will not change future state. 
 				continue;
 			}
+			if (PendingOperationExecutionStatusType.COMPLETED.equals(executionStatus) && ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
+				// Completed operations over grace period. They have already affected current state. They are already "applied". 
+				continue;
+			}
+			// Note: We still want to process errors, even fatal errors. As long as they are in executing state then they
+			// are going to be retried and they still may influence future state
 			if (skipExecutionPendingOperations && executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
-				continue;
-			}
-			if (ProvisioningUtil.isOverGrace(now, gracePeriod, pendingOperation)) {
 				continue;
 			}
 			if (resourceReadIsCachingOnly) {
@@ -307,10 +285,13 @@ public class ShadowCaretaker {
 			ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
 			ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
 			if (pendingDelta.isAdd()) {
-				if (Boolean.FALSE.equals(resultShadowType.isExists())) {
-					ShadowType shadowType = shadow.asObjectable();
+				// In case that we have resourceShadow then do NOT apply ADD operation
+				// In that case the object was obviously already created. The data that we have from the
+				// resource are going to be more precise than the pending ADD delta (which might not have been applied completely)
+				if (resourceShadow == null) {
+					ShadowType shadowType = repoShadow.asObjectable();
 					resultShadow = pendingDelta.getObjectToAdd().clone();
-					resultShadow.setOid(shadow.getOid());
+					resultShadow.setOid(repoShadow.getOid());
 					resultShadowType = resultShadow.asObjectable();
 					resultShadowType.setExists(true);
 					resultShadowType.setName(shadowType.getName());
@@ -346,6 +327,66 @@ public class ShadowCaretaker {
 		sortedList.addAll(pendingOperations);
 		sortedList.sort((o1, o2) -> XmlTypeConverter.compare(o1.getRequestTimestamp(), o2.getRequestTimestamp()));
 		return sortedList;
+	}
+	
+	public ChangeTypeType findPreviousPendingLifecycleOperationInGracePeriod(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
+		if (pendingOperations == null || pendingOperations.isEmpty()) {
+			return null;
+		}
+		Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
+		ChangeTypeType found = null;
+		for (PendingOperationType pendingOperation : pendingOperations) {
+			ObjectDeltaType delta = pendingOperation.getDelta();
+			if (delta == null) {
+				continue;
+			}
+			ChangeTypeType changeType = delta.getChangeType();
+			if (ChangeTypeType.MODIFY.equals(changeType)) {
+				continue;
+			}
+			if (ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
+				continue;
+			}
+			if (changeType == ChangeTypeType.DELETE) {
+				// DELETE always wins
+				return changeType;
+			} else {
+				// If there is an ADD then let's check for delete.
+				found = changeType;
+			}
+		}
+		return found;
+	}
+
+	
+	// NOTE: detection of quantum states (gestation, corpse) might not be precise. E.g. the shadow may already be
+	// tombstone because it is not in the snapshot. But as long as the pending operation is in grace we will still
+	// detect it as corpse. But that should not cause any big problems.
+	public ShadowState determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ShadowType shadowType = shadow.asObjectable();
+		ChangeTypeType pendingLifecycleOperation = findPreviousPendingLifecycleOperationInGracePeriod(ctx, shadow, now);
+		if (ShadowUtil.isDead(shadowType)) {
+			if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
+				return ShadowState.CORPSE;
+			} else {
+				return ShadowState.TOMBSTONE;
+			}
+		}
+		if (ShadowUtil.isExists(shadowType)) {
+			if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
+				return ShadowState.REAPING;
+			} else if (pendingLifecycleOperation == ChangeTypeType.ADD) {
+				return ShadowState.GESTATION;
+			} else {
+				return ShadowState.LIFE;
+			}
+		}
+		if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadowType.getLifecycleState())) {
+			return ShadowState.PROPOSED;
+		} else {
+			return ShadowState.CONCEPTION;
+		}
 	}
 
 }

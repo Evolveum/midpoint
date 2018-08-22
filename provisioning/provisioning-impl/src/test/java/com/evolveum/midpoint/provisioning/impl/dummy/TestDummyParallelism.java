@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.Counter;
 import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.util.FailableProducer;
@@ -41,12 +42,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * The test of Provisioning service on the API level.
  *
  * This test is focused on parallelism and race conditions.
+ * The resource is configured to use proposed shadows and to record all
+ * operations.
  *
  * The test is using dummy resource for speed and flexibility.
  *
@@ -94,7 +99,93 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		return RESOURCE_DUMMY_FILE;
 	}
 
-	// test000-test100 in the superclasses
+	// test000-test106 in the superclasses
+	
+	protected void assertWillRepoShadowAfterCreate(PrismObject<ShadowType> repoShadow) {
+		ShadowAsserter.forShadow(repoShadow, "repo")
+			.assertActiveLifecycleState()
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.delta()
+						.assertAdd();
+	}
+	
+	@Test
+	public void test120ModifyWillReplaceFullname() throws Exception {
+		final String TEST_NAME = "test120ModifyWillReplaceFullname";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				ACCOUNT_WILL_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Pirate Will Turner");
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
+		
+		assertRepoShadow(ACCOUNT_WILL_OID)
+			.assertActiveLifecycleState()
+			.pendingOperations()
+				.assertOperations(2)
+				.modifyOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.delta()
+						.assertModify();
+
+		syncServiceMock.assertNotifySuccessOnly();
+
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test190DeleteWill() throws Exception {
+		final String TEST_NAME = "test190DeleteWill";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		syncServiceMock.assertNotifySuccessOnly();
+
+		assertNoDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+
+		assertRepoShadow(ACCOUNT_WILL_OID)
+			.assertDead()
+			.assertIsNotExists()
+			.pendingOperations()
+				.assertOperations(3)
+				.deleteOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.delta()
+						.assertDelete();
+
+		assertShadowProvisioning(ACCOUNT_WILL_OID)
+			.assertTombstone();
+
+		assertSteadyResource();
+	}
 
 	@Test
 	public void test200ParallelCreate() throws Exception {
@@ -285,7 +376,11 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
 		successCounter.assertCount("Wrong number of successful operations", 1);
 
-		assertNoRepoObject(ShadowType.class, accountMorganOid);
+		assertRepoShadow(accountMorganOid)
+			.assertTombstone();
+		
+		assertShadowProvisioning(accountMorganOid)
+			.assertTombstone();
 
 		assertDummyResourceWriteOperationCountIncrement(null, 1);
 
@@ -494,7 +589,11 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 
 		successCounter.assertCount("Wrong number of successful operations", 1);
 
-		assertNoRepoObject(ShadowType.class, accountElizabethOid);
+		assertRepoShadow(accountElizabethOid)
+			.assertTombstone();
+	
+		assertShadowProvisioning(accountElizabethOid)
+			.assertTombstone();
 
 		assertDummyResourceWriteOperationCountIncrement(null, 1);
 
