@@ -42,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -709,6 +710,15 @@ public class ObjectTypeUtil {
 	public static boolean isDefaultRelation(QName relation) {
 		return relation == null || QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT);
 	}
+	
+	public static RelationDefinitionType findRelationDefinition(List<RelationDefinitionType> relationDefinitions, QName qname) {
+		for (RelationDefinitionType relation: relationDefinitions) {
+			if (QNameUtil.match(qname, relation.getRef())) {
+				return relation;
+			}
+		}
+		return null;
+	}
 
 	// We want to make this configurable in the future MID-3581
 	public static boolean processRelationOnLogin(QName relation) {
@@ -843,18 +853,23 @@ public class ObjectTypeUtil {
 	}
 
 	@NotNull
+	@Deprecated
 	public static <O extends ObjectType> Collection<String> getSubtypeValues(@NotNull PrismObject<O> object) {
-		O o = object.asObjectable();
-		if (o instanceof UserType) {
-			return ((UserType) o).getEmployeeType();
-		} else if (o instanceof RoleType) {
-			return singleton(((RoleType) o).getRoleType());
-		} else if (o instanceof OrgType) {
-			return ((OrgType) o).getOrgType();
-		} else if (o instanceof ServiceType) {
-			return ((ServiceType) o).getServiceType();
-		} else {
-			return emptySet();
+		return FocusTypeUtil.determineSubTypes(object);
+	}
+	
+	public static <O extends ObjectType> XMLGregorianCalendar getLastTouchTimestamp(PrismObject<O> object) {
+		if (object == null) {
+			return null;
 		}
+		MetadataType metadata = object.asObjectable().getMetadata();
+		if (metadata == null) {
+			return null;
+		}
+		XMLGregorianCalendar modifyTimestamp = metadata.getModifyTimestamp();
+		if (modifyTimestamp != null) {
+			return modifyTimestamp;
+		}
+		return metadata.getCreateTimestamp();
 	}
 }

@@ -4,7 +4,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import org.apache.wicket.markup.html.basic.Label;
 
-@PageDescriptor(url = "/resetpasswordsuccess")
+@PageDescriptor(url = "/resetpasswordsuccess", permitAll = true)
 public class PageShowPassword extends PageBase {
 
     public PageShowPassword() {

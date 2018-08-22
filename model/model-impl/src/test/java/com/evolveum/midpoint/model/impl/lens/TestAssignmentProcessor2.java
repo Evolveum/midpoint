@@ -52,6 +52,7 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
@@ -116,7 +117,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 	@Autowired private AssignmentProcessor assignmentProcessor;
     @Autowired private Clock clock;
-	@Autowired private ObjectResolver objectResolver;
+	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 	@Autowired private MappingFactory mappingFactory;
 	@Autowired private MappingEvaluator mappingEvaluator;
 	@Autowired private ActivationComputer activationComputer;

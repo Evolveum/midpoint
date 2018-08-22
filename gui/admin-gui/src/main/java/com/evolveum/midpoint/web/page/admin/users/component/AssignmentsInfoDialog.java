@@ -206,6 +206,16 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
     }
 
     @Override
+    public String getWidthUnit(){
+        return "px";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "px";
+    }
+
+    @Override
     public StringResourceModel getTitle() {
         return new StringResourceModel("AssignmentPreviewDialog.label");
     }

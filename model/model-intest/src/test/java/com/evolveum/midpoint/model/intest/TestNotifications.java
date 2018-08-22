@@ -306,7 +306,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		TestUtil.displayThen(TEST_NAME);

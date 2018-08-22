@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -62,6 +63,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -80,11 +82,14 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.asserter.FocusAsserter;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
@@ -179,6 +184,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	@Autowired protected PrismContext prismContext;
 	@Autowired protected MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired protected LocalizationService localizationService;
+	
+	@Autowired(required = false)
+	@Qualifier("repoObjectResolver")
+	protected ObjectResolver repoObjectResolver;
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
@@ -209,7 +218,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			InternalMonitor.reset();
 			InternalsConfig.setPrismMonitoring(true);
 			prismContext.setMonitor(new InternalMonitor());
-
+			
 			initSystem(initTask, result);
 
 			postInitSystem(initTask, result);
@@ -243,6 +252,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void postInitSystem(Task initTask, OperationResult initResult) throws Exception {
 		// Nothing to do by default
 	};
+	
+	public <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
+		return DeltaBuilder.deltaFor(objectClass, prismContext);
+	}
 
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
@@ -1352,11 +1365,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertUserPassword(user, expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
 	}
 
-	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
-		assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
+	protected PasswordType assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
+		return assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
 	}
 
-	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
+	protected PasswordType assertUserPassword(PrismObject<UserType> user, String expectedClearPassword, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
 		UserType userType = user.asObjectable();
 		CredentialsType creds = userType.getCredentials();
 		assertNotNull("No credentials in "+user, creds);
@@ -1364,6 +1377,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("No password in "+user, password);
 		ProtectedStringType protectedActualPassword = password.getValue();
 		assertProtectedString("Password for "+user, expectedClearPassword, protectedActualPassword, storageType);
+		return password;
 	}
 	
 	protected void assertUserNoPassword(PrismObject<UserType> user) throws EncryptionException, SchemaException {
@@ -1761,6 +1775,22 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		display("Operation result status", result.getStatus());
 		TestUtil.assertSuccess(result);
 	}
+	
+	protected void assertHadnledError(OperationResult result) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		display("Operation result status", result.getStatus());
+		TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+	}
+	
+	protected void assertSuccess(OperationResult result, int depth) {
+		if (result.isUnknown()) {
+			result.computeStatus();
+		}
+		display("Operation result status", result.getStatus());
+		TestUtil.assertSuccess(result, depth);
+	}
 
 	protected void assertSuccess(String message, OperationResult result) {
 		if (result.isUnknown()) {
@@ -1938,12 +1968,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotLinked(user, accountOid);
 	}
 
-	protected void assertNotLinked(PrismObject<UserType> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
+	protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
 		assertNotLinked(user, account.getOid());
 	}
 
-	protected void assertNotLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
-		PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
+	protected <F extends FocusType> void assertNotLinked(PrismObject<F> user, String accountOid) throws ObjectNotFoundException, SchemaException {
+		PrismReference linkRef = user.findReference(FocusType.F_LINK_REF);
 		if (linkRef == null) {
 			return;
 		}
@@ -1956,7 +1986,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertFalse("User " + user + " IS linked to account " + accountOid + " but not expecting it", found);
 	}
 
-	protected void assertNoLinkedAccount(PrismObject<UserType> user) {
+	protected <F extends FocusType> void assertNoLinkedAccount(PrismObject<F> user) {
 		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		if (accountRef == null) {
 			return;
@@ -2338,7 +2368,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		OperationResult result = new OperationResult("getShadowRepo");
 		// We need to read the shadow as raw, so repo will look for some kind of rudimentary attribute
 		// definitions here. Otherwise we will end up with raw values for non-indexed (cached) attributes
+		LOGGER.info("Getting repo shadow {}", shadowOid);
 		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, GetOperationOptions.createRawCollection(), result);
+		LOGGER.info("Got repo shadow\n{}", shadow.debugDumpLazily(1));
 		assertSuccess(result);
 		return shadow;
 	}
@@ -2389,4 +2421,57 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertEqualTime(String message, ZonedDateTime expectedTime, ZonedDateTime actualTime) {
 		assertTrue(message+"; expected "+expectedTime+", but was "+actualTime, expectedTime.isEqual(actualTime));
 	}
+
+	protected XMLGregorianCalendar getTimestamp(String duration) {
+		return XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), duration);
+	}
+
+	protected void clockForward(String duration) {
+		XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
+		clock.overrideDuration(duration);
+		XMLGregorianCalendar after = clock.currentTimeXMLGregorianCalendar();
+		display("Clock going forward", before + " --[" + duration + "]--> " + after);
+	}
+	
+	protected void assertRelationDef(List<RelationDefinitionType> relations, QName qname, String expectedLabel) {
+    	RelationDefinitionType relDef = ObjectTypeUtil.findRelationDefinition(relations, qname);
+    	assertNotNull("No definition for relation "+qname, relDef);
+    	assertEquals("Wrong relation "+qname+" label", expectedLabel, relDef.getDisplay().getLabel());
+	}
+	
+	protected ShadowAsserter<Void> assertRepoShadow(String oid) throws ObjectNotFoundException, SchemaException {
+		PrismObject<ShadowType> repoShadow = getShadowRepo(oid);
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(repoShadow, "repository");
+		asserter
+			.display()
+			.assertBasicRepoProperties();
+		return asserter;
+	}
+	
+	protected void assertNoRepoShadow(String oid) throws SchemaException {
+		OperationResult result = new OperationResult("assertNoRepoShadow");
+		try {
+			PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, oid, GetOperationOptions.createRawCollection(), result);
+			fail("Expected that shadow "+oid+" will not be in the repo. But it was: "+shadow);
+		} catch (ObjectNotFoundException e) {
+			// Expected
+			assertFailure(result);
+		}
+	}
+	
+	protected <T> RawType rawize(QName attrName, T value) {
+		return new RawType(new PrismPropertyValue(value), attrName, prismContext);
+	}
+	
+	protected void markShadowTombstone(String oid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		Task task = createTask("markShadowTombstone");
+        OperationResult result = task.getResult();
+        List<ItemDelta<?, ?>> deadModifications = deltaFor(ShadowType.class)
+            	.item(ShadowType.F_DEAD).replace(true)
+            	.item(ShadowType.F_EXISTS).replace(false)
+            	.asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, oid, deadModifications, result);
+        assertSuccess(result);
+	}
+	
 }

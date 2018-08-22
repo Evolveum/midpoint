@@ -40,7 +40,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
+import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -144,7 +144,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
 		AssertJUnit.assertNotNull(syncTask);
 		assertSyncToken(syncTask, 0, result);
-		((SynchornizationServiceMock)syncServiceMock).reset();
+		((SynchronizationServiceMock)syncServiceMock).reset();
 
 		// create add change in embeded LDAP
 		LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_FILE.getPath());
@@ -165,7 +165,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 				syncTask, result);
 		
 		// THEN
-		SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
+		SynchronizationServiceMock mock = (SynchronizationServiceMock) syncServiceMock;
 		
 		assertEquals("Unexpected number of synchronization service calls", 1, mock.getCallCount());
 		
@@ -193,7 +193,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
 		AssertJUnit.assertNotNull(syncTask);
 		assertSyncToken(syncTask, 1, result);
-		((SynchornizationServiceMock)syncServiceMock).reset();
+		((SynchronizationServiceMock)syncServiceMock).reset();
 
 		// create add change in embedded LDAP
 		LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_CALYPSO_FILE.getPath());
@@ -214,7 +214,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 				syncTask, result);
 		
 		// THEN
-		SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
+		SynchronizationServiceMock mock = (SynchronizationServiceMock) syncServiceMock;
 		
 		assertEquals("Unexpected number of synchronization service calls", 0, mock.getCallCount());
 		

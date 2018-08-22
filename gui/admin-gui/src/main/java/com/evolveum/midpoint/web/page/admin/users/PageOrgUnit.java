@@ -15,10 +15,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.web.page.admin.services.PageService;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,10 +34,13 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
+import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
+import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
@@ -91,9 +99,44 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 		return new AbstractRoleMainPanel<OrgType>(id, getObjectModel(),
 				getProjectionModel(), this) {
 
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public AbstractRoleMemberPanel<OrgType> createMemberPanel(String panelId) {
-				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()));
+				OperationResult result = new OperationResult("Get category relations");
+				return new RoleMemberPanel<OrgType>(panelId, Model.of(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, result, PageOrgUnit.this)) {
+					
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected boolean isRole() {
+						return false;
+					}
+				};
+			}
+
+			@Override
+			protected boolean isFocusHistoryPage(){
+				return PageOrgUnit.this.isFocusHistoryPage();
+			}
+
+			@Override
+			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<OrgType> object, String date){
+				PageOrgUnit.this.navigateToNext(new PageOrgUnitHistory(object, date));
+			}
+
+			@Override
+			public AbstractRoleMemberPanel<OrgType> createGovernancePanel(String panelId) {
+				OperationResult result = new OperationResult("Get category relations");
+				return new RoleGovernanceMemberPanel<OrgType>(panelId, Model.of(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, result, PageOrgUnit.this)) {
+					
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected boolean isRole() {
+						return false;
+					}
+				};
 			}
 		};
 	}

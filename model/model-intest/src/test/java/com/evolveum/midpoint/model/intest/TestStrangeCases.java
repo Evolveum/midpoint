@@ -1016,7 +1016,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         // WHEN
         // We have loose referential consistency. Even if the target resource is not present
         // the assignment should be added. The error is indicated in the result.
-    	assignAccount(USER_DEGHOULASH_OID, RESOURCE_NONEXISTENT_OID, null, task, result);
+    	assignAccountToUser(USER_DEGHOULASH_OID, RESOURCE_NONEXISTENT_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1041,7 +1041,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
 
         // WHEN
-    	unassignAccount(USER_DEGHOULASH_OID, RESOURCE_NONEXISTENT_OID, null, task, result);
+    	unassignAccountFromUser(USER_DEGHOULASH_OID, RESOURCE_NONEXISTENT_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -1462,7 +1462,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
         try {
 	        // WHEN
-	        assignAccount(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CIRCUS_OID, null, task, result);
+	        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_CIRCUS_OID, null, task, result);
 
 	        assertNotReached();
         } catch (PolicyViolationException e) {

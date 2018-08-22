@@ -22,6 +22,8 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.util.DisplayableValue;
+
 import java.io.Serializable;
 
 /**
@@ -32,7 +34,7 @@ public class BrowserPopupPanel<T extends Serializable> extends SearchPopupPanel<
     private static final String ID_BROWSER_INPUT = "browserInput";
     private static final String ID_BROWSE = "browse";
 
-    public BrowserPopupPanel(String id, IModel<T> model) {
+    public BrowserPopupPanel(String id, IModel<DisplayableValue<T>> model) {
         super(id, model);
 
         initLayout();

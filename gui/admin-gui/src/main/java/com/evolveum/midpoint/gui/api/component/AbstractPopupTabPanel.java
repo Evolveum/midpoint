@@ -15,12 +15,16 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -34,25 +38,30 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     private static final long serialVersionUID = 1L;
 
     private static final String ID_OBJECT_LIST_PANEL = "objectListPanel";
+    protected static final String ID_PARAMETERS_PANEL = "parametersPanel";
+    protected static final String ID_PARAMETERS_PANEL_FRAGMENT = "parametersPanelFragment";
 
-    protected ObjectTypes type;
     protected List<O> preSelectedObjects = new ArrayList<>();
 
-    public AbstractPopupTabPanel(String id, ObjectTypes type){
+    public AbstractPopupTabPanel(String id){
         super(id);
-        this.type = type;
-//        this.selectedObjects = selectedObjects;
     }
 
     @Override
     protected void onInitialize(){
         super.onInitialize();
+        setOutputMarkupId(true);
         add(initObjectListPanel());
-        initParametersPanel();
+
+        Fragment parametersPanelFragment = new Fragment(ID_PARAMETERS_PANEL, ID_PARAMETERS_PANEL_FRAGMENT, this);
+        parametersPanelFragment.setOutputMarkupId(true);
+
+        initParametersPanel(parametersPanelFragment);
+        add(parametersPanelFragment);
     }
 
-    private PopupObjectListPanel initObjectListPanel(){
-        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)type.getClassDefinition(),
+    protected Component initObjectListPanel(){
+        PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)getObjectType().getClassDefinition(),
                 null, true, getPageBase(), getPreselectedObjects()) {
 
             private static final long serialVersionUID = 1L;
@@ -87,22 +96,22 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         return listPanel;
     }
 
-    protected abstract void initParametersPanel();
+    protected abstract void initParametersPanel(Fragment parametersPanel);
 
     protected List<O> getPreselectedObjects(){
         return preSelectedObjects;
     }
 
     protected List<O> getSelectedObjectsList(){
-        PopupObjectListPanel objectListPanel = getObjectListPanel();
+        PopupObjectListPanel objectListPanel = (PopupObjectListPanel)getObjectListPanel();
         if (objectListPanel == null){
             return new ArrayList();
         }
         return objectListPanel.getSelectedObjects();
     }
 
-    protected PopupObjectListPanel getObjectListPanel(){
-        return (PopupObjectListPanel)get(ID_OBJECT_LIST_PANEL);
+    protected Component getObjectListPanel(){
+        return get(ID_OBJECT_LIST_PANEL);
     }
 
     protected void onSelectionPerformed(AjaxRequestTarget target){}
@@ -119,7 +128,5 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
         return true;
     }
 
-    public ObjectTypes getType() {
-        return type;
-    }
+    protected abstract ObjectTypes getObjectType();
 }

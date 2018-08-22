@@ -506,17 +506,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<ShadowType> newPinkyShadow = createShadow(getDummyResourceType(RESOURCE_DUMMY_PINK_NAME).asPrismObject(), null, null);
 		userScrooge.asObjectable().getLink().add(newPinkyShadow.asObjectable());
 
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-		deltas.add(ObjectDelta.createAddDelta(userScrooge));
-
 		// WHEN
 		displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(ObjectDelta.createAddDelta(userScrooge), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result, 2);
 
 		PrismObject<UserType> userScroogeAfter = findUserByUsername("scrooge");
 		display("User after change execution", userScroogeAfter);
@@ -602,16 +598,14 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_LARGO_OID, RESOURCE_DUMMY_PINK_OID, null, true);
-		deltas.add(accountAssignmentUserDelta);
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(accountAssignmentUserDelta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result, 2);
 
 		PrismObject<UserType> userLargo = getUser(USER_LARGO_OID);
 		display("User after change execution", userLargo);
@@ -672,16 +666,14 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		PrismObject<UserType> userJupiter = PrismTestUtil.parseObject(USER_JUPITER_FILE);
-		deltas.add(ObjectDelta.createAddDelta(userJupiter));
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(ObjectDelta.createAddDelta(userJupiter), null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result, 2);
 
 		PrismObject<UserType> userJupiterAfter = findUserByUsername(USER_JUPITER_NAME);		// jupiter
 		display("User after change execution", userJupiterAfter);
@@ -727,17 +719,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		OperationResult result = task.getResult();
 		dummyAuditService.clear();
 
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-		deltas.add(createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", false));
+		ObjectDelta<UserType> delta = createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", false);
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(delta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		PrismObject<UserType> userJupiterAfter = findUserByUsername(USER_JUPITER_NAME);		// jupiter
 		display("User after change execution", userJupiterAfter);
@@ -776,17 +766,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, USER_JUPITER_NAME);				// jupiter
 		getDummyResource(RESOURCE_DUMMY_FUCHSIA_NAME).addAccount(account);
 
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-		deltas.add(createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", true));
+		ObjectDelta<UserType> delta = createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", true);
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(delta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result, 2);
 
 		PrismObject<UserType> userJupiterAfter = findUserByUsername(USER_JUPITER_NAME);		// jupiter
 		display("User after change execution", userJupiterAfter);
@@ -844,17 +832,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, "jupiter0");		// different from our jupiter
 		getDummyResource(RESOURCE_DUMMY_FUCHSIA_NAME).addAccount(account);
 
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-		deltas.add(createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", true));
+		ObjectDelta<UserType> delta = createAccountAssignmentUserDelta(jupiterUserOid, RESOURCE_DUMMY_FUCHSIA_OID, "default", true);
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(delta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result, 2);
 
 		PrismObject<UserType> userJupiterAfter = findUserByUsername(USER_JUPITER_NAME);		// jupiter
 		display("User after change execution", userJupiterAfter);
@@ -1068,16 +1054,15 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		PrismObject<UserType> userJupiter = PrismTestUtil.parseObject(USER_ALFRED_FILE);			// there is a linked account
-		deltas.add(ObjectDelta.createAddDelta(userJupiter));
+		ObjectDelta<UserType> delta = ObjectDelta.createAddDelta(userJupiter);
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(delta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result, 2);
 
 		PrismObject<UserType> userAlfredAfter = findUserByUsername(USER_ALFRED_NAME);		// alfred
 		display("User after change execution", userAlfredAfter);

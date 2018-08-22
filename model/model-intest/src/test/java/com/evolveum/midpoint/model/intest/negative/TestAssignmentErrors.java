@@ -45,6 +45,7 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -277,14 +278,16 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
 		// WHEN
-		//not expected that it fails, instead the error in the result is expected
+        displayWhen(TEST_NAME);
+		// not expected that it fails, instead the error in the result is expected
 		modelService.executeChanges(deltas, null, task, result);
 
-        result.computeStatus();
-
+		// THEN
+		displayThen(TEST_NAME);
         display(result);
-        // This has to be a partial error as some changes were executed (user) and others were not (account)
-        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+		// account cannot be updated due to a network error. The operation was postponed, therefore
+		// it is "in progress".
+        assertInProgress(result);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -292,8 +295,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertTarget(user.getOid());
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.HANDLED_ERROR);
-        dummyAuditService.assertExecutionMessage();
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.IN_PROGRESS);
 
 	}
 
@@ -362,12 +364,12 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		//not expected that it fails, instead the error in the result is expected
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
         result.computeStatus();
 
         display(result);
@@ -416,11 +418,11 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         recomputeUser(userSharptoothOid, task, result);
 
         // THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -438,21 +440,45 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
     public void test214UserSharptoothChangePasswordNetworkError() throws Exception {
 		testUserSharptoothChangePasswordError("test214UserSharptoothChangePasswordNetworkError",
 				BreakMode.NETWORK, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_2_CLEAR,
-				OperationResultStatus.HANDLED_ERROR);
+				OperationResultStatus.IN_PROGRESS);
 	}
 
 	/**
-	 * Change user password. But there is error on the resource.
-	 * User password should be changed, account password unchanged and there
-	 * should be partial error in the result. We have no idea what's going on here.
+	 * Change user password. But there is generic error on the resource.
+	 * 
+	 * Default dummy resource has no error criticality definition. Therefore generic errors
+	 * are considered critical. This operation is supposed to die.
+	 * 
 	 * MID-3569
 	 */
 	@Test
     public void test215UserSharptoothChangePasswordGenericError() throws Exception {
-		testUserSharptoothChangePasswordError("test215UserSharptoothChangePasswordGenericError",
+		try {
+			testUserSharptoothChangePasswordError("test215UserSharptoothChangePasswordGenericError",
 				BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
-				OperationResultStatus.PARTIAL_ERROR);
+				OperationResultStatus.FATAL_ERROR);
+			
+			assertNotReached();
+		} catch (GenericConnectorException e) {
+			// expected
+		}
 	}
+	
+	// This test doesn't work on default dummy
+	// TODO: apply it to black dummy
+//	/**
+//	 * Change user password. But there is generic error on the resource.
+//	 * User password should be changed, account password unchanged and there
+//	 * should be partial error in the result. We have no idea what's going on here.
+//	 * Default dummy 
+//	 * MID-3569
+//	 */
+//	@Test
+//    public void test216UserSharptoothChangePasswordGenericError() throws Exception {
+//		testUserSharptoothChangePasswordError("test216UserSharptoothChangePasswordGenericError",
+//				BreakMode.GENERIC, USER_SHARPTOOTH_PASSWORD_1_CLEAR, USER_SHARPTOOTH_PASSWORD_3_CLEAR,
+//				OperationResultStatus.PARTIAL_ERROR);
+//	}
 
 	public void testUserSharptoothChangePasswordError(final String TEST_NAME, BreakMode breakMode, String oldPassword, String newPassword, OperationResultStatus expectedResultStatus) throws Exception {
         displayTestTitle(TEST_NAME);
@@ -466,11 +492,11 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.clear();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserChangePassword(userSharptoothOid, newPassword, task, result);
 
         // THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertStatus(result, expectedResultStatus);
 

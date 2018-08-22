@@ -120,6 +120,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 	private static final String USER_NEWMAN_EMPLOYEE_NUMBER = "N00001";
 	private static final String USER_NEWMAN_SHIP = "Nova";
 	
+	private static final int BASIC_USERS_CONTAINERS = 8;
+	private static final int BASIC_SHADOW_CONTAINERS = 9;
+	private static final int BASIC_ORG_CONTAINERS = 14;
+	
 	private String userWallyOid;
 	private String accountWallyOid;
 
@@ -153,7 +157,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, 7, objectWrapper.getContainers().size());
+		assertEquals("wrong number of containers in "+objectWrapper, BASIC_USERS_CONTAINERS, objectWrapper.getContainers().size());
 
 		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, user, ContainerStatus.MODIFYING);
@@ -222,7 +226,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.ADDING);
-		assertEquals("wrong number of containers in "+objectWrapper, 7, objectWrapper.getContainers().size());
+		assertEquals("wrong number of containers in "+objectWrapper, BASIC_USERS_CONTAINERS, objectWrapper.getContainers().size());
 
 		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, user, ContainerStatus.ADDING);
@@ -300,7 +304,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.ADDING);
-		assertEquals("wrong number of containers in "+objectWrapper, 7, objectWrapper.getContainers().size());
+		assertEquals("wrong number of containers in "+objectWrapper, BASIC_USERS_CONTAINERS, objectWrapper.getContainers().size());
 
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, user, ContainerStatus.ADDING);
 		assertEquals("wrong number of containers in "+mainContainerWrapper, 1, mainContainerWrapper.getValues().size());
@@ -367,7 +371,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "user display name", "user description", user, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, 7, objectWrapper.getContainers().size());
+		assertEquals("wrong number of containers in "+objectWrapper, BASIC_USERS_CONTAINERS, objectWrapper.getContainers().size());
 
 		ContainerWrapper<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, user, ContainerStatus.MODIFYING);
@@ -426,7 +430,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "shadow display name", "shadow description", shadow, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, 8, objectWrapper.getContainers().size());
+		assertEquals("wrong number of containers in "+objectWrapper, BASIC_SHADOW_CONTAINERS, objectWrapper.getContainers().size());
 
 		ContainerWrapper<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ATTRIBUTES));
 		assertEquals("wrong number of values in "+attributesContainerWrapper, 1, attributesContainerWrapper.getValues().size());
@@ -488,7 +492,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		IntegrationTestTools.display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "org display name", "org description", org, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, 13, objectWrapper.getContainers().size());
+		assertEquals("wrong number of containers in "+objectWrapper, BASIC_ORG_CONTAINERS, objectWrapper.getContainers().size());
 
 		ContainerWrapper<OrgType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 		WrapperTestUtil.assertWrapper(mainContainerWrapper, "prismContainer.mainPanelDisplayName", (ItemPath)null, org, ContainerStatus.MODIFYING);
@@ -577,7 +581,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		display("Wrapper after", objectWrapper);
 
 		WrapperTestUtil.assertWrapper(objectWrapper, "shadow display name", "shadow description", shadow, ContainerStatus.MODIFYING);
-		assertEquals("wrong number of containers in "+objectWrapper, 8, objectWrapper.getContainers().size());
+		assertEquals("wrong number of containers in "+objectWrapper, BASIC_SHADOW_CONTAINERS, objectWrapper.getContainers().size());
 
 		ContainerWrapper<ShadowAttributesType> attributesContainerWrapper = objectWrapper.findContainerWrapper(new ItemPath(ShadowType.F_ATTRIBUTES));
 		WrapperTestUtil.assertWrapper(attributesContainerWrapper, "attributes", new ItemPath(ShadowType.F_ATTRIBUTES), shadow.findContainer(ShadowType.F_ATTRIBUTES),

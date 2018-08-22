@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
@@ -517,7 +518,8 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
 
         ObjectSynchronizationType synchronizationPolicy;
         try {
-            synchronizationPolicy = synchronizationService.determineSynchronizationPolicy(resource.asObjectable(), fullShadow, configuration, task, result);
+        	SynchronizationContext<? extends FocusType> syncCtx = synchronizationService.loadSynchronizationContext(fullShadow, fullShadow, resource, task.getChannel(), systemObjectCache.getSystemConfiguration(result), task, result);
+            synchronizationPolicy = syncCtx.getObjectSynchronization();            
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX, new SystemException("Couldn't prepare fix for missing intent, because the synchronization policy couldn't be determined", e));
             return;

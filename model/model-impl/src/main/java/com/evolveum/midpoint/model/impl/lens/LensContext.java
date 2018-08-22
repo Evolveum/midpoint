@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	@NotNull private final transient List<ConflictWatcher> conflictWatchers = new ArrayList<>();
 
 	private int conflictResolutionAttemptNumber;
+	
+	// For use with personas
+	private String ownerOid;
+	
+	transient private PrismObject<UserType> cachedOwner;
+	
+	transient private SecurityPolicyType globalSecurityPolicy;
 
 	/**
 	 * Channel that is the source of primary change (GUI, live sync, import,
@@ -181,6 +188,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 * serialize to XML
 	 */
 	private List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
+
+	transient private boolean preview;
 
 	transient private Map<String,Collection<Containerable>> hookPreviewResultsMap;
 
@@ -849,11 +858,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return focusClass;
 	}
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
 	public String dump(boolean showTriples) {
 		return debugDump(0, showTriples);
 	}
@@ -870,6 +874,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		sb.append(", Wave(e=").append(executionWave);
 		sb.append(",p=").append(projectionWave);
 		sb.append(",max=").append(getMaxWave());
+		if (ownerOid != null) {
+			sb.append(", owner=");
+			if (cachedOwner != null) {
+				sb.append(cachedOwner);
+			} else {
+				sb.append(ownerOid);
+			}
+		}
 		sb.append("), ");
 		if (focusContext != null) {
 			sb.append("focus, ");
@@ -1144,6 +1156,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		lensContextType.setRequestAuthorized(isRequestAuthorized);
 		lensContextType.setStats(stats);
 		lensContextType.setRequestMetadata(requestMetadata);
+		lensContextType.setOwnerOid(ownerOid);
 
 		for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
 			lensContextType.getRottenExecutedDeltas().add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
@@ -1212,6 +1225,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		lensContext.setRequestAuthorized(Boolean.TRUE.equals(lensContextType.isRequestAuthorized()));
 		lensContext.setStats(lensContextType.getStats());
 		lensContext.setRequestMetadata(lensContextType.getRequestMetadata());
+		lensContext.setOwnerOid(lensContextType.getOwnerOid());
 
 		for (LensObjectDeltaOperationType eDeltaOperationType : lensContextType.getRottenExecutedDeltas()) {
 			LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation
@@ -1387,7 +1401,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			if (!projectionContext.isCanProject()) {
 				continue;
 			}
-			if (projectionContext.isThombstone()) {
+			if (projectionContext.isTombstone()) {
 				continue;
 			}
 			if (projectionContext.hasPrimaryDelta() || projectionContext.hasSecondaryDelta()) {
@@ -1404,5 +1418,38 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		for (LensProjectionContext projectionContext : projectionContexts) {
 			projectionContext.deleteSecondaryDeltas();
 		}
+	}
+
+	public SecurityPolicyType getGlobalSecurityPolicy() {
+		return globalSecurityPolicy;
+	}
+
+	public void setGlobalSecurityPolicy(SecurityPolicyType globalSecurityPolicy) {
+		this.globalSecurityPolicy = globalSecurityPolicy;
+	}
+	
+	public String getOwnerOid() {
+		return ownerOid;
+	}
+
+	public void setOwnerOid(String ownerOid) {
+		this.ownerOid = ownerOid;
+	}
+
+	public PrismObject<UserType> getCachedOwner() {
+		return cachedOwner;
+	}
+
+	public void setCachedOwner(PrismObject<UserType> cachedOwner) {
+		this.cachedOwner = cachedOwner;
+	}
+
+	@Override
+	public boolean isPreview() {
+		return preview;
+	}
+
+	public void setPreview(boolean preview) {
+		this.preview = preview;
 	}
 }

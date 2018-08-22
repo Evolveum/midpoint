@@ -33,9 +33,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentTargetSearchExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpressionEvaluatorType;
 
 import org.apache.commons.lang.Validate;
 
@@ -64,7 +64,7 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory extends AbstractOb
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createAssignmentTargetSearch(new SearchObjectRefExpressionEvaluatorType()).getName();
+		return new ObjectFactory().createAssignmentTargetSearch(new AssignmentTargetSearchExpressionEvaluatorType()).getName();
 	}
 
 	/* (non-Javadoc)
@@ -88,10 +88,10 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory extends AbstractOb
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
         }
-        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectRefExpressionEvaluatorType)) {
+        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AssignmentTargetSearchExpressionEvaluatorType)) {
             throw new SchemaException("assignment expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((SearchObjectRefExpressionEvaluatorType)evaluatorTypeObject,
+        AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((AssignmentTargetSearchExpressionEvaluatorType)evaluatorTypeObject,
         		(PrismContainerDefinition<AssignmentType>) outputDefinition, protector, getObjectResolver(), modelService, prismContext, securityContextManager, getLocalizationService());
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}

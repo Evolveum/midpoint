@@ -225,6 +225,16 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 	}
 
 	@Override
+	public String getWidthUnit(){
+		return "px";
+	}
+
+	@Override
+	public String getHeightUnit(){
+		return "px";
+	}
+
+	@Override
 	public StringResourceModel getTitle() {
 		return parentPage.createStringResource("ObjectBrowserPanel.chooseObject");
 	}

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -115,7 +116,7 @@ public abstract class FocusSummaryPanel<O extends ObjectType> extends ObjectSumm
 				// this whole thing should be driven by an expression later on
 				for (PrismObject<OrgType> org: parentOrgs) {
 					OrgType orgType = org.asObjectable();
-					if (orgType.getOrgType().contains("functional")) {
+					if (FocusTypeUtil.determineSubTypes(org).contains("functional")) {
 						return PolyString.getOrig(orgType.getDisplayName());
 					}
 				}

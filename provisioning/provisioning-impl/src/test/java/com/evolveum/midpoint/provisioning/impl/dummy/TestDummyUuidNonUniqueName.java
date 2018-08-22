@@ -173,7 +173,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
-		checkConsistency(accountProvisioning);
+		checkUniqueness(accountProvisioning);
 		assertSteadyResource();
 
 		return icfUid;

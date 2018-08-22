@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2014 Evolveum
+  ~ Copyright (c) 2014-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -42,5 +42,6 @@
     	<item>activation/validityStatus</item>
     	<item>activation/validityChangeTimestamp</item>
     	<item>activation/effectiveStatus</item>
+    	<item>nickName</item> <!-- object template mapping -->
     </authorization>
 </role>

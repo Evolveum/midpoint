@@ -16,11 +16,35 @@
 
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.prism.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -30,17 +54,10 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -64,17 +81,17 @@ public class Search implements Serializable, DebugDumpable {
     private String advancedError;
     private String fullText;
 
-    private Class<? extends ObjectType> type;
-    private Map<ItemPath, ItemDefinition> allDefinitions;
+    private Class<? extends Containerable> type;
+    private List<SearchItemDefinition> allDefinitions;
 
     private List<ItemDefinition> availableDefinitions = new ArrayList<>();
     private List<SearchItem> items = new ArrayList<>();
 
-    public Search(Class<? extends ObjectType> type, Map<ItemPath, ItemDefinition> allDefinitions) {
+    public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions) {
         this(type, allDefinitions, false, null);
     }
 
-    public Search(Class<? extends ObjectType> type, Map<ItemPath, ItemDefinition> allDefinitions,
+    public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions,
                   boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType) {
         this.type = type;
         this.allDefinitions = allDefinitions;
@@ -88,7 +105,8 @@ public class Search implements Serializable, DebugDumpable {
         } else {
             searchType = SearchBoxModeType.BASIC;
         }
-        availableDefinitions.addAll(allDefinitions.values());
+        allDefinitions.stream().forEach(searchItemDef -> availableDefinitions.add(searchItemDef.getDef()));
+//        availableDefinitions.addAll(allDefinitions.values());
     }
 
     public List<SearchItem> getItems() {
@@ -100,7 +118,9 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     public List<ItemDefinition> getAllDefinitions() {
-        return new ArrayList<>(allDefinitions.values());
+    	List<ItemDefinition> allDefs = new ArrayList<>();
+    	allDefinitions.stream().forEach(searchItemDef -> allDefs.add(searchItemDef.getDef()));
+        return allDefs;
     }
 
     public SearchItem addItem(ItemDefinition def) {
@@ -116,22 +136,33 @@ public class Search implements Serializable, DebugDumpable {
             return null;
         }
 
-        ItemPath path = null;
-        ItemDefinition itemToRemove = null;
-        for (Map.Entry<ItemPath, ItemDefinition> entry : allDefinitions.entrySet()) {
-            if (entry.getValue().getName().equals(def.getName())) {
-                path = entry.getKey();
-                itemToRemove = entry.getValue();
+        SearchItemDefinition itemToRemove = null;
+        for (SearchItemDefinition entry : allDefinitions) {
+            if (entry.getDef().getName().equals(def.getName())) {
+                itemToRemove = entry;
                 break;
             }
         }
 
-        if (path == null) {
+        if (itemToRemove.getPath() == null) {
             return null;
         }
 
-        SearchItem item = new SearchItem(this, path, def);
-        item.getValues().add(new SearchValue<>());
+        SearchItem item = new SearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues());
+        if (def instanceof PrismReferenceDefinition) {
+        	ObjectReferenceType ref = new ObjectReferenceType();
+        	List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
+        	if (supportedTargets.size() == 1) {
+        		ref.setType(supportedTargets.iterator().next());
+        	}
+        	if (itemToRemove.getAllowedValues() != null && itemToRemove.getAllowedValues().size() == 1) {
+        		ref.setRelation((QName) itemToRemove.getAllowedValues().iterator().next());
+        	}
+        	
+        	item.getValues().add(new SearchValue<>(ref));
+		} else {
+			item.getValues().add(new SearchValue<>());
+		}
 
         items.add(item);
         if (itemToRemove != null) {
@@ -147,7 +178,7 @@ public class Search implements Serializable, DebugDumpable {
         }
     }
 
-    public Class<? extends ObjectType> getType() {
+    public Class<? extends Containerable> getType() {
         return type;
     }
 
@@ -221,9 +252,17 @@ public class Search implements Serializable, DebugDumpable {
         ItemPath path = item.getPath();
 
         if (definition instanceof PrismReferenceDefinition) {
-            return QueryBuilder.queryFor(ObjectType.class, ctx)
-                    .item(path, definition).ref((PrismReferenceValue) searchValue.getValue())
+        	PrismReferenceValue refValue = ((ObjectReferenceType)searchValue.getValue()).asReferenceValue();
+        	if (refValue.isEmpty()) {
+        		return null;
+        	}
+            RefFilter refFilter =  (RefFilter) QueryBuilder.queryFor(ObjectType.class, ctx)
+                    .item(path, definition).ref(refValue.clone())
                     .buildFilter();
+            refFilter.setOidNullAsAny(true);
+            refFilter.setRelationNullAsAny(true);
+            refFilter.setTargetTypeNullAsAny(true);
+            return refFilter;
         }
 
         PrismPropertyDefinition propDef = (PrismPropertyDefinition) definition;
@@ -328,7 +367,7 @@ public class Search implements Serializable, DebugDumpable {
         }
 
         SearchFilterType search = ctx.parserFor(advancedQuery).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
-        return QueryConvertor.parseFilter(search, type, ctx);
+        return QueryConvertor.parseFilter(search, (Class<? extends ObjectType>) type, ctx);
     }
 
     public boolean isAdvancedQueryValid(PrismContext ctx) {

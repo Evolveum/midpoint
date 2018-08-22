@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
@@ -1042,7 +1043,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		// Subtype
 		String specSubtype = objectSelector.getSubtype();
 		if (specSubtype != null) {
-			Collection<String> actualSubtypeValues = ObjectTypeUtil.getSubtypeValues(object);
+			Collection<String> actualSubtypeValues = FocusTypeUtil.determineSubTypes(object);
 			if (!actualSubtypeValues.contains(specSubtype)) {
 				logger.trace("{} subtype mismatch, expected {}, was {}", logMessagePrefix, specSubtype, actualSubtypeValues);
 				return false;
@@ -1139,7 +1140,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			return;
 		}
 
-		Configuration systemConfigFromFile = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION_SECTION);
+		Configuration systemConfigFromFile = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION);
 		if (systemConfigFromFile != null && systemConfigFromFile
 				.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false)) {
 			LOGGER.warn("Skipping application of repository logging configuration because {}=true", LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS);

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.RelationTypes;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.input.QNameChoiceRenderer;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -64,10 +64,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMemberPanel<T> {
 
@@ -85,7 +82,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		super(id, TableId.ROLE_MEMEBER_PANEL, model);
 	}
 
-	public RoleMemberPanel(String id, IModel<T> model, List<RelationTypes> relations) {
+	public RoleMemberPanel(String id, IModel<T> model, List<QName> relations) {
 		super(id, TableId.ROLE_MEMEBER_PANEL, model, relations);
 	}
 
@@ -103,43 +100,6 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 	protected PrismContext getPrismContext() {
 		return getPageBase().getPrismContext();
-	}
-
-	private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
-			IChoiceRenderer<V> renderer) {
-		DropDownChoice<V> listSelect = new DropDownChoice<>(id, defaultModel,
-            new AbstractReadOnlyModel<List<V>>() {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public List<V> getObject() {
-                    return values;
-                }
-            }, renderer);
-
-		listSelect.add(new OnChangeAjaxBehavior() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				refreshTable(target);
-			}
-		});
-
-		return listSelect;
-	}
-
-	protected void refreshTable(AjaxRequestTarget target) {
-		DropDownChoice<QName> typeChoice = (DropDownChoice) get(createComponentPath(ID_OBJECT_TYPE));
-		QName type = typeChoice.getModelObject();
-		getMemberTable().clearCache();
-		getMemberTable().refreshTable(WebComponentUtil.qnameToClass(getPrismContext(), type, FocusType.class), target);
-	}
-
-
-
-	private MainObjectListPanel<FocusType> getMemberTable() {
-		return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
 	}
 
 	protected AssignmentType createMemberAssignmentToModify(QName relation) throws SchemaException {
@@ -180,16 +140,9 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 
 	private List<PrismReferenceValue> createReferenceValuesList(List<QName> relations) {
 		List<PrismReferenceValue> referenceValuesList = new ArrayList<>();
-		if (relations != null && relations.size() > 0){
-			if (!CollectionUtils.isEmpty(relations)) {
-				for (QName relation : relations) {
+		for (QName relation : relations) {
 					referenceValuesList.add(createReference(relation).asReferenceValue());
-				}
-			}
-		} else {
-			referenceValuesList.add(createReference().asReferenceValue());
 		}
-
 		return referenceValuesList;
 
 	}
@@ -266,6 +219,43 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		indirectMembersContainer.add(includeIndirectMembers);
 
 	}
+	
+	private <V> DropDownChoice<V> createDropDown(String id, IModel<V> defaultModel, final List<V> values,
+			IChoiceRenderer<V> renderer) {
+		DropDownChoice<V> listSelect = new DropDownChoice<>(id, defaultModel,
+            new AbstractReadOnlyModel<List<V>>() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public List<V> getObject() {
+                    return values;
+                }
+            }, renderer);
+
+		listSelect.add(new OnChangeAjaxBehavior() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onUpdate(AjaxRequestTarget target) {
+				refreshTable(target);
+			}
+		});
+
+		return listSelect;
+	}
+
+	protected void refreshTable(AjaxRequestTarget target) {
+		DropDownChoice<QName> typeChoice = (DropDownChoice) get(createComponentPath(ID_OBJECT_TYPE));
+		QName type = typeChoice.getModelObject();
+		getMemberTable().clearCache();
+		getMemberTable().refreshTable(WebComponentUtil.qnameToClass(getPrismContext(), type, FocusType.class), target);
+	}
+
+
+
+	private MainObjectListPanel<FocusType> getMemberTable() {
+		return (MainObjectListPanel<FocusType>) get(createComponentPath(ID_FORM, ID_CONTAINER_MEMBER, ID_MEMBER_TABLE));
+	}
 
 	private ChooseTypePanel<OrgType> createParameterPanel(String id, boolean isTenant) {
 
@@ -312,15 +302,6 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 		};
 
 		return orgSelector;
-
-	}
-
-	@Override
-	protected void addMembersPerformed(QName type, List<QName> relation, List selected, AjaxRequestTarget target) {
-		Task operationalTask = getPageBase().createSimpleTask(getTaskName("Add", null));
-		ObjectDelta delta = prepareDelta(type, relation, MemberOperation.ADD, operationalTask.getResult());
-		executeMemberOperation(operationalTask, type, createQueryForAdd(selected), delta,
-				TaskCategory.EXECUTE_CHANGES, target);
 
 	}
 
@@ -391,15 +372,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	@Override
 	protected ObjectQuery createContentQuery() {
 		boolean indirect = ((IsolatedCheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS_CONTAINER, ID_INDIRECT_MEMBERS))).getValue();
-
-		List<QName> relationList = new ArrayList<>();
-		if (relations != null) {
-			for (RelationTypes relation: relations) {
-				relationList.add(relation.getRelation());
-			}
-		}
-		
-		return indirect ? createAllMemberQuery(relationList) : createDirectMemberQuery(relationList);
+		return indirect ? createAllMemberQuery(relations) : createDirectMemberQuery(relations);
 
 	}
 
@@ -437,7 +410,7 @@ public class RoleMemberPanel<T extends AbstractRoleType> extends AbstractRoleMem
 	}
 
 	@Override
-	protected List<QName> getNewMemberSupportedTypes(){
-		return WebComponentUtil.createFocusTypeList();
+	protected List<QName> getAvailableRelationList(){
+		return Arrays.asList(RelationTypes.MEMBER.getRelation());
 	}
 }

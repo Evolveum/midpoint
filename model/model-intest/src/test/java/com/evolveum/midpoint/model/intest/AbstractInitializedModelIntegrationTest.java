@@ -95,11 +95,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected ResourceType resourceDummyWhiteType;
 	protected PrismObject<ResourceType> resourceDummyWhite;
 
-    protected DummyResource dummyResourceGreen;
-	protected DummyResourceContoller dummyResourceCtlGreen;
-	protected ResourceType resourceDummyGreenType;
-	protected PrismObject<ResourceType> resourceDummyGreen;
-
 	protected static DummyResource dummyResourceEmerald;
 	protected static DummyResourceContoller dummyResourceCtlEmerald;
 	protected ResourceType resourceDummyEmeraldType;
@@ -148,6 +143,9 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		initDummyResourcePirate(RESOURCE_DUMMY_YELLOW_NAME,
 				RESOURCE_DUMMY_YELLOW_FILE, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
 
+		initDummyResourcePirate(RESOURCE_DUMMY_GREEN_NAME,
+				RESOURCE_DUMMY_GREEN_FILE, RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
+		
 		initDummyResourcePirate(RESOURCE_DUMMY_BLACK_NAME,
 				RESOURCE_DUMMY_BLACK_FILE, RESOURCE_DUMMY_BLACK_OID, initTask, initResult);
 
@@ -167,13 +165,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		resourceDummyWhite = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_WHITE_FILENAME, RESOURCE_DUMMY_WHITE_OID, initTask, initResult);
 		resourceDummyWhiteType = resourceDummyWhite.asObjectable();
 		dummyResourceCtlWhite.setResource(resourceDummyWhite);
-
-        dummyResourceCtlGreen = DummyResourceContoller.create(RESOURCE_DUMMY_GREEN_NAME, resourceDummyGreen);
-		dummyResourceCtlGreen.extendSchemaPirate();
-		dummyResourceGreen = dummyResourceCtlGreen.getDummyResource();
-		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, getResourceDummyGreenFile(), RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
-		resourceDummyGreenType = resourceDummyGreen.asObjectable();
-		dummyResourceCtlGreen.setResource(resourceDummyGreen);
 
 		dummyResourceCtlEmerald = DummyResourceContoller.create(RESOURCE_DUMMY_EMERALD_NAME, resourceDummyEmerald);
 		dummyResourceCtlEmerald.extendSchemaPirate();

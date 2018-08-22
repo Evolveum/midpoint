@@ -188,6 +188,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 		if (objectDelta == null) {
 			sb.append(" null");
 		} else {
+			sb.append("\n");
 			sb.append(objectDelta.debugDump(indent+2));
 		}
 		sb.append("\n");
@@ -197,6 +198,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 		if (oldShadow == null) {
 			sb.append(" null");
 		} else {
+			sb.append("\n");
 			sb.append(oldShadow.debugDump(indent+2));
 		}
 

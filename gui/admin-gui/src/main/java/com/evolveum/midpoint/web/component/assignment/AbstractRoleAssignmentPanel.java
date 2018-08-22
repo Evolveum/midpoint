@@ -24,14 +24,22 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -39,6 +47,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -46,8 +55,9 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.TypedAssignablePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -55,6 +65,8 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -68,10 +80,15 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
 	private static final long serialVersionUID = 1L;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
 
     private static final String ID_RELATION = "relation";
     private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
+
+    protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
+    private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
 
     private RelationTypes relationValue = null;
 
@@ -79,9 +96,11 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     	super(id, assignmentContainerWrapperModel);
     }
 
-    protected void initCustomLayout(WebMarkupContainer assignmentsContainer){
+    protected Fragment getCustomSearchPanel(String contentAreaId){
+    	Fragment searchContainer = new Fragment(contentAreaId, AssignmentPanel.ID_SEARCH_FRAGMENT, this);
 
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
+         
         relationContainer.setOutputMarkupId(true);
         relationContainer.add(new VisibleEnableBehaviour() {
 
@@ -93,12 +112,15 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             }
 
         });
-        assignmentsContainer.addOrReplace(relationContainer);
+        searchContainer.addOrReplace(relationContainer);
 
     	DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
                 WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class),
                 new IModel<RelationTypes>() {
-                    @Override
+    		
+					private static final long serialVersionUID = 1L;
+
+					@Override
                     public RelationTypes getObject() {
                         return relationValue;
                     }
@@ -119,7 +141,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-            	refreshTable(target);
+            	getMultivalueContainerListPanel().refreshTable(target);
             }
         });
         relation.setOutputMarkupId(true);
@@ -136,7 +158,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 showAllAssignments(ajaxRequestTarget);
             }
         };
-        assignmentsContainer.addOrReplace(showAllAssignmentsButton);
+        searchContainer.addOrReplace(showAllAssignmentsButton);
         showAllAssignmentsButton.setOutputMarkupId(true);
         showAllAssignmentsButton.add(new VisibleEnableBehaviour(){
 
@@ -146,6 +168,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 return showAllAssignmentsVisible();
             }
         });
+        return searchContainer;
     }
 
     private DropDownChoicePanel<RelationTypes> getRelationPanel() {
@@ -166,7 +189,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         pageBase.showMainPopup(assignmentsDialog, target);
     }
 
-       @Override
+    @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target) {
            AssignmentPopup popupPanel = new AssignmentPopup(getPageBase().getMainPopupBodyId()) {
 
@@ -201,9 +224,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	        	   } else {
 	        		   assignmentType.setTargetRef(assignment.getTargetRef());
 	        	   }
-	        	   createNewAssignmentContainerValueWrapper(newAssignment);
-	        	   refreshTable(target);
-	               reloadSavePreviewButtons(target);
+	        	   getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModel());
+	        	   getMultivalueContainerListPanel().refreshTable(target);
+	        	   getMultivalueContainerListPanel().reloadSavePreviewButtons(target);
 			} catch (SchemaException e) {
 				getSession().error("Cannot create new assignment " + e.getMessage());
 				target.add(getPageBase().getFeedbackPanel());
@@ -231,6 +254,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+            	
                 item.add(new Label(componentId, getTenantLabelModel(rowModel.getObject())));
             }
         });
@@ -241,6 +265,15 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
                 item.add(new Label(componentId, getOrgRefLabelModel(rowModel.getObject())));
+            }
+        });
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+                item.add(new Label(componentId, getIdentifierLabelModel(rowModel.getObject())));
             }
         });
 
@@ -271,8 +304,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         };
     }
 
-    protected void initPaging(){
-        getAssignmentsStorage().setPaging(ObjectPaging.createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
+    protected void initCustomPaging(){
+    	getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 
 	@Override
@@ -316,34 +349,92 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		return relationValue == null ? PrismConstants.Q_ANY : relationValue.getRelation();
 	}
 
-	@Override
-	protected AbstractAssignmentDetailsPanel createDetailsPanel(String idAssignmentDetails, Form<?> form, IModel<ContainerValueWrapper<AssignmentType>> model) {
-		return new AbstractRoleAssignmentDetailsPanel(ID_ASSIGNMENT_DETAILS, form, model);
-	}
-
     private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
 	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
 	        return Model.of("");
         }
-	    AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
-	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(Arrays.asList(assignment.getTenantRef()), false));
-
+	    PropertyOrReferenceWrapper policyRuleWrapper = (PropertyOrReferenceWrapper)assignmentContainer.findPropertyWrapper(new ItemPath(assignmentContainer.getPath(), AssignmentType.F_TENANT_REF));
+	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
     }
 
     private IModel<String> getOrgRefLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
 	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
 	        return Model.of("");
         }
-	    AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
-	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(Arrays.asList(assignment.getOrgRef()), false));
+	    PropertyOrReferenceWrapper policyRuleWrapper = (PropertyOrReferenceWrapper)assignmentContainer.findPropertyWrapper(new ItemPath(assignmentContainer.getPath(), AssignmentType.F_ORG_REF));
+	    return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
 
     }
 
-     protected boolean isRelationVisible() {
+    private <O extends ObjectType> IModel<String> getIdentifierLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
+        if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
+            return Model.of("");
+        }
+        AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
+        if (assignment.getTargetRef() == null){
+            return Model.of("");
+        }
+
+        PrismObject<O> object = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(),
+                getPageBase().createSimpleTask(OPERATION_LOAD_TARGET_REF_OBJECT), new OperationResult(OPERATION_LOAD_TARGET_REF_OBJECT));
+        if (object == null || !(object.asObjectable() instanceof AbstractRoleType)){
+            return Model.of("");
+        }
+        AbstractRoleType targetRefObject = (AbstractRoleType) object.asObjectable();
+        if (StringUtils.isNotEmpty(targetRefObject.getIdentifier())){
+            return Model.of(targetRefObject.getIdentifier());
+        }
+        if (targetRefObject.getDisplayName() != null && !targetRefObject.getName().getOrig().equals(targetRefObject.getDisplayName().getOrig())){
+            return Model.of(targetRefObject.getName().getOrig());
+        }
+        return Model.of("");
+    }
+
+    protected boolean isRelationVisible() {
 		return true;
 	}
 
 	protected List<ObjectTypes> getObjectTypesList(){
         return WebComponentUtil.createAssignableTypesList();
     }
+
+	@Override
+	protected Fragment getCustomSpecificContainers(String contentAreaId, ContainerValueWrapper<AssignmentType> modelObject) {
+		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+		specificContainers.add(getSpecificContainerPanel(modelObject));
+		return specificContainers;
+	}
+	
+	@Override
+	protected IModel<ContainerWrapper> getSpecificContainerModel(ContainerValueWrapper<AssignmentType> modelObject) {
+		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+			ContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(),
+					AssignmentType.F_CONSTRUCTION));
+			
+			return Model.of(constructionWrapper);
+		}
+		
+		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(modelObject.getContainerValue().getValue()))) {
+			ContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(),
+					AssignmentType.F_PERSONA_CONSTRUCTION));
+
+			return Model.of(personasWrapper);
+		}
+		return Model.of();
+	}
+
+	@Override
+	protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+		List<SearchItemDefinition> defs = new ArrayList<>();
+		
+		SearchFactory.addSearchRefDef(containerDef, new ItemPath(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+		SearchFactory.addSearchRefDef(containerDef, new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+		SearchFactory.addSearchPropertyDef(containerDef, new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+		
+		defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+		
+		return defs;
+	}
+	
 }

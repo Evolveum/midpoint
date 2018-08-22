@@ -17,7 +17,6 @@ public class InputTable<T> extends Component<T>{
     }
 
     public InputTable<T> addAttributeValue(String attributeName, String attributeValue){
-        System.out.println("The inner html: " + getParentElement().innerHtml());
 
         SelenideElement element = $(Schrodinger.byAncestorPrecedingSiblingElementValue("input","type","text",null,null,attributeName))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).setValue(attributeValue);

@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.impl.ResourceManager;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
+import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -167,7 +167,7 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	protected ResourceManager resourceManager;
 
 	@Autowired(required = true)
-	protected SynchornizationServiceMock syncServiceMock;
+	protected SynchronizationServiceMock syncServiceMock;
 
 	@Autowired(required = true)
 	protected MatchingRuleRegistry matchingRuleRegistry;

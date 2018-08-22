@@ -129,7 +129,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 				LensProjectionContext foundContext = context.findProjectionContextByOid(conflictingShadowCandidate.getOid());
 				if (foundContext != null) {
 					if (foundContext.getResourceShadowDiscriminator() != null) {
-						if (foundContext.getResourceShadowDiscriminator().isThombstone()) {
+						if (foundContext.getResourceShadowDiscriminator().isTombstone()) {
 							violation = false;
 						}
 						LOGGER.trace("Comparing with account in other context resulted to violation confirmation of {}", violation);
@@ -154,7 +154,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 				}
 			}
 		}
-		if (projectionContext.getResourceShadowDiscriminator() != null && projectionContext.getResourceShadowDiscriminator().isThombstone()) {
+		if (projectionContext.getResourceShadowDiscriminator() != null && projectionContext.getResourceShadowDiscriminator().isTombstone()) {
 			satisfiesConstraints = true;
 		} else {
 			satisfiesConstraints = false;

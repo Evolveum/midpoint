@@ -18,10 +18,13 @@ package com.evolveum.midpoint.web.component.dialog;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.core.request.handler.IPartialPageRequestHandler;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.string.AppendingStringBuffer;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -91,6 +94,8 @@ public class MainPopupDialog extends ModalWindow {
     	setTitle(popupable.getTitle());
     	setInitialHeight(popupable.getHeight());
     	setInitialWidth(popupable.getWidth());
+    	setHeightUnit(popupable.getHeightUnit());
+    	setWidthUnit(popupable.getWidthUnit());
     	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
     	popupable.getComponent().setOutputMarkupId(true);
     	content.addOrReplace(popupable.getComponent());

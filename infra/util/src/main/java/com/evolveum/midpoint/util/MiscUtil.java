@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -707,6 +707,22 @@ public class MiscUtil {
 		} catch (MalformedURLException e) {
 			throw new SystemException(e);
 		}
+	}
+
+	public static <T> List<T> join(Collection<T> a, Collection<T> b) {
+		if (a == null && b == null) {
+			return new ArrayList<>();
+		}
+		if (a == null) {
+			return new ArrayList<>(b);
+		}
+		if (b == null) {
+			return new ArrayList<>(a);
+		}
+		List<T> list = new ArrayList<>(a.size() + b.size());
+		list.addAll(a);
+		list.addAll(b);
+		return list;
 	}
 
 }

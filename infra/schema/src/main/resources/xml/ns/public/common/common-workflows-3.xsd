@@ -51,8 +51,20 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalSchemaType.name</a:displayName>
+			        </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalSchemaType.description</a:displayName>
+			        </xsd:appinfo>
+                </xsd:annotation>
+			</xsd:element>
 			<xsd:element name="level" type="c:ApprovalStageDefinitionType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -71,6 +83,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalSchemaType.stage</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -95,6 +108,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.6</a:deprecatedSince>
+						<a:displayName>ApprovalStageDefinitionType.order</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -105,12 +119,31 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.number</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="displayName" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.name</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.displayName</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.description</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -118,6 +151,9 @@
 						by someone from a group of users (if this points to a Org object; representing
 						all users that belong to that organization).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.approverRef</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="approverRelation" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
@@ -130,6 +166,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.5</a:since>
+						<a:displayName>ApprovalStageDefinitionType.approverRelation</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -140,6 +177,9 @@
 						is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
 						May be used with approverRef element(s).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.approverExpression</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="evaluationStrategy" type="c:LevelEvaluationStrategyType" minOccurs="0">
@@ -148,6 +188,9 @@
 						Must all approvers at this stage approve the thing (allMustApprove),
 						or first decision is taken as authoritative (firstDecides)?
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>ApprovalStageDefinitionType.evaluationStrategy</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="outcomeIfNoApprovers" type="c:ApprovalLevelOutcomeType" minOccurs="0">
@@ -158,6 +201,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.outcomeIfNoApprovers</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -169,6 +213,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.groupExpansion</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -180,6 +225,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.formRef</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -191,6 +237,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.additionalInformation</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -205,6 +252,7 @@
 					<xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
 						<a:deprecatedSince>3.6</a:deprecatedSince>
+						<a:displayName>ApprovalStageDefinitionType.automaticallyApproved</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -216,6 +264,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.automaticallyCompleted</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -227,6 +276,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.duration</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -238,6 +288,7 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.6</a:since>
+						<a:displayName>ApprovalStageDefinitionType.timedActions</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -596,6 +647,9 @@
                         through the model subsystem should be processed by the workflow hook. So, if disabled,
                         all requests are executed immediately, without being processed by workflows.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WfConfigurationType.modelHookEnabled</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="processCheckInterval" minOccurs="0" type="xsd:int" default="10">
@@ -604,6 +658,9 @@
                         For "dumb" wf processes, which require active shadowing tasks, sets the process
                         instance check interval (in seconds).
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WfConfigurationType.processCheckInterval</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="allowCompleteOthersItems" minOccurs="0" type="xsd:boolean" default="true">
@@ -614,6 +671,7 @@
                         DEPRECATED. Use authorizations to limit ability to approve/reject arbitrary work items.
                     </xsd:documentation>
                     <xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>3.5</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -625,6 +683,9 @@
                         automaticallyApproved items in AbstractRoleType? The default is "ifNoExplicitApprovalPolicyAction", that
                         means these items are applied only if no explicit approval policy action is encountered.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WfConfigurationType.useLegacyApproversSpecification</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="useDefaultApprovalPolicyRules" minOccurs="0" type="tns:DefaultApprovalPolicyRulesUsageType">
@@ -633,6 +694,9 @@
                         Whether to use default approval policy rules. The default is "ifNoApprovalPolicyAction", that means
                         these rules are applied only if no other approval policy action is encountered.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WfConfigurationType.useDefaultApprovalPolicyRules</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="executionTasks" minOccurs="0" type="tns:WfExecutionTasksConfigurationType">
@@ -644,6 +708,7 @@
 					<xsd:appinfo>
 						<a:experimental>true</a:experimental>
 						<a:since>3.6.1</a:since>
+						<a:displayName>WfConfigurationType.executionTasks</a:displayName>
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -656,11 +721,24 @@
 					<xsd:appinfo>
 						<a:experimental>true</a:experimental>
 						<a:since>3.7.1</a:since>
+						<a:displayName>WfConfigurationType.approverCommentsFormatting</a:displayName>
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType" />
-            <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType" />
+            <xsd:element name="primaryChangeProcessor" minOccurs="0" type="tns:PrimaryChangeProcessorConfigurationType">
+			    <xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>WfConfigurationType.primaryChangeProcessor</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="generalChangeProcessor" minOccurs="0" type="tns:GeneralChangeProcessorConfigurationType">
+			   <xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>WfConfigurationType.generalChangeProcessor</a:displayName>
+					</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1004,23 +1082,125 @@
         <xsd:complexContent>
             <xsd:extension base="tns:WfChangeProcessorConfigurationType">
                 <xsd:sequence>
-                    <xsd:element name="policyRuleBasedAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="modifyResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="addAssociationAspect" type="tns:PcpAspectConfigurationType" minOccurs="0" />
-                    <xsd:element name="otherAspect" type="tns:GenericPcpAspectConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="policyRuleBasedAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.policyRuleBasedAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.addUserAbstractRoleAssignmentAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyUserAbstractRoleAssignmentAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.addUserResourceAssignmentAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="modifyUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyUserResourceAssignmentAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="addAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.addAbstractRoleAbstractRoleAssignmentAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="modifyAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyAbstractRoleAbstractRoleAssignmentAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="addAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.addAbstractRoleResourceAssignmentAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="modifyAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyAbstractRoleResourceAssignmentAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="addAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.addAbstractRoleAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="modifyAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyAbstractRoleAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="addUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.addUserAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyUserAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.addResourceAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="modifyResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyResourceAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="addAssociationAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.addAssociationAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="otherAspect" type="tns:GenericPcpAspectConfigurationType" minOccurs="0" maxOccurs="unbounded">
+					   <xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>PrimaryChangeProcessorConfigurationType.otherAspect</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1054,6 +1234,9 @@
                         If not specified (but if aspect configuration is present), it is assumed to be true.
                         However, if the whole aspect configuration is absent, only aspects marked as "enabled-by-default" are enabled.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PcpAspectConfigurationType.enabled</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
@@ -1062,6 +1245,9 @@
                         Approvers for this aspect. The approver is a person (or group) that approves carrying out
                         action(s) relevant to this aspect. This reference may point to object of type UserType of OrgType.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PcpAspectConfigurationType.approverRef</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
@@ -1079,6 +1265,9 @@
                         More complex (multi-stage) approval schema. If used, it overrides both
                         approverRef and approverExpression elements.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PcpAspectConfigurationType.approvalSchema</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="approvalProcess" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -1117,6 +1306,9 @@
 
                         CURRENTLY IMPLEMENTED ONLY IN AddAssociationAspect.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PcpAspectConfigurationType.applicabilityCondition</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

@@ -16,13 +16,16 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,8 +37,8 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
 
     private static final String ID_ORG_TREE_VIEW_PANEL = "orgTreeViewPanel";
 
-    public OrgTreeMemberPopupTabPanel(String id){
-        super(id, ObjectTypes.ORG);
+    public OrgTreeMemberPopupTabPanel(String id, List<QName> availableRelationList){
+        super(id, availableRelationList);
     }
 
     @Override
@@ -87,11 +90,10 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
         return getPreselectedObjects();
     }
 
-//    @Override
-//    protected List<AssignmentType> getSelectedAssignmentsList(){
-//        isOrgTreeView = true;
-//        return super.getSelectedAssignmentsList();
-//    }
+    @Override
+    protected ObjectTypes getObjectType(){
+        return ObjectTypes.ORG;
+    }
 
     protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){}
 }

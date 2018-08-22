@@ -967,4 +967,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	}
 
+	protected boolean isFocusHistoryPage(){
+		return false;
+	}
 }

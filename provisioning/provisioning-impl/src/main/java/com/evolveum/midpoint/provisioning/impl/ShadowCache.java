@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,9 +33,8 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.*;
-import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
-import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
-import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
+import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandler;
+import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -75,11 +76,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -98,16 +102,19 @@ import java.util.List;
  * @author Katarina Valalikova
  *
  */
-public abstract class ShadowCache {
+@Component
+public class ShadowCache {
 	
 	public static String OP_PROCESS_SYNCHRONIZATION = ShadowCache.class.getName() + ".processSynchronization";
 	public static String OP_DELAYED_OPERATION = ShadowCache.class.getName() + ".delayedOperation";
+	public static String OP_OPERATION_RETRY = ShadowCache.class.getName() + ".operationRetry";
+	public static String OP_RESOURCE_OPERATION = ShadowCache.class.getName() + ".resourceOperation";
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-	@Autowired private ErrorHandlerFactory errorHandlerFactory;
+	@Autowired private ErrorHandlerLocator errorHandlerLocator;
 	@Autowired private ResourceManager resourceManager;
 	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
@@ -123,10 +130,6 @@ public abstract class ShadowCache {
 	@Autowired private Protector protector;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
-
-	public ShadowCache() {
-		repositoryService = null;
-	}
 
 	/**
 	 * Get the value of repositoryService.
@@ -192,7 +195,7 @@ public abstract class ShadowCache {
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		
 		if (GetOperationOptions.isNoFetch(rootOptions) || GetOperationOptions.isRaw(rootOptions)) {
-			return processNoFetchGet(ctx, repositoryShadow, options, now, parentResult);
+			return processNoFetchGet(ctx, repositoryShadow, options, now, task, parentResult);
 		}
 
 		if (!ResourceTypeUtil.isReadCapabilityEnabled(resource)) {
@@ -201,46 +204,66 @@ public abstract class ShadowCache {
 			throw e;
 		}
 		
-		repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
+		if (shouldRefreshOnRead(resource, rootOptions)) {
+			LOGGER.trace("Refreshing shadow {} before reading", repositoryShadow);
+			repositoryShadow = refreshShadow(repositoryShadow, task, parentResult);
+			LOGGER.trace("Refreshed repository shadow:\n{}", repositoryShadow.debugDumpLazily(1));
+		}
 		if (repositoryShadow == null) {
 			// Dead shadow was just removed
 			// TODO: is this OK? What about re-appeared objects
+			LOGGER.warn("DEAD shadow {} DEAD?", oid);
 			ObjectNotFoundException e = new ObjectNotFoundException("Resource object does not exist");
 			parentResult.recordFatalError(e);
 			throw e;
 		}
 		
-		if (canReturnCached(options, repositoryShadow, resource)) {
-			PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
+		ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow, now);
+		LOGGER.trace("State of shadow {}: {}", repositoryShadow, shadowState);
+		
+		if (canImmediatelyReturnCached(options, repositoryShadow, shadowState, resource)) {
+			LOGGER.trace("Returning cached (repository) version of shadow {}", repositoryShadow);
+			PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
 			shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 			validateShadow(resultShadow, true);
 			return resultShadow;
 		}
 		
 		PrismObject<ShadowType> resourceShadow = null;
-		try {
 
-			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil
-					.getPrimaryIdentifiers(repositoryShadow);
-
-			if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
-				// check if the account is not only partially created (exist
-				// only in repo so far)
-				if (repositoryShadow.asObjectable().getFailedOperationType() != null) {
+		Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repositoryShadow);
+		if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
+			if (ProvisioningUtil.hasPendingAddOperation(repositoryShadow) || ShadowUtil.isDead(repositoryShadow.asObjectable())) {
+				if (ProvisioningUtil.isFuturePointInTime(options)) {
+					// Get of uncreated or dead shadow, we want to see future state (how the shadow WILL look like).
+					// We cannot even try fetch operation here. We do not have the identifiers.
+					// But we have quite a good idea how the shadow is going to look like. Therefore we can return it.
+					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
+					shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
+					validateShadow(resultShadow, true);
+					// NOTE: do NOT re-try add operation here. It will be retried in separate task.
+					// re-trying the operation here would not provide big benefits and it will complicate the code.
+					return resultShadow;
+				} else {
+					// Get of uncreated shadow, but we want current state. Therefore we have to throw an error because
+					// the object does not exist yet - to our best knowledge. But we cannot really throw ObjectNotFound here.
+					// ObjectNotFound is a positive indication that the object does not exist.
+					// We do not know that for sure because resource is unavailable. The object might have been created in the meantime.
 					throw new GenericConnectorException(
 							"Unable to get object from the resource. Probably it has not been created yet because of previous unavailability of the resource.");
 				}
-				
-				// No identifiers found
-				SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
-						+ repositoryShadow + " with respect to " + resource);
-				parentResult.recordFatalError(
-						"No primary identifiers found in the repository shadow " + repositoryShadow, ex);
-				throw ex;
 			}
 			
-			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
-					.getAllIdentifiers(repositoryShadow);
+			// No identifiers found
+			SchemaException ex = new SchemaException("No primary identifiers found in the repository shadow "
+					+ repositoryShadow + " with respect to " + resource);
+			parentResult.recordFatalError("No primary identifiers found in the repository shadow " + repositoryShadow, ex);
+			throw ex;
+		}
+		
+		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repositoryShadow);
+		try {
+
 			
 			try {
 				
@@ -248,17 +271,21 @@ public abstract class ShadowCache {
 				
 			} catch (ObjectNotFoundException e) {
 				// This may be OK, e.g. for connectors that have running async add operation.
-				if (canReturnCachedAfterNotFoundOnResource(options, repositoryShadow, resource)) {
-					LOGGER.trace("Object not found on reading of {}, but we can return cached shadow", repositoryShadow);
+				if (shadowState == ShadowState.CONCEPTION || shadowState == ShadowState.GESTATION) {
+					LOGGER.trace("{} was not found, but we can return cached shadow because it is in {} state", repositoryShadow, shadowState);
 					parentResult.deleteLastSubresultIfError();		// we don't want to see 'warning-like' orange boxes in GUI (TODO reconsider this)
 					parentResult.recordSuccess();
-					repositoryShadow.asObjectable().setExists(false);
-					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
+					
+					PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
 					shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 					LOGGER.trace("Returning futurized shadow:\n{}", DebugUtil.debugDumpLazily(resultShadow));
 					validateShadow(resultShadow, true);
 					return resultShadow;
+					
 				} else {
+					LOGGER.trace("{} was not found, following normal error processing beacuse shadow is in {} state", repositoryShadow, shadowState);
+					// This is live shadow that was not found on resource. Just re-throw the exception. It will
+					// be caught later and the usual error handlers will bury the shadow.
 					throw e;
 				}
 			}
@@ -288,41 +315,45 @@ public abstract class ShadowCache {
 			}
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump());
-				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump());
+				LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
+				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump(1));
 			}
 
-			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow,
+			repositoryShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repositoryShadow, shadowState,
 					parentResult);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDump());
+				LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDump(1));
 			}
 			// Complete the shadow by adding attributes from the resource object
-			PrismObject<ShadowType> resultShadow = completeShadow(shadowCtx, resourceShadow, repositoryShadow,
-					parentResult);
+			PrismObject<ShadowType> resultShadow = completeShadow(shadowCtx, resourceShadow, repositoryShadow, false, parentResult);
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump());
+				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump(1));
 			}
 
-			resultShadow = futurizeShadow(ctx, resultShadow, options, now);
+			resultShadow = futurizeShadow(ctx, repositoryShadow, resultShadow, options, now);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Futurized assembled shadow:\n{}", resultShadow.debugDump(1));
+			}
 			parentResult.recordSuccess();
 			validateShadow(resultShadow, true);
 			return resultShadow;
 
 		} catch (Exception ex) {
 			try {
-
-				resourceShadow = handleError(ctx, ex, repositoryShadow, FailedOperation.GET, null,
-						isDoDiscovery(resource, rootOptions), isCompensate(rootOptions), parentResult);
+				PrismObject<ShadowType> handledShadow = handleGetError(ctx, repositoryShadow, rootOptions, ex, task, parentResult);
+				if (handledShadow == null) {
+					throw ex;
+				}
 				if (parentResult.getStatus() == OperationResultStatus.FATAL_ERROR) {
 					// We are going to return an object. Therefore this cannot
 					// be fatal error, as at least some information
 					// is returned
 					parentResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
 				}
-				validateShadow(resourceShadow, true);
-				return resourceShadow;
+				handledShadow = futurizeShadow(ctx, handledShadow, null, options, now);
+				validateShadow(handledShadow, true);
+				return handledShadow;
 
 			} catch (GenericFrameworkException | ObjectAlreadyExistsException e) {
 				throw new SystemException(e.getMessage(), e);
@@ -340,74 +371,86 @@ public abstract class ShadowCache {
 		}
 	}
 
-	private PrismObject<ShadowType> processNoFetchGet(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
-			Collection<SelectorOptions<GetOperationOptions>> options, XMLGregorianCalendar now, OperationResult parentResult) 
+	private boolean shouldRefreshOnRead(ResourceType resource, GetOperationOptions rootOptions) {
+		return GetOperationOptions.isForceRefresh(rootOptions) || ResourceTypeUtil.isRefreshOnRead(resource);
+	}
+
+	private PrismObject<ShadowType> processNoFetchGet(ProvisioningContext ctx,
+			PrismObject<ShadowType> repositoryShadow, Collection<SelectorOptions<GetOperationOptions>> options, 
+			XMLGregorianCalendar now, Task task, OperationResult parentResult) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
-		ResourceType resource = ctx.getResource();
-		ShadowType repositoryShadowType = repositoryShadow.asObjectable();
-		
 		LOGGER.trace("Processing noFetch get for {}", repositoryShadow);
 		
 		// Even with noFetch we still want to delete expired pending operations. And even delete
 		// the shadow if needed.
-		ObjectDelta<ShadowType> shadowDelta = repositoryShadow.createModifyDelta();
-		boolean atLeastOnePendingOperationRemains = expirePendingOperations(ctx, repositoryShadow, shadowDelta, now, parentResult);
-		if (repositoryShadowType.getFailedOperationType() != null) {
-			atLeastOnePendingOperationRemains = true;
-		}
-		if (ShadowUtil.isDead(repositoryShadowType) && !atLeastOnePendingOperationRemains) {
-			LOGGER.trace("Removing dead shadow with no pending operation: {}", repositoryShadow);
-			shadowManager.deleteShadow(ctx, repositoryShadow, parentResult);
+		repositoryShadow = refreshShadowQick(ctx, repositoryShadow, now, task, parentResult);
+		if (repositoryShadow == null) {
 			ObjectNotFoundException e = new ObjectNotFoundException("Resource object not found");
 			parentResult.recordFatalError(e);
 			throw e;
 		}
 		
-		if (!shadowDelta.isEmpty()) {
-			shadowManager.modifyShadowAttributes(ctx, repositoryShadow, shadowDelta.getModifications(), parentResult);
-			shadowDelta.applyTo(repositoryShadow);
-		}
-		
-		PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, options, now);
+		PrismObject<ShadowType> resultShadow = futurizeShadow(ctx, repositoryShadow, null, options, now);
 		shadowCaretaker.applyAttributesDefinition(ctx, resultShadow);
 		
 		return resultShadow;
 	}
 
-	private PrismObject<ShadowType> futurizeShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+	private PrismObject<ShadowType> futurizeShadow(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow,
 			Collection<SelectorOptions<GetOperationOptions>> options, XMLGregorianCalendar now) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
-		if (pit != PointInTimeType.FUTURE) {
-			return shadow;
+		if (!ProvisioningUtil.isFuturePointInTime(options)) {
+			if (resourceShadow == null) {
+				return repoShadow;
+			} else {
+				return resourceShadow;
+			}
 		}
-		return shadowCaretaker.applyPendingOperations(ctx, shadow, now);
+		return shadowCaretaker.applyPendingOperations(ctx, repoShadow, resourceShadow, false, now);
 	}
 
-	private boolean canReturnCachedAfterNotFoundOnResource(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) {
+	private boolean canReturnCachedAfterObjectNotFound(Collection<SelectorOptions<GetOperationOptions>> options, 
+			PrismObject<ShadowType> repositoryShadow, ResourceType resource) {
 		if (repositoryShadow.asObjectable().getPendingOperation().isEmpty()) {
 			return false;
 		}
+		// TODO: which case is this exactly?
 		// Explicitly check the capability of the resource (primary connector), not capabilities of additional connectors
-		ReadCapabilityType readCapabilityType = CapabilityUtil.getEffectiveCapability(resource.getCapabilities(), ReadCapabilityType.class);
-		if (readCapabilityType == null) {
-			return false;
-		}
-		if (!CapabilityUtil.isCapabilityEnabled(readCapabilityType)) {
-			return false;
-		}
-		return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
+		return ProvisioningUtil.isPrimaryCachingOnly(resource);
 	}
 	
-	private boolean canReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
+	private boolean canImmediatelyReturnCached(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ShadowState shadowState, ResourceType resource) throws ConfigurationException {
 		if (ProvisioningUtil.resourceReadIsCachingOnly(resource)) {
 			return true;
 		}
+		if (shadowState == ShadowState.TOMBSTONE) {
+			// Once shadow is buried it stays nine feet under. Therefore there is no point in trying to access the resource.
+			// NOTE: this is just for tombstone! Schroedinger's shadows (corpse) will still work as if they were alive.
+			return true;
+		}
+		long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
 		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
-		if (pit != null) {
-			if (pit != PointInTimeType.CACHED) {
-				return false;
+		if (pit == null) {
+			if (stalenessOption > 0) {
+				pit = PointInTimeType.CACHED;
+			} else {
+				pit = PointInTimeType.CURRENT;
 			}
 		}
+		switch (pit) {
+			case CURRENT:
+				// We need current reliable state. Never return cached data.
+				return false;
+			case CACHED:
+				return isCachedShadowValid(options, repositoryShadow, resource);
+			case FUTURE:
+				// We could, e.g. if there is a pending create operation. But let's try real get operation first.
+				return false;
+			default:
+				throw new IllegalArgumentException("Unknown point in time: "+pit);
+		}
+	}
+	
+	private boolean isCachedShadowValid(Collection<SelectorOptions<GetOperationOptions>> options, PrismObject<ShadowType> repositoryShadow, ResourceType resource) throws ConfigurationException {
 		long stalenessOption = GetOperationOptions.getStaleness(SelectorOptions.findRootOptions(options));
 		if (stalenessOption == 0L) {
 			return false;
@@ -436,41 +479,6 @@ public abstract class ShadowCache {
 		return !GetOperationOptions.isDoNotDiscovery(rootOptions);
 	}
 
-	private boolean isCompensate(ProvisioningOperationOptions options) {
-		return ProvisioningOperationOptions.isCompletePostponed(options);
-	}
-	
-	private boolean isDoDiscovery(ResourceType resource, GetOperationOptions rootOptions) {
-		return !GetOperationOptions.isDoNotDiscovery(rootOptions) && isDoDiscovery(resource);
-	}
-
-	private boolean isDoDiscovery(ResourceType resource, ProvisioningOperationOptions options) {
-		return !ProvisioningOperationOptions.isDoNotDiscovery(options) && isDoDiscovery(resource);
-	}
-	
-	private boolean isDoDiscovery (ResourceType resource) {
-		if (resource == null) {
-			return true;
-		}
-		if (resource.getConsistency() == null) {
-			return true;
-		}
-		
-		if (resource.getConsistency().isDiscovery() == null) {
-			return true;
-		}
-		
-		return resource.getConsistency().isDiscovery();
-	}
-	
-	public abstract String afterAddOnResource(
-			ProvisioningContext ctx, 
-			PrismObject<ShadowType> shadowToAdd, 
-			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-			OperationResult parentResult) 
-					throws SchemaException, ObjectAlreadyExistsException,
-					ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException, EncryptionException;
-
 	public String addShadow(PrismObject<ShadowType> shadowToAdd, OperationProvisioningScriptsType scripts,
 			ResourceType resource, ProvisioningOperationOptions options, Task task,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
@@ -488,46 +496,62 @@ public abstract class ShadowCache {
 		try {
 			ctx.assertDefinition();
 		} catch (SchemaException e) {
-			handleError(ctx, e, shadowToAdd, FailedOperation.ADD, null, 
-					isDoDiscovery(resource, options), true, parentResult);
-			return null;
+			parentResult.recordFatalError(e);
+			ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(
+					shadowToAdd, ctx.getResource(), shadowToAdd.createAddDelta(), parentResult);
+			operationListener.notifyFailure(operationDescription, task, parentResult);
+			throw e;
 		}
+		
+		ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState = new ProvisioningOperationState<>();
+		
+		return addShadowAttempt(ctx, shadowToAdd, scripts, opState, options, task, parentResult);
+	}
 
-//		if (LOGGER.isTraceEnabled()) {
-//			LOGGER.trace("Definition:\n{}", ctx.getObjectClassDefinition().debugDump());
-//		}
+	private String addShadowAttempt(ProvisioningContext ctx, 
+			PrismObject<ShadowType> shadowToAdd, 
+			OperationProvisioningScriptsType scripts, 
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, 
+			ProvisioningOperationOptions options,
+			Task task, 
+			OperationResult parentResult) 
+					throws CommunicationException, GenericFrameworkException,
+					ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
 
 		PrismContainer<?> attributesContainer = shadowToAdd.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
-			SchemaException e = new SchemaException(
-					"Attempt to add shadow without any attributes: " + shadowToAdd);
+			SchemaException e = new SchemaException("Attempt to add shadow without any attributes: " + shadowToAdd);
 			parentResult.recordFatalError(e);
-			handleError(ctx, e, shadowToAdd, FailedOperation.ADD, null, 
-					isDoDiscovery(resource, options), true, parentResult);
-			return null;
+			ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(
+					shadowToAdd, ctx.getResource(), shadowToAdd.createAddDelta(), parentResult);
+			operationListener.notifyFailure(operationDescription, task, parentResult);
+			throw e;
 		}
 		if (!(attributesContainer instanceof ResourceAttributeContainer)) {
 			shadowCaretaker.applyAttributesDefinition(ctx, shadowToAdd);
 			attributesContainer = shadowToAdd.findContainer(ShadowType.F_ATTRIBUTES);
 		}
 		
-		preAddChecks(ctx, shadowToAdd, task, parentResult);
+//		if (opState.getRepoShadow() != null) {
+//			// HACK HACK HACK, not really right solution.
+//			// We need this for reliable uniqueness check in preAddChecks() and addResourceObject()
+//			// Maybe the right solution would be to pass opState as a parameter to addResourceObject()?
+//			// Or maybe addResourceObject() should not check uniqueness and we shoudl check it here?
+//			shadowToAdd.setOid(opState.getRepoShadow().getOid());
+//		}
 		
-		String proposedShadowOid = shadowManager.addNewProposedShadow(ctx, shadowToAdd, task, parentResult);
-
-		ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState = new ProvisioningOperationState<>();
-		if (proposedShadowOid == null && shadowToAdd.getOid() != null) {
-			// legacy ... from old consistency code
-			opState.setExistingShadowOid(shadowToAdd.getOid());
-		}
-		opState.setExistingShadowOid(proposedShadowOid);
-		PrismObject<ShadowType> addedShadow = null;
+		preAddChecks(ctx, shadowToAdd, opState, task, parentResult);
+		
+		shadowManager.addNewProposedShadow(ctx, shadowToAdd, opState, task, parentResult);
 
 		preprocessEntitlements(ctx, shadowToAdd, parentResult);
 
 		shadowCaretaker.applyAttributesDefinition(ctx, shadowToAdd);
 		shadowManager.setKindIfNecessary(shadowToAdd.asObjectable(), ctx.getObjectClassDefinition());
 		accessChecker.checkAdd(ctx, shadowToAdd, parentResult);
+		PrismObject<ShadowType> addedShadow = null;
+		OperationResultStatus finalOperationStatus = null;
 
 		if (shouldExecuteResourceOperationDirectly(ctx)) {
 			
@@ -542,6 +566,10 @@ public abstract class ShadowCache {
 				addedShadow = asyncReturnValue.getReturnValue();
 
 			} catch (ObjectAlreadyExistsException e) {
+				
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Object already exists error when trying to add {}, exploring the situation", ShadowUtil.shortDumpShadow(shadowToAdd));
+				}
 			
 				// This exception may still be OK in some cases. Such as:
 				// We are trying to add a shadow to a semi-manual connector.
@@ -566,17 +594,29 @@ public abstract class ShadowCache {
 								resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, true, parentResult);
 						opState.processAsyncResult(asyncReturnValue);
 						addedShadow = asyncReturnValue.getReturnValue();
-						
+					
+					} catch (ObjectAlreadyExistsException innerException) {
+						// Mark shadow dead before we handle the error. ADD operation obviously failed. Therefore this particular
+						// shadow was not created as resource object. It is dead on the spot. Make sure that error handler won't confuse
+						// this shadow with the conflicting shadow that it is going to discover.
+						// This may also be a gestation quantum state collapsing to tombstone
+						shadowManager.markShadowTombstone(opState.getRepoShadow(), parentResult);
+						finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, innerException, failedOperationResult, task, parentResult);
 					} catch (Exception innerException) {
-						return handleAddError(ctx, shadowToAdd, resource, options, proposedShadowOid, innerException, task, parentResult);
+						finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, innerException, parentResult.getLastSubresult(), task, parentResult);
 					}
 						
 				} else {
-					return handleAddError(ctx, shadowToAdd, resource, options, proposedShadowOid, e, task, parentResult);
+					// Mark shadow dead before we handle the error. ADD operation obviously failed. Therefore this particular
+					// shadow was not created as resource object. It is dead on the spot. Make sure that error handler won't confuse
+					// this shadow with the conflicting shadow that it is going to discover.
+					// This may also be a gestation quantum state collapsing to tombstone
+					shadowManager.markShadowTombstone(opState.getRepoShadow(), parentResult);
+					finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, e, failedOperationResult, task, parentResult);
 				}
 				
 			} catch (Exception e) {
-				return handleAddError(ctx, shadowToAdd, resource, options, proposedShadowOid, e, task, parentResult);
+				finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, e, parentResult.getLastSubresult(), task, parentResult);
 			}
 			
 			LOGGER.debug("ADD {}: resource operation executed, operation state: {}", shadowToAdd, opState.shortDumpLazily());
@@ -592,19 +632,35 @@ public abstract class ShadowCache {
 
 		// REPO OPERATION: add
 		// This is where the repo shadow is created or updated (if needed)
-		String oid = afterAddOnResource(ctx, shadowToAdd, opState, parentResult);
+		shadowManager.recordAddResult(ctx, shadowToAdd, opState, parentResult);
 		
-		if (addedShadow != null) {
-			addedShadow.setOid(oid);
-		} else {
+		if (addedShadow == null) {
 			addedShadow = shadowToAdd;
 		}
+		addedShadow.setOid(opState.getRepoShadow().getOid());
 
 		notifyAfterAdd(ctx, addedShadow, opState, task, parentResult);
 		
-		return oid;
+		setParentOperationStatus(parentResult, opState, finalOperationStatus);
+		
+		return opState.getRepoShadow().getOid();
 	}
-	
+		
+	private void setParentOperationStatus(OperationResult parentResult,
+			ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+			OperationResultStatus finalOperationStatus) {
+		if (finalOperationStatus != null) {
+			parentResult.setStatus(finalOperationStatus);
+		} else {
+			if (opState.isCompleted()) {
+				parentResult.computeStatus();
+			} else {
+				parentResult.recordInProgress();
+			}
+		}
+		parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
+	}
+
 	private boolean hasDeadShadowWithDeleteOperation(ProvisioningContext ctx,
 			PrismObject<ShadowType> shadowToAdd,
 			OperationResult parentResult)
@@ -621,131 +677,140 @@ public abstract class ShadowCache {
 		
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		for (PrismObject<ShadowType> previousDeadShadow : previousDeadShadows) {
-			if (hasPreviousDeletePendingOperationInGracePeriod(ctx, previousDeadShadow, now)) {
+			if (shadowCaretaker.findPreviousPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow, now) == ChangeTypeType.DELETE) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	private boolean hasPreviousDeletePendingOperationInGracePeriod(ProvisioningContext ctx, PrismObject<ShadowType> shadow, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
-		if (pendingOperations == null || pendingOperations.isEmpty()) {
-			return false;
+		
+	private PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
+			PrismObject<ShadowType> repositoryShadow,
+			GetOperationOptions rootOptions,
+			Exception cause,
+			Task task,
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
+		if (handler == null) {
+			parentResult.recordFatalError("Error without a handler: " + cause.getMessage(), cause);
+			throw new SystemException(cause.getMessage(), cause);
 		}
-		Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
-		for (PendingOperationType pendingOperation : pendingOperations) {
-			ObjectDeltaType delta = pendingOperation.getDelta();
-			if (delta == null) {
-				continue;
-			}
-			ChangeTypeType changeType = delta.getChangeType();
-			if (!ChangeTypeType.DELETE.equals(changeType)) {
-				continue;
-			}
-			if (ProvisioningUtil.isOverGrace(now, gracePeriod, pendingOperation)) {
-				continue;
-			}
-			return true;
-		}
-		return false;
+		LOGGER.debug("Handling provisioning GET exception {}: {}", cause.getClass(), cause.getMessage());
+		return handler.handleGetError(ctx, repositoryShadow, rootOptions, cause, task, parentResult);
 	}
 
-	private String handleAddError(ProvisioningContext ctx,
+	private OperationResultStatus handleAddError(ProvisioningContext ctx,
 			PrismObject<ShadowType> shadowToAdd,
-			ResourceType resource,
 			ProvisioningOperationOptions options,
-			String proposedShadowOid,
-			Exception ex,
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+			Exception cause,
+			OperationResult failedOperationResult,
 			Task task,
 			OperationResult parentResult) 
 					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		if (proposedShadowOid != null) {
-			// TODO: maybe integrate with consistency mechanism?
-			shadowManager.handleProposedShadowError(ctx, shadowToAdd, proposedShadowOid, ex, task, parentResult);
-		}
 		
-		PrismObject<ShadowType> addedShadow = handleError(ctx, ex, shadowToAdd, FailedOperation.ADD, null,
-				isDoDiscovery(resource, options), isCompensate(options), parentResult);
-		return addedShadow.getOid();
-	}
-	
-	/**
-	 * Used to execute delayed operations.
-	 * Mostly copy&paste from addShadow(). But as consistency (handleError()) branch expects to return immediately
-	 * I could not find a more elegant way to structure this without complicating the code too much.
-	 */
-	private ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> executeDelayedResourceAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, boolean compensate, Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState = new ProvisioningOperationState<>();
-		opState.setExistingShadowOid(shadowToAdd.getOid());
+		// TODO: record operationExecution
+		
+		ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
+		if (handler == null) {
+			parentResult.recordFatalError("Error without a handler: " + cause.getMessage(), cause);
+			throw new SystemException(cause.getMessage(), cause);
+		}
+		LOGGER.debug("Handling provisioning ADD exception {}: {}", cause.getClass(), cause.getMessage());
 		try {
 			
-			// RESOURCE OPERATION: add
-			AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, false, parentResult);
-			opState.processAsyncResult(asyncReturnValue);
-			LOGGER.debug("ADD {}: resource operation executed, operation state: {}", shadowToAdd, opState.shortDumpLazily());
-			return opState;
+			OperationResultStatus finalStatus = handler.handleAddError(ctx, shadowToAdd, options, opState, cause, failedOperationResult, task, parentResult);
+			LOGGER.debug("Handled provisioning ADD exception, final status: {}, operation state: {}", finalStatus, opState.shortDumpLazily());
+			return finalStatus;
 			
-		} catch (ObjectAlreadyExistsException e) {
-			
-			// This exception may still be OK in some cases. Such as:
-			// We are trying to add a shadow to a semi-manual connector.
-			// But the resource object was recently deleted. The object is
-			// still in the backing store (CSV file) because of a grace
-			// period. Obviously, attempt to add such object would fail.
-			// So, we need to handle this case specially. (MID-4414)
-			
-			OperationResult failedOperationResult = parentResult.getLastSubresult();
-			
-			if (hasDeadShadowWithDeleteOperation(ctx, shadowToAdd, parentResult)) {
-				
-				if (failedOperationResult.isError()) {
-					failedOperationResult.setStatus(OperationResultStatus.HANDLED_ERROR);
-				}
-				
-				// Try again, this time without explicit uniqueness check
-				try {
-					
-					AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, true, parentResult);
-					opState.processAsyncResult(asyncReturnValue);
-					LOGGER.debug("ADD {}: resource operation re-executed, operation state: {}", shadowToAdd, opState.shortDumpLazily());
-					return opState;
-					
-				} catch (Exception innerException) {
-					return handleDelayedResourceAddError(ctx, shadowToAdd, options, compensate, opState, innerException, parentResult.getLastSubresult(), task, parentResult);
-				}
-				
-			} else {
-				return handleDelayedResourceAddError(ctx, shadowToAdd, options, compensate, opState, e, failedOperationResult, task, parentResult);
-			}
-	
-		} catch (Exception e) {
-			return handleDelayedResourceAddError(ctx, shadowToAdd, options, compensate, opState, e, parentResult.getLastSubresult(), task, parentResult);
+		} catch (CommonException e) {
+			LOGGER.debug("Handled provisioning ADD exception, final exception: {}, operation state: {}", e, opState.shortDumpLazily());
+			ObjectDelta<ShadowType> delta = shadowToAdd.createAddDelta();
+			handleErrorHandlerException(ctx, opState, delta, task, parentResult);
+			throw e;
 		}
 		
 	}
 	
-	private ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> handleDelayedResourceAddError(
-			ProvisioningContext ctx, 
-			PrismObject<ShadowType> shadowToAdd, 
-			ProvisioningOperationOptions options, 
-			boolean compensate, 
-			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-			Exception ex,
-			OperationResult originalOperationResult,
-			Task task, 
+	private void handleErrorHandlerException(ProvisioningContext ctx,
+			ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+			ObjectDelta<ShadowType> delta,
+			Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+		// Error handler had re-thrown the exception. We will throw the exception later. But first we need to record changes in opState.
+		shadowManager.recordOperationException(ctx, opState, delta, parentResult);
+		
+		PrismObject<ShadowType> shadow = opState.getRepoShadow();
+		if (delta.isAdd()) {
+			// This is more precise. Besides, there is no repo shadow in some cases (e.g. adding protected shadow).
+			shadow = delta.getObjectToAdd();
+		}
+		ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(shadow, ctx.getResource(), delta, parentResult);
+		operationListener.notifyFailure(operationDescription, task, parentResult);
+	}
+
+	private OperationResultStatus handleModifyError(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow,
+			Collection<? extends ItemDelta> modifications,
+			ProvisioningOperationOptions options,
+			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+			Exception cause,
+			OperationResult failedOperationResult,
+			Task task,
 			OperationResult parentResult) 
 					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
-		shadowManager.handleProposedShadowError(ctx, shadowToAdd, shadowToAdd.getOid(), ex, task, parentResult);
-		PrismObject<ShadowType> addedShadow = handleError(ctx, ex, shadowToAdd, FailedOperation.ADD, null,
-				isDoDiscovery(ctx.getResource(), options), compensate, parentResult);
-		originalOperationResult.muteError();
-		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = AsynchronousOperationReturnValue.wrap(addedShadow, originalOperationResult);
-		opState.setAsyncResult(asyncReturnValue);
-		opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
-		return opState;
+		// TODO: record operationExecution
 		
+		ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
+		if (handler == null) {
+			parentResult.recordFatalError("Error without a handler: " + cause.getMessage(), cause);
+			throw new SystemException(cause.getMessage(), cause);
+		}
+		LOGGER.debug("Handling provisioning MODIFY exception {}: {}", cause.getClass(), cause.getMessage());
+		try {
+			
+			OperationResultStatus finalStatus = handler.handleModifyError(ctx, repoShadow, modifications, options, opState, cause, failedOperationResult, task, parentResult);
+			LOGGER.debug("Handled provisioning MODIFY exception, final status: {}, operation state: {}", finalStatus, opState.shortDumpLazily());
+			return finalStatus;
+			
+		} catch (CommonException e) {
+			LOGGER.debug("Handled provisioning MODIFY exception, final exception: {}, operation state: {}", e, opState.shortDumpLazily());
+			ObjectDelta<ShadowType> delta = repoShadow.createModifyDelta();
+			delta.addModifications(modifications);
+			handleErrorHandlerException(ctx, opState, delta, task, parentResult);
+			throw e;
+		}
+	}
+	
+	private OperationResultStatus handleDeleteError(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow,
+			ProvisioningOperationOptions options,
+			ProvisioningOperationState<AsynchronousOperationResult> opState,
+			Exception cause,
+			OperationResult failedOperationResult,
+			Task task,
+			OperationResult parentResult) 
+					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+				
+		ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
+		if (handler == null) {
+			parentResult.recordFatalError("Error without a handler: " + cause.getMessage(), cause);
+			throw new SystemException(cause.getMessage(), cause);
+		}
+		LOGGER.debug("Handling provisioning DELETE exception {}: {}", cause.getClass(), cause.getMessage());
+		try {
+			
+			OperationResultStatus finalStatus = handler.handleDeleteError(ctx, repoShadow, options, opState, cause, failedOperationResult, task, parentResult);
+			LOGGER.debug("Handled provisioning DELETE exception, final status: {}, operation state: {}", finalStatus, opState.shortDumpLazily());
+			return finalStatus;
+			
+		} catch (CommonException e) {
+			LOGGER.debug("Handled provisioning DELETE exception, final exception: {}, operation state: {}", e, opState.shortDumpLazily());
+			ObjectDelta<ShadowType> delta = repoShadow.createDeleteDelta();
+			handleErrorHandlerException(ctx, opState, delta, task, parentResult);
+			throw e;
+		}
+			
 	}
 	
 	private void notifyAfterAdd(
@@ -766,15 +831,20 @@ public abstract class ShadowCache {
 		}
 	}
 
-	private void preAddChecks(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
-		checkConstraints(ctx, shadow, task, result);
+	private void preAddChecks(ProvisioningContext ctx, PrismObject<ShadowType> shadow, ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+		checkConstraints(ctx, shadow, opState, task, result);
 		validateSchema(ctx, shadow, task, result);
 	}
 		
-	private void checkConstraints(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
+	private void checkConstraints(ProvisioningContext ctx, PrismObject<ShadowType> shadow, ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
 		ShadowCheckType shadowConstraintsCheck = ResourceTypeUtil.getShadowConstraintsCheck(ctx.getResource());
 		if (shadowConstraintsCheck == ShadowCheckType.NONE) {
 			return;
+		}
+		
+		String shadowOid = shadow.getOid();
+		if (opState.getRepoShadow() != null) {
+			shadowOid = opState.getRepoShadow().getOid();
 		}
 		
 		ConstraintsChecker checker = new ConstraintsChecker();
@@ -783,7 +853,7 @@ public abstract class ShadowCache {
 		checker.setPrismContext(prismContext);
 		checker.setProvisioningContext(ctx);
 		checker.setShadowObject(shadow);
-		checker.setShadowOid(shadow.getOid());
+		checker.setShadowOid(shadowOid);
 		checker.setConstraintViolationConfirmer(conflictingShadowCandidate -> !Boolean.TRUE.equals(conflictingShadowCandidate.asObjectable().isDead()) );
 		checker.setUseCache(false);
 		
@@ -802,6 +872,9 @@ public abstract class ShadowCache {
 	}
 	
 	private boolean shouldExecuteResourceOperationDirectly(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		if (ctx.isPropagation()) {
+			return true;
+		}
 		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
 		if (consistency == null) {
 			return true;
@@ -827,26 +900,12 @@ public abstract class ShadowCache {
 		operationDescription.setResult(parentResult);
 		return operationDescription;
 	}
-
-	public abstract void afterModifyOnResource(
-			ProvisioningContext ctx,
-			PrismObject<ShadowType> shadow,
-			Collection<? extends ItemDelta> modifications,
-			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-			XMLGregorianCalendar now,
-			OperationResult parentResult)
-					throws SchemaException, ObjectNotFoundException, ConfigurationException,
-					CommunicationException, ExpressionEvaluationException, EncryptionException;
-
-	public abstract Collection<? extends ItemDelta> beforeModifyOnResource(PrismObject<ShadowType> shadow,
-			ProvisioningOperationOptions options, Collection<? extends ItemDelta> modifications)
-					throws SchemaException;
-
+	
 	public String modifyShadow(PrismObject<ShadowType> repoShadow,
 			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts,
 			ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
 
 		Validate.notNull(repoShadow, "Object to modify must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
@@ -864,17 +923,30 @@ public abstract class ShadowCache {
 			}
 		}
 
-		ProvisioningContext ctx = ctxFactory.create(repoShadow, additionalAuxiliaryObjectClassQNames, task,
-				parentResult);
+		ProvisioningContext ctx = ctxFactory.create(repoShadow, additionalAuxiliaryObjectClassQNames, task, parentResult);
+		ctx.assertDefinition();
 		
-		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, repoShadow, modifications, task, parentResult);
+		ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState = new ProvisioningOperationState<>();
+		opState.setRepoShadow(repoShadow);
+		
+		return modifyShadowAttempt(ctx, modifications, scripts, options, opState, task, parentResult);
+	}
+		
+	private String modifyShadowAttempt(ProvisioningContext ctx,
+			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts,
+			ProvisioningOperationOptions options, 
+			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+			Task task, OperationResult parentResult)
+					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
+					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
+		
+		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+		
+		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, repoShadow, modifications, opState, task, parentResult);
 		if (duplicateOperation != null) {
 			parentResult.recordInProgress();
 			return repoShadow.getOid();
 		}
-
-		ctx.assertDefinition();
-		RefinedObjectClassDefinition rOCDef = ctx.getObjectClassDefinition();
 
 		shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
@@ -882,13 +954,10 @@ public abstract class ShadowCache {
 				ctx.getObjectClassDefinition(), parentResult);
 		
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-
-		modifications = beforeModifyOnResource(repoShadow, options, modifications);
 		
 		preprocessEntitlements(ctx, modifications, "delta for shadow " + repoShadow.getOid(), parentResult);
 		
-		ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState = new ProvisioningOperationState<>();
-		opState.setExistingShadowOid(repoShadow.getOid());
+		OperationResultStatus finalOperationStatus = null;
 		
 		if (shadowManager.isRepositoryOnlyModification(modifications)) {
 			opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
@@ -914,19 +983,7 @@ public abstract class ShadowCache {
 				} catch (Exception ex) {
 					LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
 							ex.getClass(), ex.getMessage(), ex);
-					try {
-						repoShadow = handleError(ctx, ex, repoShadow, FailedOperation.MODIFY, modifications,
-								isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
-						parentResult.computeStatus();
-					} catch (ObjectAlreadyExistsException e) {
-						parentResult.recordFatalError(
-								"While compensating communication problem for modify operation got: "
-										+ ex.getMessage(),
-								ex);
-						throw new SystemException(e);
-					}
-		
-					return repoShadow.getOid();
+					finalOperationStatus = handleModifyError(ctx, repoShadow, modifications, options, opState, ex, parentResult.getLastSubresult(), task, parentResult);
 				}
 				
 				LOGGER.debug("MODIFY {}: resource operation executed, operation state: {}", repoShadow, opState.shortDumpLazily());
@@ -941,16 +998,11 @@ public abstract class ShadowCache {
 			}
 		}
 
-		afterModifyOnResource(ctx, repoShadow, modifications, opState, now, parentResult);
+		shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, now, parentResult);
 
 		notifyAfterModify(ctx, repoShadow, modifications, opState, task, parentResult);
 		
-		if (opState.isCompleted()) {
-			parentResult.computeStatus();
-		} else {
-			parentResult.recordInProgress();
-		}
-		parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
+		setParentOperationStatus(parentResult, opState, finalOperationStatus);
 		
 		return repoShadow.getOid();
 	}
@@ -993,7 +1045,7 @@ public abstract class ShadowCache {
 			throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState = new ProvisioningOperationState<>();
-		opState.setExistingShadowOid(repoShadow.getOid());
+		opState.setRepoShadow(repoShadow);
 		
 		try {
 			
@@ -1014,14 +1066,8 @@ public abstract class ShadowCache {
 			LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
 					ex.getClass(), ex.getMessage(), ex);
 			try {
-				handleError(ctx, ex, repoShadow, FailedOperation.MODIFY, modifications,
-						isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
+				handleModifyError(ctx, repoShadow, modifications, options, opState, ex, parentResult.getLastSubresult(), task, parentResult);
 				parentResult.computeStatus();
-				AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue = AsynchronousOperationReturnValue.wrap(null, parentResult.getLastSubresult());
-				opState.setAsyncResult(asyncReturnValue);
-				opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
-				return opState;
-
 			} catch (ObjectAlreadyExistsException e) {
 				parentResult.recordFatalError(
 						"While compensating communication problem for modify operation got: "
@@ -1035,17 +1081,17 @@ public abstract class ShadowCache {
 		return opState;
 	}
 
-	public void deleteShadow(PrismObject<ShadowType> shadow, ProvisioningOperationOptions options,
+	public PrismObject<ShadowType> deleteShadow(PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
 			OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
 					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-		Validate.notNull(shadow, "Object to delete must not be null.");
+		Validate.notNull(repoShadow, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
-		ProvisioningContext ctx = ctxFactory.create(shadow, task, parentResult);
+		ProvisioningContext ctx = ctxFactory.create(repoShadow, task, parentResult);
 		try {
 			ctx.assertDefinition();
 		} catch (ObjectNotFoundException ex) {
@@ -1053,84 +1099,114 @@ public abstract class ShadowCache {
 			// although the resource does not exists..
 			if (ProvisioningOperationOptions.isForce(options)) {
 				parentResult.muteLastSubresultError();
-				shadowManager.deleteShadow(ctx, shadow, parentResult);		
+				shadowManager.deleteShadow(ctx, repoShadow, parentResult);		
 				parentResult.recordHandledError(
 						"Resource defined in shadow does not exists. Shadow was deleted from the repository.");
-				return;
+				return null;
 			} else {
 				throw ex;
 			}
 		}
+		
+		repoShadow = cancelAllPendingOperations(ctx, repoShadow, task, parentResult);
+		
+		ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
+		opState.setRepoShadow(repoShadow);
+		
+		return deleteShadowAttempt(ctx, options, scripts, opState, task, parentResult);
+	}
+	
 
-		shadowCaretaker.applyAttributesDefinition(ctx, shadow);
+	private PrismObject<ShadowType> deleteShadowAttempt(ProvisioningContext ctx,
+			ProvisioningOperationOptions options,
+			OperationProvisioningScriptsType scripts,
+			ProvisioningOperationState<AsynchronousOperationResult> opState,
+			Task task,
+			OperationResult parentResult)
+					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
+					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, shadow, task, parentResult);
+		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+		shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
+
+		PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, repoShadow, opState, task, parentResult);
 		if (duplicateOperation != null) {
 			parentResult.recordInProgress();
-			return;
+			return repoShadow;
 		}
 		
-		LOGGER.trace("Deleting object {} from the resource {}.", shadow, ctx.getResource());
-
-		ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
-		opState.setExistingShadowOid(shadow.getOid());
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		ShadowState shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow, now);
+		
+		LOGGER.trace("Deleting object {} from {}, options={}, shadowState={}", repoShadow, ctx.getResource(), options, shadowState);
+		OperationResultStatus finalOperationStatus = null;
 		
 		if (shouldExecuteResourceOperationDirectly(ctx)) {
-			if (shadow.asObjectable().getFailedOperationType() == null
-					|| (shadow.asObjectable().getFailedOperationType() != null
-							&& FailedOperationTypeType.ADD != shadow.asObjectable().getFailedOperationType())) {
+			
+			if (shadowState == ShadowState.TOMBSTONE) {
+			
+				// Do not even try to delete resource object for tombstone shadows.
+				// There may be dead shadow and live shadow for the resource object with the same identifiers.
+				// If we try to delete dead shadow then we might delete existing object by mistake
+				LOGGER.trace("DELETE {}: skipping resource deletion on tombstone shadow", repoShadow);
 				
-				LOGGER.trace("DELETE {}: resource deletion, execution starting", shadow);
+				opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+				OperationResult delayedSubresult = parentResult.createSubresult(OP_RESOURCE_OPERATION);
+				delayedSubresult.setStatus(OperationResultStatus.NOT_APPLICABLE);
+				
+			} else {
+				
+				LOGGER.trace("DELETE {}: resource deletion, execution starting", repoShadow);
 				
 				try {
 					
-					AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, shadow, scripts, parentResult);
+					AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, parentResult);
 					opState.processAsyncResult(asyncReturnValue);
+					
+					resourceManager.modifyResourceAvailabilityStatus(ctx.getResource().asPrismObject(),
+							AvailabilityStatusType.UP, parentResult);
 					
 				} catch (Exception ex) {
 					try {
-						handleError(ctx, ex, shadow, FailedOperation.DELETE, null,
-								isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
+						finalOperationStatus = handleDeleteError(ctx, repoShadow, options, opState, ex, parentResult.getLastSubresult(), task, parentResult);
 					} catch (ObjectAlreadyExistsException e) {
 						parentResult.recordFatalError(e);
 						throw new SystemException(e.getMessage(), e);
 					}
-					return;
 				}
 				
-				LOGGER.debug("DELETE {}: resource operation executed, operation state: {}", shadow, opState.shortDumpLazily());
-				
-			} else {
-				LOGGER.trace("DELETE {}: resource deletion skipped (failed ADD operation)", shadow);
+				LOGGER.debug("DELETE {}: resource operation executed, operation state: {}", repoShadow, opState.shortDumpLazily());
 			}
-			
+						
 		} else {
 			opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
 			// Create dummy subresult with IN_PROGRESS state. 
 			// This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
 			OperationResult delayedSubresult = parentResult.createSubresult(OP_DELAYED_OPERATION);
 			delayedSubresult.setStatus(OperationResultStatus.IN_PROGRESS);
-			LOGGER.debug("DELETE {}: resource operation NOT executed, execution pending", shadow);
+			LOGGER.debug("DELETE {}: resource operation NOT executed, execution pending", repoShadow);
 		}
 
-		LOGGER.trace("Deting object with oid {} form repository.", shadow.getOid());
-		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		now = clock.currentTimeXMLGregorianCalendar();
 		
+		PrismObject<ShadowType> resultShadow;
 		try {
-			shadowManager.deleteShadow(ctx, shadow, opState, now, parentResult);			
+			resultShadow = shadowManager.recordDeleteResult(ctx, repoShadow, opState, options, now, parentResult);			
 		} catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Can't delete object " + shadow + ". Reason: " + ex.getMessage(),
+			parentResult.recordFatalError("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(),
 					ex);
-			throw new ObjectNotFoundException("An error occured while deleting resource object " + shadow
-					+ "whith identifiers " + shadow + ": " + ex.getMessage(), ex);
+			throw new ObjectNotFoundException("An error occured while deleting resource object " + repoShadow
+					+ "whith identifiers " + repoShadow + ": " + ex.getMessage(), ex);
+		} catch (EncryptionException e) {
+			throw new SystemException(e.getMessage(), e);
 		}
 		
-		notifyAfterDelete(ctx, shadow, opState, task, parentResult);
+		notifyAfterDelete(ctx, repoShadow, opState, task, parentResult);
 		
-		LOGGER.trace("Object deleted from repository successfully.");
-		parentResult.computeStatus();
-		resourceManager.modifyResourceAvailabilityStatus(ctx.getResource().asPrismObject(),
-				AvailabilityStatusType.UP, parentResult);
+		setParentOperationStatus(parentResult, opState, finalOperationStatus);
+		
+		LOGGER.trace("Delete operation for {} finished, result shadow: {}", repoShadow, resultShadow);
+		return resultShadow;
 	}
 	
 	private ProvisioningOperationState<AsynchronousOperationResult> executeResourceDelete(
@@ -1141,7 +1217,7 @@ public abstract class ShadowCache {
 			Task task,
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
-		opState.setExistingShadowOid(shadow.getOid());
+		opState.setRepoShadow(shadow);
 		
 		if (shadow.asObjectable().getFailedOperationType() == null
 				|| (shadow.asObjectable().getFailedOperationType() != null
@@ -1153,13 +1229,7 @@ public abstract class ShadowCache {
 				
 			} catch (Exception ex) {
 				try {
-					handleError(ctx, ex, shadow, FailedOperation.DELETE, null,
-							isDoDiscovery(ctx.getResource(), options), isCompensate(options), parentResult);
-					AsynchronousOperationResult asyncReturnValue = AsynchronousOperationResult.wrap(parentResult.getLastSubresult());
-					opState.setAsyncResult(asyncReturnValue);
-					opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
-					return opState;
-					
+					handleDeleteError(ctx, shadow, options, opState, ex, parentResult.getLastSubresult(), task, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
 					parentResult.recordFatalError(e);
 					throw new SystemException(e.getMessage(), e);
@@ -1194,22 +1264,60 @@ public abstract class ShadowCache {
 	public PrismObject<ShadowType> refreshShadow(PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 		ShadowType shadowType = repoShadow.asObjectable();
 		List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
-		if (pendingOperations.isEmpty()) {
-			LOGGER.trace("Skipping refresh of {} because there are no pending operations", repoShadow);
+		boolean isDead = ShadowUtil.isDead(shadowType);
+		if (!isDead && pendingOperations.isEmpty()) {
+			LOGGER.trace("Skipping refresh of {} because shadow is not dead and there are no pending operations", repoShadow);
 			return repoShadow;
 		}
 		
-		LOGGER.trace("Refreshing {}", repoShadow);
+		LOGGER.trace("Refreshing {}, dead={}, {} pending operations", repoShadow, isDead, pendingOperations.size());
 		
 		ProvisioningContext ctx = ctxFactory.create(repoShadow, task, parentResult);
 		ctx.assertDefinition();
+		List<PendingOperationType> sortedOperations = shadowCaretaker.sortPendingOperations(shadowType.getPendingOperation());
 		
+		repoShadow = refreshShadowAsyncStatus(ctx, repoShadow, sortedOperations, task, parentResult);
+		
+		repoShadow = refreshShadowRetryOperations(ctx, repoShadow, sortedOperations, task, parentResult);
+		
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		repoShadow = cleanUpDeadShadow(ctx, repoShadow, now, task, parentResult);
+		
+		return repoShadow;
+	}
+	
+	/**
+	 * Used to quickly and efficiently refresh shadow before GET operations. 
+	 */
+	private PrismObject<ShadowType> refreshShadowQick(ProvisioningContext ctx, 
+			PrismObject<ShadowType> repoShadow, 
+			XMLGregorianCalendar now, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+
+		ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
+		expirePendingOperations(ctx, repoShadow, shadowDelta, now, parentResult);
+
+		if (!shadowDelta.isEmpty()) {
+			shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
+			shadowDelta.applyTo(repoShadow);
+		}
+		
+		repoShadow = cleanUpDeadShadow(ctx, repoShadow, now, task, parentResult);
+		
+		return repoShadow;
+	}
+		
+	/**
+	 * Refresh status of asynchronous operation, e.g. status of manual connector ticket.
+	 * This method will get new status from resouceObjectConverter and it will process the
+	 * status in case that it has changed.
+	 */
+	private PrismObject<ShadowType> refreshShadowAsyncStatus(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+		ShadowType shadowType = repoShadow.asObjectable();
 		Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
 		
 		List<ObjectDelta<ShadowType>> notificationDeltas = new ArrayList<>();
-		List<PendingOperationType> sortedOperations = shadowCaretaker.sortPendingOperations(pendingOperations);
 		
-		boolean isDead = ShadowUtil.isDead(shadowType);
+		boolean shadowInception = false;
 		ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
 		for (PendingOperationType pendingOperation: sortedOperations) {
 
@@ -1220,100 +1328,87 @@ public abstract class ShadowCache {
 			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
 			
 			String asyncRef = pendingOperation.getAsynchronousOperationReference();
-			if (asyncRef != null) {
+			if (asyncRef == null) {
+				continue;
+			}
+			
+			AsynchronousOperationResult refreshAsyncResult;
+			try {
+				refreshAsyncResult = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
+			} catch (CommunicationException e) {
+				LOGGER.debug("Communication error while trying to refresh pending operation of {}. Skipping refresh of this operation.", repoShadow, e);
+				parentResult.recordPartialError(e);
+				continue;
+			}
+			OperationResultStatus newStatus = refreshAsyncResult.getOperationResult().getStatus();
+					
+			if (newStatus == null) {
+				continue;
+			}
+			OperationResultStatusType newStatusType = newStatus.createStatusType();
+			if (newStatusType.equals(pendingOperation.getResultStatus())) {
+				continue;
+			}
+						
+						
+			boolean operationCompleted = ProvisioningUtil.isCompleted(newStatusType) && pendingOperation.getCompletionTimestamp() == null;
+							
+			if (operationCompleted && gracePeriod == null) {
+				LOGGER.trace("Deleting pending operation because it is completed (no grace): {}", pendingOperation);
+				shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
+				continue;
 				
-				OperationResultStatus newStatus = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
-						
-				if (newStatus != null) {
-					OperationResultStatusType newStatusType = newStatus.createStatusType();
-					if (!newStatusType.equals(pendingOperation.getResultStatus())) {
-						
-						
-						boolean operationCompleted = ProvisioningUtil.isCompleted(newStatusType) && pendingOperation.getCompletionTimestamp() == null;
-										
-						if (operationCompleted && gracePeriod == null) {
-							LOGGER.trace("Deleting pending operation because it is completed (no grace): {}", pendingOperation);
-							shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
-							continue;
-							
-						} else {
-							PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
-							resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(newStatusType));
-							shadowDelta.addModification(resultStatusDelta);
-						}
-
-						if (operationCompleted) {
-							// Operation completed
-							
-							PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_EXECUTION_STATUS));
-							executionStatusDelta.setValuesToReplace(new PrismPropertyValue<>(PendingOperationExecutionStatusType.COMPLETED));
-							shadowDelta.addModification(executionStatusDelta);
-							
-							PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
-							completionTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));
-							shadowDelta.addModification(completionTimestampDelta);
-							
-							ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
-							ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
-							
-							if (pendingDelta.isAdd()) {
-								// We do not need to care about attributes in add deltas here. The add operation is already applied to
-								// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
-								// model can find unique values while taking pending create operations into consideration.
-								
-								PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
-								existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
-								shadowDelta.addModification(existsDelta);
-							}
-							
-							if (pendingDelta.isModify()) {
-								for (ItemDelta<?, ?> pendingModification: pendingDelta.getModifications()) {
-									shadowDelta.addModification(pendingModification.clone());
-								}
-							}
-							
-							if (pendingDelta.isDelete()) {
-								isDead = true;
-								if (gracePeriod == null) {      // TODO gracePeriod is not null here ... review this please
-									shadowDelta = repoShadow.createDeleteDelta();
-									notificationDeltas.add(pendingDelta);
-									break;
-								} else {
-									PropertyDelta<Boolean> deadDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_DEAD));
-									deadDelta.setValuesToReplace(new PrismPropertyValue<>(true));
-									shadowDelta.addModification(deadDelta);
-									
-									PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
-									existsDelta.setValuesToReplace(new PrismPropertyValue<>(false));
-									shadowDelta.addModification(existsDelta);
-								}
-							}
-							
-							notificationDeltas.add(pendingDelta);
-						}
-						
+			} else {
+				PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
+				resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(newStatusType));
+				shadowDelta.addModification(resultStatusDelta);
+			}
+	
+			if (operationCompleted) {
+				// Operation completed
+				
+				PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_EXECUTION_STATUS));
+				executionStatusDelta.setValuesToReplace(new PrismPropertyValue<>(PendingOperationExecutionStatusType.COMPLETED));
+				shadowDelta.addModification(executionStatusDelta);
+				
+				PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
+				completionTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(clock.currentTimeXMLGregorianCalendar()));
+				shadowDelta.addModification(completionTimestampDelta);
+				
+				ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
+				ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+				
+				if (pendingDelta.isAdd()) {
+					shadowInception = true;
+				}
+				
+				if (pendingDelta.isModify()) {
+					for (ItemDelta<?, ?> pendingModification: pendingDelta.getModifications()) {
+						shadowDelta.addModification(pendingModification.clone());
 					}
 				}
+				
+				if (pendingDelta.isDelete()) {
+					shadowInception = false;
+					shadowManager.addDeadShadowDeltas(repoShadow, refreshAsyncResult, (List)shadowDelta.getModifications());
+				}
+				
+				notificationDeltas.add(pendingDelta);
 			}
+
 		}
 		
-		if (shadowDelta.isDelete()) {
-			LOGGER.trace("Deleting dead shadow because pending delete delta was completed (no grace period): {}", repoShadow);
-			shadowManager.deleteShadow(ctx, repoShadow, parentResult);
-			return null;
+		if (shadowInception) {
+			// We do not need to care about attributes in add deltas here. The add operation is already applied to
+			// attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
+			// model can find unique values while taking pending create operations into consideration.
+			PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_EXISTS));
+			existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
+			shadowDelta.addModification(existsDelta);
 		}
 		
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-		boolean atLeastOnePendingOperationRemains = expirePendingOperations(ctx, repoShadow, shadowDelta, now, parentResult);
-		if (shadowType.getFailedOperationType() != null) {
-			atLeastOnePendingOperationRemains = true;
-		}
-		
-		if (isDead && !atLeastOnePendingOperationRemains) {
-			LOGGER.trace("Deleting dead shadow because all pending operations expired: {}", repoShadow);
-			shadowManager.deleteShadow(ctx, repoShadow, parentResult);
-			return null;
-		}
+		expirePendingOperations(ctx, repoShadow, shadowDelta, now, parentResult);
 		
 		if (!shadowDelta.isEmpty()) {
 			shadowCaretaker.applyAttributesDefinition(ctx, shadowDelta);
@@ -1336,29 +1431,226 @@ public abstract class ShadowCache {
 	private boolean needsRefresh(PendingOperationType pendingOperation) {
 		PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
 		if (executionStatus == null) {
+			// LEGACY: 3.7 and earlier
 			return OperationResultStatusType.IN_PROGRESS.equals(pendingOperation.getResultStatus());
 		} else {
 			return PendingOperationExecutionStatusType.EXECUTING.equals(executionStatus);
 		}
 	}
+	
+	
+	private PrismObject<ShadowType> refreshShadowRetryOperations(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations, 
+			Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+		ShadowType shadowType = repoShadow.asObjectable();
+		if (ShadowUtil.isDead(shadowType)) {
+			return repoShadow;
+		}
+		
+		Duration retryPeriod = ProvisioningUtil.getRetryPeriod(ctx);
+		
+		List<ObjectDelta<ShadowType>> notificationDeltas = new ArrayList<>();
+		
+		for (PendingOperationType pendingOperation: sortedOperations) {
 
-	private boolean expirePendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, ObjectDelta<ShadowType> shadowDelta, XMLGregorianCalendar now, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+			if (!needsRetry(pendingOperation)) {
+				continue;
+			}
+			// We really want to get "now" here. Retrying operation may take some time. We want good timestamps that do not lie.
+			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+			if (!isAfterRetryPeriod(ctx, pendingOperation, retryPeriod, now)) {
+				continue;
+			}
+			
+			LOGGER.trace("Going to retry operation {} on {}", pendingOperation, repoShadow);
+			
+			// Record attempt number and timestamp before the operation
+			// TODO: later use this as an optimistic lock to make sure that two threads won't retry the operation at the same time
+			
+			// TODO: move to a better place
+			ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
+			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+			
+			int attemptNumber = pendingOperation.getAttemptNumber() + 1;
+			PropertyDelta<Integer> attemptNumberDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_ATTEMPT_NUMBER));
+			attemptNumberDelta.setValuesToReplace(new PrismPropertyValue<>(attemptNumber));
+			shadowDelta.addModification(attemptNumberDelta);
+			
+			PropertyDelta<XMLGregorianCalendar> lastAttemptTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_LAST_ATTEMPT_TIMESTAMP));
+			lastAttemptTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+			shadowDelta.addModification(lastAttemptTimestampDelta);
+			
+			PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
+			resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(OperationResultStatusType.IN_PROGRESS));
+			shadowDelta.addModification(resultStatusDelta);
+			
+			shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
+			shadowDelta.applyTo(repoShadow);
+			
+			ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
+			ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+
+			ProvisioningOperationState<? extends AsynchronousOperationResult> opState = 
+					ProvisioningOperationState.fromPendingOperation(repoShadow, pendingOperation);
+
+			LOGGER.debug("Retrying operation {} on {}, attempt #{}", pendingDelta, repoShadow, attemptNumber);
+
+			OperationResult result = parentResult.createSubresult(OP_OPERATION_RETRY);
+			try {
+				retryOperation(ctx, pendingDelta, opState, task, result);
+				result.computeStatus();
+				result.muteError();
+			} catch (CommunicationException | GenericFrameworkException | ObjectAlreadyExistsException | SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException e) {
+				// This is final failure: the error is not handled.
+				// Therefore the operation is now completed - finished with an error.
+				// But we do not want to stop the task. Just log the error.
+				LOGGER.error("Operation {} on {} ended up with an error after {} retries: {}",
+						pendingDelta, repoShadow, attemptNumber, e.getMessage(), e);
+				// The retry itself was a success. Operation that was retried might have failed.
+				// And that is recorded in the shadow. But we have successfully retried the operation.
+				result.recordHandledError(e);
+			} catch (Throwable e) {
+				// This is unexpected error during retry. This means that there was other
+				// failure that we did not expected. This is likely to be bug - or maybe wrong
+				// error handling. This means that the retry was a failure.
+				result.recordFatalError(e);
+			}
+			
+		}
+		return repoShadow;
+	}
+	
+	private void retryOperation(ProvisioningContext ctx, 
+			ObjectDelta<ShadowType> pendingDelta,
+			ProvisioningOperationState<? extends AsynchronousOperationResult> opState, 
+			Task task,
+			OperationResult result)
+					throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+		OperationProvisioningScriptsType scripts = null; // TODO
+		if (pendingDelta.isAdd()) {
+			addShadowAttempt(ctx, pendingDelta.getObjectToAdd(), scripts,
+					(ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>>) opState, 
+					null, task, result);
+		}
+		
+		if (pendingDelta.isModify()) {
+			modifyShadowAttempt(ctx, pendingDelta.getModifications(), scripts, null,
+					(ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>>) opState, 
+					task, result);
+		}
+		
+		if (pendingDelta.isDelete()) {
+			deleteShadowAttempt(ctx, null, scripts,
+					(ProvisioningOperationState<AsynchronousOperationResult>) opState,
+					task, result);
+		}
+	}
+
+	private boolean needsRetry(PendingOperationType pendingOperation) {
+		return PendingOperationExecutionStatusType.EXECUTING.equals(pendingOperation.getExecutionStatus()) &&
+				pendingOperation.getAttemptNumber() != null;
+	}
+	
+	private boolean isAfterRetryPeriod(ProvisioningContext ctx, PendingOperationType pendingOperation, Duration retryPeriod, XMLGregorianCalendar now) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		XMLGregorianCalendar lastAttemptTimestamp = pendingOperation.getLastAttemptTimestamp();
+		XMLGregorianCalendar scheduledRetryTimestamp = XmlTypeConverter.addDuration(lastAttemptTimestamp, retryPeriod);
+		return XmlTypeConverter.compare(now, scheduledRetryTimestamp) == DatatypeConstants.GREATER;
+	}
+	
+	// This is very simple code that essentially works only for postponed operations (retries).
+	// TODO: better support for async and manual operations
+	private PrismObject<ShadowType> cancelAllPendingOperations(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+		List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
+		if (pendingOperations.isEmpty()) {
+			return repoShadow;
+		}
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
+		for (PendingOperationType pendingOperation: pendingOperations) {
+			if (pendingOperation.getExecutionStatus() == PendingOperationExecutionStatusType.COMPLETED) {
+				continue;
+			}
+			if (pendingOperation.getType() != PendingOperationTypeType.RETRY) {
+				// Other operations are not cancellable now
+				continue;
+			}
+			ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+			PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_EXECUTION_STATUS));
+			executionStatusDelta.setValuesToReplace(new PrismPropertyValue<>(PendingOperationExecutionStatusType.COMPLETED));
+			shadowDelta.addModification(executionStatusDelta);
+			PropertyDelta<XMLGregorianCalendar> completionTimestampDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_COMPLETION_TIMESTAMP));
+			completionTimestampDelta.setValuesToReplace(new PrismPropertyValue<>(now));
+			shadowDelta.addModification(completionTimestampDelta);
+			PropertyDelta<OperationResultStatusType> resultStatusDelta = shadowDelta.createPropertyModification(containerPath.subPath(PendingOperationType.F_RESULT_STATUS));
+			resultStatusDelta.setValuesToReplace(new PrismPropertyValue<>(OperationResultStatusType.NOT_APPLICABLE));
+			shadowDelta.addModification(resultStatusDelta);
+		}
+		if (shadowDelta.isEmpty()) {
+			return repoShadow;
+		}
+		LOGGER.debug("Cancelling pending operations on {}", repoShadow);
+		shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
+		shadowDelta.applyTo(repoShadow);
+		return repoShadow;
+	}
+	
+	private PrismObject<ShadowType> cleanUpDeadShadow(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow,
+			XMLGregorianCalendar now, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+		ShadowType shadowType = repoShadow.asObjectable();
+		if (!ShadowUtil.isDead(shadowType)) {
+			return repoShadow;
+		}
+		Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
+		Duration deadRetentionPeriod = ProvisioningUtil.getDeadShadowRetentionPeriod(ctx);
+		Duration expirationPeriod = XmlTypeConverter.longerDuration(gracePeriod, deadRetentionPeriod);
+		XMLGregorianCalendar lastActivityTimestamp = null;
+		
+		for (PendingOperationType pendingOperation: shadowType.getPendingOperation()) {
+			lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getRequestTimestamp());
+			lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getLastAttemptTimestamp());
+			lastActivityTimestamp = XmlTypeConverter.laterTimestamp(lastActivityTimestamp, pendingOperation.getCompletionTimestamp());
+		}
+		if (lastActivityTimestamp == null) {
+			MetadataType metadata = shadowType.getMetadata();
+			if (metadata != null) {
+				lastActivityTimestamp = metadata.getModifyTimestamp();
+				if (lastActivityTimestamp == null) {
+					lastActivityTimestamp = metadata.getCreateTimestamp();
+				}
+			}
+		}
+		
+		if (ProvisioningUtil.isOverPeriod(now, expirationPeriod, lastActivityTimestamp)) {
+			// Perish you stinking corpse!
+			LOGGER.debug("Deleting dead {} because it is expired", repoShadow);
+			shadowManager.deleteShadow(ctx, repoShadow, parentResult);
+			applyDefinition(repoShadow, parentResult);
+			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
+					repoShadow.createDeleteDelta(), parentResult);
+			operationListener.notifySuccess(operationDescription, task, parentResult);
+			return null;
+		} else {
+			LOGGER.trace("Keeping dead {} because it is not expired yet, last activity={}, expiration period={}", repoShadow, lastActivityTimestamp, expirationPeriod);
+			return repoShadow;
+		}
+	}
+
+	private void expirePendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, ObjectDelta<ShadowType> shadowDelta, XMLGregorianCalendar now, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ShadowType shadowType = repoShadow.asObjectable();
 		
 		Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
-		boolean atLeastOneOperationRemains = false;
+		Duration pendingOperationRetentionPeriod = ProvisioningUtil.getPendingOperationRetentionPeriod(ctx);
+		Duration expirePeriod = XmlTypeConverter.longerDuration(gracePeriod, pendingOperationRetentionPeriod);
 		for (PendingOperationType pendingOperation: shadowType.getPendingOperation()) {
-			if (ProvisioningUtil.isOverGrace(now, gracePeriod, pendingOperation)) {
+			if (ProvisioningUtil.isOverPeriod(now, expirePeriod, pendingOperation)) {
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Deleting pending operation because it is completed '{}' (and over grace): {}", pendingOperation.getResultStatus().value(), pendingOperation);
+					LOGGER.trace("Deleting pending operation because it is completed '{}' and expired: {}", pendingOperation.getResultStatus().value(), pendingOperation);
 				}
 				shadowDelta.addModificationDeleteContainer(new ItemPath(ShadowType.F_PENDING_OPERATION), pendingOperation.clone());
-			} else {
-				atLeastOneOperationRemains = true;
 			}
 		}
-
-		return atLeastOneOperationRemains;
 	}
 	
 	public void applyDefinition(ObjectDelta<ShadowType> delta, ShadowType repoShadow,
@@ -1468,72 +1760,6 @@ public abstract class ShadowCache {
 		}
 		return resourceManager.getResource(resourceOid, null, task, parentResult).asObjectable();
 	}
-
-	@SuppressWarnings("rawtypes")
-	protected PrismObject<ShadowType> handleError(ProvisioningContext ctx, Exception ex,
-			PrismObject<ShadowType> shadow, FailedOperation op, Collection<? extends ItemDelta> modifications,
-			boolean doDiscovery, boolean compensate, OperationResult parentResult) throws SchemaException,
-					GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-					ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
-		if (parentResult.isUnknown()) {
-			parentResult.computeStatus();
-		}
-		// do not set result in the shadow in case of get operation, it will
-		// resulted to misleading information
-		// by get operation we do not modify the result in the shadow, so only
-		// fetch result in this case needs to be set
-		if (FailedOperation.GET != op) {
-			shadow = extendShadow(shadow, parentResult, ctx.getResource(), modifications);
-		} else {
-			shadow.asObjectable().setResource(ctx.getResource());
-		}
-		ErrorHandler handler = errorHandlerFactory.createErrorHandler(ex);
-
-		if (handler == null) {
-			parentResult.recordFatalError("Error without a handler. Reason: " + ex.getMessage(), ex);
-			throw new SystemException(ex.getMessage(), ex);
-		}
-
-		LOGGER.debug("Handling provisioning exception {}: {}", ex.getClass(), ex.getMessage());
-		LOGGER.trace("Handling provisioning exception {}: {}\ndoDiscovery={}, compensate={}",
-				ex.getClass(), ex.getMessage(), doDiscovery, compensate, ex);
-
-		return handler.handleError(shadow.asObjectable(), op, ex, doDiscovery, compensate, ctx.getTask(), parentResult)
-				.asPrismObject();
-
-	}
-
-	private PrismObject<ShadowType> extendShadow(PrismObject<ShadowType> shadow, OperationResult shadowResult,
-			ResourceType resource, Collection<? extends ItemDelta> modifications) throws SchemaException {
-
-		ShadowType shadowType = shadow.asObjectable();
-		shadowType.setResult(shadowResult.createOperationResultType());
-		shadowType.setResource(resource);
-
-		if (modifications != null) {
-			
-			ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createModifyDelta(shadow.getOid(),
-					modifications, shadowType.getClass(), prismContext);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Storing delta to shadow:\n{}", objectDelta.debugDump());
-			}
-			
-			ContainerDelta<ShadowAssociationType> associationDelta = objectDelta.findContainerDelta(ShadowType.F_ASSOCIATION);
-			if (associationDelta != null) {
-				normalizeAssociationDeltasBeforeSave(associationDelta.getValuesToAdd());
-				normalizeAssociationDeltasBeforeSave(associationDelta.getValuesToReplace());
-				normalizeAssociationDeltasBeforeSave(associationDelta.getValuesToDelete());
-				
-			}
-			
-			
-			ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
-
-			shadowType.setObjectChange(objectDeltaType);
-		}
-		return shadow;
-	}
 	
 	//we need to remove resolved identifiers form the ShadowAssociationType before we save it to the shadow as an unfinished operation. 
 	void normalizeAssociationDeltasBeforeSave(Collection<PrismContainerValue<ShadowAssociationType>> associationContainers) {
@@ -1570,7 +1796,7 @@ public abstract class ShadowCache {
 					throws SchemaException, ObjectNotFoundException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query.getFilter());
+		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query != null ? query.getFilter() : null);
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
 		ctx.setGetOperationOptions(options);
 		ctx.assertDefinition();
@@ -1589,6 +1815,7 @@ public abstract class ShadowCache {
 		if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
 			return searchObjectsIterativeRepository(ctx, query, options, handler, parentResult);
 		}
+		boolean isDoDiscovery = ProvisioningUtil.isDoDiscovery(ctx.getResource(), rootOptions);
 
 		// We need to record the fetch down here. Now it is certain that we are
 		// going to fetch from resource
@@ -1610,17 +1837,17 @@ public abstract class ShadowCache {
 					// Try to find shadow that corresponds to the resource
 					// object.
 					if (readFromRepository) {
-						PrismObject<ShadowType> repoShadow = lookupOrCreateShadowInRepository(
-								estimatedShadowCtx, resourceShadow, true, parentResult);
+						PrismObject<ShadowType> repoShadow = lookupOrCreateLiveShadowInRepository(
+								estimatedShadowCtx, resourceShadow, true, isDoDiscovery, parentResult);
 
 						// This determines the definitions exactly. How the repo
 						// shadow should have proper kind/intent
 						ProvisioningContext shadowCtx = shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
-
+						// TODO: shadowState
 						repoShadow = shadowManager.updateShadow(shadowCtx, resourceShadow, repoShadow,
-								parentResult);
+								null, parentResult);
 						
-						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, objResult);
+						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, isDoDiscovery, objResult);
 						
 					} else {
 						resultShadow = resourceShadow;
@@ -1849,8 +2076,8 @@ public abstract class ShadowCache {
 		}
 	}
 	
-	private PrismObject<ShadowType> lookupOrCreateShadowInRepository(ProvisioningContext ctx,
-			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, OperationResult parentResult)
+	private PrismObject<ShadowType> lookupOrCreateLiveShadowInRepository(ProvisioningContext ctx,
+			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, boolean isDoDiscovery, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
 					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 		PrismObject<ShadowType> repoShadow = shadowManager.lookupLiveShadowInRepository(ctx, resourceShadow,
@@ -1858,16 +2085,14 @@ public abstract class ShadowCache {
 
 		if (repoShadow == null) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace(
-						"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
-						SchemaDebugUtil.prettyPrint(resourceShadow));
+				LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
+						+ "The repo shadow will be created. The resource object:\n{}", resourceShadow);
 			}
 
-			repoShadow = createShadowInRepository(ctx, resourceShadow, unknownIntent, parentResult);
+			repoShadow = createShadowInRepository(ctx, resourceShadow, unknownIntent, isDoDiscovery, parentResult);
 		} else {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Found shadow object in the repository {}",
-						SchemaDebugUtil.prettyPrint(repoShadow));
+				LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadow(repoShadow));
 			}
 		}
 
@@ -1875,7 +2100,7 @@ public abstract class ShadowCache {
 	}
 
 	private PrismObject<ShadowType> createShadowInRepository(ProvisioningContext ctx,
-			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, OperationResult parentResult)
+			PrismObject<ShadowType> resourceShadow, boolean unknownIntent, boolean isDoDiscovery, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
 					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
@@ -1884,10 +2109,9 @@ public abstract class ShadowCache {
 				resourceShadow, parentResult);
 		if (conflictingShadow != null) {
 			shadowCaretaker.applyAttributesDefinition(ctx, conflictingShadow);
-			conflictingShadow = completeShadow(ctx, resourceShadow, conflictingShadow, parentResult);
+			conflictingShadow = completeShadow(ctx, resourceShadow, conflictingShadow, isDoDiscovery, parentResult);
 			Task task = taskManager.createTaskInstance();
-			ResourceOperationDescription failureDescription = shadowManager
-					.createResourceFailureDescription(conflictingShadow, ctx.getResource(), parentResult);
+			ResourceOperationDescription failureDescription = ProvisioningUtil.createResourceFailureDescription(conflictingShadow, ctx.getResource(), null, parentResult);
 			changeNotificationDispatcher.notifyFailure(failureDescription, task, parentResult);
 			shadowManager.deleteConflictedShadowFromRepo(conflictingShadow, parentResult);
 		}
@@ -1911,20 +2135,20 @@ public abstract class ShadowCache {
 		resourceShadow.setOid(repoShadow.getOid());
 		resourceShadow.asObjectable().setResource(ctx.getResource());
 
-		// We have object for which there was no shadow. Which means that
-		// midPoint haven't known about this shadow
-		// before. Invoke notifyChange() so the new shadow is properly
-		// initialized.
-
-		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
-		shadowChangeDescription.setResource(ctx.getResource().asPrismObject());
-		shadowChangeDescription.setOldShadow(null);
-		shadowChangeDescription.setCurrentShadow(resourceShadow);
-		shadowChangeDescription.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
-		shadowChangeDescription.setUnrelatedChange(true);
-
-		Task task = taskManager.createTaskInstance();
-		notifyResourceObjectChangeListeners(shadowChangeDescription, task, task.getResult());
+		if (isDoDiscovery) {
+			// We have object for which there was no shadow. Which means that midPoint haven't known about this shadow before.
+			// Invoke notifyChange() so the new shadow is properly initialized.
+	
+			ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
+			shadowChangeDescription.setResource(ctx.getResource().asPrismObject());
+			shadowChangeDescription.setOldShadow(null);
+			shadowChangeDescription.setCurrentShadow(resourceShadow);
+			shadowChangeDescription.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
+			shadowChangeDescription.setUnrelatedChange(true);
+	
+			Task task = taskManager.createTaskInstance();
+			notifyResourceObjectChangeListeners(shadowChangeDescription, task, task.getResult());
+		}
 
 		if (unknownIntent) {
 			// Intent may have been changed during the notifyChange processing.
@@ -2102,8 +2326,7 @@ public abstract class ShadowCache {
 					continue;
 				}
 
-				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change
-						.getObjectClassDefinition();
+				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
 
 				ProvisioningContext shadowCtx;
 				PrismObject<ShadowType> oldShadow = null;
@@ -2192,7 +2415,7 @@ public abstract class ShadowCache {
 					change, ctx.getResource(), ctx.getChannel());
 	
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
+				LOGGER.trace("Created resource object shadow change description {}",
 						SchemaDebugUtil.prettyPrint(shadowChangeDescription));
 			}
 			OperationResult notifyChangeResult = new OperationResult(
@@ -2212,14 +2435,15 @@ public abstract class ShadowCache {
 			notifyChangeResult.computeStatus("Error in notify change operation.");
 			
 			if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
-				deleteShadowFromRepoIfNeeded(change, result);
+				// Do not delete dead shadows. Keep dead shadow around because they contain results
+				// of the synchronization. Usual shadow refresh process should delete them eventually.
+				// TODO: review. Maybe make this configuration later on.
+				// But in that case model (SynchronizationService) needs to know whether shadow is
+				// going to be deleted or whether it stays. Model needs to adjust links accordingly.
+				// And we need to modify ResourceObjectChangeListener for that. Keeping all dead
+				// shadows is much easier.
+//				deleteShadowFromRepoIfNeeded(change, result);
 				successfull = true;
-				// // get updated token from change,
-				// // create property modification from new token
-				// // and replace old token with the new one
-				// PrismProperty<?> newToken = change.getToken();
-				// task.setExtensionProperty(newToken);
-				// processedChanges++;
 	
 			} else {
 				successfull = false;
@@ -2362,7 +2586,7 @@ public abstract class ShadowCache {
 		if (oldShadow != null) {
 			shadowCaretaker.applyAttributesDefinition(ctx, oldShadow);
 
-			LOGGER.trace("Old shadow: {}", oldShadow);
+			LOGGER.trace("Processing change, old shadow: {}", ShadowUtil.shortDumpShadow(oldShadow));
 
 			// skip setting other attribute when shadow is null
 			if (oldShadow == null) {
@@ -2375,24 +2599,28 @@ public abstract class ShadowCache {
 
 			if (change.getCurrentShadow() != null) {
 				PrismObject<ShadowType> currentShadow = completeShadow(ctx, change.getCurrentShadow(),
-						oldShadow, parentResult);
+						oldShadow, false, parentResult);
 				change.setCurrentShadow(currentShadow);
-				shadowManager.updateShadow(ctx, currentShadow, oldShadow, parentResult);
+				// TODO: shadowState
+				shadowManager.updateShadow(ctx, currentShadow, oldShadow, null, parentResult);
 			}
 
-			// FIXME: hack. the object delta must have oid specified.
 			if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-				// if (LOGGER.isTraceEnabled()) {
-				// LOGGER.trace("No OID present, assuming delta of type DELETE;
-				// change = {}\nobjectDelta: {}", change,
-				// change.getObjectDelta().debugDump());
-				// }
-				// ObjectDelta<ShadowType> objDelta = new
-				// ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE,
-				// prismContext);
-				// change.setObjectDelta(objDelta);
 				change.getObjectDelta().setOid(oldShadow.getOid());
 			}
+			
+			if (change.getObjectDelta() != null && change.getObjectDelta().isDelete()) {
+				PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
+				if (currentShadow == null) {
+					currentShadow = oldShadow.clone();
+					change.setCurrentShadow(currentShadow);
+				}
+				ShadowType currentShadowType = currentShadow.asObjectable();
+				if (!ShadowUtil.isDead(currentShadowType) || ShadowUtil.isExists(currentShadowType)) {
+					shadowManager.markShadowTombstone(currentShadow, parentResult);
+				}
+			}
+			
 		} else {
 			LOGGER.debug(
 					"No old shadow for synchronization event {}, the shadow must be gone in the meantime (this is probably harmless)",
@@ -2431,7 +2659,7 @@ public abstract class ShadowCache {
 	 * respect to simulated capabilities. 
 	 */
 	private PrismObject<ShadowType> completeShadow(ProvisioningContext ctx,
-			PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow,
+			PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow, boolean isDoDiscovery,
 			OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
 					CommunicationException, SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
@@ -2495,7 +2723,9 @@ public abstract class ShadowCache {
 		ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry);
 		
 		// exists, dead
-		resultShadowType.setExists(resourceShadowType.isExists());
+		// This may seem strange, but always take exists and dead flags from the repository.
+		// Repository is wiser in this case. It may seem that the shadow exists if it is returned
+		// by the resource. But that may be just a quantum illusion (gestation and corpse shadow states).
 
 		// Activation
 		ActivationType resultActivationType = resultShadowType.getActivation();
@@ -2575,7 +2805,7 @@ public abstract class ShadowCache {
 
 									if (entitlementRepoShadow == null) {
 										entitlementRepoShadow = createShadowInRepository(ctxEntitlement,
-												entitlementShadow, false, parentResult);
+												entitlementShadow, false, isDoDiscovery, parentResult);
 									}
 								}
 							} catch (ObjectNotFoundException e) {
@@ -2597,8 +2827,8 @@ public abstract class ShadowCache {
 								continue;
 							}
 						} else {
-							entitlementRepoShadow = lookupOrCreateShadowInRepository(ctxEntitlement,
-									entitlementShadow, false, parentResult);
+							entitlementRepoShadow = lookupOrCreateLiveShadowInRepository(ctxEntitlement,
+									entitlementShadow, false, isDoDiscovery, parentResult);
 						}
 						ObjectReferenceType shadowRefType = ObjectTypeUtil.createObjectRef(entitlementRepoShadow);
 						shadowAssociationType.setShadowRef(shadowRefType);
@@ -2775,7 +3005,7 @@ public abstract class ShadowCache {
 		}
 	}
 	
-	public void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException, SecurityViolationException {
+	public void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException, SecurityViolationException, EncryptionException {
 		ResourceConsistencyType resourceConsistencyType = resource.asObjectable().getConsistency();
 		if (resourceConsistencyType == null) {
 			LOGGER.warn("Skipping propagation of {} because no there is no consistency definition in resource", shadow);
@@ -2823,16 +3053,17 @@ public abstract class ShadowCache {
 		}
 		
 		ProvisioningContext ctx = ctxFactory.create(shadow, task, result);
+		ctx.setPropagation(true);
 		shadowCaretaker.applyAttributesDefinition(ctx, shadow);
 		shadowCaretaker.applyAttributesDefinition(ctx, operationDelta);
 		LOGGER.trace("Merged operation for {}:\n{} ", shadow, operationDelta.debugDumpLazily(1));
 		
 		if (operationDelta.isAdd()) {
 			PrismObject<ShadowType> shadowToAdd = operationDelta.getObjectToAdd();
-			// Do not "compensate" here. Compensate actually means that an exception will be re-throws from operation
-			// TODO: This really needs consistency mechanism cleanup
-			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState =
-					executeDelayedResourceAdd(ctx, shadowToAdd, null, null, false, task, result);
+			ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState = 
+					ProvisioningOperationState.fromPendingOperations(shadow, sortedOperations);
+			shadowToAdd.setOid(shadow.getOid());
+			addShadowAttempt(ctx, shadowToAdd, null, opState, null, task, result);
 			opState.determineExecutionStatusFromResult();
 			
 			shadowManager.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
@@ -2933,25 +3164,60 @@ public abstract class ShadowCache {
 		return passwordDefinition.getCompareStrategy();
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected ObjectDelta mergeDeltas(PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications)
-			throws SchemaException {
-		ShadowType shadowType = shadow.asObjectable();
-		if (shadowType.getObjectChange() != null) {
+	// ----------------------- LEGACY ------ to be removed later (MID-4780)
+	
+	private void cleanLegacyShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
+		
+		// TODO
+		
+//		PrismObject<ShadowType> repoShadowBefore = getRepositoryService().getObject(ShadowType.class, shadow.getOid(), null, parentResult);
+//		List<ItemDelta<?, ?>> itemDeltas =
+//				createShadowLegacyCleanupAndReconciliationDeltas(shadow, repoShadowBefore);
+//
+//		if (LOGGER.isTraceEnabled()) {
+//			LOGGER.trace("Cleaning up repository shadow:\n{}\nThe current object is:\n{}\nAnd computed deltas are:\n{}",
+//					repoShadowBefore.debugDumpLazily(), shadow.debugDumpLazily(), DebugUtil.debugDumpLazily(itemDeltas));
+//		}
+//		
+//		try {
+//			ConstraintsChecker.onShadowModifyOperation(itemDeltas);
+//			getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, parentResult);
+//		} catch (SchemaException ex) {
+//			parentResult.recordFatalError("Couldn't clean-up shadow: schema violation: " + ex.getMessage(), ex);
+//			throw ex;
+//		} catch (ObjectAlreadyExistsException ex) {
+//			parentResult.recordFatalError("Couldn't clean-up shadow: shadow already exists: " + ex.getMessage(), ex);
+//			throw ex;
+//		} catch (ObjectNotFoundException ex) {
+//			parentResult.recordFatalError("Couldn't clean-up shadow: shadow not found: " + ex.getMessage(), ex);
+//			throw ex;
+//		}
+	}
+	
+	private List<ItemDelta<?, ?>> createShadowLegacyCleanupAndReconciliationDeltas(PrismObject<ShadowType> currentShadow,
+			PrismObject<ShadowType> repoShadowBefore) throws SchemaException {
+		List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
 
-			ObjectDeltaType deltaType = shadowType.getObjectChange();
-			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
-					deltaType.getItemDelta(), shadow.getDefinition());
-
-            // pendingModifications must come before modifications, otherwise REPLACE of value X (pending),
-            // followed by ADD of value Y (current) would become "REPLACE X", which is obviously wrong.
-            // See e.g. MID-1709.
-			return ObjectDelta.summarize(
-                    ObjectDelta.createModifyDelta(shadow.getOid(), pendingModifications,
-                            ShadowType.class, getPrismContext()),
-                    ObjectDelta.createModifyDelta(shadow.getOid(), modifications,
-                            ShadowType.class, getPrismContext()));
+		S_ItemEntry i = DeltaBuilder.deltaFor(ShadowType.class, prismContext);
+		ShadowType repo = repoShadowBefore.asObjectable();
+		if (repo.getAttemptNumber() != null) {
+			i = i.item(ShadowType.F_ATTEMPT_NUMBER).replace();
 		}
-		return null;
+		if (repo.getFailedOperationType() != null) {
+			i = i.item(ShadowType.F_FAILED_OPERATION_TYPE).replace();
+		}
+		if (repo.getObjectChange() != null) {
+			i = i.item(ShadowType.F_OBJECT_CHANGE).replace();
+		}
+		if (repo.getResult() != null) {
+			i = i.item(ShadowType.F_RESULT).replace();
+		}
+		if (repo.getCredentials() != null) {
+			i = i.item(ShadowType.F_CREDENTIALS).replace();
+		}
+		itemDeltas.addAll(i.asItemDeltas());
+		itemDeltas.addAll(ProvisioningUtil.createShadowAttributesReconciliationDeltas(currentShadow, repoShadowBefore, getPrismContext()));
+		itemDeltas.addAll(ProvisioningUtil.createShadowActivationCleanupDeltas(repo, getPrismContext()));
+		return itemDeltas;
 	}
 }

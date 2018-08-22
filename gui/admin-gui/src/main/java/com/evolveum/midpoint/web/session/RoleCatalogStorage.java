@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
+import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentViewType;
 import com.evolveum.midpoint.web.page.self.dto.ConflictDto;
 import com.evolveum.midpoint.web.page.self.dto.ShoppingCartConfigurationDto;
@@ -35,12 +36,12 @@ import java.util.List;
  */
 public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     /**
-     * DTO used for search in {@link com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart}
+     * DTO used for search in {@link PageAssignmentShoppingCart}
      */
     private Search roleCatalogSearch;
 
     /**
-     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.self.PageAssignmentShoppingKart}
+     * Paging DTO used in table on page {@link PageAssignmentShoppingCart}
      */
 
     private SelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page

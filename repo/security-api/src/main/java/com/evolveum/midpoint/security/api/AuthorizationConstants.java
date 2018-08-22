@@ -26,8 +26,11 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -107,6 +110,15 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_USER_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "userHistory");
 	public static final String AUTZ_UI_USER_HISTORY_URL = NS_AUTHORIZATION_UI + "#userHistory";
+
+	public static final QName AUTZ_UI_ORG_UNIT_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "orgUnitHistory");
+	public static final String AUTZ_UI_ORG_UNIT_HISTORY_URL = NS_AUTHORIZATION_UI + "#orgUnitHistory";
+
+	public static final QName AUTZ_UI_ROLE_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "roleHistory");
+	public static final String AUTZ_UI_ROLE_HISTORY_URL = NS_AUTHORIZATION_UI + "#roleHistory";
+
+	public static final QName AUTZ_UI_SERVICE_HISTORY_QNAME = new QName(NS_AUTHORIZATION_UI, "serviceHistory");
+	public static final String AUTZ_UI_SERVICE_HISTORY_URL = NS_AUTHORIZATION_UI + "#serviceHistory";
 
 	public static final QName AUTZ_UI_USER_HISTORY_XML_REVIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "userHistoryXmlReview");
 	public static final String AUTZ_UI_USER_HISTORY_XML_REVIEW_URL = NS_AUTHORIZATION_UI + "#userHistoryXmlReview";
@@ -502,6 +514,7 @@ public class AuthorizationConstants {
 			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
 			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
 			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE),
+			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA),
 			new ItemPath(FocusType.F_DELEGATED_REF),
 			new ItemPath(FocusType.F_ITERATION),
 			new ItemPath(FocusType.F_ITERATION_TOKEN),

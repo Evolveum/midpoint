@@ -34,7 +34,6 @@
     </scm>
     <modules>
         <module>sanity</module>
-        <module>consistency-mechanism</module>
         <!-- DO NOT include longtest and story by default, this runs too long for
         ordinary build -->
 <!--         <module>rest</module> -->
@@ -59,6 +58,12 @@
 			<id>guitest</id>
 			<modules>
 				<module>selenidetest</module>
+			</modules>
+		</profile>
+		<profile>
+			<id>schrodinger</id>
+			<modules>
+				<module>schrodingertest</module>
 			</modules>
 		</profile>
 		<profile>

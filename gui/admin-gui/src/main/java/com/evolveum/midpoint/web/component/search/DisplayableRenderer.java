@@ -30,18 +30,20 @@ import java.util.Locale;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class DisplayableRenderer<T extends Serializable> extends AbstractConverter<DisplayableValue>
+public class DisplayableRenderer<T extends Serializable> extends AbstractConverter<DisplayableValue<T>>
         implements IChoiceRenderer<DisplayableValue<T>> {
 
-    private IModel<List<DisplayableValue>> allChoices;
+	private static final long serialVersionUID = 1L;
+	
+	private IModel<List<DisplayableValue<T>>> allChoices;
 
-    public DisplayableRenderer(IModel<List<DisplayableValue>> allChoices) {
+    public DisplayableRenderer(IModel<List<DisplayableValue<T>>> allChoices) {
         this.allChoices = allChoices;
     }
 
     @Override
-    protected Class<DisplayableValue> getTargetType() {
-        return DisplayableValue.class;
+    protected Class<DisplayableValue<T>> getTargetType() {
+		return (Class) DisplayableValue.class;
     }
 
     @Override
@@ -72,8 +74,8 @@ public class DisplayableRenderer<T extends Serializable> extends AbstractConvert
             return null;
         }
 
-        List<DisplayableValue> values = allChoices.getObject();
-        for (DisplayableValue val : values) {
+        List<DisplayableValue<T>> values = allChoices.getObject();
+        for (DisplayableValue<T> val : values) {
             if (value.equals(val.getLabel())) {
                 return val;
             }

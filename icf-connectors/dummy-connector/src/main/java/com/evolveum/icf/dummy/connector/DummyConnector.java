@@ -304,6 +304,9 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 		} catch (ConnectException e) {
 	        log.info("update::exception "+e);
 			throw new ConnectionFailedException(e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+	        log.info("update::exception "+e);
+			throw new ConnectorException(e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			log.info("update::exception "+e);
 			throw new ConnectorIOException(e.getMessage(), e);

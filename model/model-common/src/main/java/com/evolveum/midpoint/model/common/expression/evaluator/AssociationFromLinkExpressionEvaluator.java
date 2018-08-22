@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -114,7 +115,7 @@ public class AssociationFromLinkExpressionEvaluator
 				throw new ExpressionEvaluationException("Empty assignment path variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
 			}
 
-			LOGGER.info("ASSPATH {}:\n{}", evaluatorType.getDescription(), assignmentPath.debugDumpLazily(1));
+			LOGGER.trace("ASSPATH {}:\n{}", evaluatorType.getDescription(), assignmentPath.debugDumpLazily(1));
 			
 			AssignmentPathSegment segment;
 			try {
@@ -126,10 +127,8 @@ public class AssociationFromLinkExpressionEvaluator
 			thisRole = (AbstractRoleType) segment.getSource();
 		}
 		
-		LOGGER.info("thisRole {}: {}", evaluatorType.getDescription(), thisRole);
-		
-		
-		
+		LOGGER.trace("thisRole {}: {}", evaluatorType.getDescription(), thisRole);
+
 		LOGGER.trace("Evaluating association from link on: {}", thisRole);
 
 		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) context.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
@@ -216,7 +215,7 @@ public class AssociationFromLinkExpressionEvaluator
 
 	private boolean matchesForRecursion(OrgType thisOrg) {
 		for (String recurseUpOrgType: evaluatorType.getRecurseUpOrgType()) {
-			if (thisOrg.getOrgType().contains(recurseUpOrgType)) {
+			if (FocusTypeUtil.determineSubTypes(thisOrg).contains(recurseUpOrgType)) {
 				return true;
 			}
 		}

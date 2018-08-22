@@ -686,7 +686,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         // WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
+        assignAccountToUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1054,7 +1054,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
 
         // WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
+        unassignAccountFromUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN
         displayThen(TEST_NAME);

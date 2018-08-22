@@ -35,11 +35,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPropertiesSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectRefExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static java.util.Collections.emptyList;
 
 /**
  * @author Radovan Semancik
@@ -50,7 +48,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTargetSearchExpressionEvaluator.class);
 
-	public AssignmentTargetSearchExpressionEvaluator(SearchObjectRefExpressionEvaluatorType expressionEvaluatorType,
+	public AssignmentTargetSearchExpressionEvaluator(AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType,
 			PrismContainerDefinition<AssignmentType> outputDefinition, Protector protector, ObjectResolver objectResolver,
 			ModelService modelService, PrismContext prismContext, SecurityContextManager securityContextManager,
 			LocalizationService localizationService) {
@@ -58,7 +56,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 	}
 
 	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas, ExpressionEvaluationContext params) {
-		AssignmentType assignmentType = new AssignmentType();
+		AssignmentType assignmentType = new AssignmentType(getPrismContext());
 		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
 
 		ObjectReferenceType targetRef = new ObjectReferenceType();
@@ -66,6 +64,7 @@ public class AssignmentTargetSearchExpressionEvaluator
 		targetRef.setType(targetTypeQName);
 		targetRef.setRelation(getRelation());
 		assignmentType.setTargetRef(targetRef);
+		assignmentType.getSubtype().addAll(getSubtypes());
 
 		try {
 			if (additionalAttributeDeltas != null) {
@@ -84,13 +83,18 @@ public class AssignmentTargetSearchExpressionEvaluator
 	}
 
 	private QName getRelation() {
-		SearchObjectRefExpressionEvaluatorType expressionEvaluatorType = (SearchObjectRefExpressionEvaluatorType) getExpressionEvaluatorType();
+		AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType = (AssignmentTargetSearchExpressionEvaluatorType) getExpressionEvaluatorType();
 		AssignmentPropertiesSpecificationType assignmentProperties = expressionEvaluatorType.getAssignmentProperties();
 		if (assignmentProperties != null) {
 			return assignmentProperties.getRelation();
 		} else {
 			return expressionEvaluatorType.getRelation();
 		}
+	}
+
+	private List<String> getSubtypes() {
+		AssignmentTargetSearchExpressionEvaluatorType evaluator = (AssignmentTargetSearchExpressionEvaluatorType) getExpressionEvaluatorType();
+		return evaluator.getAssignmentProperties() != null ? evaluator.getAssignmentProperties().getSubtype() : emptyList();
 	}
 
 	/* (non-Javadoc)

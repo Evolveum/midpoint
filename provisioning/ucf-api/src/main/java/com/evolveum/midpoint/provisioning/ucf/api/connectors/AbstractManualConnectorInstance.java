@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
@@ -130,6 +131,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		result.setAsynchronousOperationReference(ticketIdentifier);
 
 		AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> ret = new AsynchronousOperationReturnValue<>();
+		ret.setOperationType(PendingOperationTypeType.MANUAL);
 		ret.setOperationResult(result);
 		return ret;
 	}
@@ -164,6 +166,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		result.setAsynchronousOperationReference(ticketIdentifier);
 
 		AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> ret = new AsynchronousOperationReturnValue<>();
+		ret.setOperationType(PendingOperationTypeType.MANUAL);
 		ret.setOperationResult(result);
 		return ret;
 	}
@@ -196,7 +199,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		result.recordInProgress();
 		result.setAsynchronousOperationReference(ticketIdentifier);
 
-		return AsynchronousOperationResult.wrap(result);
+		AsynchronousOperationResult ret = AsynchronousOperationResult.wrap(result);
+		ret.setOperationType(PendingOperationTypeType.MANUAL);
+		return ret;
 	}
 
 	@Override

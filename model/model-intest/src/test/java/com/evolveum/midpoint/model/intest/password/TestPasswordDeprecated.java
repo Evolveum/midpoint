@@ -120,7 +120,7 @@ public class TestPasswordDeprecated extends AbstractInitializedModelIntegrationT
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
 		// WHEN
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();

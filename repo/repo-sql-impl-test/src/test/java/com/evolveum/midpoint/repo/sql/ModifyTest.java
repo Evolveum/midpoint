@@ -16,8 +16,51 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.schema.SearchResultList;
+import org.hibernate.Session;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.common.SynchronizationUtils;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -28,8 +71,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
@@ -54,30 +97,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRawCollection;
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
@@ -358,12 +379,18 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
 
-
         repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), getModifyOptions(), parentResult);
 
         UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, null, parentResult).asObjectable();
         assertEquals("wrong number of assignments", 3, modifiedUser.getAssignment().size());
 
+        // MID-4820
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .item(UserType.F_NAME).eqPoly("modifyUser")
+                .and().item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF).ref("12345678-d34d-b33f-f00d-987987987989")   // role-csv
+                .build();
+        SearchResultList<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, parentResult);
+        assertEquals("Wrong # of returned users", 1, users.size());
     }
 
     @Test
@@ -489,13 +516,11 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertAttribute(afterModify, "baz", "BaZ1", "BaZ2", "BaZ3");
 
         // GIVEN
-        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils.
-                createSynchronizationSituationDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, timestamp, null, false);
-        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationUtils.
-                createSynchronizationSituationDelta(repoShadow, SynchronizationSituationType.LINKED);
-        syncSituationDeltas.add(syncSituationDelta);
-
+        XMLGregorianCalendar now = XmlTypeConverter
+                .createXMLGregorianCalendar(System.currentTimeMillis());
+		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils
+				.createSynchronizationSituationAndDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null, false, now);
+        
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         repositoryService.modifyObject(ShadowType.class, oid, syncSituationDeltas, getModifyOptions(), parentResult);
@@ -558,12 +583,9 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
         repositoryService.addObject(account, null, result);
 
-//        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         List<PropertyDelta<?>> syncSituationDeltas = SynchronizationUtils.
-                createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false);
-//        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
-//                createSynchronizationSituationDelta(account, SynchronizationSituationType.LINKED);
-//        syncSituationDeltas.add(syncSituationDelta);
+                createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false, timestamp);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 
@@ -575,16 +597,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals(SynchronizationSituationType.LINKED, description.getSituation());
 
 
-//        timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false);
-//        syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(afterFirstModify, null);
-//        syncSituationDeltas.add(syncSituationDelta);
-
-//        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-//        PropertyDelta syncTimestap = SynchronizationSituationUtil.createSynchronizationTimestampDelta(afterFirstModify, timestamp);
-//        PropertyDelta.createModificationReplaceProperty(
-//                ShadowType.F_SYNCHRONIZATION_TIMESTAMP, afterFirstModify.getDefinition(), timestamp);
-//        syncSituationDeltas.add(syncTimestap);
+        timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+        syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false, timestamp);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 
@@ -599,7 +613,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals(afterSecondModifyType.getSynchronizationTimestamp(), description.getTimestamp());
 
         ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
-                .item(ShadowType.F_SYNCHRONIZATION_TIMESTAMP).le(afterModifytimestamp)
+                .item(ShadowType.F_SYNCHRONIZATION_TIMESTAMP).lt(description.getTimestamp())
                 .build();
         List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
         AssertJUnit.assertNotNull(shadows);
@@ -988,6 +1002,86 @@ public class ModifyTest extends BaseSQLRepoTest {
         ObjectFilter filterExpectedParsed = QueryJaxbConvertor.createObjectFilter(UserType.class, filterExpected, prismContext);
         //noinspection ConstantConditions
         assertTrue("Filters differ", filterExpectedParsed.equals(filterFromRepoParsed, false));
+    }
+
+    /**
+     * Add shadow pendingOperations; MID-4831
+     */
+    @Test
+    public void test250AddShadowPendingOperations() throws Exception {
+        final String TEST_NAME = "test250AddShadowPendingOperations";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
+                .name("shadow1")
+                .oid("000-aaa-bbb-ccc")
+                .asPrismObject();
+        repositoryService.addObject(shadow, null, result);
+
+        ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_NAME).eqPoly("shadow1")
+                .and().exists(ShadowType.F_PENDING_OPERATION)
+                .build();
+
+        List<PrismObject<ShadowType>> objectsBefore = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertEquals("Wrong # of shadows found (before)", 0, objectsBefore.size());
+
+        // WHEN
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_PENDING_OPERATION).add(new PendingOperationType(prismContext).executionStatus(COMPLETED))
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, getModifyOptions(), result);
+
+        // THEN
+
+        List<PrismObject<ShadowType>> objectsAfter = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertEquals("Wrong # of shadows found (after)", 1, objectsAfter.size());
+        display("object found (after)", objectsAfter.get(0));
+    }
+
+    /**
+     * Delete shadow pendingOperations; MID-4831
+     */
+    @Test
+    public void test260DeleteShadowPendingOperations() throws Exception {
+        final String TEST_NAME = "test260DeleteShadowPendingOperations";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<ShadowType> shadow = prismContext.createObjectable(ShadowType.class)
+                .name("shadow2")
+                .oid("000-aaa-bbb-ddd")
+                .beginPendingOperation()
+                    .executionStatus(COMPLETED)
+                .<ShadowType>end()
+                .asPrismObject();
+        repositoryService.addObject(shadow, null, result);
+
+        ObjectQuery query = QueryBuilder.queryFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_NAME).eqPoly("shadow2")
+                .and().exists(ShadowType.F_PENDING_OPERATION)
+                .build();
+        List<PrismObject<ShadowType>> objectsBefore = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertEquals("Wrong # of shadows found (before)", 1, objectsBefore.size());
+        display("object found (before)", objectsBefore.get(0));
+
+        // WHEN
+
+        List<ItemDelta<?, ?>> itemDeltas = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+                .item(ShadowType.F_PENDING_OPERATION).replace()
+                .asItemDeltas();
+        repositoryService.modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, getModifyOptions(), result);
+
+        // THEN
+
+        List<PrismObject<ShadowType>> objectsAfter = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        assertEquals("Wrong # of shadows found (after)", 0, objectsAfter.size());
     }
 
 }

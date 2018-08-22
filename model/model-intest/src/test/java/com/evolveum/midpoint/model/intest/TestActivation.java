@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -827,7 +827,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -988,7 +988,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
 		// WHEN
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
 		// THEN
 		assertSuccess(result);
@@ -1029,7 +1029,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1387,7 +1387,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -1924,7 +1924,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         addObject(USER_JACK_FILE);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
         // Delete the assignment from the repo. Really use the repo directly. We do not want the model to notice.
@@ -2235,15 +2235,15 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		/// WHEN
         displayWhen(TEST_NAME);
 
-		dummyResourceGreen.addAccount(account);
+		getDummyResource(RESOURCE_DUMMY_GREEN_NAME).addAccount(account);
 
         // THEN
         displayThen(TEST_NAME);
 
-        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, resourceDummyGreen);
+        PrismObject<ShadowType> accountMancomb = findAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME, getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
         display("Account shadow after", accountMancomb);
 
-        DummyAccount dummyAccountAfter = dummyResourceGreen.getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+        DummyAccount dummyAccountAfter = getDummyResource(RESOURCE_DUMMY_GREEN_NAME).getAccountByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("Account after", dummyAccountAfter);
 
         assertNotNull("No mancomb account shadow", accountMancomb);
@@ -2273,7 +2273,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(dummyResourceCtlGreen.getNamespace(), "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).getNamespace(), "AccountObjectClass"), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2305,7 +2305,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
 		// WHEN
-        assignAccount(userMancombOid, RESOURCE_DUMMY_BLUE_OID, null, task, result);
+        assignAccountToUser(userMancombOid, RESOURCE_DUMMY_BLUE_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2332,7 +2332,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
 		// WHEN
-        assignAccount(userMancombOid, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        assignAccountToUser(userMancombOid, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -2417,7 +2417,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
 		// WHEN
-        assignAccount(USER_HERMAN_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
+        assignAccountToUser(USER_HERMAN_OID, RESOURCE_DUMMY_KHAKI_OID, null, task, result);
 
 		// THEN
 		result.computeStatus();

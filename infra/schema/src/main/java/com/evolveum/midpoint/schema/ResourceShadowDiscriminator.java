@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
- * Aggregate bean containing resource OID, intent and thombstone flag.
+ * Aggregate bean containing resource OID, intent and tombstone flag.
  * It uniquely identifies an shadow projection (usually account) for a specific user regardless whether it has OID, does not have
  * OID yet, it exists of was deleted.
  *
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
  *
  * TODO: split to two objects:
  * 1: ResourceShadowCoordinates which will stay in common
- * 2: ResourceShadowDiscriminator (subclass) which will go to model. This will contains thombstone and order.
+ * 2: ResourceShadowDiscriminator (subclass) which will go to model. This will contains tombstone and order.
  *
  * @author Radovan Semancik
  */
@@ -49,12 +49,12 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	private ShadowKindType kind = ShadowKindType.ACCOUNT;
 	private String intent;
 	private QName objectClass;
-	private boolean thombstone;
+	private boolean tombstone;
 	private int order = 0;
 
-	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, boolean thombstone) {
+	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, boolean tombstone) {
 		this.resourceOid = resourceOid;
-		this.thombstone = thombstone;
+		this.tombstone = tombstone;
 		setIntent(intent);
 		setKind(kind);
 	}
@@ -78,7 +78,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 		} else {
 			this.resourceOid = accRefType.getResourceRef().getOid();
 		}
-		this.thombstone = false;
+		this.tombstone = false;
 		setIntent(accRefType.getIntent());
 		setKind(kind);
 	}
@@ -133,18 +133,18 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	}
 
 	/**
-	 * Thumbstone flag is true: the account no longer exists. The data we have are the latest metadata we were able to get.
-	 * The projection will be marked as thombstone if we discover that the associated resource object is gone. Or the shadow
-	 * is gone and we can no longer associate the resource object. In any way the thombstoned projection is marked for removal.
+	 * Tombstone flag is true: the account no longer exists. The data we have are the latest metadata we were able to get.
+	 * The projection will be marked as tombstone if we discover that the associated resource object is gone. Or the shadow
+	 * is gone and we can no longer associate the resource object. In any way the tombstoned projection is marked for removal.
 	 * It will be eventually unlinked and the shadow will be deleted. The shadow may stay around in the "dead" state for
 	 * some time for reporting purposes.
 	 */
-	public boolean isThombstone() {
-		return thombstone;
+	public boolean isTombstone() {
+		return tombstone;
 	}
 
-	public void setThombstone(boolean thombstone) {
-		this.thombstone = thombstone;
+	public void setTombstone(boolean tombstone) {
+		this.tombstone = tombstone;
 	}
 
 	public boolean isWildcard() {
@@ -189,7 +189,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 		result = prime * result + order;
 		result = prime * result
 				+ ((resourceOid == null) ? 0 : resourceOid.hashCode());
-		result = prime * result + (thombstone ? 1231 : 1237);
+		result = prime * result + (tombstone ? 1231 : 1237);
 		return result;
 	}
 
@@ -216,7 +216,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 				return false;
 		} else if (!resourceOid.equals(other.resourceOid))
 			return false;
-		if (thombstone != other.thombstone)
+		if (tombstone != other.tombstone)
 			return false;
 		return true;
 	}
@@ -242,7 +242,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 				return false;
 		} else if (!resourceOid.equals(other.resourceOid))
 			return false;
-		if (thombstone != other.thombstone)
+		if (tombstone != other.tombstone)
 			return false;
 		return true;
 	}
@@ -273,8 +273,8 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
     		sb.append(" order=");
     		sb.append(order);
     	}
-    	if (thombstone) {
-    		sb.append(" THOMBSTONE");
+    	if (tombstone) {
+    		sb.append(" TOMBSTONE");
     	}
     	sb.append(")");
     	return sb.toString();
@@ -289,7 +289,7 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "kind", kind, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "intent", indent, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "objectClass", objectClass, indent + 1);
-		DebugUtil.debugDumpWithLabelLn(sb, "thombstone", thombstone, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "tombstone", tombstone, indent + 1);
 		DebugUtil.debugDumpWithLabel(sb, "order", order, indent + 1);
 		return sb.toString();
 	}

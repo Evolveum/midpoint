@@ -1165,7 +1165,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
 								}
 								// TODO: MID-3899
+								// TODO what if owner is specified not as "self" ?
 								if (AbstractRoleType.class.isAssignableFrom(objectType)) {
+									// TODO beware, role.ownerRef is deprecated
 									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(AbstractRoleType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
 								} else if (TaskType.class.isAssignableFrom(objectType)) {
 									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(TaskType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);

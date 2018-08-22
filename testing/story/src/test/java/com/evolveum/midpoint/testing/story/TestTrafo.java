@@ -225,7 +225,7 @@ public class TestTrafo extends AbstractStoryTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_AD_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_AD_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -290,7 +290,7 @@ public class TestTrafo extends AbstractStoryTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_AD_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_AD_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -394,7 +394,7 @@ public class TestTrafo extends AbstractStoryTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_MAIL_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_MAIL_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);
@@ -469,7 +469,7 @@ public class TestTrafo extends AbstractStoryTest {
 
 		// WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_MAIL_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_MAIL_OID, null, task, result);
 
 		// THEN
         displayThen(TEST_NAME);

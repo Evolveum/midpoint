@@ -50,14 +50,14 @@ public class AbstractRoleAssignmentDetailsPanel<R extends AbstractRoleType> exte
 			ContainerWrapper<ConstructionType> constructionWrapper = getModelObject().findContainerWrapper(new ItemPath(getModelObject().getPath(),
 					AssignmentType.F_CONSTRUCTION));
 
-			constructionWrapper.setAddContainerButtonVisible(true);
+//			constructionWrapper.setAddContainerButtonVisible(true);
 			constructionWrapper.setShowEmpty(true, false);
 			if (constructionWrapper != null && constructionWrapper.getValues() != null) {
 				constructionWrapper.getValues().forEach(vw -> vw.setShowEmpty(true, false));
 			}
 			ContainerWrapper associationWrapper = constructionWrapper.findContainerWrapper(constructionWrapper.getPath().append(ConstructionType.F_ASSOCIATION));
 			if (associationWrapper != null) {
-				associationWrapper.setRemoveContainerButtonVisible(true);
+//				associationWrapper.setRemoveContainerButtonVisible(true);
 			}
 			return Model.of(constructionWrapper);
 		}

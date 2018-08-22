@@ -17,6 +17,7 @@ package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * @author Radovan Semancik
@@ -46,6 +47,6 @@ public interface ResourceObjectChangeListener extends ProvisioningListener {
 	 * @param change
 	 *            change description
 	 */
-	public void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
+	public <F extends FocusType> void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
 
 }

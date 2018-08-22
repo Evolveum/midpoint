@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -273,6 +275,29 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+     * MID-4660, MID-4491, MID-3581
+     */
+    @Test
+    public void test320DefaultRelations() throws Exception {
+		final String TEST_NAME="test320DefaultRelations";
+        displayTestTitle(TEST_NAME);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        List<RelationDefinitionType> relations = modelInteractionService.getRelationDefinitions(result);
+        
+        // THEN
+ 		displayThen(TEST_NAME);
+ 		display("Relations", relations);
+        assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "RelationTypes.manager");
+        assertRelationDef(relations, SchemaConstants.ORG_OWNER, "RelationTypes.owner");
+        assertEquals("Unexpected number of relation definitions", 7, relations.size());
+    }
+	
+	/**
 	 * MID-3879
 	 */
 	@Test
@@ -315,7 +340,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);

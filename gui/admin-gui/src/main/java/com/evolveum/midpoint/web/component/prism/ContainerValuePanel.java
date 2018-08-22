@@ -16,8 +16,11 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,7 +59,8 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 		this.pageBase = pageBase;
 		
 		add(new VisibleEnableBehaviour() {
-
+			
+			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isVisible() {
 				return model.getObject().isVisible();
@@ -69,7 +73,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
     }
 
     private void initLayout(final IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
-    	PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model) {
+    	PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model, isPanelVisible) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -79,18 +83,9 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 				target.add(getPageBase().getFeedbackPanel());
 			}
 
-			@Override
-            protected void addNewContainerValuePerformed(AjaxRequestTarget ajaxRequestTarget){
-                super.addNewContainerValuePerformed(ajaxRequestTarget);
-                addOrReplaceProperties(model, form, isPanelVisible, true);
-                ajaxRequestTarget.add(ContainerValuePanel.this);
-            }
-
-
-            protected void reloadParentContainerPanel(AjaxRequestTarget target){
-                target.add(ContainerValuePanel.this);
-            }
         };
+        
+        
         header.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
 
@@ -127,18 +122,27 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
 
 			@Override
             protected void populateItem(final ListItem<IW> item) {
-				
+				item.setOutputMarkupId(true);
 				if (item.getModel().getObject() instanceof ContainerWrapper) {
-					PrismContainerPanel<C> containerPanel = new PrismContainerPanel("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanaleVisible, pageBase);
+					PrismContainerPanel<C> containerPanel = new PrismContainerPanel<C>("property", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanaleVisible, pageBase);
 					containerPanel.setOutputMarkupId(true);
-					item.add(new VisibleEnableBehaviour(){
-                        private static final long serialVersionUID = 1L;
-
-                        public boolean isVisible(){
-                            return containerPanel.isVisible();
-                        }
-                    });
 					item.add(containerPanel);
+					containerPanel.add(new VisibleEnableBehaviour() {
+						
+						private static final long serialVersionUID = 1L;
+						
+						@Override
+						public boolean isVisible() {
+							if (model.getObject().containsMultipleMultivalueContainer()
+									&& item.getModelObject().getItemDefinition().isMultiValue()
+									&& CollectionUtils.isEmpty(item.getModelObject().getValues())) {
+								return false;
+							}
+							
+							return containerPanel.isPanelVisible(isPanaleVisible, (IModel<ContainerWrapper<C>>) item.getModel());
+							
+						}
+					});
 					return;
 				}
 				
@@ -150,6 +154,7 @@ public class ContainerValuePanel<C extends Containerable> extends Panel {
             }
         };
         properties.setReuseItems(true);
+        properties.setOutputMarkupId(true);
         if (isToBeReplaced) {
             replace(properties);
         } else {

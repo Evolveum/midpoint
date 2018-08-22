@@ -17,10 +17,15 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -39,12 +44,15 @@ import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author semancik
  *
  */
 public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Panel {
+	private static final long serialVersionUID = 1L;
 
 	public static final String PARAMETER_SELECTED_TAB = "tab";
 
@@ -53,6 +61,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 	private static final String ID_BACK = "back";
 	private static final String ID_SAVE = "save";
+	private static final String ID_EDIT_XML = "editXml";
 	private static final String ID_PREVIEW_CHANGES = "previewChanges";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectMainPanel.class);
@@ -60,7 +69,10 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	private Form mainForm;
 
 	private LoadableModel<ObjectWrapper<O>> objectModel;
+
 	private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel = new LoadableModel<ExecuteChangeOptionsDto>(false) {
+		private static final long serialVersionUID = 1L;
+
 		@Override
 		protected ExecuteChangeOptionsDto load() {
 			return ExecuteChangeOptionsDto.createFromSystemConfiguration();
@@ -135,10 +147,12 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		initLayoutPreviewButton(parentPage);
 		initLayoutSaveButton(parentPage);
 		initLayoutBackButton(parentPage);
+		initLayoutEditXmlButton(parentPage);
 	}
 
 	protected void initLayoutSaveButton(final PageAdminObjectDetails<O> parentPage) {
 		AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE, parentPage.createStringResource("pageAdminFocus.button.save")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target,
@@ -182,6 +196,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	// TEMPORARY
 	protected void initLayoutPreviewButton(final PageAdminObjectDetails<O> parentPage) {
 		AjaxSubmitButton previewButton = new AjaxSubmitButton(ID_PREVIEW_CHANGES, parentPage.createStringResource("pageAdminFocus.button.previewChanges")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target,
@@ -222,6 +237,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
 	protected void initLayoutBackButton(PageAdminObjectDetails<O> parentPage) {
 		AjaxButton back = new AjaxButton(ID_BACK, parentPage.createStringResource("pageAdminFocus.button.back")) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -232,6 +248,45 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 		mainForm.add(back);
 	}
 
+	private void initLayoutEditXmlButton(final PageAdminObjectDetails<O> parentPage){
+		AjaxButton editXmlButton = new AjaxButton(ID_EDIT_XML, parentPage.createStringResource("AbstractObjectMainPanel.editXmlButton")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				ConfirmationPanel confirmationPanel = new ConfirmationPanel(parentPage.getMainPopupBodyId(),
+						parentPage.createStringResource("AbstractObjectMainPanel.confirmEditXmlRedirect")){
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void yesPerformed(AjaxRequestTarget target) {
+						PageParameters parameters = new PageParameters();
+						parameters.add(PageDebugView.PARAM_OBJECT_ID, parentPage.getObjectWrapper().getOid());
+						parameters.add(PageDebugView.PARAM_OBJECT_TYPE, parentPage.getCompileTimeClass().getSimpleName());
+						parentPage.navigateToNext(PageDebugView.class, parameters);
+					}
+
+					@Override
+					public StringResourceModel getTitle() {
+						return new StringResourceModel("pageUsers.message.confirmActionPopupTitle");
+					}
+				};
+
+				parentPage.showMainPopup(confirmationPanel, target);
+			}
+		};
+		editXmlButton.add(new VisibleEnableBehaviour(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible(){
+				return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+						AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL);
+			}
+		});
+		mainForm.add(editXmlButton);
+
+	}
 	public ExecuteChangeOptionsDto getExecuteChangeOptionsDto() {
 		return executeOptionsModel.getObject();
 	}

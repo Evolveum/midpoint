@@ -114,6 +114,16 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
     }
 
     @Override
+    public String getWidthUnit(){
+        return "px";
+    }
+
+    @Override
+    public String getHeightUnit(){
+        return "px";
+    }
+
+    @Override
     public StringResourceModel getTitle() {
         return new StringResourceModel("TestConnectionResultPanel.testConnection.result");
     }

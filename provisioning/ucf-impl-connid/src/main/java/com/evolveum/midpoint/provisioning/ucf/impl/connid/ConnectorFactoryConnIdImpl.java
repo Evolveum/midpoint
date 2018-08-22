@@ -171,7 +171,6 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 	// by the parent classloader so we can correctly adjust the log levels from the main code
 	static final java.util.logging.Logger JUL_LOGGER = java.util.logging.Logger.getLogger(ConnectorFactoryConnIdImpl.class.getName());
 
-
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Set<URI> bundleURIs;
@@ -195,7 +194,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
 		// bundleURIs = listBundleJars();
 		bundleURIs = new HashSet<>();
 
-		Configuration config = midpointConfiguration.getConfiguration("midpoint.icf");
+		Configuration config = midpointConfiguration.getConfiguration(MidpointConfiguration.ICF_CONFIGURATION);
 
 		// Is classpath scan enabled
 		if (config.getBoolean("scanClasspath")) {

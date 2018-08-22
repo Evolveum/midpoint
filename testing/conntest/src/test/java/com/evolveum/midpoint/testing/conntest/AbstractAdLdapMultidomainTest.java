@@ -790,7 +790,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        assignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
+        assignAccountToUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1299,7 +1299,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        assignAccount(userEmptyheadOid, getResourceOid(), null, task, result);
+        assignAccountToUser(userEmptyheadOid, getResourceOid(), null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -1463,7 +1463,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        unassignAccount(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
+        unassignAccountFromUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN
         displayThen(TEST_NAME);

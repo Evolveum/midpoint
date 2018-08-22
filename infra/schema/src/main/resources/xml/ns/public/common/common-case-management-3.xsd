@@ -685,6 +685,9 @@
 					<xsd:documentation>
 						Name given to this "timed actions" entry.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemTimedActionsType.name</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
@@ -692,6 +695,9 @@
 					<xsd:documentation>
 						Display name given to this "timed actions" entry.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemTimedActionsType.displayName</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="description" type="xsd:string" minOccurs="0">
@@ -699,6 +705,9 @@
 					<xsd:documentation>
 						Description of this "timed actions" entry.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemTimedActionsType.description</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="time" type="tns:TimedActionTimeSpecificationType" minOccurs="0" maxOccurs="unbounded">
@@ -707,6 +716,9 @@
 						Time(s) at which these actions are to be executed. No time or zero time means they are executed
 						at the work item deadline.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemTimedActionsType.time</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="actions" type="tns:WorkItemActionsType" minOccurs="1">
@@ -714,6 +726,9 @@
 					<xsd:documentation>
 						What actions to execute.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemTimedActionsType.actions</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
@@ -722,6 +737,9 @@
 						Should these actions be scheduled?
 						NOT IMPLEMENTED YET.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemTimedActionsType.condition</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="escalationLevelFrom" type="xsd:int" minOccurs="0">
@@ -731,6 +749,9 @@
 						If both escalationLevelFrom and escalationLevelTo are missing, they are considered both to be 0.
 						If only escalationLevelFrom is missing, it is considered 0 (i.e. no restriction).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemTimedActionsType.escalationLevelFrom</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="escalationLevelTo" type="xsd:int" minOccurs="0">
@@ -740,6 +761,9 @@
 						If both escalationLevelFrom and escalationLevelTo are missing, they are considered both to be 0.
 						If only escalationLevelTo is missing, it is considered "infinity" (i.e. no restriction).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemTimedActionsType.escalationLevelTo</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -761,6 +785,9 @@
 					<xsd:documentation>
 						Complete this work item with a given result.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemActionsType.complete</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<!-- TODO maybe also completeStage -->
@@ -769,6 +796,9 @@
 					<xsd:documentation>
 						Send a notification.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemActionsType.notify</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="delegate" type="tns:DelegateWorkItemActionType" minOccurs="0" maxOccurs="1">
@@ -776,6 +806,9 @@
 					<xsd:documentation>
 						Delegate this work item.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemActionsType.delegate</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="escalate" type="tns:EscalateWorkItemActionType" minOccurs="0" maxOccurs="1">
@@ -783,6 +816,9 @@
 					<xsd:documentation>
 						Escalate this work item. Basically the same as "delegate" but increases the escalation level.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WorkItemActionsType.escalate</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -800,15 +836,36 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="displayName" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AbstractWorkItemActionType.name</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AbstractWorkItemActionType.displayName</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>AbstractWorkItemActionType.description</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Should this action be executed?
 						NOT IMPLEMENTED YET
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>AbstractWorkItemActionType.condition</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -828,7 +885,13 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:AbstractWorkItemActionType">
 				<xsd:sequence>
-					<xsd:element name="outcome" type="xsd:anyURI" minOccurs="0" />
+					<xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>CompleteWorkItemActionType.outcome</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element name="notifyBeforeAction" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -837,6 +900,9 @@
 								notifyBeforeDeadline in certification.)
 								TODO other time units, like business days?
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>CompleteWorkItemActionType.notifyBeforeAction</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 				</xsd:sequence>
@@ -864,6 +930,9 @@
 								If true (the default) creates one notification event for each assignee. Otherwise,
 								creates a single notification event for the whole work item.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WorkItemNotificationActionType.perAssignee</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="handler" type="c:EventHandlerType" minOccurs="0" >
@@ -872,6 +941,9 @@
 								Ad-hoc event handler that will be used to process these event emitted. In addition to it,
 								a system-wide handler for workItemCustomEvent will be invoked.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>WorkItemNotificationActionType.handler</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 				</xsd:sequence>
@@ -898,6 +970,9 @@
 							<xsd:documentation>
 								Specific approver to replace the current one.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>DelegateWorkItemActionType.approverRef</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
@@ -905,6 +980,9 @@
 							<xsd:documentation>
 								Expression giving an approver to replace the current one.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>DelegateWorkItemActionType.approverExpression</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="outcomeIfNoApprovers" type="xsd:anyURI" minOccurs="0">
@@ -912,6 +990,9 @@
 							<xsd:documentation>
 								What is the outcome (of this work item) if there is no approver to delegate/escalate to?
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>DelegateWorkItemActionType.outcomeIfNoApprovers</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="duration" type="xsd:duration" minOccurs="0">
@@ -922,6 +1003,9 @@
 								TODO other time units, like business days?
 								TODO relative to original start time, original deadline, or current time?
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>DelegateWorkItemActionType.duration</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="delegationMethod" type="tns:WorkItemDelegationMethodType" minOccurs="0">
@@ -929,6 +1013,9 @@
 							<xsd:documentation>
 								How to delegate the work item? Default is "replace assignees".
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>DelegateWorkItemActionType.delegationMethod</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="notifyBeforeAction" type="xsd:duration" minOccurs="0" maxOccurs="unbounded">
@@ -939,6 +1026,9 @@
 								notifyBeforeDeadline in certification.)
 								TODO other time units, like business days?
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>DelegateWorkItemActionType.notifyBeforeAction</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 				</xsd:sequence>
@@ -965,6 +1055,9 @@
 							<xsd:documentation>
 								Name for the new escalation level.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>EscalateWorkItemActionType.escalationLevelName</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="escalationLevelDisplayName" type="xsd:string" minOccurs="0" >
@@ -972,6 +1065,9 @@
 							<xsd:documentation>
 								Display name for the new escalation level.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>EscalateWorkItemActionType.escalationLevelDisplayName</a:displayName>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 				</xsd:sequence>

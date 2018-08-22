@@ -253,6 +253,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_AUXILIARY_OBJECT_CLASS = new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 	public static final ItemPath PATH_AUTOASSIGN_ENABLED = new ItemPath(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
 	public static final ItemPath PATH_PARENT_ORG_REF = new ItemPath(ObjectType.F_PARENT_ORG_REF);
+	public static final ItemPath PATH_METADATA_MODIFY_TIMESTAMP = new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP);
 
 	public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
@@ -544,7 +545,7 @@ public abstract class SchemaConstants {
 	// Misc
 
 	public static String BUNDLE_NAME = "schema";
-	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/" + BUNDLE_NAME;
+	public static String SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH = "localization/" + BUNDLE_NAME;     // Do not load this bundle explicitly, see MID-4800
 	public static final QName APPROVAL_LEVEL_OUTCOME_TYPE_COMPLEX_TYPE = new QName(SchemaConstants.NS_C, ApprovalLevelOutcomeType.class.getSimpleName());
 
 	// registration

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceRelationsPanel.RoleRelationSelectionDto;
+import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel.RoleRelationSelectionDto;
 
 public abstract class RoleRelationSelectionPanel extends BasePanel<RoleRelationSelectionDto> implements Popupable{
 

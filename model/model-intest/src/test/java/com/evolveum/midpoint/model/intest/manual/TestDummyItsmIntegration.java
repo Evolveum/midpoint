@@ -97,6 +97,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -224,7 +225,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);
@@ -281,7 +282,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);
@@ -347,7 +348,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		clockForward("PT1H");
+		clockForward("PT3H");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -357,9 +358,8 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		assertLinks(userAfter, 0);
+		assertUserAfter(USER_JACK_OID)
+			.assertLinks(0);
 	}
 	
 	/**
@@ -377,25 +377,28 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignAccount(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
+		assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);
 		DummyItsm.getInstance().clearFailureClass();
-		display("result", result);
-		assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+		assertInProgress(result);
 		
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after", userAfter);
 		accountJackOid = getSingleLinkOid(userAfter);
 		
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
-		// In fact, there should be a pending operation. Execution_pending operation
-		// or something like that. The reason there is no shadow now is that the
-		// consistency mechanism is not aligned with the concept of pending operations.
-		// TODO: MID-4542
-		assertPendingOperationDeltas(shadowRepo, 0);
+		assertRepoShadow(accountJackOid)
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertAttemptNumber(1)
+					.delta()
+						.assertAdd()
+						.end()
+					.assertId()
+					.assertType(PendingOperationTypeType.RETRY);
 	}
 	
 	@Test
@@ -407,9 +410,10 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		OperationResult result = task.getResult();
 		
 		// Give consistency a time re-try operation again.
-		clockForward("PT6M");
+		clockForward("PT32M");
 		
 		DummyItsm.getInstance().clearFailureClass();
+		
 		PrismObject<ShadowType> shadowRepoBefore = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
 		display("Repo shadow before", shadowRepoBefore);
 		
@@ -423,14 +427,21 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		display("result", result);
 		jackLastTicketIdentifier = assertInProgress(result);
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		accountJackOid = getSingleLinkOid(userAfter);
+		assertUserAfter(USER_JACK_OID)
+			.singleLink()
+				.assertOid(accountJackOid);
 		
-		PrismObject<ShadowType> shadowRepoAfter = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow after", shadowRepoAfter);
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepoAfter, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
+		assertRepoShadow(accountJackOid)
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+					.assertAsynchronousOperationReference(jackLastTicketIdentifier)
+					.delta()
+						.assertAdd()
+						.end()
+					.assertId()
+					.assertType(PendingOperationTypeType.MANUAL);
 		
 		assertDummyTicket(jackLastTicketIdentifier, DummyItsmTicketStatus.OPEN, "ADD");
 	}
@@ -455,13 +466,22 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		DummyItsm.getInstance().clearFailureClass();
 		assertPartialError(result);
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		accountJackOid = getSingleLinkOid(userAfter);
-		
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+		assertUserAfter(USER_JACK_OID)
+			.singleLink()
+				.assertOid(accountJackOid);
+
+		// Communication error, cannot update status. Still old data here.
+		assertRepoShadow(accountJackOid)
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+					.assertAsynchronousOperationReference(jackLastTicketIdentifier)
+					.delta()
+						.assertAdd()
+						.end()
+					.assertId()
+					.assertType(PendingOperationTypeType.MANUAL);
 	}
 	
 	@Test
@@ -482,13 +502,21 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		accountJackOid = getSingleLinkOid(userAfter);
-		
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
-		PendingOperationType pendingOperation = assertSinglePendingOperation(shadowRepo, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+		assertUserAfter(USER_JACK_OID)
+			.singleLink()
+				.assertOid(accountJackOid);
+	
+		assertRepoShadow(accountJackOid)
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertAsynchronousOperationReference(jackLastTicketIdentifier)
+					.delta()
+						.assertAdd()
+						.end()
+					.assertId()
+					.assertType(PendingOperationTypeType.MANUAL);
 	}
 	
 	@Test
@@ -503,25 +531,45 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		
 		// WHEN
 		displayWhen(TEST_NAME);
-		unassignAccount(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
+		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_ITSM_OID, null, task, result);
 		
 		// THEN
 		displayThen(TEST_NAME);
 		display("result", result);
 		DummyItsm.getInstance().clearFailureClass();
-		assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+		assertResultStatus(result, OperationResultStatus.IN_PROGRESS);
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		accountJackOid = getSingleLinkOid(userAfter);
+		assertUserAfter(USER_JACK_OID)
+			.singleLink()
+				.assertOid(accountJackOid);
+	
+		assertRepoShadow(accountJackOid)
+			.pendingOperations()
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.COMPLETED)
+				.find()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.assertAsynchronousOperationReference(jackLastTicketIdentifier)
+					.delta()
+						.assertAdd()
+						.end()
+					.assertId()
+					.assertType(PendingOperationTypeType.MANUAL)
+					.end()
+				.by()
+					.executionStatus(PendingOperationExecutionStatusType.EXECUTING)
+				.find()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+					.assertAttemptNumber(1)
+					.delta()
+						.assertDelete()
+						.end()
+					.assertId()
+					.assertType(PendingOperationTypeType.RETRY)
+					.end();
 		
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertPendingOperationDeltas(shadowRepo, 1);
-		// In fact, there should be two pending operations. One of the complete, the other execution_pending
-		// or something like that. The reason there is no shadow now is that the
-		// consistency mechanism is not aligned with the concept of pending operations.
-		// TODO: MID-4542
 	}
 	
 	@Test
@@ -533,7 +581,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		OperationResult result = task.getResult();
 		
 		// Give consistency a time re-try operation again.
-		clockForward("PT6M");
+		clockForward("PT32M");
 		
 		DummyItsm.getInstance().clearFailureClass();
 		PrismObject<ShadowType> shadowRepoBefore = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
@@ -549,16 +597,22 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		display("result", result);
 		jackLastTicketIdentifier = assertInProgress(result);
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		accountJackOid = getSingleLinkOid(userAfter);
-		
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertPendingOperationDeltas(shadowRepo, 2);
-		findPendingOperation(shadowRepo, PendingOperationExecutionStatusType.COMPLETED);
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, PendingOperationExecutionStatusType.EXECUTING);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
+		assertUserAfter(USER_JACK_OID)
+			.singleLink()
+				.assertOid(accountJackOid);
+	
+		// First operation has expired already
+		assertRepoShadow(accountJackOid)
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+					.delta()
+						.assertDelete()
+						.end()
+					.assertId()
+					.assertType(PendingOperationTypeType.MANUAL)
+					.end();
 		
 		assertDummyTicket(jackLastTicketIdentifier, DummyItsmTicketStatus.OPEN, "DEL");
 	}
@@ -583,12 +637,22 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		DummyItsm.getInstance().clearFailureClass();
 		assertPartialError(result);
 		
-		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-		display("Repo shadow", shadowRepo);
-		assertPendingOperationDeltas(shadowRepo, 2);
-		findPendingOperation(shadowRepo, PendingOperationExecutionStatusType.COMPLETED);
-		PendingOperationType pendingOperation = findPendingOperation(shadowRepo, PendingOperationExecutionStatusType.EXECUTING);
-		assertNotNull("No ID in pending operation", pendingOperation.getId());
+		assertUserAfter(USER_JACK_OID)
+			.singleLink()
+				.assertOid(accountJackOid);
+	
+		// Communication error. Still old data.
+		assertRepoShadow(accountJackOid)
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+					.assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+					.delta()
+						.assertDelete()
+						.end()
+					.assertId()
+					.assertType(PendingOperationTypeType.MANUAL)
+					.end();
 	}
 	
 	@Test
@@ -611,25 +675,23 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		
 		// THEN
 		displayThen(TEST_NAME);
-		jackLastTicketIdentifier = assertInProgress(result);
+		assertSuccess(result);
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		assertLinks(userAfter, 0);
-		// TODO: shadow is gone here. But it should NOT be gone yet.
-		// It should still be there until the operation is in grace period.
-		// TODO: MID-4542
+		assertUserAfter(USER_JACK_OID)
+			.singleLink()
+				.assertOid(accountJackOid);
 		
-//		accountJackOid = getSingleLinkOid(userAfter);
-//		
-//		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, accountJackOid, null, result);
-//		display("Repo shadow", shadowRepo);
-//		assertPendingOperationDeltas(shadowRepo, 2);
-//		List<PendingOperationType> pendingOperations = shadowRepo.asObjectable().getPendingOperation();
-//		for (PendingOperationType pendingOperation : pendingOperations) {
-//			assertPendingOperation(shadowRepo, pendingOperation, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
-//		}
-//		assertShadowDead(shadowRepo);
+		assertRepoShadow(accountJackOid)
+			.assertTombstone()
+			.pendingOperations()
+				.singleOperation()
+					.assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+					.assertResultStatus(OperationResultStatusType.SUCCESS)
+					.delta()
+						.assertDelete()
+						.end()
+					.assertId()
+					.assertType(PendingOperationTypeType.MANUAL);
 	}
 	
 	/**
@@ -643,7 +705,7 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		clockForward("PT1H");
+		clockForward("PT3H");
 		
 		// WHEN
 		displayWhen(TEST_NAME);
@@ -653,9 +715,8 @@ public class TestDummyItsmIntegration extends AbstractConfiguredModelIntegration
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after", userAfter);
-		assertLinks(userAfter, 0);
+		assertUserAfter(USER_JACK_OID)
+			.assertLinks(0);
 	}
 	
 	private void assertDummyTicket(String identifier, DummyItsmTicketStatus expectedStatus, String expectedBodyStart) throws Exception {

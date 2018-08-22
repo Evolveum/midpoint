@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.provisioning.impl.task;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
@@ -81,7 +82,7 @@ public class MultiPropagationResultHandler extends AbstractSearchIterativeResult
 	protected void propagateShadowOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task workerTask, OperationResult result) {
 		try {
 			shadowCache.propagateOperations(resource, shadow, workerTask, result);
-		} catch (CommonException | GenericFrameworkException e) {
+		} catch (CommonException | GenericFrameworkException | EncryptionException e) {
 			throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
 		}
 	}

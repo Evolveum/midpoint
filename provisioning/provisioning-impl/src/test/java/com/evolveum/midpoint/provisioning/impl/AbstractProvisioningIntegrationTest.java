@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -36,8 +37,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.dummy.TestDummyResourceAndSchemaCaching;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
+import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.PointInTimeType;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -48,15 +52,19 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
@@ -74,7 +82,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractProvisioningIntegrationTest.class);
 
 	@Autowired protected ProvisioningService provisioningService;
-	@Autowired protected SynchornizationServiceMock syncServiceMock;
+	@Autowired protected SynchronizationServiceMock syncServiceMock;
 	
 	// Testing connector discovery
 	@Autowired protected ConnectorManager connectorManager;
@@ -235,5 +243,79 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 	
 	protected PrismObject<ResourceType> getResource() {
 		return null;
+	}
+	
+	protected void assertProvisioningNotFound(String oid) throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask("assertProvisioningNotFound");
+		OperationResult result = task.getResult();
+		try {
+			provisioningService.getObject(ShadowType.class, oid, null, task, result);
+			assertNotReached();
+		} catch (ObjectNotFoundException e) {
+			// expected
+		}
+		assertFailure(result);
+	}
+	
+	protected void assertProvisioningFutureNotFound(String oid) throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask("assertProvisioningFutureNotFound");
+		OperationResult result = task.getResult();
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+		try {
+			provisioningService.getObject(ShadowType.class, oid, options, task, result);
+			assertNotReached();
+		} catch (ObjectNotFoundException e) {
+			// expected
+		}
+		assertFailure(result);
+	}
+	
+	protected ShadowAsserter<Void> assertShadowProvisioning(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask("assertShadowProvisioning");
+		OperationResult result = task.getResult();
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, null, task, result);
+		assertSuccess(result);
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "provisioning");
+		asserter
+			.display();
+		return asserter;
+	}
+	
+	protected ShadowAsserter<Void> assertShadowNoFetch(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask("assertShadowProvisioning");
+		OperationResult result = task.getResult();
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
+		assertSuccess(result);
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "noFetch");
+		asserter
+			.display();
+		return asserter;
+	}
+	
+	protected ShadowAsserter<Void> assertShadowFuture(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask("assertShadowFuture");
+		OperationResult result = task.getResult();
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
+		assertSuccess(result);
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "future");
+		asserter
+			.display();
+		return asserter;
+	}
+	
+	protected ShadowAsserter<Void> assertShadowFutureNoFetch(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		Task task = createTask("assertShadowFutureNoFetch");
+		OperationResult result = task.getResult();
+		GetOperationOptions rootOptions = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
+		rootOptions.setNoFetch(true);
+		Collection<SelectorOptions<GetOperationOptions>> options =  SelectorOptions.createCollection(rootOptions);
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
+		assertSuccess(result);
+		ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "future,noFetch");
+		asserter
+			.display();
+		return asserter;
 	}
 }

@@ -183,7 +183,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
-		checkConsistency(accountProvisioning);
+		checkUniqueness(accountProvisioning);
 		//assertSteadyResource();
 	}
 

@@ -1283,6 +1283,9 @@ public class Clockwork {
 			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 				DebugUtil.indentDebugDump(sb, 1);
 				sb.append(projectionContext.getHumanReadableName());
+				if (projectionContext.isTombstone()) {
+					sb.append(" THOMBSTONE");
+				}
 				sb.append(": ");
 				sb.append(projectionContext.getSynchronizationPolicyDecision());
 				sb.append("\n");

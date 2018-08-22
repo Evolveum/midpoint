@@ -80,6 +80,8 @@
 	
 	<consistency>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+		<pendingOperationRetentionPeriod>PT20M</pendingOperationRetentionPeriod>
+		<reshreshOnRead>true</reshreshOnRead>
 	</consistency>
 
 	<business>

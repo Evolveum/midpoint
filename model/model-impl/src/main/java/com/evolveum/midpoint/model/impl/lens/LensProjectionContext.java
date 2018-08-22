@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jvnet.jaxb2_commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -112,7 +114,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private Boolean isLegal = null;
     private Boolean isLegalOld = null;
 
+    /**
+     * True if the projection exists (or will exist) on resource. False if it does not exist.
+     * NOTE: entire projection is loaded with pointInTime=future. Therefore this does NOT
+     * reflect actual situation. If there is a pending operation to create the object then
+     * isExists will in fact be true.
+     */
     private boolean isExists;
+    
+    /**
+     * True if shadow exists in the repo. It is set to false after projector discovers that a shadow is gone.
+     * This is a corner case, but it may happen: if shadow is unintentionally deleted, if the shadow is 
+     * cleaned up by another thread and so on. 
+     */
+    private transient boolean shadowExistsInRepo = true;
 
     /**
      * Decision regarding the account. It indicated what the engine has DECIDED TO DO with the context.
@@ -201,6 +216,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	transient private String humanReadableName;
 	
 	private Map<String, PrismObject<ShadowType>> entitlementMap = new HashMap<>();
+
+	transient private String humanReadableString;
 
 	LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
     	super(ShadowType.class, lensContext);
@@ -315,6 +332,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public ResourceShadowDiscriminator getResourceShadowDiscriminator() {
         return resourceShadowDiscriminator;
     }
+    
+    public void markTombstone() {
+    	if (resourceShadowDiscriminator != null) {
+    		resourceShadowDiscriminator.setTombstone(true);
+    	}
+    	setExists(false);
+		setFullShadow(false);
+    	humanReadableName = null;
+    }
 
     public void setResourceShadowDiscriminator(ResourceShadowDiscriminator resourceShadowDiscriminator) {
 		this.resourceShadowDiscriminator = resourceShadowDiscriminator;
@@ -332,7 +358,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	if (!rsd.getKind().equals(resourceShadowDiscriminator.getKind())) {
     		return false;
     	}
-    	if (rsd.isThombstone() != resourceShadowDiscriminator.isThombstone()) {
+    	if (rsd.isTombstone() != resourceShadowDiscriminator.isTombstone()) {
     		return false;
     	}
     	if (rsd.getIntent() == null) {
@@ -354,11 +380,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return true;
 	}
 
-	public boolean isThombstone() {
+	public boolean isTombstone() {
 		if (resourceShadowDiscriminator == null) {
 			return false;
 		}
-		return resourceShadowDiscriminator.isThombstone();
+		return resourceShadowDiscriminator.isTombstone();
 	}
 
 	public void addAccountSyncDelta(ObjectDelta<ShadowType> delta) throws SchemaException {
@@ -474,6 +500,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
 	public void setExists(boolean exists) {
 		this.isExists = exists;
+	}
+	
+	public boolean isShadowExistsInRepo() {
+		return shadowExistsInRepo;
+	}
+
+	public void setShadowExistsInRepo(boolean shadowExistsInRepo) {
+		this.shadowExistsInRepo = shadowExistsInRepo;
 	}
 
 	public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
@@ -709,9 +743,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.accountPasswordPolicy = accountPasswordPolicy;
 	}
 
-	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() {
+	public AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType() throws SchemaException {
 		// TODO: per-resource assignment enforcement
 		ResourceType resource = getResource();
+		ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
+		
+		if (objectClassProjectionPolicy != null && objectClassProjectionPolicy.getAssignmentPolicyEnforcement() != null) {
+			return MiscSchemaUtil.getAssignmentPolicyEnforcementType(objectClassProjectionPolicy);
+		}
+		
 		ProjectionPolicyType globalAccountSynchronizationSettings = null;
 		if (resource != null){
 			globalAccountSynchronizationSettings = resource.getProjection();
@@ -723,9 +763,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		AssignmentPolicyEnforcementType globalAssignmentPolicyEnforcement = MiscSchemaUtil.getAssignmentPolicyEnforcementType(globalAccountSynchronizationSettings);
 		return globalAssignmentPolicyEnforcement;
 	}
-
-	public boolean isLegalize(){
+	
+	public boolean isLegalize() throws SchemaException {
 		ResourceType resource = getResource();
+		
+		ProjectionPolicyType objectClassProjectionPolicy = determineObjectClassProjectionPolicy();
+		if (objectClassProjectionPolicy != null) {
+			return BooleanUtils.isTrue(objectClassProjectionPolicy.isLegalize());
+		}
 		ProjectionPolicyType globalAccountSynchronizationSettings = null;
 		if (resource != null){
 			globalAccountSynchronizationSettings = resource.getProjection();
@@ -739,11 +784,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			return false;
 		}
 
-		if (globalAccountSynchronizationSettings.isLegalize() == null){
-			return false;
+		return BooleanUtils.isTrue(globalAccountSynchronizationSettings.isLegalize());
+	}
+		
+	private ProjectionPolicyType determineObjectClassProjectionPolicy() throws SchemaException {
+		RefinedResourceSchema refinedSchema = getRefinedResourceSchema();
+		if (refinedSchema == null) {
+			return null;
 		}
+		
+		RefinedObjectClassDefinition objectClassDef = refinedSchema.getRefinedDefinition(resourceShadowDiscriminator.getKind(),
+				resourceShadowDiscriminator.getIntent());
 
-		return globalAccountSynchronizationSettings.isLegalize();
+		if (objectClassDef == null) {
+			return null;
+		}
+		return objectClassDef.getProjection();
 	}
 
 	/**
@@ -923,7 +979,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			return;
 		}
-    	if (fresh && !force && resourceShadowDiscriminator != null && !resourceShadowDiscriminator.isThombstone()) {
+    	if (fresh && !force && resourceShadowDiscriminator != null && !resourceShadowDiscriminator.isTombstone()) {
     		if (resource == null) {
 	    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
 	    	}
@@ -1212,6 +1268,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         	sb.append(", shadow");
         }
         sb.append(", exists=").append(isExists);
+        if (!shadowExistsInRepo) {
+        	sb.append(" (shadow not in repo)");
+        }
         sb.append(", assigned=").append(isAssignedOld).append("->").append(isAssigned);
         sb.append(", active=").append(isActive);
         sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
@@ -1221,8 +1280,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (!isFresh()) {
         	sb.append(", NOT FRESH");
         }
-        if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isThombstone()) {
-        	sb.append(", THOMBSTONE");
+        if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isTombstone()) {
+        	sb.append(", TOMBSTONE");
         }
         if (syncAbsoluteTrigger) {
         	sb.append(", SYNC TRIGGER");
@@ -1293,14 +1352,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	 * Return a human readable name of the projection object suitable for logs.
 	 */
 	public String toHumanReadableString() {
-		if (resourceShadowDiscriminator == null) {
-			return "(null" + resource + ")";
+		if (humanReadableString == null) {
+			if (resourceShadowDiscriminator == null) {
+				humanReadableString = "(null" + resource + ")";
+			} else if (resource != null) {
+				humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resource + ")";
+			} else {
+				humanReadableString = "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
+			}
 		}
-		if (resource != null) {
-			return "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resource + ")";
-		} else {
-			return "("+getKindValue(resourceShadowDiscriminator.getKind()) + " ("+resourceShadowDiscriminator.getIntent()+") on " + resourceShadowDiscriminator.getResourceOid() + ")";
-		}
+		return humanReadableString;
 	}
 
     public String getHumanReadableKind() {
@@ -1391,7 +1452,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     // determines whether full shadow is present, based on operation result got from provisioning
-    public void determineFullShadowFlag(OperationResultType fetchResult) {
+    public void determineFullShadowFlag(PrismObject<ShadowType> loadedShadow) {
+    	ShadowType shadowType = loadedShadow.asObjectable();
+    	if (ShadowUtil.isDead(shadowType) || !ShadowUtil.isExists(shadowType)) {
+    		setFullShadow(false);
+    		return;
+    	}
+    	OperationResultType fetchResult = shadowType.getFetchResult();
         if (fetchResult != null
                 && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
                     || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)

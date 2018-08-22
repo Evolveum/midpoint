@@ -169,9 +169,6 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
             System.setProperty(MIDPOINT_HOME_PROPERTY, mpHome);
         }
 
-        //TODO Could not resolve placeholder
-//        System.setProperty("spring.config.location", "${midpoint.home}/");
-
         application.bannerMode(Banner.Mode.LOG);
 
         return application.sources(MidPointSpringApplication.class);

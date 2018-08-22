@@ -44,7 +44,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.impl.mock.SynchornizationServiceMock;
+import com.evolveum.midpoint.provisioning.impl.mock.SynchronizationServiceMock;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -94,7 +94,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 	private ConnectorManager connectorManager;
 
 	@Autowired(required=true)
-	private SynchornizationServiceMock syncServiceMock;
+	private SynchronizationServiceMock syncServiceMock;
 
 
 	public TestDummyHacks() {

@@ -676,4 +676,42 @@ public class XmlTypeConverter {
 		XMLGregorianCalendar endOfInterval = addDuration(reference, interval);
 		return endOfInterval.compare(now) == DatatypeConstants.LESSER;
 	}
+
+	public static Duration longerDuration(Duration a, Duration b) {
+		if (a == null) {
+			return b;
+		}
+		if (b == null) {
+			return a;
+		}
+		if (a.compare(b) == DatatypeConstants.GREATER) {
+			return a;
+		} else {
+			return b;
+		}
+	}
+
+	public static XMLGregorianCalendar laterTimestamp(XMLGregorianCalendar a, XMLGregorianCalendar b) {
+		if (a == null) {
+			return b;
+		}
+		if (b == null) {
+			return a;
+		}
+		if (a.compare(b) == DatatypeConstants.GREATER) {
+			return a;
+		} else {
+			return b;
+		}
+	}
+
+	public static boolean isFresher(XMLGregorianCalendar theTimestamp, XMLGregorianCalendar refTimestamp) {
+		if (theTimestamp == null) {
+			return false;
+		}
+		if (refTimestamp == null) {
+			return true;
+		}
+		return theTimestamp.compare(refTimestamp) == DatatypeConstants.GREATER;
+	}
 }

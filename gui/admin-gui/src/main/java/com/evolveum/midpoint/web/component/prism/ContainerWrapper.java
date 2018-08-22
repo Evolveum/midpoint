@@ -50,6 +50,8 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerWrapper.class);
 
+	private ObjectWrapper objectWrapper;
+	
 	private String displayName;
 	private PrismContainer<C> container;
 	private ContainerStatus status;
@@ -58,15 +60,20 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	private List<ContainerValueWrapper<C>> values;
 
 	private boolean readonly;
-	private boolean removeContainerButtonVisible;
-	private boolean addContainerButtonVisible;
+//	private boolean removeContainerButtonVisible;
+//	private boolean addContainerButtonVisible;
+	private boolean isShowOnTopLevel;
 	
 	private ContainerStatus objectStatus;
 
 	//TODO: HACK to have custom filter for association contianer here becasue of creating new association:
 	private ObjectFilter filter;
+	
+	public ObjectWrapper getObjectWrapper() {
+		return objectWrapper;
+	}
 
-	ContainerWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
+	ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path) {
 		Validate.notNull(container, "container must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 		Validate.notNull(container.getDefinition(), "container definition must not be null.");
@@ -75,11 +82,12 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		this.objectStatus = objectStatus;
 		this.status = status;
 		this.path = path;
+		this.objectWrapper = objectWrapper;
 
 	}
 
-	ContainerWrapper(PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
-		this(container, objectStatus, status, path);
+	ContainerWrapper(ObjectWrapper objectWrapper, PrismContainer<C> container, ContainerStatus objectStatus, ContainerStatus status, ItemPath path, boolean readOnly) {
+		this(objectWrapper, container, objectStatus, status, path);
 		this.readonly = readOnly;
 	}
 
@@ -151,10 +159,10 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return null;
 	}
 
-	public ContainerWrapper<C> findContainerWrapper(ItemPath path) {
+	public <T extends Containerable> ContainerWrapper<T> findContainerWrapper(ItemPath path) {
 		Validate.notNull(path, "QName must not be null.");
 		for (ContainerValueWrapper<C> wrapper : getValues()) {
-			ContainerWrapper<C> containerWrapper = wrapper.findContainerWrapper(path);
+			ContainerWrapper<T> containerWrapper = wrapper.findContainerWrapper(path);
 			if (containerWrapper != null) {
 				return containerWrapper;
 			}
@@ -491,9 +499,9 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 
 		//TODO: is this correct place? shouldn't we restrict creation for multivalue containers
 		//dirrectly in factory? this can plausible cause problems while computing deltas.
-		if (!getItem().isSingleValue() && (getValues() == null || getValues().size() == 0)){
-			return false;
-		}
+//		if (!getItem().isSingleValue() && (getValues() == null || getValues().size() == 0)){
+//			return false;
+//		}
 
 		switch (objectStatus) {
 			case MODIFYING:
@@ -536,21 +544,21 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 		return getItemDefinition().getDeprecatedSince();
 	}
 
-	public boolean isRemoveContainerButtonVisible() {
-		return removeContainerButtonVisible;
-	}
+//	public boolean isRemoveContainerButtonVisible() {
+//		return removeContainerButtonVisible;
+//	}
+//
+//	public void setRemoveContainerButtonVisible(boolean removeContainerButtonVisible) {
+//		this.removeContainerButtonVisible = removeContainerButtonVisible;
+//	}
 
-	public void setRemoveContainerButtonVisible(boolean removeContainerButtonVisible) {
-		this.removeContainerButtonVisible = removeContainerButtonVisible;
-	}
+//	public boolean isAddContainerButtonVisible() {
+//		return addContainerButtonVisible;
+//	}
 
-	public boolean isAddContainerButtonVisible() {
-		return addContainerButtonVisible;
-	}
-
-	public void setAddContainerButtonVisible(boolean addContainerButtonVisible) {
-		this.addContainerButtonVisible = addContainerButtonVisible;
-	}
+//	public void setAddContainerButtonVisible(boolean addContainerButtonVisible) {
+//		this.addContainerButtonVisible = addContainerButtonVisible;
+//	}
 
 	@Override
 	public boolean isExperimental() {
@@ -561,5 +569,13 @@ public class ContainerWrapper<C extends Containerable> extends PrismWrapper impl
 	public ExpressionType getFormItemValidator() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public void setShowOnTopLevel(boolean isShowOnTopLevel){
+		this.isShowOnTopLevel = isShowOnTopLevel;
+	}
+	
+	public boolean isShowOnTopLevel() {
+		return isShowOnTopLevel;
 	}
 }

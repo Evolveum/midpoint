@@ -499,6 +499,8 @@ public interface MidpointFunctions {
 	 * object.
 	 * </p>
 	 * 
+	 * @deprecated use searchShadowOwner instead
+	 * 
 	 * @param accountOid
 	 *            OID of the account to look for an owner
 	 * @return owner of the account or null
@@ -516,8 +518,13 @@ public interface MidpointFunctions {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
+	@Deprecated
 	PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException;
 
+	<F extends FocusType> PrismObject<F> searchShadowOwner(String accountOid)
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException,
+			ExpressionEvaluationException, CommunicationException;
+	
 	/**
 	 * <p>
 	 * Search for objects.
@@ -1145,4 +1152,11 @@ public interface MidpointFunctions {
 	 */
 	@NotNull
 	Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException;
+	
+	<F extends FocusType> List<F> getFocusesByCorrelationRule(Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow);
+
+	<F extends ObjectType> ModelContext<F> previewChanges(Collection<ObjectDelta<? extends ObjectType>> deltas,
+			ModelExecuteOptions options)
+			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+			SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 }

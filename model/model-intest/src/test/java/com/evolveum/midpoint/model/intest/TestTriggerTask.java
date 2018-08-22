@@ -24,8 +24,11 @@ import static org.testng.AssertJUnit.assertNotNull;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -41,6 +44,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Radovan Semancik
@@ -234,9 +238,67 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
         assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
 	}
 
+	// MID-4610
+	@Test
+	public void test160TwoTriggersFirstFails() throws Exception {
+		final String TEST_NAME = "test160TwoTriggersFirstFails";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		testTriggerHandler.reset();
+
+		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+		XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
+		startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI);
+
+		testTriggerHandler.setFailOnNextInvocation(true);
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 10000);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+		assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+		assertEquals("Trigger was called wrong number of times", 2, testTriggerHandler.getInvocationCount());
+		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+		assertEquals("Wrong # of triggers found", 1, userAfter.asObjectable().getTrigger().size());
+		assertTrigger(userAfter, MockTriggerHandler.HANDLER_URI, startCal, 1);
+
+		assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+
+		// -------------------- re-run the handler
+
+		// remove all traces of failures in order to "waitForTaskNextRunAssertSuccess" be happy
+		List<ItemDelta<?, ?>> modifications = DeltaBuilder.deltaFor(TaskType.class, prismContext)
+				.item(TaskType.F_RESULT).replace()
+				.item(TaskType.F_RESULT_STATUS).replace()
+				.asItemDeltas();
+		repositoryService.modifyObject(TaskType.class, TASK_TRIGGER_SCANNER_OID, modifications, result);
+
+		testTriggerHandler.reset();
+		waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		endCal = clock.currentTimeXMLGregorianCalendar();
+
+		assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+		assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
+		assertNoTrigger(UserType.class, USER_JACK_OID);
+		assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+	}
+
 	@Test
 	public void test200TwoDistantTriggers() throws Exception {
-		final String TEST_NAME = "test130TwoDistantTriggers";
+		final String TEST_NAME = "test200TwoDistantTriggers";
 		TestUtil.displayTestTitle(this, TEST_NAME);
 
 		// GIVEN

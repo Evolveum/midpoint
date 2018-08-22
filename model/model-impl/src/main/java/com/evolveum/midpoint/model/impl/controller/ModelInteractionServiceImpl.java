@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.StringUtils;
@@ -76,24 +78,8 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
-import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.credentials.PasswordPolicyEvaluator;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
-import com.evolveum.midpoint.prism.ComplexTypeDefinitionImpl;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -166,46 +152,16 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredential
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemTargetType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialSourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsResetPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.RUNNABLE;
+import static java.util.Collections.singleton;
 
 /**
  * @author semancik
@@ -247,7 +203,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
-
+	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -285,6 +241,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			RepositoryCache.enter();
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
 			context = contextFactory.createContext(clonedDeltas, options, task, result);
+			context.setPreview(true);
+
 //			context.setOptions(options);
 			LOGGER.trace("Preview changes context:\n{}", context.debugDumpLazily());
 			context.setProgressListeners(listeners);
@@ -372,7 +330,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
 				String resourceOid = ShadowUtil.getResourceOid(shadow);
 				if (resourceOid != null) {
-					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
+					Collection<SelectorOptions<GetOperationOptions>> options = createCollection(GetOperationOptions.createReadOnly());
 					PrismObject<ResourceType> resource;
 					try {
 						resource = provisioning.getObject(ResourceType.class, resourceOid, options, task, result);
@@ -629,12 +587,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			if (itemName == null) {
 				continue;
 			}
-			if (QNameUtil.match(RoleType.F_ROLE_TYPE, itemName)) {
+			if (QNameUtil.match(RoleType.F_ROLE_TYPE, itemName)) {      // TODO what about roleType->subtype migration (MID-4818)?
 				ObjectReferenceType valueEnumerationRef = itemDef.getValueEnumerationRef();
 				if (valueEnumerationRef == null || valueEnumerationRef.getOid() == null) {
 					return allEntries;
 				}
-				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(LookupTableType.F_ROW,
+				Collection<SelectorOptions<GetOperationOptions>> options = createCollection(LookupTableType.F_ROW,
 		    			GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 				PrismObject<LookupTableType> lookup = cacheRepositoryService.getObject(LookupTableType.class, valueEnumerationRef.getOid(),
 						options, result);
@@ -1190,13 +1148,15 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		// user-level policy
 		CredentialsPolicyType policy = null;
+		PrismObject<UserType> user = null;
 		if (object != null && object.getCompileTimeClass().isAssignableFrom(UserType.class)) {
-			policy = getCredentialsPolicy((PrismObject<UserType>) object, task, parentResult);
+			user = (PrismObject<UserType>) object;
+			policy = getCredentialsPolicy(user, task, parentResult);
 		}
 
 		SystemConfigurationType systemConfigurationType = getSystemConfiguration(parentResult);
 		if (!containsValuePolicyDefinition(policy)) {
-			SecurityPolicyType securityPolicy = securityHelper.locateGlobalSecurityPolicy(systemConfigurationType, task, parentResult);
+			SecurityPolicyType securityPolicy = securityHelper.locateGlobalSecurityPolicy(user, systemConfigurationType.asPrismObject(), task, parentResult);
 			if (securityPolicy != null) {
 				policy = securityPolicy.getCredentials();
 			}
@@ -1717,9 +1677,65 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			LOGGER.error("Cannot refresh authentication for user identified with" + oid);
 			throw e;
 		}
-		
-		
 	}
-	
 
+	@Override
+	public List<RelationDefinitionType> getRelationDefinitions(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		return systemObjectCache.getRelationDefinitions(parentResult);
+	}
+
+	@Override
+	public TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+		OperationResult result = parentResult.createMinorSubresult(SUBMIT_TASK_FROM_TEMPLATE);
+		try {
+			MidPointPrincipal principal = securityContextManager.getPrincipal();
+			if (principal == null) {
+				throw new SecurityViolationException("No current user");
+			}
+			TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid,
+					createCollection(createExecutionPhase()), opTask, result).asObjectable();
+			newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
+			newTask.setOid(null);
+			newTask.setTaskIdentifier(null);
+			newTask.setOwnerRef(createObjectRef(principal.getUser()));
+			newTask.setExecutionStatus(RUNNABLE);
+			for (Item<?, ?> extensionItem : extensionItems) {
+				newTask.asPrismObject().getExtension().add(extensionItem.clone());
+			}
+			ObjectDelta<TaskType> taskAddDelta = ObjectDelta.createAddDelta(newTask.asPrismObject());
+			modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
+			result.computeStatus();
+			return newTask;
+		} catch (Throwable t) {
+			result.recordFatalError("Couldn't submit task from template: " + t.getMessage(), t);
+			throw t;
+		}
+	}
+
+	@Override
+	public TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
+		List<Item<?, ?>> extensionItems = new ArrayList<>();
+		PrismContainerDefinition<?> extDef = prismContext.getSchemaRegistry()
+				.findObjectDefinitionByCompileTimeClass(TaskType.class).findContainerDefinition(TaskType.F_EXTENSION);
+		for (Map.Entry<QName, Object> entry : extensionValues.entrySet()) {
+			ItemDefinition<Item<PrismValue, ItemDefinition>> def = extDef.findItemDefinition(entry.getKey());
+			if (def == null) {
+				//noinspection unchecked
+				def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(entry.getKey());     // a bit of hack here
+				if (def == null) {
+					throw new SchemaException("No definition of " + entry.getKey() + " in task extension");
+				}
+			}
+			Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
+			if (entry.getValue() != null) {
+				extensionItem.add(PrismValue.fromRealValue(entry.getValue()).clone());
+			}
+			extensionItems.add(extensionItem);
+		}
+		return submitTaskFromTemplate(templateTaskOid, extensionItems, opTask, parentResult);
+	}
 }

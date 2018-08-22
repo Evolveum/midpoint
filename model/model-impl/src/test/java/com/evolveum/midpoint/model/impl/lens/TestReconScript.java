@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -58,7 +59,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void text001testReconcileScriptsWhenProvisioning() throws Exception{
 		final String TEST_NAME = "text001testReconcileScriptsWhenProvisioning";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -101,7 +102,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test002testReconcileScriptsWhenReconciling() throws Exception{
 		final String TEST_NAME = "test002testReconcileScriptsWhenReconciling";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         getDummyResource().getScriptHistory().clear();
 
@@ -133,7 +134,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test003testReconcileScriptsAddUserAction() throws Exception{
 		final String TEST_NAME = "test003testReconcileScriptsAddUserAction";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
@@ -186,7 +187,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test005TestDryRunDelete() throws Exception{
 		final String TEST_NAME = "test005TestDryRunDelete";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
 
 		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
@@ -219,21 +220,19 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 	@Test
 	public void test006TestReconDelete() throws Exception{
 		final String TEST_NAME = "test006TestReconDelete";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
 		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
 		OperationResult parentResult = new OperationResult(TEST_NAME);
 
-		PropertyDelta dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), false);
+		PropertyDelta<Boolean> dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), false);
 		Collection<PropertyDelta> modifications = new ArrayList<>();
 		modifications.add(dryRunDelta);
 
 		repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
 
-//		dummyResource.deleteAccount("beforeScript");
-
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 
 		waitForTaskStart(TASK_RECON_DUMMY_OID, false);
 
@@ -242,20 +241,16 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 
-		try{
-			PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
-
-			display("Unexpected shadow", shadow);
-			AssertJUnit.fail("Expected object not found, but haven't got one");
-		} catch (ObjectNotFoundException ex){
-			//this is ok
-		}
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
+		ShadowAsserter.forShadow(shadow)
+			.assertDead()
+			.assertIsNotExists();
 
 		PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
-		display("Unexpected owner", user);
-		AssertJUnit.assertNull("Owner for account " + ACCOUNT_BEFORE_SCRIPT_OID + " was found, but it should be not.", user);
+		display("Account owner", user);
+		AssertJUnit.assertNotNull("Owner for account " + ACCOUNT_BEFORE_SCRIPT_OID + " was not found", user);
 
 
 	}

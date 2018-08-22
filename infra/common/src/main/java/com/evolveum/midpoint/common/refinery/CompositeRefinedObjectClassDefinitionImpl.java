@@ -306,6 +306,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	public ResourceObjectVolatilityType getVolatility() {
 		return structuralObjectClassDefinition.getVolatility();
 	}
+	
+	@Override
+	public ProjectionPolicyType getProjection() {
+		return structuralObjectClassDefinition.getProjection();
+	}
 
 	@Override
 	public List<MappingType> getPasswordInbound() {

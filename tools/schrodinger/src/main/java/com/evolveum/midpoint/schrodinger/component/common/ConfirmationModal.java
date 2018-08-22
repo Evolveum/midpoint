@@ -20,6 +20,8 @@ public class ConfirmationModal<T> extends ModalBox<T> {
         $(Schrodinger.byDataResourceKey("a", "confirmationDialog.yes"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
+        $(Schrodinger.byDataResourceKey("a", "confirmationDialog.yes"))
+                .waitUntil(Condition.disappears, MidPoint.TIMEOUT_LONG);
 
         return this.getParent();
     }
@@ -29,12 +31,18 @@ public class ConfirmationModal<T> extends ModalBox<T> {
         $(Schrodinger.byDataResourceKey("a", "confirmationDialog.no"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
 
+        $(Schrodinger.byDataResourceKey("a", "confirmationDialog.yes"))
+                .waitUntil(Condition.disappears, MidPoint.TIMEOUT_LONG);
+
         return this.getParent();
     }
 
     public T close() {
         $(By.className("w_close"))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT).click();
+
+        $(Schrodinger.byDataResourceKey("a", "confirmationDialog.yes"))
+                .waitUntil(Condition.disappears, MidPoint.TIMEOUT_LONG);
 
         return this.getParent();
     }

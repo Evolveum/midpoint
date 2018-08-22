@@ -2,8 +2,8 @@ package com.evolveum.midpoint.web.util;
 
 import java.util.Collection;
 
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -26,9 +26,10 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
-public class ExpressionValidator<T> implements IValidator<T> {
+public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -45,6 +46,7 @@ public class ExpressionValidator<T> implements IValidator<T> {
 		this.serviceLocator = serviceLocator;
 //		this.realValue = realValue;
 	}
+	
 
 //	@Override
 //	public FormComponent<?>[] getDependentFormComponents() {
@@ -136,7 +138,8 @@ public class ExpressionValidator<T> implements IValidator<T> {
 			return;
 		}
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, valueToValidate);
+		variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, valueToValidate);
+		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, getObjectType());
 //		addAdditionalExpressionVariables(variables);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple;
@@ -189,6 +192,8 @@ public class ExpressionValidator<T> implements IValidator<T> {
 		
 	}
 	
-	
+	protected <O extends ObjectType> O getObjectType() {
+		return null;
+	}
 
 }

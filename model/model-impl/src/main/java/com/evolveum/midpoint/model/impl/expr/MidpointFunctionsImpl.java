@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -36,6 +37,9 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
+import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -49,6 +53,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -118,6 +124,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Autowired private WorkflowService workflowService;
 	@Autowired private ConstantsManager constantsManager;
 	@Autowired private LocalizationService localizationService;
+	@Autowired private ExpressionFactory expressionFactory;
+	@Autowired private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -296,7 +304,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			return false;
 		}
 
-		if (projectionContext.isThombstone()) {
+		if (projectionContext.isTombstone()) {
 			return false;
 		}
 
@@ -434,7 +442,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			if (target == null) {
 				continue;
 			}
-			Collection<String> targetSubtypes = ObjectTypeUtil.getSubtypeValues((PrismObject) target);
+			Collection<String> targetSubtypes = FocusTypeUtil.determineSubTypes((PrismObject) target);
 			if (targetSubtypes.contains(roleSubtype)) {
 				return true;
 			}
@@ -1041,6 +1049,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			ExpressionEvaluationException, CommunicationException {
 		return modelService.findShadowOwner(accountOid, getCurrentTask(), getCurrentResult());
 	}
+	
+	@Override
+	public <F extends FocusType> PrismObject<F> searchShadowOwner(String accountOid)
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ConfigurationException,
+			ExpressionEvaluationException, CommunicationException {
+		return (PrismObject<F>) modelService.searchShadowOwner(accountOid, null, getCurrentTask(), getCurrentResult());
+	}
 
 	@Override
 	public <T extends ObjectType> List<T> searchObjects(
@@ -1626,46 +1641,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-		OperationResult result = getCurrentResult();
-		Task opTask = getCurrentTask();
-		MidPointPrincipal principal = securityContextManager.getPrincipal();
-		if (principal == null) {
-			throw new SecurityViolationException("No current user");
-		}
-		TaskType newTask = modelService.getObject(TaskType.class, templateTaskOid,
-				getDefaultGetOptionCollection(), opTask, result).asObjectable();
-		newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
-		newTask.setOid(null);
-		newTask.setTaskIdentifier(null);
-		newTask.setOwnerRef(createObjectRef(principal.getUser()));
-		newTask.setExecutionStatus(RUNNABLE);
-		for (Item<?, ?> extensionItem : extensionItems) {
-			newTask.asPrismObject().getExtension().add(extensionItem.clone());
-		}
-		ObjectDelta<TaskType> taskAddDelta = ObjectDelta.createAddDelta(newTask.asPrismObject());
-		modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
-		return newTask;
+		return modelInteractionService.submitTaskFromTemplate(templateTaskOid, extensionItems, getCurrentTask(), getCurrentResult());
 	}
 
 	@Override
 	public TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-		List<Item<?, ?>> extensionItems = new ArrayList<>();
-		PrismContainerDefinition<?> extDef = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(TaskType.class).findContainerDefinition(TaskType.F_EXTENSION);
-		for (Map.Entry<QName, Object> entry : extensionValues.entrySet()) {
-			ItemDefinition<Item<PrismValue, ItemDefinition>> def = extDef.findItemDefinition(entry.getKey());
-			if (def == null) {
-				throw new SchemaException("No definition of " + entry.getKey() + " in task extension");
-			}
-			Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
-			if (entry.getValue() != null) {
-				extensionItem.add(PrismValue.fromRealValue(entry.getValue()).clone());
-			}
-			extensionItems.add(extensionItem);
-		}
-		return submitTaskFromTemplate(templateTaskOid, extensionItems);
+		return modelInteractionService.submitTaskFromTemplate(templateTaskOid, extensionValues, getCurrentTask(), getCurrentResult());
 	}
 
 	@Override
@@ -1753,5 +1736,64 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	
 	private Collection<SelectorOptions<GetOperationOptions>> getDefaultGetOptionCollection() {
 		return SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
+	}
+
+	@Override
+	public <F extends FocusType> List<F> getFocusesByCorrelationRule(Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow) {
+		ResourceType resource;
+		try {
+			resource = getObject(ResourceType.class, resourceOid, GetOperationOptions.createNoFetchCollection());
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
+				| SecurityViolationException | ExpressionEvaluationException e) {
+			LOGGER.error("Cannot get resource, reason: {}", e);
+			return null;
+		}
+		SynchronizationType synchronization = resource.getSynchronization();
+		if (synchronization == null) {
+			return null;
+		}
+
+		ObjectSynchronizationDiscriminatorType discriminator = new ObjectSynchronizationDiscriminatorType();
+		discriminator.setKind(kind);
+		discriminator.setIntent(intent);
+		
+		SynchronizationContext<F> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(),
+				resource.asPrismObject(), getCurrentTask().getChannel(), getCurrentTask(), getCurrentResult());
+		
+		ObjectSynchronizationType applicablePolicy = null;
+		
+		try {
+			
+			SystemConfigurationType systemConfiguration = modelInteractionService.getSystemConfiguration(getCurrentResult());
+			syncCtx.setSystemConfiguration(systemConfiguration.asPrismObject());
+			
+			for (ObjectSynchronizationType objectSync : synchronization.getObjectSynchronization()) {
+				
+				if (SynchronizationServiceUtils.isPolicyApplicable(objectSync, discriminator, expressionFactory, syncCtx)) {
+					applicablePolicy = objectSync;
+					break;
+				}
+			}
+			
+			if (applicablePolicy == null) {
+				return null;
+			}
+			
+			List<PrismObject<F>> correlatedFocuses = correlationConfirmationEvaluator.findFocusesByCorrelationRule(type, shadow, applicablePolicy.getCorrelation(), resource, systemConfiguration, syncCtx.getTask(), syncCtx.getResult());
+			return MiscSchemaUtil.toObjectableList(correlatedFocuses);
+			
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+				| ConfigurationException | SecurityViolationException e) {
+			LOGGER.error("Cannot find applicable policy for kind={}, intent={}. Reason: {}", kind, intent, e.getMessage(), e);
+			return null;
+		}
+	}
+
+	@Override
+	public <F extends ObjectType> ModelContext<F> previewChanges(Collection<ObjectDelta<? extends ObjectType>> deltas,
+			ModelExecuteOptions options)
+			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+			SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+		return modelInteractionService.previewChanges(deltas, options, getCurrentTask(), getCurrentResult());
 	}
 }

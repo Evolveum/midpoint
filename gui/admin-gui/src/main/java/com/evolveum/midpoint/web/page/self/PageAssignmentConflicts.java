@@ -27,8 +27,8 @@ import java.util.Map;
                 label = PageSelf.AUTH_SELF_ALL_LABEL,
                 description = PageSelf.AUTH_SELF_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_ASSIGNMENTS_CONFLICTS_URL,
-                label = "PageAssignmentShoppingKart.auth.assignmentsConflicts.label",
-                description = "PageAssignmentShoppingKart.auth.assignmentsConflicts.description")})
+                label = "PageAssignmentShoppingCart.auth.assignmentsConflicts.label",
+                description = "PageAssignmentShoppingCart.auth.assignmentsConflicts.description")})
 public class PageAssignmentConflicts extends PageSelf {
     private static final String ID_CONFLICTS_PANEL = "conflictsPanel";
     private static final String ID_MAIN_FORM = "mainForm";

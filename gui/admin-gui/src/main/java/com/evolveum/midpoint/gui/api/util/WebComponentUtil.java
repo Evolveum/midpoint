@@ -56,6 +56,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -98,6 +99,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -273,6 +275,21 @@ public final class WebComponentUtil {
 		return refs.stream()
 				.map(ref -> emptyIfNull(getDisplayNameAndName(ref)) + (showTypes ? (" (" + emptyIfNull(getTypeLocalized(ref)) + ")") : ""))
 				.collect(Collectors.joining(", "));
+	}
+	
+	public static String getReferencedObjectDisplayNamesAndNames(DefaultReferencableImpl ref, boolean showTypes) {
+		String name = ref.getTargetName() == null ? "" : ref.getTargetName().getOrig();
+		StringBuilder sb = new StringBuilder(name);
+		if(showTypes) {
+			sb.append(" (");
+			ObjectTypes type = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
+			ObjectTypeGuiDescriptor descriptor = ObjectTypeGuiDescriptor.getDescriptor(type);
+			if (descriptor == null) {
+				return null;
+			}
+			sb.append(emptyIfNull(createStringResourceStatic(null, descriptor.getLocalizationKey()).getString())).append(")");
+		}
+		return sb.toString();
 	}
 
 	public static void addAjaxOnUpdateBehavior(WebMarkupContainer container) {
@@ -648,6 +665,22 @@ public final class WebComponentUtil {
 
 		return focusTypeList;
 	}
+	
+	public static List<QName> createSupportedTargetTypeList(QName targetTypeFromDef) {
+		 if (targetTypeFromDef == null || ObjectType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+    		 return WebComponentUtil.createObjectTypeList();
+    	 } 
+		 
+		 if (AbstractRoleType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+    		 return WebComponentUtil.createAbstractRoleTypeList();
+    	 } 
+		 
+		 if (FocusType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
+    		 return WebComponentUtil.createFocusTypeList();
+    	 } 
+
+		 return Arrays.asList(targetTypeFromDef);
+	}
 
 	/**
 	 * Takes a collection of object types (classes) that may contain abstract types. Returns a collection
@@ -789,29 +822,8 @@ public final class WebComponentUtil {
 
 	public static <E extends Enum> DropDownChoicePanel<E> createEnumPanel(Class<E> clazz, String id,
 			IModel<List<E>> choicesList, final IModel<E> model, final Component component, boolean allowNull, String nullValidDisplayValue) {
-		return new DropDownChoicePanel<E>(id, model, choicesList,
-            new IChoiceRenderer<E>() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public E getObject(String id, IModel<? extends List<? extends E>> choices) {
-                    if (StringUtils.isBlank(id)) {
-                        return null;
-                    }
-                    return choices.getObject().get(Integer.parseInt(id));
-                }
-
-                @Override
-                public Object getDisplayValue(E object) {
-                    return WebComponentUtil.createLocalizedModelForEnum(object, component).getObject();
-                }
-
-                @Override
-                public String getIdValue(E object, int index) {
-                    return Integer.toString(index);
-                }
-            }, allowNull){
+		return new DropDownChoicePanel<E>(id, model, choicesList, getEnumChoiceRenderer(component)
+            , allowNull){
 
 			private static final long serialVersionUID = 1L;
 
@@ -819,6 +831,31 @@ public final class WebComponentUtil {
 			protected String getNullValidDisplayValue() {
 				return nullValidDisplayValue != null && StringUtils.isNotEmpty(nullValidDisplayValue.trim()) ?
 						nullValidDisplayValue : super.getNullValidDisplayValue();
+			}
+		};
+	}
+
+	public static <E extends Enum> IChoiceRenderer<E> getEnumChoiceRenderer(Component component){
+		return new IChoiceRenderer<E>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public E getObject(String id, IModel<? extends List<? extends E>> choices) {
+				if (StringUtils.isBlank(id)) {
+					return null;
+				}
+				return choices.getObject().get(Integer.parseInt(id));
+			}
+
+			@Override
+			public Object getDisplayValue(E object) {
+				return WebComponentUtil.createLocalizedModelForEnum(object, component).getObject();
+			}
+
+			@Override
+			public String getIdValue(E object, int index) {
+				return Integer.toString(index);
 			}
 		};
 	}
@@ -1458,6 +1495,10 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON_COLORED;
 		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON_COLORED;
+		} else if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
+		} else if (QNameUtil.match(GlobalPolicyRuleType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED;
 		} else {
 			return "";
 		}
@@ -1489,6 +1530,8 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON;
 		} else if (QNameUtil.match(PolicyRuleType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_POLICY_RULES_ICON;
+		} else if (QNameUtil.match(SystemConfigurationType.COMPLEX_TYPE, objectType)) {
+			return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
 		} else {
 			return "";
 		}
@@ -2378,6 +2421,37 @@ public final class WebComponentUtil {
 		
 	}
 
+	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, OperationResult result, ModelServiceLocator pageBase){
+		List<QName> relationsList = new ArrayList<>();
+		List<RelationDefinitionType> defList = getRelationDefinitions(result, pageBase);
+		if (defList != null) {
+			defList.forEach(def -> {
+				if (def.getCategory() != null && def.getCategory().contains(category)) {
+					relationsList.add(def.getRef());
+				}
+			});
+		}
+		return relationsList;
+	}
+	
+	public static List<QName> getAllRelations(ModelServiceLocator pageBase) {
+		OperationResult result = new OperationResult("get all relations");
+		List<RelationDefinitionType> allRelationdefinitions = getRelationDefinitions(result, pageBase);
+		List<QName> allRelationsQName = new ArrayList<>(allRelationdefinitions.size());
+		allRelationdefinitions.stream().forEach(relation -> allRelationsQName.add(relation.getRef()));
+		return allRelationsQName;
+	}
+
+	public static List<RelationDefinitionType> getRelationDefinitions(OperationResult result, ModelServiceLocator pageBase){
+		try {
+			return pageBase.getModelInteractionService().getRelationDefinitions(result);
+		} catch (ObjectNotFoundException | SchemaException ex){
+			result.computeStatus();
+			LOGGER.error("Unable to load relation definitions, " + ex.getLocalizedMessage());
+		}
+		return null;
+	}
+
 	public static <T> DropDownChoice createTriStateCombo(String id, IModel<Boolean> model) {
 		final IChoiceRenderer<T> renderer = new IChoiceRenderer<T>() {
 
@@ -2456,5 +2530,20 @@ public final class WebComponentUtil {
 				return list;
 			}
 		};
+	}
+	
+	public static LookupTableType createAppenderChoices(PageBase pageBase) {
+		LookupTableType lookupTable = new LookupTableType();
+        List<LookupTableRowType> list = lookupTable.createRowList();
+        
+        for (AppenderConfigurationType appender : WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(pageBase).getObject().getRealValue().getLogging().getAppender()) {
+        		LookupTableRowType row = new LookupTableRowType();
+        		String name = appender.getName();
+        		row.setKey(name);
+        		row.setValue(name);
+        		row.setLabel(new PolyStringType(name));
+        		list.add(row);
+        }
+        return lookupTable;
 	}
 }
