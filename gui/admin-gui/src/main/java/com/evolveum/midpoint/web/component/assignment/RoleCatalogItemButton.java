@@ -66,7 +66,6 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
 
     private static final String DOT_CLASS = RoleCatalogItemButton.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
-    private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     private static final Trace LOGGER = TraceManager.getTrace(RoleCatalogItemButton.class);
 
     public RoleCatalogItemButton(String id, IModel<AssignmentEditorDto> model){
@@ -124,7 +123,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         };
         detailsLink.add(getFooterLinksEnableBehaviour());
         detailsLink.add(AttributeAppender.append("title",
-                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
+                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(getPageBase())));
         detailsLink.add(AttributeAppender.append("class", new LoadableModel<String>() {
             @Override
             protected String load() {
@@ -158,7 +157,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
         };
         addToCartLink.add(getFooterLinksEnableBehaviour());
         addToCartLink.add(AttributeAppender.append("title",
-                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
+                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(getPageBase())));
         addToCartLink.add(AttributeAppender.append("class", new LoadableModel<String>() {
             @Override
             protected String load() {
@@ -241,8 +240,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
 
             @Override
             public boolean isEnabled(){
-                int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
-                        RoleCatalogItemButton.this.getPageBase());
+                int assignmentsLimit = getRoleCatalogStorage().getAssignmentRequestLimit();
                 return !AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, RoleCatalogItemButton.this.getPageBase())
                         && (isMultiUserRequest() || canAssign(getModelObject()));
             }
@@ -289,7 +287,11 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
     }
 
     private boolean isMultiUserRequest(){
-        return getPageBase().getSessionStorage().getRoleCatalog().isMultiUserRequest();
+        return getRoleCatalogStorage().isMultiUserRequest();
+    }
+
+    private RoleCatalogStorage getRoleCatalogStorage(){
+        return getPageBase().getSessionStorage().getRoleCatalog();
     }
 
     private boolean canAssign(AssignmentEditorDto assignment) {
