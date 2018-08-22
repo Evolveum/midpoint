@@ -1154,4 +1154,9 @@ public interface MidpointFunctions {
 	Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException;
 	
 	<F extends FocusType> List<F> getFocusesByCorrelationRule(Class<F> type, String resourceOid, ShadowKindType kind, String intent, ShadowType shadow);
+
+	<F extends ObjectType> ModelContext<F> previewChanges(Collection<ObjectDelta<? extends ObjectType>> deltas,
+			ModelExecuteOptions options)
+			throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+			SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 }
