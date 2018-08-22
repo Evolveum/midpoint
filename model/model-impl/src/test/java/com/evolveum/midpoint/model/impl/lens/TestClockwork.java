@@ -82,11 +82,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestClockwork extends AbstractLensTest {
 
-	@Autowired(required = true)
-	private Clockwork clockwork;
-
-	@Autowired(required = true)
-	private TaskManager taskManager;
+	@Autowired private Clockwork clockwork;
+	@Autowired private TaskManager taskManager;
 
 	public TestClockwork() throws JAXBException {
 		super();
@@ -102,13 +99,13 @@ public class TestClockwork extends AbstractLensTest {
 	}
 
     // tests specific bug dealing with preservation of null values in focus secondary deltas
-    @Test(enabled = true)
+    @Test
     public void test010SerializeAddUserBarbossa() throws Exception {
     	final String TEST_NAME = "test010SerializeAddUserBarbossa";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserLensContext();
@@ -116,10 +113,10 @@ public class TestClockwork extends AbstractLensTest {
         fillContextWithAddUserDelta(context, bill);
 
         // WHEN
-
+        displayWhen(TEST_NAME);
         clockwork.click(context, task, result);     // one round - compute projections
 
-        System.out.println("Context before serialization = " + context.debugDump());
+        display("Context before serialization", context);
 
         LensContextType lensContextType = context.toLensContextType();
         String xml = prismContext.xmlSerializer().serializeRealValue(lensContextType, SchemaConstants.C_MODEL_CONTEXT);
@@ -132,22 +129,25 @@ public class TestClockwork extends AbstractLensTest {
         display("Context after deserialization", context);
 
         // THEN
-
+        displayThen(TEST_NAME);
         assertEquals("Secondary deltas are not preserved - their number differs", context.getFocusContext().getSecondaryDeltas().size(), context2.getFocusContext().getSecondaryDeltas().size());
         for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
-            assertEquals("Secondary delta #" + i + " is not preserved correctly", context.getFocusContext().getSecondaryDelta(i).debugDump(), context2.getFocusContext().getSecondaryDelta(i).debugDump());
+            assertTrue("Secondary delta #" + i + " is not preserved correctly, "
+            		+ "expected:\n" + context.getFocusContext().getSecondaryDelta(i).debugDump()
+            		+ "but was\n" + context2.getFocusContext().getSecondaryDelta(i).debugDump(), 
+            		context.getFocusContext().getSecondaryDelta(i).equals(context2.getFocusContext().getSecondaryDelta(i)));
         }
     }
 
 	@Test
     public void test020AssignAccountToJackSync() throws Exception {
 		final String TEST_NAME = "test020AssignAccountToJackSync";
-        TestUtil.displayTestTitle(this, TEST_NAME);
+        displayTestTitle(TEST_NAME);
 
         try {
 
 	        // GIVEN
-	        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "." + TEST_NAME);
+	        Task task = createTask(TEST_NAME);
 	        OperationResult result = task.getResult();
 
 	        LensContext<UserType> context = createJackAssignAccountContext(result);
@@ -354,6 +354,8 @@ public class TestClockwork extends AbstractLensTest {
         LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
 
+        // ADD might be expected here. But projector goes over several iterations. And in the last
+        // iteration the account already exists. Hence KEEP and not ADD.
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<?> executedDelta = getExecutedDelta(accContext);

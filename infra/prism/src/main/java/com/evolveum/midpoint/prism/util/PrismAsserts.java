@@ -717,6 +717,11 @@ public class PrismAsserts {
 		assert MiscUtil.equals(expected.getOrig(), actual.getOrig()) : message+"; expected orig '"+expected.getOrig()+ "' but was '" + actual.getOrig() + "'";
 		assert MiscUtil.equals(expected.getNorm(), actual.getNorm()) : message+"; expected norm '"+expected.getNorm()+ "' but was '" + actual.getNorm() + "'";
 	}
+	
+	public static void assertMatchesQName(String message, QName expected, QName actual) {
+		assert actual != null : message + ": null value";
+		assert QNameUtil.match(expected, actual)  : message+"; expected "+expected+ " but was " + actual;
+	}
 
 	// Calendar asserts
 

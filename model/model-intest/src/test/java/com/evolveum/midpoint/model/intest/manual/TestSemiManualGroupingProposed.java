@@ -183,9 +183,6 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 		assertShadowExists(shadowModel, false);
 		assertNoShadowPassword(shadowModel);
 		PendingOperationType pendingOperationType = assertSinglePendingOperation(shadowModel, null, null, executionStage);
-		
-		String pendingOperationRef = pendingOperationType.getAsynchronousOperationReference();
-		assertNull("Unexpected async reference in result", pendingOperationRef);
 	}
 	
 	/**

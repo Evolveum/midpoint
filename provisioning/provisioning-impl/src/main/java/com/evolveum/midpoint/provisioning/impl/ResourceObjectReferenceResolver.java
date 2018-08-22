@@ -81,14 +81,11 @@ public class ResourceObjectReferenceResolver {
 	@Autowired private PrismContext prismContext;	
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private ShadowManager shadowManager;
+	@Autowired private ShadowCache shadowCache;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
-
-	@Autowired(required = true)
-	@Qualifier("shadowCacheProvisioner")
-	private ShadowCache shadowCache;
 
 	PrismObject<ShadowType> resolve(ProvisioningContext ctx, ResourceObjectReferenceType resourceObjectReference,
 			QName objectClass, final String desc, OperationResult result)

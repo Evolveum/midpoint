@@ -31,14 +31,18 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -498,10 +502,16 @@ public class ShadowUtil {
     	return (protectedObject != null && protectedObject);
     }
 
-    public static boolean isDead(ShadowType shadow){
-    	return shadow.isDead() != null && shadow.isDead();
+    public static boolean isDead(ShadowType shadow) {
+    	Boolean dead = shadow.isDead();
+    	return dead != null && dead;
     }
-
+    
+	public static boolean isExists(ShadowType shadow) {
+		Boolean exists = shadow.isExists();
+		return exists == null || exists;
+	}
+		
 	public static boolean matches(ShadowType shadowType, String resourceOid, ShadowKindType kind, String intent) {
 		if (shadowType == null) {
 			return false;
@@ -753,11 +763,58 @@ public class ShadowUtil {
 			if (val == null) {
 				throw new SchemaException("Null value in attribute "+attrName);
 			}
-			LOGGER.info("MMMMMMMMMMMM: {}:{}\n   {} <-> {}", attrName, attrDef, expectedClass, val.getClass());
+//			LOGGER.info("MMMMMMMMMMMM: {}:{}\n   {} <-> {}", attrName, attrDef, expectedClass, val.getClass());
 			if (!XmlTypeConverter.isMatchingType(expectedClass, val.getClass())) {
 				throw new SchemaException("Wrong value in attribute "+attrName+"; expected class "+attrDef.getTypeClass().getSimpleName()+", but was "+val.getClass());
 			}
 		}
 	}
+
+	public static String shortDumpShadow(PrismObject<ShadowType> shadow) {
+		if (shadow == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("shadow:");
+		sb.append(shadow.getOid()).append("(");
+		PolyString name = shadow.getName();
+		if (name != null) {
+			sb.append(name);
+		} else {
+			Collection<ResourceAttribute<?>> primaryIdentifiers = getPrimaryIdentifiers(shadow);
+			if (primaryIdentifiers != null && !primaryIdentifiers.isEmpty()) {
+				shortDumpShadowIdentifiers(sb, shadow, primaryIdentifiers);
+			} else {
+				Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers(shadow);
+				if (secondaryIdentifiers != null && !secondaryIdentifiers.isEmpty()) {
+					shortDumpShadowIdentifiers(sb, shadow, secondaryIdentifiers);
+				}
+			}
+		}
+		ShadowType shadowType = shadow.asObjectable();
+		Boolean dead = shadowType.isDead();
+		if (dead != null && dead) {
+			sb.append(";DEAD");
+		}
+		Boolean exists = shadowType.isExists();
+		if (exists != null && !exists) {
+			sb.append(";NOTEXISTS");
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+
+	private static void shortDumpShadowIdentifiers(StringBuilder sb, PrismObject<ShadowType> shadow, Collection<ResourceAttribute<?>> identifiers) {
+		Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
+		while (iterator.hasNext()) {
+			ResourceAttribute<?> identifier = iterator.next();
+			sb.append(identifier.getElementName().getLocalPart());
+			sb.append("=");
+			sb.append(identifier.getRealValue());
+			if (iterator.hasNext()) {
+				sb.append(";");
+			}
+		}
+	}
+
 
 }

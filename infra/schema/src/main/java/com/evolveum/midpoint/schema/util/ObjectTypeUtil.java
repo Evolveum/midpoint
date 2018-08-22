@@ -42,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -855,5 +856,20 @@ public class ObjectTypeUtil {
 	@Deprecated
 	public static <O extends ObjectType> Collection<String> getSubtypeValues(@NotNull PrismObject<O> object) {
 		return FocusTypeUtil.determineSubTypes(object);
+	}
+	
+	public static <O extends ObjectType> XMLGregorianCalendar getLastTouchTimestamp(PrismObject<O> object) {
+		if (object == null) {
+			return null;
+		}
+		MetadataType metadata = object.asObjectable().getMetadata();
+		if (metadata == null) {
+			return null;
+		}
+		XMLGregorianCalendar modifyTimestamp = metadata.getModifyTimestamp();
+		if (modifyTimestamp != null) {
+			return modifyTimestamp;
+		}
+		return metadata.getCreateTimestamp();
 	}
 }

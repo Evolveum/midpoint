@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -78,7 +79,7 @@ public class ReportServiceImpl implements ReportService {
 	@Autowired private TaskManager taskManager;
 	@Autowired private PrismContext prismContext;
 	@Autowired private ExpressionFactory expressionFactory;
-	@Autowired private ObjectResolver objectResolver;
+	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 	@Autowired private AuditService auditService;
 	@Autowired private FunctionLibrary logFunctionLibrary;
 	@Autowired private FunctionLibrary basicFunctionLibrary;

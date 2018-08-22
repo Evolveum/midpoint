@@ -177,6 +177,7 @@
 		<recordPendingOperations>all</recordPendingOperations>
 		<avoidDuplicateOperations>true</avoidDuplicateOperations>
 		<pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
+		<reshreshOnRead>true</reshreshOnRead>
 	</consistency>
 	
 	<synchronization>

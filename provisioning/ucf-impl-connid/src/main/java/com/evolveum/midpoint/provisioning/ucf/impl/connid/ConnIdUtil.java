@@ -205,7 +205,7 @@ public class ConnIdUtil {
 		if (connIdException instanceof ConnectorException && !connIdException.getClass().equals(ConnectorException.class)) {
         	// we have non generic connector exception
 			knownCause = processConnectorException((ConnectorException) connIdException, connIdResult);
-			LOGGER.error("LOOK FOR CONN ID EXCEPTION: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
+//			LOGGER.error("LOOK FOR CONN ID EXCEPTION: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
 			if (knownCause != null) {
 				return knownCause;
 			}
@@ -214,7 +214,7 @@ public class ConnIdUtil {
 		// Introspect the inner exceptions and look for known causes
 		knownCause = lookForKnownCause(connIdException, connIdException, connIdResult);
 		if (knownCause != null) {
-			LOGGER.error("LOOK FOR KNOWN EXCEPTION: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
+//			LOGGER.error("LOOK FOR KNOWN EXCEPTION: {} -> {}", connIdException.getClass().getName(), knownCause.getClass().getName());
 			connIdResult.recordFatalError(knownCause);
 			return knownCause;
 		}
@@ -241,7 +241,7 @@ public class ConnIdUtil {
 			return newEx;
 		}
 
-		LOGGER.error("FALLBACK: {} -> {}", connIdException.getClass().getName(), (knownCause != null ? knownCause.getClass().getName() : null));
+//		LOGGER.error("FALLBACK: {} -> {}", connIdException.getClass().getName(), (knownCause != null ? knownCause.getClass().getName() : null));
 
 		// Fallback
 		Exception newEx = new GenericFrameworkException(createMessageFromAllExceptions(null,connIdException));

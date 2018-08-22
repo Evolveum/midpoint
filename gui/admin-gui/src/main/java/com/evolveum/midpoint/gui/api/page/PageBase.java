@@ -214,6 +214,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_DEPLOYMENT_NAME = "deploymentName";
     private static final String ID_BODY = "body";
 
+    private static final int DEFAULT_BREADCRUMB_STEP = 2;
+
     private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
 
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
@@ -2059,11 +2061,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public boolean canRedirectBack() {
+        return canRedirectBack(DEFAULT_BREADCRUMB_STEP);
+    }
+
+    /**
+     * checks if it's possible to make backStep steps back
+     * @param backStep
+     * @return
+     */
+    public boolean canRedirectBack(int backStep) {
         List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-        if (breadcrumbs.size() > 2) {
+        if (breadcrumbs.size() > backStep) {
             return true;
         }
-        if (breadcrumbs.size() == 2 && (breadcrumbs.get(breadcrumbs.size() - 2)) != null) {
+        if (breadcrumbs.size() == backStep && (breadcrumbs.get(breadcrumbs.size() - backStep)) != null) {
                 return true;
         }
 
@@ -2071,16 +2082,28 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public Breadcrumb redirectBack() {
-        List<Breadcrumb> breadcrumbs = getBreadcrumbs();
-        if (!canRedirectBack()) {
-            setResponsePage(getMidpointApplication().getHomePage());
+        return redirectBack(DEFAULT_BREADCRUMB_STEP);
+    }
 
+    /**
+     *
+     * @param backStep redirects back to page with backStep step
+     * @return
+     */
+    public Breadcrumb redirectBack(int backStep) {
+        List<Breadcrumb> breadcrumbs = getBreadcrumbs();
+        if (canRedirectBack(backStep)) {
+            Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - backStep);
+            redirectBackToBreadcrumb(breadcrumb);
+            return breadcrumb;
+        } else if (canRedirectBack(DEFAULT_BREADCRUMB_STEP)) {
+            Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - DEFAULT_BREADCRUMB_STEP);
+            redirectBackToBreadcrumb(breadcrumb);
+            return breadcrumb;
+        } else {
+            setResponsePage(getMidpointApplication().getHomePage());
             return null;
         }
-
-        Breadcrumb breadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
-        redirectBackToBreadcrumb(breadcrumb);
-        return breadcrumb;
     }
 
     public void navigateToNext(Class<? extends WebPage> page) {

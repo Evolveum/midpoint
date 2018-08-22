@@ -38,6 +38,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -89,6 +90,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	private RepositoryService repositoryService;
 
 	@Autowired
+	@Qualifier("modelObjectResolver")
 	private ObjectResolver objectResolver;
 
 	@Autowired

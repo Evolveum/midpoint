@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,33 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
+import static java.util.Collections.emptyList;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
-import com.evolveum.midpoint.common.refinery.*;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -28,15 +51,15 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -47,8 +70,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefiniti
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -67,6 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
@@ -79,54 +103,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static java.util.Collections.emptyList;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 public class ProvisioningUtil {
 
 	private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
+	public static final Duration DEFAULT_OPERATION_RETRY_PERIOD_DURATION = XmlTypeConverter.createDuration("PT30M");
+	public static final int DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS = 3;
+	private static final Duration DEFAULT_PENDING_OPERATION_RETENTION_PERIOD_DURATION = XmlTypeConverter.createDuration("P1D");;
+	public static final Duration DEFAULT_DEAD_SHADOW_RETENTION_PERIOD_DURATION = XmlTypeConverter.createDuration("P7D");
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
-
-	public static List<ItemDelta<?, ?>> createShadowCleanupAndReconciliationDeltas(PrismObject<ShadowType> currentShadow,
-			PrismObject<ShadowType> repoShadowBefore, PrismContext prismContext) throws SchemaException {
-		List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
-
-		S_ItemEntry i = DeltaBuilder.deltaFor(ShadowType.class, prismContext);
-		ShadowType repo = repoShadowBefore.asObjectable();
-		if (repo.getAttemptNumber() != null) {
-			i = i.item(ShadowType.F_ATTEMPT_NUMBER).replace();
-		}
-		if (repo.getFailedOperationType() != null) {
-			i = i.item(ShadowType.F_FAILED_OPERATION_TYPE).replace();
-		}
-		if (repo.getObjectChange() != null) {
-			i = i.item(ShadowType.F_OBJECT_CHANGE).replace();
-		}
-		if (repo.getResult() != null) {
-			i = i.item(ShadowType.F_RESULT).replace();
-		}
-		if (repo.getCredentials() != null) {
-			i = i.item(ShadowType.F_CREDENTIALS).replace();
-		}
-		itemDeltas.addAll(i.asItemDeltas());
-		itemDeltas.addAll(ProvisioningUtil.createShadowAttributesReconciliationDeltas(currentShadow, repoShadowBefore, getPrismContext()));
-		itemDeltas.addAll(ProvisioningUtil.createShadowActivationCleanupDeltas(repo, getPrismContext()));
-		return itemDeltas;
-	}
 
 	public static PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition(
 			PrismContext prismContext) {
@@ -608,42 +595,6 @@ public class ProvisioningUtil {
 				QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
 	}
 	
-	public static String shortDumpShadow(PrismObject<ShadowType> shadow) {
-		if (shadow == null) {
-			return "null";
-		}
-		PolyString name = shadow.getName();
-		if (name != null) {
-			return shadow.toString();
-		}
-		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
-		if (primaryIdentifiers != null && !primaryIdentifiers.isEmpty()) {
-			return shortDumpShadowIdentifiers(shadow, primaryIdentifiers);
-		}
-		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-		if (secondaryIdentifiers != null && !secondaryIdentifiers.isEmpty()) {
-			return shortDumpShadowIdentifiers(shadow, secondaryIdentifiers);
-		}
-		return shadow.toString();
-	}
-
-	private static String shortDumpShadowIdentifiers(PrismObject<ShadowType> shadow, Collection<ResourceAttribute<?>> identifiers) {
-		StringBuilder sb = new StringBuilder("shadow:");
-		sb.append(shadow.getOid()).append("(");
-		Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
-		while (iterator.hasNext()) {
-			ResourceAttribute<?> identifier = iterator.next();
-			sb.append(identifier.getElementName().getLocalPart());
-			sb.append("=");
-			sb.append(identifier.getRealValue());
-			if (iterator.hasNext()) {
-				sb.append(";");
-			}
-		}
-		sb.append(")");
-		return sb.toString();
-	};
-	
 	public static boolean resourceReadIsCachingOnly(ResourceType resource) {
 		ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ReadCapabilityType.class);
 		if (readCapabilityType == null) {
@@ -660,8 +611,20 @@ public class ProvisioningUtil {
 		}
 		return gracePeriod;
 	}
+	
+	public static Duration getPendingOperationRetentionPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Duration period = null;
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency != null) {
+			period = consistency.getPendingOperationRetentionPeriod();
+		}
+		if (period == null) {
+			period = DEFAULT_PENDING_OPERATION_RETENTION_PERIOD_DURATION;
+		}
+		return period;
+	}
 
-	public static boolean isOverGrace(XMLGregorianCalendar now, Duration gracePeriod, PendingOperationType pendingOperation) {
+	public static boolean isOverPeriod(XMLGregorianCalendar now, Duration period, PendingOperationType pendingOperation) {
 		if (!isCompleted(pendingOperation.getResultStatus())) {
 			return false;
 		}
@@ -669,18 +632,123 @@ public class ProvisioningUtil {
 		if (completionTimestamp == null) {
 			return false;
 		}
-		return isOverGrace(now, gracePeriod, completionTimestamp);
+		return isOverPeriod(now, period, completionTimestamp);
 	}
 	
-	public static boolean isOverGrace(XMLGregorianCalendar now, Duration gracePeriod, XMLGregorianCalendar completionTimestamp) {
-		if (gracePeriod == null) {
+	public static boolean isOverPeriod(XMLGregorianCalendar now, Duration period, XMLGregorianCalendar lastActivityTimestamp) {
+		if (period == null) {
 			return true;
 		}
-		XMLGregorianCalendar graceExpiration = XmlTypeConverter.addDuration(completionTimestamp, gracePeriod);
-		return XmlTypeConverter.compare(now, graceExpiration) == DatatypeConstants.GREATER;
+		XMLGregorianCalendar expirationTimestamp = XmlTypeConverter.addDuration(lastActivityTimestamp, period);
+		return XmlTypeConverter.compare(now, expirationTimestamp) == DatatypeConstants.GREATER;
+	}
+	
+	public static Duration getRetryPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Duration period = null;
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency != null) {
+			period = consistency.getOperationRetryPeriod();
+		}
+		if (period == null) {
+			period = DEFAULT_OPERATION_RETRY_PERIOD_DURATION;
+		}
+		return period;
+	}
+	
+	public static Duration getDeadShadowRetentionPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Duration period = null;
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency != null) {
+			period = consistency.getDeadShadowRetentionPeriod();
+		}
+		if (period == null) {
+			period = DEFAULT_DEAD_SHADOW_RETENTION_PERIOD_DURATION;
+		}
+		return period;
+	}
+	
+	public static int getMaxRetryAttempts(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		ResourceConsistencyType consistency = ctx.getResource().getConsistency();
+		if (consistency == null) {
+			return DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS;
+		}
+		Integer operationRetryMaxAttempts = consistency.getOperationRetryMaxAttempts();
+		if (operationRetryMaxAttempts == null) {
+			return DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS;
+		}
+		return operationRetryMaxAttempts;
 	}
 	
 	public static boolean isCompleted(OperationResultStatusType statusType) {
 		 return statusType != null && statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
 	}
+	
+	public static boolean hasPendingAddOperation(PrismObject<ShadowType> shadow) {
+		for (PendingOperationType pendingOperation: shadow.asObjectable().getPendingOperation()) {
+			if (isPendingAddOperation(pendingOperation)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isPendingAddOperation(PendingOperationType pendingOperation) {
+		return ChangeTypeType.ADD.equals(pendingOperation.getDelta().getChangeType()) && 
+				!PendingOperationExecutionStatusType.COMPLETED.equals(pendingOperation.getExecutionStatus());
+	}
+	
+	/**
+	 * Explicitly check the capability of the resource (primary connector), not capabilities of additional connectors
+	 */
+	public static boolean isPrimaryCachingOnly(ResourceType resource) {
+		ReadCapabilityType readCapabilityType = CapabilityUtil.getEffectiveCapability(resource.getCapabilities(), ReadCapabilityType.class);
+		if (readCapabilityType == null) {
+			return false;
+		}
+		if (!CapabilityUtil.isCapabilityEnabled(readCapabilityType)) {
+			return false;
+		}
+		return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
+	}
+	
+	public static boolean isFuturePointInTime(Collection<SelectorOptions<GetOperationOptions>> options) {
+		PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
+		return PointInTimeType.FUTURE.equals(pit);
+	}
+	
+	public static ResourceOperationDescription createResourceFailureDescription(
+			PrismObject<ShadowType> conflictedShadow, ResourceType resource, ObjectDelta<ShadowType> delta, OperationResult parentResult) {
+		ResourceOperationDescription failureDesc = new ResourceOperationDescription();
+		failureDesc.setCurrentShadow(conflictedShadow);
+		failureDesc.setObjectDelta(delta);
+		failureDesc.setResource(resource.asPrismObject());
+		failureDesc.setResult(parentResult);
+		failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+		
+		return failureDesc;
+	}
+	
+	public static boolean isDoDiscovery(ResourceType resource, GetOperationOptions rootOptions) {
+		return !GetOperationOptions.isDoNotDiscovery(rootOptions) && isDoDiscovery(resource);
+	}
+
+	public static boolean isDoDiscovery(ResourceType resource, ProvisioningOperationOptions options) {
+		return !ProvisioningOperationOptions.isDoNotDiscovery(options) && isDoDiscovery(resource);
+	}
+	
+	public static boolean isDoDiscovery (ResourceType resource) {
+		if (resource == null) {
+			return true;
+		}
+		if (resource.getConsistency() == null) {
+			return true;
+		}
+		
+		if (resource.getConsistency().isDiscovery() == null) {
+			return true;
+		}
+		
+		return resource.getConsistency().isDiscovery();
+	}
+	
 }

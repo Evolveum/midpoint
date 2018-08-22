@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	@Test
 	public void test190GetResource() throws Exception {
 		final String TEST_NAME = "test190GetResource";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -128,10 +128,10 @@ public class TestDummyNegative extends AbstractDummyTest {
 		syncServiceMock.reset();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertSuccess(result);
 
 		display("Resource after", resource);
@@ -142,7 +142,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	@Test
 	public void test200AddAccountNullAttributes() throws Exception {
 		final String TEST_NAME = "test200AddAccountNullAttributes";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
@@ -151,23 +151,21 @@ public class TestDummyNegative extends AbstractDummyTest {
 		ShadowType accountType = parseObjectType(ACCOUNT_WILL_FILE, ShadowType.class);
 		PrismObject<ShadowType> account = accountType.asPrismObject();
 		account.checkConsistence();
-
 		account.removeContainer(ShadowType.F_ATTRIBUTES);
-
 		display("Adding shadow", account);
 
 		try {
 			// WHEN
-			TestUtil.displayWhen(TEST_NAME);
+			displayWhen(TEST_NAME);
 			provisioningService.addObject(account, null, null, task, result);
 
-			AssertJUnit.fail("The addObject operation was successful. But expecting an exception.");
+			assertNotReached();
 		} catch (SchemaException e) {
 			// This is expected
 			display("Expected exception", e);
 		}
 
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		syncServiceMock.assertNotifyFailureOnly();
 	}
 
@@ -238,7 +236,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	@Test
 	public void test220AddAccountNoResourceRef() throws Exception {
 		final String TEST_NAME = "test220AddAccountNoResourceRef";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -270,7 +268,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	@Test
 	public void test221DeleteAccountResourceNotFound() throws Exception {
 		final String TEST_NAME = "test221DeleteAccountResourceNotFound";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -307,7 +305,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 	@Test
 	public void test230GetAccountDeletedShadow() throws Exception {
 		final String TEST_NAME = "test230GetAccountDeletedShadow";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummyNegative.class.getName()
 				+ "." + TEST_NAME);
@@ -327,7 +325,7 @@ public class TestDummyNegative extends AbstractDummyTest {
 			// WHEN
 			provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
 
-			AssertJUnit.fail("Unexpected success");
+			assertNotReached();
 		} catch (ObjectNotFoundException e) {
 			// this is expected
 			display("Expected exception", e);

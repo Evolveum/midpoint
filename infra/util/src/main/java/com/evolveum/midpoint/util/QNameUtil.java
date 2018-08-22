@@ -348,6 +348,18 @@ public class QNameUtil {
 	public static boolean contains(Collection<QName> col, QName qname) {
 		return col != null && col.stream().anyMatch(e -> match(e, qname));
 	}
+	
+	public static boolean contains(QName[] array, QName qname) {
+		if (array == null) {
+			return false;
+		}
+		for (QName element: array) {
+			if (match(qname, element)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public static boolean remove(Collection<QName> col, QName qname) {
 		return col != null && col.removeIf(e -> match(e, qname));
@@ -376,4 +388,7 @@ public class QNameUtil {
 				|| (!atStart && (Character.isDigit(ch) || ch == '.' || ch == '-'));
 	}
 
+	public static String prettyPrint(QName... qnames) {
+		return PrettyPrinter.prettyPrint(Arrays.asList(qnames));
+	}
 }

@@ -335,9 +335,6 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 	            <action>
 	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus</handlerUri>
 				</action>
-				<action>
-					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
-	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>

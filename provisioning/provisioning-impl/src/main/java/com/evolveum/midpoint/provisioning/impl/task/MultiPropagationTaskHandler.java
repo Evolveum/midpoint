@@ -20,9 +20,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
-import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -31,7 +29,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -60,7 +57,7 @@ public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHand
  	// all tasks of a specified type
 
     @Autowired private TaskManager taskManager;
-    @Autowired private ShadowCacheFactory shadowCacheFactory;
+    @Autowired private ShadowCache shadowCache;
     
     private static final Trace LOGGER = TraceManager.getTrace(MultiPropagationTaskHandler.class);
     
@@ -80,7 +77,6 @@ public class MultiPropagationTaskHandler extends AbstractSearchIterativeTaskHand
 	protected MultiPropagationResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
     	
-    	ShadowCache shadowCache = shadowCacheFactory.getShadowCache(ShadowCacheFactory.Mode.STANDARD);
     	MultiPropagationResultHandler handler = new MultiPropagationResultHandler(coordinatorTask, getTaskOperationPrefix(), taskManager, repositoryService, shadowCache);
     	return handler;
     }

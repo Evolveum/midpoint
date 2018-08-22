@@ -15,12 +15,19 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -30,7 +37,9 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 	
 	private A asyncResult;
 	private PendingOperationExecutionStatusType executionStatus;
-	private String existingShadowOid;
+	private PrismObject<ShadowType> repoShadow;
+	private Integer attemptNumber;
+	private List<PendingOperationType> pendingOperations;
 	
 	public A getAsyncResult() {
 		return asyncResult;
@@ -48,12 +57,51 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 		this.executionStatus = executionStatus;
 	}
 	
-	public String getExistingShadowOid() {
-		return existingShadowOid;
+	public PrismObject<ShadowType> getRepoShadow() {
+		return repoShadow;
+	}
+
+	public void setRepoShadow(PrismObject<ShadowType> repoShadow) {
+		this.repoShadow = repoShadow;
+	}
+
+	public List<PendingOperationType> getPendingOperations() {
+		return pendingOperations;
 	}
 	
-	public void setExistingShadowOid(String existingShadowOid) {
-		this.existingShadowOid = existingShadowOid;
+	public boolean hasPendingOperations() {
+		return pendingOperations != null;
+	}
+	
+	public void addPendingOperation(PendingOperationType pendingOperation) {
+		if (pendingOperations == null) {
+			pendingOperations = new ArrayList<>();
+		}
+		pendingOperations.add(pendingOperation);
+	}
+
+	public Integer getAttemptNumber() {
+		return attemptNumber;
+	}
+
+	public void setAttemptNumber(Integer attemptNumber) {
+		this.attemptNumber = attemptNumber;
+	}
+	
+	public PendingOperationTypeType getOperationType() {
+		if (asyncResult == null) {
+			return null;
+		} else {
+			return asyncResult.getOperationType();
+		}
+	}
+
+	public boolean isQuantumOperation() {
+		if (asyncResult == null) {
+			return false;
+		} else {
+			return asyncResult.isQuantumOperation();
+		}
 	}
 
 	/**
@@ -70,6 +118,10 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 	
 	public boolean isExecuting() {
 		return executionStatus == PendingOperationExecutionStatusType.EXECUTING;
+	}
+
+	public boolean isSuccess() {
+		return OperationResultStatusType.SUCCESS.equals(getResultStatusType());
 	}
 
 
@@ -115,15 +167,23 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 
 	@Override
 	public String toString() {
-		return "ProvisioningOperationState(asyncResult=" + asyncResult + ", executionStatus="
-				+ executionStatus + ", existingShadowOid=" + existingShadowOid + ")";
+		StringBuilder sb = new StringBuilder("ProvisioningOperationState(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
 	}
 
 	@Override
 	public void shortDump(StringBuilder sb) {
 		sb.append(executionStatus);
+		if (attemptNumber != null) {
+			sb.append(", attempt #").append(attemptNumber);
+		}
+		if (pendingOperations != null) {
+			sb.append(", ").append(pendingOperations.size()).append(" pending operations");
+		}
 		if (asyncResult != null) {
-			sb.append(":");
+			sb.append(", result: ");
 			asyncResult.shortDump(sb);
 		}
 	}
@@ -144,6 +204,29 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 		} else {
 			executionStatus = PendingOperationExecutionStatusType.COMPLETED;
 		}
+	}
+
+	// TEMPORARY: TODO: remove
+	public static <A extends AsynchronousOperationResult> ProvisioningOperationState<A> fromPendingOperation(
+			PrismObject<ShadowType> repoShadow, PendingOperationType pendingOperation) {
+		List<PendingOperationType> pendingOperations = new ArrayList<>();
+		pendingOperations.add(pendingOperation);
+		return fromPendingOperations(repoShadow, pendingOperations);
+	}
+	
+	public static <A extends AsynchronousOperationResult> ProvisioningOperationState<A> fromPendingOperations(
+			PrismObject<ShadowType> repoShadow, List<PendingOperationType> pendingOperations) {
+		ProvisioningOperationState<A> opState = new ProvisioningOperationState<>();
+		if (pendingOperations == null || pendingOperations.isEmpty()) {
+			throw new IllegalArgumentException("Empty list of pending operations, cannot create ProvisioningOperationState");
+		}
+		opState.pendingOperations = pendingOperations;
+		// TODO: check that they have the same status
+		opState.executionStatus = pendingOperations.get(0).getExecutionStatus();
+		// TODO: better algorithm
+		opState.attemptNumber = pendingOperations.get(0).getAttemptNumber();
+		opState.repoShadow = repoShadow;
+		return opState;
 	}
 	
 }

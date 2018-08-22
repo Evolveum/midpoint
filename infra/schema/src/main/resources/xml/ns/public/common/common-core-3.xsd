@@ -6065,7 +6065,12 @@
         			<xsd:documentation>
         				Postpone the operation in case that an error is encountered. The operation
         				will be re-tried later (consistency mechanism).
+        				DEPRECATED. Use operationRetryMaxAttempts instead.
         			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:deprecated>true</a:deprecated>
+        				<a:plannedRemoval>4.0</a:plannedRemoval>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
@@ -6092,15 +6097,79 @@
             <xsd:element name="pendingOperationGracePeriod" type="xsd:duration" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
-            			Duration for which the completed asynchronous operations will be kept in the
-            			shadow objects. This may be needed to avoid repeating operations in semi-manual
-            			resources. But this may also be desirable in other cases if the administrator
-            			wants to inspect result of an asynchronous operation.
-            			By default there is no grace period and completed operations are immediately
-            			deleted.
+            			Duration for which the completed asynchronous operations that are kept in the
+            			shadow objects are considered during computation. This may be needed to avoid
+            			repeating operations in semi-manual resources.
+            			By default there is no grace period and completed operations are not considered
+            			during computations.
             		</xsd:documentation>
             		<xsd:appinfo>
             			<a:since>3.6</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="pendingOperationRetentionPeriod" type="xsd:duration" minOccurs="0" default="P1D">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Duration for which the completed asynchronous operations will be kept in the
+            			shadow objects. This may be desirable for visibility, e.g. if the administrator
+            			wants to inspect result of an asynchronous operation.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.6</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationRetryPeriod" type="xsd:duration" minOccurs="0" default="PT30M">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Duration for which the system will wait before re-trying failed operation.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.9</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationRetryMaxAttempts" type="xsd:int" minOccurs="0" default="3">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Maximum number of attempts to re-try a failed operation.
+            			If set to 0 then operation re-tries are disabled.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.9</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deadShadowRetentionPeriod" type="xsd:duration" minOccurs="0" default="P7D">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Duration for which the system will keep dead shadows. After this interval has
+            			passed the dead shadows are deleted.
+            			Note: this may also be influenced by pendingOperationGracePeriod. Dead shadow
+            			may be kept for longer than the interval specified in deadShadowRetentionPeriod
+            			if that is needed to for evaluation of grace period.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.9</a:since>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="reshreshOnRead" type="xsd:boolean" minOccurs="0" default="false">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			If set to true then midPoint will always refresh shadow when it is retrieved.
+            			Refreshing a shadow means that the status of asynchronous (e.g. manual) opearions
+            			is checked, unfinished operations may be retried and so on. In this case shadow
+            			will always be as fresh as it can be. But read may be slower and there may be
+            			strange errors (e.g. reading a shadow may cause "already exists" error because
+            			pending ADD operation in the shadow was executed during that read).
+            			If set to false (which is the default) then refresh will not be executed during
+            			read operations - unless the refresh is explicitly requested by midPoint code
+            			(e.g. during reconciliation).
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:since>3.9</a:since>
             		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
@@ -10274,6 +10343,9 @@
 							<xsd:documentation>
 								Result describing if shadow was successfully processed, or not. If not, the errors should  be saved.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
      				<xsd:element name="objectChange" type="t:ObjectDeltaType" minOccurs="0">
@@ -10293,6 +10365,9 @@
 							<xsd:documentation>
 								Description of number of attempts made for the resolving account consistency issues. 
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:deprecated>true</a:deprecated>
+							</xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
      				<xsd:element name="failedOperationType" type="tns:FailedOperationTypeType" minOccurs="0">
@@ -10304,7 +10379,7 @@
 							</xsd:documentation>
 							 <xsd:appinfo>
 		                    	<a:displayName>ShadowType.failedOperationType</a:displayName>
-		                    	<a:emphasized>true</a:emphasized>
+								<a:deprecated>true</a:deprecated>
 		                    </xsd:appinfo>
 						</xsd:annotation>
      				</xsd:element>
@@ -10530,6 +10605,7 @@
      		</xsd:documentation>
      		<xsd:appinfo>
       			<a:deprecated>true</a:deprecated>
+      			<a:plannedRemoval>4.0</a:plannedRemoval>
       		</xsd:appinfo>
      	</xsd:annotation>
      </xsd:element>
@@ -10675,7 +10751,20 @@
             </xsd:appinfo>
         </xsd:annotation>
 	    <xsd:sequence>
-	        <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0">
+	        <xsd:element name="type" type="tns:PendingOperationTypeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Type of pending operation. It tells whether this is asynchronous
+						resource operation, manual operation, retried operation and so on.
+						It is used mostly for diagnostic purposes. But it also has some
+						meaning in the logic for some special cases.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			 <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Operation delta. This is the change that is executed by the operation.
@@ -10708,6 +10797,21 @@
     				</xsd:documentation>
     				<xsd:appinfo>
     					<a:since>3.7.1</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
+    		<xsd:element name="lastAttemptTimestamp" type="xsd:dateTime" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					<p>
+    						The timestamp of last operation attempt (star of operation).
+    						During normal (positive) flow it is the same as operationStartTimestamp.
+    						But this timestamp will change if the operation fails and
+    						it is re-tried.
+    					</p>
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:since>3.9</a:since>
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
@@ -10744,7 +10848,9 @@
     					<p>
     						Operation result status. This property specifies result of operation execution.
     						If execution status is present and set to anything else than "completed" then
-    						resultStatus may be empty.
+    						resultStatus may be empty. If result status is present in "executing" state
+    						then it means that execution was already attempted but it was not completed
+    						yet (e.g. there was an error and we will be retrying the operation).
     					</p>
     					<p>  
     						Legacy meaning: If no execution status is present then resultStatus
@@ -10772,10 +10878,56 @@
     				</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
+    		<xsd:element name="attemptNumber" type="xsd:int" minOccurs="0" default="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of a current attempt at operation execution. Starts at 1.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
     		<!-- TODO operation type? E.g. distinguish between manual connector and consistency mechanism? Or is that implicit? -->
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    
+    <xsd:simpleType name="PendingOperationTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of pending operation. It tells whether this is asynchronous
+				resource operation, manual operation, retried operation and so on.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>3.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="manual">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Operation using manual action (e.g. "manual" resources)
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MANUAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="retry">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Regular operation that has failed and it will be retried. 
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RETRY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO (later): asynchronous resource operation -->
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:simpleType name="PendingOperationExecutionStatusType">
         <xsd:annotation>

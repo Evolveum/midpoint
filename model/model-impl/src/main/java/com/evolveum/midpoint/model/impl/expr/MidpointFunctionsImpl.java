@@ -304,7 +304,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			return false;
 		}
 
-		if (projectionContext.isThombstone()) {
+		if (projectionContext.isTombstone()) {
 			return false;
 		}
 

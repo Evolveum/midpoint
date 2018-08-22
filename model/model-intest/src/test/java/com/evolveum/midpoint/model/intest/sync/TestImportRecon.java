@@ -1211,7 +1211,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByUsername(ACCOUNT_HTM_NAME, RESOURCE_DUMMY_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME); // not deleted. reaction=unlink
 
-        assertNoObject(ShadowType.class, hermanShadowOid, task, result);
+        assertRepoShadow(hermanShadowOid)
+        	.assertTombstone();
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1250,7 +1251,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_OID); // the second modification is unlink
 
-        assertShadows(14);
+        assertShadows(15);
 
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -1352,7 +1353,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE_OID);
 
-        assertShadows(16);
+        assertShadows(17);
 	}
 
 	@Test
@@ -1419,7 +1420,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE_OID);
 
-        assertShadows(16);
+        assertShadows(17);
 	}
 
 	@Test
@@ -1434,7 +1435,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
 
-        assertShadows(16);
+        assertShadows(17);
 
         PrismObject<ShadowType> otisShadow = findShadowByName(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, ACCOUNT_OTIS_NAME, resourceDummyAzure, result);
 
@@ -1478,8 +1479,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
         		"Calypso");
 
-        assertNoObject(ShadowType.class, otisShadow.getOid(), task, result);
-        assertShadows(15);
+        assertRepoShadow(otisShadow.getOid())
+        	.assertTombstone();
+        
+        assertShadows(17);
 
         assertEquals("Unexpected number of users", 11, users.size());
 
@@ -1530,7 +1533,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 1);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1635,7 +1638,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 1);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1710,7 +1713,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 0);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 1, 0, 1);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1751,7 +1754,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         getDummyResource().setBreakMode(BreakMode.NONE);
         dummyResourceAzure.setBreakMode(BreakMode.NONE);
 
-        assertShadows(17);
+        assertShadows(19);
 
         // Remove the assignment. It may do bad things later.
         ObjectDelta<UserType> userRappDelta = createAssignmentUserDelta(USER_RAPP_OID, ROLE_CORPSE_OID,
@@ -1781,7 +1784,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
 
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 0, 0, 1);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_AZURE_OID, 0, 0, 0, 2);
 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -1802,8 +1805,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,
         		"Calypso");
 
-        assertNoObject(ShadowType.class, rappShadow.getOid(), task, result);
-        assertShadows(16);
+        assertRepoShadow(rappShadow.getOid())
+        	.assertTombstone();
+
+        assertShadows(19);
 
         assertEquals("Unexpected number of users", 11, users.size());
 
@@ -2567,7 +2572,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertEquals(1, opExecResults.size());
         OperationResult opExecResult = opExecResults.get(0);
         TestUtil.assertSuccess(opExecResult);
-        assertEquals("Wrong exec operation count", 17, opExecResult.getCount());
+        assertEquals("Wrong exec operation count", 18, opExecResult.getCount());
         assertTrue("Too many subresults: "+deleteTaskResult.getSubresults().size(), deleteTaskResult.getSubresults().size() < 10);
 
         assertUsers(18);
@@ -2757,6 +2762,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	}
 
 	private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		display("Imported user", user);
         assertLinks(user, resourceOids.length);
         for (String resourceOid: resourceOids) {
         	assertAccount(user, resourceOid);

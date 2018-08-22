@@ -1391,7 +1391,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			if (!projectionContext.isCanProject()) {
 				continue;
 			}
-			if (projectionContext.isThombstone()) {
+			if (projectionContext.isTombstone()) {
 				continue;
 			}
 			if (projectionContext.hasPrimaryDelta() || projectionContext.hasSecondaryDelta()) {

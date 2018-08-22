@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -656,5 +656,43 @@ public class XmlTypeConverter {
 	public static boolean isAfterInterval(XMLGregorianCalendar reference, Duration interval, XMLGregorianCalendar now) {
 		XMLGregorianCalendar endOfInterval = addDuration(reference, interval);
 		return endOfInterval.compare(now) == DatatypeConstants.LESSER;
+	}
+
+	public static Duration longerDuration(Duration a, Duration b) {
+		if (a == null) {
+			return b;
+		}
+		if (b == null) {
+			return a;
+		}
+		if (a.compare(b) == DatatypeConstants.GREATER) {
+			return a;
+		} else {
+			return b;
+		}
+	}
+
+	public static XMLGregorianCalendar laterTimestamp(XMLGregorianCalendar a, XMLGregorianCalendar b) {
+		if (a == null) {
+			return b;
+		}
+		if (b == null) {
+			return a;
+		}
+		if (a.compare(b) == DatatypeConstants.GREATER) {
+			return a;
+		} else {
+			return b;
+		}
+	}
+
+	public static boolean isFresher(XMLGregorianCalendar theTimestamp, XMLGregorianCalendar refTimestamp) {
+		if (theTimestamp == null) {
+			return false;
+		}
+		if (refTimestamp == null) {
+			return true;
+		}
+		return theTimestamp.compare(refTimestamp) == DatatypeConstants.GREATER;
 	}
 }

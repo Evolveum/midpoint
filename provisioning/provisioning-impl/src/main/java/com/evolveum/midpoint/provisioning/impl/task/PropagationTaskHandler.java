@@ -26,7 +26,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
-import com.evolveum.midpoint.provisioning.impl.ShadowCacheFactory;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -67,7 +66,7 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
 
     @Autowired private TaskManager taskManager;
     @Autowired private ProvisioningService provisioningService;
-    @Autowired private ShadowCacheFactory shadowCacheFactory;
+    @Autowired private ShadowCache shadowCache;
     
     private static final Trace LOGGER = TraceManager.getTrace(PropagationTaskHandler.class);
     
@@ -97,7 +96,6 @@ public class PropagationTaskHandler extends AbstractSearchIterativeTaskHandler<S
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
 		}
-    	ShadowCache shadowCache = shadowCacheFactory.getShadowCache(ShadowCacheFactory.Mode.STANDARD);
     	PropagationResultHandler handler = new PropagationResultHandler(coordinatorTask, getTaskOperationPrefix(), taskManager, shadowCache, resource);
     	return handler;
     }

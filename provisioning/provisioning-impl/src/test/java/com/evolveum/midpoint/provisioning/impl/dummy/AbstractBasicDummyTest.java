@@ -1096,6 +1096,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		} else {
 			assertNull("Activation sneaked in (repo)", activationRepo);
 		}
+		assertWillRepoShadowAfterCreate(accountRepo);
 
 		syncServiceMock.assertNotifySuccessOnly();
 
@@ -1150,8 +1151,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		lastPasswordModifyStart = start;
 		lastPasswordModifyEnd = end;
 
-		checkConsistency(accountProvisioning);
+		checkUniqueness(accountProvisioning);
 		assertSteadyResource();
+	}
+
+	protected void assertWillRepoShadowAfterCreate(PrismObject<ShadowType> repoShadow) {
+		// for the subclasses
 	}
 
 	protected void checkRepoAccountShadowWillBasic(PrismObject<ShadowType> accountRepo,
@@ -1216,7 +1221,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
 		checkRepoAccountShadowWill(shadowRepo, startTs, endTs);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertCachingMetadata(shadow, false, startTs, endTs);
 
@@ -1259,7 +1264,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		// This is noFetch. Therefore the read should NOT update the caching timestamp
 		checkRepoAccountShadowWill(shadow, null, startTs);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertSteadyResource();
 	}
@@ -1341,7 +1346,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.DISABLED);
 		assertRepoShadowCredentials(shadowRepo, ACCOUNT_WILL_PASSWORD);
 
-		checkConsistency(shadow);
+		checkUniqueness(shadow);
 
 		assertCachingMetadata(shadow, false, startTs, endTs);
 
@@ -1360,10 +1365,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		dummyResource.assertNoConnections();
 	}
 
-	protected void checkRepoAccountShadow(PrismObject<ShadowType> shadowFromRepo) {
-		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
-	}
-
 	protected void checkAccountWill(PrismObject<ShadowType> shadow, OperationResult result,
 			XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) throws SchemaException, EncryptionException {
 		checkAccountShadow(shadow, result, true, startTs, endTs);
@@ -1373,7 +1374,6 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
 		assertEquals("Unexpected number of attributes", 6, attributes.size());
 	}
-
 
 	/**
 	 * We do not know what the timestamp should be
