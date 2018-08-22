@@ -55,6 +55,8 @@ import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
@@ -154,7 +156,13 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 	
 		private OrgMemberPanel createMemberPanel(OrgType org) {
-		OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org));
+		OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS) {
+			
+			@Override
+			protected List<QName> getSupportedRelations() {
+				return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase());
+			}
+		};
 		memberPanel.setOutputMarkupId(true);
 		return memberPanel;
 	}

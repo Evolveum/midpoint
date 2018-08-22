@@ -111,13 +111,13 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 			@Override
 			public AbstractRoleMemberPanel<OrgType> createMemberPanel(String panelId) {
 				
-				return new AbstractRoleMemberPanel<OrgType>(panelId, Model.of(getObject().asObjectable()), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS) {
+				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS) {
 					
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected List<QName> getSupportedRelations() {
-						return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, PageOrgUnit.this);
+						return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, PageOrgUnit.this);
 					}
 				};
 			}
@@ -135,7 +135,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 			@Override
 			public AbstractRoleMemberPanel<OrgType> createGovernancePanel(String panelId) {
 				
-				return new AbstractRoleMemberPanel<OrgType>(panelId, Model.of(getObject().asObjectable()), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS) {
+				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS) {
 					
 					private static final long serialVersionUID = 1L;
 

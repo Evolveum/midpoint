@@ -91,9 +91,14 @@ public class CheckFormGroup extends BasePanel<Boolean> {
         CheckBox check = new CheckBox(ID_CHECK, getModel());
         check.setLabel(label);
         checkWrapper.add(check);
+        setOutputMarkupId(true);
     }
 
     public CheckBox getCheck(){
         return (CheckBox) get(ID_CHECK_WRAPPER + ":" + ID_CHECK);
+    }
+    
+    public Boolean getValue() {
+    	return getCheck().getModelObject();
     }
 }

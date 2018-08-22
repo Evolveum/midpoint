@@ -112,6 +112,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
                 attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
             }
         };
+        choose.setOutputMarkupId(true);
 
         AjaxLink<String> remove = new AjaxLink<String>(ID_LINK_REMOVE) {
         	private static final long serialVersionUID = 1L;
@@ -122,6 +123,7 @@ public class ChooseTypePanel<T extends ObjectType> extends BasePanel<ObjectViewD
                 target.add(name);
             }
         };
+        remove.setOutputMarkupId(true);
 
         inputContainer.add(name);
         inputContainer.add(choose);

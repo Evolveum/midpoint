@@ -30,6 +30,7 @@ import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -72,9 +73,10 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
 
         
         if (!allowNull && defaultRelation == null) {
-        	defaultRelation = supportedRelations.iterator().next();
+        	defaultRelation = PrismConstants.Q_ANY;
         }
-        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(), createStringResource("relationDropDownChoicePanel.relation"), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4", "col-md-8", allowNull);
+        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(), 
+        		createStringResource("relationDropDownChoicePanel.relation"), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4", "col-md-8", allowNull);
         
         input.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         input.getInput().add(new OnChangeAjaxBehavior() {
@@ -131,6 +133,11 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     }
 
     public QName getRelationValue() {
-        return ((DropDownChoice<QName>) get(ID_INPUT)).getModelObject();
+        QName relationValue = ((DropDownFormGroup<QName>) get(ID_INPUT)).getModelObject();
+        if (relationValue == null){
+			return PrismConstants.Q_ANY;
+		} else {
+			return relationValue;
+		}
     }
 }
