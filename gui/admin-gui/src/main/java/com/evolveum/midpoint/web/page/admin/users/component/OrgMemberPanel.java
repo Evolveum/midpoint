@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -68,12 +69,19 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected ObjectQuery createMemberQuery(boolean indirect, Collection<QName> relations) {
-		if (SEARCH_SCOPE_ONE.equals(getOrgSearchScope())) {
-			return super.createMemberQuery(indirect, relations);
-		}
-		String oid = getModelObject().getOid();
-
 		ObjectTypes searchType = getSearchType();
+		if (SEARCH_SCOPE_ONE.equals(getOrgSearchScope())) {
+			if (FocusType.class.isAssignableFrom(searchType.getClassDefinition())) {
+				return super.createMemberQuery(indirect, relations);
+			}
+			else {
+				ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
+				return QueryBuilder.queryFor(searchType.getClassDefinition(), getPageBase().getPrismContext())
+						.isDirectChildOf(ref.asReferenceValue()).build();
+			}
+		}
+		
+		String oid = getModelObject().getOid();
 
 		ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
 		ObjectQuery query = QueryBuilder.queryFor(searchType.getClassDefinition(), getPageBase().getPrismContext())

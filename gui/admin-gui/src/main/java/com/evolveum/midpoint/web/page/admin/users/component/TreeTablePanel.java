@@ -376,6 +376,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		}
 		getTreePanel().setSelected(selected);
 		target.add(addOrReplace(createMemberPanel(selected.getValue())));
+		target.add(addOrReplace(createManagerPanel(selected.getValue())));
 	}
 
 	private void moveRootPerformed(SelectableBean<OrgType> root, AjaxRequestTarget target) {

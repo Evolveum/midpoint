@@ -152,7 +152,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		add(form);
 		initSearch(form);
 		initMemberTable(form);
-		
+		setOutputMarkupId(true);
 		
 //		initCustomLayout(form, getPageBase());
 	}
@@ -539,7 +539,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	protected ObjectQuery createContentQuery() {
 		IsolatedCheckBoxPanel isIndirect = getIndirectmembersPanel();
-		return createMemberQuery(isIndirect != null ? isIndirect.getValue() : false, getSupportedRelations());
+		return createMemberQuery(isIndirect != null ? isIndirect.getValue() : false, Arrays.asList(getSelectedRelation()));
 
 	}
 	
