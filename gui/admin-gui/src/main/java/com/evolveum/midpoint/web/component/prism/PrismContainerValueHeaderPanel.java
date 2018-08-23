@@ -38,7 +38,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 	private static final String ID_SORT_PROPERTIES = "sortProperties";
     private static final String ID_SHOW_METADATA = "showMetadata";
-    private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
+//    private static final String ID_SHOW_EMPTY_FIELDS = "showEmptyFields";
     private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
     private static final String ID_REMOVE_CONTAINER = "removeContainer";
     private static final String ID_CHILD_CONTAINERS_SELECTOR_PANEL = "childContainersSelectorPanel";
@@ -111,25 +111,25 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		});
 		add(showMetadataButton);
 
-		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_SHOW_EMPTY_FIELDS,
-				GuiStyleConstants.CLASS_ICON_SHOW_EMPTY_FIELDS, GuiStyleConstants.CLASS_ICON_NOT_SHOW_EMPTY_FIELDS) {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				onShowEmptyClick(target);
-			}
-						
-			@Override
-			public boolean isOn() {
-				return PrismContainerValueHeaderPanel.this.getModelObject().isShowEmpty();
-			}
-        };
-		showEmptyFieldsButton.setOutputMarkupId(true);
-
-		showEmptyFieldsButton.add(buttonsVisibleBehaviour);
-        add(showEmptyFieldsButton);
+//		ToggleIconButton showEmptyFieldsButton = new ToggleIconButton(ID_SHOW_EMPTY_FIELDS,
+//				GuiStyleConstants.CLASS_ICON_SHOW_EMPTY_FIELDS, GuiStyleConstants.CLASS_ICON_NOT_SHOW_EMPTY_FIELDS) {
+//			
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				onShowEmptyClick(target);
+//			}
+//						
+//			@Override
+//			public boolean isOn() {
+//				return PrismContainerValueHeaderPanel.this.getModelObject().isShowEmpty();
+//			}
+//        };
+//		showEmptyFieldsButton.setOutputMarkupId(true);
+//
+//		showEmptyFieldsButton.add(buttonsVisibleBehaviour);
+//        add(showEmptyFieldsButton);
 
         ToggleIconButton sortPropertiesButton = new ToggleIconButton(ID_SORT_PROPERTIES,
         		GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
@@ -188,7 +188,8 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		});
 		childContainersSelectorPanel.setOutputMarkupId(true);
 		add(childContainersSelectorPanel);
-		 
+		
+		LOGGER.info("XXXXXXXXXXXXXXXX model " + getModelObject().getDisplayName());
 		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
 				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
 				new QNameIChoiceRenderer(getModelObject().getContainerValue().getValue().getClass().getSimpleName()));
@@ -248,7 +249,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				onShowEmptyClick(target);
+				onExpandClick(target);
 			}
 		};
 		labelComponent.setOutputMarkupId(true);

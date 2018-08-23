@@ -25,18 +25,22 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
@@ -46,6 +50,7 @@ import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -53,12 +58,19 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismPanel;
+import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
@@ -74,6 +86,7 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 	private static final Trace LOGGER = TraceManager.getTrace(GlobalPolicyRuleTabPanel.class);
 	
     private static final String ID_GLOBAL_POLICY_RULE = "globalPolicyRule";
+//    private static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
     
     public GlobalPolicyRuleTabPanel(String id, IModel<ContainerWrapper<GlobalPolicyRuleType>> model) {
         super(id, model);
@@ -172,6 +185,46 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
 		    	};
 				return new DisplayNamePanel<GlobalPolicyRuleType>(displayNamePanelId, displayNameModel);
 			}
+			
+//			@Override
+//			protected void getBasicContainerValuePanel(String idPanel) {
+//				add(new WebMarkupContainer(idPanel));
+//			}
+//			
+//			private ItemVisibility getBasicContainerVisibity(ItemWrapper itemWrapper, ItemPath parentPath) {
+//				if(itemWrapper.getPath().equals(parentPath.append(GlobalPolicyRuleType.F_DESCRIPTION)) || itemWrapper.getPath().equals(parentPath.append(GlobalPolicyRuleType.F_NAME))
+//						|| itemWrapper.getPath().equals(parentPath.append(GlobalPolicyRuleType.F_POLICY_SITUATION))) {
+//					return ItemVisibility.AUTO;
+//				}
+//				return ItemVisibility.HIDDEN;
+//			}
+			
+//			@Override
+//			protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentPath) {
+//				Form form = new Form<>("form");
+//				PrismPanel<GlobalPolicyRuleType> panel = new PrismPanel<GlobalPolicyRuleType>(ID_FOCUS_FORM,  new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), getVisibleContainers()),
+//						new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), form, 
+//						null, getPageBase());
+//				add(panel);
+//			}
+			
+//			private List<ItemPath> getVisibleContainers() {
+//				List<ItemPath> paths = new ArrayList<>();
+//				paths.addAll(Arrays.asList(ItemPath.EMPTY_PATH, SchemaConstants.PATH_ACTIVATION, SchemaConstants.PATH_PASSWORD));
+//				if (WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())) {
+//					paths.add(new ItemPath(AbstractRoleType.F_DATA_PROTECTION));
+//				}
+//				return paths;
+//			}
+			
+//			@Override
+//			protected WebMarkupContainer getSpecificContainers(String contentAreaId) {
+//				Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, GlobalPolicyRuleTabPanel.this);
+//				
+//				
+//				
+//				return specificContainers;
+//			}
 
 		};
 		return detailsPanel;

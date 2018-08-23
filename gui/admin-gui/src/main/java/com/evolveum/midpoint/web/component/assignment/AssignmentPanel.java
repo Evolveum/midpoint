@@ -253,7 +253,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 				
 				ItemPath assignmentPath = item.getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
 				ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType>(((PageAdminObjectDetails<FocusType>)getPageBase()).getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, Model.of(activationModel), true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), getPageBase());
+				ContainerValuePanel<ActivationType> acitvationContainer = new ContainerValuePanel<ActivationType>(ID_ACTIVATION_PANEL, Model.of(activationModel.getObject().getValues().get(0)), true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), getPageBase());
 				specificContainers.add(acitvationContainer);
 				
 				return specificContainers;
