@@ -146,7 +146,10 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        target.add(AbstractShoppingCartTabPanel.this);
+                        int assignmentsLimit = getRoleCatalogStorage().getAssignmentRequestLimit();
+                        if (AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, AbstractShoppingCartTabPanel.this.getPageBase())) {
+                            target.add(AbstractShoppingCartTabPanel.this);
+                        }
                         AbstractShoppingCartTabPanel.this.assignmentAddedToShoppingCartPerformed(target);
                     }
 
@@ -201,7 +204,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
             }
         });
         addAllButton.add(AttributeAppender.append("title",
-                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase())));
+                AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(getPageBase())));
         shoppingCartContainer.add(addAllButton);
     }
 
