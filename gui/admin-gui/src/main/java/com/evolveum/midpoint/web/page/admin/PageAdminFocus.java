@@ -188,7 +188,13 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 		Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap = new HashMap<>();
 		modelContextMap.put(getObjectWrapper().getObject(), getProgressPanel().getPreviewResult());
+
+		processAdditionalFocalObjectsForPreview(modelContextMap);
+
 		navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
+	}
+
+	protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<F>, ModelContext<? extends ObjectType>> modelContextMap){
 	}
 
 	@Override

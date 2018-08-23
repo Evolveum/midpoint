@@ -23,6 +23,8 @@ import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -65,10 +68,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
@@ -363,34 +363,54 @@ public class PageUser extends PageAdminFocus<UserType> {
     @Override
     protected boolean processDeputyAssignments(boolean previewOnly) {
         boolean isAnythingChanged = false;
-        if (!previewOnly) {
-            for (AssignmentEditorDto dto : delegationsModel.getObject()) {
-                if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
-                    UserType user = dto.getDelegationOwner();
-                    List<AssignmentEditorDto> userAssignmentsDtos = new ArrayList<>();
-                    userAssignmentsDtos.add(dto);
-                    saveDelegationToUser(user, userAssignmentsDtos);
-                    isAnythingChanged = true;
+        for (AssignmentEditorDto dto : delegationsModel.getObject()) {
+            if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
+                UserType user = dto.getDelegationOwner();
+                if (!previewOnly) {
+                    saveDelegationToUser(user.asPrismObject(), dto);
                 }
+                isAnythingChanged = true;
             }
         }
         return isAnythingChanged;
     }
 
-    private void saveDelegationToUser(UserType user, List<AssignmentEditorDto> assignmentEditorDtos) {
+    /**
+     * for now used only for delegation changes
+     * @param modelContextMap
+     */
+    @Override
+    protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<UserType>, ModelContext<? extends ObjectType>> modelContextMap){
+        for (AssignmentEditorDto dto : delegationsModel.getObject()) {
+            if (!UserDtoStatus.MODIFY.equals(dto.getStatus())) {
+                UserType user = dto.getDelegationOwner();
+
+                OperationResult result = new OperationResult(OPERATION_PREVIEW_CHANGES);
+                Task task = createSimpleTask(OPERATION_PREVIEW_CHANGES);
+                try {
+
+                Collection<ObjectDelta<? extends ObjectType>> deltas = prepareDelegationDelta(user.asPrismObject(), dto);
+
+                ModelContext<UserType> modelContext = getModelInteractionService().previewChanges(deltas, getOptions(true), task, result);
+                modelContextMap.put(user.asPrismObject(), modelContext);
+                } catch (Exception e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Could not save delegation ", e);
+                    error("Could not save delegation. Reason: " + e);
+                } finally {
+                    result.recomputeStatus();
+                }
+            }
+        }
+    }
+
+
+    private void saveDelegationToUser(PrismObject<UserType> user, AssignmentEditorDto assignmentDto) {
         OperationResult result = new OperationResult(OPERATION_SAVE);
-        ObjectDelta<UserType> delta;
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         try {
-            delta = user.asPrismObject().createModifyDelta();
-            deltas.add(delta);
-            PrismContainerDefinition def = user.asPrismObject().getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
-            handleAssignmentDeltas(delta, assignmentEditorDtos, def, true);
-            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE), result);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = prepareDelegationDelta(user, assignmentDto);
+            getModelService().executeChanges(deltas, getOptions(false), createSimpleTask(OPERATION_SAVE), result);
 
             result.recordSuccess();
-
-
         } catch (Exception e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
             error("Could not save assignments. Reason: " + e);
@@ -399,6 +419,19 @@ public class PageUser extends PageAdminFocus<UserType> {
         }
 
         showResult(result);
+    }
+
+    private Collection<ObjectDelta<? extends ObjectType>> prepareDelegationDelta(PrismObject<UserType> user, AssignmentEditorDto dto)
+            throws SchemaException {
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
+        ObjectDelta<UserType> delta = user.createModifyDelta();
+        List<AssignmentEditorDto> userAssignmentsDtos = new ArrayList<>();
+        userAssignmentsDtos.add(dto);
+
+        deltas.add(delta);
+        PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+        handleAssignmentDeltas(delta, userAssignmentsDtos, def, true);
+        return deltas;
     }
 
     public boolean isLoggedInUserPage(){
