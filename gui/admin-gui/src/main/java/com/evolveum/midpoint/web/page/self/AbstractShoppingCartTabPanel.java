@@ -146,7 +146,10 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        target.add(AbstractShoppingCartTabPanel.this);
+                        int assignmentsLimit = getRoleCatalogStorage().getAssignmentRequestLimit();
+                        if (AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, AbstractShoppingCartTabPanel.this.getPageBase())) {
+                            target.add(AbstractShoppingCartTabPanel.this);
+                        }
                         AbstractShoppingCartTabPanel.this.assignmentAddedToShoppingCartPerformed(target);
                     }
 
