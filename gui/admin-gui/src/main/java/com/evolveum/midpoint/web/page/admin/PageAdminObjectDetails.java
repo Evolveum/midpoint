@@ -462,10 +462,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
         Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
 
-        ModelExecuteOptions options = getExecuteChangesOptions();
-        if (previewOnly) {
-            options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
-        }
+        ModelExecuteOptions options = getOptions(previewOnly);
+
         LOGGER.debug("Using execute options {}.", options);
 
         try {
@@ -556,17 +554,21 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             return;
                         }
                         progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
+                    } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
+                        progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                     } else {
                         progressPanel.clearProgressPanel();			// from previous attempts (useful only if we would call finishProcessing at the end, but that's not the case now)
                         if (!previewOnly) {
-                            if (!isAnythingChanged) {
+                            if (!delegationChangesExist) {
                                 result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
                                 showResult(result);
                             }
                             redirectBack();
                         } else {
-                            warn(getString("PageAdminObjectDetails.noChangesPreview"));
-                            target.add(getFeedbackPanel());
+                            if (!delegationChangesExist) {
+                                warn(getString("PageAdminObjectDetails.noChangesPreview"));
+                                target.add(getFeedbackPanel());
+                            }
                         }
                     }
 
@@ -622,8 +624,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     @NotNull
-    protected ModelExecuteOptions getEisaxecuteChangesOptions() {
-        return mainPanel.getExecuteChangeOptionsDto().createOptions();
+    protected ModelExecuteOptions getOptions(boolean previewOnly) {
+        ModelExecuteOptions options = mainPanel.getExecuteChangeOptionsDto().createOptions();
+        if (previewOnly) {
+            options.getOrCreatePartialProcessing().setApprovals(PartialProcessingTypeType.PROCESS);
+        }
+        return options;
     }
 
     protected void prepareObjectForAdd(PrismObject<O> object) throws SchemaException {
