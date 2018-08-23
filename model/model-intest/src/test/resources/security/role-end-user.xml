@@ -125,6 +125,7 @@
     	</object>
     	<item>credentials</item>
     	<item>assignment</item>
+    	<item>nickName</item> <!-- Needed by mapping in object template -->
     </authorization>
     
     <authorization>

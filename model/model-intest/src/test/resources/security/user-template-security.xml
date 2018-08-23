@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,6 +22,23 @@
    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>Security User Template</name>
+    
+    <!-- MID-4830 -->
+    <item>
+         <ref>nickName</ref>
+         <mapping>         	      
+            <strength>strong</strength>
+            <source>
+               <c:path>credentials/password/metadata</c:path>
+            </source>
+            <expression>
+            	<runAsRef oid="00000000-0000-0000-0000-000000000002"/>
+               <script>
+                  <code>basic.stringify(metadata?.creatorRef)</code>
+               </script>
+            </expression>
+         </mapping>
+      </item>
     
     <mapping>
     	<name>usertemplate-fullName</name>

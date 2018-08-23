@@ -72,22 +72,8 @@
     	</target>
     </authorization>
     <authorization>
-    	<name>auth-persona-execute-add</name>
+    	<name>auth-persona-execute</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-    	<phase>execution</phase>
-    	<object>
-    		<type>UserType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>employeeType</q:path>
-    				<q:value>admin</q:value>
-    			</q:equal>
-    		</filter>
-    		<!-- owner constraint cannot be here, the link does not exists when the persona is added -->
-    	</object>
-    </authorization>
-    <authorization>
-    	<name>auth-persona-execute-modify-delete</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
     	<phase>execution</phase>

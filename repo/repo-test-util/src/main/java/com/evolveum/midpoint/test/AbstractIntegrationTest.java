@@ -1352,11 +1352,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertUserPassword(user, expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
 	}
 
-	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
-		assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
+	protected PasswordType assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
+		return assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
 	}
 
-	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
+	protected PasswordType assertUserPassword(PrismObject<UserType> user, String expectedClearPassword, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
 		UserType userType = user.asObjectable();
 		CredentialsType creds = userType.getCredentials();
 		assertNotNull("No credentials in "+user, creds);
@@ -1364,6 +1364,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("No password in "+user, password);
 		ProtectedStringType protectedActualPassword = password.getValue();
 		assertProtectedString("Password for "+user, expectedClearPassword, protectedActualPassword, storageType);
+		return password;
 	}
 	
 	protected void assertUserNoPassword(PrismObject<UserType> user) throws EncryptionException, SchemaException {
