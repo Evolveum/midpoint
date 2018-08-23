@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2014 Evolveum
+ * Copyright (c) 2013-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import java.util.List;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskResult;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskResultListener;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * Debugging listener for reconciliation tasks.
@@ -33,7 +35,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
  *
  */
 public class DebugReconciliationTaskResultListener implements
-		ReconciliationTaskResultListener {
+		ReconciliationTaskResultListener, DebugDumpable {
 
 	private List<ReconciliationTaskResult> results = Collections.synchronizedList(new ArrayList<ReconciliationTaskResult>());
 
@@ -67,6 +69,13 @@ public class DebugReconciliationTaskResultListener implements
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(DebugReconciliationTaskResultListener.class, indent);
+		DebugUtil.debugDumpWithLabel(sb, "results", results, indent + 1);
+		return sb.toString();
 	}
 
 }

@@ -2178,6 +2178,7 @@ public class ShadowCache {
 				.getEffectiveCapability(CountObjectsCapabilityType.class, resourceType);
 		if (countObjectsCapabilityType == null) {
 			// Unable to count. Return null which means "I do not know"
+			LOGGER.trace("countObjects: cannot count (no counting capability)");
 			result.recordNotApplicableIfUnknown();
 			return null;
 		} else {
@@ -2185,6 +2186,7 @@ public class ShadowCache {
 			if (simulate == null) {
 				// We have native capability
 
+				LOGGER.trace("countObjects: counting with native count capability");
 				ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
 				try {
 					ObjectQuery attributeQuery = createAttributeQuery(query);
@@ -2209,6 +2211,7 @@ public class ShadowCache {
 
 			} else if (simulate == CountObjectsSimulateType.PAGED_SEARCH_ESTIMATE) {
 
+				LOGGER.trace("countObjects: simulating counting with paged search estimate");
 				if (!objectClassDef.isPagedSearchEnabled(resourceType)) {
 					throw new ConfigurationException(
 							"Configured count object capability to be simulated using a paged search but paged search capability is not present");
@@ -2224,10 +2227,21 @@ public class ShadowCache {
 						countHolder.setValue(count);
 						return true;
 					}
+					
+					@Override
+					public String toString() {
+						return "(ShadowCache simulated counting handler)";
+					}
 				};
 
 				query = query.clone();
 				ObjectPaging paging = ObjectPaging.createEmptyPaging();
+				// Explicitly set offset. This makes a difference for some resources.
+				// E.g. LDAP connector will detect presence of an offset and it will initiate VLV search which
+				// can estimate number of results. If no offset is specified then continuous/linear search is
+				// assumed (e.g. Simple Paged Results search). Such search does not have ability to estimate
+				// number of results.
+				paging.setOffset(0);
 				paging.setMaxSize(1);
 				query.setPaging(paging);
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
@@ -2248,6 +2262,7 @@ public class ShadowCache {
 
 			} else if (simulate == CountObjectsSimulateType.SEQUENTIAL_SEARCH) {
 
+				LOGGER.trace("countObjects: simulating counting with sequential search (likely perfomance impact)");
 				// traditional way of counting objects (i.e. counting them one
 				// by one)
 				final Holder<Integer> countHolder = new Holder<>(0);

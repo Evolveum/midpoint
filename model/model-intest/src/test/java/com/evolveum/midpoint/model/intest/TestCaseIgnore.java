@@ -124,21 +124,19 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestCaseIgnore.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_UPCASE_OID, null, true);
-        deltas.add(accountAssignmentUserDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
-       displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+        displayWhen(TEST_NAME);
+		executeChanges(accountAssignmentUserDelta, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);

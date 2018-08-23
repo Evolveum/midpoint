@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public class TestDummyCaseIgnoreUpcaseName extends TestDummyCaseIgnore {
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override
-	protected File getResourceDummyFilename() {
+	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
 
@@ -56,6 +56,12 @@ public class TestDummyCaseIgnoreUpcaseName extends TestDummyCaseIgnore {
 	@Override
 	protected void assertShadowName(PrismObject<ShadowType> shadow, String expectedName) {
 		assertEquals("Shadow name is wrong in "+shadow, expectedName.toLowerCase(), shadow.asObjectable().getName().getOrig().toLowerCase());
+	}
+	
+	@Override
+	protected String[] getSortedUsernames18x() {
+		// MORGAN, WILL, carla, daemon, meathook 
+		return new String[] { transformNameFromResource("morgan"), transformNameFromResource("Will"), "carla", "daemon", "meathook" };
 	}
 
 }

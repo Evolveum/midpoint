@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
@@ -43,12 +44,15 @@ import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -75,6 +79,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	private static final String USER_CLEAN_FAMILY_NAME = "Clean";
 
 	private String userCleanOid;
+	private Integer lastDummyConnectorNumber;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
@@ -349,6 +354,118 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_SCRIPTY_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		"Mr. POLY JACK SPARROW");
+	}
+	
+	/**
+	 * MID-3044
+	 */
+	@Test
+    public void test502GetAccountJackResourceScripty() throws Exception {
+		final String TEST_NAME = "test502GetAccountJackResourceScripty";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 1);
+        String accountOid = getSingleLinkOid(userBefore);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertAttribute(getDummyResourceObject(RESOURCE_DUMMY_SCRIPTY_NAME), accountShadow.asObjectable(), 
+				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME), 
+				"Dummy Resource: Scripty");
+		lastDummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
+				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
+	}
+	
+	/**
+	 * Check that the same connector instance is used. The connector should be pooled and cached.
+	 * MID-3104
+	 */
+	@Test
+    public void test504GetAccountJackResourceScriptyAgain() throws Exception {
+		final String TEST_NAME = "test504GetAccountJackResourceScriptyAgain";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 1);
+        String accountOid = getSingleLinkOid(userBefore);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertAttribute(getDummyResourceObject(RESOURCE_DUMMY_SCRIPTY_NAME), accountShadow.asObjectable(), 
+				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME), 
+				"Dummy Resource: Scripty");
+		Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
+				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
+		assertEquals("Connector number has changed", lastDummyConnectorNumber, dummyConnectorNumber);
+	}
+	
+	/**
+	 * Modify resource (but make sure that connector configuration is the same).
+	 * Make just small an unimportant change in the connector. That should increase the version
+	 * number which should purge all the caches. Therefore a new connector instance should be used
+	 * (new connector instance number).
+	 * The problem with MID-3104 was, that midPoint caches got purged. But as the configuration
+	 * of old and new connector was the same, then ConnId assumed that it is still the same
+	 * connector and reused the pooled instances.
+	 * MID-3104
+	 */
+	@Test
+    public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
+		final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 1);
+        String accountOid = getSingleLinkOid(userBefore);
+        PrismObject<ResourceType> resourceBefore = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
+        display("Resouce version before", resourceBefore.getVersion());
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyObjectReplaceProperty(ResourceType.class, RESOURCE_SCRIPTY_OID, 
+        		ResourceType.F_DESCRIPTION, null, task, result, "Whatever");
+
+        // THEN
+        displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		PrismObject<ResourceType> resourceAfter = getObject(ResourceType.class, RESOURCE_SCRIPTY_OID);
+        display("Resouce version after", resourceAfter.getVersion());
+        assertFalse("Resource version is still the same: "+resourceAfter.getVersion(), resourceBefore.getVersion().equals(resourceAfter.getVersion()));
+		
+        PrismObject<ShadowType> accountShadow = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+
+		Integer dummyConnectorNumber = ShadowUtil.getAttributeValue(accountShadow, 
+				getDummyResourceController(RESOURCE_DUMMY_SCRIPTY_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEALTH_NAME));
+		assertFalse("Connector number is still the same: "+dummyConnectorNumber, lastDummyConnectorNumber == dummyConnectorNumber);
 	}
 
 }

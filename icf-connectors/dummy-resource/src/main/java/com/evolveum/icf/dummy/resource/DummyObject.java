@@ -195,7 +195,7 @@ public abstract class DummyObject implements DebugDumpable {
 		addAttributeValues(name, values);
 	}
 
-	public void addAttributeValues(String name, Collection<Object> valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public <T> void addAttributeValues(String name, Collection<T> valuesToAdd) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
@@ -203,7 +203,7 @@ public abstract class DummyObject implements DebugDumpable {
 			currentValues = new HashSet<>();
 			attributes.put(name, currentValues);
 		}
-		for(Object valueToAdd: valuesToAdd) {
+		for(T valueToAdd: valuesToAdd) {
 			addAttributeValue(name, currentValues, valueToAdd);
 		}
 		recordModify();
@@ -262,7 +262,7 @@ public abstract class DummyObject implements DebugDumpable {
 		removeAttributeValues(name, values);
 	}
 
-	public void removeAttributeValues(String name, Collection<Object> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+	public <T> void removeAttributeValues(String name, Collection<T> values) throws SchemaViolationException, ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
 		checkModifyBreak();
 		delayOperation();
 		Set<Object> currentValues = attributes.get(name);
@@ -333,8 +333,8 @@ public abstract class DummyObject implements DebugDumpable {
 		}
 	}
 
-	private void checkIfExist(Collection<Object> valuesToDelete, Set<Object> currentValues) throws SchemaViolationException{
-		for (Object valueToDelete : valuesToDelete) {
+	private <T> void checkIfExist(Collection<T> valuesToDelete, Set<Object> currentValues) throws SchemaViolationException{
+		for (T valueToDelete : valuesToDelete) {
 			boolean found = false;
 			for (Object currentValue : currentValues) {
 				if (resource.isCaseIgnoreValues() && currentValue instanceof String && valueToDelete instanceof String) {

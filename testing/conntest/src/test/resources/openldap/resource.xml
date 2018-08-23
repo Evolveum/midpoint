@@ -277,6 +277,14 @@
         </objectType>
 		
 	</schemaHandling>
+	
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+      <configured>
+	        <cap:countObjects>
+				<cap:simulate>pagedSearchEstimate</cap:simulate>
+			</cap:countObjects>
+		</configured>
+    </capabilities>
     
     <consistency>
 		<avoidDuplicateValues>false</avoidDuplicateValues>
