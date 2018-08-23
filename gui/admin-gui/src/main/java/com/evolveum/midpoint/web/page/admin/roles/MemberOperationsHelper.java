@@ -12,6 +12,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
+import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -87,9 +88,22 @@ public class MemberOperationsHelper {
 			}
 		};
 		browser.setOutputMarkupId(true);
-
 		pageBase.showMainPopup(browser, target);
+	}
+	
+	public static <O extends ObjectType> void assignOrgMembers(PageBase pageBase, OrgType targetRefObject, AjaxRequestTarget target, List<QName> availableRelationList) {
+		ChooseOrgMemberPopup<O> browser = new ChooseOrgMemberPopup<O>(pageBase.getMainPopupBodyId(), availableRelationList) {
+			
+			private static final long serialVersionUID = 1L;
 
+			@Override
+			protected OrgType getAssignmentTargetRefObject(){
+				return targetRefObject;
+			}
+		};
+		
+		browser.setOutputMarkupId(true);
+		pageBase.showMainPopup(browser, target);
 	}
 	
 	public static <O extends ObjectType, R extends AbstractRoleType> void initObjectForAdd(PageBase pageBase, R targetObject, QName type, Collection<QName> relations, AjaxRequestTarget target) throws SchemaException {

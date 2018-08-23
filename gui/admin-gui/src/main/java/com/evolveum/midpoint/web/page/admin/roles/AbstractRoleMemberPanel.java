@@ -328,8 +328,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 				return AbstractRoleMemberPanel.this.getSupportedRelations();
 			}
 
-			protected void okPerformed(QName type, Collection<QName> relation, AjaxRequestTarget target) {
-				removeMembersPerformed(type, getQueryScope(false), relation, target);
+			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+				removeMembersPerformed(type, getQueryScope(false), relations, target);
 
 			};
 		};
@@ -348,9 +348,15 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 				return AbstractRoleMemberPanel.this.getSupportedRelations();
 			}
 
-			protected void okPerformed(QName type, Collection<QName> relation, AjaxRequestTarget target) {
+			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+				if (relations == null || relations.isEmpty()) {
+					getSession().warn("No relations was selected. Cannot create member");
+					target.add(this);
+					target.add(getPageBase().getFeedbackPanel());
+					return;
+				}
 				try {
-					MemberOperationsHelper.initObjectForAdd(AbstractRoleMemberPanel.this.getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), type, relation, target);
+					MemberOperationsHelper.initObjectForAdd(AbstractRoleMemberPanel.this.getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), type, relations, target);
 				} catch (SchemaException e) {
 					throw new SystemException(e.getMessage(), e);
 				}
@@ -363,6 +369,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 
 	protected void removeMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+		if (relations == null || relations.isEmpty()) {
+			getSession().warn("No relations was selected. Cannot perform unassign members");
+			target.add(this);
+			target.add(getPageBase().getFeedbackPanel());
+			return;
+		}
 		MemberOperationsHelper.removeMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
 	}
 	
@@ -392,8 +404,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		searchScrope.add(new VisibleBehaviour(() -> getModelObject() instanceof OrgType));
 		form.add(searchScrope);
 		
-		DropDownFormGroup<QName> typeSelect = createDropDown(ID_OBJECT_TYPE, Model.of(FocusType.COMPLEX_TYPE), getSupportedObjectTypes(),
-				new QNameObjectTypeChoiceRenderer(), "abstractRoleMemberPanel.type", "abstractRoleMemberPanel.type.tooltip");
+		DropDownFormGroup<QName> typeSelect = createDropDown(ID_OBJECT_TYPE, Model.of(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType())), 
+				getSupportedObjectTypes(), new QNameObjectTypeChoiceRenderer(), "abstractRoleMemberPanel.type", "abstractRoleMemberPanel.type.tooltip");
 		form.add(typeSelect);
 
 		RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION, null,
@@ -528,8 +540,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return QueryScope.ALL_DIRECT;
 	}
 	
-	private IsolatedCheckBoxPanel getIndirectmembersPanel() {
-		return (IsolatedCheckBoxPanel) get(createComponentPath(ID_INDIRECT_MEMBERS_CONTAINER, ID_INDIRECT_MEMBERS));
+	private CheckFormGroup getIndirectmembersPanel() {
+		return (CheckFormGroup) get(createComponentPath(ID_FORM, ID_INDIRECT_MEMBERS));
 	}
 	
 	protected void recomputeMembersPerformed(AjaxRequestTarget target) {
@@ -538,7 +550,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 
 	protected ObjectQuery createContentQuery() {
-		IsolatedCheckBoxPanel isIndirect = getIndirectmembersPanel();
+		CheckFormGroup isIndirect = getIndirectmembersPanel();
 		return createMemberQuery(isIndirect != null ? isIndirect.getValue() : false, Arrays.asList(getSelectedRelation()));
 
 	}

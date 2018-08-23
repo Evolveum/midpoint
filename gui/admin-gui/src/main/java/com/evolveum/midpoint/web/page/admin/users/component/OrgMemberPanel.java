@@ -100,6 +100,10 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return searchorgScope.getModelObject();
 	}
 	
+	@Override
+	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
+		MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList);
+	}
 
 	@Override
 	protected void removeMembersPerformed(QName objectType, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {

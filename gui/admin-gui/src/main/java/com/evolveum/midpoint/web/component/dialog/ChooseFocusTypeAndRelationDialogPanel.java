@@ -7,12 +7,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -21,10 +17,11 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements Popupable{
 
@@ -45,7 +42,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 	
 	private void initLayout(){
 		
-		DropDownFormGroup<QName> type = new DropDownFormGroup<QName>(ID_OBJECT_TYPE, Model.of(UserType.COMPLEX_TYPE), new ListModel<>(WebComponentUtil.createFocusTypeList()), 
+		DropDownFormGroup<QName> type = new DropDownFormGroup<QName>(ID_OBJECT_TYPE, Model.of(FocusType.COMPLEX_TYPE), new ListModel<>(WebComponentUtil.createFocusTypeList()), 
 				new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"), 
 				"chooseFocusTypeAndRelationDialogPanel.tooltip.type", true, "col-md-4", "col-md-8", false);
 		type.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
