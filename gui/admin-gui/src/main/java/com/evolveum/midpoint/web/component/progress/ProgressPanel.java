@@ -601,7 +601,7 @@ public class ProgressPanel extends BasePanel {
                         ModelContext previewResult = modelInteraction
                                 .previewChanges(deltas, options, task, Collections.singleton(reporter), result);
                         reporter.setPreviewResult(previewResult);
-                    } else {
+                    } else if (deltas != null && deltas.size() > 0){
                         model.executeChanges(deltas, options, task, Collections.singleton(reporter), result);
                     }
                 } catch (CommonException | RuntimeException e) {
