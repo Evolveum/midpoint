@@ -149,11 +149,9 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		
 		assertServices(1);
-		PrismObject<ServiceType> serviceRumAfter = findServiceByUsername(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME);
-		display("Service rum after", serviceRumAfter);
-		assertNotNull("No rum service", serviceRumAfter);
-		PrismAsserts.assertPropertyValue(serviceRumAfter, ServiceType.F_NAME, createPolyString(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME));
-		PrismAsserts.assertPropertyValue(serviceRumAfter, ServiceType.F_DESCRIPTION, ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
+		
+		assertServiceAfterByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME)
+			.assertDescription(ACCOUNT_RUM_STORAGE_DUMMY_FULLNAME);
 	}
 	
 	// TODO: account modifications, check that the changes are synced to service
@@ -179,10 +177,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		// THEN
 		displayThen(TEST_NAME);
 		
+		assertNoServiceByName(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME);
 		assertServices(0);
-		PrismObject<ServiceType> serviceRumAfter = findServiceByUsername(ACCOUNT_RUM_STORAGE_DUMMY_USERNAME);
-		display("Service rum after", serviceRumAfter);
-		assertNull("Unexpected rum service", serviceRumAfter);
 	}
 	
 	public void test109StopLivesyncTask() throws Exception {
@@ -248,11 +244,9 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		
 		assertServices(1);
-		PrismObject<ServiceType> serviceRumAfter = findServiceByUsername(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
-		display("Service magazine after", serviceRumAfter);
-		assertNotNull("No magazine service", serviceRumAfter);
-		PrismAsserts.assertPropertyValue(serviceRumAfter, ServiceType.F_NAME, createPolyString(ACCOUNT_MAGAZINE_DUMMY_USERNAME));
-		PrismAsserts.assertPropertyValue(serviceRumAfter, ServiceType.F_DESCRIPTION, ACCOUNT_MAGAZINE_DUMMY_FULLNAME);
+		
+		assertServiceAfterByName(ACCOUNT_MAGAZINE_DUMMY_USERNAME)
+			.assertDescription(ACCOUNT_MAGAZINE_DUMMY_FULLNAME);
 	}
 	
 	/**
@@ -276,10 +270,8 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		// THEN
 		displayThen(TEST_NAME);
 		
+		assertNoServiceByName(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
 		assertServices(0);
-		PrismObject<ServiceType> serviceRumAfter = findServiceByUsername(ACCOUNT_MAGAZINE_DUMMY_USERNAME);
-		display("Service rum after", serviceRumAfter);
-		assertNull("Unexpected rum service", serviceRumAfter);
 	}
 	
 	public void test129StopReconTask() throws Exception {

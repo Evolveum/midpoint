@@ -1561,7 +1561,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return findObjectByName(UserType.class, username);
 	}
 	
-	protected PrismObject<ServiceType> findServiceByUsername(String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	protected PrismObject<ServiceType> findServiceByName(String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return findObjectByName(ServiceType.class, name);
 	}
 
@@ -5414,6 +5414,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
 		initializeAsserter(asserter);
 		return asserter;
+	}
+	
+	protected FocusAsserter<ServiceType,Void> assertServiceByName(String name, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ServiceType> service = findServiceByName(name);
+		// TODO: change to ServiceAsserter later
+		FocusAsserter<ServiceType,Void> asserter = FocusAsserter.forFocus(service, message);
+		initializeAsserter(asserter);
+		asserter.assertName(name);
+		return asserter;
+	}
+	
+	protected FocusAsserter<ServiceType,Void> assertServiceAfterByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return assertServiceByName(name, "after");
+	}
+	
+	protected void assertNoServiceByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ServiceType> service = findServiceByName(name);
+		if (service != null) {
+			display("Unexpected service", service);
+			fail("Unexpected "+service);
+		}
 	}
 	
 	protected ShadowAsserter<Void> assertModelShadow(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

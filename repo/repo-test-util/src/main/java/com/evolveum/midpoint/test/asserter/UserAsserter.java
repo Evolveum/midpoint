@@ -95,6 +95,12 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	}
 	
 	@Override
+	public UserAsserter<RA> assertDescription(String expected) {
+		super.assertDescription(expected);
+		return this;
+	}
+	
+	@Override
 	public UserAsserter<RA> assertLifecycleState(String expected) {
 		super.assertLifecycleState(expected);
 		return this;

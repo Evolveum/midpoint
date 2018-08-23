@@ -105,6 +105,12 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	}
 	
 	@Override
+	public FocusAsserter<F,RA> assertDescription(String expected) {
+		super.assertDescription(expected);
+		return this;
+	}
+	
+	@Override
 	public FocusAsserter<F,RA> assertLifecycleState(String expected) {
 		super.assertLifecycleState(expected);
 		return this;

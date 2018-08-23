@@ -23,6 +23,7 @@
 		  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
@@ -187,6 +188,17 @@
 					</target>
 				</inbound>
 			</attribute>
+			<configuredCapabilities>
+				<cap:create>
+					<cap:enabled>false</cap:enabled>
+				</cap:create>
+				<cap:update>
+					<cap:enabled>false</cap:enabled>
+				</cap:update>
+				<cap:delete>
+					<cap:enabled>false</cap:enabled>
+				</cap:delete>
+			</configuredCapabilities>
 		</objectType>
 		
 	</schemaHandling>
