@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.testing.conntest;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -111,10 +112,17 @@ public class AdUtils {
 		
         ResourceAttributeDefinition<Long> createTimestampDef = accountObjectClassDefinition.findAttributeDefinition("createTimeStamp");
         PrismAsserts.assertDefinition(createTimestampDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
-        		DOMUtil.XSD_STRING, 0, 1);
+        		DOMUtil.XSD_DATETIME, 0, 1);
         assertTrue("createTimeStampDef read", createTimestampDef.canRead());
         assertFalse("createTimeStampDef modify", createTimestampDef.canModify());
         assertFalse("createTimeStampDef add", createTimestampDef.canAdd());
+        
+        ResourceAttributeDefinition<Long> whenChangedDef = accountObjectClassDefinition.findAttributeDefinition("whenChanged");
+        PrismAsserts.assertDefinition(whenChangedDef, new QName(MidPointConstants.NS_RI, "createTimeStamp"),
+        		DOMUtil.XSD_DATETIME, 0, 1);
+        assertTrue("whenChanged read", whenChangedDef.canRead());
+        assertFalse("whenChanged modify", whenChangedDef.canModify());
+        assertFalse("whenChanged add", whenChangedDef.canAdd());
 		
 		return accountObjectClassDefinition;
 	}

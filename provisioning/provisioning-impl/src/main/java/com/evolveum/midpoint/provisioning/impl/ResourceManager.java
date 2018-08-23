@@ -838,7 +838,7 @@ public class ResourceManager {
 		ConnectorInstance connector;
 		try {
 			// Make sure we are getting non-configured instance.
-			connector = connectorManager.createConnectorInstance(connectorSpec, initResult);
+			connector = connectorManager.createFreshConnectorInstance(connectorSpec, initResult);
 			initResult.recordSuccess();
 		} catch (ObjectNotFoundException e) {
 			// The connector was not found. The resource definition is either
@@ -974,7 +974,7 @@ public class ResourceManager {
 			return;
 		}
 		
-		connectorManager.cacheConfifuredConnector(connectorSpec, connector);
+		connectorManager.cacheConfiguredConnector(connectorSpec, connector);
 	}
 	
 	public void modifyResourceAvailabilityStatus(PrismObject<ResourceType> resource, AvailabilityStatusType newStatus, OperationResult result){
@@ -1278,6 +1278,16 @@ public class ResourceManager {
 			return null;
 		}
 		return connectorManager.getConfiguredConnectorInstance(connectorSpec, forceFresh, parentResult);
+	}
+	
+	// Used by the tests. Does not change anything.
+	public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstanceFromCache(PrismObject<ResourceType> resource,
+			Class<T> operationCapabilityClass, boolean forceFresh, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		ConnectorSpec connectorSpec = selectConnectorSpec(resource, operationCapabilityClass);
+		if (connectorSpec == null) {
+			return null;
+		}
+		return connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec, forceFresh, parentResult);
 	}
 	
 	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(PrismObject<ResourceType> resource,

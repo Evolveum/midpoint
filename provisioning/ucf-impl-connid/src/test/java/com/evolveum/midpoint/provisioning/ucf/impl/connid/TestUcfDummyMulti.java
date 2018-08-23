@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,8 +88,10 @@ public class TestUcfDummyMulti extends AbstractUcfDummyTest {
 		final String TEST_NAME = "test020CreateConfiguredConnector";
 		TestUtil.displayTestTitle(TEST_NAME);
 
-		cc = connectorFactory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
-				"test connector");
+		cc = connectorFactory.createConnectorInstance(connectorType, 
+				ResourceTypeUtil.getResourceNamespace(resourceType),
+				"dummy",
+				"description of dummy test connector instance");
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(TestUcfDummyMulti.class.getName() + "." + TEST_NAME);
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();

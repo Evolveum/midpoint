@@ -948,7 +948,9 @@
 	      </cap:script>
 	       <cap:create/>
 	        <cap:read/>
-	        <cap:update/>
+	        <cap:update>
+	        	<cap:delta>true</cap:delta>
+	        </cap:update>
 	        <cap:delete/>
       </native>
 		<configured>
@@ -968,7 +970,9 @@
 			-->
 			<cap:create/>
 	        <cap:read/>
-	        <cap:update/>
+	        <cap:update>
+	        	<cap:delta>true</cap:delta>
+	        </cap:update>
 	        <cap:delete/>
 		</configured>
 	</capabilities>

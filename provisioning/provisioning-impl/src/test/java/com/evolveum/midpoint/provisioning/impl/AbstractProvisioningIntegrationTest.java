@@ -92,7 +92,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 	
 	// Values used to check if something is unchanged or changed properly
 	private Long lastResourceVersion = null;
-	private ConnectorInstance lastConfiguredConnectorInstance;
+	private ConnectorInstance lastConfiguredConnectorInstance = null;
 	private CachingMetadataType lastCachingMetadata;
 	private ResourceSchema lastResourceSchema = null;
 	private RefinedResourceSchema lastRefinedResourceSchema;
@@ -194,19 +194,22 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 	}
 
 	protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-				+ ".rememberConnectorInstance");
-		rememberConnectorInstance(resourceManager.getConfiguredConnectorInstance(resource, ReadCapabilityType.class, false, result));
+		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName() + ".rememberConnectorInstance");
+		rememberConnectorInstance(resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class, false, result));
 	}
 
 	protected void rememberConnectorInstance(ConnectorInstance currentConnectorInstance) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		LOGGER.debug("Remembering connector instance {}", currentConnectorInstance);
 		lastConfiguredConnectorInstance = currentConnectorInstance;
 	}
 
 	protected void assertConnectorInstanceUnchanged(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		if (lastConfiguredConnectorInstance == null) {
+			return;
+		}
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".assertConnectorInstanceUnchanged");
-		ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
+		ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstanceFromCache(
 				resource, ReadCapabilityType.class, false, result);
 		assertTrue("Connector instance has changed", lastConfiguredConnectorInstance == currentConfiguredConnectorInstance);
 	}
@@ -214,7 +217,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
 	protected void assertConnectorInstanceChanged(PrismObject<ResourceType> resource) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".rememberConnectorInstance");
-		ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
+		ConnectorInstance currentConfiguredConnectorInstance = resourceManager.getConfiguredConnectorInstanceFromCache(
 				resource, ReadCapabilityType.class, false, result);
 		assertTrue("Connector instance has NOT changed", lastConfiguredConnectorInstance != currentConfiguredConnectorInstance);
 		lastConfiguredConnectorInstance = currentConfiguredConnectorInstance;

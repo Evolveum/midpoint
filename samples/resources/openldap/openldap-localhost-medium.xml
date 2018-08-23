@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -396,19 +396,13 @@ It also contains inbound mappings and definition to enable synchronization.
 		</objectType>
 	</schemaHandling>
 
-<!--
-    <capabilities>
-    	<configured>
-            <cap:activation>
-                <cap:status>
-                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-                    <cap:enableValue/>
-                    <cap:disableValue>true</cap:disableValue>
-                </cap:status>
-            </cap:activation>
-    	</configured>
-    </capabilities>
--->
+	<capabilities>
+		<configured>
+			<cap:countObjects>
+				<cap:simulate>pagedSearchEstimate</cap:simulate>
+			</cap:countObjects>
+		</configured>
+	</capabilities>
 
         <!--
             Synchronization section describes the synchronization policy, timing,

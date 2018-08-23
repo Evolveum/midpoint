@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -85,8 +86,9 @@ public class XsdTypeMapper {
         addMapping(boolean.class, DOMUtil.XSD_BOOLEAN, true);
         addMapping(Boolean.class, DOMUtil.XSD_BOOLEAN, false);
         addMapping(byte[].class, DOMUtil.XSD_BASE64BINARY, true);
-        addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
+        addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME, false);
         addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
+        addMapping(ZonedDateTime.class, DOMUtil.XSD_DATETIME, false);
         addMapping(Duration.class, DOMUtil.XSD_DURATION, true);
 
         addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);

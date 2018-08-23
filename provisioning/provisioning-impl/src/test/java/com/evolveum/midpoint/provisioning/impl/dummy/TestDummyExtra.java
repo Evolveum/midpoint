@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapa
 /**
  * Almost the same as TestDummy but with some extra things, such as:
  * * readable password
- * * account-account assciations
+ * * account-account associations
  *
  * @author Radovan Semancik
  *
@@ -73,7 +73,7 @@ public class TestDummyExtra extends TestDummy {
 	protected static final QName ASSOCIATION_CREW_NAME = new QName(RESOURCE_DUMMY_NS, "crew");
 
 	@Override
-	protected File getResourceDummyFilename() {
+	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
 
@@ -91,7 +91,7 @@ public class TestDummyExtra extends TestDummy {
 	@Override
 	protected void assertSchemaSanity(ResourceSchema resourceSchema, ResourceType resourceType) throws Exception {
 		// schema is extended, displayOrders are changed
-		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 19);
+		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType, false, 20);
 
 		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 		RefinedObjectClassDefinition accountRDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
