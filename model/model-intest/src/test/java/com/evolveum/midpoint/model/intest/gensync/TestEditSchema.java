@@ -1217,7 +1217,6 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 			});
 
 		assertUntouchedUserDefinition();
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
         assertSteadyResources();
     }
 

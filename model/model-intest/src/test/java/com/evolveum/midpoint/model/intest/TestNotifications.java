@@ -215,8 +215,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 				+ "\n"
 				+ "Channel: http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user", addMessage.getBody());
 
-		// First use of the resource
-        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
 		assertSteadyResources();
 	}
 

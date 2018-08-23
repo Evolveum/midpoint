@@ -1070,8 +1070,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		Entry entry = openDJController.searchByUid("rename");
 		display("LDAP Entry", entry);
