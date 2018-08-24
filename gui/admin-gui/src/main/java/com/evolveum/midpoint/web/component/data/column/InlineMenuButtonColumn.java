@@ -21,14 +21,11 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.MenuMultiButtonPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.markup.repeater.Item;
@@ -52,14 +49,13 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
     private static final long serialVersionUID = 1L;
 
-    private int buttonsNumber;
+    private int defaultButtonsNumber = 2;
     protected List<InlineMenuItem> menuItems;
 
     private PageBase pageBase;
 
-    public InlineMenuButtonColumn(List<InlineMenuItem> menuItems, int buttonsNumber, PageBase pageBase) {
+    public InlineMenuButtonColumn(List<InlineMenuItem> menuItems, PageBase pageBase) {
         super(null);
-        this.buttonsNumber = menuItems.size() < 2 ? menuItems.size() : buttonsNumber;
         this.menuItems = menuItems;
         this.pageBase = pageBase;
     }
@@ -67,17 +63,17 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     @Override
     public void populateItem(final Item<ICellPopulator<T>> cellItem, String componentId,
                              final IModel<T> rowModel) {
-        cellItem.add(getPanel(componentId, rowModel, this.buttonsNumber, this.menuItems));
+        cellItem.add(getPanel(componentId, rowModel, defaultButtonsNumber));
     }
 
     @Override
     public Component getHeader(String componentId) {
 
-        return getPanel(componentId, null, getHeaderNumberOfButtons(), getHeaderMenuItems());
+        return getPanel(componentId, null, getHeaderNumberOfButtons());
     }
 
     private Component getPanel(String componentId, IModel<T> rowModel,
-                               int numberOfButtons, List<InlineMenuItem> menuItems) {
+                               int numberOfButtons) {
         return new MenuMultiButtonPanel<T>(componentId, rowModel, numberOfButtons, createMenuModel(rowModel, menuItems)) {
 
             private static final long serialVersionUID = 1L;
@@ -137,7 +133,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         for (InlineMenuItem menuItem : menuItems) {
             if (menuItem.getId() == id) {
                 if (menuItem.getAction() != null) {
-                    if (menuItem.isShowConfirmationDialog() && menuItem.getConfirmationMessageModel() != null) {
+                    if (menuItem.showConfirmationDialog() && menuItem.getConfirmationMessageModel() != null) {
                         showConfirmationPopup(menuItem, target);
                     } else {
                         menuItem.getAction().onClick(target);
@@ -166,36 +162,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     }
 
     public boolean isButtonVisible(int id, IModel<T> model) {
-        if (model == null || model.getObject() == null) {
-            return true;
-        }
-        if (id == InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId() &&
-                model.getObject() instanceof SelectableBean &&
-                ((SelectableBean) model.getObject()).getValue() instanceof FocusType) {
-            FocusType focus = (FocusType) ((SelectableBean) model.getObject()).getValue();
-            if (focus.getActivation() == null) {
-                return false;
-            }
-            return ActivationStatusType.DISABLED.equals(focus.getActivation().getEffectiveStatus());
-        } else if (id == InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId() &&
-                model.getObject() instanceof SelectableBean &&
-                ((SelectableBean) model.getObject()).getValue() instanceof FocusType) {
-            FocusType focus = (FocusType) ((SelectableBean) model.getObject()).getValue();
-            if (focus.getActivation() == null) {
-                return true;
-            }
-            return !ActivationStatusType.DISABLED.equals(focus.getActivation().getEffectiveStatus());
-        }
         return true;
-    }
-
-    public String getButtonColorCssClass(int id, List<InlineMenuItem> menuItems) {
-        for (InlineMenuItem menuItem : menuItems) {
-            if (menuItem.getId() == id) {
-                return menuItem.getButtonColorCssClass();
-            }
-        }
-        return DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString();
     }
 
     public String getButtonSizeCssClass(int id) {
@@ -215,8 +182,8 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
 
     protected String getButtonIconCss(int id, List<InlineMenuItem> menuItems) {
         for (InlineMenuItem menuItem : menuItems) {
-            if (menuItem.getId() == id) {
-                return menuItem.getButtonIconCssClass() + " fa-fw"; //temporary size fix, should be moved somewhere...
+            if (menuItem.getId() == id && menuItem instanceof ButtonInlineMenuItem) {
+                return ((ButtonInlineMenuItem)menuItem).getButtonIconCssClass() + " fa-fw"; //temporary size fix, should be moved somewhere...
             }
         }
 
@@ -234,10 +201,10 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     }
 
     protected int getHeaderNumberOfButtons() {
-        return this.buttonsNumber;
+        return this.defaultButtonsNumber;
     }
 
-    protected List<InlineMenuItem> getHeaderMenuItems() {
-        return menuItems;
-    }
+//    protected List<InlineMenuItem> getHeaderMenuItems() {
+//        return menuItems;
+//    }
 }

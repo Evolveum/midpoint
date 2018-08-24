@@ -88,10 +88,6 @@ public abstract class PageCases extends PageAdminCases {
                 return new ArrayList<>();
             }
 
-            @Override
-            protected IColumn<SelectableBean<CaseType>, String> createActionsColumn() {
-                return null;
-            }
         };
         casePanel.setOutputMarkupId(true);
         mainForm.add(casePanel);

@@ -60,7 +60,6 @@ import org.apache.wicket.util.time.Duration;
 
 import javax.xml.namespace.QName;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -263,31 +262,43 @@ public class SearchPanel extends BasePanel<Search> {
 		List<InlineMenuItem> searchItems = new ArrayList<>();
 
 		InlineMenuItem searchItem = new InlineMenuItem(
-				createStringResource("SearchPanel.search"),
-				new InlineMenuItemAction() {
-					
-					private static final long serialVersionUID = 1L;
+				createStringResource("SearchPanel.search")) {
+            private static final long serialVersionUID = 1L;
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						PrismContext ctx = getPageBase().getPrismContext();
-						if (getModelObject().isAdvancedQueryValid(ctx)) {
-							searchPerformed(target);
-						}
-					}
-				});
+            @Override
+            public InlineMenuItemAction getAction() {
+                return new InlineMenuItemAction() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        PrismContext ctx = getPageBase().getPrismContext();
+                        if (getModelObject().isAdvancedQueryValid(ctx)) {
+                            searchPerformed(target);
+                        }
+                    }
+                };
+            }
+        };
 		searchItems.add(searchItem);
 
-		searchItem = new InlineMenuItem(createStringResource("SearchPanel.debug"),
-				new InlineMenuItemAction() {
-			
-					private static final long serialVersionUID = 1L;
-			
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						debugPerformed();
-					}
-				});
+		searchItem = new InlineMenuItem(createStringResource("SearchPanel.debug")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction getAction() {
+                return new InlineMenuItemAction() {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        debugPerformed();
+                    }
+                };
+            }
+        };
 		searchItems.add(searchItem);
 
 		ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, Model.ofList(searchItems)) {

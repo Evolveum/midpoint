@@ -143,6 +143,11 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 		return null;
 	}
 
+	@Override
+	protected void getCustomActions(List<InlineMenuItem> actionsList){
+	}
+
+
 	protected void onUpdateCheckbox(AjaxRequestTarget target){
 
 	}

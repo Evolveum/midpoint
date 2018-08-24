@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
@@ -376,52 +378,77 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_URI)) {
-			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
-					false, new HeaderMenuAction(this) {
+			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager")) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public void onClick(AjaxRequestTarget target) {
-					OrgMemberPanel.this.createFocusMemberPerformed(SchemaConstants.ORG_MANAGER, target);
+				public InlineMenuItemAction getAction() {
+					return new HeaderMenuAction(OrgMemberPanel.this) {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							OrgMemberPanel.this.createFocusMemberPerformed(SchemaConstants.ORG_MANAGER, target);
+						}
+					};
 				}
-			}));
+			});
 		}
 
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_URI)) {
-			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers"), false,
-					new HeaderMenuAction(this) {
+			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addManagers")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction getAction() {
+					return new HeaderMenuAction(OrgMemberPanel.this) {
 						private static final long serialVersionUID = 1L;
+
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							OrgMemberPanel.this.addMembers(target, Arrays.asList(RelationTypes.MANAGER.getRelation()));
 						}
-					}));
+					};
+				}
+			});
 		}
 
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ORG_MEMBER_ACTION_URI)) {
-			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeManagersAll"),
-					false, new HeaderMenuAction(this) {
+			headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeManagersAll")) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public void onClick(AjaxRequestTarget target) {
-					removeManagersPerformed(QueryScope.ALL, target);
-				}
-			}));
-		}
-
-		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI)) {
-			headerMenuItems
-					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll"),
-							false, new HeaderMenuAction(this) {
+				public InlineMenuItemAction getAction() {
+					return new HeaderMenuAction(OrgMemberPanel.this) {
 						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							recomputeManagersPerformed(QueryScope.ALL, target);
+							removeManagersPerformed(QueryScope.ALL, target);
 						}
-					}));
+					};
+				}
+			});
+		}
+
+		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI)) {
+			headerMenuItems
+					.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeManagersAll")) {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public InlineMenuItemAction getAction() {
+							return new HeaderMenuAction(OrgMemberPanel.this) {
+								private static final long serialVersionUID = 1L;
+
+								@Override
+								public void onClick(AjaxRequestTarget target) {
+									recomputeManagersPerformed(QueryScope.ALL, target);
+								}
+							};
+						}
+					});
 		}
 
 		return headerMenuItems;

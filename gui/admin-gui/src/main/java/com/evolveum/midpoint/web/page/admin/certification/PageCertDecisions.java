@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn.BUTTON_COLOR_CLASS;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.*;
@@ -388,13 +389,21 @@ public class PageCertDecisions extends PageAdminCertification {
     }
 
     private InlineMenuItem createMenu(String titleKey, final AccessCertificationResponseType response) {
-        return new InlineMenuItem(createStringResource(titleKey), false,
-                new HeaderMenuAction(this) {
+        return new InlineMenuItem(createStringResource(titleKey)) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction getAction() {
+                return new HeaderMenuAction(PageCertDecisions.this) {
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         recordActionOnSelected(response, target);
                     }
-                });
+                };
+            }
+        };
     }
 
     private String getDecisionButtonColor(IModel<CertWorkItemDto> model, AccessCertificationResponseType response) {

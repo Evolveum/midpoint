@@ -58,6 +58,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -2545,5 +2547,32 @@ public final class WebComponentUtil {
         		list.add(row);
         }
         return lookupTable;
+	}
+
+	public static List<InlineMenuItem> createMenuItemsFromActions(List<GuiActionType> actions){
+		List<InlineMenuItem> menuItems = new ArrayList<>();
+		if (actions == null || actions.size() == 0){
+			return menuItems;
+		}
+		actions.forEach(action -> {
+			String label = action.getDisplay() != null && StringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
+					action.getDisplay().getLabel() : action.getName();
+			new InlineMenuItem(Model.of(label)){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+                public InlineMenuItemAction getAction(){
+					return new InlineMenuItemAction() {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							//TODO run task from action
+						}
+					};
+				}
+			};
+		});
+		return menuItems;
 	}
 }

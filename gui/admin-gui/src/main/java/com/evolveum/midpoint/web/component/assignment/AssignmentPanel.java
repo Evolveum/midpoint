@@ -18,9 +18,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
@@ -30,14 +28,11 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -48,7 +43,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -63,19 +57,14 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.session.AssignmentsTabStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -237,7 +226,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
         });
         columns.addAll(initColumns());
         List<InlineMenuItem> menuActionsList = getAssignmentMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
+		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
         return columns;
 	}
 
@@ -426,30 +415,57 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	private List<InlineMenuItem> getAssignmentMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
 		PrismObject obj = getMultivalueContainerListPanel().getFocusObject();
-		boolean isUnassignMenuAdded = false;
 		try {
 			boolean isUnassignAuthorized = getParentPage().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI,
 					AuthorizationPhaseType.REQUEST, obj,
 					null, null, null);
 			if (isUnassignAuthorized) {
-				menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
-						new Model<>(true), false, getMultivalueContainerListPanel().createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
-						DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
-				isUnassignMenuAdded = true;
+				menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+                    public String getButtonIconCssClass() {
+						return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+					}
+
+					@Override
+                    public InlineMenuItemAction getAction() {
+						return getMultivalueContainerListPanel().createDeleteColumnAction();
+					}
+				});
 			}
 
 		} catch (Exception ex){
 			LOGGER.error("Couldn't check unassign authorization for the object: {}, {}", obj.getName(), ex.getLocalizedMessage());
 			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)){
-				menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
-						new Model<>(true), false, getMultivalueContainerListPanel().createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
-						DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
-				isUnassignMenuAdded = true;
+				menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+                    public String getButtonIconCssClass() {
+						return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+					}
+
+					@Override
+                    public InlineMenuItemAction getAction() {
+						return getMultivalueContainerListPanel().createDeleteColumnAction();
+					}
+				});
 			}
 		}
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<>(true),
-            new Model<>(true), false, getMultivalueContainerListPanel().createEditColumnAction(), isUnassignMenuAdded ? 1 : 0, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString()));
+		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public String getButtonIconCssClass() {
+				return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+			}
+
+			@Override
+            public InlineMenuItemAction getAction() {
+				return getMultivalueContainerListPanel().createEditColumnAction();
+			}
+		});
 		return menuItems;
 	}
 

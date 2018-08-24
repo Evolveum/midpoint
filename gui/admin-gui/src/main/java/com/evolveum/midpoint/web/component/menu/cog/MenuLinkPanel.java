@@ -22,7 +22,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -104,7 +103,7 @@ public class MenuLinkPanel extends Panel {
 
     protected void onSubmit(AjaxRequestTarget target, Form<?> form, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
         if (action != null) {
-            if (item.getObject().isShowConfirmationDialog() && item.getObject().getConfirmationMessageModel() != null) {
+            if (item.getObject().showConfirmationDialog() && item.getObject().getConfirmationMessageModel() != null) {
                 showConfirmationPopup(item.getObject(), target);
             } else {
                 action.onSubmit(target, form);
@@ -120,7 +119,7 @@ public class MenuLinkPanel extends Panel {
 
     protected void onClick(AjaxRequestTarget target, InlineMenuItemAction action, IModel<InlineMenuItem> item) {
         if (action != null) {
-            if (item.getObject().isShowConfirmationDialog() && item.getObject().getConfirmationMessageModel() != null) {
+            if (item.getObject().showConfirmationDialog() && item.getObject().getConfirmationMessageModel() != null) {
                 showConfirmationPopup(item.getObject(), target);
             } else {
                 action.onClick(target);

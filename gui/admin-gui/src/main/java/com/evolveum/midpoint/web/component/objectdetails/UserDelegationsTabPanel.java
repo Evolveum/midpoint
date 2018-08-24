@@ -104,8 +104,12 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
 
                 InlineMenuItem item;
                 if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DELEGATE_ACTION_URL)) {
-                    item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.addDelegation"),
-                            new InlineMenuItemAction() {
+                    item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.addDelegation")) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public InlineMenuItemAction getAction() {
+                            return new InlineMenuItemAction() {
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
@@ -132,19 +136,27 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                                     pageBase.showMainPopup(panel, target);
 
                                 }
-                            });
+                            };
+                        }
+                    };
                     items.add(item);
                 }
                 if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
-                    item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.deleteDelegation"),
-                            new InlineMenuItemAction() {
+                    item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.deleteDelegation")) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public InlineMenuItemAction getAction() {
+                            return new InlineMenuItemAction() {
                                 private static final long serialVersionUID = 1L;
 
                                 @Override
                                 public void onClick(AjaxRequestTarget target) {
                                     deleteAssignmentPerformed(target, null);
                                 }
-                            });
+                            };
+                        }
+                    };
                     items.add(item);
                 }
 

@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertCampaignListItemDtoProvider;
@@ -61,7 +62,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -495,47 +495,87 @@ public class PageCertCampaigns extends PageAdminCertification {
 
 	private List<InlineMenuItem> createInlineMenu() {
 		List<InlineMenuItem> items = new ArrayList<>();
-		items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.startSelected"), false,
-				new HeaderMenuAction(this) {
+		items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.startSelected")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction getAction() {
+				return new HeaderMenuAction(PageCertCampaigns.this) {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						startSelectedCampaignsPerformed(target);
 					}
-				}));
-		items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.closeSelected"), false,
-				new HeaderMenuAction(this) {
+				};
+			}
+		});
+		items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.closeSelected")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction getAction() {
+				return new HeaderMenuAction(PageCertCampaigns.this) {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						closeSelectedCampaignsConfirmation(target);
 					}
-				}));
-		items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterateSelected"), false,
-				new HeaderMenuAction(this) {
+				};
+			}
+		});
+		items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterateSelected")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction getAction() {
+				return new HeaderMenuAction(PageCertCampaigns.this) {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						reiterateSelectedCampaignsConfirmation(target);
 					}
-				}));
-		items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.deleteSelected"), false,
-				new HeaderMenuAction(this) {
+				};
+			}
+		});
+		items.add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.deleteSelected")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction getAction() {
+				return new HeaderMenuAction(PageCertCampaigns.this) {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						deleteSelectedCampaignsConfirmation(target);
 					}
-				}));
+				};
+			}
+		});
 		return items;
 	}
 
 	private void createInlineMenuForItem(final CertCampaignListItemDto dto) {
 
 		dto.getMenuItems().clear();
-		dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.close"),
-				new ColumnMenuAction<CertCampaignListItemDto>() {
+		dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.close")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction getAction() {
+				return new ColumnMenuAction<CertCampaignListItemDto>() {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						closeCampaignConfirmation(target, dto);
 					}
-				}) {
+				};
+			}
+
 			@Override
 			public IModel<Boolean> getVisible() {
 				return new AbstractReadOnlyModel<Boolean>() {
@@ -546,26 +586,45 @@ public class PageCertCampaigns extends PageAdminCertification {
 				};
 			}
 		});
-		dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterate"),
-				new ColumnMenuAction<CertCampaignListItemDto>() {
+
+		dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.reiterate")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction getAction() {
+				return new ColumnMenuAction<CertCampaignListItemDto>() {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						reiterateCampaignConfirmation(target, dto);
 					}
-				}) {
+				};
+			}
+
 			@Override
 			public IModel<Boolean> getVisible() {
 				return new ReadOnlyModel<>(dto::isReiterable);
 			}
 		});
-		dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.delete"),
-				new ColumnMenuAction<CertCampaignListItemDto>() {
+		dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageCertCampaigns.menu.delete")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction getAction() {
+				return new ColumnMenuAction<CertCampaignListItemDto>() {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						deleteCampaignConfirmation(target, dto);
 					}
-				}));
+				};
+			}
+
+
+		});
+
 	}
 
 	private Table getCampaignsTable() {

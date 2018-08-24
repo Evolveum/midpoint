@@ -29,6 +29,9 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -80,10 +83,6 @@ import com.evolveum.midpoint.web.page.admin.reports.component.DownloadButtonPane
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
  * @author lazyman
@@ -344,29 +343,37 @@ public class PageCreatedReports extends PageAdminReports {
     private List<InlineMenuItem> initInlineMenu() {
         List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 
-        headerMenuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteAll"), true,
-                new HeaderMenuAction(this) {
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteAll")) {
+            private static final long serialVersionUID = 1L;
 
-        	private static final long serialVersionUID = 1L;
+            @Override
+            public InlineMenuItemAction getAction() {
+                return new HeaderMenuAction(PageCreatedReports.this) {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         deleteAllPerformed(target, ReportDeleteDialogDto.Operation.DELETE_ALL);
                     }
-                }
-        ));
+                };
+            }
+        });
 
-        headerMenuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteSelected"), true,
-                new HeaderMenuAction(this) {
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteSelected")) {
+            private static final long serialVersionUID = 1L;
 
-        	private static final long serialVersionUID = 1L;
+            @Override
+            public InlineMenuItemAction getAction() {
+                return new HeaderMenuAction(PageCreatedReports.this) {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SELECTED, null);
                     }
-                }
-        ));
+                };
+            }
+        });
 
         return headerMenuItems;
     }

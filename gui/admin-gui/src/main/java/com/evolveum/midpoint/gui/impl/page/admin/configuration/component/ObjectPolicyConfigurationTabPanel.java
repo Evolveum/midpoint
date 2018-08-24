@@ -362,7 +362,7 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
         });
 		
 		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
+		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
 		
         return columns;
 	}

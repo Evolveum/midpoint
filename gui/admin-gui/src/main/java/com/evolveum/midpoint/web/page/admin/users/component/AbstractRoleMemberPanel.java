@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -185,13 +186,8 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			}
 
 			@Override
-			protected IColumn<SelectableBean<ObjectType>, String> createActionsColumn(){
-				return new InlineMenuHeaderColumn(createMembersHeaderInlineMenu());
-			}
-
-			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
-				return new ArrayList<>();
+				return createMembersHeaderInlineMenu();
 			}
 
 			@Override
@@ -268,67 +264,97 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 
 	protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
 		List<InlineMenuItem> newMemberMenuItems = new ArrayList<>();
-		newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createMember"),
-				false, new HeaderMenuAction(this) {
+		newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createMember")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void onClick(AjaxRequestTarget target) {
-				createFocusMemberPerformed(null, target);
+			public InlineMenuItemAction getAction() {
+				return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						createFocusMemberPerformed(null, target);
+					}
+				};
 			}
-		}));
+		});
 		return newMemberMenuItems;
 	}
 
 	protected List<InlineMenuItem> assignNewMemberInlineMenuItems() {
 		List<InlineMenuItem> newMemberMenuItems = new ArrayList<>();
-		newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMembers"), false,
-				new HeaderMenuAction(this) {
+		newMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addMembers")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction getAction() {
+				return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						addMembers(target, getAvailableRelationList());
 					}
-				}));
+				};
+			}
+		});
 		return newMemberMenuItems;
 	}
 
 	protected List<InlineMenuItem> createMemberRecomputeInlineMenuItems() {
 		List<InlineMenuItem> recomputeMenuItems = new ArrayList<>();
+		recomputeMenuItems
+				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersSelected")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction getAction() {
+						return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								recomputeMembersPerformed(QueryScope.SELECTED, target);
+							}
+						};
+					}
+				});
+		recomputeMenuItems
+				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersAllDirect")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction getAction() {
+						return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								recomputeMembersPerformed(QueryScope.ALL_DIRECT, target);
+
+							}
+						};
+					}
+				});
+
         recomputeMenuItems
-                .add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersSelected"),
-                        false, new HeaderMenuAction(this) {
-                    private static final long serialVersionUID = 1L;
+                .add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersAll")) {
+					private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        recomputeMembersPerformed(QueryScope.SELECTED, target);
-                    }
-                }));
-        recomputeMenuItems
-                .add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersAllDirect"),
-                        false, new HeaderMenuAction(this) {
-                    private static final long serialVersionUID = 1L;
+					@Override
+					public InlineMenuItemAction getAction() {
+						return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+							private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        recomputeMembersPerformed(QueryScope.ALL_DIRECT, target);
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								recomputeMembersPerformed(QueryScope.ALL, target);
 
-                    }
-                }));
-
-        recomputeMenuItems
-                .add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.recomputeMembersAll"),
-                        false, new HeaderMenuAction(this) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        recomputeMembersPerformed(QueryScope.ALL, target);
-
-                    }
-                }));
+							}
+						};
+					}
+				});
 
         return recomputeMenuItems;
 	}
@@ -336,29 +362,41 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 	protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
 		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
 		unassignMenuItems
-				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersSelected"),
-						false, new HeaderMenuAction(this) {
+				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersSelected")) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public void onClick(AjaxRequestTarget target) {
-						removeMembersPerformed(QueryScope.SELECTED, null , target);
+					public InlineMenuItemAction getAction() {
+						return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								removeMembersPerformed(QueryScope.SELECTED, null, target);
+							}
+						};
 					}
-				}));
+				});
 		return unassignMenuItems;
 	}
 
 	protected List<InlineMenuItem> createUnassignAllMemberInlineMenuItems() {
 		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
-		unassignMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll"),
-				false, new HeaderMenuAction(this) {
+		unassignMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignMembersAll")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void onClick(AjaxRequestTarget target) {
-				removeMembersPerformed(QueryScope.ALL, null, target);
+			public InlineMenuItemAction getAction() {
+				return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						removeMembersPerformed(QueryScope.ALL, null, target);
+					}
+				};
 			}
-		}));
+		});
 		return unassignMenuItems;
 	}
 

@@ -33,6 +33,8 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.dto.AssignmentConflictDto;
@@ -114,15 +116,21 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {
                 List<InlineMenuItem> items = new ArrayList<>();
-                InlineMenuItem item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
-                        new InlineMenuItemAction() {
+                InlineMenuItem item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign")) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public InlineMenuItemAction getAction() {
+                        return new InlineMenuItemAction() {
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
                                 deleteAssignmentPerformed(target, null);
                             }
-                        });
+                        };
+                    }
+                };
                 items.add(item);
                 return items;
             }

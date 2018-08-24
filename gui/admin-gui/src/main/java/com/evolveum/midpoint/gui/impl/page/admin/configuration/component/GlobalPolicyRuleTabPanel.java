@@ -333,7 +333,7 @@ public class GlobalPolicyRuleTabPanel extends BasePanel<ContainerWrapper<GlobalP
         });
 		
 		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
+		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
 		
         return columns;
 	}

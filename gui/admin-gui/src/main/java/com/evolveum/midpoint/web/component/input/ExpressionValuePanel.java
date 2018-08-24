@@ -378,48 +378,66 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
        private List<InlineMenuItem> createAddButtonInlineMenuItems(){
         List<InlineMenuItem> menuList = new ArrayList<>();
-        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonDefaultTitle"),
-                new InlineMenuItemAction(){
-                    private static final long serialVersionUID = 1L;
+        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonDefaultTitle")) {
+                         private static final long serialVersionUID = 1L;
+
+                         @Override
+                         public InlineMenuItemAction getAction() {
+                             return new InlineMenuItemAction() {
+                                 private static final long serialVersionUID = 1L;
+
+                                 @Override
+                                 public void onClick(AjaxRequestTarget target) {
+                                     if (getModelObject() == null) {
+                                         getModel().setObject(new ExpressionType());
+                                     }
+                                     ExpressionUtil.createShadowRefEvaluatorValue(getModelObject(), null, pageBase.getPrismContext());
+                                     target.add(ExpressionValuePanel.this);
+                                 }
+                             };
+                         }
+                     });
+        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonTargetSearchTitle")) {
+            private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (getModelObject() == null){
-                    getModel().setObject(new ExpressionType());
-                }
-                ExpressionUtil.createShadowRefEvaluatorValue(getModelObject(), null, pageBase.getPrismContext());
-                target.add(ExpressionValuePanel.this);
-            }
-                }));
-        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonTargetSearchTitle"),
-                new InlineMenuItemAction(){
+            public InlineMenuItemAction getAction() {
+                return new InlineMenuItemAction() {
                     private static final long serialVersionUID = 1L;
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (getModelObject() == null){
-                    getModel().setObject(new ExpressionType());
-                }
-                ExpressionType expression = getModelObject();
-                expression.getExpressionEvaluator().add(ExpressionUtil.createAssociationTargetSearchElement());
-                target.add(ExpressionValuePanel.this);
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getModelObject() == null) {
+                            getModel().setObject(new ExpressionType());
+                        }
+                        ExpressionType expression = getModelObject();
+                        expression.getExpressionEvaluator().add(ExpressionUtil.createAssociationTargetSearchElement());
+                        target.add(ExpressionValuePanel.this);
 
+                    }
+                };
             }
-                }));
-        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addLiteralValueButton"),
-                new InlineMenuItemAction(){
+        });
+        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addLiteralValueButton")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction getAction() {
+                return new InlineMenuItemAction() {
                     private static final long serialVersionUID = 1L;
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (getModelObject() == null){
-                    getModel().setObject(new ExpressionType());
-                }
-                ExpressionUtil.updateLiteralExpressionValue(getModelObject(), Arrays.asList(""), pageBase.getPrismContext());
-                target.add(ExpressionValuePanel.this);
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getModelObject() == null) {
+                            getModel().setObject(new ExpressionType());
+                        }
+                        ExpressionUtil.updateLiteralExpressionValue(getModelObject(), Arrays.asList(""), pageBase.getPrismContext());
+                        target.add(ExpressionValuePanel.this);
 
+                    }
+                };
             }
-                }));
+        });
         return  menuList;
     }
 

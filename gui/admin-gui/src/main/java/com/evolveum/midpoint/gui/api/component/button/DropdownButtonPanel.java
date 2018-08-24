@@ -107,8 +107,6 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 	}
 
 	 private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
-	        final InlineMenuItem item = menuItem.getModelObject();
-
 	        WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
 	        menuItemBody.setRenderBodyOnly(true);
 	        menuItem.add(menuItemBody);

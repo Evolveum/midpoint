@@ -191,8 +191,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
 		InlineMenuItem item;
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)) {
-			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign"),
-					new InlineMenuItemAction() {
+			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assign")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction getAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -206,18 +210,24 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 									super.addPerformed(target, selected, relation, kind, intent);
 									addSelectedAssignablePerformed(target, selected, relation,
 											getPageBase().getMainPopup().getId());
-                                    reloadMainFormButtons(target);
+									reloadMainFormButtons(target);
 								}
 
 							};
 							panel.setOutputMarkupId(true);
 							getPageBase().showMainPopup(panel, target);
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
 
-			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg"),
-					new InlineMenuItemAction() {
+			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.assignOrg")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction getAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -230,12 +240,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
 									@Override
 									protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
-											AjaxRequestTarget target) {
+																			  AjaxRequestTarget target) {
 										// TODO Auto-generated method stub
 										addSelectedAssignablePerformed(target, (List) selectedOrgs, SchemaConstants.ORG_DEFAULT,
 												getPageBase().getMainPopup().getId());
-                                        reloadMainFormButtons(target);
-                                    }
+										reloadMainFormButtons(target);
+									}
 								};
 								orgTreePanel.setOutputMarkupId(true);
 								getPageBase().showMainPopup(orgTreePanel, target);
@@ -245,32 +255,45 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 							}
 
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
-			items.add(new InlineMenuItem());
 		}
 		if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI)) {
-			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign"),
-					new InlineMenuItemAction() {
+			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign")){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction getAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							AssignmentTablePanel.this.deleteAssignmentPerformed(target, null);
-                        }
-					});
+						}
+					};
+				}
+			};
 			items.add(item);
 		}
 		if (isShowAllAssignmentsVisible()) {
-			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments"),
-					new InlineMenuItemAction() {
+			item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.showAllAssignments")){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction getAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							showAllAssignments(target);
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
 		}
 		return items;

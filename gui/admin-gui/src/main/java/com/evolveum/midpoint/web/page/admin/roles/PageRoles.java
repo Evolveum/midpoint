@@ -112,11 +112,6 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
             }
 
             @Override
-            protected IColumn<SelectableBean<RoleType>, String> createActionsColumn() {
-                return PageRoles.this.createActionsColumn();
-            }
-
-            @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, RoleType object) {
                 PageRoles.this.roleDetailsPerformed(target, object.getOid());
                 ;
@@ -146,21 +141,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
         return columns;
     }
 
-    private IColumn<SelectableBean<RoleType>, String> createActionsColumn() {
-        return new InlineMenuButtonColumn<SelectableBean<RoleType>>(listInlineMenuHelper.createRowActions(false), 3, PageRoles.this){
-            @Override
-            protected int getHeaderNumberOfButtons() {
-                return 2;
-            }
-
-            @Override
-            protected List<InlineMenuItem> getHeaderMenuItems() {
-                return listInlineMenuHelper.createRowActions(true);
-            }
-        };
-    }
-
-        private MainObjectListPanel<RoleType> getRoleTable() {
+    private MainObjectListPanel<RoleType> getRoleTable() {
         return (MainObjectListPanel<RoleType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 

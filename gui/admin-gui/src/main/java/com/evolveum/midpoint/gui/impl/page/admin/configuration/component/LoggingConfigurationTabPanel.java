@@ -366,7 +366,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.appender"), ClassLoggerConfigurationType.F_APPENDER, getPageBase()));
 		
 		List<InlineMenuItem> menuActionsList = getLoggersMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
+		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
 		
         return columns;
 	}
@@ -577,7 +577,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
         });
 		
 		List<InlineMenuItem> menuActionsList = getAppendersMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
+		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
 		
         return columns;
 	}
