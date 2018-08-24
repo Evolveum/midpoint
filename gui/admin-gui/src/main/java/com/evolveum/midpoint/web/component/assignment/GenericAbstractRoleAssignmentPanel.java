@@ -63,6 +63,9 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
 		while (assignmentIterator.hasNext()) {
 			ContainerValueWrapper<AssignmentType> ass = assignmentIterator.next();
 			AssignmentType assignment = ass.getContainerValue().asContainerable();
+			if (assignment == null || assignment.getTargetRef() == null) {
+				continue;
+			}
 			if (QNameUtil.match(assignment.getTargetRef().getType(), OrgType.COMPLEX_TYPE)) {
 				PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, task.getResult());
 				if (org != null) {

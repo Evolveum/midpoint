@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.io.filefilter.AndFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.task.api.Task;
@@ -216,7 +218,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 			@Override
 			public ObjectQuery getQuery() {
-				return MultivalueContainerListPanel.this.getQuery();
+				return MultivalueContainerListPanel.this.createProviderQuery();
 			}
 			
 			@Override
@@ -306,15 +308,25 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 
-		MultivalueContainerListDataProvider<C> provider = getDataProvider();
+//		MultivalueContainerListDataProvider<C> provider = getDataProvider();
 
-		ObjectQuery customQuery = getQuery();
-		
-		if (customQuery == null || customQuery.getFilter() == null) {
-			customQuery = createQuery();
-		}
-		
-		provider.setQuery(customQuery);
+//		ObjectQuery finalQuery = null;
+//		
+//		ObjectQuery searchQuery = getQuery();
+//		
+//		ObjectQuery customQuery = createQuery();
+//		
+//		if (query != null && query.getFilter() != null) {
+//			if (customQuery != null && customQuery.getFilter() != null) {
+//				finalQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(customQuery.getFilter(), query.getFilter()));
+//			}
+//			finalQuery = query;
+//			
+//		} else {
+//			finalQuery = customQuery;
+//		}
+//		
+//		provider.setQuery(finalQuery);
 //		String storageKey = getStorageKey();
 //		if (StringUtils.isNotEmpty(storageKey)) {
 //			PageStorage storage = getPageStorage(storageKey);
@@ -356,6 +368,21 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	
 	protected abstract List<ContainerValueWrapper<C>> postSearch(List<ContainerValueWrapper<C>> items);
 
+	private ObjectQuery createProviderQuery() {
+		ObjectQuery searchQuery = getQuery();
+		
+		ObjectQuery customQuery = createQuery();
+		
+		if (searchQuery != null && searchQuery.getFilter() != null) {
+			if (customQuery != null && customQuery.getFilter() != null) {
+				return ObjectQuery.createObjectQuery(AndFilter.createAnd(customQuery.getFilter(), searchQuery.getFilter()));
+			}
+			return searchQuery;
+			
+		} 
+		return customQuery;
+	}
+	
 	protected abstract ObjectQuery createQuery();
 
 	protected abstract List<IColumn<ContainerValueWrapper<C>, String>> createColumns();
