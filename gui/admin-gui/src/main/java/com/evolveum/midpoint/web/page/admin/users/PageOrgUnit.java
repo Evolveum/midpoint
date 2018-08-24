@@ -117,7 +117,10 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 					@Override
 					protected List<QName> getSupportedRelations() {
-						return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, PageOrgUnit.this);
+						List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, PageOrgUnit.this);
+						List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageOrgUnit.this);
+						governance.forEach(r -> relations.remove(r));
+						return relations;
 					}
 				};
 			}

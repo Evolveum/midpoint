@@ -111,7 +111,10 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 
 					@Override
 					protected List<QName> getSupportedRelations() {
-						return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, PageService.this);
+						List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, PageService.this);
+						List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageService.this);
+						governance.forEach(r -> relations.remove(r));
+						return relations;
 					}
 				};
 			}

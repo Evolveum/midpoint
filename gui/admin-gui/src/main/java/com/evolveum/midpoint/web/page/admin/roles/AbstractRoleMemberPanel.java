@@ -305,6 +305,18 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 						}
 					}, 3, GuiStyleConstants.CLASS_CREATE_FOCUS));
 		}
+		
+		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_DELETE)) {
+			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create"), false,
+					new ColumnMenuAction<SelectableBean<UserType>>() {
+						private static final long serialVersionUID = 1L;
+	
+						@Override
+						public void onClick(AjaxRequestTarget target) {
+							deleteMembersPerformed(target);
+						}
+					}, 3, GuiStyleConstants.CLASS_CREATE_FOCUS));
+		}
 		return menu;
 	}
 	
@@ -324,12 +336,42 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			private static final long serialVersionUID = 1L;
 			
 			@Override
+			protected List<QName> getSupportedObjectTypes() {
+				return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
+			}
+			
+			@Override
+			protected List<QName> getSupportedRelations() {
+				return AbstractRoleMemberPanel.this.getSupportedRelations();
+			}
+			
+
+			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
+				unassignMembersPerformed(type, getQueryScope(false), relations, target);
+
+			};
+		};
+
+		getPageBase().showMainPopup(chooseTypePopupContent, target);
+	}
+	
+	private void deleteMembersPerformed(AjaxRequestTarget target) {
+		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
+				getPageBase().getMainPopupBodyId()) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected List<QName> getSupportedObjectTypes() {
+				return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
+			}
+			
+			@Override
 			protected List<QName> getSupportedRelations() {
 				return AbstractRoleMemberPanel.this.getSupportedRelations();
 			}
 
 			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-				removeMembersPerformed(type, getQueryScope(false), relations, target);
+				deleteMembersPerformed(type, getQueryScope(false), relations, target);
 
 			};
 		};
@@ -342,6 +384,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
 				getPageBase().getMainPopupBodyId()) {
 			private static final long serialVersionUID = 1L;
+			
+			@Override
+			protected List<QName> getSupportedObjectTypes() {
+				return AbstractRoleMemberPanel.this.getSupportedObjectTypes();
+			}
 			
 			@Override
 			protected List<QName> getSupportedRelations() {
@@ -367,15 +414,25 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		getPageBase().showMainPopup(chooseTypePopupContent, target);
 
 	}
-
-	protected void removeMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+	
+	protected void deleteMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
 		if (relations == null || relations.isEmpty()) {
 			getSession().warn("No relations was selected. Cannot perform unassign members");
 			target.add(this);
 			target.add(getPageBase().getFeedbackPanel());
 			return;
 		}
-		MemberOperationsHelper.removeMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
+		MemberOperationsHelper.deleteMembersPerformed(getPageBase(), scope, getActionQuery(scope, relations), type, target);
+	}
+
+	protected void unassignMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+		if (relations == null || relations.isEmpty()) {
+			getSession().warn("No relations was selected. Cannot perform unassign members");
+			target.add(this);
+			target.add(getPageBase().getFeedbackPanel());
+			return;
+		}
+		MemberOperationsHelper.unassignMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, type, target);
 	}
 	
 	private ObjectViewDto<OrgType> getParameter(String panelId) {

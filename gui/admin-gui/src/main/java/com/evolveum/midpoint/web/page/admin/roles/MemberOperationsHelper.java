@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.impl.util.DeleteTaskHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -45,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class MemberOperationsHelper {
 
@@ -57,7 +60,7 @@ public class MemberOperationsHelper {
 
 	}
 	
-	public static <R extends AbstractRoleType> void removeMembersPerformed(PageBase pageBase, R targetObject, QueryScope scope, ObjectQuery query, Collection<QName> relation, QName type, AjaxRequestTarget target) {
+	public static <R extends AbstractRoleType> void unassignMembersPerformed(PageBase pageBase, R targetObject, QueryScope scope, ObjectQuery query, Collection<QName> relation, QName type, AjaxRequestTarget target) {
 		Task operationalTask = pageBase.createSimpleTask(getTaskName("Remove", scope));
 		ObjectDelta delta = prepareAssignmentDelta(targetObject, type, relation, MemberOperation.REMOVE, pageBase.getPrismContext(), operationalTask.getResult());
 		executeMemberOperation(pageBase, operationalTask, type, query, delta,
@@ -65,7 +68,7 @@ public class MemberOperationsHelper {
 
 	}
 	
-	public static <R extends AbstractRoleType> void removeOtherOrgMembersPerformed(PageBase pageBase, R targetObject, QueryScope scope, ObjectQuery query, Collection<QName> relations, AjaxRequestTarget target) {
+	public static <R extends AbstractRoleType> void unassignOtherOrgMembersPerformed(PageBase pageBase, R targetObject, QueryScope scope, ObjectQuery query, Collection<QName> relations, AjaxRequestTarget target) {
 		Task operationalTask = pageBase.createSimpleTask(getTaskName("Remove", scope, false));
 		ObjectDelta delta = prepareObjectTypeDelta(targetObject, relations, MemberOperation.REMOVE, operationalTask.getResult(), pageBase.getPrismContext());
 		if (delta == null) {
@@ -73,6 +76,25 @@ public class MemberOperationsHelper {
 		}
 		executeMemberOperation(pageBase, operationalTask, ObjectType.COMPLEX_TYPE,
 				query, delta, TaskCategory.EXECUTE_CHANGES, target);
+		
+		
+	}
+	
+	public static void deleteMembersPerformed(PageBase pageBase, QueryScope scope, ObjectQuery query, QName type, AjaxRequestTarget target) {
+		Task operationalTask = pageBase.createSimpleTask(getTaskName("Remove", scope));
+		OperationResult parentResult = operationalTask.getResult();
+		try {
+			TaskType taskType = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type, query, null, null, TaskCategory.UTIL, pageBase);
+			taskType.setHandlerUri(DeleteTaskHandler.HANDLER_URI);
+			
+			WebModelServiceUtils.runTask(taskType, operationalTask, operationalTask.getResult(), pageBase);
+		} catch (SchemaException e) {
+			parentResult.recordFatalError(parentResult.getOperation(), e);
+			LoggingUtils.logUnexpectedException(LOGGER,
+					"Failed to execute operation " + parentResult.getOperation(), e);
+			target.add(pageBase.getFeedbackPanel());
+		}
+		//FIXME: temporary hack
 		
 		
 	}

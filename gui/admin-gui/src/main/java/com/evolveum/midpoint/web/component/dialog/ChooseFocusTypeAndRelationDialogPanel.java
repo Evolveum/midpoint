@@ -42,7 +42,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 	
 	private void initLayout(){
 		
-		DropDownFormGroup<QName> type = new DropDownFormGroup<QName>(ID_OBJECT_TYPE, Model.of(FocusType.COMPLEX_TYPE), new ListModel<>(WebComponentUtil.createFocusTypeList()), 
+		DropDownFormGroup<QName> type = new DropDownFormGroup<QName>(ID_OBJECT_TYPE, Model.of(FocusType.COMPLEX_TYPE), Model.ofList(getSupportedObjectTypes()), 
 				new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"), 
 				"chooseFocusTypeAndRelationDialogPanel.tooltip.type", true, "col-md-4", "col-md-8", false);
 		type.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
@@ -85,6 +85,10 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 	protected void okPerformed(QName type, Collection<QName> relation, AjaxRequestTarget target) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	protected List<QName> getSupportedObjectTypes() {
+		return WebComponentUtil.createFocusTypeList(true);
 	}
 	
 	protected List<QName> getSupportedRelations() {
