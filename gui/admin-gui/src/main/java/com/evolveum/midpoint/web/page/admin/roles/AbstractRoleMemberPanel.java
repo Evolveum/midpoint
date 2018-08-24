@@ -608,7 +608,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	protected ObjectQuery createContentQuery() {
 		CheckFormGroup isIndirect = getIndirectmembersPanel();
-		return createMemberQuery(isIndirect != null ? isIndirect.getValue() : false, Arrays.asList(getSelectedRelation()));
+		List<QName> relations = QNameUtil.match(getSelectedRelation(), PrismConstants.Q_ANY) ? getSupportedRelations() : Arrays.asList(getSelectedRelation());  
+ 		return createMemberQuery(isIndirect != null ? isIndirect.getValue() : false, relations);
 
 	}
 	
