@@ -9,15 +9,13 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 
 import com.evolveum.midpoint.gui.api.component.ChooseMemberPopup;
 import com.evolveum.midpoint.gui.api.component.ChooseOrgMemberPopup;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.impl.util.DeleteTaskHandler;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel.MemberOperation;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel.QueryScope;
@@ -81,11 +78,11 @@ public class MemberOperationsHelper {
 	}
 	
 	public static void deleteMembersPerformed(PageBase pageBase, QueryScope scope, ObjectQuery query, QName type, AjaxRequestTarget target) {
-		Task operationalTask = pageBase.createSimpleTask(getTaskName("Remove", scope));
+		Task operationalTask = pageBase.createSimpleTask(getTaskName("Delete", scope));
 		OperationResult parentResult = operationalTask.getResult();
 		try {
 			TaskType taskType = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation(), type, query, null, null, TaskCategory.UTIL, pageBase);
-			taskType.setHandlerUri(DeleteTaskHandler.HANDLER_URI);
+			taskType.setHandlerUri(ModelPublicConstants.DELETE_TASK_HANDLER_URI);
 			
 			WebModelServiceUtils.runTask(taskType, operationalTask, operationalTask.getResult(), pageBase);
 		} catch (SchemaException e) {

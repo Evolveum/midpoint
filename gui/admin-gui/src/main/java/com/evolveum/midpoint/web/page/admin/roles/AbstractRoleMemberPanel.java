@@ -307,7 +307,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		}
 		
 		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_DELETE)) {
-			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create"), false,
+			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.delete"), false,
 					new ColumnMenuAction<SelectableBean<UserType>>() {
 						private static final long serialVersionUID = 1L;
 	
@@ -417,7 +417,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	
 	protected void deleteMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
 		if (relations == null || relations.isEmpty()) {
-			getSession().warn("No relations was selected. Cannot perform unassign members");
+			getSession().warn("No relations was selected. Cannot perform delete members");
 			target.add(this);
 			target.add(getPageBase().getFeedbackPanel());
 			return;
