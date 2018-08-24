@@ -6314,6 +6314,19 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="unsupported" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Selects "unsupported operation" issues. These errors are caused by
+        				lack of functionality or support for the operation in connector
+        				or any other part of midPoint. E.g. this may be missing (or disabled)
+        				connector capability. 
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="generic" type="xsd:boolean" minOccurs="0" default="false">
         		<xsd:annotation>
         			<xsd:documentation>

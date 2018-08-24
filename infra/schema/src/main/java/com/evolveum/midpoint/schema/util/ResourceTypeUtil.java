@@ -719,4 +719,12 @@ public class ResourceTypeUtil {
 		}
 		return reshreshOnRead;
 	}
+	
+	public static ErrorSelectorType getConnectorErrorCriticality(ResourceType resourceType) {
+		ResourceConsistencyType consistency = resourceType.getConsistency();
+		if (consistency == null) {
+			return null;
+		}
+		return consistency.getConnectorErrorCriticality();
+	}
 }

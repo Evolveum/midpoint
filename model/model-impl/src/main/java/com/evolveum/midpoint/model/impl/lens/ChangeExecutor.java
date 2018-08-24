@@ -137,7 +137,7 @@ public class ChangeExecutor {
 	public <O extends ObjectType> boolean executeChanges(LensContext<O> context, Task task,
 			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 					SchemaException, CommunicationException, ConfigurationException,
-					SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException {
+					SecurityViolationException, ExpressionEvaluationException, PreconditionViolationException, PolicyViolationException {
 
 		OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
 
@@ -345,6 +345,9 @@ public class ChangeExecutor {
 					if (focusContext != null) {
 						updateLinks(focusContext, projCtx, shadowAfterModification, task, subResult);
 					}
+					
+					Utils.handleConnectorErrorCriticality(projCtx.getResource(), e);
+					
 
 				} catch (ObjectAlreadyExistsException e) {
 					

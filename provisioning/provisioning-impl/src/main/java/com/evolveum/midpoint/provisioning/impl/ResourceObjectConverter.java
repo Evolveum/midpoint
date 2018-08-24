@@ -60,6 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
@@ -261,6 +262,8 @@ public class ResourceObjectConverter {
 			checkForAddConflicts(ctx, shadow, result);
 		}
 		
+		checkForCapability(ctx, CreateCapabilityType.class, result);
+		
 		Collection<Operation> additionalOperations = new ArrayList<>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
 				result);
@@ -276,10 +279,6 @@ public class ResourceObjectConverter {
 						SchemaDebugUtil.debugDump(additionalOperations,2));
 			}
 			transformActivationAttributesAdd(ctx, shadowType, result);
-			
-			if (!ResourceTypeUtil.isCreateCapabilityEnabled(resource)){
-				throw new UnsupportedOperationException("Resource does not support 'create' operation");
-			}
 			
 			connectorAsyncOpRet = connector.addObject(shadowClone, additionalOperations, ctx, result);
 			resourceAttributesAfterAdd = connectorAsyncOpRet.getReturnValue();
@@ -384,6 +383,8 @@ public class ResourceObjectConverter {
 		
 		LOGGER.trace("Deleting resource object {}", shadow);
 
+		checkForCapability(ctx, DeleteCapabilityType.class, result);
+		
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
 				.getAllIdentifiers(shadow);
 
@@ -715,6 +716,8 @@ public class ResourceObjectConverter {
 		} else {
 			LOGGER.trace("Resource object modification operations: {}", operations);
 		}
+		
+		checkForCapability(ctx, UpdateCapabilityType.class, parentResult);
 		
 		if (!ShadowUtil.hasPrimaryIdentifier(identifiers, objectClassDefinition)) {
 			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identifiers, "modification of resource object "+identifiers, parentResult);
@@ -2480,6 +2483,17 @@ public class ResourceObjectConverter {
 		}
 		parentResult.setStatus(status);
 		parentResult.setAsynchronousOperationReference(asyncRef);
+	}
+	
+	private <C extends CapabilityType> void checkForCapability(ProvisioningContext ctx, Class<C> capabilityClass, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		C capability = ctx.getObjectClassDefinition().getEffectiveCapability(capabilityClass, ctx.getResource());
+		if (capability == null) {
+			UnsupportedOperationException e = new UnsupportedOperationException("Operation not supported "+ctx.getDesc()+" as "+capabilityClass.getSimpleName()+" is missing");
+			if (result != null) {
+				result.recordFatalError(e);
+			}
+			throw e;
+		}
 	}
 
 	
