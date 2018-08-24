@@ -5900,9 +5900,6 @@
 
                         If this element is not present at all then the native+configured capabilities
                         at the resource level are applied.
-
-                        BEWARE: Currently, only pagedSearch and addRemoveAttributeValues capability is expected here.
-                        Other capabilities listed in this section are ignored.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
