@@ -71,6 +71,9 @@ public class ExceptionUtil {
 		if (exception instanceof ConfigurationException || exception instanceof ExpressionEvaluationException) {
 			return isSelected(selector.isConfiguration(), defaultValue);
 		}
+		if (exception instanceof UnsupportedOperationException) {
+			return isSelected(selector.isUnsupported(), defaultValue);
+		}
 		return isSelected(selector.isGeneric(), defaultValue);
 	}
 
