@@ -561,6 +561,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			query = query.cloneEmpty();
 			query.setFilter(filter);
 		}
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Start of counting objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
+		}
 
 		if (filter != null && filter instanceof NoneFilter) {
 			result.recordSuccessIfUnknown();
@@ -593,6 +597,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.cleanupResult();
 		}
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Finished counting objects: {}", count);
+		}
+		
 		return count;
     }
 
@@ -899,7 +907,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			completeObject = completeObject(type, object, options, task, objResult);
 
-		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+		} catch (Throwable e) {
 			LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", object, e.getMessage(), e);
 			objResult.recordFatalError(e);
 			object.asObjectable().setFetchResult(objResult.createOperationResultType());
@@ -929,7 +937,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(handler, "Handler must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start to search object. Query {}", query != null ? query.debugDump() : "(null)");
+			LOGGER.trace("Start of (iterative) search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
 		}
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
@@ -956,31 +964,30 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (filter != null && filter instanceof NoneFilter) {
 			result.recordSuccessIfUnknown();
 			result.cleanupResult();
-			LOGGER.trace("Finished searching. Nothing to do. Filter is NONE");
 			SearchResultMetadata metadata = new SearchResultMetadata();
 			metadata.setApproxNumberOfAllResults(0);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Finished searching. Nothing to do. Filter is NONE. Metadata: {}", metadata.shortDump());
+			}
 			return metadata;
 		}
 
 		final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
+		SearchResultMetadata metadata = null;
 		if (ShadowType.class.isAssignableFrom(type)) {
 
-			SearchResultMetadata metadata;
 			try {
 
 				metadata = shadowCache.searchObjectsIterative(query, options, (ResultHandler<ShadowType>)handler, true, task, result);
 
 				result.computeStatus();
+				result.cleanupResult();
 
-			} catch (ConfigurationException | CommunicationException | ObjectNotFoundException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
+			} catch (Throwable e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 				throw e;
-			} finally {
-				result.cleanupResult();
 			}
-
-			return metadata;
 
 		} else {
 
@@ -991,22 +998,25 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				repoOptions = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
 			}
 
-			SearchResultMetadata metadata = null;
 			try {
 
 				metadata = getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, repoOptions, false, result);	// TODO think about strictSequential flag
 
 				result.computeStatus();
 				result.recordSuccessIfUnknown();
+				result.cleanupResult();
 
-			} catch (SchemaException | RuntimeException | Error e) {
+			} catch (Throwable e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			}
-
-			result.cleanupResult();
-
-			return metadata;
 		}
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Finished searching. Metadata: {}", metadata != null ? metadata.shortDump() : "(null)");
+		}
+
+		return metadata;
+
 
 	}
 
@@ -1052,7 +1062,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		List<ConnectorOperationalStatus> stats;
 		try {
 			stats = resourceManager.getConnectorOperationalStatus(resource, result);
-		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException ex) {
+		} catch (Throwable ex) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, "Getting operations status from connector for resource "+resourceOid+" failed: "+ex.getMessage(), ex);
 			throw ex;
 		}
@@ -1092,7 +1102,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	        result.recordSuccessIfUnknown();
 			result.cleanupResult();
 
-		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (Throwable e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw e;
 		}
@@ -1120,7 +1130,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.computeStatus();
 			result.recordSuccessIfUnknown();
 
-		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (Throwable e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw e;
 		} finally {
@@ -1159,7 +1169,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.computeStatus();
 			result.recordSuccessIfUnknown();
 
-		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
+		} catch (Throwable e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw e;
 		} finally {

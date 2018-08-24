@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~      http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,22 +23,20 @@
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
-							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+		xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
 	<name>Dummy Resource</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
-	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnectorLegacyUpdate"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance -->
-			<icfi:supportActivation>false</icfi:supportActivation>
-			<icfi:supportValidity>false</icfi:supportValidity>
 			<icfi:uselessString>Shiver me timbers!</icfi:uselessString>
 			<icfi:uselessGuardedString>       <!-- Add some whitespace -->  
 				<clearValue>Dead men tell no tales</clearValue>
 			</icfi:uselessGuardedString>
+			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
 		
 		<icfc:resultsHandlerConfiguration>
@@ -46,8 +44,6 @@
 			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
 			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
 		</icfc:resultsHandlerConfiguration>
-		
-		<icfc:legacySchema>true</icfc:legacySchema>
 
 	</connectorConfiguration>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd</namespace>
@@ -66,17 +62,21 @@
 			<attribute>
 				<ref>ri:weapon</ref>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
+				<modificationPriority>0</modificationPriority>
+				<readReplaceMode>true</readReplaceMode>
 			</attribute>
 			<attribute>
 				<ref>ri:loot</ref>
 				<fetchStrategy>explicit</fetchStrategy>
+				<modificationPriority>1</modificationPriority>
+				<readReplaceMode>true</readReplaceMode>
 			</attribute>
 			<attribute>
 				<ref>ri:ship</ref>
 				<limitations>
 					<access>
-						<add>true</add>
 						<read>true</read>
+						<add>true</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
@@ -85,28 +85,30 @@
 				<ref>ri:drink</ref>
 				<limitations>
 					<access>
-						<add>false</add>
 						<read>true</read>
+						<add>false</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
+				<readReplaceMode>true</readReplaceMode>
 			</attribute>
 			<attribute>
 				<ref>ri:quote</ref>
 				<limitations>
 					<access>
-						<add>true</add>
 						<read>true</read>
+						<add>true</add>
 						<modify>false</modify>
 					</access>
 				</limitations>
+				<readReplaceMode>true</readReplaceMode>
 			</attribute>
 			<attribute>
 				<ref>ri:gossip</ref>
 				<limitations>
 					<access>
-						<add>true</add>
 						<read>false</read>
+						<add>true</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
@@ -115,8 +117,8 @@
 				<ref>ri:water</ref>
 				<limitations>
 					<access>
-						<add>false</add>
 						<read>false</read>
+						<add>false</add>
 						<modify>false</modify>
 					</access>
 				</limitations>
@@ -196,4 +198,14 @@
         	<objectClass>ri:CustomprivilegeObjectClass</objectClass>
         </objectType>
 	</schemaHandling>
+	<capabilities>
+		<configured>
+			<cap:countObjects>
+				<cap:simulate>pagedSearchEstimate</cap:simulate>
+			</cap:countObjects>
+		</configured>
+	</capabilities>
+	<consistency>
+		<avoidDuplicateValues>true</avoidDuplicateValues>
+	</consistency>
 </resource>

@@ -711,11 +711,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         userPasswordPs.setClearValue(newPassword);
         modifyUserReplace(userOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
 	}
+	
+	protected void modifyUserSetPassword(String userOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue(newPassword);
+        PasswordType passwordType = new PasswordType();
+        passwordType.setValue(userPasswordPs);
+        ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+        	.item(SchemaConstants.PATH_PASSWORD).add(passwordType)
+        	.asObjectDelta(userOid);
+        executeChanges(delta, null, task, result);
+	}
 
 	protected void modifyAccountChangePassword(String accountOid, String newPassword, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		ProtectedStringType userPasswordPs = new ProtectedStringType();
         userPasswordPs.setClearValue(newPassword);
         modifyAccountShadowReplace(accountOid, PASSWORD_VALUE_PATH, task,  result, userPasswordPs);
+	}
+	
+	protected void clearUserPassword(String userOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = createTask("clearUserPassword");
+		OperationResult result = task.getResult();
+		List<ItemDelta<?,?>> itemDeltas = DeltaBuilder.deltaFor(UserType.class, prismContext)
+			.item(SchemaConstants.PATH_PASSWORD).replace(new PrismContainerValue[0])
+			.asItemDeltas();
+		repositoryService.modifyObject(UserType.class, userOid, itemDeltas, result);
+		assertSuccess(result);
 	}
 
 	protected <O extends ObjectType> void renameObject(Class<O> type, String oid, String newName, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -1540,7 +1561,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return findObjectByName(UserType.class, username);
 	}
 	
-	protected PrismObject<ServiceType> findServiceByUsername(String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	protected PrismObject<ServiceType> findServiceByName(String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return findObjectByName(ServiceType.class, name);
 	}
 
@@ -4075,6 +4096,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
+	protected PrismObject<UserType> getSecurityContextPrincipalUser() {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = securityContext.getAuthentication();
+		if (authentication == null) {
+			return null;
+		}
+		Object principal = authentication.getPrincipal();
+		if (principal == null) {
+			return null;
+		}
+		if (principal instanceof MidPointPrincipal) {
+			UserType userType = ((MidPointPrincipal)principal).getUser();
+			if (userType == null) {
+				return null;
+			}
+			return userType.asPrismObject();
+		} else {
+			return null;
+		}
+	}
+	
 	protected void assertAuthenticated() {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = securityContext.getAuthentication();
@@ -5372,6 +5414,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
 		initializeAsserter(asserter);
 		return asserter;
+	}
+	
+	protected FocusAsserter<ServiceType,Void> assertServiceByName(String name, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ServiceType> service = findServiceByName(name);
+		// TODO: change to ServiceAsserter later
+		FocusAsserter<ServiceType,Void> asserter = FocusAsserter.forFocus(service, message);
+		initializeAsserter(asserter);
+		asserter.assertName(name);
+		return asserter;
+	}
+	
+	protected FocusAsserter<ServiceType,Void> assertServiceAfterByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return assertServiceByName(name, "after");
+	}
+	
+	protected void assertNoServiceByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ServiceType> service = findServiceByName(name);
+		if (service != null) {
+			display("Unexpected service", service);
+			fail("Unexpected "+service);
+		}
 	}
 	
 	protected ShadowAsserter<Void> assertModelShadow(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

@@ -15,8 +15,10 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +28,8 @@ import javax.xml.namespace.QName;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
 import org.identityconnectors.framework.common.objects.AttributeValueCompleteness;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -315,34 +319,34 @@ public class ConnIdConvertor {
 		return shadowPrism;
 	}
 
-	Set<Attribute> convertFromResourceObject(ResourceAttributeContainer attributesPrism,
+	Set<Attribute> convertFromResourceObjectToConnIdAttributes(ResourceAttributeContainer attributesPrism,
 			ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 		Collection<ResourceAttribute<?>> resourceAttributes = attributesPrism.getAttributes();
-		return convertFromResourceObject(resourceAttributes, ocDef);
+		return convertFromResourceObjectToConnIdAttributes(resourceAttributes, ocDef);
 	}
 
-	Set<Attribute> convertFromResourceObject(Collection<ResourceAttribute<?>> resourceAttributes,
+	private Set<Attribute> convertFromResourceObjectToConnIdAttributes(Collection<ResourceAttribute<?>> mpResourceAttributes,
 			ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 
 		Set<Attribute> attributes = new HashSet<>();
-		if (resourceAttributes == null) {
+		if (mpResourceAttributes == null) {
 			// returning empty set
 			return attributes;
 		}
 
-		for (ResourceAttribute<?> attribute : resourceAttributes) {
+		for (ResourceAttribute<?> attribute : mpResourceAttributes) {
 			attributes.add(convertToConnIdAttribute(attribute, ocDef));
 		}
 		return attributes;
 	}
 
-	Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
+	private Attribute convertToConnIdAttribute(ResourceAttribute<?> mpAttribute, ObjectClassComplexTypeDefinition ocDef) throws SchemaException {
 		QName midPointAttrQName = mpAttribute.getElementName();
 		if (midPointAttrQName.equals(SchemaConstants.ICFS_UID)) {
 			throw new SchemaException("ICF UID explicitly specified in attributes");
 		}
 
-		String connIdAttrName = icfNameMapper.convertAttributeNameToIcf(mpAttribute, ocDef);
+		String connIdAttrName = icfNameMapper.convertAttributeNameToConnId(mpAttribute, ocDef);
 
 		Set<Object> connIdAttributeValues = new HashSet<>();
 		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
@@ -355,7 +359,8 @@ public class ConnIdConvertor {
 			throw new SchemaException(e.getMessage(), e);
 		}
 	}
-
+	
+	
 	private <T> T getSingleValue(Attribute icfAttr, Class<T> type) throws SchemaException {
 		List<Object> values = icfAttr.getValue();
 		if (values != null && !values.isEmpty()) {
@@ -381,6 +386,9 @@ public class ConnIdConvertor {
 	private Object convertValueFromIcf(Object icfValue, QName propName) {
 		if (icfValue == null) {
 			return null;
+		}
+		if (icfValue instanceof ZonedDateTime) {
+			return XmlTypeConverter.createXMLGregorianCalendar((ZonedDateTime)icfValue);
 		}
 		if (icfValue instanceof GuardedString) {
 			return fromGuardedString((GuardedString) icfValue);

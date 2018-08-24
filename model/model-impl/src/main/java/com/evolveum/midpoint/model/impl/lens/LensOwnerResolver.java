@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,22 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 				return null;
 			}
 		} else if (object.canRepresent(UserType.class)) {
+			if (context.getOwnerOid() != null) {
+				if (context.getCachedOwner() == null) {
+					ObjectReferenceType ref = new ObjectReferenceType();
+					ref.setOid(context.getOwnerOid());
+					UserType ownerType;
+					try {
+						ownerType = objectResolver.resolve(ref, UserType.class, null, "context owner", task, result);
+					} catch (ObjectNotFoundException | SchemaException e) {
+						LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);
+						return null;
+					}
+					context.setCachedOwner(ownerType.asPrismObject());
+				}
+				return (PrismObject<FO>) context.getCachedOwner();
+			}
+			
 			ObjectQuery query = QueryBuilder.queryFor(UserType.class, context.getPrismContext())
 					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
 			List<PrismObject<UserType>> owners = new ArrayList<>();

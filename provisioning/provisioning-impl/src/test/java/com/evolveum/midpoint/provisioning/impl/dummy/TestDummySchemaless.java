@@ -707,29 +707,35 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
 	@Test
 	public void test107Capabilities() throws Exception {
 		final String TEST_NAME = "test107Capabilities";
-		TestUtil.displayTestTitle(TEST_NAME);
+		displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		ResourceType resourceType = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, null, result)
 				.asObjectable();
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		assertSuccess(result);
 
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
-		System.out.println("Native capabilities: " + PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
-		System.out.println("resource: " + resourceType.asPrismObject().debugDump());
+		display("Native capabilities ", PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
+		display("Resource", resourceType.asPrismObject());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
+		
 		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
+		
+		ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilitiesList,
+				ReadCapabilityType.class);
+		assertNotNull("native read capability not present", capRead);
+		
 		ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList,
 				ScriptCapabilityType.class);
 		assertNotNull("native script capability not present", capScript);

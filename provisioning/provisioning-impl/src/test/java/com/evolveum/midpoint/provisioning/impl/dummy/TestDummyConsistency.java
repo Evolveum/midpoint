@@ -111,7 +111,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 	}
 
 	@Override
-	protected File getResourceDummyFilename() {
+	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
 	
@@ -2179,7 +2179,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 				.assertResourceAttributeContainer()
 				.assertNoPrimaryIdentifier()
 				.assertHasSecondaryIdentifier()
-				.assertSize(4)
+				.assertSize(5)
 				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME)
 				.end();
 		
@@ -2243,7 +2243,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 				.assertResourceAttributeContainer()
 				.assertHasPrimaryIdentifier()
 				.assertHasSecondaryIdentifier()
-				.assertSize(5)
+				.assertSize(6)
 				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME);
 
 		ShadowAsserter asserterFuture = assertShadowFuture(shadowMorganOid)
@@ -2254,7 +2254,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 				.assertResourceAttributeContainer()
 				.assertHasPrimaryIdentifier()
 				.assertHasSecondaryIdentifier()
-				.assertSize(5)
+				.assertSize(6)
 				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), ACCOUNT_MORGAN_FULLNAME)
 				.end();
 		
@@ -2450,7 +2450,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 				.assertResourceAttributeContainer()
 				.assertHasPrimaryIdentifier()
 				.assertHasSecondaryIdentifier()
-				.assertSize(5)
+				.assertSize(6)
 				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), expectedFullName);
 		
 		PrismObject<ShadowType> accountProvisioningFuture = getShadowFuture(shadowMorganOid);
@@ -2464,7 +2464,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 				.assertResourceAttributeContainer()
 				.assertHasPrimaryIdentifier()
 				.assertHasSecondaryIdentifier()
-				.assertSize(5)
+				.assertSize(6)
 				.assertValue(dummyResourceCtl.getAttributeFullnameQName(), expectedFullName);
 		
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)

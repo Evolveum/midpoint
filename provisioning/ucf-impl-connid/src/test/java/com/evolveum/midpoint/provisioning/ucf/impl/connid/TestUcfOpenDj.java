@@ -161,7 +161,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertNotNull("Cannot generate connector schema", connectorSchema);
 		display("Connector schema", connectorSchema);
 
-		cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), "ldap connector");
+		cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), 
+				"OpenDJ resource",
+				"description of OpenDJ connector instance");
 
 		OperationResult result = new OperationResult("initUcf");
 		cc.configure(resourceType.getConnectorConfiguration().asPrismContainerValue(), result);
@@ -495,7 +497,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(TEST_NAME);
 
 		ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
-				ResourceTypeUtil.getResourceNamespace(badResourceType), "test connector");
+				ResourceTypeUtil.getResourceNamespace(badResourceType), "bad resource", "bad resource description");
 		badConnector.configure(badResourceType.getConnectorConfiguration().asPrismContainerValue(), result);
 
 		// WHEN

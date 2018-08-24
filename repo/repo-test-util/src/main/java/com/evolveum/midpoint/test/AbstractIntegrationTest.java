@@ -68,6 +68,7 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -134,6 +135,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -1363,11 +1365,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertUserPassword(user, expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
 	}
 
-	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
-		assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
+	protected PasswordType assertUserPassword(PrismObject<UserType> user, String expectedClearPassword) throws EncryptionException, SchemaException {
+		return assertUserPassword(user, expectedClearPassword, getPasswordStorageType());
 	}
 
-	protected void assertUserPassword(PrismObject<UserType> user, String expectedClearPassword, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
+	protected PasswordType assertUserPassword(PrismObject<UserType> user, String expectedClearPassword, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
 		UserType userType = user.asObjectable();
 		CredentialsType creds = userType.getCredentials();
 		assertNotNull("No credentials in "+user, creds);
@@ -1375,6 +1377,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertNotNull("No password in "+user, password);
 		ProtectedStringType protectedActualPassword = password.getValue();
 		assertProtectedString("Password for "+user, expectedClearPassword, protectedActualPassword, storageType);
+		return password;
 	}
 	
 	protected void assertUserNoPassword(PrismObject<UserType> user) throws EncryptionException, SchemaException {
@@ -2400,6 +2403,25 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return null; // not reached
 	}
 	
+	protected void assertApproxNumberOfAllResults(SearchResultMetadata searchMetadata, Integer expectedNumber) {
+		if (expectedNumber == null) {
+			if (searchMetadata == null) {
+				return;
+			}
+			assertNull("Unexpected approximate number of search results in search metadata, expected null but was "+searchMetadata.getApproxNumberOfAllResults(), searchMetadata.getApproxNumberOfAllResults());
+		} else {
+			assertEquals("Wrong approximate number of search results in search metadata", expectedNumber, searchMetadata.getApproxNumberOfAllResults());
+		}
+	}
+	
+	protected void assertEqualTime(String message, String isoTime, ZonedDateTime actualTime) {
+		assertEqualTime(message, ZonedDateTime.parse(isoTime), actualTime);
+	}
+	
+	protected void assertEqualTime(String message, ZonedDateTime expectedTime, ZonedDateTime actualTime) {
+		assertTrue(message+"; expected "+expectedTime+", but was "+actualTime, expectedTime.isEqual(actualTime));
+	}
+
 	protected XMLGregorianCalendar getTimestamp(String duration) {
 		return XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), duration);
 	}

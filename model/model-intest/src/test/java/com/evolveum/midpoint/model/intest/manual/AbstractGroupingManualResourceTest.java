@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
@@ -155,6 +156,18 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 			return OperationResultStatusType.IN_PROGRESS;
 		}
 		return null;
+	}
+	
+	@Test
+	@Override
+	public void test100AssignWillRoleOne() throws Exception {
+		// The count will be checked only after propagation was run, so we can address both direct and grouping cases
+		rememberCounter(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
+		
+		assignWillRoleOne("test100AssignWillRoleOne", USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
+		
+		// No counter increment asserted here. Connector instance is initialized in propagation. Not yet.
+        assertSteadyResources();
 	}
 	
 	/**

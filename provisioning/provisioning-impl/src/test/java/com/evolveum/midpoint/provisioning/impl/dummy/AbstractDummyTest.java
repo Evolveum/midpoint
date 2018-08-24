@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.icf.dummy.connector.DummyConnector;
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
@@ -103,8 +104,11 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");
 	protected static final String ACCOUNT_MORGAN_OID = "c0c010c0-d34d-b44f-f11d-444400008888";
 	protected static final String ACCOUNT_MORGAN_NAME = "morgan";
+	protected static final String ACCOUNT_CPTMORGAN_NAME = "cptmorgan";
 	protected static final String ACCOUNT_MORGAN_FULLNAME = "Captain Morgan";
 	protected static final String ACCOUNT_MORGAN_PASSWORD = "sh1verM3T1mb3rs";
+	protected static final String ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP = "1663-05-30T14:15:16Z";
+	protected static final String ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED = "1666-07-08T09:10:11Z";
 
 	protected static final File ACCOUNT_LECHUCK_FILE = new File(TEST_DIR, "account-lechuck.xml");
 	protected static final String ACCOUNT_LECHUCK_OID = "c0c010c0-d34d-b44f-f11d-444400009aa9";
@@ -164,7 +168,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		// not have a definition here
 		InternalsConfig.encryptionChecks = false;
 		provisioningService.postInit(initResult);
-		resource = addResourceFromFile(getResourceDummyFilename(), IntegrationTestTools.DUMMY_CONNECTOR_TYPE, initResult);
+		resource = addResourceFromFile(getResourceDummyFile(), getDummyConnectorType(), initResult);
 		resourceType = resource.asObjectable();
 
 		dummyResourceCtl = DummyResourceContoller.create(null);
@@ -184,6 +188,14 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 			setIcfUid(shadowDaemon, dummyAccountDaemon.getId());
 		}
 		repositoryService.addObject(shadowDaemon, null, initResult);
+	}
+	
+	protected String getDummyConnectorType() {
+		return IntegrationTestTools.DUMMY_CONNECTOR_TYPE;
+	}
+	
+	protected Class<?> getDummyConnectorClass() {
+		return  DummyConnector.class;
 	}
 
 	protected void extraDummyResourceInit() throws Exception {
@@ -209,7 +221,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		return icfUidAttr.getRealValue();
 	}
 
-	protected File getResourceDummyFilename() {
+	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
 
