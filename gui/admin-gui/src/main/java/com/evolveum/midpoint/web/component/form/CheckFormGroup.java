@@ -32,7 +32,7 @@ import org.apache.wicket.model.Model;
 /**
  * @author lazyman
  */
-@Deprecated
+//@Deprecated
 public class CheckFormGroup extends BasePanel<Boolean> {
 
     private static final String ID_CHECK = "check";
@@ -54,8 +54,10 @@ public class CheckFormGroup extends BasePanel<Boolean> {
 
     private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelSize, String textSize) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        labelContainer.setOutputMarkupId(true);
         add(labelContainer);
         Label l = new Label(ID_LABEL, label);
+        l.setOutputMarkupId(true);
 
         if (StringUtils.isNotEmpty(labelSize)) {
             labelContainer.add(AttributeAppender.prepend("class", labelSize));
@@ -87,13 +89,20 @@ public class CheckFormGroup extends BasePanel<Boolean> {
             checkWrapper.add(AttributeAppender.prepend("class", textSize));
         }
         add(checkWrapper);
+        checkWrapper.setOutputMarkupId(true);
 
         CheckBox check = new CheckBox(ID_CHECK, getModel());
+        check.setOutputMarkupId(true);
         check.setLabel(label);
         checkWrapper.add(check);
+        setOutputMarkupId(true);
     }
 
     public CheckBox getCheck(){
         return (CheckBox) get(ID_CHECK_WRAPPER + ":" + ID_CHECK);
+    }
+    
+    public Boolean getValue() {
+    	return getCheck().getModelObject();
     }
 }

@@ -984,24 +984,12 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 
 	private void addRelationDropDown(WebMarkupContainer relationContainer){
 		QName assignmentRelation = getModelObject().getTargetRef() != null ? getModelObject().getTargetRef().getRelation() : null;
+		
 		RelationDropDownChoicePanel relationDropDown = new RelationDropDownChoicePanel(ID_RELATION,
-				Model.of(assignmentRelation != null ? assignmentRelation : SchemaConstants.ORG_DEFAULT), AreaCategoryType.SELF_SERVICE){
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected List<QName> getChoicesList(){
-				AssignmentConstraintsType constraints = AssignmentEditorPanel.this.getModelObject().getDefaultAssignmentConstraints();
-				if (constraints == null ||
-						constraints.isAllowSameTarget() && constraints.isAllowSameRelation()){
-					return super.getChoicesList();
-				} else {
-					return AssignmentEditorPanel.this.getModelObject().getNotAssignedRelationsList();
-				}
-			}
-
-		};
-		relationDropDown.setEnabled(getModel().getObject().isEditable());
+				assignmentRelation != null ? assignmentRelation : SchemaConstants.ORG_DEFAULT, getSupportedRelations(), false);		relationDropDown.setEnabled(getModel().getObject().isEditable());
 		relationDropDown.add(new VisibleEnableBehaviour() {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -1011,34 +999,16 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		relationContainer.add(relationDropDown);
 
 	}
-
-	private IModel<RelationTypes> getRelationModel(List<RelationTypes> availableRelations){
-		return new IModel<RelationTypes>() {
-			@Override
-			public RelationTypes getObject() {
-				RelationTypes defaultRelation = RelationTypes.MEMBER;
-				if (!getModelObject().isMultyAssignable() &&
-						getModelObject().getAssignedRelationsList().contains(defaultRelation)){
-					defaultRelation = availableRelations.get(0);
-				}
-				if (getModelObject().getTargetRef() == null){
-					return defaultRelation;
-				}
-				return RelationTypes.getRelationType(getModelObject().getTargetRef().getRelation());
-			}
-
-			@Override
-			public void setObject(RelationTypes relationTypes) {
-				if (getModelObject().getTargetRef() != null){
-					getModelObject().getTargetRef().setRelation(relationTypes.getRelation());
-				}
-			}
-
-			@Override
-			public void detach() {
-
-			}
-		};
+	
+	private List<QName> getSupportedRelations() {
+		OperationResult result = new OperationResult("Relations for self service area");
+		AssignmentConstraintsType constraints = AssignmentEditorPanel.this.getModelObject().getDefaultAssignmentConstraints();
+		if (constraints == null ||
+				constraints.isAllowSameTarget() && constraints.isAllowSameRelation()){
+			return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
+		} else {
+			return getModelObject().getNotAssignedRelationsList();
+		}
 	}
 
 

@@ -633,12 +633,20 @@ public final class WebComponentUtil {
 
 	// TODO: move to schema component
 	public static List<QName> createFocusTypeList() {
+		return createFocusTypeList(false);
+	}
+	
+	public static List<QName> createFocusTypeList(boolean includeAbstractType) {
 		List<QName> focusTypeList = new ArrayList<>();
 
 		focusTypeList.add(UserType.COMPLEX_TYPE);
 		focusTypeList.add(OrgType.COMPLEX_TYPE);
 		focusTypeList.add(RoleType.COMPLEX_TYPE);
 		focusTypeList.add(ServiceType.COMPLEX_TYPE);
+		
+		if (includeAbstractType) {
+			focusTypeList.add(FocusType.COMPLEX_TYPE);
+		}
 
 		return focusTypeList;
 	}
@@ -2421,9 +2429,9 @@ public final class WebComponentUtil {
 		
 	}
 
-	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, OperationResult result, ModelServiceLocator pageBase){
+	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, ModelServiceLocator pageBase){
 		List<QName> relationsList = new ArrayList<>();
-		List<RelationDefinitionType> defList = getRelationDefinitions(result, pageBase);
+		List<RelationDefinitionType> defList = getRelationDefinitions(pageBase);
 		if (defList != null) {
 			defList.forEach(def -> {
 				if (def.getCategory() != null && def.getCategory().contains(category)) {
@@ -2435,14 +2443,14 @@ public final class WebComponentUtil {
 	}
 	
 	public static List<QName> getAllRelations(ModelServiceLocator pageBase) {
-		OperationResult result = new OperationResult("get all relations");
-		List<RelationDefinitionType> allRelationdefinitions = getRelationDefinitions(result, pageBase);
+		List<RelationDefinitionType> allRelationdefinitions = getRelationDefinitions(pageBase);
 		List<QName> allRelationsQName = new ArrayList<>(allRelationdefinitions.size());
 		allRelationdefinitions.stream().forEach(relation -> allRelationsQName.add(relation.getRef()));
 		return allRelationsQName;
 	}
 
-	public static List<RelationDefinitionType> getRelationDefinitions(OperationResult result, ModelServiceLocator pageBase){
+	public static List<RelationDefinitionType> getRelationDefinitions(ModelServiceLocator pageBase){
+		OperationResult result = new OperationResult("get relation definitions");
 		try {
 			return pageBase.getModelInteractionService().getRelationDefinitions(result);
 		} catch (ObjectNotFoundException | SchemaException ex){

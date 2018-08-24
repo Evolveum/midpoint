@@ -23,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class EnableBehaviour extends VisibleEnableBehaviour {
 
+	private static final long serialVersionUID = 1L;
+	
 	@NotNull private final SerializableSupplier<Boolean> producer;
 
 	public EnableBehaviour(@NotNull SerializableSupplier<Boolean> producer) {

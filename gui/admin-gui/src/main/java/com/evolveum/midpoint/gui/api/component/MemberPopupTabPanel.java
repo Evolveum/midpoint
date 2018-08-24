@@ -85,16 +85,7 @@ public abstract class MemberPopupTabPanel<O extends ObjectType> extends Abstract
         });
         parametersPanel.add(relationContainer);
 
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, AreaCategoryType.ADMINISTRATION){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<QName> getChoicesList(){
-                return supportedRelationList;
-            }
-
-
-        });
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null, supportedRelationList, false));
     }
 
     protected ObjectDelta prepareDelta(){

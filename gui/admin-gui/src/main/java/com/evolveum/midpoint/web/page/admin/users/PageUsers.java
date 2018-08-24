@@ -179,11 +179,6 @@ public class PageUsers extends PageAdminUsers {
 			}
 
 			@Override
-			protected PrismObject<UserType> getNewObjectListObject(){
-				return (new UserType()).asPrismObject();
-			}
-
-			@Override
 			protected IColumn<SelectableBean<UserType>, String> createActionsColumn() {
 				return new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(false), 3, PageUsers.this){
 					@Override

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -42,148 +43,143 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 /**
  * Created by honchar.
  */
-public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleMemberPanel<R> {
+public class RoleGovernanceMemberPanel<R extends AbstractRoleType> {// extends AbstractRoleMemberPanel<R> {
 
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(RoleGovernanceMemberPanel.class);
     private static final String DOT_CLASS = RoleGovernanceMemberPanel.class.getName() + ".";
 
-    public RoleGovernanceMemberPanel(String id, IModel<R> model, List<QName> relations) {
-        super(id, model, relations);
-    }
+//    public RoleGovernanceMemberPanel(String id, IModel<R> model, List<QName> relations) {
+//        super(id, model, relations);
+//    }
 
-    @Override
-    protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
-        List<InlineMenuItem> createMemberMenuItems = new ArrayList<>();
+//    @Override
+//    protected List<InlineMenuItem> createNewMemberInlineMenuItems() {
+//        List<InlineMenuItem> createMemberMenuItems = new ArrayList<>();
+//
+//        createMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.createApprover"),
+//                false, new HeaderMenuAction(this) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                createFocusMemberPerformed(RelationTypes.APPROVER.getRelation(), target);
+//            }
+//        }));
+//        createMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.createOwner"),
+//                false, new HeaderMenuAction(this) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                createFocusMemberPerformed(RelationTypes.OWNER.getRelation(), target);
+//            }
+//        }));
+//        createMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
+//                false, new HeaderMenuAction(this) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public void onClick(AjaxRequestTarget target) {
+//                createFocusMemberPerformed(RelationTypes.MANAGER.getRelation(), target);
+//            }
+//        }));
+//        return createMemberMenuItems;
+//    }
 
-        createMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.createApprover"),
-                false, new HeaderMenuAction(this) {
-            private static final long serialVersionUID = 1L;
+//    @Override
+//    protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
+//		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
+//		unassignMenuItems
+//				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignApproversSelected"),
+//						false, new HeaderMenuAction(this) {
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					public void onClick(AjaxRequestTarget target) {
+//						removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_APPROVER), target);
+//					}
+//				}));
+//
+//		unassignMenuItems
+//		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignOwnersSelected"),
+//				false, new HeaderMenuAction(this) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_OWNER), target);
+//			}
+//		}));
+//
+//		unassignMenuItems
+//		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignManagersSelected"),
+//				false, new HeaderMenuAction(this) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_MANAGER), target);
+//			}
+//		}));
+//
+//		return unassignMenuItems;
+//	}
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                createFocusMemberPerformed(RelationTypes.APPROVER.getRelation(), target);
-            }
-        }));
-        createMemberMenuItems.add(new InlineMenuItem(createStringResource("roleMemberPanel.menu.createOwner"),
-                false, new HeaderMenuAction(this) {
-            private static final long serialVersionUID = 1L;
+//	@Override
+//    protected List<QName> getAvailableRelationList(){
+//        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE,
+//                new OperationResult(OPERATION_RELATION_DEFINITION_TYPE), getPageBase());    }
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                createFocusMemberPerformed(RelationTypes.OWNER.getRelation(), target);
-            }
-        }));
-        createMemberMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.createManager"),
-                false, new HeaderMenuAction(this) {
-            private static final long serialVersionUID = 1L;
+//    @Override
+//    protected ObjectQuery createAllMemberQuery(Collection<QName> relations) {
+//        return super.createDirectMemberQuery(relations);
+//    }
+//
+//    @Override
+//    protected boolean isAuthorizedToUnassignMembers(){
+//        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_GOVERNANCE_ACTION_URI);
+//    }
+//
+//    @Override
+//    protected boolean isAuthorizedToAssignMembers(){
+//        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_GOVERNANCE_ACTION_URI);
+//    }
+//
+//    @Override
+//    protected boolean isAuthorizedToCreateMembers(){
+//        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_URI);
+//    }
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                createFocusMemberPerformed(RelationTypes.MANAGER.getRelation(), target);
-            }
-        }));
-        return createMemberMenuItems;
-    }
+//    @Override
+//    protected List<InlineMenuItem> createMemberRecomputeInlineMenuItems() {
+//        return new ArrayList<>();
+//    }
 
-    @Override
-    protected List<InlineMenuItem> createUnassignMemberInlineMenuItems() {
-		List<InlineMenuItem> unassignMenuItems = new ArrayList<>();
-		unassignMenuItems
-				.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignApproversSelected"),
-						false, new HeaderMenuAction(this) {
-					private static final long serialVersionUID = 1L;
+//    @Override
+//    protected boolean isGovernance(){
+//        return true;
+//    }
 
-					@Override
-					public void onClick(AjaxRequestTarget target) {
-						removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_APPROVER), target);
-					}
-				}));
-
-		unassignMenuItems
-		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignOwnersSelected"),
-				false, new HeaderMenuAction(this) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_OWNER), target);
-			}
-		}));
-
-		unassignMenuItems
-		.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.unassignManagersSelected"),
-				false, new HeaderMenuAction(this) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				removeMembersPerformed(QueryScope.SELECTED, Arrays.asList(SchemaConstants.ORG_MANAGER), target);
-			}
-		}));
-
-		return unassignMenuItems;
-	}
-
-	@Override
-    protected List<QName> getAvailableRelationList(){
-        return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE,
-                new OperationResult(OPERATION_RELATION_DEFINITION_TYPE), getPageBase());    }
-
-    @Override
-    protected ObjectQuery createAllMemberQuery(List<QName> relations) {
-        return super.createDirectMemberQuery(relations);
-    }
-
-    @Override
-    protected boolean isAuthorizedToUnassignMembers(){
-        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_GOVERNANCE_ACTION_URI);
-    }
-
-    @Override
-    protected boolean isAuthorizedToAssignMembers(){
-        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_GOVERNANCE_ACTION_URI);
-    }
-
-    @Override
-    protected boolean isAuthorizedToCreateMembers(){
-        return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_URI);
-    }
-
-    @Override
-    protected List<InlineMenuItem> createMemberRecomputeInlineMenuItems() {
-        return new ArrayList<>();
-    }
-
-    @Override
-    protected boolean isRelationColumnVisible(){
-        return true;
-    }
-
-    @Override
-    protected boolean isGovernance(){
-        return true;
-    }
-
-    static class RoleRelationSelectionDto implements Serializable {
-
-		private static final long serialVersionUID = 1L;
-		private boolean approver;
-		private boolean owner;
-		private boolean manager;
-
-		public boolean isApprover() {
-			return approver;
-		}
-
-		public boolean isManager() {
-			return manager;
-		}
-
-		public boolean isOwner() {
-			return owner;
-		}
-	}
+//    static class RoleRelationSelectionDto implements Serializable {
+//
+//		private static final long serialVersionUID = 1L;
+//		private boolean approver;
+//		private boolean owner;
+//		private boolean manager;
+//
+//		public boolean isApprover() {
+//			return approver;
+//		}
+//
+//		public boolean isManager() {
+//			return manager;
+//		}
+//
+//		public boolean isOwner() {
+//			return owner;
+//		}
+//	}
 
 }

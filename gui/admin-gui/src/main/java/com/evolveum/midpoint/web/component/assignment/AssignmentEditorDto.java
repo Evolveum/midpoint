@@ -792,8 +792,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 	}
 
 	public List<QName> getNotAssignedRelationsList(){
-		List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION,
-				new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS), pageBase);
+		List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, pageBase);
 		List<QName> assignedRelationsList = getAssignedRelationsList();
 		if (assignedRelationsList == null || assignedRelationsList.size() == 0){
 			return availableRelations;
@@ -821,8 +820,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		if (defualtAssignmentConstraints.isAllowSameTarget() && defualtAssignmentConstraints.isAllowSameRelation()){
 			return true;
 		}
-		List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION,
-				new OperationResult(OPERATION_LOAD_RELATION_DEFINITIONS), pageBase);
+		List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, pageBase);
 		int relationsListSize = availableRelations == null ? 0 : availableRelations.size();
 		if (defualtAssignmentConstraints.isAllowSameTarget() && !defualtAssignmentConstraints.isAllowSameRelation()
 				&& getAssignedRelationsList().size() < relationsListSize){

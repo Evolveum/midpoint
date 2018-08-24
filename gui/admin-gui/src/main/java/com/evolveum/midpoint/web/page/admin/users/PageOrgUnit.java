@@ -17,6 +17,11 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -34,11 +39,13 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
 import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
+import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -103,14 +110,17 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 			@Override
 			public AbstractRoleMemberPanel<OrgType> createMemberPanel(String panelId) {
-				OperationResult result = new OperationResult("Get category relations");
-				return new RoleMemberPanel<OrgType>(panelId, Model.of(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, result, PageOrgUnit.this)) {
+				
+				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS) {
 					
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected boolean isRole() {
-						return false;
+					protected List<QName> getSupportedRelations() {
+						List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, PageOrgUnit.this);
+						List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageOrgUnit.this);
+						governance.forEach(r -> relations.remove(r));
+						return relations;
 					}
 				};
 			}
@@ -127,14 +137,14 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 			@Override
 			public AbstractRoleMemberPanel<OrgType> createGovernancePanel(String panelId) {
-				OperationResult result = new OperationResult("Get category relations");
-				return new RoleGovernanceMemberPanel<OrgType>(panelId, Model.of(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, result, PageOrgUnit.this)) {
+				
+				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS) {
 					
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected boolean isRole() {
-						return false;
+					protected List<QName> getSupportedRelations() {
+						return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageOrgUnit.this);
 					}
 				};
 			}

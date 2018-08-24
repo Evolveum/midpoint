@@ -364,7 +364,7 @@ public class SearchFactory {
 			return;
 		}
 		OperationResult result = new OperationResult("resolve applicable relations");
-		defs.add(new SearchItemDefinition(path, refDef, WebComponentUtil.getCategoryRelationChoices(category, result, pageBase)));
+		defs.add(new SearchItemDefinition(path, refDef, WebComponentUtil.getCategoryRelationChoices(category, pageBase)));
 	}
 	
 	public static <C extends Containerable> void addSearchPropertyDef(PrismContainerDefinition<C> containerDef, ItemPath path, List<SearchItemDefinition> defs) {

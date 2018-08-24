@@ -100,11 +100,6 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 			}
 
 			@Override
-			protected PrismObject<ServiceType> getNewObjectListObject(){
-				return (new ServiceType()).asPrismObject();
-			}
-
-			@Override
 			protected List<IColumn<SelectableBean<ServiceType>, String>> createColumns() {
 				return ColumnUtils.getDefaultServiceColumns();
 			}

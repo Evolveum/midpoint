@@ -75,6 +75,8 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 		Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
 		tooltipLabel.add(new AttributeAppender("data-original-title", new AbstractReadOnlyModel<String>() {
 
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public String getObject() {
 				return getString(tooltipKey);
@@ -82,6 +84,8 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 		}));
 		tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
 		tooltipLabel.add(new VisibleEnableBehaviour() {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
@@ -94,6 +98,9 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
 		WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
 		requiredContainer.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public boolean isVisible() {
 				return required;
@@ -107,7 +114,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
         }
         add(selectWrapper);
 
-        DropDownChoice select = createDropDown(ID_SELECT, choices, renderer, required);
+        DropDownChoice<T> select = createDropDown(ID_SELECT, choices, renderer, required);
         select.setLabel(label);
         selectWrapper.add(select);
 
@@ -132,9 +139,11 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 
 	protected DropDownChoice<T> createDropDown(String id, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
                                             boolean required) {
-        DropDownChoice choice = new DropDownChoice<T>(id, getModel(), choices, renderer){
+        DropDownChoice<T> choice = new DropDownChoice<T>(id, getModel(), choices, renderer){
 
-            @Override
+            private static final long serialVersionUID = 1L;
+
+			@Override
             protected String getNullValidDisplayValue() {
                 return getString("DropDownChoicePanel.empty");
             }

@@ -25,6 +25,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class VisibleBehaviour extends VisibleEnableBehaviour {
 
+	private static final long serialVersionUID = 1L;
+	
 	@NotNull private final SerializableSupplier<Boolean> visibility;
 
 	public VisibleBehaviour(@NotNull SerializableSupplier<Boolean> visibility) {

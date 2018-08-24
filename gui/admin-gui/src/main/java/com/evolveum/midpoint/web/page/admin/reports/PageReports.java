@@ -100,11 +100,6 @@ public class PageReports extends PageAdminReports {
             }
 
             @Override
-            protected PrismObject<ReportType> getNewObjectListObject(){
-                return (new ReportType()).asPrismObject();
-            }
-
-            @Override
             protected List<IColumn<SelectableBean<ReportType>, String>> createColumns() {
                 return PageReports.this.initColumns();
             }
