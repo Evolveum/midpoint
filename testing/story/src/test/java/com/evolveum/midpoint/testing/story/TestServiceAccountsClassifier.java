@@ -15,19 +15,15 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
@@ -46,8 +42,15 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 	private static final File SERVICE_JIRA_FILE = new File(TEST_DIR, "service-jira.xml");
 	private static final String SERVICE_JIRA_OID = "c0c010c0-d34d-b33f-f00d-111111122222";
 	
+	private static final File SERVICE_GITHUB_FILE = new File(TEST_DIR, "service-github.xml");
+	private static final String SERVICE_GITHUB_OID = "c0c010c0-d34d-b33f-f00d-111111133333";
+	
+	private static final File SHADOW_GITHUB_FILE = new File(TEST_DIR, "shadow-github.xml");
+	private static final String SHADOW_GITHUB_OID = "c0c010c0-d34d-b33f-f00d-111111144444";
+	
 	private static final String ACCOUNT_DUMMY_JIRA_USERNAME = "jira";
 	private static final String ACCOUNT_DUMMY_WIKI_USERNAME = "wiki";
+	private static final String ACCOUNT_DUMMY_GITHUB_USERNAME = "github";
 	
 	private static final File TASK_RECONCILE_DUMMY_CLASSIFIER_FILE = new File(TEST_DIR, "task-dummy-classifier-reconcile.xml");
 	private static final String TASK_RECONCILE_DUMMY_CLASSIFIER_OID = "10335c7c-838f-11e8-93a6-4b1dd0ab58e4";
@@ -84,8 +87,8 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 	}
 	
 	@Test
-	public void test100createService() throws Exception {
-		final String TEST_NAME = "test100createService";
+	public void test100createServiceJira() throws Exception {
+		final String TEST_NAME = "test100createServiceJira";
 		displayTestTitle(TEST_NAME);
 		
 		//WHEN
@@ -101,16 +104,14 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 	}
 	
 	@Test
-	public void test101assignResourceNoneEnforcement() throws Exception {
-		final String TEST_NAME = "test100createService";
+	public void test101jiraAssignResourceNoneEnforcement() throws Exception {
+		final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
 		displayTestTitle(TEST_NAME);
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		
 		//GIVEN
 		
-//		assumeResourceAssigmentPolicy(RESOURCE_DUMMY_CLASSIFIER_OID, AssignmentPolicyEnforcementType.NONE, false);
-
 		//WHEN
 		displayWhen(TEST_NAME);
 		assignAccount(ServiceType.class, SERVICE_JIRA_OID, RESOURCE_DUMMY_CLASSIFIER_OID, "service");
@@ -123,8 +124,6 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 		assertAssignedResource(ServiceType.class, SERVICE_JIRA_OID, RESOURCE_DUMMY_CLASSIFIER_OID, task, result);
 		
 		assertNoLinkedAccount(service);
-		
-//		assumeResourceAssigmentPolicy(RESOURCE_DUMMY_CLASSIFIER_OID, AssignmentPolicyEnforcementType.RELATIVE, false);
 	}
 	
 	@Test
@@ -204,6 +203,101 @@ public class TestServiceAccountsClassifier extends AbstractStoryTest {
 		
 		DummyAccount dummyAccount = getDummyAccount(getDummyResource().getInstanceName(), ACCOUNT_DUMMY_WIKI_USERNAME);
 		assertFalse(dummyAccount.isEnabled(), "Dummy account should be disabled");
+	}
+	
+	@Test
+	public void test200createServiceGithub() throws Exception {
+		final String TEST_NAME = "test200createServiceGithub";
+		displayTestTitle(TEST_NAME);
+		
+		//WHEN
+		addObject(SERVICE_GITHUB_FILE);
+		
+		//THEN
+		displayThen(TEST_NAME);
+		PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_GITHUB_OID);
+		display("Service github after", service);
+		assertNotNull("No github service", service);
+		
+		assertNoLinkedAccount(service);
+	}
+	
+	@Test
+	public void test210createAccountGithub() throws Exception {
+		final String TEST_NAME = "test210createAccountGithub";
+		displayTestTitle(TEST_NAME);
+		
+		//WHEN
+		displayWhen(TEST_NAME);
+		addObject(SHADOW_GITHUB_FILE);
+		
+		// THEN
+        displayThen(TEST_NAME);
+        PrismObject<ShadowType> shadowGithub = getShadowModel(SHADOW_GITHUB_OID);
+        
+        display("Shadow github after", shadowGithub);
+		assertNotNull("No magazine service", shadowGithub);
+		ShadowAsserter.forShadow(shadowGithub).assertIntent("default");
+		
+		assertDummyAccount(getDummyResource().getInstanceName(), "github");
+	}
+	
+	@Test
+	public void test215githubAssignResourceNoneEnforcement() throws Exception {
+		final String TEST_NAME = "test101jiraAssignResourceNoneEnforcement";
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		//GIVEN
+		
+		//WHEN
+		displayWhen(TEST_NAME);
+		assignAccount(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, "service");
+		
+		//THEN
+		displayThen(TEST_NAME);
+		PrismObject<ServiceType> service = getObject(ServiceType.class, SERVICE_GITHUB_OID);
+		display("Service github after", service);
+		assertNotNull("No github service", service);
+		assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, task, result);
+		
+		assertNoLinkedAccount(service);
+	}
+	
+	@Test
+	public void test220linkAccountGithubAndFixIntent() throws Exception {
+		final String TEST_NAME = "test220linkAccountGithubAndFixIntent";
+		displayTestTitle(TEST_NAME);
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+		// GIVEN
+		PrismObject<ServiceType> serviceGithubBefore = getObject(ServiceType.class, SERVICE_GITHUB_OID);
+		display("Service github before", serviceGithubBefore);
+		assertNotNull("No github service", serviceGithubBefore);
+		assertNoLinkedAccount(serviceGithubBefore);
+		
+		// WHEN
+        displayWhen(TEST_NAME);
+        waitForTaskNextRunAssertSuccess(TASK_RECONCILE_DUMMY_CLASSIFIER_OID, true);
+		
+		// THEN
+		displayThen(TEST_NAME);
+		
+		assertServices(2);
+		PrismObject<ServiceType> serviceGithubAfter = getObject(ServiceType.class, SERVICE_GITHUB_OID);
+		display("Service github after", serviceGithubAfter);
+		assertNotNull("No github service", serviceGithubAfter);
+		assertAssignedResource(ServiceType.class, SERVICE_GITHUB_OID, RESOURCE_DUMMY_CLASSIFIER_OID, task, result);
+		PrismAsserts.assertPropertyValue(serviceGithubAfter, new ItemPath(ServiceType.F_EXTENSION, F_ACCOUNT_NAME), ACCOUNT_DUMMY_GITHUB_USERNAME);
+		assertLinks(serviceGithubAfter, 1);
+		
+		//check if the intent was changed
+		PrismObject<ShadowType> shadowGithub = getShadowModel(SHADOW_GITHUB_OID);
+        display("Shadow github after", shadowGithub);
+		assertNotNull("No magazine service", shadowGithub);
+		ShadowAsserter.forShadow(shadowGithub).assertIntent("service");
 	}
 	
 	

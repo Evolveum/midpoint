@@ -52,6 +52,7 @@ public class SynchronizationContext<F extends FocusType> {
 	private SynchronizationReactionType reaction;
 	
 	private boolean shadowExistsInRepo = true;
+	private boolean forceIntentChange;
 	
 	public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String chanel, Task task, OperationResult result) {
 		this.applicableShadow = applicableShadow;
@@ -183,5 +184,13 @@ public class SynchronizationContext<F extends FocusType> {
 
 	public void setShadowExistsInRepo(boolean shadowExistsInRepo) {
 		this.shadowExistsInRepo = shadowExistsInRepo;
+	}
+	
+	public boolean isForceIntentChange() {
+		return forceIntentChange;
+	}
+	
+	public void setForceIntentChange(boolean forceIntentChange) {
+		this.forceIntentChange = forceIntentChange;
 	}
 }
