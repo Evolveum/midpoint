@@ -326,6 +326,7 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 			LOGGER.trace("Wrapper before creating delta:\n{}", this.debugDump());
 		}
 
+		
 		ObjectDelta<O> delta = new ObjectDelta<>(object.getCompileTimeClass(), ChangeType.MODIFY, object.getPrismContext());
 		delta.setOid(object.getOid());
 
@@ -338,9 +339,14 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		}
 		
 		if (ContainerStatus.ADDING.equals(getStatus())) {
-			delta.applyTo(object);
-			cleanupEmptyContainers(object);
-			ObjectDelta<O> addDelta = ObjectDelta.createAddDelta(object);
+			PrismObject<O> objectToModify = object.clone();
+			delta.applyTo(objectToModify);
+			cleanupEmptyContainers(objectToModify);
+			ObjectDelta<O> addDelta = ObjectDelta.createAddDelta(objectToModify);
+			if (object.getPrismContext() != null) {
+				// Make sure we have all the definitions
+				object.getPrismContext().adopt(delta);
+			}
 			return addDelta;
 			
 		}
