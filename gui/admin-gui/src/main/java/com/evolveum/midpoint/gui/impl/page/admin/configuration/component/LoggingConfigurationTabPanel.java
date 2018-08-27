@@ -67,6 +67,7 @@ import com.evolveum.midpoint.web.component.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -98,8 +99,8 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     private static final String ID_AUDITING = "audit";
     
     
-    IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel = null;
-    IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = null;
+//    IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel = null;
+//    IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = null;
     
     public LoggingConfigurationTabPanel(String id, IModel<ContainerWrapper<LoggingConfigurationType>> model) {
         super(id, model);
@@ -118,24 +119,28 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     	add(loggingPanel);
     	
     	TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
-    	int itemPerPage = (int) ((PageBase)LoggingConfigurationTabPanel.this.getPage()).getItemsPerPage(UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE);
-    	PageStorage pageStorage = ((PageBase)LoggingConfigurationTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
+    	int itemPerPage = (int) getPageBase().getItemsPerPage(tableId);
+    	PageStorage pageStorage = getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage();
     	
-    	ContainerValueWrapper<LoggingConfigurationType> containerValueWrapper = getModelObject().getValues().get(0);
     	
-    	ContainerWrapper<ClassLoggerConfigurationType> loggersContainerWrap = containerValueWrapper.findContainerWrapper(new ItemPath(getModel().getObject().getPath(), LoggingConfigurationType.F_CLASS_LOGGER));
-    	IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = new AbstractReadOnlyModel<ContainerWrapper<ClassLoggerConfigurationType>>() {
-
-    		private static final long serialVersionUID = 1L;
-
-			@Override
-    		public ContainerWrapper<ClassLoggerConfigurationType> getObject() {
-    			return loggersContainerWrap;
-    		}
-
-    	};
+    	IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = 
+    			new ContainerWrapperFromObjectWrapperModel<ClassLoggerConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER));
     	
-    	this.loggerModel = loggerModel;
+//    	ContainerValueWrapper<LoggingConfigurationType> containerValueWrapper = getModelObject().getValues().get(0);
+//    	
+//    	ContainerWrapper<ClassLoggerConfigurationType> loggersContainerWrap = containerValueWrapper.findContainerWrapper(new ItemPath(getModel().getObject().getPath(), LoggingConfigurationType.F_CLASS_LOGGER));
+//    	IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = new AbstractReadOnlyModel<ContainerWrapper<ClassLoggerConfigurationType>>() {
+//
+//    		private static final long serialVersionUID = 1L;
+//
+//			@Override
+//    		public ContainerWrapper<ClassLoggerConfigurationType> getObject() {
+//    			return loggersContainerWrap;
+//    		}
+//
+//    	};
+    	
+//    	this.loggerModel = loggerModel;
     	
     	PrismContainerHeaderPanel<ClassLoggerConfigurationType> loggersHeader = new PrismContainerHeaderPanel<ClassLoggerConfigurationType>(ID_LOGGERS_HEADER, loggerModel) {
     		
@@ -157,7 +162,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			@Override
 			protected List<ContainerValueWrapper<ClassLoggerConfigurationType>> postSearch(
 					List<ContainerValueWrapper<ClassLoggerConfigurationType>> items) {
-				return getLoggers();
+				return items;
 			}
 			
 			@Override
@@ -212,19 +217,22 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		
 		add(loggersMultivalueContainerListPanel);
     	
-    	ContainerWrapper<AppenderConfigurationType> containerWrap = containerValueWrapper.findContainerWrapper(new ItemPath(getModel().getObject().getPath(), LoggingConfigurationType.F_APPENDER));
-    	IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel = new AbstractReadOnlyModel<ContainerWrapper<AppenderConfigurationType>>() {
-
-    		private static final long serialVersionUID = 1L;
-
-			@Override
-    		public ContainerWrapper<AppenderConfigurationType> getObject() {
-    			return containerWrap;
-    		}
-
-    	};
+		
+		IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel = 
+    			new ContainerWrapperFromObjectWrapperModel<AppenderConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER));
+//    	ContainerWrapper<AppenderConfigurationType> containerWrap = containerValueWrapper.findContainerWrapper(new ItemPath(getModel().getObject().getPath(), LoggingConfigurationType.F_APPENDER));
+//    	IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel = new AbstractReadOnlyModel<ContainerWrapper<AppenderConfigurationType>>() {
+//
+//    		private static final long serialVersionUID = 1L;
+//
+//			@Override
+//    		public ContainerWrapper<AppenderConfigurationType> getObject() {
+//    			return containerWrap;
+//    		}
+//
+//    	};
     	
-    	this.appenderModel = appenderModel;
+//    	this.appenderModel = appenderModel;
     	
     	PrismContainerHeaderPanel<AppenderConfigurationType> appenderHeader = new PrismContainerHeaderPanel<AppenderConfigurationType>(ID_APPENDERS_HEADER, appenderModel) {
     		
@@ -245,7 +253,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			@Override
 			protected List<ContainerValueWrapper<AppenderConfigurationType>> postSearch(
 					List<ContainerValueWrapper<AppenderConfigurationType>> items) {
-				return getAppenders();
+				return items;
 			}
 			
 			@Override
@@ -290,17 +298,19 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		
 		add(appendersMultivalueContainerListPanel);
 		
-		ContainerWrapper<AuditingConfigurationType> auditWrapper = containerValueWrapper.findContainerWrapper(new ItemPath(getModel().getObject().getPath(), LoggingConfigurationType.F_AUDITING));
-    	IModel<ContainerWrapper<AuditingConfigurationType>> auditModel = new AbstractReadOnlyModel<ContainerWrapper<AuditingConfigurationType>>() {
-
-    		private static final long serialVersionUID = 1L;
-
-			@Override
-    		public ContainerWrapper<AuditingConfigurationType> getObject() {
-    			return auditWrapper;
-    		}
-
-    	};
+		IModel<ContainerWrapper<AuditingConfigurationType>> auditModel = 
+    			new ContainerWrapperFromObjectWrapperModel<AuditingConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_AUDITING));
+//		ContainerWrapper<AuditingConfigurationType> auditWrapper = containerValueWrapper.findContainerWrapper(new ItemPath(getModel().getObject().getPath(), LoggingConfigurationType.F_AUDITING));
+//    	IModel<ContainerWrapper<AuditingConfigurationType>> auditModel = new AbstractReadOnlyModel<ContainerWrapper<AuditingConfigurationType>>() {
+//
+//    		private static final long serialVersionUID = 1L;
+//
+//			@Override
+//    		public ContainerWrapper<AuditingConfigurationType> getObject() {
+//    			return auditWrapper;
+//    		}
+//
+//    	};
     	
     	
     	
@@ -320,15 +330,15 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		return ItemVisibility.HIDDEN;
 	}
 
-	private List<ContainerValueWrapper<AppenderConfigurationType>> getAppenders() {
-//    	LOGGER.info("XXXXXXXXXXXXX values: " + appenderModel.getObject().getValues());
-    	return appenderModel.getObject().getValues();
-    }
-    
-    private List<ContainerValueWrapper<ClassLoggerConfigurationType>> getLoggers() {
-//    	LOGGER.info("XXXXXXXXXXXXX values: " + appenderModel.getObject().getValues());
-    	return loggerModel.getObject().getValues();
-    }
+//	private List<ContainerValueWrapper<AppenderConfigurationType>> getAppenders() {
+////    	LOGGER.info("XXXXXXXXXXXXX values: " + appenderModel.getObject().getValues());
+//    	return appenderModel.getObject().getValues();
+//    }
+//    
+//    private List<ContainerValueWrapper<ClassLoggerConfigurationType>> getLoggers() {
+////    	LOGGER.info("XXXXXXXXXXXXX values: " + appenderModel.getObject().getValues());
+//    	return loggerModel.getObject().getValues();
+//    }
     
     private List<IColumn<ContainerValueWrapper<ClassLoggerConfigurationType>, String>> initLoggersBasicColumns() {
     	List<IColumn<ContainerValueWrapper<ClassLoggerConfigurationType>, String>> columns = new ArrayList<>();
@@ -386,8 +396,9 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     
     
     protected void newAppendersClickPerformed(AjaxRequestTarget target) {
-        PrismContainerValue<AppenderConfigurationType> newObjectPolicy = appenderModel.getObject().getItem().createNewValue();
-        ContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = getAppendersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, appenderModel);
+    	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appenders = (MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>) get(ID_APPENDERS);
+    	PrismContainerValue<AppenderConfigurationType> newObjectPolicy = appenders.getModelObject().getItem().createNewValue();
+        ContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = getAppendersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, appenders.getModel());
         newAppenderContainerWrapper.setShowEmpty(true, false);
         newAppenderContainerWrapper.computeStripes();
         getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newAppenderContainerWrapper));
