@@ -168,7 +168,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 			@Override
 			public boolean isVisible(){
-				return getModelObject().containsMultipleMultivalueContainer() && getModelObject().getContainer() != null
+				return getModelObject().containsMultipleMultivalueContainer(isPanelVisible) && getModelObject().getContainer() != null
 						&& getModelObject().getDefinition().canModify()
 						&& !getModelObject().getChildMultivalueContainersToBeAdded(isPanelVisible).isEmpty()
 						&& buttonsVisibleBehaviour.isVisible();
@@ -184,7 +184,7 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 			@Override
 			public boolean isVisible(){
-				return pathsList.size() > 1 && isChildContainersSelectorPanelVisible && buttonsVisibleBehaviour.isVisible();
+				return getModelObject().containsMultipleMultivalueContainer(isPanelVisible) && isChildContainersSelectorPanelVisible && buttonsVisibleBehaviour.isVisible();
 			}
 		});
 		childContainersSelectorPanel.setOutputMarkupId(true);
