@@ -96,10 +96,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     private static final String ID_LOGGERS = "loggers";
     private static final String ID_AUDITING = "audit";
     
-    
-//    IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel = null;
-//    IModel<ContainerWrapper<ClassLoggerConfigurationType>> loggerModel = null;
-    
     public LoggingConfigurationTabPanel(String id, IModel<ContainerWrapper<LoggingConfigurationType>> model) {
         super(id, model);
     }
@@ -167,7 +163,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			
 			@Override
 			protected ObjectQuery createQuery() {
-			        return LoggingConfigurationTabPanel.this.createAppendersQuery();
+			   return null;
 			}
 			
 			@Override
@@ -244,7 +240,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			
 			@Override
 			protected ObjectQuery createQuery() {
-			        return LoggingConfigurationTabPanel.this.createAppendersQuery();
+			    return null;
 			}
 			
 			@Override
@@ -417,12 +413,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 	private MultivalueContainerListPanel<ClassLoggerConfigurationType> getLoggersMultivalueContainerListPanel(){
 		return ((MultivalueContainerListPanel<ClassLoggerConfigurationType>)get(ID_LOGGERS));
 	}
-    
-    private ObjectQuery createAppendersQuery() {
-    	TypeFilter filter = TypeFilter.createType(AppenderConfigurationType.COMPLEX_TYPE, new AllFilter());
-    	return ObjectQuery.createObjectQuery(filter);
-    }
-    
+	
     private void initAppenderPaging() {
     	getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage().setPaging(ObjectPaging.createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
     }
