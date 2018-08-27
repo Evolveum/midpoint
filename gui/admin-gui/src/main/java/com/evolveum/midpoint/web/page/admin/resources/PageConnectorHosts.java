@@ -178,7 +178,7 @@ public class PageConnectorHosts extends PageAdminResources {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageConnectorHosts.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -193,7 +193,7 @@ public class PageConnectorHosts extends PageAdminResources {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageConnectorHosts.this) {
 					private static final long serialVersionUID = 1L;
 

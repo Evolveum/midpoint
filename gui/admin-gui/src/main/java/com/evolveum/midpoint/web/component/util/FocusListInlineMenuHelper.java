@@ -84,7 +84,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			private static final long serialVersionUID = 1L;
 
 			@Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
@@ -116,7 +116,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			private static final long serialVersionUID = 1L;
 
 			@Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
@@ -143,7 +143,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			private static final long serialVersionUID = 1L;
 
 			@Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
@@ -175,7 +175,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			private static final long serialVersionUID = 1L;
 
 			@Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override

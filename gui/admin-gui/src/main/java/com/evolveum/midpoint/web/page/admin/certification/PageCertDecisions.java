@@ -393,7 +393,7 @@ public class PageCertDecisions extends PageAdminCertification {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(PageCertDecisions.this) {
                     private static final long serialVersionUID = 1L;
 

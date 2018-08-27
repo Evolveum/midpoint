@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.model.IModel;
@@ -35,12 +36,12 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
 
     private static final String ID_INLINE_MENU_PANEL = "inlineMenuPanel";
 
-    private IModel<List<InlineMenuItem>> menuItems;
+    private IModel<List<InlineMenuItem>> menuItemsModel;
 
-    public MenuMultiButtonPanel(String id, IModel<T> model, int numberOfButtons, IModel<List<InlineMenuItem>> menuItems) {
+    public MenuMultiButtonPanel(String id, IModel<T> model, int numberOfButtons, IModel<List<InlineMenuItem>> menuItemsModel) {
         super(id, model, numberOfButtons);
 
-        this.menuItems = menuItems;
+        this.menuItemsModel = menuItemsModel;
     }
 
     @Override
@@ -52,7 +53,7 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
 
     private void initLayout() {
         DropdownButtonPanel inlineMenu = new DropdownButtonPanel(ID_INLINE_MENU_PANEL,
-                new DropdownButtonDto(null, null, null, menuItems.getObject())) {
+                new DropdownButtonDto(null, null, null, menuItemsModel.getObject())) {
 
             private static final long serialVersionUID = 1L;
 
@@ -64,6 +65,7 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
         };
         add(inlineMenu);
 
-        inlineMenu.add(new VisibleBehaviour(() -> !(getNumberOfButtons() <= 2) || menuItems.getObject().size() > 2));
+        inlineMenu.add(new VisibleBehaviour(() -> !(getNumberOfButtons() <= 2) || menuItemsModel.getObject().size() > 2));
     }
+
 }

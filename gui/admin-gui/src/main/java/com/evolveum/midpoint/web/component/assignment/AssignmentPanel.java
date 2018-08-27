@@ -429,7 +429,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					}
 
 					@Override
-                    public InlineMenuItemAction getAction() {
+                    public InlineMenuItemAction initAction() {
 						return getMultivalueContainerListPanel().createDeleteColumnAction();
 					}
 				});
@@ -447,7 +447,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					}
 
 					@Override
-                    public InlineMenuItemAction getAction() {
+                    public InlineMenuItemAction initAction() {
 						return getMultivalueContainerListPanel().createDeleteColumnAction();
 					}
 				});
@@ -462,7 +462,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			}
 
 			@Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
 				return getMultivalueContainerListPanel().createEditColumnAction();
 			}
 		});

@@ -270,7 +270,7 @@ public class PageUsers extends PageAdminUsers {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
@@ -302,7 +302,7 @@ public class PageUsers extends PageAdminUsers {
 					 private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -330,7 +330,7 @@ public class PageUsers extends PageAdminUsers {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -348,7 +348,7 @@ public class PageUsers extends PageAdminUsers {
 
 			@Override
             public String getButtonIconCssClass() {
-				return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+				return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
 			}
 
 			@Override
@@ -362,7 +362,7 @@ public class PageUsers extends PageAdminUsers {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -389,7 +389,7 @@ public class PageUsers extends PageAdminUsers {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<UserType>>() {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -414,7 +414,7 @@ public class PageUsers extends PageAdminUsers {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override

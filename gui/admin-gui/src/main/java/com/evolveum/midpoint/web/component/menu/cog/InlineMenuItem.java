@@ -32,11 +32,13 @@ public abstract class InlineMenuItem implements Serializable {
     private IModel<Boolean> enabled;
     private IModel<Boolean> visible;
     private boolean submit;
+    private InlineMenuItemAction action;
     private int id = -1;
     private boolean showConfirmationDialog = false;
 
     public InlineMenuItem(IModel<String> label) {
         this.label = label;
+        action = initAction();
     }
 
 //
@@ -49,7 +51,7 @@ public abstract class InlineMenuItem implements Serializable {
 //        this.id = id;
 //    }
 
-    public abstract InlineMenuItemAction getAction();
+    public abstract InlineMenuItemAction initAction();
 
     public IModel<Boolean> getEnabled() {
         return enabled;
@@ -96,6 +98,14 @@ public abstract class InlineMenuItem implements Serializable {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public InlineMenuItemAction getAction() {
+        return action;
+    }
+
+    public void setAction(InlineMenuItemAction action) {
+        this.action = action;
     }
 
     public IModel<String> getConfirmationMessageModel() {

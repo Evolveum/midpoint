@@ -414,7 +414,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<NodeDto>() {
 					private static final long serialVersionUID = 1L;
 
@@ -446,7 +446,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<NodeDto>() {
 					private static final long serialVersionUID = 1L;
 
@@ -478,7 +478,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<NodeDto>() {
 					private static final long serialVersionUID = 1L;
 
@@ -500,7 +500,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<NodeDto>() {
 					private static final long serialVersionUID = 1L;
 					@Override
@@ -746,7 +746,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<TaskDto>() {
 					private static final long serialVersionUID = 1L;
 
@@ -777,7 +777,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<TaskDto>() {
 					private static final long serialVersionUID = 1L;
 
@@ -808,7 +808,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<TaskDto>() {
 					private static final long serialVersionUID = 1L;
 
@@ -834,7 +834,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<TaskDto>() {
 					private static final long serialVersionUID = 1L;
 
@@ -864,7 +864,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<TaskDto>() {
 							private static final long serialVersionUID = 1L;
 
@@ -891,7 +891,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<TaskDto>() {
 							private static final long serialVersionUID = 1L;
 
@@ -917,7 +917,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<TaskDto>() {
 							private static final long serialVersionUID = 1L;
 
@@ -943,7 +943,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<TaskDto>() {
 							private static final long serialVersionUID = 1L;
 
@@ -972,7 +972,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public InlineMenuItemAction getAction() {
+				public InlineMenuItemAction initAction() {
 					return new ColumnMenuAction<TaskDto>() {
 						private static final long serialVersionUID = 1L;
 

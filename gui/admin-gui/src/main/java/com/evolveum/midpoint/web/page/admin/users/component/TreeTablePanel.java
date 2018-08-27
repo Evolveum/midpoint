@@ -166,7 +166,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
@@ -183,7 +183,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
@@ -208,7 +208,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
@@ -226,7 +226,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
@@ -243,7 +243,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
@@ -260,7 +260,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
@@ -284,7 +284,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 

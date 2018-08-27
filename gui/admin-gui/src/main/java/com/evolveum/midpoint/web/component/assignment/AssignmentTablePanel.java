@@ -195,7 +195,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public InlineMenuItemAction getAction() {
+				public InlineMenuItemAction initAction() {
 					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
@@ -226,7 +226,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public InlineMenuItemAction getAction() {
+				public InlineMenuItemAction initAction() {
 					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
@@ -265,7 +265,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public InlineMenuItemAction getAction() {
+				public InlineMenuItemAction initAction() {
 					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
@@ -283,7 +283,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public InlineMenuItemAction getAction() {
+				public InlineMenuItemAction initAction() {
 					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 

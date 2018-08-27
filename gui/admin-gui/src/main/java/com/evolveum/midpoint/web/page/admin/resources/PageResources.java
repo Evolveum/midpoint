@@ -201,7 +201,7 @@ public class PageResources extends PageAdminResources {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -228,7 +228,7 @@ public class PageResources extends PageAdminResources {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -255,7 +255,7 @@ public class PageResources extends PageAdminResources {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -277,7 +277,7 @@ public class PageResources extends PageAdminResources {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -303,7 +303,7 @@ public class PageResources extends PageAdminResources {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
 					private static final long serialVersionUID = 1L;
 

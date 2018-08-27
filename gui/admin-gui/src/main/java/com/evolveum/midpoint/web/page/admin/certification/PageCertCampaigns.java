@@ -499,7 +499,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageCertCampaigns.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -514,7 +514,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageCertCampaigns.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -529,7 +529,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageCertCampaigns.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -544,7 +544,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageCertCampaigns.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -565,7 +565,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<CertCampaignListItemDto>() {
 					private static final long serialVersionUID = 1L;
 
@@ -591,7 +591,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<CertCampaignListItemDto>() {
 					private static final long serialVersionUID = 1L;
 
@@ -611,7 +611,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<CertCampaignListItemDto>() {
 					private static final long serialVersionUID = 1L;
 

@@ -381,7 +381,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageDebugList.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -398,7 +398,7 @@ public class PageDebugList extends PageAdminConfiguration {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new HeaderMenuAction(PageDebugList.this) {
 							private static final long serialVersionUID = 1L;
 
@@ -415,7 +415,7 @@ public class PageDebugList extends PageAdminConfiguration {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new HeaderMenuAction(PageDebugList.this) {
 							private static final long serialVersionUID = 1L;
 
@@ -439,7 +439,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageDebugList.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -457,7 +457,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageDebugList.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -473,7 +473,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageDebugList.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -491,7 +491,7 @@ public class PageDebugList extends PageAdminConfiguration {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new HeaderMenuAction(PageDebugList.this) {
 							private static final long serialVersionUID = 1L;
 
@@ -516,7 +516,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(PageDebugList.this) {
 					private static final long serialVersionUID = 1L;
 

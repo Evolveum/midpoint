@@ -347,7 +347,7 @@ public class PageCreatedReports extends PageAdminReports {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(PageCreatedReports.this) {
                     private static final long serialVersionUID = 1L;
 
@@ -363,7 +363,7 @@ public class PageCreatedReports extends PageAdminReports {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(PageCreatedReports.this) {
                     private static final long serialVersionUID = 1L;
 

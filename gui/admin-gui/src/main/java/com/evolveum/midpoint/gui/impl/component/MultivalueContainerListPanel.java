@@ -449,7 +449,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 			}
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return createDeleteColumnAction();
 			}
 		});
@@ -463,7 +463,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 			}
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return createEditColumnAction();
 			}
 		});

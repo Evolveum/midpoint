@@ -134,7 +134,7 @@ public class PageValuePolicies extends PageAdminValuePolicies {
             }
 
             @Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
                 return null;
             }
         });

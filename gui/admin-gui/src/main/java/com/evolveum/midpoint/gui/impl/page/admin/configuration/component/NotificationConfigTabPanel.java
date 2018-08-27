@@ -468,7 +468,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 			}
 
 			@Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
 				return createDeleteColumnAction();
 			}
 		});
@@ -482,7 +482,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 			}
 
 			@Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
 				return createEditColumnAction();
 			}
 		});

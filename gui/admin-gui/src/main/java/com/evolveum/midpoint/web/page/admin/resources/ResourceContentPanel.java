@@ -398,7 +398,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new InlineMenuItemAction() {
 					private static final long serialVersionUID = 1L;
 
@@ -415,7 +415,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new InlineMenuItemAction() {
 					private static final long serialVersionUID = 1L;
 
@@ -802,7 +802,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(ResourceContentPanel.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -818,7 +818,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(ResourceContentPanel.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -834,7 +834,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(ResourceContentPanel.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -852,7 +852,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(ResourceContentPanel.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -870,7 +870,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(ResourceContentPanel.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -893,7 +893,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ShadowType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -910,7 +910,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ShadowType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -927,7 +927,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ShadowType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -946,7 +946,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ShadowType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -965,7 +965,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ShadowType>>() {
 					private static final long serialVersionUID = 1L;
 
@@ -982,7 +982,7 @@ public abstract class ResourceContentPanel extends Panel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new ColumnMenuAction<SelectableBean<ShadowType>>() {
 					private static final long serialVersionUID = 1L;
 

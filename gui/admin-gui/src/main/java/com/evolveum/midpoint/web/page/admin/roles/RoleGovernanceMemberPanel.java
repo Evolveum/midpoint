@@ -62,7 +62,7 @@ public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleM
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(RoleGovernanceMemberPanel.this) {
                     private static final long serialVersionUID = 1L;
 
@@ -77,7 +77,7 @@ public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleM
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(RoleGovernanceMemberPanel.this) {
                     private static final long serialVersionUID = 1L;
 
@@ -92,7 +92,7 @@ public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleM
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(RoleGovernanceMemberPanel.this) {
                     private static final long serialVersionUID = 1L;
 
@@ -114,7 +114,7 @@ public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleM
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public InlineMenuItemAction getAction() {
+                    public InlineMenuItemAction initAction() {
                         return new HeaderMenuAction(RoleGovernanceMemberPanel.this) {
                             private static final long serialVersionUID = 1L;
 
@@ -131,7 +131,7 @@ public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleM
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(RoleGovernanceMemberPanel.this) {
                     private static final long serialVersionUID = 1L;
 
@@ -148,7 +148,7 @@ public class RoleGovernanceMemberPanel<R extends AbstractRoleType> extends RoleM
             private static final long serialVersionUID = 1L;
 
             @Override
-            public InlineMenuItemAction getAction() {
+            public InlineMenuItemAction initAction() {
                 return new HeaderMenuAction(RoleGovernanceMemberPanel.this) {
                     private static final long serialVersionUID = 1L;
 

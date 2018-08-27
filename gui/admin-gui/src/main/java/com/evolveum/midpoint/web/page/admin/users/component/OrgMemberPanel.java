@@ -382,7 +382,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public InlineMenuItemAction getAction() {
+				public InlineMenuItemAction initAction() {
 					return new HeaderMenuAction(OrgMemberPanel.this) {
 						private static final long serialVersionUID = 1L;
 
@@ -400,7 +400,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public InlineMenuItemAction getAction() {
+				public InlineMenuItemAction initAction() {
 					return new HeaderMenuAction(OrgMemberPanel.this) {
 						private static final long serialVersionUID = 1L;
 
@@ -419,7 +419,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public InlineMenuItemAction getAction() {
+				public InlineMenuItemAction initAction() {
 					return new HeaderMenuAction(OrgMemberPanel.this) {
 						private static final long serialVersionUID = 1L;
 
@@ -438,7 +438,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 						private static final long serialVersionUID = 1L;
 
 						@Override
-						public InlineMenuItemAction getAction() {
+						public InlineMenuItemAction initAction() {
 							return new HeaderMenuAction(OrgMemberPanel.this) {
 								private static final long serialVersionUID = 1L;
 

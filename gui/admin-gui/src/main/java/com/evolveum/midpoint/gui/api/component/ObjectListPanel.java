@@ -395,11 +395,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			public SelectableBean<O> createDataObjectWrapper(O obj) {
 				SelectableBean<O> bean = super.createDataObjectWrapper(obj);
 
-				//TODO do we need that?
-//				List<InlineMenuItem> inlineMenu = createInlineMenu();
-//				if (inlineMenu != null) {
-//					bean.getMenuItems().addAll(inlineMenu);
-//				}
+				List<InlineMenuItem> inlineMenu = createInlineMenu();
+				if (inlineMenu != null) {
+					bean.getMenuItems().addAll(inlineMenu);
+				}
 				return bean;
 			}
 

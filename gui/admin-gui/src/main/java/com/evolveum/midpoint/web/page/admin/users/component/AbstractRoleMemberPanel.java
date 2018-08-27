@@ -268,7 +268,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -288,7 +288,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
 					private static final long serialVersionUID = 1L;
 
@@ -309,7 +309,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
 							private static final long serialVersionUID = 1L;
 
@@ -325,7 +325,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
 							private static final long serialVersionUID = 1L;
 
@@ -343,7 +343,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
 							private static final long serialVersionUID = 1L;
 
@@ -366,7 +366,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					public InlineMenuItemAction getAction() {
+					public InlineMenuItemAction initAction() {
 						return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
 							private static final long serialVersionUID = 1L;
 
@@ -386,7 +386,7 @@ public abstract class AbstractRoleMemberPanel<T extends AbstractRoleType> extend
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public InlineMenuItemAction getAction() {
+			public InlineMenuItemAction initAction() {
 				return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
 					private static final long serialVersionUID = 1L;
 
