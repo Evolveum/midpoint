@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -37,10 +38,15 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -103,7 +109,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 
 			@Override
 			protected List<IColumn<SelectableBean<RoleType>, String>> createColumns() {
-				return PageRoles.this.initColumns();
+				return ColumnUtils.getDefaultRoleColumns();
 			}
 
             @Override
@@ -114,7 +120,6 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, RoleType object) {
                 PageRoles.this.roleDetailsPerformed(target, object.getOid());
-                ;
             }
 
             @Override
@@ -125,20 +130,6 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 		roleListPanel.setOutputMarkupId(true);
 		roleListPanel.setAdditionalBoxCssClasses(GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES);
 		mainForm.add(roleListPanel);
-    }
-
-    private List<IColumn<SelectableBean<RoleType>, String>> initColumns() {
-        List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
-
-        IColumn column = new PropertyColumn<SelectableBean<RoleType>, String>(createStringResource("OrgType.displayName"), "value.displayName");        columns.add(column);
-
-        column = new PropertyColumn(createStringResource("OrgType.identifier"), "value.identifier");
-        columns.add(column);
-
-        column = new PropertyColumn(createStringResource("ObjectType.description"), "value.description");
-        columns.add(column);
-
-        return columns;
     }
 
     private IColumn<SelectableBean<RoleType>, String> createActionsColumn() {

@@ -44,11 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 
-	protected static final String ID_FOCUS_FORM = "focusDetails";
-//	protected static final String ID_FOCUS_MAIN_PANEL = "focusDetails";
-//	protected static final String ID_FOCUS_ACTIVATION_PANEL = "activation";
-//	protected static final String ID_FOCUS_PASSWORD_PANEL = "password";
-	
+	protected static final String ID_FOCUS_FORM = "focusDetails";	
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusDetailsTabPanel.class);
 
@@ -61,20 +57,7 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 	}
 
 	private void initLayout() {
-		
-//		ContainerWrapperFromObjectWrapperModel<F, F> basicContainerModel = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), ItemPath.EMPTY_PATH);
-//		PrismContainerPanel<F> mainContainer = new PrismContainerPanel<>(ID_FOCUS_MAIN_PANEL, basicContainerModel, false, getMainForm(), getPageBase());
-//		add(mainContainer);
-//
-//		ContainerWrapperFromObjectWrapperModel<F, F> activationContainerModel = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), SchemaConstants.PATH_ACTIVATION);
-//		PrismContainerPanel<F> activationContainerPanel = new PrismContainerPanel<>(ID_FOCUS_ACTIVATION_PANEL, activationContainerModel, false, getMainForm(), getPageBase());
-//		add(activationContainerPanel);
-//		
-//		ContainerWrapperFromObjectWrapperModel<F, F> passwordContainerModel = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), SchemaConstants.PATH_PASSWORD);
-//		PrismContainerPanel<F> passwordContainerPanel = new PrismContainerPanel<>(ID_FOCUS_PASSWORD_PANEL, passwordContainerModel, false, getMainForm(), getPageBase());
-//		add(passwordContainerPanel);
-
-		
+				
 		PrismPanel<F> panel = new PrismPanel<F>(ID_FOCUS_FORM,  new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), getVisibleContainers()),
 				new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), getMainForm(), 
 				null, getPageBase());
