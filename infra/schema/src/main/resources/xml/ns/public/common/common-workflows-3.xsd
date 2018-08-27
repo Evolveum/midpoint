@@ -1334,6 +1334,9 @@
                             <xsd:documentation>
                                 Name of the aspect bean.
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>GenericPcpAspectConfigurationType.name</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

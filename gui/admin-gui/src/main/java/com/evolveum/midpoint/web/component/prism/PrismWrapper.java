@@ -7,6 +7,7 @@ public abstract class PrismWrapper {
 	    private boolean minimalized;
 	    private boolean sorted;
 	    private boolean showMetadata;
+	    private boolean expanded = true;
 	
 	    public boolean isMinimalized() {
 	        return minimalized;
@@ -40,6 +41,14 @@ public abstract class PrismWrapper {
 	        this.showEmpty = showEmpty;
 	        computeStripes();
 	    }
+	    
+	    public boolean isExpanded() {
+			return expanded;
+		}
+	    
+	    public void setExpanded(boolean expanded) {
+			this.expanded = expanded;
+		}
 	    
 	    public abstract void computeStripes();
 }

@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
@@ -26,11 +24,8 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -42,14 +37,11 @@ import com.evolveum.midpoint.web.component.prism.PrismPropertyColumn;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
- * @author lazyman
+ * @author skublik
  */
 public class EditablePropertyWrapperColumn<C extends Containerable, S> extends AbstractColumn<ContainerValueWrapper<C>, S> {
 
@@ -85,7 +77,7 @@ public class EditablePropertyWrapperColumn<C extends Containerable, S> extends A
     protected Component createInputPanel(String componentId, IModel<ContainerValueWrapper<C>> rowModel) {
     	Form form= new Form("form");
     	PropertyWrapperFromContainerValueWrapperModel model = new PropertyWrapperFromContainerValueWrapperModel<>(rowModel, qNameOfProperty);
-    	PrismPropertyColumn panel = new PrismPropertyColumn<>(componentId, model, form, getPageBase());
+    	PrismPropertyColumn panel = new PrismPropertyColumn(componentId, model, form, getPageBase());
     	return panel;
     }
 

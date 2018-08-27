@@ -5,12 +5,19 @@ import java.io.Serializable;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class ItemPathDto implements Serializable{
 	private static final long serialVersionUID = 1L;
 
-	private  QName objectType;
+	private  QName objectType = FocusType.COMPLEX_TYPE;
 
 	private ItemPathDto parentPath;
 
@@ -22,10 +29,16 @@ public class ItemPathDto implements Serializable{
 		// TODO Auto-generated constructor stub
 	}
 
+	public ItemPathDto(ItemPathType itemPathType) {
+		if (itemPathType == null) {
+			return;
+		}
+		this.path = itemPathType.getItemPath();
+	}
+	
 	public ItemPathDto(ItemPathDto parentPath) {
 		this.parentPath = parentPath;
 		this.path = parentPath.toItemPath();
-//		this.parent = parentPath.toItemPath();
 	}
 
 
@@ -72,6 +85,10 @@ public class ItemPathDto implements Serializable{
 		}
 		return path;
 
+	}
+	
+	public boolean isPathDefined() {
+		return (path != null && itemDef == null && parentPath == null);
 	}
 
 

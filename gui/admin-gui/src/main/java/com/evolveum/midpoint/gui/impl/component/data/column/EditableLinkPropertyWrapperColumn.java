@@ -34,7 +34,6 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyColumn;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 
 /**
  * @author skublik
@@ -80,7 +79,7 @@ public class EditableLinkPropertyWrapperColumn<C extends Containerable> extends 
     protected Component createInputPanel(String componentId, IModel<ContainerValueWrapper<C>> rowModel) {
     	Form form= new Form("form");
     	PropertyWrapperFromContainerValueWrapperModel model = new PropertyWrapperFromContainerValueWrapperModel<>(rowModel, qNameOfProperty);
-    	PrismPropertyColumn panel = new PrismPropertyColumn<>(componentId, model, form, getPageBase());
+    	PrismPropertyColumn panel = new PrismPropertyColumn(componentId, model, form, getPageBase());
     	return panel;
     }
     

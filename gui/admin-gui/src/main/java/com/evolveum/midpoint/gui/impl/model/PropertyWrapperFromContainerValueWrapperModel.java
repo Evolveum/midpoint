@@ -18,26 +18,17 @@ package com.evolveum.midpoint.gui.impl.model;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.model.AbstractWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.apache.commons.lang.Validate;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 
 /**
- * Model that returns property real values. This implementation works on ObjectWrapper models (not PrismObject).
+ * Model that returns PropertyWrapper model. This implementation works on ContainerValueWrapper models (not PrismObject).
  *
- * @author katkav
+ * @author skublik
  * 
  */
 public class PropertyWrapperFromContainerValueWrapperModel<T,C extends Containerable> implements IModel<PropertyWrapper<T>> {

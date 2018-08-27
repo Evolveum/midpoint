@@ -89,6 +89,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         POLICY_RULES_TAB_TABLE,
         OBJECT_POLICIES_TAB_TABLE,
         GLOBAL_POLICY_RULES_TAB_TABLE,
+        LOGGING_TAB_LOGGER_TABLE,
         LOGGING_TAB_APPENDER_TABLE,
         NOTIFICATION_TAB_MAIL_SERVER_TABLE
     }
