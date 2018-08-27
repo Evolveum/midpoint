@@ -81,7 +81,6 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
         	setExtendedForEmptyContainers(model);
         }
         
-        
         LOGGER.trace("Creating container panel for {}", model.getObject());
 
         //TODO: visible behaviour??
