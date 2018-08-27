@@ -2071,6 +2071,9 @@
                             Specification of lifecycle state.
                         </p>
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateModelType.state</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -2170,6 +2173,9 @@
                     		which allows him to perform post-authentication.
                     	</p>
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>LifecycleStateType.forcedAssignment</a:displayName>
+                    </xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
             <xsd:element name="activeAssignments" type="xsd:boolean" minOccurs="0">
@@ -2270,6 +2276,9 @@
     						The target type of the assignment, e.g RoleType, ServiceType, OrgType, ...
     					</p>
     				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>VirtualAssignmentSpecificationType.targetType</a:displayName>
+					</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
     		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
@@ -2279,6 +2288,9 @@
     						No filter, no virtual assignemnts.
     					</p>
     				</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>VirtualAssignmentSpecificationType.filter</a:displayName>
+					</xsd:appinfo>
     			</xsd:annotation>
     		</xsd:element>
     	</xsd:sequence>

@@ -7,6 +7,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -131,5 +132,11 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 
 //		return autocompletePanel.getBaseFormComponent().getModelObject() != null;
 	}
+	
+	public Component getBaseFormComponent() {
+		return get(ID_DEFINITION);
+	}
+	
+	
 
 }
