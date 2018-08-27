@@ -75,6 +75,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -244,6 +245,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		
 		ObjectSynchronizationDiscriminatorType synchronizationDiscriminator = determineObjectSynchronizationDiscriminatorType(syncCtx, task, result);
 		if (synchronizationDiscriminator != null) {
+			syncCtx.setForceIntentChange(true);
 			LOGGER.trace("Setting synchronization situation to synchronization context: {}", synchronizationDiscriminator.getSynchronizationSituation());
 			syncCtx.setSituation(synchronizationDiscriminator.getSynchronizationSituation());
 			F owner = (F) syncCtx.getCurrentOwner();
@@ -262,12 +264,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			}
 		}
 		
-//		for (ObjectSynchronizationType objectSynchronization : synchronization.getObjectSynchronization()) {
-//			if (isPolicyApplicable(objectSynchronization, syncCtx)) {
-//				syncCtx.setObjectSynchronization(objectSynchronization);
-//				return syncCtx;
-//			}
-//		}
 		return syncCtx;
 	}
 	
@@ -1177,7 +1173,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				deltas.add(kindDelta);
 			}
 
-			if (shadowType.getIntent() == null) {
+			if (isNullIntentOrIsForceIntent(syncCtx)) {
 				String intent = syncCtx.getObjectSynchronization().getIntent();
 				if (intent == null) {
 					intent = SchemaConstants.INTENT_DEFAULT;
@@ -1217,6 +1213,22 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		}
 
 		return null;
+	}
+	
+	private <F extends FocusType> boolean isNullIntentOrIsForceIntent(SynchronizationContext<F> syncCtx) {
+		ShadowType shadow = syncCtx.getCurrentShadow().asObjectable();
+		if (shadow.getIntent() == null) {
+			return true;
+		}
+		
+		if (syncCtx.isForceIntentChange()) {
+			String objectSyncIntent = syncCtx.getObjectSynchronization().getIntent();
+			if (!MiscSchemaUtil.equalsIntent(shadow.getIntent(), objectSyncIntent)) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 
 	private <F extends FocusType> void executeActions(SynchronizationContext<F> syncCtx,

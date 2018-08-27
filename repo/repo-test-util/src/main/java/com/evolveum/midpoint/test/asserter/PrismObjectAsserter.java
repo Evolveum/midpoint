@@ -96,6 +96,11 @@ public class PrismObjectAsserter<O extends ObjectType,R> extends AbstractAsserte
 		return this;
 	}
 	
+	public PrismObjectAsserter<O,R> assertDescription(String expected) {
+		assertEquals("Wrong description in "+desc(), expected, getObject().asObjectable().getDescription());
+		return this;
+	}
+	
 	public PrismObjectAsserter<O,R> assertLifecycleState(String expected) {
 		assertEquals("Wrong lifecycleState in "+desc(), expected, getObject().asObjectable().getLifecycleState());
 		return this;

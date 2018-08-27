@@ -183,7 +183,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parametersPanel.add(to);
 
         ItemPathPanel changedItemPanel = new ItemPathPanel(ID_CHANGED_ITEM, new PropertyModel<>(getModel(),
-            AuditSearchDto.F_CHANGED_ITEM), getPageBase());
+            AuditSearchDto.F_CHANGED_ITEM));
         changedItemPanel.setOutputMarkupId(true);
         parametersPanel.add(changedItemPanel);
 

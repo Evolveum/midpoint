@@ -17,6 +17,8 @@ package com.evolveum.midpoint.security.api;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -418,13 +420,16 @@ public class AuthorizationConstants {
 	public static final String AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ADD_MEMBER_ACTION_QNAME);
 
 	public static final QName AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminUnassignMember");
-	public static final String AUTZ_UI_ADMIN_UNASSIGN_MEMBER_TAB_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_QNAME);
+	public static final String AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_MEMBER_ACTION_QNAME);
 	
 	public static final QName AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminUnassignAllMembers");
 	public static final String AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_TAB_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_ALL_MEMBERS_ACTION_QNAME);
 
 	public static final QName AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminRecomputeMember");
 	public static final String AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_RECOMPUTE_MEMBER_ACTION_QNAME);
+	
+	public static final QName AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminDeleteMember");
+    public static final String AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_DELETE_MEMBER_ACTION_QNAME);
 
 	//ui authorizations for menu items on the Governance members tab of Role type object
 	public static final QName AUTZ_UI_ADMIN_ASSIGN_GOVERNANCE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAssignGovernance");
@@ -432,6 +437,12 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_ADMIN_UNASSIGN_GOVERNANCE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminUnassignGovernance");
 	public static final String AUTZ_UI_ADMIN_UNASSIGN_GOVERNANCE_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_UNASSIGN_GOVERNANCE_ACTION_QNAME);
+	
+	public static final QName AUTZ_UI_ADMIN_RECOMPUTE_GOVERNANCE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminRecomputeGovernance");
+	public static final String AUTZ_UI_ADMIN_RECOMPUTE_GOVERNANCE_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_RECOMPUTE_GOVERNANCE_ACTION_QNAME);
+	
+	public static final QName AUTZ_UI_ADMIN_DELETE_GOVERNANCE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminDeleteGovernance");
+	public static final String AUTZ_UI_ADMIN_DELETE_GOVERNANCE_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_DELETE_GOVERNANCE_ACTION_QNAME);
 
 	public static final QName AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAddGovernance");
 	public static final String AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ADD_GOVERNANCE_ACTION_QNAME);
@@ -575,5 +586,5 @@ public class AuthorizationConstants {
 			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
 			new ItemPath(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE)
 		);
-
+	
 }

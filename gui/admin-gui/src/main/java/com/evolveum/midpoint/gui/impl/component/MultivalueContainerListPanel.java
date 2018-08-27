@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -38,23 +32,19 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -64,21 +54,14 @@ import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 /**
  * @author skublik
@@ -159,27 +142,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		BoxedTablePanel<ContainerValueWrapper<C>> itemTable = initItemTable();
 		itemsContainer.add(itemTable);
 
-//		AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ITEM_BUTTON, new Model<>("fa fa-plus"),
-//				createStringResource("MainObjectListPanel.newObject")) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				newItemPerformed(target);
-//			}
-//		};
-//
-//		newObjectIcon.add(new VisibleEnableBehaviour() {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public boolean isVisible() {
-//				return enableActionNewObject();
-//			}
-//		});
-//		itemsContainer.add(newObjectIcon);
-		
 		WebMarkupContainer searchContainer = getSearchPanel(ID_SEARCH_ITEM_PANEL);
 		itemsContainer.add(searchContainer);
 		itemsContainer.add(new VisibleEnableBehaviour() {
@@ -216,7 +178,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 			@Override
 			public ObjectQuery getQuery() {
-				return MultivalueContainerListPanel.this.getQuery();
+				return MultivalueContainerListPanel.this.createProviderQuery();
 			}
 			
 			@Override
@@ -306,15 +268,25 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 
-		MultivalueContainerListDataProvider<C> provider = getDataProvider();
+//		MultivalueContainerListDataProvider<C> provider = getDataProvider();
 
-		ObjectQuery customQuery = getQuery();
-		
-		if (customQuery == null || customQuery.getFilter() == null) {
-			customQuery = createQuery();
-		}
-		
-		provider.setQuery(customQuery);
+//		ObjectQuery finalQuery = null;
+//		
+//		ObjectQuery searchQuery = getQuery();
+//		
+//		ObjectQuery customQuery = createQuery();
+//		
+//		if (query != null && query.getFilter() != null) {
+//			if (customQuery != null && customQuery.getFilter() != null) {
+//				finalQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(customQuery.getFilter(), query.getFilter()));
+//			}
+//			finalQuery = query;
+//			
+//		} else {
+//			finalQuery = customQuery;
+//		}
+//		
+//		provider.setQuery(finalQuery);
 //		String storageKey = getStorageKey();
 //		if (StringUtils.isNotEmpty(storageKey)) {
 //			PageStorage storage = getPageStorage(storageKey);
@@ -356,6 +328,21 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	
 	protected abstract List<ContainerValueWrapper<C>> postSearch(List<ContainerValueWrapper<C>> items);
 
+	private ObjectQuery createProviderQuery() {
+		ObjectQuery searchQuery = getQuery();
+		
+		ObjectQuery customQuery = createQuery();
+		
+		if (searchQuery != null && searchQuery.getFilter() != null) {
+			if (customQuery != null && customQuery.getFilter() != null) {
+				return ObjectQuery.createObjectQuery(AndFilter.createAnd(customQuery.getFilter(), searchQuery.getFilter()));
+			}
+			return searchQuery;
+			
+		} 
+		return customQuery;
+	}
+	
 	protected abstract ObjectQuery createQuery();
 
 	protected abstract List<IColumn<ContainerValueWrapper<C>, String>> createColumns();

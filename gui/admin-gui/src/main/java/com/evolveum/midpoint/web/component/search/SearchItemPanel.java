@@ -237,7 +237,10 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
 					@Override
         			protected List<QName> getAllowedRelations() {
-        				return item.getAllowedRelations();
+						if (item.getAllowedRelations() != null) {
+							return item.getAllowedRelations();
+						}
+        				return super.getAllowedRelations();
         			}
 					
 					@Override

@@ -49,6 +49,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         TABLE_VALUE_POLICIES,
         ROLE_MEMEBER_PANEL,
         ORG_MEMEBER_PANEL,
+        SERVICE_MEMEBER_PANEL,
         TREE_TABLE_PANEL_CHILD,
         TREE_TABLE_PANEL_MEMBER,
         TREE_TABLE_PANEL_MANAGER,
@@ -88,6 +89,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         POLICY_RULES_TAB_TABLE,
         OBJECT_POLICIES_TAB_TABLE,
         GLOBAL_POLICY_RULES_TAB_TABLE,
+        LOGGING_TAB_LOGGER_TABLE,
         LOGGING_TAB_APPENDER_TABLE,
         NOTIFICATION_TAB_MAIL_SERVER_TABLE
     }

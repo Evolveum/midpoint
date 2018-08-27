@@ -152,7 +152,7 @@ public class AuditSearchDto implements Serializable {
 	public ItemPathDto getChangedItem() {
 		if (changedItem == null) {
 			changedItem = new ItemPathDto();
-			changedItem.setObjectType(UserType.COMPLEX_TYPE);
+//			changedItem.setObjectType(UserType.COMPLEX_TYPE);
 		}
 		return changedItem;
 	}

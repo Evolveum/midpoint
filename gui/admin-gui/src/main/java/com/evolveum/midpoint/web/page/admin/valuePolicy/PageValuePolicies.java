@@ -103,12 +103,6 @@ public class PageValuePolicies extends PageAdminValuePolicies {
                 return PageValuePolicies.this.createActionsColumn();
             }
 
-            @Override
-            protected PrismObject<ValuePolicyType> getNewObjectListObject() {
-                return (new ValuePolicyType()).asPrismObject();
-            }
-
-
         };
         valuePolicyPanel.setOutputMarkupId(true);
         mainForm.add(valuePolicyPanel);

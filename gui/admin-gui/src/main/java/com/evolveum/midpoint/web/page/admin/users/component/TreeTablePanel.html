@@ -25,7 +25,25 @@
 			<div wicket:id="treePanel"/>
         </div>
         <div class="col-md-8">
-            <div wicket:id="memberPanel"></div>
+            <div class="box box-solid object-user-box org-managers-box" wicket:id="managerContainer">
+		 	<div class="box-header with-border">
+		 		<h3 class="box-title"><wicket:message key="TreeTablePanel.managers"/></h3>
+		 	</div>
+			<div class="box-body">
+                <div class="col-md-12" wicket:id="managerTable">
+					<div wicket:id="managerSummary" />
+				</div>
+			</div>
+		</div>
+		
+		<div class="box box-solid box-primary org-members-box">
+			<div class="box-header with-border">
+				<h3 class="box-title"><wicket:message key="TreeTablePanel.members"/></h3>
+			</div>		
+			<div class="box-body">
+                <div wicket:id="memberPanel" />
+			</div>
+		</div>
         </div>        
     </div>
     

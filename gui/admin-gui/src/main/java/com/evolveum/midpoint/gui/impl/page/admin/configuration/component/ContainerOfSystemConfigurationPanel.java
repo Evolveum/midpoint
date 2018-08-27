@@ -16,29 +16,35 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * @author skublik
  */
-public class LoggingConfigPanelNew extends BasePanel<ObjectWrapper<SystemConfigurationType>> {
+public class ContainerOfSystemConfigurationPanel<C extends Containerable> extends BasePanel<ObjectWrapper<SystemConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
 	
-    private static final String ID_LOGGING_CONFIG = "loggingConfiguration";
-    private static final ItemPath PATH_LOGGING = new ItemPath(SystemConfigurationType.F_LOGGING);
+    private static final String ID_CONTAINER = "container";
+    private QName qNameContainer;
 
-    public LoggingConfigPanelNew(String id, IModel<ObjectWrapper<SystemConfigurationType>> model) {
+    public ContainerOfSystemConfigurationPanel(String id, IModel<ObjectWrapper<SystemConfigurationType>> model, QName qNameContainer) {
         super(id, model);
+        this.qNameContainer = qNameContainer;
     }
 
     @Override
@@ -51,8 +57,8 @@ public class LoggingConfigPanelNew extends BasePanel<ObjectWrapper<SystemConfigu
 
     	Form form = new Form<>("form");
     	
-    	ContainerWrapperFromObjectWrapperModel<LoggingConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getModel(), PATH_LOGGING);
-		PrismContainerPanel<LoggingConfigurationType> panel = new PrismContainerPanel<>(ID_LOGGING_CONFIG, model, true, form, null, getPageBase());
+    	ContainerWrapperFromObjectWrapperModel<C, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getModel(), new ItemPath(qNameContainer));
+		PrismContainerPanel<C> panel = new PrismContainerPanel<>(ID_CONTAINER, model, true, form, null, getPageBase());
 		add(panel);
 		
 	}

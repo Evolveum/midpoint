@@ -17,7 +17,10 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebComponent;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -36,6 +39,7 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 
 	
 	protected static final String ID_LABEL = "label";
+	private static final String ID_EXPAND_COLLAPSE_CONTAINER = "expandCollapse";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismHeaderPanel.class);
 
@@ -50,12 +54,17 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 
 		setOutputMarkupId(true);
 		
+		add(initExpandCollapseButton(ID_EXPAND_COLLAPSE_CONTAINER));
 		initButtons();
 		initHeaderLabel();
 
     }
 
-    protected void initHeaderLabel(){
+    protected WebMarkupContainer initExpandCollapseButton(String contentAreaId){
+    	return new WebMarkupContainer(contentAreaId);
+    }
+
+	protected void initHeaderLabel(){
         String displayName = getLabel();
         if (StringUtils.isEmpty(displayName)) {
             displayName = "displayName.not.set";

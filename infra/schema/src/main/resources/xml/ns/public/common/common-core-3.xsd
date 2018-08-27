@@ -2712,6 +2712,10 @@
 						complex parameters. But for now, their only parameter is the (clusterwide) member tasks limit.
 						They are also referenced from NodeType when specifying execution limitations for them.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.group</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupTaskLimit" type="xsd:int" minOccurs="0">
@@ -2720,6 +2724,10 @@
 						Number of tasks within the group that can be executed at once (clusterwide). Default is "unlimited".
 						This parameter will be moved into separate task group object in a later version of midPoint.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.groupTaskLimit</a:displayName>
+						<a:displayOrder>110</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="secondaryGroup" type="tns:TaskExecutionGroupConstraintType" minOccurs="0" maxOccurs="unbounded">
@@ -2728,6 +2736,8 @@
 						TODO
 					</xsd:documentation>
 					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.secondaryGroup</a:displayName>
+						<a:displayOrder>120</a:displayOrder>
 						<a:since>3.7.1</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -2762,6 +2772,10 @@
 					<xsd:documentation>
 						In what time to retry after clusterwide execution constraints are not met. The default is 1 minute.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.retryAfter</a:displayName>
+						<a:displayOrder>130</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -2784,6 +2798,10 @@
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionGroupConstraintType.group</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupTaskLimit" type="xsd:int" minOccurs="0">
@@ -2792,6 +2810,10 @@
 						Number of tasks within the group that can be executed at once (clusterwide). Default is "unlimited".
 						This parameter will be moved into separate task group object in a later version of midPoint.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionGroupConstraintType.groupTaskLimit</a:displayName>
+						<a:displayOrder>110</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -5900,9 +5922,6 @@
 
                         If this element is not present at all then the native+configured capabilities
                         at the resource level are applied.
-
-                        BEWARE: Currently, only pagedSearch and addRemoveAttributeValues capability is expected here.
-                        Other capabilities listed in this section are ignored.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -6312,6 +6331,19 @@
         				includes run-time errors that are likely caused by the configuration, such
         				as generic errors in the expressions.
         			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="unsupported" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Selects "unsupported operation" issues. These errors are caused by
+        				lack of functionality or support for the operation in connector
+        				or any other part of midPoint. E.g. this may be missing (or disabled)
+        				connector capability. 
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="generic" type="xsd:boolean" minOccurs="0" default="false">
@@ -19642,8 +19674,6 @@
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
-           		<!-- TODO: number of results per page (MID-1931) -->
-           		<!-- TODO: later: export settings (GuiExportSettingsType) -->
 				<xsd:element name="disableSorting" type="xsd:boolean" default="false" minOccurs="0">
 					<xsd:annotation>
        					<xsd:appinfo>
@@ -19651,6 +19681,20 @@
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
+       			<xsd:element name="action" type="tns:GuiActionType" minOccurs="0" maxOccurs="unbounded">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						List of actions for this view. Actions are special things that can be done
+       						with particular object or list of objects.
+       					</xsd:documentation>
+       					<xsd:appinfo>
+       						<a:since>3.9</a:since>
+							<a:displayName>GuiObjectListViewType.display</a:displayName>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
+           		<!-- TODO: number of results per page (MID-1931) -->
+           		<!-- TODO: later: export settings (GuiExportSettingsType) -->
            	</xsd:sequence>
     </xsd:complexType>
     
@@ -19824,6 +19868,59 @@
        				</xsd:annotation>
        			</xsd:element>
        			<!-- TODO later: sorting, expression -->
+           	</xsd:sequence>
+    </xsd:complexType>
+    
+   	<xsd:complexType name="GuiActionType">
+        <xsd:annotation>
+        	<xsd:documentation>
+        		Actions are special things that can be done with particular object or list of objects.
+        		Action may be a task, or (later) a script, java class or any similar mechanism.
+        	</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+       		<xsd:sequence>
+       			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Action short name (identifier). This element is not displayed to the user. It is used
+       						for identification of the action and referencing (e.g. previous column). The definitions
+       						that have the same name in different layers (global, role, user) will be merged together.
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Free-form description. It is not displayed to the user. It is supposed to be used by system
+       						administrators to explain the purpose of the configuration.
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Specification of action display properties.
+       						(Only label is implemented in midPoint 3.9)
+       					</xsd:documentation>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						Reference to task template. The template will be used to start a new task
+       						for the selected object or objects.
+       					</xsd:documentation>
+       					<xsd:appinfo>
+       						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+       						<a:since>3.9</a:since>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<!-- TODO later: expression, reference to java class, etc. -->
            	</xsd:sequence>
     </xsd:complexType>
     

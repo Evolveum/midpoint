@@ -1033,7 +1033,10 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 	        		if (deltaObjectClass == DummyAccount.class) {
 		        		DummyAccount account = resource.getAccountById(delta.getObjectId());
 		        		if (account == null) {
-		        			throw new IllegalStateException("We have delta for account '"+delta.getObjectId()+"' but such account does not exist");
+		        			// We have delta for object that does not exist any more. It was probably deleted in the meantime.
+		        			// Just skip the delta.
+		        			log.warn("We have delta for account '"+delta.getObjectId()+"' but such account does not exist, skipping delta");
+		        			continue;
 		        		}
 		        		ConnectorObject cobject = convertToConnectorObject(account, attributesToGet);
 						deltaBuilder.setObject(cobject);

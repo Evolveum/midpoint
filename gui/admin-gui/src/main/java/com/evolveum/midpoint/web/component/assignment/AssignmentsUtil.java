@@ -300,7 +300,7 @@ public class AssignmentsUtil {
     	}
 
     	RelationDefinitionType relationDef = ObjectTypeUtil.findRelationDefinition(
-    	        WebComponentUtil.getRelationDefinitions(new OperationResult("AssignmentsUtil.loadRelationDefinitions"), pageBase),
+    	        WebComponentUtil.getRelationDefinitions(pageBase),
                 assignment.getTargetRef().getRelation());
         if (relationDef != null && relationDef.getDisplay() != null &&
                 !relationDef.getDisplay().getLabel().isEmpty()) {

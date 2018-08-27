@@ -28,11 +28,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -58,6 +60,8 @@ import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
+import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -77,6 +81,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.LockoutStatusPanel;
@@ -88,6 +93,7 @@ import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.util.visit.IVisit;
@@ -507,6 +513,54 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				return new LockoutStatusPanel(id, getModel().getObject(),
                     new PropertyModel<>(getModel(), baseExpression));
 			}
+			
+			if (SearchFilterType.COMPLEX_TYPE.equals(definition.getTypeName())) {
+				return new AceEditorPanel(id, null, new IModel<String>() {
+				
+					@Override
+					public void setObject(String object) {
+						
+						if (StringUtils.isBlank(object)) {
+							return;
+						}
+						
+						try {
+							SearchFilterType filter = getPageBase().getPrismContext().parserFor(object).parseRealValue(SearchFilterType.class);
+							((PrismPropertyValue<SearchFilterType>) PrismValuePanel.this.getModelObject().getValue()).setValue(filter);
+						} catch (SchemaException e) {
+							// TODO handle!!!!
+							LoggingUtils.logException(LOGGER, "Cannot parse filter", e);
+							getSession().error("Cannot parse filter");
+						}
+						
+					}
+					
+					@Override
+					public String getObject() {
+						try {
+							PrismValue value = getModelObject().getValue();
+							if (value == null || value.isEmpty()) {
+								return null;
+							}
+							
+							return getPageBase().getPrismContext().xmlSerializer().serialize(value);
+						} catch (SchemaException e) {
+							// TODO handle!!!!
+							LoggingUtils.logException(LOGGER, "Cannot serialize filter", e);
+							getSession().error("Cannot serialize filter");
+						}
+						return null;
+					}
+					
+					@Override
+					public void detach() {
+						// TODO Auto-generated method stub
+						
+					}
+				
+				});
+			}
+			
 			if (AssignmentType.F_FOCUS_TYPE.equals(definition.getName())){
 				List<QName> typesList = WebComponentUtil.createFocusTypeList();
 				DropDownChoicePanel<QName> typePanel = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
@@ -532,7 +586,7 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
 			} else if (DOMUtil.XSD_QNAME.equals(valueType)) {
 				DropDownChoicePanel<QName> panelDropDown = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
-						Model.ofList(WebComponentUtil.createObjectTypeList()), new QNameIChoiceRenderer(OBJECT_TYPE), false);
+						Model.ofList(WebComponentUtil.createObjectTypeList()), new QNameIChoiceRenderer(OBJECT_TYPE), true);
 				panelDropDown.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 				panelDropDown.setOutputMarkupId(true);
 				return panelDropDown;
@@ -660,14 +714,25 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
                     }
                 }, 10);
 			} else if (ItemPathType.COMPLEX_TYPE.equals(valueType)) {
-				return new QNameEditorPanel(id, new PropertyModel<>(getModel(), baseExpression), null, null,
-						false, false) {
-					@Override
-					protected AttributeAppender getSpecificLabelStyleAppender() {
-						return AttributeAppender.append("style", "font-weight: normal !important;");
-					}
+				return new ItemPathPanel(id, (ItemPathType) getModelObject().getValue().getRealValue()) {
+				
+					private static final long serialVersionUID = 1L;
 
+					@Override
+					protected void onUpdate(ItemPathDto itemPathDto) {
+						((PrismPropertyValue<ItemPathType>) PrismValuePanel.this.getModelObject().getValue()).setValue(new ItemPathType(itemPathDto.toItemPath())); 
+						
+					}
 				};
+				
+//				return new QNameEditorPanel(id, new PropertyModel<>(getModel(), baseExpression), null, null,
+//						false, false) {
+//					@Override
+//					protected AttributeAppender getSpecificLabelStyleAppender() {
+//						return AttributeAppender.append("style", "font-weight: normal !important;");
+//					}
+//
+//				};
 
 			} else {
 				Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);

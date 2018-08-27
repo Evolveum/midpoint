@@ -165,10 +165,6 @@ public class PageUsers extends PageAdminUsers {
 
 	private void initTable(Form mainForm) {
 		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-//		options.add(SelectorOptions.create(UserType.F_LINK_REF,
-//				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-//		options.add(SelectorOptions.create(UserType.F_ASSIGNMENT,
-//				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 		MainObjectListPanel<UserType> userListPanel = new MainObjectListPanel<UserType>(ID_TABLE,
 				UserType.class, TableId.TABLE_USERS, options, this) {
 			private static final long serialVersionUID = 1L;
@@ -176,11 +172,6 @@ public class PageUsers extends PageAdminUsers {
 			@Override
 			protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {
 				return PageUsers.this.initColumns();
-			}
-
-			@Override
-			protected PrismObject<UserType> getNewObjectListObject(){
-				return (new UserType()).asPrismObject();
 			}
 
 			@Override

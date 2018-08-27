@@ -15,9 +15,16 @@
  */
 package com.evolveum.midpoint.web.page.admin.services;
 
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -26,20 +33,13 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.roles.PageRoleHistory;
-import com.evolveum.midpoint.web.page.admin.roles.RoleGovernanceMemberPanel;
-import com.evolveum.midpoint.web.page.admin.roles.RoleMemberPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.ServiceMemberPanel;
+import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
+import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 @PageDescriptor(url = "/admin/service", encoder = OnePageParameterEncoder.class, action = {
 		@AuthorizationAction(actionUri = PageAdminServices.AUTH_SERVICES_ALL, label = PageAdminServices.AUTH_SERVICES_ALL_LABEL, description = PageAdminServices.AUTH_SERVICES_ALL_DESCRIPTION),
@@ -97,17 +97,19 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 
 			@Override
 			public AbstractRoleMemberPanel<ServiceType> createMemberPanel(String panelId) {
-				OperationResult result = new OperationResult("Get category relations");
-				return new RoleMemberPanel<ServiceType>(panelId,  Model.of(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, result, PageService.this)) {
+				
+				return new AbstractRoleMemberPanel<ServiceType>(panelId, Model.of(getObject().asObjectable()), TableId.SERVICE_MEMEBER_PANEL, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS) {
 					
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected boolean isRole() {
-						return false;
+					protected List<QName> getSupportedRelations() {
+						List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, PageService.this);
+						List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageService.this);
+						governance.forEach(r -> relations.remove(r));
+						return relations;
 					}
 				};
-//				return new ServiceMemberPanel(panelId, Model.of(getObject().asObjectable()));
 			}
 
 			@Override
@@ -122,14 +124,14 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 
 			@Override
 			public AbstractRoleMemberPanel<ServiceType> createGovernancePanel(String panelId) {
-				OperationResult result = new OperationResult("Get category relations");
-				return new RoleGovernanceMemberPanel<ServiceType>(panelId, Model.of(getObject().asObjectable()), WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, result, PageService.this)) {
+				
+				return new AbstractRoleMemberPanel<ServiceType>(panelId, Model.of(getObject().asObjectable()), TableId.SERVICE_MEMEBER_PANEL, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS) {
 					
 					private static final long serialVersionUID = 1L;
 
 					@Override
-					protected boolean isRole() {
-						return false;
+					protected List<QName> getSupportedRelations() {
+						return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageService.this);
 					}
 				};
 			}
