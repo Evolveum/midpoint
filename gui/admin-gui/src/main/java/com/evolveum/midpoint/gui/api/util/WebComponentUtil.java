@@ -1142,10 +1142,12 @@ public final class WebComponentUtil {
 		}
 		if (prismContainerValue.canRepresent(RelationDefinitionType.class)){
 			RelationDefinitionType relationDefinition = (RelationDefinitionType) prismContainerValue.asContainerable();
-			String name = (relationDefinition.getRef().getLocalPart());
-			String description = relationDefinition.getDescription();
-			if(StringUtils.isNotEmpty(name)) {
-				return name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+			if(relationDefinition.getRef() != null) {
+				String name = (relationDefinition.getRef().getLocalPart());
+				String description = relationDefinition.getDescription();
+				if(StringUtils.isNotEmpty(name)) {
+					return name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+				}
 			}
 		}
 		Class<C> cvalClass = prismContainerValue.getCompileTimeClass();

@@ -64,7 +64,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	}
 	
 	protected boolean isAddButtonVisible() {
-		return true;
+		return getModelObject().isExpanded();
 	}
 	
 	private void addValue(AjaxRequestTarget target) {

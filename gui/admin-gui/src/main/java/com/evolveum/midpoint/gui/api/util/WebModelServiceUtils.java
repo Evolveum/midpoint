@@ -27,8 +27,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
+import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -834,5 +838,14 @@ public class WebModelServiceUtils {
 		}
 
 		return wrapper;
+	}
+	
+	public static <C extends Containerable> boolean isContainerValueWrapperEmpty(ContainerValueWrapper<C> value) {
+		for(ItemWrapper itemWrapper: value.getItems()) {
+				if(!itemWrapper.isEmpty()) {
+					return false;
+				} 
+		}
+		return true;
 	}
 }

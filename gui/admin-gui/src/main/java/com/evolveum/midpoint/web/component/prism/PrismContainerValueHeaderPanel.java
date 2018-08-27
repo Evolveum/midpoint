@@ -170,7 +170,8 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 			public boolean isVisible(){
 				return getModelObject().containsMultipleMultivalueContainer() && getModelObject().getContainer() != null
 						&& getModelObject().getDefinition().canModify()
-						&& !getModelObject().getChildMultivalueContainersToBeAdded(isPanelVisible).isEmpty();
+						&& !getModelObject().getChildMultivalueContainersToBeAdded(isPanelVisible).isEmpty()
+						&& buttonsVisibleBehaviour.isVisible();
 			}
 		});
         add(addChildContainerButton);
@@ -183,13 +184,12 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 			@Override
 			public boolean isVisible(){
-				return pathsList.size() > 1 && isChildContainersSelectorPanelVisible;
+				return pathsList.size() > 1 && isChildContainersSelectorPanelVisible && buttonsVisibleBehaviour.isVisible();
 			}
 		});
 		childContainersSelectorPanel.setOutputMarkupId(true);
 		add(childContainersSelectorPanel);
 		
-		LOGGER.info("XXXXXXXXXXXXXXXX model " + getModelObject().getDisplayName());
 		DropDownChoicePanel multivalueContainersList = new DropDownChoicePanel<>(ID_CHILD_CONTAINERS_LIST,
 				Model.of(pathsList.size() > 0 ? pathsList.get(0) : null), Model.ofList(pathsList),
 				new QNameIChoiceRenderer(getModelObject().getContainerValue().getValue().getClass().getSimpleName()));
@@ -352,5 +352,10 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
         expandCollapseFragment.add(expandCollapseButton);
         
         return expandCollapseFragment;
+	}
+	
+	@Override
+	public boolean isButtonsVisible() {
+		return PrismContainerValueHeaderPanel.this.getModelObject().isExpanded();
 	}
 }
