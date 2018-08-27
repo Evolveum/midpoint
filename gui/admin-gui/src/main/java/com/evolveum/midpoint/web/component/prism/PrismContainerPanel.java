@@ -81,6 +81,7 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
         	setExtendedForEmptyContainers(model);
         }
         
+        
         LOGGER.trace("Creating container panel for {}", model.getObject());
 
         //TODO: visible behaviour??
@@ -92,8 +93,6 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
         		return isPanelVisible(isPanelVisible, model);
         	}
         });
-        
-        LOGGER.info("XXXXXXXXXXX container visible : " + isPanelVisible(isPanelVisible, model));
         
         initLayout(model, form, isPanelVisible, showHeader);
         

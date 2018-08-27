@@ -235,7 +235,6 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
     					PrismContainerPanel<C> containerPanel = new PrismContainerPanel<C>("container", (IModel<ContainerWrapper<C>>) item.getModel(), true, form, isPanalVisible, pageBase, false);
     					containerPanel.setOutputMarkupId(true);
     					item.add(containerPanel);
-    					LOGGER.info("XXXXXXXX container: " + item.getModelObject().getItemDefinition());
     					item.add(new VisibleEnableBehaviour() {
     						
     						private static final long serialVersionUID = 1L;
@@ -254,7 +253,7 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
     								return false;
     							}
     							
-    							if (model.getObject().containsMultipleMultivalueContainer()
+    							if (model.getObject().containsMultipleMultivalueContainer(isPanalVisible)
     									&& item.getModelObject().getItemDefinition().isMultiValue()
     									&& CollectionUtils.isEmpty(item.getModelObject().getValues())) {
     								return false;

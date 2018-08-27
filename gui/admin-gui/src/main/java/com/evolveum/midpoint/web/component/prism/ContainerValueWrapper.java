@@ -786,14 +786,21 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 		return null;
 	}
 
-	public boolean containsMultipleMultivalueContainer(){
+	public boolean containsMultipleMultivalueContainer(ItemVisibilityHandler isPanelVisible){
 		int count = 0;
 		for (ItemWrapper wrapper : getItems()) {
 			if (!(wrapper instanceof ContainerWrapper)) {
 				continue;
 			}
 			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
-				count++;
+				if(isPanelVisible != null) {
+					if(!isPanelVisible.isVisible(wrapper).equals(ItemVisibility.HIDDEN)
+							|| (isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && ((ContainerWrapper<C>)wrapper).isVisible())) {
+						count++;
+					}
+				} else if(((ContainerWrapper<C>)wrapper).isVisible()) {
+					count++;
+				}
 			}
 			
 			if (count > 1) {
@@ -820,10 +827,8 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 				if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && !((ContainerWrapper<C>)wrapper).isVisible()) {
 					continue;
 				}
-			} else {
-				if(!((ContainerWrapper<C>)wrapper).isVisible()) {
+			} else if(!((ContainerWrapper<C>)wrapper).isVisible()) {
 					continue;
-				}
 			}
 			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
 				pathList.add(((ContainerWrapper<C>) wrapper).getName());
