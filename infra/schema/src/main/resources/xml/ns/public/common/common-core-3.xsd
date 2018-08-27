@@ -2712,6 +2712,10 @@
 						complex parameters. But for now, their only parameter is the (clusterwide) member tasks limit.
 						They are also referenced from NodeType when specifying execution limitations for them.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.group</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupTaskLimit" type="xsd:int" minOccurs="0">
@@ -2720,6 +2724,10 @@
 						Number of tasks within the group that can be executed at once (clusterwide). Default is "unlimited".
 						This parameter will be moved into separate task group object in a later version of midPoint.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.groupTaskLimit</a:displayName>
+						<a:displayOrder>110</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="secondaryGroup" type="tns:TaskExecutionGroupConstraintType" minOccurs="0" maxOccurs="unbounded">
@@ -2728,6 +2736,8 @@
 						TODO
 					</xsd:documentation>
 					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.secondaryGroup</a:displayName>
+						<a:displayOrder>120</a:displayOrder>
 						<a:since>3.7.1</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -2762,6 +2772,10 @@
 					<xsd:documentation>
 						In what time to retry after clusterwide execution constraints are not met. The default is 1 minute.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.retryAfter</a:displayName>
+						<a:displayOrder>130</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -2784,6 +2798,10 @@
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionGroupConstraintType.group</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupTaskLimit" type="xsd:int" minOccurs="0">
@@ -2792,6 +2810,10 @@
 						Number of tasks within the group that can be executed at once (clusterwide). Default is "unlimited".
 						This parameter will be moved into separate task group object in a later version of midPoint.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionGroupConstraintType.groupTaskLimit</a:displayName>
+						<a:displayOrder>110</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
