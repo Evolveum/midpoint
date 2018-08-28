@@ -445,7 +445,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	/**
 	 * Used to search using model or any similar higher-level interface. Defaults to search using repository.
 	 */
-	protected <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> searchOptions, ResultHandler<O> resultHandler, Object coordinatorTask, OperationResult opResult)
+	protected <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> searchOptions, ResultHandler<O> resultHandler, Task coordinatorTask, OperationResult opResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		repositoryService.searchObjectsIterative(type, query, resultHandler, searchOptions, false, opResult);    // TODO think about this
 	}

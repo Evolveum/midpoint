@@ -29,7 +29,7 @@
 
 	<!-- Definition of basic expression factory - just with simple evaluators -->
 	
-	<bean id="repoObjectResolver" class="com.evolveum.midpoint.test.RepoObjectResolver" />
+	<bean id="repoObjectResolver" class="com.evolveum.midpoint.repo.common.RepoObjectResolver" />
             
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory" 
     		scope="singleton">

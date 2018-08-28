@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  *
  */
-public class RepoObjectResolver implements SimpleObjectResolver {
+public class RepoSimpleObjectResolver implements SimpleObjectResolver {
 
 	@Autowired(required = true)
 	private transient PrismContext prismContext;

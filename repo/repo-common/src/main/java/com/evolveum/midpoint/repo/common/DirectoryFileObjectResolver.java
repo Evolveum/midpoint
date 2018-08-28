@@ -68,7 +68,7 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 	@Override
 	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
 													   Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler,
-													   Object task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+													   Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException, ConfigurationException, SecurityViolationException {
 		//TODO: do we want to test custom libraries in the "unit" tests
 		if (type.equals(FunctionLibraryType.class)) {

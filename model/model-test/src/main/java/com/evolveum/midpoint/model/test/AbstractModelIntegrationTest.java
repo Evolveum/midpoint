@@ -5367,7 +5367,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void initializeAsserter(AbstractAsserter<?> asserter) {
 		asserter.setPrismContext(prismContext);
-		asserter.setObjectResolver(repoObjectResolver);
+		asserter.setObjectResolver(repoSimpleObjectResolver);
 	}
 
 	protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

@@ -104,7 +104,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
 			List<PrismObject<UserType>> owners = new ArrayList<>();
 			try {
-				objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), owners, result);
+				objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), task, result);
 			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException
 					| SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
 				LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);

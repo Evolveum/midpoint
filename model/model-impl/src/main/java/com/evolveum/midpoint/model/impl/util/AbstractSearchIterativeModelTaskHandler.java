@@ -102,7 +102,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 	}
 	
 	@Override
-	protected <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> searchOptions, ResultHandler<O> resultHandler, Object coordinatorTask, OperationResult opResult)
+	protected <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> searchOptions, ResultHandler<O> resultHandler, Task coordinatorTask, OperationResult opResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		modelObjectResolver.searchIterative(type, query, searchOptions, resultHandler, coordinatorTask, opResult);
 	}

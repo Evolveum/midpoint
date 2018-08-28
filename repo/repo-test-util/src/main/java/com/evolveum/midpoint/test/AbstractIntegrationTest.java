@@ -186,8 +186,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	@Autowired protected LocalizationService localizationService;
 	
 	@Autowired(required = false)
-	@Qualifier("repoObjectResolver")
-	protected SimpleObjectResolver repoObjectResolver;
+	@Qualifier("repoSimpleObjectResolver")
+	protected SimpleObjectResolver repoSimpleObjectResolver;
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
