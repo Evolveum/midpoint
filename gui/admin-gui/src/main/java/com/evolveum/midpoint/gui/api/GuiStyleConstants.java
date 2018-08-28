@@ -140,6 +140,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_RESUME_MENU_ITEM = "fa fa-check-square";
 	public static final String CLASS_STOP_MENU_ITEM = "fa fa-stop";
 	public static final String CLASS_START_MENU_ITEM = "fa fa-play";
+	public static final String CLASS_IMPORT_MENU_ITEM = "fa fa-download";
 
 	public static final String CLASS_BUTTON_TOGGLE_OFF = "btn-default";
 	public static final String CLASS_BUTTON_TOGGLE_ON = "btn-info";

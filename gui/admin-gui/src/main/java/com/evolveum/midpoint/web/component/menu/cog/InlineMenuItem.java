@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.menu.cog;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
 
@@ -29,9 +30,9 @@ import java.io.Serializable;
 public abstract class InlineMenuItem implements Serializable {
 
     private IModel<String> label;
-    private IModel<Boolean> enabled;
-    private IModel<Boolean> visible;
-    private boolean submit;
+    private IModel<Boolean> enabled = Model.of(true);
+    private IModel<Boolean> visible = Model.of(true);
+    private boolean submit = false;
     private InlineMenuItemAction action;
     private int id = -1;
     private boolean showConfirmationDialog = false;
@@ -41,15 +42,11 @@ public abstract class InlineMenuItem implements Serializable {
         action = initAction();
     }
 
-//
-//    public InlineMenuItem(IModel<String> label, IModel<Boolean> enabled, IModel<Boolean> visible, boolean submit,
-//                          InlineMenuItemAction action, int id, String buttonIconCssClass, String buttonColorCssClass) {
-//        this.label = label;
-//        this.enabled = enabled;
-//        this.visible = visible;
-//        this.submit = submit;
-//        this.id = id;
-//    }
+    public InlineMenuItem(IModel<String> label, boolean isSubmit) {
+        this.submit = isSubmit;
+        this.label = label;
+        action = initAction();
+    }
 
     public abstract InlineMenuItemAction initAction();
 
@@ -83,12 +80,16 @@ public abstract class InlineMenuItem implements Serializable {
     }
 
     public boolean isMenuHeader() {
-        return true;
-        //TODO fix after menu items refactoring
-//        return label != null && action == null;
+//        return true;
+//        TODO fix after menu items refactoring
+        return label != null && action == null;
     }
 
-    protected boolean isHeaderMenuItem(){
+    /**
+     * visible behavior for menu item in the header
+     * @return
+     */
+    public boolean isHeaderMenuItem(){
         return true;
     }
 

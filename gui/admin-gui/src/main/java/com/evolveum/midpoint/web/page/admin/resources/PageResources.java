@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
@@ -161,7 +162,7 @@ public class PageResources extends PageAdminResources {
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
-				return PageResources.this.createRowMenuItems(false);
+				return PageResources.this.createRowMenuItems();
 			}
 
 			@Override
@@ -193,7 +194,7 @@ public class PageResources extends PageAdminResources {
 
 	}
 
-	private List<InlineMenuItem> createRowMenuItems(boolean isHeader) {
+	private List<InlineMenuItem> createRowMenuItems() {
 
 		List<InlineMenuItem> menuItems = new ArrayList<>();
 
@@ -214,7 +215,7 @@ public class PageResources extends PageAdminResources {
 			}
 
 			@Override
-			protected boolean isHeaderMenuItem(){
+			public boolean isHeaderMenuItem(){
 				return false;
 			}
 
@@ -241,7 +242,7 @@ public class PageResources extends PageAdminResources {
 			}
 
 			@Override
-			protected boolean isHeaderMenuItem(){
+			public boolean isHeaderMenuItem(){
 				return false;
 			}
 
@@ -268,7 +269,7 @@ public class PageResources extends PageAdminResources {
 			}
 
 			@Override
-			protected boolean isHeaderMenuItem(){
+			public boolean isHeaderMenuItem(){
 				return false;
 			}
 		});
@@ -317,7 +318,7 @@ public class PageResources extends PageAdminResources {
 			}
 
 			@Override
-			protected boolean isHeaderMenuItem(){
+			public boolean isHeaderMenuItem(){
 				return false;
 			}
 
@@ -353,15 +354,18 @@ public class PageResources extends PageAdminResources {
 			return selected;
 		}
 		selected = getResourceTable().getSelectedObjects();
-		if (selected.size() < 1) {
-			warn(createStringResource("pageResources.message.noResourceSelected"));
-		}
 		return selected;
 
 	}
 
 	private void deleteResourcePerformed(AjaxRequestTarget target, ResourceType single) {
 		List<ResourceType> selected = isAnyResourceSelected(target, single);
+		if (selected.size() < 1) {
+			warn(createStringResource("pageResources.message.noResourceSelected").getString());
+			target.add(getFeedbackPanel());
+			return;
+		}
+
 		singleDelete = single;
 
 		if (selected.isEmpty()) {

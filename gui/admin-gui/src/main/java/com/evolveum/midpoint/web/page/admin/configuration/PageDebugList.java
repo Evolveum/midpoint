@@ -377,7 +377,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 	private List<InlineMenuItem> initInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportSelected")) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportSelected"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -394,7 +394,7 @@ public class PageDebugList extends PageAdminConfiguration {
 		});
 
 		headerMenuItems
-				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAllSelectedType")) {
+				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAllSelectedType"), true) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -426,16 +426,15 @@ public class PageDebugList extends PageAdminConfiguration {
 						};
 					}
 
-					//TODO fix visible behavior
-//                    @Override
-//                    public boolean isVisible() {
-//                        DebugSearchDto dto = searchModel.getObject();
-//                        return ObjectTypes.SHADOW.equals(dto.getType());
-//                    }
+					@Override
+                    public IModel<Boolean> getVisible() {
+                        DebugSearchDto dto = searchModel.getObject();
+                        return Model.of(ObjectTypes.SHADOW.equals(dto.getType()));
+                    }
 
                     });
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll")) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -453,7 +452,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
 //		headerMenuItems.add(new InlineMenuItem());
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteSelected")) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteSelected"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -469,7 +468,7 @@ public class PageDebugList extends PageAdminConfiguration {
 			}
 		});
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllType")) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllType"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -502,17 +501,14 @@ public class PageDebugList extends PageAdminConfiguration {
 						};
 					}
 
-//					//TODO fix visible behavior
-//							@Override
-//							public Boolean isVisible() {
-//								DebugSearchDto dto = searchModel.getObject();
-//								return ObjectTypes.SHADOW.equals(dto.getType());
-//							}
+					@Override
+					public IModel<Boolean> getVisible() {
+						DebugSearchDto dto = searchModel.getObject();
+						return Model.of(ObjectTypes.SHADOW.equals(dto.getType()));
+					}
 				});
 
-//		headerMenuItems.add(new InlineMenuItem());
-
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllIdentities")) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllIdentities"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

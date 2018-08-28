@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -112,6 +113,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 
 	 private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
 			MenuLinkPanel menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
+		 	menuItemBody.add(new VisibleBehaviour(() -> menuItem.getModelObject().getVisible().getObject()));
 	        menuItemBody.setRenderBodyOnly(true);
 	        menuItem.add(menuItemBody);
     }

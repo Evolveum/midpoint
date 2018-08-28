@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.model.IModel;
@@ -65,7 +67,16 @@ public class MenuMultiButtonPanel<T extends Serializable> extends MultiButtonPan
         };
         add(inlineMenu);
 
-        inlineMenu.add(new VisibleBehaviour(() -> !(getNumberOfButtons() <= 2) || menuItemsModel.getObject().size() > 2));
+        inlineMenu.add(new VisibleBehaviour(() -> {
+            List<InlineMenuItem> menuItems = getModelObject() == null || !(getModelObject() instanceof InlineMenuable) ?
+                    menuItemsModel.getObject() : ((InlineMenuable)getModelObject()).getMenuItems();
+            for (InlineMenuItem menuItem : menuItems) {
+                if (!(menuItem instanceof ButtonInlineMenuItem)){
+                    return true;
+                }
+            }
+            return false;
+        }));
     }
 
 }

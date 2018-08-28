@@ -27,9 +27,9 @@ public abstract class ButtonInlineMenuItem extends InlineMenuItem {
         super(labelModel);
     }
 
-    public abstract String getButtonIconCssClass();
-
-    private String getButtonColorCssClass(){
-        return GuiStyleConstants.CLASS_BUTTON_TOGGLE_OFF;
+    public ButtonInlineMenuItem(IModel<String> labelModel, boolean isSubmit){
+        super(labelModel, isSubmit);
     }
+
+    public abstract String getButtonIconCssClass();
 }

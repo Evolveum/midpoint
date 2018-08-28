@@ -24,6 +24,8 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -50,7 +52,6 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     private static final long serialVersionUID = 1L;
 
     protected List<InlineMenuItem> menuItems = new ArrayList<>();
-    protected List<ButtonInlineMenuItem> buttonMenuItems = new ArrayList<>();
 
     private PageBase pageBase;
 
@@ -58,96 +59,65 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         super(null);
         this.menuItems = menuItems;
         this.pageBase = pageBase;
-        initButtonMenuItems();
-    }
-
-    private void initButtonMenuItems(){
-        menuItems.forEach(menuItem -> {
-            if (menuItem instanceof ButtonInlineMenuItem){
-                buttonMenuItems.add((ButtonInlineMenuItem) menuItem);
-            }
-        });
     }
 
     @Override
     public void populateItem(final Item<ICellPopulator<T>> cellItem, String componentId,
                              final IModel<T> rowModel) {
-        cellItem.add(getPanel(componentId, rowModel, getNumberOfButtons(), false));
+        Component panel = getPanel(componentId, rowModel, getNumberOfButtons(false), false);
+        panel.add(new VisibleBehaviour(() -> isPanelVisible(false)));
+        cellItem.add(panel);
     }
 
     @Override
     public Component getHeader(String componentId) {
 
-        return getPanel(componentId, null, getHeaderNumberOfButtons(), true);
+        Component headerPanel = getPanel(componentId, null, getNumberOfButtons(true), true);
+        headerPanel.add(new VisibleBehaviour(() -> isPanelVisible(true)));
+        return headerPanel;
     }
 
     private Component getPanel(String componentId, IModel<T> rowModel,
-                               int numberOfButtons, boolean isHeader) {
-        if (rowModel != null && rowModel.getObject() instanceof InlineMenuable){
-            for (InlineMenuItem mm : ((InlineMenuable) rowModel.getObject()).getMenuItems()){
-                if (mm.getAction() instanceof ColumnMenuAction) {
-                    ((ColumnMenuAction) mm.getAction()).setRowModel(rowModel);
-                }
+                               int numberOfButtons, boolean isHeaderPanel) {
+        List<InlineMenuItem> filteredMenuItems = new ArrayList<>();
+        for (InlineMenuItem menuItem : (rowModel != null ? ((InlineMenuable)rowModel.getObject()).getMenuItems() : menuItems)){
+            if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
+                continue;
             }
-        }
-
-
-
-
-        List<InlineMenuItem> filteredMenuItems = new ArrayList<InlineMenuItem>();
-        menuItems.forEach(menuItem -> {
-            if (menuItem instanceof ButtonInlineMenuItem){
-                return;
-            }
-            if (isHeader && !menuItem.isMenuHeader()){
-                return;
-            }
-            if (menuItem.getAction() != null && menuItem.getAction() instanceof ColumnMenuAction){
-//                ((ColumnMenuAction)menuItem.getAction()).setRowModel(rowModel);
+            if (rowModel != null && menuItem.getAction() != null && menuItem.getAction() instanceof ColumnMenuAction){
+                ((ColumnMenuAction) menuItem.getAction()).setRowModel(rowModel);
             }
             filteredMenuItems.add(menuItem);
+        }
+        if (rowModel != null && rowModel.getObject() instanceof InlineMenuable &&
+                ((InlineMenuable)rowModel.getObject()) != null){
+            ((InlineMenuable) rowModel.getObject()).getMenuItems().clear();
+            ((InlineMenuable) rowModel.getObject()).getMenuItems().addAll(filteredMenuItems);
+        }
+
+        List<ButtonInlineMenuItem> buttonMenuItems = new ArrayList<>();
+        menuItems.forEach(menuItem -> {
+            if (menuItem instanceof ButtonInlineMenuItem){
+                if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
+                    return;
+                }
+                buttonMenuItems.add((ButtonInlineMenuItem) menuItem);
+            }
         });
-//                return filteredMenuItems;
 
-//        if (rowModel != null) {
-//            ((InlineMenuable) rowModel.getObject()).getMenuItems().clear();
-//            ((InlineMenuable) rowModel.getObject()).getMenuItems().addAll(filteredMenuItems);
-//        }
-
-
-        //TODO when rowModel.getModel == null??
-//                if (rowModel.getObject() == null ||
-//                        !(rowModel.getObject() instanceof InlineMenuable)) {
-//                    return new ArrayList<>();
-//                }
-//                for (InlineMenuItem item : ((InlineMenuable) rowModel.getObject()).getMenuItems()) {
-//                    if (!(item.getAction() instanceof ColumnMenuAction)) {
-//                        continue;
-//                    }
-//
-//                    ColumnMenuAction action = (ColumnMenuAction) item.getAction();
-//                    action.setRowModel(rowModel);
-//                }
-
-
-
-
-
-
-        return new MenuMultiButtonPanel<T>(componentId, rowModel, numberOfButtons,
-                rowModel != null ? Model.ofList(((InlineMenuable)rowModel.getObject()).getMenuItems()) : Model.ofList(menuItems)) {
+        return new MenuMultiButtonPanel<T>(componentId, rowModel, numberOfButtons, Model.ofList(filteredMenuItems)) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             protected AjaxIconButton createButton(int index, String componentId, IModel<T> model) {
                 AjaxIconButton btn = buildDefaultButton(componentId,
-                        new Model<>(getButtonIconCss(index)),
-                        new Model<>(getButtonTitle(index)),
+                        new Model<>(getButtonIconCss(index, buttonMenuItems)),
+                        new Model<>(getButtonTitle(index, buttonMenuItems)),
                         new Model<>(getButtonCssClass()),
                         target -> {
-                            setRowModelToButtonAction(rowModel);
-                            buttonMenuItemClickPerformed(index, target);
+                            setRowModelToButtonAction(rowModel, buttonMenuItems);
+                            buttonMenuItemClickPerformed(index, buttonMenuItems, target);
                         });
                 btn.showTitleAsLabel(false);
 //                btn.add(new VisibleBehaviour(() -> isButtonVisible(index, model)));
@@ -157,7 +127,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         };
     }
 
-    private void setRowModelToButtonAction(IModel<T> rowModel) {
+    private void setRowModelToButtonAction(IModel<T> rowModel, List<ButtonInlineMenuItem> buttonMenuItems) {
         for (InlineMenuItem menuItem : buttonMenuItems) {
             if (menuItem.getAction() != null && menuItem.getAction() instanceof ColumnMenuAction) {
                 ((ColumnMenuAction) menuItem.getAction()).setRowModel(rowModel);
@@ -165,53 +135,7 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         }
     }
 
-
-    private IModel<List<InlineMenuItem>> createMenuModel(final IModel<T> rowModel, List<InlineMenuItem> menuItems, boolean isHeader) {
-        return new LoadableModel<List<InlineMenuItem>>(false) {
-
-            @Override
-            public List<InlineMenuItem> load() {
-                List<InlineMenuItem> filteredMenuItems = new ArrayList<>();
-                menuItems.forEach(menuItem -> {
-                    if (menuItem instanceof ButtonInlineMenuItem){
-                        return;
-                    }
-                    if (isHeader && !menuItem.isMenuHeader()){
-                        return;
-                    }
-                    if (menuItem.getAction() != null && menuItem.getAction() instanceof ColumnMenuAction){
-                        ((ColumnMenuAction)menuItem.getAction()).setRowModel(rowModel);
-                    }
-                    filteredMenuItems.add(menuItem);
-                });
-//                return filteredMenuItems;
-
-                if (rowModel == null) {
-                    return filteredMenuItems;
-                }
-
-//                ((InlineMenuable) rowModel.getObject()).getMenuItems().clear();
-//                ((InlineMenuable) rowModel.getObject()).getMenuItems().addAll(filteredMenuItems);
-
-                //TODO when rowModel.getModel == null??
-//                if (rowModel.getObject() == null ||
-//                        !(rowModel.getObject() instanceof InlineMenuable)) {
-//                    return new ArrayList<>();
-//                }
-//                for (InlineMenuItem item : ((InlineMenuable) rowModel.getObject()).getMenuItems()) {
-//                    if (!(item.getAction() instanceof ColumnMenuAction)) {
-//                        continue;
-//                    }
-//
-//                    ColumnMenuAction action = (ColumnMenuAction) item.getAction();
-//                    action.setRowModel(rowModel);
-//                }
-                return filteredMenuItems;
-            }
-        };
-    }
-
-    private void buttonMenuItemClickPerformed(int id, AjaxRequestTarget target) {
+    private void buttonMenuItemClickPerformed(int id, List<ButtonInlineMenuItem> buttonMenuItems, AjaxRequestTarget target) {
         if (id >= buttonMenuItems.size()){
             return;
         }
@@ -220,7 +144,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
             if (menuItem.showConfirmationDialog() && menuItem.getConfirmationMessageModel() != null) {
                 showConfirmationPopup(menuItem, target);
             } else {
-                menuItem.getAction().onClick(target);
+                if (menuItem.isSubmit()){
+                    menuItem.getAction().onSubmit(target, null);
+                } else {
+                    menuItem.getAction().onClick(target);
+                }
             }
         }
     }
@@ -243,6 +171,8 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         pageBase.showMainPopup(dialog, target);
     }
 
+
+
 //    public boolean isButtonVisible(int id, IModel<T> model) {
 //        return true;
 //    }
@@ -262,14 +192,14 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         return sb.toString();
     }
 
-    private String getButtonIconCss(int id) {
+    private String getButtonIconCss(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
         if (id >= buttonMenuItems.size()){
             return null;
         }
         return buttonMenuItems.get(id).getButtonIconCssClass() + " fa-fw";
     }
 
-    private String getButtonTitle(int id) {
+    private String getButtonTitle(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
         if (id >= buttonMenuItems.size()){
             return null;
         }
@@ -277,21 +207,28 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 buttonMenuItems.get(id).getLabel().getObject() : "";
     }
 
-    protected int getHeaderNumberOfButtons() {
+    protected int getNumberOfButtons(boolean isHeaderPanel) {
         int numberOfHeaderButtons = 0;
         for (InlineMenuItem inlineMenuItem : menuItems){
-            if (inlineMenuItem instanceof ButtonInlineMenuItem && inlineMenuItem.isMenuHeader()){
+            if (isHeaderPanel && !inlineMenuItem.isHeaderMenuItem()){
+                continue;
+            }
+            if (inlineMenuItem instanceof ButtonInlineMenuItem){
                 numberOfHeaderButtons++;
             }
         }
         return numberOfHeaderButtons;
     }
 
-    private int getNumberOfButtons() {
-        return buttonMenuItems.size();
+    private boolean isPanelVisible(boolean isHeaderPanel){
+        for (InlineMenuItem item : menuItems){
+            if (isHeaderPanel && (item.isHeaderMenuItem() || item.getAction() instanceof HeaderMenuAction)){
+                return true;
+            }
+            if (!isHeaderPanel && !(item.getAction() instanceof HeaderMenuAction)){
+                return true;
+            }
+        }
+        return false;
     }
-
-//    protected List<InlineMenuItem> getHeaderMenuItems() {
-//        return menuItems;
-//    }
 }

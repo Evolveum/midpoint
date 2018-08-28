@@ -22,6 +22,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.GuiConstants;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -794,102 +796,11 @@ public abstract class ResourceContentPanel extends Panel {
 		return null;
 	}
 
-	//TODO unify with createRowMenuItems
-	private List<InlineMenuItem> createHeaderMenuItems() {
-		List<InlineMenuItem> items = new ArrayList<>();
-
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccounts")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new HeaderMenuAction(ResourceContentPanel.this) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateResourceObjectStatusPerformed(null, target, true);
-					}
-				};
-			}
-		});
-
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccounts")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new HeaderMenuAction(ResourceContentPanel.this) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						updateResourceObjectStatusPerformed(null, target, false);
-					}
-				};
-			}
-		});
-
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccounts")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new HeaderMenuAction(ResourceContentPanel.this) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						deleteResourceObjectPerformed(null, target);
-					}
-				};
-			}
-		});
-
-//		items.add(new InlineMenuItem());
-
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccounts")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new HeaderMenuAction(ResourceContentPanel.this) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						importResourceObject(null, target);
-					}
-				};
-			}
-		});
-
-//		items.add(new InlineMenuItem());
-
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwners")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new HeaderMenuAction(ResourceContentPanel.this) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						changeOwner(null, target, null, Operation.REMOVE);
-					}
-				};
-			}
-		});
-
-		return items;
-	}
-
 	@SuppressWarnings("serial")
 	private List<InlineMenuItem> createRowMenuItems() {
 		List<InlineMenuItem> items = new ArrayList<>();
 
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount")) {
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -899,14 +810,18 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						SelectableBean<ShadowType> shadow = getRowModel().getObject();
-						updateResourceObjectStatusPerformed(shadow.getValue(), target, true);
+						if (getRowModel() == null){
+							updateResourceObjectStatusPerformed(null, target, true);
+						} else {
+							SelectableBean<ShadowType> shadow = getRowModel().getObject();
+							updateResourceObjectStatusPerformed(shadow.getValue(), target, true);
+						}
 					}
 				};
 			}
 		});
 
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccount")) {
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccount"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -916,14 +831,18 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						SelectableBean<ShadowType> shadow = getRowModel().getObject();
-						updateResourceObjectStatusPerformed(shadow.getValue(), target, false);
+						if (getRowModel() == null){
+							updateResourceObjectStatusPerformed(null, target, false);
+						} else {
+							SelectableBean<ShadowType> shadow = getRowModel().getObject();
+							updateResourceObjectStatusPerformed(shadow.getValue(), target, false);
+						}
 					}
 				};
 			}
 		});
 
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccount")) {
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccount"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -933,27 +852,12 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						SelectableBean<ShadowType> shadow = getRowModel().getObject();
-						deleteResourceObjectPerformed(shadow.getValue(), target);
-					}
-				};
-			}
-		});
-
-//		items.add(new InlineMenuItem());
-
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<SelectableBean<ShadowType>>() {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						SelectableBean<ShadowType> shadow = getRowModel().getObject();
-						importResourceObject(shadow.getValue(), target);
+						if (getRowModel() == null){
+							deleteResourceObjectPerformed(null, target);
+						} else {
+							SelectableBean<ShadowType> shadow = getRowModel().getObject();
+							deleteResourceObjectPerformed(shadow.getValue(), target);
+						}
 					}
 				};
 			}
@@ -961,7 +865,7 @@ public abstract class ResourceContentPanel extends Panel {
 
 //		items.add(new InlineMenuItem());
 
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner")) {
+		items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -971,14 +875,46 @@ public abstract class ResourceContentPanel extends Panel {
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-						SelectableBean<ShadowType> shadow = getRowModel().getObject();
-						changeOwner(shadow.getValue(), target, null, Operation.REMOVE);
+						if (getRowModel() == null){
+							importResourceObject(null, target);
+						} else {
+							SelectableBean<ShadowType> shadow = getRowModel().getObject();
+							importResourceObject(shadow.getValue(), target);
+						}
+					}
+				};
+			}
+
+			@Override
+			public String getButtonIconCssClass(){
+				return GuiStyleConstants.CLASS_IMPORT_MENU_ITEM;
+			}
+		});
+
+//		items.add(new InlineMenuItem());
+
+		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<ShadowType>>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+						if (getRowModel() == null){
+							changeOwner(null, target, null, Operation.REMOVE);
+						} else {
+							SelectableBean<ShadowType> shadow = getRowModel().getObject();
+							changeOwner(shadow.getValue(), target, null, Operation.REMOVE);
+						}
 					}
 				};
 			}
 		});
 
-		items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.changeOwner")) {
+		items.add(new ButtonInlineMenuItem(createStringResource("pageContentAccounts.menu.changeOwner"), true) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -1005,6 +941,17 @@ public abstract class ResourceContentPanel extends Panel {
 					}
 				};
 			}
+
+			@Override
+			public String getButtonIconCssClass(){
+				return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+			}
+
+			@Override
+			public boolean isHeaderMenuItem(){
+				return false;
+			}
+
 		});
 
 		return items;
@@ -1173,6 +1120,8 @@ public abstract class ResourceContentPanel extends Panel {
 
 	private void changeOwner(ShadowType selected, AjaxRequestTarget target, FocusType ownerToChange,
 			Operation operation) {
+
+		pageBase.hideMainPopup(target);
 
 		List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
 

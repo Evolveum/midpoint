@@ -430,7 +430,7 @@ public class PageUsers extends PageAdminUsers {
 			}
 
 			@Override
-			protected boolean isHeaderMenuItem(){
+			public boolean isHeaderMenuItem(){
 				return false;
 			}
 		});

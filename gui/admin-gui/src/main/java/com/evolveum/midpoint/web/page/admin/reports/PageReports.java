@@ -160,6 +160,11 @@ public class PageReports extends PageAdminReports {
             public String getButtonIconCssClass() {
                 return GuiStyleConstants.CLASS_START_MENU_ITEM;
             }
+
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
         });
         menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.configure")) {
             private static final long serialVersionUID = 1L;
@@ -180,6 +185,11 @@ public class PageReports extends PageAdminReports {
             @Override
             public String getButtonIconCssClass() {
                 return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+            }
+
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
             }
         });
         return menu;
