@@ -15001,6 +15001,10 @@
             <xsd:documentation>
                 User interface icon specification.
             </xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:displayName>IconType.details</a:displayName>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="imageUrl" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -15009,6 +15013,9 @@
                     	URL of the image to use as an icon. It is expected that this will be a relative URL
                     	that is relative to the application root URL context.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>IconType.imageUrl</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="cssClass" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -15016,6 +15023,9 @@
                     <xsd:documentation>
                     	CSS class to use for icon representation.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>IconType.cssClass</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -20419,6 +20429,12 @@
 	<xsd:element name="formItems" type="tns:FormItemsType" />
 
     <xsd:complexType name="DisplayType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:displayName>DisplayType.details</a:displayName>
+			</xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <!-- basic properties -->
             <xsd:element name="label" type="xsd:string" minOccurs="0" >
@@ -20439,6 +20455,9 @@
             				value is displayed.
             			</p>
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.label</a:displayName>
+					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="tooltip" type="xsd:string" minOccurs="0">
@@ -20459,6 +20478,9 @@
             				value is displayed.
             			</p>
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.tooltip</a:displayName>
+					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
             <xsd:element name="help" type="xsd:string" minOccurs="0">
@@ -20477,11 +20499,26 @@
             				value is displayed.
             			</p>
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.help</a:displayName>
+					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
             <!-- style properties -->
-            <xsd:element name="cssStyle" type="xsd:string" minOccurs="0" />
-            <xsd:element name="cssClass" type="xsd:string" minOccurs="0" />
+            <xsd:element name="cssStyle" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.cssStyle</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>            
+            </xsd:element>
+            <xsd:element name="cssClass" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.cssClass</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>            
+            </xsd:element>
             <!-- TODO: icon -->
             <!-- TODO: multilingual label, tooltip and help -->
         </xsd:sequence>
@@ -20489,9 +20526,21 @@
 
     <xsd:complexType name="FormDisplayType">
         <xsd:complexContent>
+			<xsd:annotation>
+				<xsd:appinfo>
+					<a:container>true</a:container>
+					<a:displayName>FormDisplayType.details</a:displayName>
+				</xsd:appinfo>
+			</xsd:annotation>
             <xsd:extension base="tns:DisplayType">
                 <xsd:sequence>
-                    <xsd:element name="theme" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="theme" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormDisplayType.theme</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -20499,18 +20548,51 @@
 
     <xsd:complexType name="FormItemDisplayType">
         <xsd:complexContent>
+			<xsd:annotation>
+				<xsd:appinfo>
+					<a:container>true</a:container>
+					<a:displayName>FormItemDisplayType.details</a:displayName>
+				</xsd:appinfo>
+			</xsd:annotation>
             <xsd:extension base="tns:DisplayType">
                 <xsd:sequence>
-                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" />
-                    <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0" />
-                    <xsd:element name="size" type="xsd:integer" minOccurs="0" />
-                    <xsd:element name="maxSize" type="xsd:integer" minOccurs="0" />
+                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.minOccurs</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
+                    <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.maxOccurs</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
+                    <xsd:element name="size" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.size</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
+                    <xsd:element name="maxSize" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.maxSize</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
                     <xsd:element name="newLine" type="xsd:boolean" minOccurs="0" default="true">
                         <xsd:annotation>
                             <xsd:documentation>
                                 displayable form component position (if true, field/group/loop will be
                                 placed on new line)
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.newLine</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

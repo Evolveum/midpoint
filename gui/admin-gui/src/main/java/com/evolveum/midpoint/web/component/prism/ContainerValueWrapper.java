@@ -794,7 +794,7 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			}
 			if (!((ContainerWrapper<C>) wrapper).getItemDefinition().isSingleValue()){
 				if(isPanelVisible != null) {
-					if(!isPanelVisible.isVisible(wrapper).equals(ItemVisibility.HIDDEN)
+					if(isPanelVisible.isVisible(wrapper).equals(ItemVisibility.VISIBLE)
 							|| (isPanelVisible.isVisible(wrapper).equals(ItemVisibility.AUTO) && ((ContainerWrapper<C>)wrapper).isVisible())) {
 						count++;
 					}

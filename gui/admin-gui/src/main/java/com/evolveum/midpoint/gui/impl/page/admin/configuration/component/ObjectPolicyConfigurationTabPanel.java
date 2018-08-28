@@ -32,6 +32,8 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
@@ -60,6 +62,7 @@ import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfigurationNew;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -82,11 +85,22 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
     
     public ObjectPolicyConfigurationTabPanel(String id, IModel<ContainerWrapper<ObjectPolicyConfigurationType>> model) {
         super(id, model);
+        
+        
     }
 
     @Override
     protected void onInitialize() {
     		super.onInitialize();
+    		
+    		PageParameters params = getPage().getPageParameters();
+    		StringValue val = params.get(PageSystemConfigurationNew.SELECTED_TAB_INDEX);
+    		String value = null;
+    		if (val != null && !val.isNull()) {
+    			params.remove(params.getPosition(PageSystemConfigurationNew.SELECTED_TAB_INDEX));
+    		} 
+    		params.set(PageSystemConfigurationNew.SELECTED_TAB_INDEX, PageSystemConfigurationNew.CONFIGURATION_TAB_OBJECT_POLICY);
+    		
     		initLayout();
     }
     
