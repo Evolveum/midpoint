@@ -19,93 +19,57 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.DefaultReferencableImpl;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
-import com.evolveum.midpoint.web.component.prism.PrismPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfigurationNew;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
@@ -119,15 +83,24 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 	
     private static final String ID_OBJECTS_POLICY = "objectsPolicy";
     
-    private List<ContainerValueWrapper<ObjectPolicyConfigurationType>> detailsPanelObjectPoliciesList = new ArrayList<>();
-    
     public ObjectPolicyConfigurationTabPanel(String id, IModel<ContainerWrapper<ObjectPolicyConfigurationType>> model) {
         super(id, model);
+        
+        
     }
 
     @Override
     protected void onInitialize() {
     		super.onInitialize();
+    		
+    		PageParameters params = getPage().getPageParameters();
+    		StringValue val = params.get(PageSystemConfigurationNew.SELECTED_TAB_INDEX);
+    		String value = null;
+    		if (val != null && !val.isNull()) {
+    			params.remove(params.getPosition(PageSystemConfigurationNew.SELECTED_TAB_INDEX));
+    		} 
+    		params.set(PageSystemConfigurationNew.SELECTED_TAB_INDEX, PageSystemConfigurationNew.CONFIGURATION_TAB_OBJECT_POLICY);
+    		
     		initLayout();
     }
     
@@ -191,9 +164,7 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 				return defs;
 			}
 		};
-		
 		add(multivalueContainerListPanel);
-		
 		setOutputMarkupId(true);
 	}
     
@@ -229,24 +200,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 		    	};
 				return new DisplayNamePanel<ObjectPolicyConfigurationType>(displayNamePanelId, displayNameModel);
 			}
-
-//			@Override
-//			protected ContainerValuePanel<ObjectPolicyConfigurationType> getBasicContainerValuePanel(
-//					String idPanel) {
-//				
-//				Form form = new Form<>("form");
-//		    	ItemPath itemPath = getModelObject().getPath();
-//		    	ContainerValueWrapper<ObjectPolicyConfigurationType> modelObject = item.getModelObject();
-//		    	modelObject.setShowEmpty(true, true);
-//		    	
-//		    	ContainerWrapper<PropertyConstraintType> propertyConstraintModel = modelObject.findContainerWrapper(new ItemPath(modelObject.getPath(), ObjectPolicyConfigurationType.F_PROPERTY_CONSTRAINT));
-//		    	propertyConstraintModel.setShowEmpty(true, false);
-////		    	propertyConstraintModel.setAddContainerButtonVisible(true);
-//		    	
-//				return new ContainerValuePanel<ObjectPolicyConfigurationType>(idPanel, Model.of(modelObject), true, form,
-//						itemWrapper -> super.getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
-//			}
-		
 		};
 		return detailsPanel;
 	}
@@ -256,8 +209,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 	}
     
     private ObjectQuery createQuery() {
-//    	TypeFilter filter = TypeFilter.createType(ObjectPolicyConfigurationType.COMPLEX_TYPE, new AllFilter());
-//    	return ObjectQuery.createObjectQuery(filter);
     	return QueryBuilder.queryFor(ObjectPolicyConfigurationType.class, getPageBase().getPrismContext())
     			.all()
                 .build();
@@ -271,7 +222,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 		List<IColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>, String>> columns = new ArrayList<>();
 
 		columns.add(new CheckBoxHeaderColumn<>());
-
 		columns.add(new IconColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>>(Model.of("")) {
 
 			private static final long serialVersionUID = 1L;
@@ -288,7 +238,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 					}
 				};
 			}
-
 		});
 		
 		columns.add(new LinkColumn<ContainerValueWrapper<ObjectPolicyConfigurationType>>(createStringResource("ObjectPolicyConfigurationTabPanel.type")){
@@ -299,7 +248,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			public IModel<String> createLinkModel(IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
 				PropertyWrapperFromContainerValueWrapperModel<QName, ObjectPolicyConfigurationType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel, ObjectPolicyConfigurationType.F_TYPE);
 				QName typeValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
-//				QName typeValue = WebComponentUtil.getValue(rowModel.getObject().getContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
 				return Model.of(typeValue != null ? typeValue.getLocalPart() : "");
 			}
 			
@@ -315,7 +263,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 			@Override
 			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
 									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-//				String subtypeValue = WebComponentUtil.getValue(rowModel.getObject().getContainerValue(), ObjectPolicyConfigurationType.F_SUBTYPE, String.class);
 				PropertyWrapperFromContainerValueWrapperModel<String, ObjectPolicyConfigurationType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(rowModel, ObjectPolicyConfigurationType.F_SUBTYPE);
 				String subtypeValue = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
 				item.add(new Label(componentId, Model.of(subtypeValue)));
@@ -331,15 +278,6 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 				
 				PropertyOrReferenceWrapper objectPolicyWrapper = (PropertyOrReferenceWrapper)rowModel.getObject().findPropertyWrapper(new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF));
 				item.add(new Label(componentId, Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((DefaultReferencableImpl)((ValueWrapper<DefaultReferencableImpl>)objectPolicyWrapper.getValues().get(0)).getValue().getRealValue(), false))));
-				
-//				ObjectReferenceType objectTemplate = rowModel.getObject().getContainerValue().getValue().getObjectTemplateRef();
-//				
-//				if(objectTemplate != null) {
-//					String objectTemplateNameValue = WebModelServiceUtils.resolveReferenceName(objectTemplate, getPageBase());
-//					item.add(new Label(componentId, Model.of(objectTemplateNameValue)));
-//				} else {
-//					item.add(new Label(componentId, Model.of("")));
-//				}
 			}
         });
 		
@@ -366,65 +304,5 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 		
         return columns;
 	}
-    
-//    protected Fragment getSearchPanel(String contentAreaId){
-//    	Fragment searchContainer = new Fragment(contentAreaId, ID_SEARCH_FRAGMENT, this);
-//    	
-//    	WebMarkupContainer typeContainer = new WebMarkupContainer(ID_TYPE_CONTAINER);
-//        
-//        typeContainer.setOutputMarkupId(true);
-//        typeContainer.add(new VisibleEnableBehaviour() {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return ObjectPolicyConfigurationTabPanel.this.isTypeVisible();
-//            }
-//
-//        });
-//        searchContainer.addOrReplace(typeContainer);
-//
-//        this.model.getObject().findContainerWrapper(new ItemPath(ObjectPolicyConfigurationType.F_TYPE));
-//    	DropDownChoicePanel<QName> type = new DropDownChoicePanel(ID_TYPE, 
-//    			new IModel<QName>() {
-//            		@Override
-//            		public QName getObject() {
-//            			return objectTypeValue;
-//            		}
-//
-//            		@Override
-//            		public void setObject(QName objectType) {
-//            			objectTypeValue = objectType;
-//            		}
-//
-//            		@Override
-//            		public void detach() {
-//
-//            		}
-//    			},
-//    			new AbstractReadOnlyModel<List<QName>>() {
-//
-//					private static final long serialVersionUID = 1L;
-//			
-//					@Override
-//					public List<QName> getObject() {
-//						return WebComponentUtil.createFocusTypeList();
-//					}
-//				});
-//        type.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-////            	refreshTable(target);
-//            }
-//        });
-//        type.setOutputMarkupId(true);
-//        type.setOutputMarkupPlaceholderTag(true);
-//        typeContainer.addOrReplace(type);
-//    	
-//    	return searchContainer;
-//    }
 }
 

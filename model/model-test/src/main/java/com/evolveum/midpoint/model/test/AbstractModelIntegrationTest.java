@@ -1537,7 +1537,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		TestUtil.assertSuccess("getObject(User) result not success", result);
 		return user;
 	}
-
+	
 	protected PrismObject<UserType> getUserFromRepo(String userOid) throws ObjectNotFoundException, SchemaException {
 		return repositoryService.getObject(UserType.class, userOid, null, new OperationResult("dummy"));
 	}
@@ -5416,6 +5416,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return asserter;
 	}
 	
+	protected FocusAsserter<ServiceType,Void> assertService(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<ServiceType> service = getObject(ServiceType.class, oid);
+		// TODO: change to ServiceAsserter later
+		FocusAsserter<ServiceType,Void> asserter = FocusAsserter.forFocus(service, message);
+		initializeAsserter(asserter);
+		asserter.assertOid(oid);
+		return asserter;
+	}
+	
 	protected FocusAsserter<ServiceType,Void> assertServiceByName(String name, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<ServiceType> service = findServiceByName(name);
 		// TODO: change to ServiceAsserter later
@@ -5427,6 +5436,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected FocusAsserter<ServiceType,Void> assertServiceAfterByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return assertServiceByName(name, "after");
+	}
+	
+	protected FocusAsserter<ServiceType,Void> assertServiceBeforeByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return assertServiceByName(name, "before");
+	}
+	
+	protected FocusAsserter<ServiceType,Void> assertServiceAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return assertService(oid, "after");
+	}
+	
+	protected FocusAsserter<ServiceType,Void> assertServiceBefore(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return assertService(oid, "before");
 	}
 	
 	protected void assertNoServiceByName(String name) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

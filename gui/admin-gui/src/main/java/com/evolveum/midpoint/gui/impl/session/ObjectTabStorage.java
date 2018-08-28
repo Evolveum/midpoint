@@ -25,7 +25,9 @@ import com.evolveum.midpoint.web.session.PageStorage;
  */
 public class ObjectTabStorage implements PageStorage{
 
-    private ObjectPaging objectPaging;
+	private static final long serialVersionUID = 1L;
+	
+	private ObjectPaging objectPaging;
 
 
     @Override

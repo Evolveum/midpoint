@@ -794,10 +794,35 @@ body .treeview-menu > li > span:hover {
 	}
 }
 
+.prism-multivalue-container {
+    margin-left: 15px; // aligning multivalue container with superior container
+}
+
+.top-level-prism-container{
+	border-top: 1px solid @table-divider-color;
+	padding-top:10px;
+}
+
+.top-level-prism-container > .prism-property > .container-fluid > .prism-properties > .container-wrapper {
+	border-top: 1px solid @table-divider-color;
+	margin-left: -30px;
+	padding-left: 15px;
+}
+
+.top-level-prism-container > .prism-properties > .container-wrapper {
+	border-top: 1px solid @table-divider-color;
+	margin-left: -15px;
+	padding-left: 15px;
+}
+
 .prism-container {
-	border-bottom: 1px solid @table-divider-color;
+//	border-bottom: 1px solid @table-divider-color;
 	margin-bottom: 15px;
 	padding-bottom: 15px;
+}
+
+.prism-multivalue-container > .prism-properties > div > .prism-property > .success {
+	background-color: #dff0d8; // green background for new value for multivalue container
 }
 
 .prism-properties {
@@ -806,9 +831,9 @@ body .treeview-menu > li > span:hover {
 		padding-left: 30px;
 	}
 	
-	.stripe {
-		background-color: @table-stripe-bg-color;
-	}
+//	.stripe {
+//		background-color: @table-stripe-bg-color;
+//	}
 }
 
 .prism-header {
@@ -821,11 +846,17 @@ body .treeview-menu > li > span:hover {
 	font-weight: 600;
 	color: @text-label-color;
 	margin-right: 15px;
+	float: left;
+	padding-top: 3px;
 }
 
 .prism-property {
 	padding-top: 5px;
 	padding-bottom: 5px;
+}
+
+.prism-property-label {
+	padding-left: 37px;
 }
 
 .prism-value { // DEPRECATED: rework the prism-value vs prism-property-value later
@@ -1323,4 +1354,25 @@ th.shrink {
 	// the content is just an icon or something much smaller
 	// than the header.
 	width: -moz-min-content;
+}
+
+.expand-collapse-button {
+	color: @text-label-color;
+	width: 22px;
+	text-align: center;
+}
+.expand-collapse-button {
+	color: @text-label-color;
+	width: 22px;
+	text-align: center;
+	cursor: pointer;
+}
+.expand-collapse-button:hover, .expand-collapse-button:focus {
+	color: @text-label-color;
+}
+
+.show-empty-button, .show-empty-button:hover .show-empty-button:focus{
+	color: @text-label-color;
+	font-size: 12px;
+	padding-bottom: 5px;
 }

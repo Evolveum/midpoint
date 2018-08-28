@@ -221,8 +221,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
                 List<QName> assignedRelations = dto.getAssignedRelationsList();
                 StringBuilder relations = new StringBuilder();
                 if (assignedRelations != null && assignedRelations.size() > 0) {
-                    List<RelationDefinitionType> defs = WebComponentUtil.getRelationDefinitions(new OperationResult(OPERATION_LOAD_RELATION_DEFINITION_LIST),
-                            RoleCatalogItemButton.this.getPageBase());
+                    List<RelationDefinitionType> defs = WebComponentUtil.getRelationDefinitions(RoleCatalogItemButton.this.getPageBase());
                     for (QName relation : assignedRelations) {
                         RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(defs, relation);
                         String relationLabel;

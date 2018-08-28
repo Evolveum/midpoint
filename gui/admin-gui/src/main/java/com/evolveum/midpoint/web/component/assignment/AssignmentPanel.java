@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -145,6 +146,11 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel(
 					ListItem<ContainerValueWrapper<AssignmentType>> item) {
 				return createMultivalueContainerDetailsPanel(item);
+			}
+
+			@Override
+			protected WebMarkupContainer getSearchPanel(String contentAreaId) {
+				return getCustomSearchPanel(contentAreaId);
 			}
 
 			@Override
@@ -536,11 +542,4 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		}
 
 	}
-
-//	protected void reloadSavePreviewButtons(AjaxRequestTarget target){
-//		FocusMainPanel mainPanel = getMultivalueContainerListPanel().findParent(FocusMainPanel.class);
-//		if (mainPanel != null) {
-//			mainPanel.reloadSavePreviewButtons(target);
-//		}
-//	}
 }

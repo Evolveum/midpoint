@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,14 +14,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
-	<wicket:panel>
-		<div class="row">
-			<div class="col-md-12">
-				<div wicket:id="notificationConfiguration" />
-			</div>
-		</div>
-	</wicket:panel>
-</html>
+<service oid="ba64f6e8-a77e-11e8-a0e8-fb9318a3952f"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>barellium</name>
+    <description>Barellium Superiorum</description>
+</service>

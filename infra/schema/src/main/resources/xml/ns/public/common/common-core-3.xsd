@@ -2712,6 +2712,10 @@
 						complex parameters. But for now, their only parameter is the (clusterwide) member tasks limit.
 						They are also referenced from NodeType when specifying execution limitations for them.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.group</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupTaskLimit" type="xsd:int" minOccurs="0">
@@ -2720,6 +2724,10 @@
 						Number of tasks within the group that can be executed at once (clusterwide). Default is "unlimited".
 						This parameter will be moved into separate task group object in a later version of midPoint.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.groupTaskLimit</a:displayName>
+						<a:displayOrder>110</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="secondaryGroup" type="tns:TaskExecutionGroupConstraintType" minOccurs="0" maxOccurs="unbounded">
@@ -2728,6 +2736,8 @@
 						TODO
 					</xsd:documentation>
 					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.secondaryGroup</a:displayName>
+						<a:displayOrder>120</a:displayOrder>
 						<a:since>3.7.1</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
@@ -2762,6 +2772,10 @@
 					<xsd:documentation>
 						In what time to retry after clusterwide execution constraints are not met. The default is 1 minute.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionConstraintsType.retryAfter</a:displayName>
+						<a:displayOrder>130</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -2784,6 +2798,10 @@
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionGroupConstraintType.group</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupTaskLimit" type="xsd:int" minOccurs="0">
@@ -2792,6 +2810,10 @@
 						Number of tasks within the group that can be executed at once (clusterwide). Default is "unlimited".
 						This parameter will be moved into separate task group object in a later version of midPoint.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>TaskExecutionGroupConstraintType.groupTaskLimit</a:displayName>
+						<a:displayOrder>110</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -5900,9 +5922,6 @@
 
                         If this element is not present at all then the native+configured capabilities
                         at the resource level are applied.
-
-                        BEWARE: Currently, only pagedSearch and addRemoveAttributeValues capability is expected here.
-                        Other capabilities listed in this section are ignored.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -6312,6 +6331,19 @@
         				includes run-time errors that are likely caused by the configuration, such
         				as generic errors in the expressions.
         			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="unsupported" type="xsd:boolean" minOccurs="0" default="false">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Selects "unsupported operation" issues. These errors are caused by
+        				lack of functionality or support for the operation in connector
+        				or any other part of midPoint. E.g. this may be missing (or disabled)
+        				connector capability. 
+        			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:since>3.9</a:since>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="generic" type="xsd:boolean" minOccurs="0" default="false">
@@ -14969,6 +15001,10 @@
             <xsd:documentation>
                 User interface icon specification.
             </xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:displayName>IconType.details</a:displayName>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="imageUrl" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -14977,6 +15013,9 @@
                     	URL of the image to use as an icon. It is expected that this will be a relative URL
                     	that is relative to the application root URL context.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>IconType.imageUrl</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="cssClass" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -14984,6 +15023,9 @@
                     <xsd:documentation>
                     	CSS class to use for icon representation.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>IconType.cssClass</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -20387,6 +20429,12 @@
 	<xsd:element name="formItems" type="tns:FormItemsType" />
 
     <xsd:complexType name="DisplayType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+				<a:displayName>DisplayType.details</a:displayName>
+			</xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <!-- basic properties -->
             <xsd:element name="label" type="xsd:string" minOccurs="0" >
@@ -20407,6 +20455,9 @@
             				value is displayed.
             			</p>
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.label</a:displayName>
+					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="tooltip" type="xsd:string" minOccurs="0">
@@ -20427,6 +20478,9 @@
             				value is displayed.
             			</p>
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.tooltip</a:displayName>
+					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
             <xsd:element name="help" type="xsd:string" minOccurs="0">
@@ -20445,11 +20499,26 @@
             				value is displayed.
             			</p>
             		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.help</a:displayName>
+					</xsd:appinfo>
             	</xsd:annotation>            
             </xsd:element>
             <!-- style properties -->
-            <xsd:element name="cssStyle" type="xsd:string" minOccurs="0" />
-            <xsd:element name="cssClass" type="xsd:string" minOccurs="0" />
+            <xsd:element name="cssStyle" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.cssStyle</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>            
+            </xsd:element>
+            <xsd:element name="cssClass" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.cssClass</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>            
+            </xsd:element>
             <!-- TODO: icon -->
             <!-- TODO: multilingual label, tooltip and help -->
         </xsd:sequence>
@@ -20457,9 +20526,21 @@
 
     <xsd:complexType name="FormDisplayType">
         <xsd:complexContent>
+			<xsd:annotation>
+				<xsd:appinfo>
+					<a:container>true</a:container>
+					<a:displayName>FormDisplayType.details</a:displayName>
+				</xsd:appinfo>
+			</xsd:annotation>
             <xsd:extension base="tns:DisplayType">
                 <xsd:sequence>
-                    <xsd:element name="theme" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="theme" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormDisplayType.theme</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -20467,18 +20548,51 @@
 
     <xsd:complexType name="FormItemDisplayType">
         <xsd:complexContent>
+			<xsd:annotation>
+				<xsd:appinfo>
+					<a:container>true</a:container>
+					<a:displayName>FormItemDisplayType.details</a:displayName>
+				</xsd:appinfo>
+			</xsd:annotation>
             <xsd:extension base="tns:DisplayType">
                 <xsd:sequence>
-                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" />
-                    <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0" />
-                    <xsd:element name="size" type="xsd:integer" minOccurs="0" />
-                    <xsd:element name="maxSize" type="xsd:integer" minOccurs="0" />
+                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.minOccurs</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
+                    <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.maxOccurs</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
+                    <xsd:element name="size" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.size</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
+                    <xsd:element name="maxSize" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.maxSize</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>            
+					</xsd:element>
                     <xsd:element name="newLine" type="xsd:boolean" minOccurs="0" default="true">
                         <xsd:annotation>
                             <xsd:documentation>
                                 displayable form component position (if true, field/group/loop will be
                                 placed on new line)
                             </xsd:documentation>
+							<xsd:appinfo>
+								<a:displayName>FormItemDisplayType.newLine</a:displayName>
+							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

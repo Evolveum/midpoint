@@ -107,11 +107,6 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 			}
 
 			@Override
-			protected PrismObject<AccessCertificationDefinitionType> getNewObjectListObject(){
-				return (new AccessCertificationDefinitionType()).asPrismObject();
-			}
-
-			@Override
 			protected List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> createColumns() {
 				return PageCertDefinitions.this.initColumns();
 			}

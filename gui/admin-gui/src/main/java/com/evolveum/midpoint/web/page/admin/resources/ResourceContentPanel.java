@@ -272,11 +272,6 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 
 			@Override
-			protected PrismObject<ShadowType> getNewObjectListObject(){
-				return (new ShadowType()).asPrismObject();
-			}
-
-			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ShadowType object) {
 				shadowDetailsPerformed(target, WebComponentUtil.getName(object), object.getOid());
 

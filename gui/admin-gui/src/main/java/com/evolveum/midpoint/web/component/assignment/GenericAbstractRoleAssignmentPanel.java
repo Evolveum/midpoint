@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,9 @@ public class GenericAbstractRoleAssignmentPanel extends AbstractRoleAssignmentPa
 		while (assignmentIterator.hasNext()) {
 			ContainerValueWrapper<AssignmentType> ass = assignmentIterator.next();
 			AssignmentType assignment = ass.getContainerValue().asContainerable();
+			if (assignment == null || assignment.getTargetRef() == null) {
+				continue;
+			}
 			if (QNameUtil.match(assignment.getTargetRef().getType(), OrgType.COMPLEX_TYPE)) {
 				PrismObject<OrgType> org = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, task.getResult());
 				if (org != null) {

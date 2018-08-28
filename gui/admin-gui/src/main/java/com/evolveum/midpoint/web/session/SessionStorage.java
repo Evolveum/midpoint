@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.evolveum.midpoint.gui.impl.session.GlobalPolicyRulesTabStorage;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -148,13 +147,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(KEY_SERVICES, new ServicesStorage());
         }
         return (ServicesStorage)pageStorageMap.get(KEY_SERVICES);
-    }
-
-    public RoleMembersStorage getRoleMembers() {
-    	if (pageStorageMap.get(KEY_ROLE_MEMBERS) == null) {
-            pageStorageMap.put(KEY_ROLE_MEMBERS, new RoleMembersStorage());
-        }
-        return (RoleMembersStorage)pageStorageMap.get(KEY_ROLE_MEMBERS);
     }
 
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {

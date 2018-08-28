@@ -243,11 +243,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         }
     }
-
-    protected PrismObject<O> getNewObjectListObject(){
-        return null;
-    }
-
     private void adoptNewObject(PrismObject<O> object) throws SchemaException{
         getPageBase().getMidpointApplication().getPrismContext().adopt(object);
     }

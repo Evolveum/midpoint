@@ -120,6 +120,8 @@ public class GuiStyleConstants {
 	public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-bank";
 	public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pencil-square-o";
 	public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer";
+	public static final String CLASS_ICON_COLLAPSE_CONTAINER = "fa fa-caret-down fa-lg";
+	public static final String CLASS_ICON_EXPAND_CONTAINER = "fa fa-caret-right fa-lg";
 
 	public static final String CLASS_OP_RESULT_STATUS_ICON_UNKNOWN_COLORED = "fa fa-question-circle text-warning";
 	public static final String CLASS_OP_RESULT_STATUS_ICON_SUCCESS_COLORED = "fa fa-check-circle text-success";
@@ -164,4 +166,9 @@ public class GuiStyleConstants {
 	
 	public static final String CLASS_SYSTEM_CONFIGURATION_ICON = "fa fa-cog";
 	public static final String CLASS_SYSTEM_CONFIGURATION_ICON_COLORED = CLASS_SYSTEM_CONFIGURATION_ICON + " object-shadow-color";
+	
+	public static final String CLASS_ASSIGN = "fa fa-link";
+	public static final String CLASS_UNASSIGN = "fa fa-unlink";
+	public static final String CLASS_RECONCILE = "fa fa-refresh";
+	public static final String CLASS_CREATE_FOCUS = "fa fa-user-plus";
 }

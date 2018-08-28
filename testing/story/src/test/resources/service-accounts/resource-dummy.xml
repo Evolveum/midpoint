@@ -203,6 +203,14 @@
 		
 	</schemaHandling>
 	
+	<consistency>
+		<connectorErrorCriticality>
+			<!-- We need to set this to critical.
+				 Otherwise disabled capabilities will cause only partial errors and inbound expressions may still be processed. -->
+			<unsupported>true</unsupported>
+		</connectorErrorCriticality>
+	</consistency>
+	
 	<synchronization>
 	
 		<!-- TODO: This should be modified to use classification expression.

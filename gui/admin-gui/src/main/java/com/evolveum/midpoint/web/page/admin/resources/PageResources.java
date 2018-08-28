@@ -171,11 +171,6 @@ public class PageResources extends PageAdminResources {
 			}
 
 			@Override
-			protected PrismObject<ResourceType> getNewObjectListObject(){
-				return (new ResourceType()).asPrismObject();
-			}
-
-			@Override
 			protected void objectDetailsPerformed(AjaxRequestTarget target, ResourceType object) {
 				PageResources.this.resourceDetailsPerformed(target, object.getOid());
 

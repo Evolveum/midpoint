@@ -120,6 +120,11 @@ public class ShadowAsserter<R> extends PrismObjectAsserter<ShadowType,R> {
 		return this;
 	}
 	
+	public ShadowAsserter<R> assertIntent(String expected) {
+		assertEquals("Wrong intent in "+desc(), expected, getObject().asObjectable().getIntent());
+		return this;
+	}
+	
 	public ShadowAsserter<R> assertIteration(Integer expected) {
 		assertEquals("Wrong iteration in "+desc(), expected, getObject().asObjectable().getIteration());
 		return this;

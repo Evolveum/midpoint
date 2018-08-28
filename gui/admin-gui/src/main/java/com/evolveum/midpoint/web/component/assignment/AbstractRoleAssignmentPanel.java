@@ -293,17 +293,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return true;
     }
 
-    private VisibleEnableBehaviour visibleIfRoleBehavior(IModel<AssignmentEditorDto> assignmentModel){
-        return new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible(){
-                return AssignmentEditorDtoType.ROLE.equals(assignmentModel.getObject().getType());
-            }
-        };
-    }
-
     protected void initCustomPaging(){
     	getAssignmentsTabStorage().setPaging(ObjectPaging.createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }

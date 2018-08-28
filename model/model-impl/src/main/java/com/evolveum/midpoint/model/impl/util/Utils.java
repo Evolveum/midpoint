@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -43,11 +44,18 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -658,5 +666,62 @@ public final class Utils {
 //			}
         }
     }
+	
+	public static void handleConnectorErrorCriticality(ResourceType resourceType, Throwable e) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
+	SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+		if (resourceType == null) {
+			throwException(e);
+		} else {
+			ErrorSelectorType errorSelector = ResourceTypeUtil.getConnectorErrorCriticality(resourceType);
+			if (errorSelector == null) {
+				if (e instanceof CommunicationException) {
+					// Just continue evaluation. The error is recorded in the result.
+					// The consistency mechanism has (most likely) already done the best.
+					// We cannot do any better.
+				} else {
+					throwException(e);
+				}
+			} else {
+				if (ExceptionUtil.isSelected(errorSelector, e, true)) {
+					throwException(e);
+				} else {
+					LOGGER.warn("Exception {} selected as non-critical in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), resourceType, e.getMessage());
+					// Just continue evaluation. The error should be recorded in the result.
+				}
+			}
+		}
+	}
 
+	private static void throwException(Throwable e) 
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
+				SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
+				PreconditionViolationException {
+		if (e instanceof RuntimeException) {
+			throw (RuntimeException)e;
+		} else if (e instanceof Error) {
+			throw (Error)e;
+		} else if (e instanceof ObjectNotFoundException) {
+			throw (ObjectNotFoundException)e;
+		} else if (e instanceof ObjectNotFoundException) {
+			throw (CommunicationException)e;
+		} else if (e instanceof CommunicationException) {
+			throw (SchemaException)e;
+		} else if (e instanceof SchemaException) {
+			throw (ConfigurationException)e;
+		} else if (e instanceof ConfigurationException) {
+			throw (SecurityViolationException)e;
+		} else if (e instanceof SecurityViolationException) {
+			throw (PolicyViolationException)e;
+		} else if (e instanceof PolicyViolationException) {
+			throw (ExpressionEvaluationException)e;
+		} else if (e instanceof ExpressionEvaluationException) {
+			throw (ObjectAlreadyExistsException)e;
+		} else if (e instanceof ObjectAlreadyExistsException) {
+			throw (ObjectNotFoundException)e;
+		} else if (e instanceof PreconditionViolationException) {
+			throw (PreconditionViolationException)e;
+		} else {
+			throw new SystemException(e.getMessage(), e);
+		}
+	}
 }
