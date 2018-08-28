@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -172,7 +172,7 @@ public class ReportServiceImpl implements ReportService {
 
 	public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script,
 			Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException,
-			ObjectNotFoundException {
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		List<PrismContainerValue<? extends Containerable>> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();
@@ -229,7 +229,7 @@ public class ReportServiceImpl implements ReportService {
 	}
 
 	public Collection<AuditEventRecord> evaluateAuditScript(String script, Map<QName, Object> parameters)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Collection<AuditEventRecord> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();

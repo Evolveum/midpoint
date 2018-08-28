@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.Validate;
@@ -33,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -148,7 +148,7 @@ public class CorrelationConfirmationEvaluator {
 		}
 		
 		ExpressionType condition = conditionalFilter.getCondition();
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null,currentShadow, resourceType, configurationType);
+		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null,currentShadow, resourceType, configurationType);
 		ItemDefinition outputDefinition = new PrismPropertyDefinitionImpl(
 				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN,
 				prismContext);
@@ -360,7 +360,7 @@ public class CorrelationConfirmationEvaluator {
 
 	private ObjectQuery evaluateQueryExpressions(ObjectQuery query, ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration,
 			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, resource, configuration);
+		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, currentShadow, resource, configuration);
 		return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionFactory, prismContext, shortDesc, task, result);
 	}
 	
@@ -372,7 +372,7 @@ public class CorrelationConfirmationEvaluator {
 		Validate.notNull(expressionType, "Expression must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow, resource, configuration);
+		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow, resource, configuration);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
 		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinitionImpl<>(ExpressionConstants.OUTPUT_ELEMENT_NAME,

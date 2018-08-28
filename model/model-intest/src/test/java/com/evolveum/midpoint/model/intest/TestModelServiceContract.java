@@ -180,7 +180,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test099ModifyUserAddAccountFailing");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -198,12 +198,19 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         getDummyResource().setAddBreakMode(BreakMode.UNSUPPORTED);       // hopefully this does not kick consistency mechanism
 
-        // WHEN
-        displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
-
-        // THEN
-        displayThen(TEST_NAME);
+        try {
+	        // WHEN
+	        displayWhen(TEST_NAME);
+	        modelService.executeChanges(deltas, null, task, result);
+	        
+	        assertNotReached();
+	        
+        } catch (UnsupportedOperationException e) {
+	        // THEN
+	        displayThen(TEST_NAME);
+	        display("Expected exception", e);
+        }
+        
         assertFailure(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -233,9 +240,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);        // actually I don't know why provisioning does not report unsupported operation as a failure...
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
-        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-        checkDummyTransportMessages("simpleUserNotifier-FAILURE", 1);
+        checkDummyTransportMessages("simpleUserNotifier-FAILURE", 0); // This should be called, but it is not implemented now
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
         assertSteadyResources();

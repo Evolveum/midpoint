@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Evolveum
+ * Copyright (c) 2013-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.commons.configuration.Configuration;
 
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
@@ -35,11 +36,9 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibraryUt
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
-import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.ProtectorImpl;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
@@ -98,8 +97,6 @@ public class ExpressionTestUtil {
         ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(prismContext, protector, repositoryService);
         scriptExpressionFactory.setObjectResolver(resolver);
         scriptExpressionFactory.setFunctions(functions);
-        XPathScriptEvaluator xpathEvaluator = new XPathScriptEvaluator(prismContext);
-        scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
         Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext, protector, LocalizationTestUtil.getLocalizationService());
         scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
         ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, securityContextManager);

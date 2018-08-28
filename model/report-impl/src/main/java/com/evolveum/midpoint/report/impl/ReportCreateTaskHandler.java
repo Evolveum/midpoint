@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 
@@ -76,7 +77,6 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -85,8 +85,12 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -265,11 +269,11 @@ public class ReportCreateTaskHandler implements TaskHandler {
     	return !List.class.isAssignableFrom(param.getValueClass());
     }
 
-    private Map<String, Object> completeReport(ReportType parentReport, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Map<String, Object> completeReport(ReportType parentReport, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         return completeReport(parentReport, null, null, task, result);
     }
 
-    private Map<String, Object> completeReport(ReportType parentReport, JasperReport subReport, String subReportName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private Map<String, Object> completeReport(ReportType parentReport, JasperReport subReport, String subReportName, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Map<String, Object> params = new HashMap<>();
 
         if (subReport != null && StringUtils.isNotBlank(subReportName)) {
@@ -342,7 +346,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         return params;
     }
 
-    private Map<String, Object> processSubreportParameters(ReportType reportType, Task task, OperationResult subreportResult) throws SchemaException, ObjectNotFoundException {
+    private Map<String, Object> processSubreportParameters(ReportType reportType, Task task, OperationResult subreportResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Map<String, Object> subreportParameters = new HashMap<>();
         for (SubreportType subreport : reportType.getSubreport()) {
             Map<String, Object> subreportParam = getSubreportParameters(subreport, task, subreportResult);
@@ -354,7 +358,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     }
 
     private Map<String, Object> getSubreportParameters(SubreportType subreportType, Task task, OperationResult subResult)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Map<String, Object> reportParams = new HashMap<>();
         ReportType reportType = objectResolver.resolve(subreportType.getReportRef(), ReportType.class, null,
                 "resolve subreport", task, subResult);

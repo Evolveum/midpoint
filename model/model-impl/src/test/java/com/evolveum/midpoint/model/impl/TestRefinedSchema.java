@@ -25,13 +25,14 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -156,7 +157,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);
+        ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchema, task);
 
         // THEN
         display("Object class", objectClass);
@@ -179,7 +180,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);
+        ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchema, task);
 
         // THEN
         display("Object class", objectClass);
@@ -202,7 +203,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);
+        ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchema, task);
 
         // THEN
         display("Object class", objectClass);
@@ -225,7 +226,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchemaModel, task);
+        ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchemaModel, task);
 
         // THEN
         display("Object class", objectClass);
@@ -249,7 +250,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchemaModel, task);
+        ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchemaModel, task);
 
         // THEN
         display("Object class", objectClass);
@@ -274,7 +275,7 @@ public class TestRefinedSchema extends AbstractInternalModelIntegrationTest {
         display("Task", task);
 
         // WHEN
-        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchemaModel, task);
+        ObjectClassComplexTypeDefinition objectClass = ModelImplUtils.determineObjectClass(refinedSchemaModel, task);
 
         // THEN
         display("Object class", objectClass);

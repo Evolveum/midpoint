@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,7 @@ public abstract class MidpointRestAuthenticator<T extends AbstractAuthentication
 	   private void authenticateUser(PrismObject<UserType> user, String enteredUsername, ConnectionEnvironment connEnv, ContainerRequestContext requestCtx) {
 		   try {
 	    		securityContextManager.setupPreAuthenticatedSecurityContext(user);
-	        } catch (SchemaException e) {
+	        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 				securityHelper.auditLoginFailure(enteredUsername, user.asObjectable(), connEnv, "Schema error: "+e.getMessage());
 				requestCtx.abortWith(Response.status(Status.BAD_REQUEST).build());
 //				return false;

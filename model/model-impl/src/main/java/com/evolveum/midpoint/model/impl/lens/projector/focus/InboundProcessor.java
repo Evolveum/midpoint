@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -735,7 +735,7 @@ public class InboundProcessor {
     		ItemDelta<V,D> attributeAPrioriDelta,
             PrismObject<F> focusNew, 
             VariableProducer<V> variableProducer, Map<ItemDefinition, List<MappingImpl<?,?>>> mappingsToTarget,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
     	if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");

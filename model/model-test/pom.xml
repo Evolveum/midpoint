@@ -114,6 +114,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-common</artifactId>
+			<version>3.9-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-cache</artifactId>
 			<version>3.9-SNAPSHOT</version>
 			<scope>runtime</scope>

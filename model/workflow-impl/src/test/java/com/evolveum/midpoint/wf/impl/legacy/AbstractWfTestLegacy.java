@@ -24,7 +24,7 @@ import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -498,7 +498,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
                 file, ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(
                 modElement, context.getFocusClass(), prismContext);
-        Utils.encrypt((Collection) Arrays.asList(focusDelta), protector, null, new OperationResult("dummy"));
+        ModelImplUtils.encrypt((Collection) Arrays.asList(focusDelta), protector, null, new OperationResult("dummy"));
         return addFocusDeltaToContext(context, focusDelta);
     }
 }

@@ -18,10 +18,10 @@ package com.evolveum.midpoint.model.impl.scripting.actions;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.PipelineItem;
-import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -86,7 +86,7 @@ public class ModifyExecutor extends BaseActionExecutor {
                     //    repository, it should be perhaps resolved at that time. But again, it is a lot of work and it does
                     //    not cover bulk actions which are not part of a task.
                     // We consider this solution to be adequate for now.
-                    Utils.resolveReferences(delta, cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
+                    ModelImplUtils.resolveReferences(delta, cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
                     operationsHelper.applyDelta(delta, executionOptions, dryRun, context, result);
                     operationsHelper.recordEnd(context, objectType, started, null);
                 } catch (Throwable ex) {

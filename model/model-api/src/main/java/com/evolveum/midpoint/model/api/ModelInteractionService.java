@@ -187,7 +187,7 @@ public interface ModelInteractionService {
      */
     <O extends ObjectType,R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    SecurityPolicyType getSecurityPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    SecurityPolicyType getSecurityPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * Returns an authentications policies as defined in the system configuration security policy. This method is designed to be used
@@ -196,34 +196,37 @@ public interface ModelInteractionService {
      *
      *
      * @param task
-     *@param parentResult  @return applicable credentials policy or null
+     * @param parentResult
+     * @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      */
-    AuthenticationsPolicyType getAuthenticationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    AuthenticationsPolicyType getAuthenticationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * Returns a policy for registration, e.g. type of the supported registrations (self, social,...)
      *
      * @param user user for who the policy should apply
      * @param task
-     *@param parentResult  @return applicable credentials policy or null
+     * @param parentResult
+     * @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      * @deprecated
      */
-    RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * Returns a policy for registration, e.g. type of the supported registrations (self, social,...)
      *
      * @param user user for who the policy should apply
      * @param task
-     *@param parentResult  @return applicable credentials policy or null
+     * @param parentResult
+     * @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      */
-    RegistrationsPolicyType getFlowPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    RegistrationsPolicyType getFlowPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
         /**
      * Returns a credential policy that applies to the specified user. This method is designed to be used
@@ -232,11 +235,12 @@ public interface ModelInteractionService {
      *
      * @param user user for who the policy should apply
      * @param task
-     *@param parentResult  @return applicable credentials policy or null
+     * @param parentResult
+     * @return applicable credentials policy or null
      * @throws ObjectNotFoundException No system configuration or other major system inconsistency
      * @throws SchemaException Wrong schema or content of security policy
      */
-    CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+    CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
     /**
      * Returns currently applicable admin GUI configuration. The implementation will do all steps necessary to construct
@@ -347,7 +351,7 @@ public interface ModelInteractionService {
 	
 	void clearCaches();
 	
-	void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException;
+	void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 	
 	List<RelationDefinitionType> getRelationDefinitions(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 

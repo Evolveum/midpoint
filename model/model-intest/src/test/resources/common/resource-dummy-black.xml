@@ -232,8 +232,8 @@
 	<consistency>
 		<!-- MID-3682 -->
 		<connectorErrorCriticality>
-			<network>false</network>
-			<schema>false</schema>
+			<network>partial</network>
+			<schema>partial</schema>
 		</connectorErrorCriticality>
 	</consistency>
 	

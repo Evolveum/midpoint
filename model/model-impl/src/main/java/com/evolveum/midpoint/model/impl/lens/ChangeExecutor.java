@@ -42,7 +42,7 @@ import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -346,7 +346,7 @@ public class ChangeExecutor {
 						updateLinks(focusContext, projCtx, shadowAfterModification, task, subResult);
 					}
 					
-					Utils.handleConnectorErrorCriticality(projCtx.getResource(), e);
+					ModelImplUtils.handleConnectorErrorCriticality(projCtx.getResource(), e, subResult);
 					
 
 				} catch (ObjectAlreadyExistsException e) {
@@ -856,7 +856,7 @@ public class ChangeExecutor {
 						projectionCtx.hasFullShadow(), now);
 
 		try {
-			Utils.setRequestee(task, focusContext);
+			ModelImplUtils.setRequestee(task, focusContext);
 			ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
 			options.setDoNotDiscovery(true);
 			provisioning.modifyObject(ShadowType.class, projectionOid, syncSituationDeltas, null, options, task, result);
@@ -873,7 +873,7 @@ public class ChangeExecutor {
 			result.recordFatalError(ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
-			Utils.clearRequestee(task);
+			ModelImplUtils.clearRequestee(task);
 		}
 		// if everything is OK, add result of the situation modification to the
 		// parent result
@@ -1451,9 +1451,9 @@ public class ChangeExecutor {
 			scripts = prepareScripts(object, context, objectContext, ProvisioningOperationTypeType.ADD,
 					resource, task, result);
 		}
-		Utils.setRequestee(task, context);
+		ModelImplUtils.setRequestee(task, context);
 		String oid = provisioning.addObject(object, scripts, options, task, result);
-		Utils.clearRequestee(task);
+		ModelImplUtils.clearRequestee(task);
 		return oid;
 	}
 
@@ -1480,9 +1480,9 @@ public class ChangeExecutor {
 			scripts = prepareScripts(shadowToModify, context, objectContext,
 					ProvisioningOperationTypeType.DELETE, resource, task, result);
 		}
-		Utils.setRequestee(task, context);
+		ModelImplUtils.setRequestee(task, context);
 		PrismObject<T> objectAfterModification = provisioning.deleteObject(objectTypeClass, oid, options, scripts, task, result);
-		Utils.clearRequestee(task);
+		ModelImplUtils.clearRequestee(task);
 		return objectAfterModification;
 	}
 
@@ -1514,10 +1514,10 @@ public class ChangeExecutor {
 			scripts = prepareScripts(shadowToModify, context, objectContext,
 					ProvisioningOperationTypeType.MODIFY, resource, task, result);
 		}
-		Utils.setRequestee(task, context);
+		ModelImplUtils.setRequestee(task, context);
 		String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options,
 				task, result);
-		Utils.clearRequestee(task);
+		ModelImplUtils.clearRequestee(task);
 		return changedOid;
 	}
 
@@ -1563,7 +1563,7 @@ public class ChangeExecutor {
 		ResourceShadowDiscriminator discr = ((LensProjectionContext) objectContext)
 				.getResourceShadowDiscriminator();
 
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow, discr,
+		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow, discr,
 				resource.asPrismObject(), context.getSystemConfiguration(), objectContext);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, (LensProjectionContext) objectContext, task, result));
 		try {
@@ -1751,7 +1751,7 @@ public class ChangeExecutor {
 			shadow = (PrismObject<ShadowType>) projContext.getObjectCurrent();
 		}
 
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow,
+		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow,
 				projContext.getResourceShadowDiscriminator(), resource.asPrismObject(),
 				context.getSystemConfiguration(), projContext);
 		Object scriptResult = null;
@@ -1761,9 +1761,9 @@ public class ChangeExecutor {
 					projContext.getResourceShadowDiscriminator(), operation, order,
 					variables, context, projContext, task, parentResult);
 			for (OperationProvisioningScriptType script : evaluatedScript.getScript()) {
-				Utils.setRequestee(task, context);
+				ModelImplUtils.setRequestee(task, context);
 				scriptResult = provisioning.executeScript(resource.getOid(), script, task, parentResult);
-				Utils.clearRequestee(task);
+				ModelImplUtils.clearRequestee(task);
 			}
 		} finally {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();

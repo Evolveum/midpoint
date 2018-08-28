@@ -32,7 +32,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -241,9 +241,9 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 			}
 
 			if (shadowToImport != null) {
-			    objectClass = Utils.determineObjectClass(refinedSchema, shadowToImport);
+			    objectClass = ModelImplUtils.determineObjectClass(refinedSchema, shadowToImport);
 			} else {
-			    objectClass = Utils.determineObjectClass(refinedSchema, coordinatorTask);
+			    objectClass = ModelImplUtils.determineObjectClass(refinedSchema, coordinatorTask);
 			}
 			if (objectClass == null) {
 			    LOGGER.error("Import: No objectclass specified and no default can be determined.");

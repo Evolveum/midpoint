@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,12 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialPolicyType;
@@ -56,7 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
@@ -185,7 +188,7 @@ public class SecurityHelper implements ModelAuditRecorder {
      * returned security policy.
      */
     public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration,
-    		Task task, OperationResult result) throws SchemaException {
+    		Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
     	SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicy(user, systemConfiguration, task, result);
     	if (focusSecurityPolicy != null) {
@@ -223,7 +226,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     	return null;
     }
 
-    public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) {
+    public <F extends FocusType> SecurityPolicyType locateGlobalSecurityPolicy(PrismObject<F> user, PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	if (systemConfiguration == null) {
     		return null;
     	}
@@ -243,7 +246,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     	return null;
     }
 
-    public SecurityPolicyType locateGlobalPasswordPolicy(SystemConfigurationType systemConfiguration, Task task, OperationResult result) {
+    public SecurityPolicyType locateGlobalPasswordPolicy(SystemConfigurationType systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	if (systemConfiguration != null) {
 			SecurityPolicyType globalPasswordPolicy = resolveGlobalPasswordPolicy(null, systemConfiguration, task, result);
 			if (globalPasswordPolicy != null) {
@@ -254,7 +257,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     	return null;
     }
 
-    private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> user, SystemConfigurationType systemConfiguration, Task task, OperationResult result) {
+    private <F extends FocusType> SecurityPolicyType resolveGlobalSecurityPolicy(PrismObject<F> user, SystemConfigurationType systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	ObjectReferenceType globalSecurityPolicyRef = systemConfiguration.getGlobalSecurityPolicyRef();
 		if (globalSecurityPolicyRef != null) {
 			try {
@@ -273,7 +276,7 @@ public class SecurityHelper implements ModelAuditRecorder {
 		return null;
     }
 
-    private <F extends FocusType> SecurityPolicyType resolveGlobalPasswordPolicy(PrismObject<F> user, SystemConfigurationType systemConfiguration, Task task, OperationResult result) {
+    private <F extends FocusType> SecurityPolicyType resolveGlobalPasswordPolicy(PrismObject<F> user, SystemConfigurationType systemConfiguration, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	ObjectReferenceType globalPasswordPolicyRef = systemConfiguration.getGlobalPasswordPolicyRef();
 		if (globalPasswordPolicyRef != null) {
 			try {
@@ -355,7 +358,7 @@ public class SecurityHelper implements ModelAuditRecorder {
 		ValuePolicyType valuePolicyType;
 		try {
 			valuePolicyType = objectResolver.resolve(valuePolicyRef, ValuePolicyType.class, null, credShortDesc + " in " + securityPolicyType, task, result);
-		} catch (ObjectNotFoundException | SchemaException e) {
+		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 			LOGGER.warn("{} {} referenced from {} was not found", credShortDesc, valuePolicyRef.getOid(), securityPolicyType);
 			return null;
 		}

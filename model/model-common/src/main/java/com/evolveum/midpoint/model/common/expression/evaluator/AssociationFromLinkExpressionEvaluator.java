@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -84,7 +84,7 @@ public class AssociationFromLinkExpressionEvaluator
 	 */
 	@Override
 	public PrismValueDeltaSetTriple<PrismContainerValue<ShadowAssociationType>> evaluate(ExpressionEvaluationContext context) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
+			ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		String desc = context.getContextDescription();
 		
@@ -200,7 +200,7 @@ public class AssociationFromLinkExpressionEvaluator
 	private void gatherCandidateShadowsFromAbstractRoleRecurse(OrgType thisOrg,
 			List< String > candidateShadowsOidList,
 			 Collection<SelectorOptions<GetOperationOptions>> options,
-			String desc, ExpressionEvaluationContext params) throws SchemaException, ObjectNotFoundException {
+			String desc, ExpressionEvaluationContext params) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 
 		

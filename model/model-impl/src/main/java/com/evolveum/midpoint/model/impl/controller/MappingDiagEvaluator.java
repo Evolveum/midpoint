@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ public class MappingDiagEvaluator {
 	}
 
 	private ObjectDeltaObject<?> createSourceContext(MappingEvaluationRequestType request, Task task,
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (request.getSourceContext() == null) {
 			return null;
 		}

@@ -1344,19 +1344,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 		display("Input deltas: ", deltas);
 
-		try {
-			// WHEN
-	        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
-	        display("Preview context", modelContext);
-
-	        AssertJUnit.fail("Preview unexpectedly succeeded");
-		} catch (SchemaException e) {
-			// This is expected
-			display("Expected exception", e);
-		}
-
-		result.computeStatus();
-        TestUtil.assertFailure(result);
+		// WHEN
+		displayWhen(TEST_NAME);
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(deltas, new ModelExecuteOptions(), task, result);
+        
+        // THEN
+ 		displayThen(TEST_NAME);
+        display("Preview context", modelContext);
+		assertPartialError(result);
 	}
 
 	/**

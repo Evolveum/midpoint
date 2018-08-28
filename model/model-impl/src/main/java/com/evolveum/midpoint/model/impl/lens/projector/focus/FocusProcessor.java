@@ -26,6 +26,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
-import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -159,7 +159,7 @@ public class FocusProcessor {
 			ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
 			applyObjectPolicyConstraints(focusContext, objectPolicyConfigurationType);
 
-			ExpressionVariables variablesPreIteration = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(),
+			ExpressionVariables variablesPreIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
 					null, null, null, context.getSystemConfiguration(), focusContext);
 			if (iterationToken == null) {
 				iterationToken = LensUtil.formatIterationToken(context, focusContext,
@@ -324,7 +324,7 @@ public class FocusProcessor {
 		        checker.check(previewObjectNew, result);
 		        if (checker.isSatisfiesConstraints()) {
 		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
-		        	ExpressionVariables variablesPostIteration = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(),
+		        	ExpressionVariables variablesPostIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
 		        			null, null, null, context.getSystemConfiguration(), focusContext);
 		        	if (LensUtil.evaluateIterationCondition(context, focusContext,
 		        			iterationSpecificationType, iteration, iterationToken, false, expressionFactory, variablesPostIteration,

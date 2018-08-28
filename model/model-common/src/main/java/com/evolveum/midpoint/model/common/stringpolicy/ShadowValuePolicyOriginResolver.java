@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.common.stringpolicy;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 

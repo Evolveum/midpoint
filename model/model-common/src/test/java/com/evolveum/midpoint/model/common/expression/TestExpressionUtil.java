@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,8 +51,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -187,17 +191,17 @@ public class TestExpressionUtil {
 
     }
 
-    private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException {
+    private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	ExpressionVariables variables = createVariables();
     	return resolvePath(path, variables, TEST_NAME);
     }
 
-    private <T> T resolvePathOdo(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException {
+    private <T> T resolvePathOdo(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	ExpressionVariables variables = createVariablesOdo();
     	return resolvePath(path, variables, TEST_NAME);
     }
 
-    private <T> T resolvePath(String path, ExpressionVariables variables, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
+    private <T> T resolvePath(String path, ExpressionVariables variables, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	OperationResult result = new OperationResult(TestExpressionUtil.class.getName() + "." + TEST_NAME);
 		ItemPath itemPath = toItemPath(path);
 

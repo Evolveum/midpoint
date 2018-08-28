@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.common.expression;
 import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 
 /**
  * This is NOT autowired evaluator. There is special need to manipulate objectResolver.

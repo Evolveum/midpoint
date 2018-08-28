@@ -96,7 +96,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
     }
 
     @Override
-    public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException {
+    public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	securityContextManager.setupPreAuthenticatedSecurityContext(user);
 	}
     
@@ -317,7 +317,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 
 
 	@Override
-	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException {
+	public <T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return securityContextManager.runAs(producer, user);
 	}
 

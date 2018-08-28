@@ -22,7 +22,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -209,7 +209,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         try {
-            dryRun = Utils.isDryRun(coordinatorTask);
+            dryRun = ModelImplUtils.isDryRun(coordinatorTask);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't get dryRun flag from task " + coordinatorTask);
         }

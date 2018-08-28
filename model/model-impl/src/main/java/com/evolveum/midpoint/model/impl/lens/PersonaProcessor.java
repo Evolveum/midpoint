@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
@@ -46,7 +47,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
@@ -223,7 +223,7 @@ public class PersonaProcessor {
 	}
 
 
-	public <F extends FocusType> List<FocusType> readExistingPersonas(LensContext<F> context, Task task, OperationResult result) {
+	public <F extends FocusType> List<FocusType> readExistingPersonas(LensContext<F> context, Task task, OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		PrismObject<F> focus = focusContext.getObjectNew();
 

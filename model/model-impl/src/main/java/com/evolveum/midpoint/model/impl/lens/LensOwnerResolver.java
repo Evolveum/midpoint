@@ -21,8 +21,8 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -64,7 +64,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 	}
 
 	@Override
-	public <FO extends FocusType, O extends ObjectType> PrismObject<FO> resolveOwner(PrismObject<O> object) {
+	public <FO extends FocusType, O extends ObjectType> PrismObject<FO> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (object == null) {
 			return null;
 		}

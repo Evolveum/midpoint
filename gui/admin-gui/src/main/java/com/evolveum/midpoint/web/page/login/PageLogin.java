@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.login;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -74,7 +75,7 @@ public class PageLogin extends PageBase {
                 SecurityPolicyType securityPolicy = null;
                 try {
                     securityPolicy = getModelInteractionService().getSecurityPolicy(null, null, parentResult);
-                } catch (ObjectNotFoundException | SchemaException e) {
+                } catch (CommonException e) {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
 
@@ -120,7 +121,7 @@ public class PageLogin extends PageBase {
                 		registrationPolicies = getModelInteractionService().getRegistrationPolicy(null, task, parentResult);
                 	}
                 	
-                } catch (ObjectNotFoundException | SchemaException e) {
+                } catch (CommonException e) {
                     LOGGER.warn("Cannot read credentials policy: " + e.getMessage(), e);
                 }
 

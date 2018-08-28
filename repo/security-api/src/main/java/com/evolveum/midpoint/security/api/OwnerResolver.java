@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 package com.evolveum.midpoint.security.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -28,6 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface OwnerResolver {
 
-	<F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object);
+	<F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 }

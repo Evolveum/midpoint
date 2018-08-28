@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Evolveum
+ * Copyright (c) 2013-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
@@ -152,7 +152,7 @@ public class MappingEvaluator {
         MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> internalInitializer =
 			builder -> {
 
-				builder.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, projCtx).getMap());
+				builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx).getMap());
 
 		        builder.originType(OriginType.OUTBOUND);
 				builder.originObject(projCtx.getResource());
@@ -587,7 +587,7 @@ public class MappingEvaluator {
 	public <V extends PrismValue, D extends ItemDefinition , F extends FocusType> MappingImpl<V, D> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject,
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
-			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	Integer iteration = null;
     	String iterationToken = null;
     	if (focusOdo.getNewObject() != null) {
@@ -607,7 +607,7 @@ public class MappingEvaluator {
     		final MappingFactory mappingFactory, final LensContext<F> context, final MappingType mappingType, ObjectType originObject,
 			ObjectDeltaObject<F> focusOdo, Source<V, D> defaultSource, PrismObject<T> defaultTargetObject, AssignmentPathVariables assignmentPathVariables,
 			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
-			XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			XMLGregorianCalendar now, String contextDesc, final Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		if (!MappingImpl.isApplicableToChannel(mappingType, context.getChannel())) {
 			LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mappingType, context.getChannel());

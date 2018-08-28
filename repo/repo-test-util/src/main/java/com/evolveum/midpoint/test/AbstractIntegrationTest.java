@@ -82,10 +82,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.asserter.FocusAsserter;
@@ -187,7 +187,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	@Autowired(required = false)
 	@Qualifier("repoObjectResolver")
-	protected ObjectResolver repoObjectResolver;
+	protected SimpleObjectResolver repoObjectResolver;
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start

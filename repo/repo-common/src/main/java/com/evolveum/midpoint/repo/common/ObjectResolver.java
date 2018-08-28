@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.schema.util;
+package com.evolveum.midpoint.repo.common;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -65,9 +66,12 @@ public interface ObjectResolver {
 	 *
 	 * TODO resolve module dependencies to allow task to be of type Task
 	 */
-	<T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
-			String contextDescription, Object task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException;
+	<O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
+			String contextDescription, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+	
+	<O extends ObjectType> O getObject(Class<O> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
+			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
 	<O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;

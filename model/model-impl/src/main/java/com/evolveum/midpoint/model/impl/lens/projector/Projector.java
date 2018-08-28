@@ -38,7 +38,7 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.ProjectionCredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusProcessor;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -412,9 +412,8 @@ public class Projector {
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | SecurityViolationException
     			| PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | RuntimeException | Error e) {
 
-			result.recordFatalError(e);
-
-			Utils.handleConnectorErrorCriticality(projectionContext.getResource(), e);
+			projectionContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+			ModelImplUtils.handleConnectorErrorCriticality(projectionContext.getResource(), e, result);
     	}
 
 

@@ -81,7 +81,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 		// TODO consider which variables should go here (there's no focus, shadow, resource - only configuration)
 		if (ExpressionUtil.hasExpressions(query.getFilter())) {
 			PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(opResult);
-			ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, null, null,
+			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, null, null,
 					configuration != null ? configuration.asObjectable() : null);
 			try {
 				ExpressionEnvironment<?> env = new ExpressionEnvironment<>(coordinatorTask, opResult);

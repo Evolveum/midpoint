@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,18 @@ import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
@@ -95,7 +98,7 @@ public class ScriptExpression {
 	
 	public <V extends PrismValue> List<V> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType,
 			boolean useNew, String contextDescription, Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, task, this);
 		context.setEvaluateNew(useNew);
@@ -108,7 +111,7 @@ public class ScriptExpression {
 			traceExpressionSuccess(variables, contextDescription, expressionResult);
 	        return expressionResult;
 
-		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | RuntimeException ex) {
+		} catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error ex) {
 			traceExpressionFailure(variables, contextDescription, ex);
 			throw ex;
 		} finally {
@@ -130,7 +133,7 @@ public class ScriptExpression {
 				formatCode(), SchemaDebugUtil.prettyPrint(returnValue));
     }
 
-    private void traceExpressionFailure(ExpressionVariables variables, String shortDesc, Exception exception) {
+    private void traceExpressionFailure(ExpressionVariables variables, String shortDesc, Throwable exception) {
         LOGGER.error("Expression error: {}", exception.getMessage(), exception);
         if (!isTrace()) {
     		return;

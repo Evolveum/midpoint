@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.report.impl;
 
 import java.util.Collection;
@@ -52,11 +67,9 @@ public class ReportWebService implements ReportPortType, ReportPort {
 	public ObjectListType evaluateScript(String script, RemoteReportParametersType parameters) {
 		try {
 			Map<QName, Object> params = getParamsMap(parameters);
-			Collection resultList = reportService.evaluateScript(script,
-					params);
+			Collection resultList = reportService.evaluateScript(script, params);
 			return createObjectListType(resultList);
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
-			// TODO Auto-generated catch block
+		} catch (Throwable e) {
 			throw new Fault(e);
 		}
 
@@ -69,7 +82,7 @@ public class ReportWebService implements ReportPortType, ReportPort {
 			Map<QName, Object> params = getParamsMap(parameters);
 			Collection<AuditEventRecord> resultList = reportService.evaluateAuditScript(script, params);
 			return createAuditEventRecordListType(resultList);
-		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException e) {
+		} catch (Throwable e) {
 			// TODO Auto-generated catch block
 			throw new Fault(e);
 		}

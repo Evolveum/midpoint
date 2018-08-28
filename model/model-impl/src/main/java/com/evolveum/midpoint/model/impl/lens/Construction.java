@@ -31,7 +31,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -238,12 +238,12 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, SecurityViolationException {
 		// SearchFilterType filter = targetRef.getFilter();
-		ExpressionVariables variables = Utils
+		ExpressionVariables variables = ModelImplUtils
 				.getDefaultExpressionVariables(getFocusOdo().getNewObject().asObjectable(), null, null, null);
 		if (assignmentPathVariables == null) {
 			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
 		}
-		Utils.addAssignmentPathVariables(assignmentPathVariables, variables);
+		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
 		LOGGER.info("Expression variables for filter evaluation: {}", variables);
 
 		ObjectFilter origFilter = QueryConvertor.parseFilter(getConstructionType().getResourceRef().getFilter(),

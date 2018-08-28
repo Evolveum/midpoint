@@ -40,6 +40,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -208,8 +209,8 @@ public class PagePostAuthentication extends PageAbstractFlow {
 			try {
 				getModelInteractionService().refreshPrincipal(principal.getOid());
 				navigateToNext(getMidpointApplication().getHomePage());
-			} catch (ObjectNotFoundException | SchemaException e) {
-				LOGGER.error("Errpr while refreshing user: ", e);
+			} catch (CommonException e) {
+				LOGGER.error("Error while refreshing user: ", e);
 				target.add(PagePostAuthentication.this);
 			}
 			

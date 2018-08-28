@@ -35,7 +35,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -61,6 +60,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -69,6 +69,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -121,14 +122,11 @@ public class LensUtil {
 
 	public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context, String resourceOid, ObjectResolver objectResolver,
 																  Task task, OperationResult result) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ResourceType resourceType = context.getResource(resourceOid);
 		if (resourceType == null) {
-			ObjectReferenceType ref = new ObjectReferenceType();
-			ref.setType(ResourceType.COMPLEX_TYPE);
-			ref.setOid(resourceOid);
 			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createReadOnly());
-			resourceType = objectResolver.resolve(ref, ResourceType.class, options, "resource fetch in lens", task, result);
+			resourceType = objectResolver.getObject(ResourceType.class, resourceOid, options, task, result);
 			context.rememberResource(resourceType);
 		}
 		return resourceType;
@@ -720,7 +718,7 @@ public class LensUtil {
 
 	public static <V extends PrismValue,D extends ItemDefinition> MappingImpl.Builder<V,D> addAssignmentPathVariables(MappingImpl.Builder<V,D> builder, AssignmentPathVariables assignmentPathVariables) {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
-		Utils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
+		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, expressionVariables);
 		return builder.addVariableDefinitions(expressionVariables.getMap());
     }
 
