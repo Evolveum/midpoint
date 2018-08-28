@@ -39,6 +39,8 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+	<xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" />
+	<xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
 
 	<xsd:complexType name="ApprovalSchemaType">
 		<xsd:annotation>
@@ -649,6 +651,7 @@
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>WfConfigurationType.modelHookEnabled</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -673,6 +676,7 @@
                     <xsd:appinfo>
 						<a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>3.5</a:deprecatedSince>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -685,6 +689,7 @@
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>WfConfigurationType.useLegacyApproversSpecification</a:displayName>
+						<a:displayOrder>120</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -696,6 +701,7 @@
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>WfConfigurationType.useDefaultApprovalPolicyRules</a:displayName>
+						<a:displayOrder>110</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -709,6 +715,7 @@
 						<a:experimental>true</a:experimental>
 						<a:since>3.6.1</a:since>
 						<a:displayName>WfConfigurationType.executionTasks</a:displayName>
+						<a:displayOrder>500</a:displayOrder>
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -729,6 +736,7 @@
 			    <xsd:annotation>
 					<xsd:appinfo>
 						<a:displayName>WfConfigurationType.primaryChangeProcessor</a:displayName>
+						<a:displayOrder>510</a:displayOrder>
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -787,6 +795,7 @@
 				EXPERIMENTAL
 			</xsd:documentation>
 			<xsd:appinfo>
+				<a:container>true</a:container>
 				<a:experimental>true</a:experimental>
 				<a:since>3.6.1</a:since>
 			</xsd:appinfo>
@@ -797,6 +806,10 @@
 					<xsd:documentation>
 						Whether and how to serialize execution tasks (if "execute after all approvals" is set to false).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayOrder>100</a:displayOrder>
+						<a:displayName>WfExecutionTasksConfigurationType.serialization</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="executionConstraints" type="tns:TaskExecutionConstraintsType" minOccurs="0">
@@ -806,6 +819,8 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.7</a:since>
+						<a:displayOrder>110</a:displayOrder>
+						<a:displayName>WfExecutionTasksConfigurationType.executionConstraints</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -819,6 +834,7 @@
 				EXPERIMENTAL
 			</xsd:documentation>
 			<xsd:appinfo>
+				<a:container>true</a:container>
 				<a:experimental>true</a:experimental>
 				<a:since>3.6.1</a:since>
 			</xsd:appinfo>
@@ -829,6 +845,10 @@
 					<xsd:documentation>
 						Whether this feature is enabled. Default is true if "serialization" element is present; false otherwise.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WfExecutionTasksSerializationType.enabled</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="scope" type="tns:WfExecutionTasksSerializationScopeType" minOccurs="0" maxOccurs="unbounded">
@@ -836,6 +856,10 @@
 					<xsd:documentation>
 						Scope of serialization. The default is "object". If multiple scopes are defined, serialization occurs on each one.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WfExecutionTasksSerializationType.scope</a:displayName>
+						<a:displayOrder>110</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="retryAfter" type="xsd:duration" minOccurs="0">
@@ -843,6 +867,10 @@
 					<xsd:documentation>
 						Interval after which the execution task is to be rescheduled in case of conflict. Default is 10 seconds.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WfExecutionTasksSerializationType.retryAfter</a:displayName>
+						<a:displayOrder>120</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="groupPrefix" type="xsd:string" minOccurs="0">
@@ -850,6 +878,10 @@
 					<xsd:documentation>
 						TODO
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>WfExecutionTasksSerializationType.groupPrefix</a:displayName>
+						<a:displayOrder>130</a:displayOrder>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -995,7 +1027,14 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true"/>
+            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:displayName>WfChangeProcessorConfigurationType.enabled</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="order" minOccurs="0" type="xsd:int">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1086,6 +1125,7 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.policyRuleBasedAspect</a:displayName>
+								<a:displayOrder>200</a:displayOrder>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1093,6 +1133,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addUserAbstractRoleAssignmentAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1100,6 +1143,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyUserAbstractRoleAssignmentAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1107,6 +1153,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addUserResourceAssignmentAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1114,6 +1163,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyUserResourceAssignmentAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1121,6 +1173,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addAbstractRoleAbstractRoleAssignmentAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1128,6 +1183,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyAbstractRoleAbstractRoleAssignmentAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1135,6 +1193,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addAbstractRoleResourceAssignmentAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1142,6 +1203,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyAbstractRoleResourceAssignmentAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1149,6 +1213,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addAbstractRoleAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1156,6 +1223,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyAbstractRoleAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1163,6 +1233,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addUserAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1170,6 +1243,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyUserAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1177,6 +1253,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addResourceAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1184,6 +1263,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyResourceAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1191,6 +1273,7 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addAssociationAspect</a:displayName>
+								<a:displayOrder>210</a:displayOrder>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1198,6 +1281,9 @@
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.otherAspect</a:displayName>
+								<a:deprecated>true</a:deprecated>
+								<a:deprecatedSince>3.9</a:deprecatedSince>
+								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1236,6 +1322,7 @@
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>PcpAspectConfigurationType.enabled</a:displayName>
+						<a:displayOrder>100</a:displayOrder>
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1247,6 +1334,7 @@
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>PcpAspectConfigurationType.approverRef</a:displayName>
+						<a:displayOrder>110</a:displayOrder>
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1257,6 +1345,10 @@
                         is used as a set of approvers (UserType, OrgType, or any combination of them).
                         May be used with approverRef element(s).
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PcpAspectConfigurationType.approverExpression</a:displayName>
+						<a:displayOrder>120</a:displayOrder>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
@@ -1267,6 +1359,7 @@
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>PcpAspectConfigurationType.approvalSchema</a:displayName>
+						<a:displayOrder>130</a:displayOrder>
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1289,6 +1382,10 @@
                         Condition specifying when the item is automatically approved (e.g. "user is
                         from Board of Directors"). This is an expression that should yield a boolean value.
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>PcpAspectConfigurationType.automaticallyApproved</a:displayName>
+						<a:displayOrder>140</a:displayOrder>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="applicabilityCondition" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
@@ -1308,6 +1405,7 @@
                     </xsd:documentation>
 					<xsd:appinfo>
 						<a:displayName>PcpAspectConfigurationType.applicabilityCondition</a:displayName>
+						<a:displayOrder>150</a:displayOrder>
 					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

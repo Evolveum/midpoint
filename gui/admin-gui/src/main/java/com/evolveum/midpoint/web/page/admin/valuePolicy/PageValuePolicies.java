@@ -23,20 +23,17 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -95,12 +92,7 @@ public class PageValuePolicies extends PageAdminValuePolicies {
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                return new ArrayList<>();
-            }
-
-            @Override
-            protected IColumn<SelectableBean<ValuePolicyType>, String> createActionsColumn() {
-                return PageValuePolicies.this.createActionsColumn();
+                return PageValuePolicies.this.createInlineMenu();
             }
 
         };
@@ -125,34 +117,21 @@ public class PageValuePolicies extends PageAdminValuePolicies {
     }
 
 
-    private IColumn<SelectableBean<ValuePolicyType>, String> createActionsColumn() {
-        return new InlineMenuButtonColumn<SelectableBean<ValuePolicyType>>(createInlineMenu(), 1, this) {
-            @Override
-            protected List<InlineMenuItem> getHeaderMenuItems() {
-                return new ArrayList<>();
-            }
-
-            @Override
-            protected int getHeaderNumberOfButtons() {
-                return 0;
-            }
-        };
-    }
-
     private List<InlineMenuItem> createInlineMenu() {
         List<InlineMenuItem> menu = new ArrayList<>();
-        menu.add(new InlineMenuItem(createStringResource("pageValuePolicies.button.delete"),
-            new Model<>(true), new Model<>(true), false,
-                new ColumnMenuAction<SelectableBean<ReportType>>() {
+        menu.add(new ButtonInlineMenuItem(createStringResource("pageValuePolicies.button.delete")) {
+            private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
+            @Override
+            public String getButtonIconCssClass() {
+                return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            }
 
-                    }
-                }, 0,
-                GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
-                DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
-
+            @Override
+            public InlineMenuItemAction initAction() {
+                return null;
+            }
+        });
         return menu;
 
     }

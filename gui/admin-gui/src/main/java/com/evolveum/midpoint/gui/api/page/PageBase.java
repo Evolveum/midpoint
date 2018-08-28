@@ -30,6 +30,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigPanelNew;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -1490,6 +1491,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         return menus;
     }
+    
+//    private MainMenuItem createSystemConfigurationItems() {
+//        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED,
+//                createStringResource("PageAdmin.menu.top.configuration.basic.new"), PageSystemConfigurationNew.class);
+//
+//        addMenuItem(item, "PageAdmin.menu.top.configuration.basic", SystemConfigPanelNew.class);
+//        addMenuItem(item, "PageAdmin.menu.top.configuration.objectPolicy", PageUsers.class);
+//        addMenuItem(item, "PageAdmin.menu.top.users.list", PageUsers.class);
+//
+//        addUsersViewMenuItems(item.getItems());
+//
+//        return item;
+//    }
 
     private void createConfigurationMenu(SideBarMenuItem item) {
         addMainMenuItem(item, "fa fa-bullseye", "PageAdmin.menu.top.configuration.bulkActions", PageBulkAction.class);
@@ -1503,7 +1517,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
         debugs.getItems().add(menu);
         
-        MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic.new", PageSystemConfigurationNew.class);
+        MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic.new", null);
         
         addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.basic",
                 PageSystemConfigurationNew.CONFIGURATION_TAB_BASIC);
@@ -1590,7 +1604,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     return false;
                 }
 
-                int index = getSelectedTabForConfiguration(page);
+                int index = getSelectedTabForNewConfiguration(page);
                 return tabIndex == index ? true : false;
             }
         };
@@ -1746,6 +1760,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
 
         return StringUtils.isNumeric(value) ? Integer.parseInt(value) : PageSystemConfiguration.CONFIGURATION_TAB_BASIC;
+    }
+    
+    private int getSelectedTabForNewConfiguration(WebPage page) {
+        PageParameters params = page.getPageParameters();
+        StringValue val = params.get(PageSystemConfigurationNew.SELECTED_TAB_INDEX);
+        String value = null;
+        if (val != null && !val.isNull()) {
+            value = val.toString();
+        }
+
+        return StringUtils.isNumeric(value) ? Integer.parseInt(value) : PageSystemConfigurationNew.CONFIGURATION_TAB_BASIC;
     }
 
     private void createSelfServiceMenu(SideBarMenuItem menu) {

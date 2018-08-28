@@ -105,22 +105,6 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 			}
 
 			@Override
-			protected IColumn<SelectableBean<ServiceType>, String> createActionsColumn() {
-				return new InlineMenuButtonColumn<SelectableBean<ServiceType>>(listInlineMenuHelper.createRowActions(false),
-						3, PageServices.this){
-					@Override
-					protected int getHeaderNumberOfButtons() {
-						return 2;
-					}
-
-					@Override
-					protected List<InlineMenuItem> getHeaderMenuItems() {
-						return listInlineMenuHelper.createRowActions(true);
-					}
-				};
-			}
-
-			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
 				return listInlineMenuHelper.createRowActions(false);
 			}

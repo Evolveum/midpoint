@@ -30,10 +30,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.search.Search;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -148,7 +147,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					ListItem<ContainerValueWrapper<AssignmentType>> item) {
 				return createMultivalueContainerDetailsPanel(item);
 			}
-			
+
 			@Override
 			protected WebMarkupContainer getSearchPanel(String contentAreaId) {
 				return getCustomSearchPanel(contentAreaId);
@@ -233,7 +232,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
         });
         columns.addAll(initColumns());
         List<InlineMenuItem> menuActionsList = getAssignmentMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
+		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
         return columns;
 	}
 
@@ -265,7 +264,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 				
 				ItemPath assignmentPath = item.getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
 				ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType> activationModel = new ContainerWrapperFromObjectWrapperModel<ActivationType, FocusType>(((PageAdminObjectDetails<FocusType>)getPageBase()).getObjectModel(), assignmentPath.append(AssignmentType.F_ACTIVATION));
-				ContainerValuePanel<ActivationType> acitvationContainer = new ContainerValuePanel<ActivationType>(ID_ACTIVATION_PANEL, Model.of(activationModel.getObject().getValues().get(0)), true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), getPageBase());
+				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, Model.of(activationModel), true, form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath), getPageBase());
 				specificContainers.add(acitvationContainer);
 				
 				return specificContainers;
@@ -422,30 +421,57 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	private List<InlineMenuItem> getAssignmentMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
 		PrismObject obj = getMultivalueContainerListPanel().getFocusObject();
-		boolean isUnassignMenuAdded = false;
 		try {
 			boolean isUnassignAuthorized = getParentPage().isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_UNASSIGN_ACTION_URI,
 					AuthorizationPhaseType.REQUEST, obj,
 					null, null, null);
 			if (isUnassignAuthorized) {
-				menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
-						new Model<>(true), false, getMultivalueContainerListPanel().createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
-						DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
-				isUnassignMenuAdded = true;
+				menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+                    public String getButtonIconCssClass() {
+						return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+					}
+
+					@Override
+                    public InlineMenuItemAction initAction() {
+						return getMultivalueContainerListPanel().createDeleteColumnAction();
+					}
+				});
 			}
 
 		} catch (Exception ex){
 			LOGGER.error("Couldn't check unassign authorization for the object: {}, {}", obj.getName(), ex.getLocalizedMessage());
 			if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ACTION_URI)){
-				menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
-						new Model<>(true), false, getMultivalueContainerListPanel().createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
-						DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
-				isUnassignMenuAdded = true;
+				menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+                    public String getButtonIconCssClass() {
+						return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+					}
+
+					@Override
+                    public InlineMenuItemAction initAction() {
+						return getMultivalueContainerListPanel().createDeleteColumnAction();
+					}
+				});
 			}
 		}
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<>(true),
-            new Model<>(true), false, getMultivalueContainerListPanel().createEditColumnAction(), isUnassignMenuAdded ? 1 : 0, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString()));
+		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public String getButtonIconCssClass() {
+				return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+			}
+
+			@Override
+            public InlineMenuItemAction initAction() {
+				return getMultivalueContainerListPanel().createEditColumnAction();
+			}
+		});
 		return menuItems;
 	}
 

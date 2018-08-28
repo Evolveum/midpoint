@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.web.component.dialog.*;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
@@ -376,100 +377,153 @@ public class PageDebugList extends PageAdminConfiguration {
 
 	private List<InlineMenuItem> initInlineMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportSelected"),
-				true, new HeaderMenuAction(this) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportSelected"), true) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new HeaderMenuAction(PageDebugList.this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						exportSelected(target, null);
 					}
-				}));
+				};
+			}
+		});
 
 		headerMenuItems
-				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAllSelectedType"),
-						true, new HeaderMenuAction(this) {
+				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAllSelectedType"), true) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new HeaderMenuAction(PageDebugList.this) {
+							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 								exportAllType(target);
 							}
-						}));
+						};
+					}
+				});
 
 		headerMenuItems
-				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportShadowsOnResource"),
-                        new Model(true), new AbstractReadOnlyModel<Boolean>() {
+				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportShadowsOnResource")) {
+					private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public Boolean getObject() {
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new HeaderMenuAction(PageDebugList.this) {
+							private static final long serialVersionUID = 1L;
+
+							@Override
+							public void onClick(AjaxRequestTarget target) {
+								exportAllShadowsOnResource(target);
+							}
+						};
+					}
+
+					@Override
+                    public IModel<Boolean> getVisible() {
                         DebugSearchDto dto = searchModel.getObject();
-                        return ObjectTypes.SHADOW.equals(dto.getType());
+                        return Model.of(ObjectTypes.SHADOW.equals(dto.getType()));
                     }
 
-                }, false, new HeaderMenuAction(this) {
+                    });
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        exportAllShadowsOnResource(target);
-                    }
-                }));
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true) {
+			private static final long serialVersionUID = 1L;
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true,
-				new HeaderMenuAction(this) {
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new HeaderMenuAction(PageDebugList.this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						exportAll(target);
 					}
-				}));
+				};
+			}
+		});
 
-		headerMenuItems.add(new InlineMenuItem());
+//		headerMenuItems.add(new InlineMenuItem());
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteSelected"),
-				true, new HeaderMenuAction(this) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteSelected"), true) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new HeaderMenuAction(PageDebugList.this) {
+					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						deleteSelected(target, null);
 					}
-				}));
+				};
+			}
+		});
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllType"), true,
-				new HeaderMenuAction(this) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllType"), true) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new HeaderMenuAction(PageDebugList.this) {
+					private static final long serialVersionUID = 1L;
+
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						deleteAllType(target);
 					}
-				}));
+				};
+			}
+		});
 
 		headerMenuItems
-				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteShadowsOnResource"),
-						new Model(true), new AbstractReadOnlyModel<Boolean>() {
+				.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteShadowsOnResource")) {
+					private static final long serialVersionUID = 1L;
 
-							@Override
-							public Boolean getObject() {
-								DebugSearchDto dto = searchModel.getObject();
-								return ObjectTypes.SHADOW.equals(dto.getType());
-							}
-
-						}, false, new HeaderMenuAction(this) {
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new HeaderMenuAction(PageDebugList.this) {
+							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
 								deleteAllShadowsOnResource(target);
 							}
-						}));
+						};
+					}
 
-		headerMenuItems.add(new InlineMenuItem());
+					@Override
+					public IModel<Boolean> getVisible() {
+						DebugSearchDto dto = searchModel.getObject();
+						return Model.of(ObjectTypes.SHADOW.equals(dto.getType()));
+					}
+				});
 
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllIdentities"),
-				true, new HeaderMenuAction(this) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllIdentities"), true) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new HeaderMenuAction(PageDebugList.this) {
+					private static final long serialVersionUID = 1L;
+
 
 					@Override
 					public void onSubmit(AjaxRequestTarget target, Form<?> form) {
 						deleteAllIdentities(target);
 					}
-				}));
+				};
+			}
+		});
 
 		return headerMenuItems;
 	}

@@ -17,12 +17,17 @@ package com.evolveum.midpoint.gui.api.component.button;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -53,49 +58,49 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 		initLayout(model);
 	}
 
-	private void initLayout(DropdownButtonDto model) {
+	private void initLayout(DropdownButtonDto dropdownButtonDto) {
 		WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
 		buttonContainer.setOutputMarkupId(true);
 		buttonContainer.add(AttributeAppender.append("class", getSpecialButtonClass()));
 		add(buttonContainer);
 
-		Label info = new Label(ID_INFO, model.getInfo());
+		Label info = new Label(ID_INFO, dropdownButtonDto.getInfo());
 		info.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 			@Override
             public boolean isVisible() {
-                return model.getInfo() != null;
+                return dropdownButtonDto.getInfo() != null;
             }
         });
 		buttonContainer.add(info);
 
-		Label label = new Label(ID_LABEL, model.getLabel());
+		Label label = new Label(ID_LABEL, dropdownButtonDto.getLabel());
 		label.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 			@Override
             public boolean isVisible() {
-                return model.getLabel() != null;
+                return dropdownButtonDto.getLabel() != null;
             }
         });
 		buttonContainer.add(label);
 
 		WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-		icon.add(AttributeModifier.append("class", model.getIcon()));
+		icon.add(AttributeModifier.append("class", dropdownButtonDto.getIcon()));
 		icon.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 			@Override
             public boolean isVisible() {
-                return model.getIcon() != null;
+                return dropdownButtonDto.getIcon() != null;
             }
         });
 		buttonContainer.add(icon);
 
-		ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, new Model((Serializable) model.getMenuItems())) {
+		ListView<InlineMenuItem> li = new ListView<InlineMenuItem>(ID_MENU_ITEM, Model.ofList(dropdownButtonDto.getMenuItems())) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
             protected void populateItem(ListItem<InlineMenuItem> item) {
-                initMenuItem(item);
+				initMenuItem(item);
             }
         };
 
@@ -107,9 +112,8 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
 	}
 
 	 private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
-	        final InlineMenuItem item = menuItem.getModelObject();
-
-	        WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
+			MenuLinkPanel menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
+		 	menuItemBody.add(new VisibleBehaviour(() -> menuItem.getModelObject().getVisible().getObject()));
 	        menuItemBody.setRenderBodyOnly(true);
 	        menuItem.add(menuItemBody);
     }

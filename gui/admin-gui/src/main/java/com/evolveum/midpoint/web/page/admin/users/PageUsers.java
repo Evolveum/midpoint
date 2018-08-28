@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
@@ -165,10 +167,6 @@ public class PageUsers extends PageAdminUsers {
 
 	private void initTable(Form mainForm) {
 		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
-//		options.add(SelectorOptions.create(UserType.F_LINK_REF,
-//				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-//		options.add(SelectorOptions.create(UserType.F_ASSIGNMENT,
-//				GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 		MainObjectListPanel<UserType> userListPanel = new MainObjectListPanel<UserType>(ID_TABLE,
 				UserType.class, TableId.TABLE_USERS, options, this) {
 			private static final long serialVersionUID = 1L;
@@ -176,21 +174,6 @@ public class PageUsers extends PageAdminUsers {
 			@Override
 			protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {
 				return PageUsers.this.initColumns();
-			}
-
-			@Override
-			protected IColumn<SelectableBean<UserType>, String> createActionsColumn() {
-				return new InlineMenuButtonColumn<SelectableBean<UserType>>(createRowActions(false), 3, PageUsers.this){
-					@Override
-					protected int getHeaderNumberOfButtons() {
-						return 2;
-					}
-
-					@Override
-					protected List<InlineMenuItem> getHeaderMenuItems() {
-						return createRowActions(true);
-					}
-				};
 			}
 
 			@Override
@@ -273,18 +256,13 @@ public class PageUsers extends PageAdminUsers {
 	}
 
 	private List<InlineMenuItem> createRowActions(boolean isHeader) {
-    	int id = isHeader ?
-				InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId() :
-				InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId();
+    	List<InlineMenuItem> menu = new ArrayList<>();
+		menu.add(new ButtonInlineMenuItem(createStringResource("pageUsers.menu.enable")) {
+			private static final long serialVersionUID = 1L;
 
-		List<InlineMenuItem> menu = new ArrayList<>();
-		menu.add(new InlineMenuItem(
-				createStringResource("pageUsers.menu.enable"),
-            new Model<>(false),
-            new Model<>(false),
-				false,
-				new ColumnMenuAction<SelectableBean<UserType>>() {
-					private static final long serialVersionUID = 1L;
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -295,114 +273,100 @@ public class PageUsers extends PageAdminUsers {
 							updateActivationPerformed(target, true, rowDto.getValue());
 						}
 					}
-				},
-				id,
-				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				null) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isShowConfirmationDialog() {
-				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+				};
 			}
 
 			@Override
-			public IModel<String> getConfirmationMessageModel() {
+            public String getButtonIconCssClass(){
+				return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel(){
 				String actionName = createStringResource("pageUsers.message.enableAction").getString();
 				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
+
 		});
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
-				isHeader ? new Model<>(true) : new Model<>(false),
-				isHeader ? new Model<>(true) : new Model<>(false),
-				false,
-				new ColumnMenuAction<SelectableBean<UserType>>() {
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable")) {
+					 private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null){
+						if (getRowModel() == null) {
 							updateActivationPerformed(target, false, null);
 						} else {
 							SelectableBean<UserType> rowDto = getRowModel().getObject();
 							updateActivationPerformed(target, false, rowDto.getValue());
 						}
-                    }
-                }, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
-                : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
-				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				null) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isShowConfirmationDialog() {
-				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+					}
+				};
 			}
 
 			@Override
-			public IModel<String> getConfirmationMessageModel(){
+			public IModel<String> getConfirmationMessageModel() {
 				String actionName = createStringResource("pageUsers.message.disableAction").getString();
 				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 
 		});
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
-            new Model<>(false), new Model<>(false), false,
-				new ColumnMenuAction<SelectableBean<UserType>>() {
+		menu.add(new ButtonInlineMenuItem(createStringResource("pageUsers.menu.reconcile")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null){
+						if (getRowModel() == null) {
 							reconcilePerformed(target, null);
 						} else {
 							SelectableBean<UserType> rowDto = getRowModel().getObject();
 							reconcilePerformed(target, rowDto.getValue());
 						}
-                    }
-                }, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
-                : InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
-                GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()){
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isShowConfirmationDialog() {
-				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+					}
+				};
 			}
 
 			@Override
-			public IModel<String> getConfirmationMessageModel(){
+            public String getButtonIconCssClass() {
+				return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel() {
 				String actionName = createStringResource("pageUsers.message.reconcileAction").getString();
 				return PageUsers.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		});
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock"), false,
-				new ColumnMenuAction<SelectableBean<UserType>>() {
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<UserType>>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null){
+						if (getRowModel() == null) {
 							unlockPerformed(target, null);
 						} else {
 							SelectableBean<UserType> rowDto = getRowModel().getObject();
 							unlockPerformed(target, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.UNLOCK.getMenuItemId()){
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isShowConfirmationDialog() {
-				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+				};
 			}
 
 			@Override
@@ -412,25 +376,22 @@ public class PageUsers extends PageAdminUsers {
 			}
 		});
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"), false,
-				new ColumnMenuAction<SelectableBean<UserType>>() {
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete")) {
+			private static final long serialVersionUID = 1L;
 
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<UserType>>() {
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null){
+						if (getRowModel() == null) {
 							deleteConfirmedPerformed(target, null);
 						} else {
 							SelectableBean<UserType> rowDto = getRowModel().getObject();
 							deleteConfirmedPerformed(target, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DELETE.getMenuItemId()){
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isShowConfirmationDialog() {
-				return PageUsers.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+				};
 			}
 
 			@Override
@@ -440,22 +401,30 @@ public class PageUsers extends PageAdminUsers {
 			}
 		});
 
-		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge"),
-				isHeader ? new Model<>(false) : new Model<>(true),
-				isHeader ? new Model<>(false) : new Model<>(true),
-				false,
-				new ColumnMenuAction<SelectableBean<UserType>>() {
+		menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<UserType>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null){
+						if (getRowModel() == null) {
 							mergePerformed(target, null);
 						} else {
 							SelectableBean<UserType> rowDto = getRowModel().getObject();
 							mergePerformed(target, rowDto.getValue());
 						}
 					}
-				}, InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.MERGE.getMenuItemId(), "", ""));
+				};
+			}
+
+			@Override
+			public boolean isHeaderMenuItem(){
+				return false;
+			}
+		});
 		return menu;
 	}
 

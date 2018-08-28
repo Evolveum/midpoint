@@ -29,13 +29,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -80,29 +80,28 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
 	public List<InlineMenuItem> createRowActions(boolean isHeader) {
 		List<InlineMenuItem> menu = new ArrayList<>();
-		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable"),
-            new Model<>(false), new Model<>(false), false,
-				new ColumnMenuAction<SelectableBean<F>>() {
+		menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null){
+						if (getRowModel() == null) {
 							updateActivationPerformed(target, true, null);
 						} else {
 							SelectableBean<F> rowDto = getRowModel().getObject();
 							updateActivationPerformed(target, true, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_ENABLE.getMenuItemId()
-				: InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.ENABLE.getMenuItemId(),
-				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.SUCCESS.toString()){
-
-			private static final long serialVersionUID = 1L;
+				};
+			}
 
 			@Override
-			public boolean isShowConfirmationDialog() {
-				return FocusListInlineMenuHelper.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+            public String getButtonIconCssClass(){
+				return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
 			}
 
 			@Override
@@ -113,11 +112,12 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
 		});
 
-		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable"),
-				isHeader ? new Model<>(true) : new Model<>(false),
-				isHeader ? new Model<>(true) : new Model<>(false),
-				false,
-				new ColumnMenuAction<SelectableBean<F>>() {
+		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -128,16 +128,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 							updateActivationPerformed(target, false, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_DISABLE.getMenuItemId()
-				: InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.DISABLE.getMenuItemId(),
-				GuiStyleConstants.CLASS_OBJECT_USER_ICON,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()){
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isShowConfirmationDialog() {
-				return FocusListInlineMenuHelper.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+				};
 			}
 
 			@Override
@@ -145,10 +136,15 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 				String actionName = parentPage.createStringResource("pageUsers.message.disableAction").getString();
 				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
+
 		});
-		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile"),
-            new Model<>(false), new Model<>(false), false,
-				new ColumnMenuAction<SelectableBean<F>>() {
+
+		menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
@@ -159,16 +155,12 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 							reconcilePerformed(target, rowDto.getValue());
 						}
 					}
-				}, isHeader ? InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.HEADER_RECONCILE.getMenuItemId()
-				: InlineMenuItem.FOCUS_LIST_INLINE_MENU_ITEM_ID.RECONCILE.getMenuItemId(),
-				GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM,
-				DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()){
-
-			private static final long serialVersionUID = 1L;
+				};
+			}
 
 			@Override
-			public boolean isShowConfirmationDialog() {
-				return FocusListInlineMenuHelper.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+            public String getButtonIconCssClass(){
+				return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
 			}
 
 			@Override
@@ -176,29 +168,26 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 				String actionName = parentPage.createStringResource("pageUsers.message.reconcileAction").getString();
 				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
+
 		});
 
+		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.delete")) {
+			private static final long serialVersionUID = 1L;
 
-
-		menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.delete"),
-				new ColumnMenuAction<SelectableBean<F>>() {
+			@Override
+            public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<F>>() {
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						if (getRowModel() == null){
+						if (getRowModel() == null) {
 							deleteConfirmedPerformed(target, null);
 						} else {
 							SelectableBean<F> rowDto = getRowModel().getObject();
 							deleteConfirmedPerformed(target, rowDto.getValue());
 						}
 					}
-				}){
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isShowConfirmationDialog() {
-				return FocusListInlineMenuHelper.this.isShowConfirmationDialog((ColumnMenuAction) getAction());
+				};
 			}
 
 			@Override
@@ -206,7 +195,6 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 				String actionName = parentPage.createStringResource("pageUsers.message.deleteAction").getString();
 				return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
-
 		});
 		return menu;
 	}

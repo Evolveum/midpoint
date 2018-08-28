@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -173,24 +174,36 @@ public class PageConnectorHosts extends PageAdminResources {
 
 	private List<InlineMenuItem> initInlineHostsMenu() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
-		headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
-				new HeaderMenuAction(this) {
+		headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new HeaderMenuAction(PageConnectorHosts.this) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						deleteHostPerformed(target);
 					}
-				}));
-		headerMenuItems.add(new InlineMenuItem(createStringResource("pageResources.button.discoveryRemote"),
-				new HeaderMenuAction(this) {
+				};
+			}
+		});
+		headerMenuItems.add(new InlineMenuItem(createStringResource("pageResources.button.discoveryRemote")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new HeaderMenuAction(PageConnectorHosts.this) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
 						discoveryRemotePerformed(target);
 					}
-				}));
+				};
+			}
+		});
 
 		return headerMenuItems;
 	}

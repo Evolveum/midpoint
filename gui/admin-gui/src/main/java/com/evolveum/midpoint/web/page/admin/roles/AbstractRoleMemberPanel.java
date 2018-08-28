@@ -201,24 +201,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			}
 
 			@Override
-			protected IColumn<SelectableBean<ObjectType>, String> createActionsColumn(){
-				return new InlineMenuButtonColumn<SelectableBean<ObjectType>>(new ArrayList<>(), 4, AbstractRoleMemberPanel.this.getPageBase()){
-					
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected int getHeaderNumberOfButtons() {
-						return 2;
-					}
-
-					@Override
-					protected List<InlineMenuItem> getHeaderMenuItems() {
-						return createRowActions();
-					}
-				};
-			}
-
-			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
 				return new ArrayList<>();
 			}
@@ -257,66 +239,66 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	
 	private List<InlineMenuItem> createRowActions() {
     	List<InlineMenuItem> menu = new ArrayList<>();
-		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
-			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign"), new Model<>(true),
-					new Model<>(true), false, new ColumnMenuAction<SelectableBean<UserType>>() {
-						private static final long serialVersionUID = 1L;
-	
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							assignMembers(target, getSupportedRelations());
-						}
-					}, 0, GuiStyleConstants.CLASS_ASSIGN, null));
-		}
-		
-		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
-			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign"), new Model<>(Boolean.TRUE), new Model<>(Boolean.TRUE), 
-					false, new ColumnMenuAction<SelectableBean<UserType>>() {
-						private static final long serialVersionUID = 1L;
-	
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							unassignMembersPerformed(target);
-	                    }
-	                }, 1, GuiStyleConstants.CLASS_UNASSIGN, null));
-		}
-
-		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_RECOMPUTE)) {
-			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute"),
-	            new Model<>(false), new Model<>(false), false,
-					new ColumnMenuAction<SelectableBean<UserType>>() {
-						private static final long serialVersionUID = 1L;
-	
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							recomputeMembersPerformed(target);
-	                    }
-	                }, 2, GuiStyleConstants.CLASS_RECONCILE, null));
-		}
-		
-		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE)) {
-			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create"), false,
-					new ColumnMenuAction<SelectableBean<UserType>>() {
-						private static final long serialVersionUID = 1L;
-	
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							createFocusMemberPerformed(target);
-						}
-					}, 3, GuiStyleConstants.CLASS_CREATE_FOCUS));
-		}
-		
-		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_DELETE)) {
-			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.delete"), false,
-					new ColumnMenuAction<SelectableBean<UserType>>() {
-						private static final long serialVersionUID = 1L;
-	
-						@Override
-						public void onClick(AjaxRequestTarget target) {
-							deleteMembersPerformed(target);
-						}
-					}, 3, GuiStyleConstants.CLASS_CREATE_FOCUS));
-		}
+//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
+//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign"), new Model<>(true),
+//					new Model<>(true), false, new ColumnMenuAction<SelectableBean<UserType>>() {
+//						private static final long serialVersionUID = 1L;
+//
+//						@Override
+//						public void onClick(AjaxRequestTarget target) {
+//							assignMembers(target, getSupportedRelations());
+//						}
+//					}, 0, GuiStyleConstants.CLASS_ASSIGN, null));
+//		}
+//
+//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
+//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign"), new Model<>(Boolean.TRUE), new Model<>(Boolean.TRUE),
+//					false, new ColumnMenuAction<SelectableBean<UserType>>() {
+//						private static final long serialVersionUID = 1L;
+//
+//						@Override
+//						public void onClick(AjaxRequestTarget target) {
+//							unassignMembersPerformed(target);
+//	                    }
+//	                }, 1, GuiStyleConstants.CLASS_UNASSIGN, null));
+//		}
+//
+//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_RECOMPUTE)) {
+//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute"),
+//	            new Model<>(false), new Model<>(false), false,
+//					new ColumnMenuAction<SelectableBean<UserType>>() {
+//						private static final long serialVersionUID = 1L;
+//
+//						@Override
+//						public void onClick(AjaxRequestTarget target) {
+//							recomputeMembersPerformed(target);
+//	                    }
+//	                }, 2, GuiStyleConstants.CLASS_RECONCILE, null));
+//		}
+//
+//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE)) {
+//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create"), false,
+//					new ColumnMenuAction<SelectableBean<UserType>>() {
+//						private static final long serialVersionUID = 1L;
+//
+//						@Override
+//						public void onClick(AjaxRequestTarget target) {
+//							createFocusMemberPerformed(target);
+//						}
+//					}, 3, GuiStyleConstants.CLASS_CREATE_FOCUS));
+//		}
+//
+//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_DELETE)) {
+//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.delete"), false,
+//					new ColumnMenuAction<SelectableBean<UserType>>() {
+//						private static final long serialVersionUID = 1L;
+//
+//						@Override
+//						public void onClick(AjaxRequestTarget target) {
+//							deleteMembersPerformed(target);
+//						}
+//					}, 3, GuiStyleConstants.CLASS_CREATE_FOCUS));
+//		}
 		return menu;
 	}
 	

@@ -24,7 +24,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -188,6 +190,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		} else {
 			columns = initColumns();
 		}
+		List<InlineMenuItem> menuItems = createInlineMenu();
+		getCustomActions(menuItems);
+
+		if (menuItems != null && menuItems.size() > 0) {
+			InlineMenuButtonColumn<SelectableBean<O>> actionsColumn = new InlineMenuButtonColumn<>(menuItems, parentPage);
+			columns.add(actionsColumn);
+		}
 
 		BaseSortableDataProvider<SelectableBean<O>> provider = initProvider();
 
@@ -247,10 +256,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		columns.add(iconColumn);
 
 		columns.addAll(getCustomColumnsTransformed(customColumns));
-		IColumn<SelectableBean<O>, String> actionsColumn = createActionsColumn();
-		if (actionsColumn != null){
-			columns.add(actionsColumn);
-		}
 		LOGGER.trace("Finished to init custom columns, created columns {}", columns);
 		return columns;
 	}
@@ -365,10 +370,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 		List<IColumn<SelectableBean<O>, String>> others = createColumns();
 		columns.addAll(others);
-		IColumn<SelectableBean<O>, String> actionsColumn = createActionsColumn();
-		if (actionsColumn != null) {
-			columns.add(createActionsColumn());
-		}
 		LOGGER.trace("Finished to init columns, created columns {}", columns);
 		return columns;
 	}
@@ -393,6 +394,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			@Override
 			public SelectableBean<O> createDataObjectWrapper(O obj) {
 				SelectableBean<O> bean = super.createDataObjectWrapper(obj);
+
 				List<InlineMenuItem> inlineMenu = createInlineMenu();
 				if (inlineMenu != null) {
 					bean.getMenuItems().addAll(inlineMenu);
@@ -606,18 +608,32 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	protected abstract List<IColumn<SelectableBean<O>, String>> createColumns();
 
-	protected IColumn<SelectableBean<O>, String> createActionsColumn(){
-		return null;
-	}
-
 	protected abstract List<InlineMenuItem> createInlineMenu();
 
+	protected void getCustomActions(List<InlineMenuItem> actionsList){
+		GuiObjectListViewType guiObjectListViewType = getGuiObjectListViewType();
+		if (guiObjectListViewType != null && guiObjectListViewType.getAction() != null &&
+				guiObjectListViewType.getAction().size() > 0){
+			if (actionsList == null){
+				actionsList = new ArrayList<>();
+			}
+			List<InlineMenuItem> customActions = WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getAction());
+			if (customActions != null) {
+				actionsList.addAll(customActions);
+			}
+		}
+	}
 
 	public void addPerformed(AjaxRequestTarget target, List<O> selected) {
 		parentPage.hideMainPopup(target);
 	}
 
 	private List<GuiObjectColumnType> getGuiObjectColumnTypeList(){
+		GuiObjectListViewType guiObjectListViewType = getGuiObjectListViewType();
+		return guiObjectListViewType != null ? guiObjectListViewType.getColumn() : null;
+	}
+
+	private GuiObjectListViewType getGuiObjectListViewType(){
 		AdminGuiConfigurationType adminGuiConfig = parentPage.getPrincipal().getAdminGuiConfiguration();
 		if (adminGuiConfig != null && adminGuiConfig.getObjectLists() != null &&
 				adminGuiConfig.getObjectLists().getObjectList() != null){
@@ -626,7 +642,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 						!type.getClassDefinition().getSimpleName().equals(object.getType().getLocalPart())){
 					continue;
 				}
-				return object.getColumn();
+				return object;
 			}
 		}
 		return null;

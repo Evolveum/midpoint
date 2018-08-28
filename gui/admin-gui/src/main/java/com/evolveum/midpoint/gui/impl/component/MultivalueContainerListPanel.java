@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,7 +50,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -271,21 +272,21 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 //		MultivalueContainerListDataProvider<C> provider = getDataProvider();
 
 //		ObjectQuery finalQuery = null;
-//		
+//
 //		ObjectQuery searchQuery = getQuery();
-//		
+//
 //		ObjectQuery customQuery = createQuery();
-//		
+//
 //		if (query != null && query.getFilter() != null) {
 //			if (customQuery != null && customQuery.getFilter() != null) {
 //				finalQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(customQuery.getFilter(), query.getFilter()));
 //			}
 //			finalQuery = query;
-//			
+//
 //		} else {
 //			finalQuery = customQuery;
 //		}
-//		
+//
 //		provider.setQuery(finalQuery);
 //		String storageKey = getStorageKey();
 //		if (StringUtils.isNotEmpty(storageKey)) {
@@ -330,19 +331,19 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 
 	private ObjectQuery createProviderQuery() {
 		ObjectQuery searchQuery = getQuery();
-		
+
 		ObjectQuery customQuery = createQuery();
-		
+
 		if (searchQuery != null && searchQuery.getFilter() != null) {
 			if (customQuery != null && customQuery.getFilter() != null) {
 				return ObjectQuery.createObjectQuery(AndFilter.createAnd(customQuery.getFilter(), searchQuery.getFilter()));
 			}
 			return searchQuery;
-			
-		} 
+
+		}
 		return customQuery;
 	}
-	
+
 	protected abstract ObjectQuery createQuery();
 
 	protected abstract List<IColumn<ContainerValueWrapper<C>, String>> createColumns();
@@ -444,13 +445,33 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	
 	public List<InlineMenuItem> getDefaultMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
-			new Model<>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
-			DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
+		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
+			private static final long serialVersionUID = 1L;
 
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<>(true),
-            new Model<>(true), false, createEditColumnAction(), 1, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
-			DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString()));
+			@Override
+			public String getButtonIconCssClass() {
+				return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+			}
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return createDeleteColumnAction();
+			}
+		});
+
+		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public String getButtonIconCssClass() {
+				return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+			}
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return createEditColumnAction();
+			}
+		});
 		return menuItems;
 	}
 }

@@ -23,6 +23,8 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.configuration.component.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -30,7 +32,9 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.GlobalPolicyRuleTabPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.LoggingConfigurationTabPanel;
@@ -47,6 +51,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
@@ -93,7 +98,9 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 	public static final int CONFIGURATION_TAB_INFRASTRUCTURE = 14;
 	public static final int CONFIGURATION_TAB_FULL_TEXT_SEARCH = 15;
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfigurationNew.class);
+	
+	private boolean initialized = false;
 
 	private static final String ID_SUMM_PANEL = "summaryPanel";
 
@@ -108,16 +115,16 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 		initialize(null);
 	}
 	
-	public PageSystemConfigurationNew(final PrismObject<SystemConfigurationType> userToEdit) {
-        initialize(userToEdit);
+	public PageSystemConfigurationNew(final PrismObject<SystemConfigurationType> configToEdit) {
+        initialize(configToEdit);
     }
 	
-	public PageSystemConfigurationNew(final PrismObject<SystemConfigurationType> unitToEdit, boolean isNewObject)  {
-        initialize(unitToEdit, isNewObject);
+	public PageSystemConfigurationNew(final PrismObject<SystemConfigurationType> configToEdit, boolean isNewObject)  {
+        initialize(configToEdit, isNewObject);
     }
 	
 	@Override
-	protected void initializeModel(final PrismObject<SystemConfigurationType> objectToEdit, boolean isNewObject, boolean isReadonly) {
+	protected void initializeModel(final PrismObject<SystemConfigurationType> configToEdit, boolean isNewObject, boolean isReadonly) {
 		super.initializeModel(WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(this).getObject(), false, isReadonly);
     }
 	
@@ -296,11 +303,6 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 	}
 	
 	@Override
-	protected void onBeforeRender() {
-		super.onBeforeRender();
-	}
-
-	@Override
 	public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
 		
 	}
@@ -339,6 +341,22 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 			@Override
 			protected boolean isPreviewButtonVisible() {
 				return false;
+			}
+			
+			@Override
+			protected void initLayoutTabs(PageAdminObjectDetails<SystemConfigurationType> parentPage) {
+				List<ITab> tabs = createTabs(parentPage);
+				TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
+
+					private static final long serialVersionUID = 1L;
+					
+					@Override
+					protected void onTabChange(int index) {
+						PageParameters params = getPageParameters();
+						params.set(SELECTED_TAB_INDEX, index);
+					}
+				};
+				getMainForm().add(tabPanel);
 			}
 		};
 	}

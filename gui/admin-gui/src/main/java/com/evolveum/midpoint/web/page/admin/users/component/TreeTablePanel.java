@@ -49,8 +49,10 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
@@ -61,6 +63,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -105,7 +108,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	protected static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
 	protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
 	protected static final String OPERATION_COUNT_CHILDREN = DOT_CLASS + "countChildren";
-	
+
 	private static final String OPERATION_LOAD_MANAGERS = DOT_CLASS + "loadManagers";
 	private static final String ID_MANAGER_SUMMARY = "managerSummary";
 
@@ -115,7 +118,7 @@ public class TreeTablePanel extends BasePanel<String> {
 	protected static final String ID_MANAGER_TABLE = "managerTable";
 	protected static final String ID_MANAGER_MENU = "managerMenu";
 	protected static final String ID_MANAGER_MENU_BODY = "managerMenuBody";
-	
+
 
 	private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
@@ -150,14 +153,14 @@ public class TreeTablePanel extends BasePanel<String> {
 		treePanel.setOutputMarkupId(true);
 		add(treePanel);
 		add(createMemberPanel(treePanel.getSelected().getValue()));
-		
+
 		add(createManagerPanel(treePanel.getSelected().getValue()));
 		setOutputMarkupId(true);
 	}
-	
+
 		private OrgMemberPanel createMemberPanel(OrgType org) {
 		OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS) {
-			
+
 			@Override
 			protected List<QName> getSupportedRelations() {
 				return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase());
@@ -166,7 +169,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		memberPanel.setOutputMarkupId(true);
 		return memberPanel;
 	}
-		
+
 		private WebMarkupContainer createManagerPanel(OrgType org) {
 			WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
 			managerContainer.setOutputMarkupId(true);
@@ -196,7 +199,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			managerContainer.add(view);
 			return managerContainer;
 		}
-		
+
 		private ObjectQuery createManagerQuery(OrgType org) {
 			ObjectQuery query = QueryBuilder.queryFor(FocusType.class, getPageBase().getPrismContext())
 					.item(FocusType.F_PARENT_ORG_REF).ref(ObjectTypeUtil.createObjectRef(org, SchemaConstants.ORG_MANAGER).asReferenceValue())
@@ -233,26 +236,38 @@ public class TreeTablePanel extends BasePanel<String> {
 							null, null, null);
 			InlineMenuItem item;
 			if (allowModify) {
-				item = new InlineMenuItem(createStringResource("TreeTablePanel.move"),
-						new ColumnMenuAction<SelectableBean<OrgType>>() {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.move")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
 								moveRootPerformed(getRowModel().getObject(), target);
 							}
-						});
+						};
+					}
+				};
 				items.add(item);
 
-				item = new InlineMenuItem(createStringResource("TreeTablePanel.makeRoot"),
-						new ColumnMenuAction<SelectableBean<OrgType>>() {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.makeRoot")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
 								makeRootPerformed(getRowModel().getObject(), target);
 							}
-						});
+						};
+					}
+				};
 				items.add(item);
 			}
 
@@ -263,49 +278,73 @@ public class TreeTablePanel extends BasePanel<String> {
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			if (allowDelete) {
-				item = new InlineMenuItem(createStringResource("TreeTablePanel.delete"),
-						new ColumnMenuAction<SelectableBean<OrgType>>() {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.delete")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
 								deleteNodePerformed(getRowModel().getObject(), target);
 							}
-						});
+						};
+					}
+				};
 				items.add(item);
 			}
 			if (allowModify) {
-				item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute"),
-						new ColumnMenuAction<SelectableBean<OrgType>>() {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.recompute")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
 								recomputeRootPerformed(getRowModel().getObject(), target);
 							}
-						});
+						};
+					}
+				};
 				items.add(item);
 
-				item = new InlineMenuItem(createStringResource("TreeTablePanel.edit"), Model.of(allowModify), Model.of(allowModify),
-						new ColumnMenuAction<SelectableBean<OrgType>>() {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.edit")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
 								editRootPerformed(getRowModel().getObject(), target);
 							}
-						});
+						};
+					}
+				};
 				items.add(item);
 			} else if (allowRead){
-				item = new InlineMenuItem(createStringResource("TreeTablePanel.viewDetails"), Model.of(allowRead), Model.of(allowRead),
-						new ColumnMenuAction<SelectableBean<OrgType>>() {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.viewDetails")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
 							@Override
 							public void onClick(AjaxRequestTarget target) {
 								editRootPerformed(getRowModel().getObject(), target);
 							}
-						});
+						};
+					}
+				};
 				items.add(item);
 			}
 
@@ -315,8 +354,12 @@ public class TreeTablePanel extends BasePanel<String> {
 					AuthorizationPhaseType.REQUEST, (new OrgType(parentPage.getPrismContext())).asPrismObject(),
 					null, null, null);
 			if (allowModify && allowAddNew) {
-				item = new InlineMenuItem(createStringResource("TreeTablePanel.createChild"),
-						new ColumnMenuAction<SelectableBean<OrgType>>() {
+				item = new InlineMenuItem(createStringResource("TreeTablePanel.createChild")) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public InlineMenuItemAction initAction() {
+						return new ColumnMenuAction<SelectableBean<OrgType>>() {
 							private static final long serialVersionUID = 1L;
 
 							@Override
@@ -329,7 +372,9 @@ public class TreeTablePanel extends BasePanel<String> {
 									throw new SystemException(e.getMessage(), e);
 								}
 							}
-						});
+						};
+					}
+				};
 				items.add(item);
 			}
 		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException ex) {

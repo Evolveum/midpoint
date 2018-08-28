@@ -30,9 +30,9 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
@@ -45,7 +45,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -105,13 +104,8 @@ public class PageReports extends PageAdminReports {
             }
 
             @Override
-            protected IColumn<SelectableBean<ReportType>, String> createActionsColumn() {
-                return PageReports.this.createActionsColumn();
-            }
-
-            @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                return new ArrayList<>();
+                return PageReports.this.createInlineMenu();
             }
 
             @Override
@@ -139,49 +133,60 @@ public class PageReports extends PageAdminReports {
         navigateToNext(PageCreatedReports.class, params);
     }
 
-    private IColumn<SelectableBean<ReportType>, String> createActionsColumn(){
-        return new InlineMenuButtonColumn<SelectableBean<ReportType>>(createInlineMenu(), 2, this){
-            @Override
-            protected List<InlineMenuItem> getHeaderMenuItems() {
-                return new ArrayList<>();
-            }
-
-            @Override
-            protected int getHeaderNumberOfButtons(){
-                return 0;
-            }
-        };
-    }
-
     private List<InlineMenuItem> createInlineMenu(){
         List<InlineMenuItem> menu = new ArrayList<>();
-        menu.add(new InlineMenuItem(createStringResource("PageReports.button.run"),
-            new Model<>(true), new Model<>(true), false,
-                new ColumnMenuAction<SelectableBean<ReportType>>() {
+        menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.run")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ReportType>>() {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         ReportType report = getRowModel().getObject().getValue();
                         runReportPerformed(target, report);
                     }
-                }, 0,
-                GuiStyleConstants.CLASS_START_MENU_ITEM,
-                DoubleButtonColumn.BUTTON_COLOR_CLASS.INFO.toString()));
+                };
+            }
 
-        menu.add(new InlineMenuItem(createStringResource("PageReports.button.configure"),
-            new Model<>(true), new Model<>(true),
-                false,
-                new ColumnMenuAction<SelectableBean<ReportType>>() {
+            @Override
+            public String getButtonIconCssClass() {
+                return GuiStyleConstants.CLASS_START_MENU_ITEM;
+            }
+
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
+        });
+        menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.configure")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ReportType>>() {
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                            ReportType reportObject = getRowModel().getObject().getValue();
-                            configurePerformed(target, reportObject);
+                        ReportType reportObject = getRowModel().getObject().getValue();
+                        configurePerformed(target, reportObject);
                     }
-                }, 1,
-                GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
-                DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString()));
+                };
+            }
 
+            @Override
+            public String getButtonIconCssClass() {
+                return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+            }
+
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
+        });
         return menu;
 
     }

@@ -31,6 +31,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
 
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -61,7 +63,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
@@ -74,7 +75,6 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -452,20 +452,40 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
         });
         
         List<InlineMenuItem> menuActionsList = getMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
+		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
         
         return columns;
     }
 	
 	private List<InlineMenuItem> getMenuActions() {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<>(true),
-			new Model<>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
-			DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
+		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.unassign")) {
+			private static final long serialVersionUID = 1L;
 
-		menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.edit"), new Model<>(true),
-            new Model<>(true), false, createEditColumnAction(), 1, GuiStyleConstants.CLASS_EDIT_MENU_ITEM,
-			DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString()));
+			@Override
+            public String getButtonIconCssClass() {
+				return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+			}
+
+			@Override
+            public InlineMenuItemAction initAction() {
+				return createDeleteColumnAction();
+			}
+		});
+
+		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+            public String getButtonIconCssClass() {
+				return GuiStyleConstants.CLASS_EDIT_MENU_ITEM;
+			}
+
+			@Override
+            public InlineMenuItemAction initAction() {
+				return createEditColumnAction();
+			}
+		});
 		return menuItems;
 	}
 	

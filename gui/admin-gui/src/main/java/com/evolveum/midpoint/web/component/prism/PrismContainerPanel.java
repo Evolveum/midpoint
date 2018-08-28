@@ -93,8 +93,6 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
         	}
         });
         
-        LOGGER.info("XXXXXXXXXXX container visible : " + isPanelVisible(isPanelVisible, model));
-        
         initLayout(model, form, isPanelVisible, showHeader);
         
         if(model.getObject() != null && model.getObject().getItemDefinition() != null && model.getObject().getItemDefinition().isMultiValue()) {

@@ -57,7 +57,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 	public static final String PARAMETER_SELECTED_TAB = "tab";
 
 	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_TAB_PANEL = "tabPanel";
+	public static final String ID_TAB_PANEL = "tabPanel";
 	private static final String ID_EXECUTE_OPTIONS = "executeOptions";
 	private static final String ID_BACK = "back";
 	private static final String ID_SAVE = "save";

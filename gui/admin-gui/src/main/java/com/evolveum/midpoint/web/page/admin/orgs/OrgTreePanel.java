@@ -61,7 +61,6 @@ import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import org.apache.wicket.model.PropertyModel;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
 	private static final long serialVersionUID = 1L;
@@ -351,27 +350,39 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		List<InlineMenuItem> items = new ArrayList<>();
 
 		if (AdminGuiConfigTypeUtil.isFeatureVisible(adminGuiConfig, GuiFeature.ORGTREE_COLLAPSE_ALL.getUri())) {
-			InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll"),
-					new InlineMenuItemAction() {
+			InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction initAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							collapseAllPerformed(target);
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
 		}
 		if (AdminGuiConfigTypeUtil.isFeatureVisible(adminGuiConfig, GuiFeature.ORGTREE_EXPAND_ALL.getUri())) {
-			InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.expandAll"),
-					new InlineMenuItemAction() {
+			InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.expandAll")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction initAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							expandAllPerformed(target);
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
 		}
 

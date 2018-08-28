@@ -25,7 +25,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -305,8 +304,12 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
 		InlineMenuItem item;
 		if (ref.canRead() && ref.canAdd()) {
-			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.addShadow"),
-					new InlineMenuItemAction() {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.addShadow")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction initAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -319,9 +322,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 									pageBase) {
 
 								private static final long serialVersionUID = 1L;
+
 								@Override
 								protected void addPerformed(AjaxRequestTarget target, QName type,
-										List<ResourceType> selected) {
+															List<ResourceType> selected) {
 									FocusProjectionsTabPanel.this.addSelectedAccountPerformed(target,
 											selected);
 								}
@@ -330,41 +334,55 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 							pageBase.showMainPopup(resourceSelectionPanel,
 									target);
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
-			items.add(new InlineMenuItem());
+//			items.add(new InlineMenuItem());
 		}
 		PrismPropertyDefinition<ActivationStatusType> administrativeStatus = def
 				.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		if (administrativeStatus.canRead() && administrativeStatus.canModify()) {
-			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.enable"),
-					new InlineMenuItemAction() {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.enable")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction initAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							updateShadowActivation(target, getSelectedProjections(projectionModel), true);
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
-			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.disable"),
-					new InlineMenuItemAction() {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.disable")) {
+				private static final long serialVersionUID = 1L;
 
-						/**
-						 *
-						 */
+				@Override
+				public InlineMenuItemAction initAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							updateShadowActivation(target, getSelectedProjections(projectionModel), false);
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
 		}
 		if (ref.canRead() && ref.canAdd()) {
-			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink"),
-					new InlineMenuItemAction() {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction initAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -372,13 +390,19 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 							unlinkProjectionPerformed(target, projectionModel,
 									getSelectedProjections(projectionModel), ID_SHADOWS);
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
 		}
 		PrismPropertyDefinition<LockoutStatusType> locakoutStatus = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
 		if (locakoutStatus.canRead() && locakoutStatus.canModify()) {
-			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlock"),
-					new InlineMenuItemAction() {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlock")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction initAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -386,20 +410,28 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 							unlockShadowPerformed(target, projectionModel,
 									getSelectedProjections(projectionModel));
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
 		}
 		if (administrativeStatus.canRead() && administrativeStatus.canModify()) {
-			items.add(new InlineMenuItem());
-			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete"),
-					new InlineMenuItemAction() {
+//			items.add(new InlineMenuItem());
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public InlineMenuItemAction initAction() {
+					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
 							deleteProjectionPerformed(target, projectionModel);
 						}
-					});
+					};
+				}
+			};
 			items.add(item);
 		}
 

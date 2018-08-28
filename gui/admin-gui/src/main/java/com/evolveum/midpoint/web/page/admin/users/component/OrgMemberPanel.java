@@ -46,15 +46,15 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(OrgMemberPanel.class);
 
-	
+
 	protected static final String ID_SEARCH_BY_TYPE = "searchByType";
 
 	protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.USER;
 
-	
+
 
 	protected static final String DOT_CLASS = OrgMemberPanel.class.getName() + ".";
-	
+
 	private static final long serialVersionUID = 1L;
 
 	public OrgMemberPanel(String id, IModel<OrgType> model, TableId tableId, Map<String, String> authorizations) {
@@ -80,7 +80,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 						.isDirectChildOf(ref.asReferenceValue()).build();
 			}
 		}
-		
+
 		String oid = getModelObject().getOid();
 
 		ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
@@ -91,15 +91,15 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			LOGGER.trace("Searching members of org {} with query:\n{}", oid, query.debugDump());
 		}
 		return query;
-	
+
 	}
-	
+
 	protected String getOrgSearchScope() {
 		DropDownFormGroup<String> searchorgScope = (DropDownFormGroup<String>) get(
 				createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
 		return searchorgScope.getModelObject();
 	}
-	
+
 	@Override
 	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
 		MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList);
@@ -110,7 +110,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		super.unassignMembersPerformed(objectType, scope, relations, target);
 		MemberOperationsHelper.unassignOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
 	}
-	
+
 	@Override
 	protected List<QName> getSupportedObjectTypes() {
 		List<QName> objectTypes = WebComponentUtil.createObjectTypeList();
@@ -118,7 +118,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		objectTypes.remove(ObjectType.COMPLEX_TYPE);
 		return objectTypes;
 	}
-	
+
 	@Override
 	protected <O extends ObjectType> Class<O> getDefaultObjectType() {
 		return (Class) UserType.class;
@@ -128,7 +128,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	protected List<QName> getSupportedRelations() {
 		return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase());
 	}
-	
-	
+
+
 
 }
