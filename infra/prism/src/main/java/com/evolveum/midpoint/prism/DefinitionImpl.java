@@ -281,6 +281,9 @@ public abstract class DefinitionImpl implements Definition {
 		clone.emphasized = this.emphasized;
 		clone.experimental = this.experimental;
 		clone.elaborate = this.elaborate;
+		if (this.annotations != null) {
+			clone.annotations = new HashMap<>(this.annotations);
+		}
     }
 
 	@SuppressWarnings("ConstantConditions")
