@@ -61,8 +61,12 @@
 		<label>日本語</label>
 	</row>
 	<row>
+		<key>lt</key>
+		<label>Lietuviškai</label>
+	</row>
+	<row>
 		<key>pl</key>
-		<label>Język polski</label>
+		<label>Polski</label>
 	</row>
 	<row>
 		<key>pt_BR</key>
