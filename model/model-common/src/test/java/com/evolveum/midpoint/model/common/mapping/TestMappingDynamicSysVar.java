@@ -74,11 +74,6 @@ public class TestMappingDynamicSysVar {
     	testScriptSystemVariablesConditionAddObjectTrue("mapping-script-system-variables-condition-sourcecontext-groovy.xml");
     }
 
-    @Test
-    public void testScriptSystemVariablesConditionAddObjectTrueXPath() throws Exception {
-    	testScriptSystemVariablesConditionAddObjectTrue("mapping-script-system-variables-condition-xpath.xml");
-    }
-
     public void testScriptSystemVariablesConditionAddObjectTrue(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectTrue";
@@ -141,11 +136,6 @@ public class TestMappingDynamicSysVar {
     	testScriptSystemVariablesConditionAddObjectFalse("mapping-script-system-variables-condition-sourcecontext-groovy.xml");
     }
 
-    @Test
-    public void testScriptSystemVariablesConditionAddObjectFalseXPath() throws Exception {
-    	testScriptSystemVariablesConditionAddObjectFalse("mapping-script-system-variables-condition-xpath.xml");
-    }
-
     public void testScriptSystemVariablesConditionAddObjectFalse(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalse";
@@ -178,11 +168,6 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testScriptSystemVariablesConditionAddObjectFalseNoValSourcecontextGroovy() throws Exception {
     	testScriptSystemVariablesConditionAddObjectFalseNoVal("mapping-script-system-variables-condition-sourcecontext-groovy.xml");
-    }
-
-    @Test
-    public void testScriptSystemVariablesConditionAddObjectFalseNoValXPath() throws Exception {
-    	testScriptSystemVariablesConditionAddObjectFalseNoVal("mapping-script-system-variables-condition-xpath.xml");
     }
 
     public void testScriptSystemVariablesConditionAddObjectFalseNoVal(String filename) throws Exception {
@@ -219,11 +204,6 @@ public class TestMappingDynamicSysVar {
     	testScriptSystemVariablesConditionAddObjectFalseNoProperty("mapping-script-system-variables-condition-sourcecontext-groovy.xml");
     }
 
-    @Test
-    public void testScriptSystemVariablesConditionAddObjectFalseNoPropertyXPath() throws Exception {
-    	testScriptSystemVariablesConditionAddObjectFalseNoProperty("mapping-script-system-variables-condition-xpath.xml");
-    }
-
     public void testScriptSystemVariablesConditionAddObjectFalseNoProperty(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionAddObjectFalseNoProperty";
@@ -252,11 +232,6 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testScriptSystemVariablesConditionTrueToTrueGroovy() throws Exception {
     	testScriptSystemVariablesConditionTrueToTrue("mapping-script-system-variables-condition-groovy.xml");
-    }
-
-    @Test
-    public void testScriptSystemVariablesConditionTrueToTrueXPath() throws Exception {
-    	testScriptSystemVariablesConditionTrueToTrue("mapping-script-system-variables-condition-xpath.xml");
     }
 
     public void testScriptSystemVariablesConditionTrueToTrue(String filename) throws Exception {
@@ -292,11 +267,6 @@ public class TestMappingDynamicSysVar {
     	testScriptSystemVariablesConditionFalseToFalse("mapping-script-system-variables-condition-groovy.xml");
     }
 
-    @Test
-    public void testScriptSystemVariablesConditionFalseToFalseXPath() throws Exception {
-    	testScriptSystemVariablesConditionFalseToFalse("mapping-script-system-variables-condition-xpath.xml");
-    }
-
     public void testScriptSystemVariablesConditionFalseToFalse(String filename) throws Exception {
     	// GIVEN
     	final String TEST_NAME = "testScriptSystemVariablesConditionFalseToFalse";
@@ -322,11 +292,6 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testScriptSystemVariablesConditionFalseToTrueGroovy() throws Exception {
     	testScriptSystemVariablesConditionFalseToTrue("mapping-script-system-variables-condition-groovy.xml");
-    }
-
-    @Test
-    public void testScriptSystemVariablesConditionFalseToTrueXPath() throws Exception {
-    	testScriptSystemVariablesConditionFalseToTrue("mapping-script-system-variables-condition-xpath.xml");
     }
 
     public void testScriptSystemVariablesConditionFalseToTrue(String filename) throws Exception {
@@ -356,11 +321,6 @@ public class TestMappingDynamicSysVar {
     @Test
     public void testScriptSystemVariablesConditionTrueToFalseGroovy() throws Exception {
     	testScriptSystemVariablesConditionTrueToFalse("mapping-script-system-variables-condition-groovy.xml");
-    }
-
-    @Test
-    public void testScriptSystemVariablesConditionTrueToFalseXPath() throws Exception {
-    	testScriptSystemVariablesConditionTrueToFalse("mapping-script-system-variables-condition-xpath.xml");
     }
 
     public void testScriptSystemVariablesConditionTrueToFalse(String filename) throws Exception {

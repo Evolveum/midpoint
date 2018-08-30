@@ -400,28 +400,11 @@ public class TestMappingDynamicSimple {
     }
 
     @Test
-    public void testScriptSimpleXPath() throws Exception {
-    	// WHEN
-    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
-    			"mapping-script-simple-xpath.xml",
-    			"testScriptSimpleXPath",
-    			"employeeType",				// target
-    			"employeeType",				// changed property
-    			"CAPTAIN", "SWASHBUCKLER");	// changed values
-
-    	// THEN
-    	outputTriple.checkConsistence();
-    	PrismAsserts.assertTripleZero(outputTriple, "fooBAR");
-    	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);
-    }
-
-    @Test
     public void testScriptSimpleGroovy() throws Exception {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
     			"mapping-script-simple-groovy.xml",
-    			"testScriptSimpleXPath",
+    			"testScriptSimpleGroovy",
     			"employeeType",				// target
     			"employeeType",				// changed property
     			"CAPTAIN", "SWASHBUCKLER");	// changed values
@@ -429,23 +412,6 @@ public class TestMappingDynamicSimple {
     	// THEN
     	outputTriple.checkConsistence();
     	PrismAsserts.assertTripleZero(outputTriple, "fooBAR");
-    	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);
-    }
-
-    @Test
-    public void testScriptVariablesXPath() throws Exception {
-    	// WHEN
-    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
-    			"mapping-script-variables-xpath.xml",
-    			"testScriptVariablesXPath",
-    			"employeeType",				// target
-    			"employeeType",				// changed property
-    			"CAPTAIN", "SWASHBUCKLER");	// changed values
-
-    	// THEN
-    	outputTriple.checkConsistence();
-    	PrismAsserts.assertTripleZero(outputTriple, "Captain barbossa");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -463,23 +429,6 @@ public class TestMappingDynamicSimple {
     	// THEN
     	outputTriple.checkConsistence();
     	PrismAsserts.assertTripleZero(outputTriple, "Captain barbossa");
-    	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);
-    }
-
-    @Test
-    public void testScriptVariablesPolyStringXPath() throws Exception {
-    	// WHEN
-    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
-    			"mapping-script-system-variables-polystring-xpath.xml",
-    			"testScriptVariablesPolyStringXPath",
-    			"fullName",					// target
-    			"employeeType",				// changed property
-    			"CAPTAIN", "SWASHBUCKLER");	// changed values
-
-    	// THEN
-    	outputTriple.checkConsistence();
-    	PrismAsserts.assertTripleZero(outputTriple, new PolyString("Captain Jack Sparrow", "captain jack sparrow"));
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
@@ -856,82 +805,12 @@ public class TestMappingDynamicSimple {
 		PrismAsserts.assertTripleNoMinus(outputTriple);
 	}
 
-	@Test
-    public void testScriptRootNodeRef() throws Exception {
-    	// GIVEN
-    	final String TEST_NAME = "testScriptRootNodeRef";
-    	TestUtil.displayTestTitle(TEST_NAME);
-    	MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping =
-				evaluator.<PolyString>createMappingBuilder("mapping-script-root-node.xml", TEST_NAME, "locality", null)
-				.rootNode(MiscSchemaUtil.createObjectReference(
-						"c0c010c0-d34d-b33f-f00d-111111111111",
-						UserType.COMPLEX_TYPE))
-				.build();
-
-    	OperationResult opResult = new OperationResult(TEST_NAME);
-    	
-    	// WHEN
-		mapping.evaluate(null, opResult);
-
-    	// THEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-		outputTriple.checkConsistence();
-		PrismAsserts.assertTripleZero(outputTriple, new PolyString("Black Pearl", "black pearl"));
-    	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);
-    }
-
-    @Test
-    public void testScriptRootNodeJaxb() throws Exception {
-    	// GIVEN
-    	final String TEST_NAME = "testScriptRootNodeJaxb";
-    	TestUtil.displayTestTitle(TEST_NAME);
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111111.xml"));
-
-		MappingImpl<PrismPropertyValue<PolyString>,PrismPropertyDefinition<PolyString>> mapping =
-				evaluator.<PolyString>createMappingBuilder("mapping-script-root-node.xml",
-						TEST_NAME, "locality", null)
-						.rootNode(user.asObjectable())
-						.build();
-
-    	OperationResult opResult = new OperationResult(TEST_NAME);
-    	
-    	// WHEN
-		mapping.evaluate(null, opResult);
-
-    	// THEN
-		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
-		outputTriple.checkConsistence();
-		PrismAsserts.assertTripleZero(outputTriple, new PolyString("Black Pearl", "black pearl"));
-    	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);
-    }
-
-    @Test
-    public void testScriptListRelativeXPath() throws Exception {
-    	// WHEN
-    	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicAdd(
-    			"mapping-script-list-relative-xpath.xml",
-    			"testScriptListRelativeXPath",
-    			"organizationalUnit",					// target
-    			"organizationalUnit",				// changed property
-    			PrismTestUtil.createPolyString("Antropomorphic Personifications"));	// changed values
-
-    	// THEN
-    	outputTriple.checkConsistence();
-    	PrismAsserts.assertTripleZero(outputTriple,
-    			PrismTestUtil.createPolyString("The Guild of Brethren of the Coast"),
-    			PrismTestUtil.createPolyString("The Guild of Davie Jones' Locker"));
-    	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The Guild of Antropomorphic Personifications"));
-    	PrismAsserts.assertTripleNoMinus(outputTriple);
-    }
-
     @Test
     public void testScriptListRelativeGroovy() throws Exception {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicAdd(
     			"mapping-script-list-relative-groovy.xml",
-    			"testScriptListRelativeXPath",
+    			"testScriptListRelativeGroovy",
     			"organizationalUnit",					// target
     			"organizationalUnit",				// changed property
     			PrismTestUtil.createPolyString("Antropomorphic Personifications"));	// changed values
@@ -943,12 +822,6 @@ public class TestMappingDynamicSimple {
     			PrismTestUtil.createPolyString("The Guild of Davie Jones' Locker"));
     	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("The Guild of Antropomorphic Personifications"));
     	PrismAsserts.assertTripleNoMinus(outputTriple);
-    }
-
-
-    @Test
-    public void testScriptListAbsoluteXPath() throws Exception {
-    	testScriptListAbsolute("mapping-script-list-absolute-xpath.xml");
     }
 
     @Test
@@ -1006,8 +879,6 @@ public class TestMappingDynamicSimple {
     	// THEN
     	assertNull("Unexpected value in outputTriple", outputTriple);
     }
-
-
 
     @Test
     public void testConditionNonEmptyCaptain() throws Exception {
