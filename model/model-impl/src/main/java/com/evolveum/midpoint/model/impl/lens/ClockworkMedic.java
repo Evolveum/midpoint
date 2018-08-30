@@ -185,7 +185,7 @@ public class ClockworkMedic {
 		}
 	}
 	
-	public static <F extends ObjectType> void traceContext(Trace logger, String activity, String phase,
+	public <F extends ObjectType> void traceContext(Trace logger, String activity, String phase,
 			boolean important,  LensContext<F> context, boolean showTriples) throws SchemaException {
         if (logger.isTraceEnabled()) {
         	logger.trace("Lens context:\n"+
