@@ -199,7 +199,9 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 					});
 	                item.add(propertyPanel);
 	                item.add(AttributeModifier.append("class", createStyleClassModel((IModel<ItemWrapper>) item.getModel())));
-	                if(propertyPanel.isVisible(isPanalVisible)) {
+	                if(propertyPanel.isVisible(isPanalVisible)
+	                		|| (!((PropertyOrReferenceWrapper)item.getModel().getObject()).canAddAndShowEmpty()  && !((PropertyOrReferenceWrapper)item.getModel().getObject()).isShowEmpty())
+	                		|| (!((PropertyOrReferenceWrapper)item.getModel().getObject()).canReadOrModifyAndShowEmpty()  && !((PropertyOrReferenceWrapper)item.getModel().getObject()).isShowEmpty())) {
 	                	isVisibleShowMoreButton = true;
 	                }
 	                return;
