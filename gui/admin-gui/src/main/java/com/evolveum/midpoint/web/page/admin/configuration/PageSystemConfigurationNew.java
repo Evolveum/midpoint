@@ -354,6 +354,8 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 					protected void onTabChange(int index) {
 						PageParameters params = getPageParameters();
 						params.set(SELECTED_TAB_INDEX, index);
+						
+						parentPage.updateBreadcrumbParameters(SELECTED_TAB_INDEX, index);
 					}
 				};
 				getMainForm().add(tabPanel);
