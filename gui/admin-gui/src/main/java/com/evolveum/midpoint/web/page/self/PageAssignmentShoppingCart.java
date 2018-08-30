@@ -62,8 +62,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
     private static final long serialVersionUID = 1L;
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_CART_BUTTON = "cartButton";
-    private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_TARGET_USER_PANEL = "targetUserPanel";
     private static final String ID_VIEWS_TAB_PANEL = "viewsTabPanel";
     private static final String ID_PARAMETERS_PANEL = "parametersPanel";
@@ -102,7 +100,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         mainForm.add(parametersPanel);
 
         initTargetUserSelectionPanel(parametersPanel);
-        initCartButton(parametersPanel);
         initRelationPanel(parametersPanel);
     }
 
@@ -145,7 +142,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
                         @Override
                         protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                            target.add(getCartButton());
+                            reloadShoppingCartIcon(target);
                         }
 
                         @Override
@@ -174,7 +171,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        target.add(getCartButton());
+                        reloadShoppingCartIcon(target);
                     }
 
                     @Override
@@ -201,7 +198,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        target.add(getCartButton());
+                        reloadShoppingCartIcon(target);
                     }
 
                     @Override
@@ -228,7 +225,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        target.add(getCartButton());
+                        reloadShoppingCartIcon(target);
                     }
 
                     @Override
@@ -250,7 +247,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
 
                     @Override
                     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        target.add(getCartButton());
+                        reloadShoppingCartIcon(target);
                     }
 
                     @Override
@@ -333,41 +330,6 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
         parametersPanel.add(targetUserPanel);
     }
 
-    private void initCartButton(WebMarkupContainer parametersPanel){
-        AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                navigateToNext(new PageAssignmentsList(true));
-            }
-        };
-        cartButton.setOutputMarkupId(true);
-        parametersPanel.add(cartButton);
-
-        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT,  new LoadableModel<String>(true) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String load(){
-                return Integer.toString(getRoleCatalogStorage().getAssignmentShoppingCart().size());
-            }
-        });
-        cartItemsCount.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !(getRoleCatalogStorage().getAssignmentShoppingCart().size() == 0);
-            }
-        });
-        cartItemsCount.setOutputMarkupId(true);
-        cartButton.add(cartItemsCount);
-    }
-
     private void initRelationPanel(WebMarkupContainer parametersPanel){
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
         relationContainer.setOutputMarkupId(true);
@@ -378,7 +340,7 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
     }
 
     private QName getRelationParameterValue(){
-        return getRelationDropDown().getModel().getObject();
+        return getRelationDropDown().getRelationValue();
     }
 
     private RelationDropDownChoicePanel getRelationDropDown(){
@@ -412,9 +374,4 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
                     usersList.size()).getString();
         }
     }
-
-    private AjaxButton getCartButton(){
-        return (AjaxButton) get(ID_MAIN_FORM).get(ID_PARAMETERS_PANEL).get(ID_CART_BUTTON);
-    }
-
 }
