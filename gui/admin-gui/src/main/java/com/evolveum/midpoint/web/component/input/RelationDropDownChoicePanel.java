@@ -73,10 +73,10 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
 
         
         if (!allowNull && defaultRelation == null) {
-        	defaultRelation = supportedRelations.size() == 1 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
+        	defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
         }
         DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(), 
-        		createStringResource("relationDropDownChoicePanel.relation"), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4", "col-md-8", allowNull);
+        		createStringResource("relationDropDownChoicePanel.relation"), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4", "col-md-8", !allowNull);
         
         input.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         input.getInput().add(new OnChangeAjaxBehavior() {
