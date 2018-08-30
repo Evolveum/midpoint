@@ -127,7 +127,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -193,6 +195,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_DEBUG_BAR = "debugBar";
     private static final String ID_CLEAR_CACHE = "clearCssCache";
+    private static final String ID_CART_BUTTON = "cartButton";
+    private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
     private static final String ID_RIGHT_MENU = "rightMenu";
     private static final String ID_LOCALE = "locale";
@@ -796,6 +800,44 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         mainHeader.add(breadcrumbs);
+
+        initCartButton(mainHeader);
+    }
+
+    private void initCartButton(WebMarkupContainer mainHeader){
+        AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                navigateToNext(new PageAssignmentsList(true));
+            }
+        };
+        cartButton.setOutputMarkupId(true);
+        cartButton.add(createUserStatusBehaviour(true));
+        mainHeader.add(cartButton);
+
+        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT,  new LoadableModel<String>(true) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String load(){
+                return Integer.toString(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size());
+            }
+        });
+        cartItemsCount.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return !(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() == 0);
+            }
+        });
+        cartItemsCount.setOutputMarkupId(true);
+        cartButton.add(cartItemsCount);
     }
 
     private void initLayout() {
@@ -2310,6 +2352,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         } else {
             return PrismContext.LANG_XML;
         }
+    }
+
+    protected void reloadShoppingCartIcon(AjaxRequestTarget target){
+        target.add(get(createComponentPath(ID_MAIN_HEADER, ID_NAVIGATION, ID_CART_BUTTON)));
     }
 
     public AsyncWebProcessManager getAsyncWebProcessManager() {
