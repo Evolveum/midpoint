@@ -674,7 +674,7 @@ public final class Utils {
 		} else {
 			ErrorSelectorType errorSelector = ResourceTypeUtil.getConnectorErrorCriticality(resourceType);
 			if (errorSelector == null) {
-				if (e instanceof CommunicationException || e instanceof SchemaException) {
+				if (e instanceof CommunicationException) {
 					// Just continue evaluation. The error is recorded in the result.
 					// The consistency mechanism has (most likely) already done the best.
 					// We cannot do any better.
