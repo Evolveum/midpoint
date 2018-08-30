@@ -92,6 +92,15 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 	protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_DESCRIPTION = "Thou shalt not modify description of this role!";
 	protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_IDENTIFIER = "GIG001D";
 
+	protected static final File ROLE_DETECTING_MODIFICATIONS_FILE = new File(TEST_DIR, "role-detecting-modifications.xml");
+	protected static final String ROLE_DETECTING_MODIFICATIONS_OID = "42ef2848-3793-4120-8d03-d8e5f8c23237";
+
+	protected static final File ROLE_UNDELETABLE_FILE = new File(TEST_DIR, "role-undeletable.xml");
+	protected static final String ROLE_UNDELETABLE_OID = "7ae7d616-1442-4295-9aee-5f5e339870af";
+
+	protected static final File ROLE_UNDELETABLE_GLOBAL_FILE = new File(TEST_DIR, "role-undeletable-global.xml");
+	protected static final String ROLE_UNDELETABLE_GLOBAL_OID = "8a9dbea3-b25c-4d96-9f7f-6a8b98f03eb6";
+
 	protected static final File ROLE_NON_ASSIGNABLE_FILE = new File(TEST_DIR, "role-non-assignable.xml");
 	protected static final String ROLE_NON_ASSIGNABLE_OID = "db67d2f0-abd8-11e6-9c30-b35abe3e4e3a";
 
@@ -201,6 +210,9 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
 		repoAddObjectFromFile(ROLE_WEAK_GOSSIPER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_WEAK_SINGER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_IMMUTABLE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_DETECTING_MODIFICATIONS_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_UNDELETABLE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_UNDELETABLE_GLOBAL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_NON_ASSIGNABLE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SCREAMING_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_UNTOUCHABLE_FILE, RoleType.class, initResult);

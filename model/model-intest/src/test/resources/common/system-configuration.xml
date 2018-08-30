@@ -263,6 +263,26 @@
     		</filter>
     	</focusSelector>
     </globalPolicyRule>
+    <globalPolicyRule>
+    	<name>undeletable-role</name>
+    	<policyConstraints>
+    		<modification>
+    			<operation>delete</operation>
+    		</modification>
+    	</policyConstraints>
+    	<policyActions>
+    		<enforcement/>
+    	</policyActions>
+    	<focusSelector>
+    		<type>RoleType</type>
+    		<filter>
+    			<q:equal>
+    				<q:path>description</q:path>
+    				<q:value>Thou shalt not delete this role!</q:value>
+    			</q:equal>
+    		</filter>
+    	</focusSelector>
+    </globalPolicyRule>
     <globalPolicyRule>  <!-- see TestRbac.test880 -->
     	<name>immutable-user-from-pluto-selector</name>
     	<policyConstraints>

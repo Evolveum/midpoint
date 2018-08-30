@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
@@ -4602,6 +4603,84 @@ public class TestRbac extends AbstractRbacTest {
 
 		displayWhen(TEST_NAME);
 		executeChangesAssertSuccess(delta, getDefaultOptions(), task, result);
+	}
+
+	@Test(enabled = false)          // MID-4856
+	public void test890DeleteRoleUndeletable() throws Exception {
+		final String TEST_NAME = "test890DeleteRoleUndeletable";
+		displayTestTitle(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		try {
+			// WHEN
+			displayWhen(TEST_NAME);
+			deleteObject(RoleType.class, ROLE_UNDELETABLE_OID, task, result);
+			AssertJUnit.fail("Unexpected success");
+		} catch (PolicyViolationException e) {
+			// THEN
+			displayThen(TEST_NAME);
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+		}
+	}
+
+	@Test           // MID-4856
+	public void test892DeleteRoleUndeletableGlobal() throws Exception {
+		final String TEST_NAME = "test892DeleteRoleUndeletableGlobal";
+		displayTestTitle(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		try {
+			// WHEN
+			displayWhen(TEST_NAME);
+			deleteObject(RoleType.class, ROLE_UNDELETABLE_GLOBAL_OID, task, result);
+			AssertJUnit.fail("Unexpected success");
+		} catch (PolicyViolationException e) {
+			// THEN
+			displayThen(TEST_NAME);
+			System.out.println("Got expected exception: " + e.getMessage());
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+		}
+	}
+
+	@Test
+	public void test900ModifyDetectingRole() throws Exception {
+		final String TEST_NAME = "test900ModifyDetectingRole";
+		displayTestTitle(TEST_NAME);
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		Task task = createTask(TEST_NAME);
+		task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+		OperationResult result = task.getResult();
+
+		PrismObject<RoleType> roleBefore = getRole(ROLE_DETECTING_MODIFICATIONS_OID);
+		display("Role before", roleBefore);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
+				.item(RoleType.F_NAME).replace(PolyString.fromOrig("modified"))
+				.asObjectDeltaCast(ROLE_DETECTING_MODIFICATIONS_OID);
+		executeChanges(delta, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		RoleType roleAfter = getRole(ROLE_DETECTING_MODIFICATIONS_OID).asObjectable();
+		display("Role after", roleAfter);
+
+		assertEquals("Wrong name", "modified", roleAfter.getName().getOrig());
+		assertTrue("Wrong description " + roleAfter.getDescription(),
+				roleAfter.getDescription() != null && roleAfter.getDescription().startsWith("Modified by administrator on "));
 	}
 
 	protected boolean testMultiplicityConstraintsForNonDefaultRelations() {
