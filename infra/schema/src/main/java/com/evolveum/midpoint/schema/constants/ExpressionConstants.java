@@ -116,4 +116,7 @@ public class ExpressionConstants {
 	public static final QName VAR_PERFORMER = new QName(SchemaConstants.NS_C, "performer");
 	public static final QName VAR_OUTPUT = new QName(SchemaConstants.NS_C, "output");
 	public static final QName VAR_EVENT = new QName(SchemaConstants.NS_C, "event");
+
+	public static final QName VAR_POLICY_RULE = new QName(SchemaConstants.NS_C, "policyRule");
+	public static final QName VAR_POLICY_ACTION = new QName(SchemaConstants.NS_C, "policyAction");
 }
