@@ -60,14 +60,16 @@ public class PolicyRuleScriptExecutor {
 
 	public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result) {
 		LensFocusContext<?> focusContext = (LensFocusContext<?>) context.getFocusContext();
-		for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
-			executeRuleScriptingActions(rule, context, task, result);
-		}
-		DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = ((LensContext<?>) context).getEvaluatedAssignmentTriple();
-		if (triple != null) {
-			for (EvaluatedAssignment<?> assignment : triple.getNonNegativeValues()) {
-				for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
-					executeRuleScriptingActions(rule, context, task, result);
+		if (focusContext != null) {
+			for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
+				executeRuleScriptingActions(rule, context, task, result);
+			}
+			DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = ((LensContext<?>) context).getEvaluatedAssignmentTriple();
+			if (triple != null) {
+				for (EvaluatedAssignment<?> assignment : triple.getNonNegativeValues()) {
+					for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
+						executeRuleScriptingActions(rule, context, task, result);
+					}
 				}
 			}
 		}
