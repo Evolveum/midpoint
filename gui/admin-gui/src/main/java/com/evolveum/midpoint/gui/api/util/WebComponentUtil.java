@@ -56,11 +56,13 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -2632,12 +2634,15 @@ public final class WebComponentUtil {
         return lookupTable;
 	}
 
-	public static List<InlineMenuItem> createMenuItemsFromActions(List<GuiActionType> actions){
+	public static List<InlineMenuItem> createMenuItemsFromActions(List<GuiActionType> actions, String operation, PageBase pageBase){
 		List<InlineMenuItem> menuItems = new ArrayList<>();
 		if (actions == null || actions.size() == 0){
 			return menuItems;
 		}
 		actions.forEach(action -> {
+			if (action.getTaskTemplateRef() == null || StringUtils.isEmpty(action.getTaskTemplateRef().getOid())){
+				return;
+			}
 			String label = action.getDisplay() != null && StringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
 					action.getDisplay().getLabel() : action.getName();
 			new InlineMenuItem(Model.of(label)){
@@ -2650,7 +2655,14 @@ public final class WebComponentUtil {
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							//TODO run task from action
+							OperationResult result = new OperationResult(operation);
+							try {
+								pageBase.getModelInteractionService().submitTaskFromTemplate(action.getTaskTemplateRef().getOid(), new ArrayList<>(),
+										pageBase.createSimpleTask(operation), result);
+							} catch (Exception ex){
+								result.recordFatalError(result.getOperation(), ex);
+								target.add(pageBase.getFeedbackPanel());
+							}
 						}
 					};
 				}
