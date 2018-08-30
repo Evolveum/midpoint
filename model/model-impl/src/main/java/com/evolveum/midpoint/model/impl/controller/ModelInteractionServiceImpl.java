@@ -1684,6 +1684,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		return systemObjectCache.getRelationDefinitions(parentResult);
 	}
 
+	@NotNull
 	@Override
 	public TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult parentResult)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
@@ -1714,6 +1715,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 	}
 
+	@NotNull
 	@Override
 	public TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult parentResult)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,

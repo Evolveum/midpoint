@@ -314,11 +314,14 @@ public class BaseHelper {
 		"Violation of PRIMARY KEY constraint 'PK__m_refere__",
 		"Violation of PRIMARY KEY constraint 'PK__m_assign__",
 		"Violation of PRIMARY KEY constraint 'PK__m_operat__",
+		"Violation of PRIMARY KEY constraint 'PK__m_audit___",      // MID-4815
 
 		// ???
 		"is not present in table \"m_ext_item\"",
 
 		// PostgreSQL
+		"duplicate key value violates unique constraint \"m_audit_item_pkey\"",     // MID-4815
+		"duplicate key value violates unique constraint \"m_audit_event_pkey\"",    // MID-4815
 		"duplicate key value violates unique constraint \"m_org_closure_pkey\"",
 		"duplicate key value violates unique constraint \"m_reference_pkey\"",
 		"duplicate key value violates unique constraint \"m_assignment_pkey\"",
