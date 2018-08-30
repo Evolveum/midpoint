@@ -23,6 +23,9 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -65,9 +68,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDialogPanel;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
@@ -92,6 +92,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
 
 public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extends BasePanel<R> {
 
@@ -176,130 +178,169 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
-				detailsPerformed(target, object);
-			}
+            protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
+                detailsPerformed(target, object);
+            }
 
-			@Override
-			protected boolean isClickable(IModel<SelectableBean<ObjectType>> rowModel) {
-				if (rowModel == null || rowModel.getObject() == null
-						|| rowModel.getObject().getValue() == null) {
-					return false;
-				}
-				Class<?> objectClass = rowModel.getObject().getValue().getClass();
-				return WebComponentUtil.hasDetailsPage(objectClass);
-			}
+            @Override
+            protected boolean isClickable(IModel<SelectableBean<ObjectType>> rowModel) {
+                if (rowModel == null || rowModel.getObject() == null
+                        || rowModel.getObject().getValue() == null) {
+                    return false;
+                }
+                Class<?> objectClass = rowModel.getObject().getValue().getClass();
+                return WebComponentUtil.hasDetailsPage(objectClass);
+            }
 
-			@Override
-			protected void newObjectPerformed(AjaxRequestTarget target) {
-				AbstractRoleMemberPanel.this.assignMembers(target, getSupportedRelations());
-			}
+            @Override
+            protected void newObjectPerformed(AjaxRequestTarget target) {
+                AbstractRoleMemberPanel.this.assignMembers(target, getSupportedRelations());
+            }
 
-			@Override
-			protected List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
-				return createMembersColumns();
-			}
+            @Override
+            protected List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
+                return createMembersColumns();
+            }
 
-			@Override
-			protected List<InlineMenuItem> createInlineMenu() {
-				return new ArrayList<>();
-			}
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return createRowActions();
+            }
 
-			@Override
-			protected Search createSearch() {
-				return SearchFactory.createSearch(getDefaultObjectType(), pageBase);
-			}
+            @Override
+            protected Search createSearch() {
+                return SearchFactory.createSearch(getDefaultObjectType(), pageBase);
+            }
 
-			@Override
-			protected ObjectQuery createContentQuery() {
-				ObjectQuery q = super.createContentQuery();
+            @Override
+            protected ObjectQuery createContentQuery() {
+                ObjectQuery q = super.createContentQuery();
 
-				ObjectQuery members = AbstractRoleMemberPanel.this.createContentQuery();
+                ObjectQuery members = AbstractRoleMemberPanel.this.createContentQuery();
 
-				List<ObjectFilter> filters = new ArrayList<>();
+                List<ObjectFilter> filters = new ArrayList<>();
 
-				if (q != null && q.getFilter() != null) {
-					filters.add(q.getFilter());
-				}
+                if (q != null && q.getFilter() != null) {
+                    filters.add(q.getFilter());
+                }
 
-				if (members != null && members.getFilter() != null) {
-					filters.add(members.getFilter());
-				}
+                if (members != null && members.getFilter() != null) {
+                    filters.add(members.getFilter());
+                }
 
-				if (filters.size() == 1) {
-					return ObjectQuery.createObjectQuery(filters.iterator().next());
-				}
+                if (filters.size() == 1) {
+                    return ObjectQuery.createObjectQuery(filters.iterator().next());
+                }
 
-				return ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
-			}
-		};
-		childrenListPanel.setOutputMarkupId(true);
-		memberContainer.add(childrenListPanel);
-	}
-	
-	private List<InlineMenuItem> createRowActions() {
-    	List<InlineMenuItem> menu = new ArrayList<>();
-//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
-//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign"), new Model<>(true),
-//					new Model<>(true), false, new ColumnMenuAction<SelectableBean<UserType>>() {
-//						private static final long serialVersionUID = 1L;
-//
-//						@Override
-//						public void onClick(AjaxRequestTarget target) {
-//							assignMembers(target, getSupportedRelations());
-//						}
-//					}, 0, GuiStyleConstants.CLASS_ASSIGN, null));
-//		}
-//
-//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
-//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign"), new Model<>(Boolean.TRUE), new Model<>(Boolean.TRUE),
-//					false, new ColumnMenuAction<SelectableBean<UserType>>() {
-//						private static final long serialVersionUID = 1L;
-//
-//						@Override
-//						public void onClick(AjaxRequestTarget target) {
-//							unassignMembersPerformed(target);
-//	                    }
-//	                }, 1, GuiStyleConstants.CLASS_UNASSIGN, null));
-//		}
-//
-//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_RECOMPUTE)) {
-//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute"),
-//	            new Model<>(false), new Model<>(false), false,
-//					new ColumnMenuAction<SelectableBean<UserType>>() {
-//						private static final long serialVersionUID = 1L;
-//
-//						@Override
-//						public void onClick(AjaxRequestTarget target) {
-//							recomputeMembersPerformed(target);
-//	                    }
-//	                }, 2, GuiStyleConstants.CLASS_RECONCILE, null));
-//		}
-//
-//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE)) {
-//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create"), false,
-//					new ColumnMenuAction<SelectableBean<UserType>>() {
-//						private static final long serialVersionUID = 1L;
-//
-//						@Override
-//						public void onClick(AjaxRequestTarget target) {
-//							createFocusMemberPerformed(target);
-//						}
-//					}, 3, GuiStyleConstants.CLASS_CREATE_FOCUS));
-//		}
-//
-//		if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_DELETE)) {
-//			menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.delete"), false,
-//					new ColumnMenuAction<SelectableBean<UserType>>() {
-//						private static final long serialVersionUID = 1L;
-//
-//						@Override
-//						public void onClick(AjaxRequestTarget target) {
-//							deleteMembersPerformed(target);
-//						}
-//					}, 3, GuiStyleConstants.CLASS_CREATE_FOCUS));
-//		}
-		return menu;
+                return ObjectQuery.createObjectQuery(AndFilter.createAnd(filters));
+            }
+        };
+        childrenListPanel.setOutputMarkupId(true);
+        memberContainer.add(childrenListPanel);
+    }
+
+    private List<InlineMenuItem> createRowActions() {
+        List<InlineMenuItem> menu = new ArrayList<>();
+        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
+            menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            assignMembers(target, getSupportedRelations());
+                        }
+                    };
+                }
+
+                @Override
+                public String getButtonIconCssClass() {
+                    return GuiStyleConstants.CLASS_ASSIGN;
+                }
+
+            });
+        }
+
+        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
+            menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            unassignMembersPerformed(target);
+                        }
+                    };
+
+                }
+
+                @Override
+                public String getButtonIconCssClass() {
+                    return GuiStyleConstants.CLASS_UNASSIGN;
+                }
+            });
+        }
+
+        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_RECOMPUTE)) {
+            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            recomputeMembersPerformed(target);
+                        }
+                    };
+                }
+            });
+        }
+        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE)) {
+            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            createFocusMemberPerformed(target);
+                        }
+                    };
+                }
+            });
+        }
+        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_DELETE)) {
+            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.delete")) {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public InlineMenuItemAction initAction() {
+                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            deleteMembersPerformed(target);
+                        }
+                    };
+                }
+            });
+        }
+        return menu;
 	}
 	
 	protected abstract List<QName> getSupportedRelations();
