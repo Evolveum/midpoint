@@ -40,7 +40,7 @@ import java.util.List;
  * @author semancik
  * @author mederly
  */
-public interface AssignmentPath extends DebugDumpable, ShortDumpable {
+public interface AssignmentPath extends DebugDumpable, ShortDumpable, Cloneable {
 
 	List<? extends AssignmentPathSegment> getSegments();
 	

@@ -109,8 +109,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	private transient PrismObjectDefinition<O> objectDefinition = null;
 
-	transient private Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
-    transient private Collection<String> policySituations = new ArrayList<>();
+	transient private final Collection<EvaluatedPolicyRule> policyRules = new ArrayList<>();
+    transient private final Collection<String> policySituations = new ArrayList<>();
 
 	public LensElementContext(Class<O> objectTypeClass, LensContext<? extends ObjectType> lensContext) {
 		super();
@@ -483,6 +483,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.isFresh = isFresh;
 	}
 
+	@NotNull
 	public Collection<EvaluatedPolicyRule> getPolicyRules() {
 		return policyRules;
 	}
@@ -499,6 +500,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     	LensUtil.triggerRule(rule, triggers, policySituations);
 	}
 
+	@NotNull
 	public Collection<String> getPolicySituations() {
 		return policySituations;
 	}

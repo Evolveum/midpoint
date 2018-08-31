@@ -710,7 +710,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (assignmentPathVariables != null) {
 				Utils.addAssignmentPathVariables(assignmentPathVariables, variables);
 			}
-	
+			variables.addVariableDefinitions(getAssignmentEvaluationVariables());
 			ObjectFilter origFilter = QueryConvertor.parseFilter(filter, targetClass, prismContext);
 			ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables, getMappingFactory().getExpressionFactory(), prismContext, " evaluating resource filter expression ", ctx.task, ctx.result);
 			if (evaluatedFilter == null) {
@@ -723,7 +723,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
 		}
 	}
-		
+
+	private ExpressionVariables getAssignmentEvaluationVariables() {
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinition(ExpressionConstants.VAR_LOGIN_MODE, loginMode);
+		// e.g. AssignmentEvaluator itself, model context, etc (when needed)
+		return variables;
+	}
+
 	private void evaluateSegmentTarget(AssignmentPathSegmentImpl segment, PlusMinusZero relativeMode, boolean isValid,
 			FocusType targetType, QName relation, EvaluationContext ctx)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -1261,6 +1268,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				.originType(OriginType.ASSIGNMENTS)
 				.originObject(source)
 				.defaultTargetDefinition(new PrismPropertyDefinitionImpl<>(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, prismContext))
+				.addVariableDefinitions(getAssignmentEvaluationVariables().getMap())
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source)

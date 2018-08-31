@@ -264,11 +264,13 @@ public class PolicyRuleProcessor {
 		}
 		List<GlobalPolicyRuleType> globalPolicyRuleList = systemConfiguration.asObjectable().getGlobalPolicyRule();
 		LOGGER.trace("Checking {} global policy rules", globalPolicyRuleList.size());
+		int globalRulesFound = 0;
 		for (GlobalPolicyRuleType globalPolicyRule: globalPolicyRuleList) {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
 			if (repositoryService.selectorMatches(focusSelector, focus, null, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
 				if (isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
 					rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule, null, prismContext));
+					globalRulesFound++;
 				} else {
 					LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
 				}
@@ -276,6 +278,7 @@ public class PolicyRuleProcessor {
 				LOGGER.trace("Skipping global policy rule {} because the selector did not match: {}", globalPolicyRule.getName(), globalPolicyRule);
 			}
 		}
+		LOGGER.trace("Selected {} global policy rules for further evaluation", globalRulesFound);
 	}
 
 	//endregion
@@ -510,6 +513,7 @@ public class PolicyRuleProcessor {
 
 		List<GlobalPolicyRuleType> globalPolicyRuleList = systemConfiguration.asObjectable().getGlobalPolicyRule();
 		LOGGER.trace("Checking {} global policy rules for selection to assignments", globalPolicyRuleList.size());
+		int globalRulesInstantiated = 0;
 		for (GlobalPolicyRuleType globalPolicyRule: systemConfiguration.asObjectable().getGlobalPolicyRule()) {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
 			if (!repositoryService.selectorMatches(focusSelector, focus, null, LOGGER,
@@ -542,9 +546,11 @@ public class PolicyRuleProcessor {
 					} else {
 						evaluatedAssignment.addOtherTargetPolicyRule(evaluatedRule);
 					}
+					globalRulesInstantiated++;
 				}
 			}
 		}
+		LOGGER.trace("Global policy rules instantiated {} times for further evaluation", globalRulesInstantiated);
 	}
 
 	private <F extends FocusType> boolean isRuleConditionTrue(GlobalPolicyRuleType globalPolicyRule, PrismObject<F> focus,

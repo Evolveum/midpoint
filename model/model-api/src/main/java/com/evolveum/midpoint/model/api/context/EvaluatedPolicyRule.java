@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  * @author semancik
  *
  */
-public interface EvaluatedPolicyRule extends DebugDumpable, Serializable {
+public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Cloneable {
 
 	@NotNull
 	Collection<EvaluatedPolicyRuleTrigger<?>> getTriggers();

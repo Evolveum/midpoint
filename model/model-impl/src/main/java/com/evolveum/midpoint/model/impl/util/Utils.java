@@ -702,22 +702,20 @@ public final class Utils {
 			throw (Error)e;
 		} else if (e instanceof ObjectNotFoundException) {
 			throw (ObjectNotFoundException)e;
-		} else if (e instanceof ObjectNotFoundException) {
-			throw (CommunicationException)e;
 		} else if (e instanceof CommunicationException) {
-			throw (SchemaException)e;
+			throw (CommunicationException)e;
 		} else if (e instanceof SchemaException) {
-			throw (ConfigurationException)e;
+			throw (SchemaException)e;
 		} else if (e instanceof ConfigurationException) {
-			throw (SecurityViolationException)e;
+			throw (ConfigurationException)e;
 		} else if (e instanceof SecurityViolationException) {
-			throw (PolicyViolationException)e;
+			throw (SecurityViolationException)e;
 		} else if (e instanceof PolicyViolationException) {
-			throw (ExpressionEvaluationException)e;
+			throw (PolicyViolationException)e;
 		} else if (e instanceof ExpressionEvaluationException) {
-			throw (ObjectAlreadyExistsException)e;
+			throw (ExpressionEvaluationException)e;
 		} else if (e instanceof ObjectAlreadyExistsException) {
-			throw (ObjectNotFoundException)e;
+			throw (ObjectAlreadyExistsException)e;
 		} else if (e instanceof PreconditionViolationException) {
 			throw (PreconditionViolationException)e;
 		} else {

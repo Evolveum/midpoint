@@ -123,8 +123,7 @@ public class NotificationHook implements ChangeHook {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	private void emitPolicyEvent(NotificationPolicyActionType action, EvaluatedPolicyRule rule,
+	private void emitPolicyEvent(@SuppressWarnings("unused") NotificationPolicyActionType action, EvaluatedPolicyRule rule,
 			ModelContext<?> context, Task task, OperationResult result) {
 		PolicyRuleEvent ruleEvent = createRuleEvent(rule, context, task);
 		notificationManager.processEvent(ruleEvent, task, result);

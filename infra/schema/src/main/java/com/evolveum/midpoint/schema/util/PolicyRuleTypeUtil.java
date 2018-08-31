@@ -176,6 +176,12 @@ public class PolicyRuleTypeUtil {
 				sb.append("X");
 			}
 		}
+		if (!actions.getScriptExecution().isEmpty()) {
+			sb.append(" execute");
+			if (filterActions(enabledActions, ScriptExecutionPolicyActionType.class).isEmpty()) {
+				sb.append("X");
+			}
+		}
 		return sb.toString().trim();
 	}
 
@@ -367,6 +373,7 @@ public class PolicyRuleTypeUtil {
 		rv.addAll(actions.getApproval());
 		addIgnoreNull(rv, actions.getRecord());
 		rv.addAll(actions.getNotification());
+		rv.addAll(actions.getScriptExecution());
 		addIgnoreNull(rv, actions.getCertification());
 		addIgnoreNull(rv, actions.getPrune());
 		addIgnoreNull(rv, actions.getRemediation());
