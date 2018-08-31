@@ -93,6 +93,11 @@ public class ProcessInstancesPanel extends BasePanel {
 				}));
 				return item;
 			}
+
+			@Override
+			protected boolean isFooterVisible(long providerSize, int pageSize){
+				return !(providerSize <= pageSize);
+			}
 		};
 		table.setOutputMarkupId(true);
 		table.setAdditionalBoxCssClasses("without-box-header-top-border");
