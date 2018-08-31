@@ -39,7 +39,7 @@ public abstract class PolicyRuleEvaluationContext<F extends FocusType> implement
 	@NotNull public final ObjectState state;
 	@NotNull public final RulesEvaluationContext globalCtx;
 
-	public PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<F> context,
+	protected PolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, @NotNull LensContext<F> context,
 			@NotNull Task task, @NotNull RulesEvaluationContext globalCtx, @NotNull ObjectState state) {
 		this.policyRule = policyRule;
 		this.lensContext = context;
@@ -64,6 +64,7 @@ public abstract class PolicyRuleEvaluationContext<F extends FocusType> implement
 		}
 	}
 
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public boolean isApplicableToState() {
 		return getObject() != null;
 	}

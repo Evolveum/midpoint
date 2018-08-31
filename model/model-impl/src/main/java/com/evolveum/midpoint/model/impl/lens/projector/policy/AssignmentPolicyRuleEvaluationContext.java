@@ -40,7 +40,7 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 	public final boolean isDirect;
 	public final DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple;
 
-	public AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
+	AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
 			@NotNull EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean inPlus, boolean inZero,
 			boolean inMinus, boolean isDirect, LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task,
@@ -49,7 +49,7 @@ public class AssignmentPolicyRuleEvaluationContext<F extends FocusType> extends 
 				task, ObjectState.AFTER, globalCtx);
 	}
 
-	public AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
+	private AssignmentPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule,
 			@NotNull EvaluatedAssignmentImpl<F> evaluatedAssignment, boolean inPlus, boolean inZero,
 			boolean inMinus, boolean isDirect, LensContext<F> context,
 			DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, Task task, ObjectState state,

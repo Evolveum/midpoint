@@ -31,11 +31,13 @@ import java.util.Collection;
  */
 public class ObjectPolicyRuleEvaluationContext<F extends FocusType> extends PolicyRuleEvaluationContext<F> {
 
-	public ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx, LensContext<F> context, Task task) {
+	ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
+			LensContext<F> context, Task task) {
 		this(policyRule, globalCtx, context, task, ObjectState.AFTER);
 	}
 
-	public ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx, LensContext<F> context, Task task,
+	private ObjectPolicyRuleEvaluationContext(@NotNull EvaluatedPolicyRule policyRule, RulesEvaluationContext globalCtx,
+			LensContext<F> context, Task task,
 			ObjectState state) {
 		super(policyRule, context, task, globalCtx, state);
 	}
