@@ -206,6 +206,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-user.xml");
 	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID = "00000000-0000-0000-0000-00000000ae08";
 
+	protected static final File ROLE_PROP_GET_SEARCH_SOME_MODIFY_SOME_USER_FILE = new File(TEST_DIR, "role-prop-get-search-some-modify-some-user.xml");
+	protected static final String ROLE_PROP_GET_SEARCH_SOME_MODIFY_SOME_USER_OID = "e0f81542-af58-11e8-8537-87b51775fc04";
+
 	protected static final File ROLE_PROP_DENY_MODIFY_SOME_FILE = new File(TEST_DIR, "role-prop-deny-modify-some.xml");
 	protected static final String ROLE_PROP_DENY_MODIFY_SOME_OID = "d867ca80-b18a-11e6-826e-1b0f95ef9125";
 
@@ -349,7 +352,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	
 	protected static final File ROLE_UNASSIGN_SELF_REQUESTABLE_FILE = new File(TEST_DIR, "role-unassign-self-requestable.xml");
 	protected static final String ROLE_UNASSIGN_SELF_REQUESTABLE_OID = "7c903f28-04ed-11e8-bb7a-df31e8679d27";
-		
+
+	protected static final File ROLE_END_USER_WITH_PRIVACY_FILE = new File(TEST_DIR, "role-end-user-with-privacy.xml");
+	protected static final String ROLE_END_USER_WITH_PRIVACY_OID = "2abaef72-af5b-11e8-ae9a-b33bc5b8cb74";
+
 	protected static final File ORG_REQUESTABLE_FILE = new File(TEST_DIR,"org-requestable.xml");
 	protected static final String ORG_REQUESTABLE_OID = "8f2bd344-a46c-4c0b-aa34-db08b7d7f7f2";
 
@@ -389,7 +395,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AGEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 70;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 71;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -420,6 +426,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_GET_SEARCH_SOME_MODIFY_SOME_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_DENY_MODIFY_SOME_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_SOME_ROLES_FILE, initResult);

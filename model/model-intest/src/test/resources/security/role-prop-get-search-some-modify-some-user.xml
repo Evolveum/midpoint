@@ -1,0 +1,76 @@
+<!--
+  ~ Copyright (c) 2014-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="e0f81542-af58-11e8-8537-87b51775fc04"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Prop Get+Search Some Modify Some User</name>
+    <description>Almost the same as role-prop-read-some-modify-some-user. But get+search actions are used insead of read.</description>    
+    <authorization>
+    	<name>get-search some</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+    	<object>
+    		<type>UserType</type>
+    		<filter>
+	            <q:equal>
+	               <q:path>employeeType</q:path>
+	               <q:value>CAPTAIN</q:value>
+	            </q:equal>
+	        </filter>
+    	</object>
+    	<item>c:name</item>
+    	<item>fullName</item>
+    	<item>activation/administrativeStatus</item>
+    	<item>assignment</item>
+    </authorization>
+    <authorization>
+    	<name>modify some</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<object>
+    		<type>UserType</type>
+    		<filter>
+	            <q:equal>
+	               <q:path>employeeType</q:path>
+	               <q:value>CAPTAIN</q:value>
+	            </q:equal>
+	        </filter>
+    	</object>
+    	<item>fullName</item>
+    	<item>additionalName</item>
+    	<item>description</item>
+    	<item>activation/validFrom</item>
+    </authorization>
+    <authorization>
+    	<name>modify-some-operational-exec</name>
+    	<description>Required, these are operational properties that midPoint changes automatically</description>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<phase>execution</phase>
+    	<object>
+    		<type>UserType</type>
+    		<filter>
+	            <q:equal>
+	               <q:path>employeeType</q:path>
+	               <q:value>CAPTAIN</q:value>
+	            </q:equal>
+	        </filter>
+    	</object>
+    	<item>activation/validityStatus</item>
+    	<item>activation/validityChangeTimestamp</item>
+    	<item>activation/effectiveStatus</item>
+    </authorization>
+</role>

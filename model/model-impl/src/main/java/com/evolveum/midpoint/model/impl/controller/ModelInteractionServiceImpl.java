@@ -399,12 +399,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 
     	ItemPath attributesPath = SchemaConstants.PATH_ATTRIBUTES;
-		AuthorizationDecisionType attributesReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(),
-    			securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase), phase);
-		AuthorizationDecisionType attributesAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.ADD.getUrl(),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase), phase);
-		AuthorizationDecisionType attributesModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.MODIFY.getUrl(),
-				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
+		AuthorizationDecisionType attributesReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
+    			securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase), phase);
+		AuthorizationDecisionType attributesAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD,
+				securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase), phase);
+		AuthorizationDecisionType attributesModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY,
+				securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
 		LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}", attributesReadDecision, attributesAddDecision,
 				attributesModifyDecision);
 
@@ -415,9 +415,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         layeredROCD = layeredROCD.clone();
         for (LayerRefinedAttributeDefinition rAttrDef: layeredROCD.getAttributeDefinitions()) {
 			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
-			AuthorizationDecisionType attributeReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.READ.getUrl(), attributesReadDecision, phase);
-			AuthorizationDecisionType attributeAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.ADD.getUrl(), attributesAddDecision, phase);
-			AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.MODIFY.getUrl(), attributesModifyDecision, phase);
+			AuthorizationDecisionType attributeReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
+			AuthorizationDecisionType attributeAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
+			AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
 			LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", rAttrDef.getName(), attributeReadDecision,
 					attributeAddDecision, attributeModifyDecision);
 			if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
@@ -475,7 +475,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			spec.setFilter(NoneFilter.createNone());
 			return spec;
 		}
-		decision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
+		decision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.REQUEST);
 		if (decision == AuthorizationDecisionType.ALLOW) {
 			getAllRoleTypesSpec(spec, result);
 			result.recordSuccess();
@@ -489,7 +489,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 
 		try {
-			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ASSIGN.getUrl(),
+			ObjectFilter filter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ASSIGN,
 					AuthorizationPhaseType.REQUEST, AbstractRoleType.class, focus, AllFilter.createAll(), null, task, result);
 			LOGGER.trace("assignableRoleSpec filter: {}", filter);
 			spec.setFilter(filter);
@@ -679,7 +679,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Override
 	public <T extends ObjectType> ObjectFilter getDonorFilter(Class<T> searchResultType, ObjectFilter origFilter, String targetAuthorizationAction, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.ATTORNEY.getUrl(), null, searchResultType, null, origFilter, targetAuthorizationAction, task, parentResult);
+		return securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ATTORNEY, null, searchResultType, null, origFilter, targetAuthorizationAction, task, parentResult);
 	}
 
 	@Override
@@ -689,7 +689,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		if (objectOid != null) {
 			object = (PrismObject<O>) objectResolver.getObject(objectType, objectOid, null, task, result).asPrismObject();
 		}
-		return securityEnforcer.canSearch(ModelAuthorizationAction.READ.getUrl(), null, resultType, object, includeSpecial, query.getFilter(), task, result);
+		return securityEnforcer.canSearch(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, null, resultType, object, includeSpecial, query.getFilter(), task, result);
 	}
 
 	@Override

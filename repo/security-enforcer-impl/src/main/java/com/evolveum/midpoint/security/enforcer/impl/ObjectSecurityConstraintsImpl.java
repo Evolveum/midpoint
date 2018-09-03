@@ -62,10 +62,20 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 	}
 	
 	@Override
-	public AuthorizationDecisionType getActionDecision(String actionUrl, AuthorizationPhaseType phase) {
-		return findAllItemsDecision(actionUrl, phase);
+	public AuthorizationDecisionType findAllItemsDecision(String[] actionUrls, AuthorizationPhaseType phase) {
+		AuthorizationDecisionType decision = null;
+		for (String actionUrl : actionUrls) {
+			AuthorizationDecisionType actionDecision = findAllItemsDecision(actionUrl, phase);
+			if (actionDecision == AuthorizationDecisionType.DENY) {
+				return actionDecision;
+			}
+			if (actionDecision != null) {
+				decision = actionDecision;
+			}
+		}
+		return decision;
 	}
-
+	
 	@Override
 	public AuthorizationDecisionType findAllItemsDecision(String actionUrl, AuthorizationPhaseType phase) {
 		if (phase == null) {
@@ -95,6 +105,21 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 		return null;
 	}
 
+	@Override
+	public AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String[] actionUrls, AuthorizationPhaseType phase) {
+		AuthorizationDecisionType decision = null;
+		for (String actionUrl : actionUrls) {
+			AuthorizationDecisionType actionDecision = findItemDecision(nameOnlyItemPath, actionUrl, phase);
+			if (actionDecision == AuthorizationDecisionType.DENY) {
+				return actionDecision;
+			}
+			if (actionDecision != null) {
+				decision = actionDecision;
+			}
+		}
+		return decision;
+	}
+	
 	@Override
 	public AuthorizationDecisionType findItemDecision(ItemPath nameOnlyItemPath, String actionUrl, AuthorizationPhaseType phase) {
 		if (phase == null) {

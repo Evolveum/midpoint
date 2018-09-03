@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import com.evolveum.midpoint.util.QNameUtil;
 public enum ModelAuthorizationAction implements DisplayableValue<String> {
 
 	READ("read", "Read", "READ_HELP"),
+	GET("get", "Get", "GET_HELP"),
+	SEARCH("search", "Search", "SEARCH_HELP"),
 	ADD("add", "Add", "ADD_HELP"),
 	MODIFY("modify", "Modify", "MODIFY_HELP"),
 	DELETE("delete", "Delete", "DELETE_HELP"),
@@ -85,6 +87,13 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	
 	RAW_OPERATION("rawOperation", "Raw operation", "RAW_OPERATION_HELP"),
 	PARTIAL_EXECUTION("partialExecution", "Partial execution", "PARTIAL_EXECUTION_HELP");
+	
+	public static final String[] AUTZ_ACTIONS_URLS_SEARCH = new String[] { READ.getUrl(),  SEARCH.getUrl() };
+	public static final String[] AUTZ_ACTIONS_URLS_GET = new String[] { READ.getUrl(),  GET.getUrl() };
+	public static final String[] AUTZ_ACTIONS_URLS_ADD = new String[] { ADD.getUrl() };
+	public static final String[] AUTZ_ACTIONS_URLS_MODIFY = new String[] { MODIFY.getUrl() };
+	public static final String[] AUTZ_ACTIONS_URLS_ASSIGN = new String[] { ASSIGN.getUrl() };
+	public static final String[] AUTZ_ACTIONS_URLS_ATTORNEY = new String[] { ATTORNEY.getUrl() };
 
 	private String url;
 	private String label;
