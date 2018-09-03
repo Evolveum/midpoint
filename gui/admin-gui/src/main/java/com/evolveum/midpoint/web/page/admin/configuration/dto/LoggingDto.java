@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
@@ -135,7 +136,7 @@ public class LoggingDto implements Serializable {
 		configuration.setRootLoggerLevel(getRootLevel());
 
 		for (AppenderConfiguration item : getAppenders()) {
-			configuration.getAppender().add(item.getConfig());
+			configuration.getAppender().add(CloneUtil.clone(item.getConfig()));
 		}
 
 		for (LoggerConfiguration item : getLoggers()) {
