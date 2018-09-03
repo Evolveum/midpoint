@@ -27,7 +27,7 @@ import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHandler;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -109,7 +109,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 	}
 
 	private ModelExecuteOptions getOptions(Task coordinatorTask) throws SchemaException {
-		ModelExecuteOptions modelExecuteOptions = Utils.getModelExecuteOptions(coordinatorTask);
+		ModelExecuteOptions modelExecuteOptions = ModelImplUtils.getModelExecuteOptions(coordinatorTask);
 		if (modelExecuteOptions == null) {
 			// Make reconcile the default (for compatibility). If there are no options
 			// then assume reconcile.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,23 +80,6 @@ public class ResourceTypeUtil {
 			return resource.getConnectorRef().getOid();
 		} else if (resource.getConnector() != null) {
 			return resource.getConnector().getOid();
-		} else {
-			return null;
-		}
-	}
-
-	/**
-	 * The usage of "resolver" is experimental. Let's see if it will be
-	 * practical ...
-	 *
-	 * @see ObjectResolver
-	 */
-	public static ConnectorType getConnectorType(ResourceType resource, ObjectResolver resolver, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		if (resource.getConnector() != null) {
-			return resource.getConnector();
-		} else if (resource.getConnectorRef() != null) {
-			return resolver.resolve(resource.getConnectorRef(), ConnectorType.class,
-					null, "resolving connector in " + resource, null, parentResult);		// TODO task
 		} else {
 			return null;
 		}

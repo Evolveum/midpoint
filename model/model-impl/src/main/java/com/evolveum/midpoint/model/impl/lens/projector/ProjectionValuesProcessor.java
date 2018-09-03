@@ -21,6 +21,8 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -36,7 +38,6 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
-import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -510,7 +511,7 @@ public class ProjectionValuesProcessor {
 
 	private <F extends ObjectType> ExpressionVariables createExpressionVariables(LensContext<F> context,
 			LensProjectionContext projectionContext) {
-		return Utils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
+		return ModelImplUtils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
 				projectionContext.getResourceShadowDiscriminator(), projectionContext.getResource().asPrismObject(),
 				context.getSystemConfiguration(), projectionContext);
 	}

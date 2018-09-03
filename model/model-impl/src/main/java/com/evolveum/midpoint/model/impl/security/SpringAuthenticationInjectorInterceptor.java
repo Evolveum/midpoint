@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -140,15 +140,19 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             	throw createFault(WSSecurityException.ErrorCode.FAILED_AUTHENTICATION);
             }
 
-            MidPointPrincipal principal;
+            MidPointPrincipal principal = null;
             try {
             	principal = userDetailsService.getPrincipal(username);
             } catch (SchemaException e) {
-				LOGGER.debug("Access to web service denied for user '{}': schema error: {}",
-						username, e.getMessage(), e);
-				message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
-				securityHelper.auditLoginFailure(username, null, connEnv, "Schema error: "+e.getMessage());
-				throw new Fault(e);
+            	handlePrincipalException(message, username, connEnv, "Schema error", e);
+			} catch (CommunicationException e) {
+				handlePrincipalException(message, username, connEnv, "Communication error", e);
+			} catch (ConfigurationException e) {
+				handlePrincipalException(message, username, connEnv, "Configuration error", e);
+			} catch (SecurityViolationException e) {
+				handlePrincipalException(message, username, connEnv, "Security violation", e);
+			} catch (ExpressionEvaluationException e) {
+				handlePrincipalException(message, username, connEnv, "Expression error", e);
 			}
         	LOGGER.trace("Principal: {}", principal);
         	if (principal == null) {
@@ -230,7 +234,15 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
         LOGGER.debug("Access to web service allowed for user '{}'", username);
     }
 
-    private Fault createFault(ErrorCode code) {
+    private void handlePrincipalException(SoapMessage message, String username, ConnectionEnvironment connEnv, String errorDesc, Exception e) {
+    	LOGGER.debug("Access to web service denied for user '{}': {}: {}",
+				username, errorDesc, e.getMessage(), e);
+		message.put(SecurityHelper.CONTEXTUAL_PROPERTY_AUDITED_NAME, true);
+		securityHelper.auditLoginFailure(username, null, connEnv, errorDesc + ": " + e.getMessage());
+		throw new Fault(e);
+	}
+
+	private Fault createFault(ErrorCode code) {
     	return new Fault(new WSSecurityException(code), code.getQName());
 	}
 

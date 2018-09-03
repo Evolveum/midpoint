@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,35 +17,31 @@ package com.evolveum.midpoint.test;
 
 import java.util.Collection;
 
-import javax.xml.namespace.QName;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
  *
  */
-public class RepoObjectResolver implements ObjectResolver {
+public class RepoSimpleObjectResolver implements SimpleObjectResolver {
 
 	@Autowired(required = true)
 	private transient PrismContext prismContext;
@@ -54,31 +50,14 @@ public class RepoObjectResolver implements ObjectResolver {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
+	
 	@Override
-	public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType,
-			Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription, Object task,
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
-		String oid = ref.getOid();
-		Class<?> typeClass = null;
-		QName typeQName = ref.getType();
-		if (typeQName != null) {
-			typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
-		}
-		if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
-			expectedType = (Class<O>) typeClass;
-		}
-		try {
-			return cacheRepositoryService.getObject(expectedType, oid, options, result).asObjectable();
-		} catch (SystemException ex) {
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
-		} catch (CommonException ex) {
-			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
-		}
+	public <O extends ObjectType> PrismObject<O> getObject(Class<O> expectedType, String oid,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		return cacheRepositoryService.getObject(expectedType, oid, options, parentResult);
 	}
-
-	@Override
+	
 	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task,
 			OperationResult parentResult)
@@ -88,5 +67,7 @@ public class RepoObjectResolver implements ObjectResolver {
 		cacheRepositoryService.searchObjectsIterative(type, query, handler, options, false, parentResult);
 
 	}
+
+	
 
 }

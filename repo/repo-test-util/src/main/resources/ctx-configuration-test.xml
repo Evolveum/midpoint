@@ -24,7 +24,7 @@
      http://www.springframework.org/schema/context/spring-context-3.0.xsd"
 	default-lazy-init="false" default-autowire="byName">
 	
-	<bean id="repoObjectResolver" class="com.evolveum.midpoint.test.RepoObjectResolver" />
+	<bean id="repoSimpleObjectResolver" class="com.evolveum.midpoint.test.RepoSimpleObjectResolver" />
 	
 	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
 		<constructor-arg value="./target/midpoint-home" />

@@ -38,12 +38,11 @@ import com.evolveum.midpoint.model.common.expression.evaluator.caching.Associati
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
-import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChecker;
 import com.evolveum.midpoint.model.impl.sync.RecomputeTaskHandler;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
@@ -131,8 +130,6 @@ public class Clockwork {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Clockwork.class);
 
-	// This is ugly
-	// TODO: cleanup
 	@Autowired private Projector projector;
 	@Autowired private ContextLoader contextLoader;
 	@Autowired private ChangeExecutor changeExecutor;
@@ -482,7 +479,7 @@ public class Clockwork {
 			return invokeHooks(context, task, result);
 
 		} catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException |
-				PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException |
+				PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException | Error |
 				ObjectAlreadyExistsException | PreconditionViolationException e) {
 			processClockworkException(context, e, task, result);
 			throw e;
@@ -495,9 +492,9 @@ public class Clockwork {
      * @return
      *  - ERROR, if any hook reported error; otherwise returns
      *  - BACKGROUND, if any hook reported switching to background; otherwise
-     *  - FOREGROUND (if all hooks reported finishing on foreground)
+     *  - FOREGROUND (if all hooks reported finishing on foreground) 
      */
-    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	// TODO: following two parts should be merged together in later versions
 
     	// Execute configured scripting hooks
@@ -555,6 +552,15 @@ public class Clockwork {
 						} catch (SchemaException e) {
 							LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
 							throw new SchemaException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+						} catch (CommunicationException e) {
+							LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
+							throw new CommunicationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+						} catch (ConfigurationException e) {
+							LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
+							throw new ConfigurationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+						} catch (SecurityViolationException e) {
+							LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
+							throw new SecurityViolationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
 						}
 	    			}
 	    		}
@@ -581,7 +587,7 @@ public class Clockwork {
 
     private void evaluateScriptingHook(LensContext context, HookType hookType,
     		ScriptExpressionEvaluatorType scriptExpressionEvaluatorType, String shortDesc, Task task, OperationResult result)
-    				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 
     	LOGGER.trace("Evaluating {}", shortDesc);
 		// TODO: it would be nice to cache this
@@ -598,7 +604,7 @@ public class Clockwork {
 		}
 		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
 
-		Utils.evaluateScript(scriptExpression, context, variables, false, shortDesc, task, result);
+		ModelImplUtils.evaluateScript(scriptExpression, context, variables, false, shortDesc, task, result);
 		LOGGER.trace("Finished evaluation of {}", shortDesc);
 	}
 
@@ -1044,7 +1050,7 @@ public class Clockwork {
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
 	}
 
-	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Exception e, Task task, OperationResult result)
+	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Throwable e, Task task, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LOGGER.trace("Processing clockwork exception {}", e.toString());
 		result.recordFatalError(e);
@@ -1108,7 +1114,7 @@ public class Clockwork {
 			checkNamesArePresent(clonedDeltas, primaryObject);
 			auditRecord.addDeltas(clonedDeltas);
 			if (auditRecord.getTarget() == null) {
-				auditRecord.setTarget(Utils.determineAuditTargetDeltaOps(clonedDeltas));
+				auditRecord.setTarget(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas));
 			}
 		} else if (stage == AuditEventStage.EXECUTION) {
 			auditRecord.setOutcome(result.getComputeStatus());

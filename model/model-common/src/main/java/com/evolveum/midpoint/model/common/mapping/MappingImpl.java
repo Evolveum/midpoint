@@ -41,6 +41,7 @@ import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -56,7 +57,6 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -720,14 +720,14 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return ExpressionUtil.computeConditionResult(booleanPropertyValues);
 	}
 
-	public Boolean evaluateTimeConstraintValid(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public Boolean evaluateTimeConstraintValid(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (timeConstraintValid == null) {
 			parseTimeConstraints(task, result);
 		}
 		return timeConstraintValid;
 	}
 
-	private void parseTimeConstraints(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void parseTimeConstraints(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MappingTimeDeclarationType timeFromType = mappingType.getTimeFrom();
 		MappingTimeDeclarationType timeToType = mappingType.getTimeTo();
 		if (timeFromType == null && timeToType == null) {
@@ -778,7 +778,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 	}
 
-	private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private XMLGregorianCalendar parseTime(MappingTimeDeclarationType timeType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (timeType == null) {
 			return null;
 		}
@@ -805,7 +805,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return time;
 	}
 
-	private XMLGregorianCalendar parseTimeSource(VariableBindingDefinitionType sourceType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private XMLGregorianCalendar parseTimeSource(VariableBindingDefinitionType sourceType, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		ItemPathType itemPathType = sourceType.getPath();
 		if (itemPathType == null) {
 			throw new SchemaException("No path in source definition in "+getMappingContextDescription());

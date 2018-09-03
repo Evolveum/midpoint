@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -27,10 +27,8 @@
 	        <target>c:fullName</target>
             <expression>
                 <script>
-                    <language>http://www.w3.org/TR/xpath/</language>
                     <code>
-                        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-                        concat($c:user/c:givenName,' ',$c:user/c:familyName)
+                    	user.getGivenName() + ' ' + user.getFamilyName()
                     </code>
                 </script>
             </expression>

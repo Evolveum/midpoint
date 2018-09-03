@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -160,7 +160,7 @@ public class CertificationManagerImpl implements CertificationManager {
     // Child result is intentionally created only when a certification campaign is to be started (to avoid useless creation of many empty records)
 	<O extends ObjectType> void startAdHocCertifications(PrismObject<O> focus,
 			List<CertificationPolicyActionType> actions, Task task, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException {
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Set<String> definitionOids = new HashSet<>();
         for (CertificationPolicyActionType action : actions) {
             if (action.getDefinitionRef() != null) {
@@ -190,7 +190,7 @@ public class CertificationManagerImpl implements CertificationManager {
 					parentResult.computeStatus();
 					return null;
 				}, administrator);
-			} catch (RuntimeException e) {
+			} catch (Throwable e) {
 				result.recordFatalError(e.getMessage(), e);		// TODO
 				throw e;
 			}

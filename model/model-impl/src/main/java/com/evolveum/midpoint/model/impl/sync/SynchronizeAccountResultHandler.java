@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.sync;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -194,7 +194,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		}
 
 		// Invoke the change notification
-		Utils.clearRequestee(workerTask);
+		ModelImplUtils.clearRequestee(workerTask);
 		objectChangeListener.notifyChange(change, workerTask, result);
 
 		// No exception thrown here. The error is indicated in the result. Will be processed by superclass.

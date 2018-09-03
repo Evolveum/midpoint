@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -201,7 +201,7 @@ public class MidpointRestSecurityQuestionsAuthenticator extends MidpointRestAuth
 				try {
 					SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken("rest_sec_q_auth", "REST", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
 					securityPolicyType = modelInteractionService.getSecurityPolicy(user, task, result);
-				} catch (ObjectNotFoundException | SchemaException e) {
+				} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 					return null;
 				} finally {
 					SecurityContextHolder.getContext().setAuthentication(null);

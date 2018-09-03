@@ -25,7 +25,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -189,7 +189,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, localCoordinatorTask, opResult);
 
 			RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-			objectclassDef = Utils.determineObjectClass(refinedSchema, localCoordinatorTask);
+			objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, localCoordinatorTask);
 
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
@@ -635,7 +635,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = null;
-			if (Utils.isDryRun(task)) {
+			if (ModelImplUtils.isDryRun(task)) {
 				 options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
 			} else {
 				options = SelectorOptions.createCollection(GetOperationOptions.createForceRefresh());
@@ -667,7 +667,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			change.setObjectDelta(shadowDelta);
 			// Need to also set current shadow. This will get reflected in "old" object in lens context
 			change.setCurrentShadow(shadow);
-            Utils.clearRequestee(task);
+            ModelImplUtils.clearRequestee(task);
 			changeNotificationDispatcher.notifyChange(change, task, result);
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
 			processShadowReconError(e, shadow, result);
@@ -714,7 +714,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 				RepositoryCache.enter();
 
 				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
-                Utils.clearRequestee(task);
+                ModelImplUtils.clearRequestee(task);
 				provisioningService.refreshShadow(shadow, options, task, provisioningResult);
 //				retryFailedOperation(shadow.asObjectable(), opResult);
 

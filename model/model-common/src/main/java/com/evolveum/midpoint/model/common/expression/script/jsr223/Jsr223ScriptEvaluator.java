@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -49,10 +50,12 @@ import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
@@ -94,7 +97,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			ScriptExpressionReturnTypeType suggestedReturnType,
 			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
-			ObjectNotFoundException, ExpressionSyntaxException {
+			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, task, result);
 
@@ -164,7 +167,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 
 	public <T> Object evaluateReportScript(String codeString, ExpressionVariables variables, ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
-			ObjectNotFoundException, ExpressionSyntaxException {
+			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, (Task) null, result);
 
@@ -219,7 +222,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 
 	private Bindings convertToBindings(ExpressionVariables variables, ObjectResolver objectResolver,
 									   Collection<FunctionLibrary> functions,
-									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Bindings bindings = scriptEngine.createBindings();
 		bindings.putAll(ScriptExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription, prismContext, task, result));
 		return bindings;

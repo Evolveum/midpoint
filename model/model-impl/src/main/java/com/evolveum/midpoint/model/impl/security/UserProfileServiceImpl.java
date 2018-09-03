@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.impl.security;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
@@ -52,7 +53,6 @@ import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.LifecycleUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
@@ -125,7 +125,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	}
 
 	@Override
-    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
+    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	PrismObject<UserType> user;
         try {
@@ -146,19 +146,19 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 	
 	@Override
-	public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException {
+	public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
 		return getPrincipal(getUserByOid(oid, result).asPrismObject());
 	}
 
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	OperationResult result = new OperationResult(OPERATION_GET_PRINCIPAL);
     	return getPrincipal(user, null, result);
     }
     
     @Override
-    public MidPointPrincipal getPrincipal(PrismObject<UserType> user, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException {
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         if (user == null) {
             return null;
         }
@@ -218,7 +218,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         return list.get(0);
     }
 
-	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException {
+	private void initializePrincipalFromAssignments(MidPointPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		UserType userType = principal.getUser();
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
@@ -431,7 +431,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException(e.getMessage(), e);
-		} catch (SchemaException e) {
+		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
 	}
@@ -443,7 +443,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 			return getPrincipal(username);
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException("UserProfileServiceImpl.unknownUser", e);
-		} catch (SchemaException e) {
+		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
 	}

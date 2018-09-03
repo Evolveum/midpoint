@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -41,15 +41,10 @@
 					<ref>ri:location</ref>
 					<outbound>
 						<source>
-							<path>$c:user/c:locality</path>
+							<path>$focus/locality</path>
 						</source>
 						<expression>
-							<script>
-								<language>http://www.w3.org/TR/xpath/</language>
-								<code>
-									$c:locality/t:orig
-								</code>
-							</script>
+							<asIs/>
 						</expression>
 					</outbound>
 				</attribute>

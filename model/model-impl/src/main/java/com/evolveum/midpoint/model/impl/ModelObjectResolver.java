@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +36,12 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -82,7 +82,7 @@ public class ModelObjectResolver implements ObjectResolver {
 
 	@Override
 	public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
-			String contextDescription, Object task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+			String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		String oid = ref.getOid();
 		Class<?> typeClass = null;
 		QName typeQName = ref.getType();
@@ -92,19 +92,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
 			expectedType = (Class<O>) typeClass;
 		}
-		try {
-			return getObject(expectedType, oid, options, (Task) task, result);
-		} catch (SystemException ex) {
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
-		} catch (CommonException ex) {
-			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
-			// Add to result only a short version of the error, the details will be in subresults
-			result.recordFatalError(
-					"Couldn't get object with oid '" + oid + "': "+ex.getErrorTypeMessage(), ex);
-			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
-		}
+		return getObject(expectedType, oid, options, task, result);
 	}
 
 	public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, Task task, OperationResult result) throws ObjectNotFoundException {
@@ -143,6 +131,7 @@ public class ModelObjectResolver implements ObjectResolver {
 		}
 	}
 
+	@Override
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		T objectType = null;
@@ -202,7 +191,7 @@ public class ModelObjectResolver implements ObjectResolver {
 	}
 
 	@Override
-	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Object task, OperationResult parentResult)
+	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
 			provisioning.searchObjectsIterative(type, query, options, handler, (Task) task, parentResult);

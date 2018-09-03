@@ -126,7 +126,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 		((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).userProfileService = new UserProfileService() {
 
 			@Override
-			public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) {
+			public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 				return userProfileService.resolveOwner(object);
 			}
 
@@ -136,28 +136,28 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 			}
 
 			@Override
-			public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException {
+			public MidPointPrincipal getPrincipal(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 				return getPrincipal(user, null, null);
 			}
 			
 			@Override
 			public MidPointPrincipal getPrincipal(PrismObject<UserType> user,
 					AuthorizationTransformer authorizationLimiter, OperationResult result)
-					throws SchemaException {
+					throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 				MidPointPrincipal principal = userProfileService.getPrincipal(user);
 				addFakeAuthorization(principal);
 				return principal;
 			}
 
 			@Override
-			public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException {
+			public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 				MidPointPrincipal principal = userProfileService.getPrincipal(username);
 				addFakeAuthorization(principal);
 				return principal;
 			}
 
 			@Override
-			public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException {
+			public MidPointPrincipal getPrincipalByOid(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 				MidPointPrincipal principal = userProfileService.getPrincipalByOid(oid);
 				addFakeAuthorization(principal);
 				return principal;

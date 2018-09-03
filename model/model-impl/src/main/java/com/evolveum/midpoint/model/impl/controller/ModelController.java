@@ -30,7 +30,7 @@ import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -211,7 +211,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			ObjectReferenceType ref = new ObjectReferenceType();
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
-            Utils.clearRequestee(task);
+            ModelImplUtils.clearRequestee(task);
 
 //            Special-purpose code to hunt down read-write resource fetch from GUI.
 //            Normally the code is not active. It is too brutal. Just for MID-3424.
@@ -362,13 +362,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			// 3) for MODIFY operation: filters contained in deltas -> these have to be treated here, because if OID is missing from such a delta, the change would be rejected by the repository
 			if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
 				for (ObjectDelta<? extends ObjectType> delta : deltas) {
-					Utils.resolveReferences(delta, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, prismContext, result);
+					ModelImplUtils.resolveReferences(delta, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, prismContext, result);
 				}
 			} else if (ModelExecuteOptions.isIsImport(options)) {
 				// if plain import is requested, we simply evaluate filters in ADD operation (and we do not force reevaluation if OID is already set)
 				for (ObjectDelta<? extends ObjectType> delta : deltas) {
 					if (delta.isAdd()) {
-						Utils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
+						ModelImplUtils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
 					}
 				}
 			}
@@ -376,7 +376,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			// But before that we need to make sure that we have proper definition, otherwise we
 			// might miss some encryptable data in dynamic schemas
 			applyDefinitions(deltas, options, task, result);
-			Utils.encrypt(deltas, protector, options, result);
+			ModelImplUtils.encrypt(deltas, protector, options, result);
 	
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDump(deltas, 2), options);
@@ -394,7 +394,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				// Go directly to repository
 				AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, AuditEventStage.REQUEST);
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
-				auditRecord.setTarget(Utils.determineAuditTarget(deltas));
+				auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas));
 				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
 				auditService.audit(auditRecord, task);
 				try {
@@ -458,7 +458,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 									}
 									try {
 										if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
-											Utils.clearRequestee(task);
+											ModelImplUtils.clearRequestee(task);
 											provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
 													ProvisioningOperationOptions.createRaw(), null, task, result1);
 										} else {
@@ -648,7 +648,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		try {
 			PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, null, result);
 			PrismObject<T> updatedObject = storedObject.clone();
-			Utils.resolveReferences(updatedObject, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, prismContext, result);
+			ModelImplUtils.resolveReferences(updatedObject, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, prismContext, result);
 			ObjectDelta<T> delta = storedObject.diff(updatedObject);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDump());
@@ -686,7 +686,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		try {
 
-            Utils.clearRequestee(task);
+            ModelImplUtils.clearRequestee(task);
 			PrismObject<F> focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
 
 			LOGGER.debug("Recomputing {}", focus);

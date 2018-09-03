@@ -26,7 +26,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -654,7 +654,7 @@ public class ActivationProcessor {
         MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> internalInitializer =
 			builder -> {
 
-				builder.addVariableDefinitions(Utils.getDefaultExpressionVariables(context, projCtx).getMap());
+				builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx).getMap());
 
 		        builder.originType(OriginType.OUTBOUND);
 				builder.originObject(projCtx.getResource());

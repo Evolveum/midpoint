@@ -21,8 +21,8 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -64,7 +64,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 	}
 
 	@Override
-	public <FO extends FocusType, O extends ObjectType> PrismObject<FO> resolveOwner(PrismObject<O> object) {
+	public <FO extends FocusType, O extends ObjectType> PrismObject<FO> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (object == null) {
 			return null;
 		}
@@ -104,7 +104,7 @@ public class LensOwnerResolver<F extends ObjectType> implements OwnerResolver {
 					.item(FocusType.F_PERSONA_REF).ref(object.getOid()).build();
 			List<PrismObject<UserType>> owners = new ArrayList<>();
 			try {
-				objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), owners, result);
+				objectResolver.searchIterative(UserType.class, query, null, (o,result) -> owners.add(o), task, result);
 			} catch (ObjectNotFoundException | CommunicationException | ConfigurationException
 					| SecurityViolationException | SchemaException | ExpressionEvaluationException e) {
 				LOGGER.warn("Cannot resolve owner of {}: {}", object, e.getMessage(), e);

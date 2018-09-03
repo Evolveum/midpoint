@@ -926,8 +926,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertPartialError(result);
+		assertPartialError(result);
 
 		lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
 

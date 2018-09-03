@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
@@ -46,6 +45,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -401,7 +401,7 @@ public class ContextLoader {
 	}
 
 	private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, Task task, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
+			throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, SecurityViolationException {
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 		if (systemConfiguration == null) {
 			// This happens in some tests. And also during first startup.
@@ -1125,7 +1125,7 @@ public class ContextLoader {
 									throw e;
 								}
 							} else {
-								if (ExceptionUtil.isSelected(errorSelector, e, true)) {
+								if (CriticalityType.FATAL.equals(ExceptionUtil.getCriticality(errorSelector, e, CriticalityType.FATAL))) {
 									throw e;
 								} else {
 									return;
@@ -1391,7 +1391,7 @@ public class ContextLoader {
 
 	public <F extends ObjectType> void reloadSecurityPolicyIfNeeded(LensContext<F> context,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
+					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			return;
@@ -1408,14 +1408,14 @@ public class ContextLoader {
 	
 	public <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
+					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		loadSecurityPolicy(context, false, task, result);
 	}
 	
 	@SuppressWarnings("unchecked")
 	private <F extends ObjectType> void loadSecurityPolicy(LensContext<F> context, boolean forceReload,
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-					SchemaException, PolicyViolationException {
+					SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			return;

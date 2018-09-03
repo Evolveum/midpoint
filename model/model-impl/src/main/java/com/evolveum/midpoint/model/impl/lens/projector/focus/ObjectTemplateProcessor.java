@@ -255,7 +255,7 @@ public class ObjectTemplateProcessor {
 	}
 
 	@NotNull
-	private Map<ItemPath, ObjectTemplateItemDefinitionType> collectItemDefinitionsFromTemplate(ObjectTemplateType objectTemplateType, String contextDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private Map<ItemPath, ObjectTemplateItemDefinitionType> collectItemDefinitionsFromTemplate(ObjectTemplateType objectTemplateType, String contextDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Map<ItemPath, ObjectTemplateItemDefinitionType> definitions = new HashMap<>();
 		if (objectTemplateType == null) {
 			return definitions;

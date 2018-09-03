@@ -79,6 +79,7 @@ import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -693,18 +694,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Override
 	public AuthenticationsPolicyType getAuthenticationPolicy(PrismObject<UserType> user, Task task,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		// TODO: check for user membership in an organization (later versions)
 
-				OperationResult result = parentResult.createMinorSubresult(GET_AUTHENTICATIONS_POLICY);
-					return resolvePolicyTypeFromSecurityPolicy(AuthenticationsPolicyType.class, SecurityPolicyType.F_AUTHENTICATION, user, task, result);
+		OperationResult result = parentResult.createMinorSubresult(GET_AUTHENTICATIONS_POLICY);
+		return resolvePolicyTypeFromSecurityPolicy(AuthenticationsPolicyType.class, SecurityPolicyType.F_AUTHENTICATION, user, task, result);
 
 	}
 
 	@Override
 	@Deprecated
 	public RegistrationsPolicyType getRegistrationPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		// TODO: check for user membership in an organization (later versions)
 
 		OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
@@ -714,7 +715,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	@Override
 	public RegistrationsPolicyType getFlowPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		// TODO: check for user membership in an organization (later versions)
 		OperationResult result = parentResult.createMinorSubresult(GET_REGISTRATIONS_POLICY);
 		return resolvePolicyTypeFromSecurityPolicy(RegistrationsPolicyType.class, SecurityPolicyType.F_FLOW, user, task,
@@ -723,16 +724,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
 	
 	@Override
-	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public CredentialsPolicyType getCredentialsPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		// TODO: check for user membership in an organization (later versions)
 
-			OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
-			return resolvePolicyTypeFromSecurityPolicy(CredentialsPolicyType.class, SecurityPolicyType.F_CREDENTIALS, user, task, result);
-
-
+		OperationResult result = parentResult.createMinorSubresult(GET_CREDENTIALS_POLICY);
+		return resolvePolicyTypeFromSecurityPolicy(CredentialsPolicyType.class, SecurityPolicyType.F_CREDENTIALS, user, task, result);
 	}
 
-	private <C extends Containerable> C  resolvePolicyTypeFromSecurityPolicy(Class<C> type, QName path, PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	private <C extends Containerable> C  resolvePolicyTypeFromSecurityPolicy(Class<C> type, QName path, PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		SecurityPolicyType securityPolicyType = getSecurityPolicy(user, task, parentResult);
 		if (securityPolicyType == null) {
@@ -748,23 +747,24 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public SecurityPolicyType getSecurityPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public SecurityPolicyType getSecurityPolicy(PrismObject<UserType> user, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createMinorSubresult(GET_SECURITY_POLICY);
 		try {
-		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-		if (systemConfiguration == null) {
-			result.recordNotApplicableIfUnknown();
-			return null;
-		}
-
-		SecurityPolicyType securityPolicyType = securityHelper.locateSecurityPolicy(user, systemConfiguration, task, result);
-		if (securityPolicyType == null) {
-			result.recordNotApplicableIfUnknown();
-			return null;
-		}
-
-		return securityPolicyType;
-		}catch (SchemaException e) {
+			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+			if (systemConfiguration == null) {
+				result.recordNotApplicableIfUnknown();
+				return null;
+			}
+	
+			SecurityPolicyType securityPolicyType = securityHelper.locateSecurityPolicy(user, systemConfiguration, task, result);
+			if (securityPolicyType == null) {
+				result.recordNotApplicableIfUnknown();
+				return null;
+			}
+	
+			return securityPolicyType;
+		} catch (Throwable e) {
 			result.recordFatalError(e);
 			throw e;
 		}
@@ -1124,7 +1124,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	private ValuePolicyType resolveValuePolicy(PolicyItemDefinitionType policyItemDefinition, ValuePolicyType defaultPolicy,
-			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (policyItemDefinition.getValuePolicyRef() != null) {
 			LOGGER.trace("Trying to resolve value policy {} for policy item definition", policyItemDefinition);
 			return objectResolver.resolve(policyItemDefinition.getValuePolicyRef(), ValuePolicyType.class, null,
@@ -1669,11 +1669,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 	
 	@Override
-	public void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException {
+	public void refreshPrincipal(String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		try {
 			MidPointPrincipal principal = userProfileService.getPrincipalByOid(oid);
 			securityContextManager.setupPreAuthenticatedSecurityContext(principal);
-		} catch (ObjectNotFoundException | SchemaException e) {
+		} catch (Throwable e) {
 			LOGGER.error("Cannot refresh authentication for user identified with" + oid);
 			throw e;
 		}

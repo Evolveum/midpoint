@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -46,21 +46,13 @@
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
-    
-    <bean id="basicFunctionObjectXml" class="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath"
-          scope="singleton">
-          <constructor-arg type="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions" ref="basicFunctionObject"/>
-    </bean>
-    
+        
     <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="basic"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"/>
         <property name="genericFunctions">
             <ref bean="basicFunctionObject"/>
-        </property>
-        <property name="xmlFunctions">
-            <ref bean="basicFunctionObjectXml"/>
         </property>
     </bean>
 
@@ -77,12 +69,7 @@
             <ref bean="logFunctionObject"/>
         </property>
     </bean>
-    
-    <bean id="xpathScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator"
-          scope="singleton">
-          <constructor-arg name="prismContext" ref="prismContext"/>
-    </bean>
-    
+        
     <bean id="javascriptScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
           scope="singleton">
           <constructor-arg name="engineName" value="JavaScript"/>
@@ -124,7 +111,6 @@
         </property>
         <property name="evaluators">
         	<list>
-        		<ref bean="xpathScriptEvaluator"/>
         		<ref bean="javascriptScriptEvaluator"/>
         		<ref bean="groovyScriptEvaluator"/>
         		<ref bean="pythonScriptEvaluator"/>

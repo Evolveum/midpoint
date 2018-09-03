@@ -44,7 +44,7 @@ import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -186,7 +186,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Synchronization is enabled, focus class: {}, found applicable policy: {}",
-						syncCtx.getFocusClass(), Utils.getPolicyDesc(obejctSynchronization));
+						syncCtx.getFocusClass(), ModelImplUtils.getPolicyDesc(obejctSynchronization));
 			}
 
 			setupSituation(syncCtx, eventInfo, change, task, subResult);
@@ -310,7 +310,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		}
 		ExpressionType classificationExpression = synchronizationSorterType.getExpression();
 		String desc = "syncrhonization divider type ";
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, syncCtx.getApplicableShadow(), null,
+		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, syncCtx.getApplicableShadow(), null,
 				syncCtx.getResource(), syncCtx.getSystemConfiguration(), null);
 		variables.addVariableDefinition(ExpressionConstants.VAR_CHANNEL, syncCtx.getChanel());
 		try {
@@ -338,7 +338,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		}
 		ExpressionType conditionExpressionType = synchronizationPolicy.getCondition();
 		String desc = "condition in object synchronization " + synchronizationPolicy.getName();
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, null,
+		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, currentShadow, null,
 				resource, configuration, null);
 		try {
 			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
@@ -485,7 +485,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	
 	private <F extends FocusType> boolean checkDryRunAndUnrelatedChange(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, ResourceObjectShadowChangeDescription change, XMLGregorianCalendar now, Task task, OperationResult subResult) throws SchemaException {
 		
-		if (change.isUnrelatedChange() || Utils.isDryRun(task)) {
+		if (change.isUnrelatedChange() || ModelImplUtils.isDryRun(task)) {
 			if (syncCtx.getApplicableShadow() == null) { 
 				throw new IllegalStateException("No current nor old shadow present: " + change);
 			}

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,7 +242,7 @@ public class TestIntegrationSecurity extends AbstractInitializedGuiIntegrationTe
 		
 	}
 	
-	private Authentication createPasswordAuthentication(String username) throws ObjectNotFoundException, SchemaException {
+	private Authentication createPasswordAuthentication(String username) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(username);
 		UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
 		return auth;

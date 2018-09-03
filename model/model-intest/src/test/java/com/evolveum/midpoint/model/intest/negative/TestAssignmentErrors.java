@@ -363,18 +363,19 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         getDummyResource().setBreakMode(BreakMode.GENERIC);
         dummyAuditService.clear();
 
-		// WHEN
-        displayWhen(TEST_NAME);
-		//not expected that it fails, instead the error in the result is expected
-		modelService.executeChanges(deltas, null, task, result);
-
-		// THEN
-		displayThen(TEST_NAME);
-        result.computeStatus();
-
-        display(result);
-        // This has to be a partial error as some changes were executed (user) and others were not (account)
-        TestUtil.assertPartialError(result);
+        try {
+			// WHEN
+	        displayWhen(TEST_NAME);
+			//not expected that it fails, instead the error in the result is expected
+			modelService.executeChanges(deltas, null, task, result);
+			
+			assertNotReached();
+        } catch (GenericConnectorException e) {
+			// THEN
+			displayThen(TEST_NAME);
+			display("Expected exception", e);
+        }
+	    assertFailure(result);
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -385,7 +386,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class, OperationResultStatus.FATAL_ERROR);
         dummyAuditService.assertTarget(user.getOid());
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
         dummyAuditService.assertExecutionMessage();
 
         LensContext<UserType> lastLensContext = (LensContext) profilingModelInspectorManager.getLastLensContext();

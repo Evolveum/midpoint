@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.sync;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.impl.ModelConstants;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -155,7 +155,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 
         ObjectClassComplexTypeDefinition objectClass;
 		try {
-			objectClass = Utils.determineObjectClass(refinedSchema, task);
+			objectClass = ModelImplUtils.determineObjectClass(refinedSchema, task);
 		} catch (SchemaException e) {
 			LOGGER.error("Live Sync: schema error: {}", e.getMessage());
             opResult.recordFatalError(e);
@@ -177,7 +177,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// This will detect the changes and notify model about them.
 			// It will use extension of task to store synchronization state
 
-            Utils.clearRequestee(task);
+            ModelImplUtils.clearRequestee(task);
 			changesProcessed = provisioningService.synchronize(coords, task, opResult);
 
 		} catch (ObjectNotFoundException ex) {

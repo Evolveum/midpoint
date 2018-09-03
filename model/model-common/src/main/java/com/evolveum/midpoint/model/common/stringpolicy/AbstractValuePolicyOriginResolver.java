@@ -18,12 +18,12 @@ package com.evolveum.midpoint.model.common.stringpolicy;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
@@ -82,7 +82,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
 				handleObject(handler, result);
 				break;
 			case OWNER:
-				handleOwner(handler, contextDescription, result);
+				handleOwner(handler, contextDescription, task, result);
 				break;
 			case PERSONA:
 				handlePersonas(handler, contextDescription, task, result);
@@ -99,7 +99,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
 		handler.handle((PrismObject<R>) getObject(), result);
 	}
 
-	private <P extends ObjectType> void handlePersonas(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	private <P extends ObjectType> void handlePersonas(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		PrismObject<O> object = getObject();
 		if (!object.canRepresent(UserType.class)) {
 			return;
@@ -110,7 +110,7 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
 		}
 	}
 	
-	private <P extends ObjectType> void handleProjections(ResultHandler<P> handler, ProhibitedValueItemType prohibitedValueItemType, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+	private <P extends ObjectType> void handleProjections(ResultHandler<P> handler, ProhibitedValueItemType prohibitedValueItemType, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		PrismObject<O> object = getObject();
 		// Not very efficient. We will usually read the shadows again, as they are already in model context.
 		// It will also work only for the items that are stored in shadow (usually not attributes, unless caching is enabled).
@@ -156,8 +156,8 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
 		}
 	}
 
-	private <P extends ObjectType> void handleOwner(ResultHandler<P> handler, String contextDescription, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private <P extends ObjectType> void handleOwner(ResultHandler<P> handler, String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		objectResolver.searchIterative(getOwnerClass(), getOwnerQuery(), SelectorOptions.createCollection(GetOperationOptions.createReadOnly()), 
-				handler, "resolving owner in " + contextDescription, result);
+				handler, task, result);
 	}
 }

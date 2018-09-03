@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -30,10 +31,12 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 import org.apache.velocity.VelocityContext;
@@ -72,7 +75,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 			ScriptExpressionReturnTypeType suggestedReturnType,
 			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException,
-			ObjectNotFoundException, ExpressionSyntaxException {
+			ObjectNotFoundException, ExpressionSyntaxException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		VelocityContext context = createVelocityContext(variables, objectResolver, functions, contextDescription, task, result);
 
@@ -128,7 +131,7 @@ public class VelocityScriptEvaluator implements ScriptEvaluator {
 
 	private VelocityContext createVelocityContext(ExpressionVariables variables, ObjectResolver objectResolver,
 									   Collection<FunctionLibrary> functions,
-									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
+									   String contextDescription, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		VelocityContext context = new VelocityContext();
 		Map<String,Object> scriptVariables = ScriptExpressionUtil.prepareScriptVariables(variables, objectResolver, functions, contextDescription,
 				prismContext, task, result);

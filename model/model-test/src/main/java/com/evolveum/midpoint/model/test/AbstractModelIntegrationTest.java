@@ -122,6 +122,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -141,7 +142,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
@@ -4004,12 +4004,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.assertNoGroupMembers(group);
 	}
 
-	protected void login(String principalName) throws ObjectNotFoundException, SchemaException {
+	protected void login(String principalName) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
 		login(principal);
 	}
 
-	protected void login(PrismObject<UserType> user) throws SchemaException {
+	protected void login(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		login(principal);
 	}
@@ -4020,12 +4020,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		securityContext.setAuthentication(authentication);
 	}
 
-	protected void loginSuperUser(String principalName) throws SchemaException, ObjectNotFoundException {
+	protected void loginSuperUser(String principalName) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
 		loginSuperUser(principal);
 	}
 
-	protected void loginSuperUser(PrismObject<UserType> user) throws SchemaException {
+	protected void loginSuperUser(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		loginSuperUser(principal);
 	}
@@ -4556,7 +4556,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertFalse("AuthorizationEvaluator.isAuthorized: Principal " + principal + " IS authorized for action " + action + " (" + phase + ") but he should not be", isAuthorized);
 	}
 
-	protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations) throws ObjectNotFoundException, SchemaException {
+	protected void assertAuthorizations(PrismObject<UserType> user, String... expectedAuthorizations) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		assertNotNull("No principal for "+user, principal);
 		assertAuthorizations(principal, expectedAuthorizations);
@@ -4571,7 +4571,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 
-	protected void assertNoAuthorizations(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException {
+	protected void assertNoAuthorizations(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(user);
 		assertNotNull("No principal for "+user, principal);
 		assertNoAuthorizations(principal);
@@ -5367,7 +5367,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void initializeAsserter(AbstractAsserter<?> asserter) {
 		asserter.setPrismContext(prismContext);
-		asserter.setObjectResolver(repoObjectResolver);
+		asserter.setObjectResolver(repoSimpleObjectResolver);
 	}
 
 	protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

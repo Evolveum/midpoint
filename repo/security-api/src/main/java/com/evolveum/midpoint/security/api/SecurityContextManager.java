@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -46,9 +49,9 @@ public interface SecurityContextManager {
     
     void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal);
 
-	void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException;
+	void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 	
-	<T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException;
+	<T> T runAs(Producer<T> producer, PrismObject<UserType> user) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 	
 	<T> T runPrivileged(Producer<T> producer);
 	

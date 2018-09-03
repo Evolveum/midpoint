@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,8 +46,12 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -253,6 +257,18 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			throw new UsernameNotFoundException("web.security.provider.invalid");
 		} catch (SchemaException e) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "schema error");
+			throw new AccessDeniedException("web.security.provider.invalid");
+		} catch (CommunicationException e) {
+			recordAuthenticationFailure(enteredUsername, connEnv, "communication error");
+			throw new AccessDeniedException("web.security.provider.invalid");
+		} catch (ConfigurationException e) {
+			recordAuthenticationFailure(enteredUsername, connEnv, "configuration error");
+			throw new AccessDeniedException("web.security.provider.invalid");
+		} catch (SecurityViolationException e) {
+			recordAuthenticationFailure(enteredUsername, connEnv, "security violation");
+			throw new AccessDeniedException("web.security.provider.invalid");
+		} catch (ExpressionEvaluationException e) {
+			recordAuthenticationFailure(enteredUsername, connEnv, "expression error");
 			throw new AccessDeniedException("web.security.provider.invalid");
 		}
 

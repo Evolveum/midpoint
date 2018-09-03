@@ -33,8 +33,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.controller.ModelImplUtils;
-import com.evolveum.midpoint.model.impl.util.Utils;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -182,7 +181,7 @@ public class ModelCrudService {
 		}
 		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 		deltas.add(delta);
-		Utils.encrypt(deltas, protector, null, parentResult);
+		ModelImplUtils.encrypt(deltas, protector, null, parentResult);
 		eventDescription.setDelta(delta);
 
 		eventDescription.setSourceChannel(changeDescription.getChannel());
@@ -261,7 +260,7 @@ public class ModelCrudService {
 		OperationResult result = parentResult.createSubresult(ADD_OBJECT);
 		result.addParam(OperationResult.PARAM_OBJECT, object);
 
-		Utils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
+		ModelImplUtils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
 
 		String oid;
 		RepositoryCache.enter();

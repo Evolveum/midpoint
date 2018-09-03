@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ public class FunctionLibrary {
 	private String variableName;
 	private String namespace;
 	private Object genericFunctions;
-	private Object xmlFunctions;
 
 	public String getVariableName() {
 		return variableName;
@@ -48,14 +47,6 @@ public class FunctionLibrary {
 
 	public void setGenericFunctions(Object genericFunctions) {
 		this.genericFunctions = genericFunctions;
-	}
-
-	public Object getXmlFunctions() {
-		return xmlFunctions;
-	}
-
-	public void setXmlFunctions(Object xmlFunctions) {
-		this.xmlFunctions = xmlFunctions;
 	}
 
 

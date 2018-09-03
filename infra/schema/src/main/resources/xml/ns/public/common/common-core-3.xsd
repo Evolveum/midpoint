@@ -6283,7 +6283,6 @@
                 which error types to handle, etc.
                 
                 EXPERIMENTAL: use with care
-                TODO: change booleans to CriticalityType
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
@@ -6291,21 +6290,21 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:element name="network" type="xsd:boolean" minOccurs="0" default="false">
+        	<xsd:element name="network" type="tns:CriticalityType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Selects network errors (connection refused, timeouts, unreachable network, connection resets, ...)
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="security" type="xsd:boolean" minOccurs="0" default="false">
+        	<xsd:element name="security" type="tns:CriticalityType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Selects security issues (failed authentication, permission denied, ...)
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="policy" type="xsd:boolean" minOccurs="0" default="false">
+        	<xsd:element name="policy" type="tns:CriticalityType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Selects policy violations. The operation failed because it violates
@@ -6314,7 +6313,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="schema" type="xsd:boolean" minOccurs="0" default="false">
+        	<xsd:element name="schema" type="tns:CriticalityType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Selects schema and data format errors. These are errors that data
@@ -6323,7 +6322,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="configuration" type="xsd:boolean" minOccurs="0" default="false">
+        	<xsd:element name="configuration" type="tns:CriticalityType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Selects configuration errors. These are caused by misconfiguration of
@@ -6333,7 +6332,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="unsupported" type="xsd:boolean" minOccurs="0" default="false">
+        	<xsd:element name="unsupported" type="tns:CriticalityType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Selects "unsupported operation" issues. These errors are caused by
@@ -6346,7 +6345,7 @@
         			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="generic" type="xsd:boolean" minOccurs="0" default="false">
+        	<xsd:element name="generic" type="tns:CriticalityType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Selects generic, system and other non-specific issues. These errors
@@ -6387,25 +6386,29 @@
                         Partial criticality. The error will be indicated,
                         composite result of the operation will be presented
                         as partial error, but the processing will NOT be interrupted.
-                        The operation will try recover and continue.
+                        The operation may try recover and continue.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PARTIAL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <!-- TODO: warning? -->
-<!--             <xsd:enumeration value="ignore">
+            <xsd:enumeration value="ignore">
                 <xsd:annotation>
                     <xsd:documentation>
                         No criticality. The error will be ignored. It will not
-                        be indicated in any result. 
+                        be indicated as error in any result (may be indicated as handler error).
+                        Warning: this may be dangerous.
+                        Experimental: this is only partially supported now. 
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="IGNORE"/>
+                        <a:experimental>true</a:experimental>
+                        <a:since>3.9</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>  
-            </xsd:enumeration> -->
+            </xsd:enumeration>
+            <!-- TODO: warning? -->
         </xsd:restriction>
     </xsd:simpleType>
         
