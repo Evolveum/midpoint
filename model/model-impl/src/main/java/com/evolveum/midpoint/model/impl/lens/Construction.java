@@ -94,6 +94,8 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 
 	private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 
+	private static final String OP_EVALUATE = Construction.class.getName() + ".evaluate";
+
 	private ObjectType orderOneObject;
 	private ResourceType resource;
 	private MappingFactory mappingFactory;
@@ -104,11 +106,7 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 	private List<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
 	private AssignmentPathVariables assignmentPathVariables = null;
 	private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
-	private PrismObject<SystemConfigurationType> systemConfiguration; // only to
-																		// provide
-																		// $configuration
-																		// variable
-																		// (MID-2372)
+	private PrismObject<SystemConfigurationType> systemConfiguration; // only to provide $configuration variable (MID-2372)
 	private LensProjectionContext projectionContext;
 
 	public Construction(ConstructionType constructionType, ObjectType source) {
@@ -322,12 +320,21 @@ public class Construction<F extends FocusType> extends AbstractConstruction<F,Co
 		return resource;
 	}
 
-	public void evaluate(Task task, OperationResult result)
+	public void evaluate(Task task, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-		assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
-		evaluateKindIntentObjectClass(task, result);
-		evaluateAttributes(task, result);
-		evaluateAssociations(task, result);
+		// Subresult is needed here. If something fails here, this needs to be recorded as a subresult of
+		// AssignmentProcessor.processAssignmentsProjections. Otherwise partial error won't be propagated properly.
+		OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
+		try {
+			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
+			evaluateKindIntentObjectClass(task, result);
+			evaluateAttributes(task, result);
+			evaluateAssociations(task, result);
+			result.recordSuccess();
+		} catch (Throwable e) {
+			result.recordFatalError(e);
+			throw e;
+		}
 	}
 
 	private void evaluateKindIntentObjectClass(Task task, OperationResult result)

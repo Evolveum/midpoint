@@ -813,8 +813,9 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	 * the account on the good resource is created.
 	 *
 	 * This one dies on the lack of schema.
+	 * 
+	 * MID-1248
 	 */
-	// MID-1248
 	@Test
     public void test400AssignTwoResouresNotFound() throws Exception {
 		final String TEST_NAME = "test400AssignTwoResoures"; 
@@ -1011,13 +1012,20 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertAssignments(userBefore, 0);
         assertNoDummyAccount(RESOURCE_DUMMY_BLACK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 
-		// WHEN
-        displayWhen(TEST_NAME);
-        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        try {
+			// WHEN
+	        displayWhen(TEST_NAME);
+	        assignAccountToUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
-		// THEN
-        displayThen(TEST_NAME);
-        assertPartialError(result);
+	        assertNotReached();
+	        
+        } catch (GenericConnectorException e) {
+			// THEN
+	        displayThen(TEST_NAME);
+	        display("Expected exception", e);
+        }
+        
+        assertFailure(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
@@ -1063,7 +1071,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
 	}
 
 	/**
-	 * Causing an error in provisioning script. Default criticality.
+	 * Causing an error (RuntimeException) in provisioning script. Default criticality.
 	 * The error should stop operation.
 	 * MID-4060
 	 */
@@ -1077,13 +1085,21 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         OperationResult result = task.getResult();
         prepareTest5xx();
 
-		// WHEN
-        displayWhen(TEST_NAME);
-        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
+        try {
+			// WHEN
+	        displayWhen(TEST_NAME);
+	        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_EMPLOYEE_NUMBER, task, result, DummyResource.POWERFAIL_ARG_ERROR_RUNTIME);
 
-		// THEN
-        displayThen(TEST_NAME);
-        assertPartialError(result);
+	        assertNotReached();
+	        
+        } catch (RuntimeException e) {
+			// THEN
+	        displayThen(TEST_NAME);
+	        display("Expected exception", e);
+	        assertEquals("Wrong exception message", "Booom! PowerFail script failed (runtime)", e.getMessage());
+        }
+        
+        assertFailure(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);
@@ -1110,13 +1126,21 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         OperationResult result = task.getResult();
         prepareTest5xx();
 
-		// WHEN
-        displayWhen(TEST_NAME);
-        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
+        try {
+			// WHEN
+	        displayWhen(TEST_NAME);
+	        unassignAccountFromUser(USER_GUYBRUSH_OID, RESOURCE_DUMMY_BLACK_OID, null, task, result);
 
-		// THEN
-        displayThen(TEST_NAME);
-        assertPartialError(result);
+	        assertNotReached();
+	        
+        } catch (RuntimeException e) {
+			// THEN
+	        displayThen(TEST_NAME);
+	        display("Expected exception", e);
+	        assertEquals("Wrong exception message", "Booom! PowerFail script failed (runtime)", e.getMessage());
+        }
+        
+        assertFailure(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
         display("User after", userAfter);

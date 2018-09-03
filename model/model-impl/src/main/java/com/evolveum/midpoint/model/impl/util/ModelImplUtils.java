@@ -888,11 +888,6 @@ public class ModelImplUtils {
 			throw (ObjectNotFoundException)e;
 		} else if (e instanceof CommunicationException) {
 			throw (CommunicationException)e;
-<<<<<<< HEAD:model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/util/ModelImplUtils.java
-		} else if (e instanceof SchemaException) {
-			throw (SchemaException)e;
-=======
->>>>>>> b37e7456a2584e47133fc7c0f098957c1101bea1:model/model-impl/src/main/java/com/evolveum/midpoint/model/impl/util/Utils.java
 		} else if (e instanceof SchemaException) {
 			throw (SchemaException)e;
 		} else if (e instanceof ConfigurationException) {
