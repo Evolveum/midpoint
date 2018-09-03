@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.notifications.impl.handlers;
 
+import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -64,19 +65,13 @@ public abstract class BaseHandler implements EventHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseHandler.class);
 
-    @Autowired
-    protected NotificationManagerImpl notificationManager;
+    @Autowired protected NotificationManagerImpl notificationManager;
+	@Autowired protected NotificationFunctionsImpl notificationsUtil;
+	@Autowired protected PrismContext prismContext;
+	@Autowired protected ExpressionFactory expressionFactory;
+	@Autowired protected TextFormatter textFormatter;
 
-    @Autowired
-    protected NotificationFunctionsImpl notificationsUtil;
-
-    @Autowired
-    protected PrismContext prismContext;
-
-    @Autowired
-    protected ExpressionFactory expressionFactory;
-
-    protected void register(Class<? extends EventHandlerType> clazz) {
+	protected void register(Class<? extends EventHandlerType> clazz) {
         notificationManager.registerEventHandler(clazz, this);
     }
 
@@ -199,10 +194,9 @@ public abstract class BaseHandler implements EventHandler {
     	ExpressionVariables expressionVariables = new ExpressionVariables();
         Map<QName, Object> variables = new HashMap<>();
 		event.createExpressionVariables(variables, result);
+	    variables.put(SchemaConstants.C_TEXT_FORMATTER, textFormatter);
+	    variables.put(SchemaConstants.C_NOTIFICATION_FUNCTIONS, notificationsUtil);
 		expressionVariables.addVariableDefinitions(variables);
         return expressionVariables;
     }
-
-
-
 }

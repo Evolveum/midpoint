@@ -178,12 +178,4 @@ public class CustomNotifier extends BaseHandler {
 				.evaluateExpressionInContext(expression, params, task, result);
 		return exprResult.getZeroSet().stream().map(PrismPropertyValue::getValue).collect(Collectors.toList());
 	}
-
-	@Override
-    protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
-        ExpressionVariables variables = super.getDefaultVariables(event, result);
-        variables.addVariableDefinition(SchemaConstants.C_TEXT_FORMATTER, textFormatter);
-        return variables;
-    }
-
 }

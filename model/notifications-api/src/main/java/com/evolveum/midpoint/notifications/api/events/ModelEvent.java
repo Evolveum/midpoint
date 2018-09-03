@@ -221,6 +221,10 @@ public class ModelEvent extends BaseEvent {
 		return getNotificationFunctions().getContentAsFormattedList(this, showSynchronizationItems, showAuxiliaryAttributes);
 	}
 
+	public String getFocusPassword() {
+        return getNotificationFunctions().getFocusPasswordFromEvent(this);
+    }
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(this.getClass(), indent);
