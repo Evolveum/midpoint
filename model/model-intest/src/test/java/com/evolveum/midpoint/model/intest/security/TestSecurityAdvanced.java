@@ -158,14 +158,41 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		repoAddObjectFromFile(ROLE_PROP_EXCEPT_ASSIGNMENT_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ASSIGN_ORG_FILE, initResult);
+		repoAddObjectFromFile(ROLE_END_USER_WITH_PRIVACY_FILE, initResult);
 
 		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 10;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 11;
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
+	}
+	
+	/**
+	 * Stay logged in as administrator. Make sure that our assumptions about
+	 * the users and roles are correct.
+	 */
+	@Test
+    public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        assertSearch(UserType.class, null, NUMBER_OF_ALL_USERS);
+        assertSearch(RoleType.class, null, getNumberOfRoles());
+        
+        assertReadAllow(NUMBER_OF_ALL_USERS);
+		assertReadAllowRaw(NUMBER_OF_ALL_USERS);
+        assertAddAllow();
+        assertAddAllowRaw();
+        assertModifyAllow();
+        assertDeleteAllow();
+
+        assertGlobalStateUntouched();
 	}
 
 	/**
@@ -3000,6 +3027,51 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertAssignments(userBuybrush, 1);
         
         assertNoDummyAccount(RESOURCE_DUMMY_VAULT_NAME, USER_GUYBRUSH_USERNAME);
+		
+		assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * We can get any users, but we can search only the CAPTAINs.
+	 * 
+	 * MID-4860, MID-4654, MID-4859
+	 */
+	@Test
+    public void test330AutzJackEndUserWithPrivacy() throws Exception {
+		final String TEST_NAME = "test330AutzJackEndUserWithPrivacy";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		assertNoDummyAccount(RESOURCE_DUMMY_VAULT_NAME, USER_GUYBRUSH_USERNAME);
+		
+		assignRole(USER_JACK_OID, ROLE_END_USER_WITH_PRIVACY_OID);
+		login(USER_JACK_USERNAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		PrismObject<UserType> userJack = assertGetAllow(UserType.class, USER_JACK_OID);
+		display("Jack", userJack);
+		// Access to employeeType is not allowed for get. Therefore is should not part of the result.
+		PrismAsserts.assertNoItem(userJack, UserType.F_EMPLOYEE_TYPE);
+		
+		// Direct get, should be allowed even though guybrush is not a CAPTAIN
+		PrismObject<UserType> userBuybrush = assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
+		display("Guybrush", userBuybrush);
+		
+		assertReadDenyRaw();
+		assertGetDeny(LookupTableType.class, LOOKUP_LANGUAGES_OID);
+
+		assertSearch(UserType.class, null, 1);
+		assertSearchDeny(UserType.class, null, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+		assertSearchDeny(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+		assertSearchDeny(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+		
+		assertAddDeny();
+		assertModifyDeny();
+		assertDeleteDeny();
 		
 		assertGlobalStateUntouched();
 	}

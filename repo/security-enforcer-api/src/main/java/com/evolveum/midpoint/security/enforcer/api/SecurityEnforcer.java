@@ -93,14 +93,14 @@ public interface SecurityEnforcer {
 	 * @param limitAuthorizationAction only consider authorizations that are not limited with respect to this action.
 	 *              If null then all authorizations are considered.
 	 */
-	<T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
+	<T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String[] operationUrls, AuthorizationPhaseType phase,
 			Class<T> searchResultType, PrismObject<O> object, ObjectFilter origFilter, 
 			String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
 	 * @param includeSpecial include special authorizations such as "self"
 	 */
-	<T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl, AuthorizationPhaseType phase,
+	<T extends ObjectType, O extends ObjectType> boolean canSearch(String[] operationUrls, AuthorizationPhaseType phase,
 			Class<T> searchResultType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**

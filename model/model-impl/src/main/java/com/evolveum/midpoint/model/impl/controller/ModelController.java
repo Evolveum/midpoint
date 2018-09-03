@@ -790,16 +790,23 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
                 }
                 switch (searchProvider) {
-	                case EMULATED: list = emulatedSearchProvider.searchObjects(type, query, options, result); break;
-                    case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
-                    case PROVISIONING: list = provisioning.searchObjects(type, query, options, task, result); break;
+	                case EMULATED: 
+	                	list = emulatedSearchProvider.searchObjects(type, query, options, result);
+	                	break;
+                    case REPOSITORY: 
+                    	list = cacheRepositoryService.searchObjects(type, query, options, result);
+                    	break;
+                    case PROVISIONING: 
+                    	list = provisioning.searchObjects(type, query, options, task, result); 
+                    	break;
                     case TASK_MANAGER:
 						list = taskManager.searchObjects(type, query, options, result);
 						if (workflowManager != null && TaskType.class.isAssignableFrom(type) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
 							workflowManager.augmentTaskObjectList(list, options, task, result);
 						}
 						break;
-                    default: throw new AssertionError("Unexpected search provider: " + searchProvider);
+                    default:
+                    	throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
 				result.computeStatus();
 				result.cleanupResult();
@@ -815,6 +822,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 			if (list == null) {
 				list = new SearchResultList<>(new ArrayList<PrismObject<T>>());
+			}
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Basic search returned {} results (before hooks, security, etc.)", list.size());
 			}
 
             for (PrismObject<T> object : list) {
@@ -841,6 +852,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		} finally {
 			exitModelMethod();
+		}
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Final search returned {} results (after hooks, security and all other processing)", list.size());
 		}
 
 		return list;
@@ -1051,13 +1066,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	protected void logQuery(ObjectQuery query) {
+		if (!LOGGER.isTraceEnabled()) {
+			return;
+		}
 		if (query != null){
             if (query.getPaging() == null) {
-                LOGGER.trace("Searching objects with null paging (query in TRACE).");
+                LOGGER.trace("Searching objects with null paging. Query:\n{}", query.debugDump(1));
             } else {
-                LOGGER.trace("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
+                LOGGER.trace("Searching objects from {} to {} ordered {} by {}. Query:\n{}",
 						query.getPaging().getOffset(), query.getPaging().getMaxSize(),
-						query.getPaging().getDirection(), query.getPaging().getOrderBy());
+						query.getPaging().getDirection(), query.getPaging().getOrderBy(),
+						query.debugDump(1));
             }
         }
 	}
@@ -1086,6 +1105,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		query = preProcessQuerySecurity(type, query, task, result);
 		if (isFilterNone(query, result)) {
+			LOGGER.trace("Skipping search because filter is NONE");
 			return null;
 		}
 
@@ -1165,6 +1185,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 		query = preProcessQuerySecurity(type, query, task, result);
 		if (isFilterNone(query, result)) {
+			LOGGER.trace("Skipping count because filter is NONE");
 			return 0;
 		}
 
@@ -1180,9 +1201,15 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                 objectManager = ObjectTypes.ObjectManager.REPOSITORY;
             }
             switch (objectManager) {
-                case PROVISIONING: count = provisioning.countObjects(type, query, options, task, parentResult); break;
-                case REPOSITORY: count = cacheRepositoryService.countObjects(type, query, options, parentResult); break;
-                case TASK_MANAGER: count = taskManager.countObjects(type, query, parentResult); break;
+                case PROVISIONING:
+                	count = provisioning.countObjects(type, query, options, task, parentResult);
+                	break;
+                case REPOSITORY: 
+                	count = cacheRepositoryService.countObjects(type, query, options, parentResult);
+                	break;
+                case TASK_MANAGER:
+                	count = taskManager.countObjects(type, query, parentResult);
+                	break;
                 default: throw new AssertionError("Unexpected objectManager: " + objectManager);
             }
 		} catch (ConfigurationException | SecurityViolationException | SchemaException | ObjectNotFoundException | CommunicationException | ExpressionEvaluationException | RuntimeException | Error e) {
@@ -1761,13 +1788,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     	if (origQuery != null) {
     		origFilter = origQuery.getFilter();
     	}
-		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, origFilter, null, task, result);
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_SEARCH, null, objectType, null, origFilter, null, task, result);
 		return updateObjectQuery(origQuery, secFilter);
 	}
 	
 	// we expect that objectType is a direct parent of containerType
 	private <C extends Containerable, O extends ObjectType> ObjectQuery preProcessSubobjectQuerySecurity(Class<C> containerType, Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, null, null, null, task, result);
+		// Search containers is an operation on one object. Therefore even if it works with a search filter, it requires GET authorizations
+		ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, null, objectType, null, null, null, task, result);
 		if (secParentFilter == null || secParentFilter instanceof AllFilter) {
 			return origQuery;				// no need to update the query
 		}

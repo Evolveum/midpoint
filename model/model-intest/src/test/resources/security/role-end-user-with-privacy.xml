@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (c) 2014-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="2abaef72-af5b-11e8-ae9a-b33bc5b8cb74"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>End User With Privacy</name>
+    <description>End user that can read all other users. But he can search only some of them.</description>    
+    <authorization>
+    	<name>privacy-get</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+    	<object>
+    		<type>UserType</type>
+    	</object>
+    	<item>name</item>
+    	<item>fullName</item>
+    	<item>activation/administrativeStatus</item>
+    	<item>assignment</item>
+    </authorization>
+    <authorization>
+    	<name>privacy-search</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+    	<object>
+    		<type>UserType</type>
+    		<filter>
+	            <q:equal>
+	               <q:path>employeeType</q:path>
+	               <q:value>CAPTAIN</q:value>
+	            </q:equal>
+	        </filter>
+    	</object>
+    	<item>name</item>
+    	<item>fullName</item>
+    	<!-- We need to specify employeeType explicitly here. See MID-4859 -->
+    	<item>employeeType</item>
+    </authorization>
+</role>

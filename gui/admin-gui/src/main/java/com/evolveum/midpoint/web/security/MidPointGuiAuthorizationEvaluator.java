@@ -294,16 +294,16 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 	}
 
     @Override
-	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
+	public <T extends ObjectType, O extends ObjectType> ObjectFilter preProcessObjectFilter(String[] operationUrls, AuthorizationPhaseType phase,
 			Class<T> objectType, PrismObject<O> object, ObjectFilter origFilter, String limitAuthorizationAction, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return securityEnforcer.preProcessObjectFilter(operationUrl, phase, objectType, object, origFilter, limitAuthorizationAction, task, result);
+		return securityEnforcer.preProcessObjectFilter(operationUrls, phase, objectType, object, origFilter, limitAuthorizationAction, task, result);
 	}
 
 	@Override
-	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String operationUrl,
+	public <T extends ObjectType, O extends ObjectType> boolean canSearch(String[] operationUrls,
 			AuthorizationPhaseType phase, Class<T> objectType, PrismObject<O> object, boolean includeSpecial, ObjectFilter filter, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		return securityEnforcer.canSearch(operationUrl, phase, objectType, object, includeSpecial, filter, task, result);
+		return securityEnforcer.canSearch(operationUrls, phase, objectType, object, includeSpecial, filter, task, result);
 	}
 	
 	@Override
