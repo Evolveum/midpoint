@@ -79,7 +79,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	private static final String ID_TABLE = "table";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
-	private static final String DOT_CLASS = ObjectListPanel.class.getName();
+	private static final String DOT_CLASS = ObjectListPanel.class.getName() + ".";
 	private static final String OPERATION_LOAD_CUSTOM_MENU_ITEMS = DOT_CLASS + "loadCustomMenuItems";
 
 	private ObjectTypes type;
