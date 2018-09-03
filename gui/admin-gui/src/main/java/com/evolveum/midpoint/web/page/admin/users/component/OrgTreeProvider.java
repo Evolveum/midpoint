@@ -32,8 +32,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -108,12 +106,22 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
             LOGGER.debug("Loading fresh children for {}", node.getValue());
             OperationResult result = new OperationResult(LOAD_ORG_UNITS);
             try {
-                ObjectQuery query = QueryBuilder.queryFor(ObjectType.class, getPageBase().getPrismContext())
+                ObjectQuery query = QueryBuilder.queryFor(OrgType.class, getPageBase().getPrismContext())
                         .isDirectChildOf(nodeOid)
-                        .asc(ObjectType.F_NAME)
                         .build();
                 Task task = getPageBase().createSimpleTask(LOAD_ORG_UNITS);
                 List<PrismObject<OrgType>> orgs = getModelService().searchObjects(OrgType.class, query, null, task, result);
+                Collections.sort(orgs, new Comparator<PrismObject<OrgType>>() {
+
+                    @Override
+                    public int compare(PrismObject<OrgType> o1, PrismObject<OrgType> o2) {
+                        String s1 = WebComponentUtil.getDisplayNameOrName(o1);
+                        String s2 = WebComponentUtil.getDisplayNameOrName(o2);
+
+                        return String.CASE_INSENSITIVE_ORDER.compare(s1, s2);
+                    }
+                });
+
                 LOGGER.debug("Found {} sub-orgs.", orgs.size());
                 children = new ArrayList<>();
                 for (PrismObject<OrgType> org : orgs) {
