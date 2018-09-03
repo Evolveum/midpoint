@@ -290,7 +290,7 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
 				
 				ContainerWrapper<LifecycleStateModelType> lifecycleState = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
 				
-				if(lifecycleState.getValues().get(0).getContainerValue().getValue().getState()==null ||
+				if (lifecycleState == null || lifecycleState.getValues().get(0).getContainerValue().getValue().getState()==null ||
 						lifecycleState.getValues().get(0).getContainerValue().getValue().getState().isEmpty()) {
 					item.add(new Label(componentId, createStringResource("ObjectPolicyConfigurationTabPanel.lifecycleState.value.no")));
 				} else {
