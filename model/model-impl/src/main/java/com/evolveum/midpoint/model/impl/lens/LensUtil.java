@@ -15,13 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -42,6 +36,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -1087,5 +1082,25 @@ public class LensUtil {
 					"localizable message fallback expression", expressionFactory, prismContext, task, result));
 		}
 		return rv;
+	}
+
+	public static <F extends ObjectType> void reclaimSequences(LensContext<F> context, RepositoryService repositoryService, Task task, OperationResult result) throws SchemaException {
+    	if (context == null) {
+    		return;
+		}
+
+    	Map<String, Long> sequenceMap = context.getSequences();
+		LOGGER.trace("Context sequence map: {}", sequenceMap);
+		for (Map.Entry<String, Long> sequenceMapEntry: sequenceMap.entrySet()) {
+			Collection<Long> unusedValues = new ArrayList<>(1);
+			unusedValues.add(sequenceMapEntry.getValue());
+			try {
+				LOGGER.trace("Returning value {} to sequence {}", sequenceMapEntry.getValue(), sequenceMapEntry.getKey());
+				repositoryService.returnUnusedValuesToSequence(sequenceMapEntry.getKey(), unusedValues, result);
+			} catch (ObjectNotFoundException e) {
+				LOGGER.error("Cannot return unused value to sequence {}: it does not exist", sequenceMapEntry.getKey(), e);
+				// ... but otherwise ignore it and go on
+			}
+		}
 	}
 }
