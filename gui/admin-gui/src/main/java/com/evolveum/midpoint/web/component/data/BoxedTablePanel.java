@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -100,6 +101,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 		tableContainer.setOutputMarkupId(true);
 
 		DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, pageSize) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected Item<T> newRowItem(String id, int index, IModel<T> rowModel) {
 				Item<T> item = super.newRowItem(id, index, rowModel);
@@ -115,7 +118,9 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 		table.addTopToolbar(headersTop);
 
 		box.add(createHeader(ID_HEADER));
-		box.add(createFooter(ID_FOOTER));
+		WebMarkupContainer footer = createFooter(ID_FOOTER);
+		footer.add(new VisibleBehaviour(() -> isFooterVisible(provider.size(), pageSize)));
+		box.add(footer);
 	}
 
 	public String getAdditionalBoxCssClasses() {
@@ -129,6 +134,10 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 	// TODO better name?
 	protected Item<T> customizeNewRowItem(Item<T> item, IModel<T> model) {
 		return item;
+	}
+
+	protected boolean isFooterVisible(long providerSize, int pageSize){
+		return true;
 	}
 
 	@Override

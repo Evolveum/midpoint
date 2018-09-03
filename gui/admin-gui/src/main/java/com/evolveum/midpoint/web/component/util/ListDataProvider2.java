@@ -34,6 +34,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -83,6 +84,7 @@ public class ListDataProvider2<W extends Serializable, T extends Serializable>
 		return list.size();
 	}
 
+	@NotNull
 	public List<W> getSelectedObjects() {
 		List<W> allSelected = new ArrayList<>();
 		for (Serializable s : super.getAvailableData()) {

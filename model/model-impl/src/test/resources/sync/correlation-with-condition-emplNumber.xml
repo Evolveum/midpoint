@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,11 +22,9 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ConditionalSearchFilterType">
 	<condition>
 		<script>
-			<language>http://www.w3.org/TR/xpath/</language>
 			<code>
-			declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-          declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-				substring($c:account/c:attributes/icfs:name, 0, 1) != 'X'
+				def name = basic.getAttributeValue(shadow, "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "name")
+	          	!name.startsWith('X')
 			</code>
 		</script>
 	</condition>
@@ -34,11 +32,10 @@
 		<q:path>c:name</q:path>
 		<expression>
 			<script>
-				<language>http://www.w3.org/TR/xpath/</language>
 				<code>
-				declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-          declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-					$c:account/c:attributes/icfs:name
+					def name = basic.getAttributeValue(shadow, "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "name")
+		          	assert !name.startsWith('X')
+		          	name
 				</code>
 			</script>
 		</expression>

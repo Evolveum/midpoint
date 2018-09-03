@@ -361,9 +361,12 @@ public class PageImportObject extends PageAdminConfiguration {
 			}
 
 		}
-
 		showResult(result);
-		target.add(PageImportObject.this);
+		if (result.isFatalError()){
+			target.add(getFeedbackPanel());
+		} else {
+			target.add(PageImportObject.this);
+		}
 	}
 
 

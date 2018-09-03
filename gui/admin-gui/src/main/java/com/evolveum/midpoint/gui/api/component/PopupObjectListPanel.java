@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectListPanel<O> {
 	private static final long serialVersionUID = 1L;
@@ -144,7 +146,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 	}
 
 	@Override
-	protected void getCustomActions(List<InlineMenuItem> actionsList){
+	protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, Supplier<Collection<? extends ObjectType>> objectsSupplier) {
 	}
 
 

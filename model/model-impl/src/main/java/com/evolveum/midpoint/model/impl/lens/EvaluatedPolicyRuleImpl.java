@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEv
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -93,6 +94,10 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 		this.assignmentPath = assignmentPath;
 		this.prismContextForDebugDump = prismContext;
 		this.directOwner = computeDirectOwner();
+	}
+
+	public EvaluatedPolicyRuleImpl clone() {
+		return new EvaluatedPolicyRuleImpl(CloneUtil.clone(policyRuleType), CloneUtil.clone(assignmentPath), prismContextForDebugDump);
 	}
 
 	private ObjectType computeDirectOwner() {

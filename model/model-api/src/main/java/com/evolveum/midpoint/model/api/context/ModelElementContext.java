@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -60,6 +61,7 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 	 * Returns all policy rules that apply to this object - even those that were not triggered.
 	 * The policy rules are compiled from all the applicable sources (target, meta-roles, etc.)
 	 */
+    @NotNull
 	Collection<EvaluatedPolicyRule> getPolicyRules();
 
 	boolean isOfType(Class<?> aClass);

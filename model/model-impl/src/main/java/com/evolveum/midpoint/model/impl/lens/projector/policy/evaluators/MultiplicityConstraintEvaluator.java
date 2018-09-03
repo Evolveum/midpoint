@@ -102,7 +102,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 				|| QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_MIN_ASSIGNEES_VIOLATION);
 		boolean isMax = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MAX_ASSIGNEES)
 				|| QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_OBJECT_MAX_ASSIGNEES_VIOLATION);
-		assert isMin || isMax;
+		if (!isMin && !isMax) {
+			throw new AssertionError("!isMin and !isMax");
+		}
 		// TODO cache repository call results
 		if (isMin) {
 			Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());
@@ -180,7 +182,9 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
 		String focusOid = context.getFocusContext() != null ? context.getFocusContext().getOid() : null;
 		boolean isMin = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MIN_ASSIGNEES);
 		boolean isMax = QNameUtil.match(constraint.getName(), PolicyConstraintsType.F_MAX_ASSIGNEES);
-		assert isMin || isMax;
+		if (!isMin && !isMax) {
+			throw new AssertionError("!isMin and !isMax");
+		}
 		// TODO cache repository call results
 		if (isMin) {
 			Integer requiredMultiplicity = XsdTypeMapper.multiplicityToInteger(constraint.getValue().getMultiplicity());

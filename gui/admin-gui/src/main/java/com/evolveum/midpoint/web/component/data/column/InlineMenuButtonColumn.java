@@ -80,7 +80,8 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     private Component getPanel(String componentId, IModel<T> rowModel,
                                int numberOfButtons, boolean isHeaderPanel) {
         List<InlineMenuItem> filteredMenuItems = new ArrayList<>();
-        for (InlineMenuItem menuItem : (rowModel != null ? ((InlineMenuable)rowModel.getObject()).getMenuItems() : menuItems)){
+        for (InlineMenuItem menuItem : (rowModel != null && rowModel.getObject() instanceof InlineMenuable ?
+                ((InlineMenuable)rowModel.getObject()).getMenuItems() : menuItems)){
             if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
                 continue;
             }

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -66,6 +66,8 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import org.jetbrains.annotations.NotNull;
 
+import static java.util.Collections.singleton;
+
 /**
  * @author katkav
  */
@@ -77,6 +79,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	private static final String ID_TABLE = "table";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectListPanel.class);
+	private static final String DOT_CLASS = ObjectListPanel.class.getName();
+	private static final String OPERATION_LOAD_CUSTOM_MENU_ITEMS = DOT_CLASS + "loadCustomMenuItems";
 
 	private ObjectTypes type;
 	private PageBase parentPage;
@@ -134,6 +138,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	@SuppressWarnings("unchecked")
+	@NotNull
 	public List<O> getSelectedObjects() {
 		BaseSortableDataProvider<SelectableBean<O>> dataProvider = getDataProvider();
 		if (dataProvider instanceof SelectableBeanObjectDataProvider) {
@@ -191,9 +196,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns = initColumns();
 		}
 		List<InlineMenuItem> menuItems = createInlineMenu();
-		getCustomActions(menuItems);
+		if (menuItems == null) {
+			menuItems = new ArrayList<>();
+		}
+		addCustomActions(menuItems, () -> getSelectedObjects());
 
-		if (menuItems != null && menuItems.size() > 0) {
+		if (!menuItems.isEmpty()) {
 			InlineMenuButtonColumn<SelectableBean<O>> actionsColumn = new InlineMenuButtonColumn<>(menuItems, parentPage);
 			columns.add(actionsColumn);
 		}
@@ -398,6 +406,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				List<InlineMenuItem> inlineMenu = createInlineMenu();
 				if (inlineMenu != null) {
 					bean.getMenuItems().addAll(inlineMenu);
+				}
+				if (obj.getOid() != null) {
+					addCustomActions(bean.getMenuItems(), () -> singleton(obj));
 				}
 				return bean;
 			}
@@ -610,17 +621,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	protected abstract List<InlineMenuItem> createInlineMenu();
 
-	protected void getCustomActions(List<InlineMenuItem> actionsList){
+	protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, Supplier<Collection<? extends ObjectType>> objectsSupplier) {
 		GuiObjectListViewType guiObjectListViewType = getGuiObjectListViewType();
-		if (guiObjectListViewType != null && guiObjectListViewType.getAction() != null &&
-				guiObjectListViewType.getAction().size() > 0){
-			if (actionsList == null){
-				actionsList = new ArrayList<>();
-			}
-			List<InlineMenuItem> customActions = WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getAction());
-			if (customActions != null) {
-				actionsList.addAll(customActions);
-			}
+		if (guiObjectListViewType != null && !guiObjectListViewType.getAction().isEmpty()) {
+			actionsList.addAll(WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getAction(),
+					OPERATION_LOAD_CUSTOM_MENU_ITEMS, parentPage, objectsSupplier));
 		}
 	}
 

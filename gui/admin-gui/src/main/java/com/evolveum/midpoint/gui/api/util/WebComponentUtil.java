@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -56,11 +57,13 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -2632,29 +2635,75 @@ public final class WebComponentUtil {
         return lookupTable;
 	}
 
-	public static List<InlineMenuItem> createMenuItemsFromActions(List<GuiActionType> actions){
+	@NotNull
+	public static List<InlineMenuItem> createMenuItemsFromActions(@NotNull List<GuiActionType> actions, String operation,
+			PageBase pageBase, @NotNull Supplier<Collection<? extends ObjectType>> selectedObjectsSupplier) {
 		List<InlineMenuItem> menuItems = new ArrayList<>();
-		if (actions == null || actions.size() == 0){
-			return menuItems;
-		}
 		actions.forEach(action -> {
+			if (action.getTaskTemplateRef() == null) {
+				return;
+			}
+			String templateOid = action.getTaskTemplateRef().getOid();
+			if (StringUtils.isEmpty(templateOid)) {
+				return;
+			}
 			String label = action.getDisplay() != null && StringUtils.isNotEmpty(action.getDisplay().getLabel()) ?
 					action.getDisplay().getLabel() : action.getName();
-			new InlineMenuItem(Model.of(label)){
+			menuItems.add(new InlineMenuItem(Model.of(label)) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-                public InlineMenuItemAction initAction(){
+                public InlineMenuItemAction initAction() {
 					return new InlineMenuItemAction() {
 						private static final long serialVersionUID = 1L;
 
 						@Override
 						public void onClick(AjaxRequestTarget target) {
-							//TODO run task from action
+							OperationResult result = new OperationResult(operation);
+							try {
+								Collection<String> oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
+										.stream()
+										.filter(o -> o.getOid() != null)
+										.map(o -> o.getOid())
+										.collect(Collectors.toSet());
+								if (!oids.isEmpty()) {
+									Map<QName, Object> extensionValues = prepareExtensionValues(oids);
+									TaskType executorTask = pageBase.getModelInteractionService().submitTaskFromTemplate(
+											templateOid, extensionValues, pageBase.createSimpleTask(operation), result);
+									result.recordInProgress(); // this should be probably have been done in submitTaskFromTemplate
+									result.setBackgroundTaskOid(executorTask.getOid());
+								} else {
+									result.recordWarning("There are no objects to execute the action on");  // TODO i18n
+								}
+							} catch (Exception ex) {
+								result.recordFatalError(result.getOperation(), ex);
+								target.add(pageBase.getFeedbackPanel());
+							} finally {
+								pageBase.showResult(result);
+								target.add(pageBase.getFeedbackPanel());
+							}
 						}
 					};
 				}
-			};
+
+				/**
+				 * Extension values are task-dependent. Therefore, in the future we will probably make
+				 * this behaviour configurable. For the time being we assume that the task template will be
+				 * of "iterative task handler" type and so it will expect mext:objectQuery extension property.
+				 */
+
+				@NotNull
+				private Map<QName, Object> prepareExtensionValues(Collection<String> oids) throws SchemaException {
+					Map<QName, Object> extensionValues = new HashMap<>();
+					PrismContext prismContext = pageBase.getPrismContext();
+					ObjectQuery objectQuery = QueryBuilder.queryFor(ObjectType.class, prismContext)
+							.id(oids.toArray(new String[0]))
+							.build();
+					QueryType queryBean = QueryJaxbConvertor.createQueryType(objectQuery, prismContext);
+					extensionValues.put(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryBean);
+					return extensionValues;
+				}
+			});
 		});
 		return menuItems;
 	}

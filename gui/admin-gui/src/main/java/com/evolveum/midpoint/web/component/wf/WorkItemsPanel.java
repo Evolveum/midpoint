@@ -104,9 +104,12 @@ public class WorkItemsPanel extends BasePanel {
 			columns.add(createTargetNameColumn("WorkItemsPanel.target"));
 			if (view == FULL_LIST) {
 				columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.started")) {
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {
 						cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+							private static final long serialVersionUID = 1L;
 
 							@Override
 							public Date getObject() {
@@ -117,9 +120,12 @@ public class WorkItemsPanel extends BasePanel {
 				});
 			}
 			columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.created")){
-                @Override
+				private static final long serialVersionUID = 1L;
+
+				@Override
                 public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {
                         cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
+							private static final long serialVersionUID = 1L;
 
                             @Override
                             public Date getObject() {
@@ -129,10 +135,14 @@ public class WorkItemsPanel extends BasePanel {
                     }
             });
 			columns.add(new AbstractColumn<WorkItemDto, String>(createStringResource("WorkItemsPanel.deadline")){
-                @Override
+				private static final long serialVersionUID = 1L;
+
+				@Override
                 public void populateItem(Item<ICellPopulator<WorkItemDto>> cellItem, String componentId, final IModel<WorkItemDto> rowModel) {
                         cellItem.add(new DateLabelComponent(componentId, new AbstractReadOnlyModel<Date>() {
-                            @Override
+							private static final long serialVersionUID = 1L;
+
+							@Override
                             public Date getObject() {
                                 return rowModel.getObject().getDeadlineDate();
                             }
@@ -154,7 +164,14 @@ public class WorkItemsPanel extends BasePanel {
 					WorkItemDto.F_ESCALATION_LEVEL_NUMBER));
 		}
 
-        BoxedTablePanel<WorkItemDto> workItemsTable = new BoxedTablePanel<>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize);
+        BoxedTablePanel<WorkItemDto> workItemsTable = new BoxedTablePanel<WorkItemDto>(ID_WORK_ITEMS_TABLE, provider, columns, tableId, pageSize){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected boolean isFooterVisible(long providerSize, int pageSize){
+				return !(providerSize <= pageSize);
+			}
+		};
 		workItemsTable.setAdditionalBoxCssClasses("without-box-header-top-border");
         add(workItemsTable);
     }
@@ -166,6 +183,8 @@ public class WorkItemsPanel extends BasePanel {
 				AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL)) {
 			nameColumn = new LinkColumn<WorkItemDto>(createStringResource("WorkItemsPanel.name"), WorkItemDto.F_NAME,
 					WorkItemDto.F_NAME) {
+				private static final long serialVersionUID = 1L;
+
 				@Override
 				protected IModel<String> createLinkModel(IModel<WorkItemDto> rowModel) {
 					return createWorkItemNameModel(rowModel);
@@ -244,6 +263,7 @@ public class WorkItemsPanel extends BasePanel {
 	@SuppressWarnings("SameParameterValue")
 	private IColumn<WorkItemDto, String> createTargetNameColumn(final String headerKey) {
 		return new LinkColumn<WorkItemDto>(createStringResource(headerKey), WorkItemDto.F_TARGET_NAME) {
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected IModel<String> createLinkModel(IModel<WorkItemDto> rowModel) {
@@ -279,6 +299,8 @@ public class WorkItemsPanel extends BasePanel {
 
 	private IColumn<WorkItemDto, String> createTypeIconColumn(final boolean object) {		// true = object, false = target
 		return new IconColumn<WorkItemDto>(createStringResource("")) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected IModel<String> createIconModel(IModel<WorkItemDto> rowModel) {
 				if (getObjectType(rowModel) == null) {

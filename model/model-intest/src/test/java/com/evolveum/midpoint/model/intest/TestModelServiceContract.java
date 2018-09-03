@@ -258,6 +258,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+	    getDummyResource().resetBreakMode();
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 

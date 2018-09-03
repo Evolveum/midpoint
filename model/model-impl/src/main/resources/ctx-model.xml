@@ -54,9 +54,6 @@
         <property name="genericFunctions">
             <ref bean="basicFunctionObject"/>
         </property>
-        <property name="xmlFunctions">
-            <ref bean="basicFunctionObjectXml"/>
-        </property>
     </bean>
 
     <bean id="logFunctionObject" class="com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions"

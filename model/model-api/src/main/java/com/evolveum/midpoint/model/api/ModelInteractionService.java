@@ -355,10 +355,12 @@ public interface ModelInteractionService {
 	
 	List<RelationDefinitionType> getRelationDefinitions(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+	@NotNull
 	TaskType submitTaskFromTemplate(String templateTaskOid, List<Item<?, ?>> extensionItems, Task opTask, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
+	@NotNull
 	TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;

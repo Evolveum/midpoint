@@ -1378,6 +1378,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="scriptExecution" type="tns:ScriptExecutionPolicyActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Execute script (bulk action). The operation will proceed. Script(s) are executed at the end of the operation.
+						HIGHLY EXPERIMENTAL. Use at your own risk. No guarantees here.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+						<a:experimental>true</a:experimental>
+                    	<a:displayName>PolicyActionsType.scriptExecution</a:displayName>
+						<a:help>PolicyActionsType.scriptExecution.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
@@ -1435,6 +1448,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
     <xsd:complexType name="EnforcementPolicyActionType">
@@ -1944,6 +1958,28 @@
             <xsd:extension base="tns:PolicyActionType">
                 <xsd:sequence>
                     <!-- TODO -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ScriptExecutionPolicyActionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+				HIGHLY EXPERIMENTAL. Use at your own risk. No guarantees here.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container />
+                <a:since>3.9</a:since>
+                <a:experimental>true</a:experimental>
+				<a:displayName>ExecuteScriptPolicyActionType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PolicyActionType">
+                <xsd:sequence>
+                    <xsd:element name="executeScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

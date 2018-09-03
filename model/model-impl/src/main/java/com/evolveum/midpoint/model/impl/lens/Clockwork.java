@@ -21,6 +21,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleScriptExecutor;
 import com.evolveum.midpoint.model.impl.migrator.Migrator;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -148,6 +149,7 @@ public class Clockwork {
 	@Autowired private ContextFactory contextFactory;
 	@Autowired private Migrator migrator;
 	@Autowired private ClockworkMedic medic;
+	@Autowired private PolicyRuleScriptExecutor policyRuleScriptExecutor;
 
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
@@ -625,7 +627,7 @@ public class Clockwork {
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
 			SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
-			switchState(context, ModelState.FINAL);
+			processSecondaryToFinal(context, task, result);
 			return;
 		}
 
@@ -655,6 +657,12 @@ public class Clockwork {
 		}
 
 		medic.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
+	}
+
+
+	private <F extends ObjectType> void processSecondaryToFinal(LensContext<F> context, Task task, OperationResult result) {
+		switchState(context, ModelState.FINAL);
+		policyRuleScriptExecutor.execute(context, task, result);
 	}
 
 	/**
