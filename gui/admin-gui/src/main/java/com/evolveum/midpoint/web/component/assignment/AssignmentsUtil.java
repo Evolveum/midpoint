@@ -276,8 +276,6 @@ public class AssignmentsUtil {
 		}
 		appendTenantAndOrgName(assignment, sb, pageBase);
 
-		appendRelation(assignment, sb, pageBase);
-
 		return sb.toString();
 	}
 

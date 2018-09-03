@@ -241,10 +241,16 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("ObjectReferenceType.relation")) {
+        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(
+                createStringResource("AbstractRoleAssignmentPanel.relationKindIntentColumn")) {
             @Override
             public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
-                item.add(new Label(componentId, getRelationLabelValue(assignmentModel.getObject())));
+                AssignmentType assignment = assignmentModel.getObject().getContainerValue().asContainerable();
+                if (assignment.getConstruction() != null){
+                    item.add(new Label(componentId, getKindIntentLabelValue(assignment.getConstruction())));
+                } else {
+                    item.add(new Label(componentId, getRelationLabelValue(assignmentModel.getObject())));
+                }
             }
         });
 
@@ -287,6 +293,19 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             return "";
         }
         return assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation().getLocalPart();
+    }
+
+    private String getKindIntentLabelValue(ConstructionType constructionType){
+        if (constructionType == null){
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(constructionType.getKind() != null && !StringUtils.isEmpty(constructionType.getKind().value()) ?
+                constructionType.getKind().value() : createStringResource("AssignmentEditorPanel.undefined").getString());
+        sb.append("/");
+        sb.append(!StringUtils.isEmpty(constructionType.getIntent()) ? constructionType.getIntent()
+                : createStringResource("AssignmentEditorPanel.undefined").getString());
+        return sb.toString();
     }
 
     protected boolean showAllAssignmentsVisible(){
