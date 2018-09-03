@@ -500,7 +500,8 @@ public class RepositoryCache implements RepositoryService {
 			return false;
 		}
 		GetOperationOptions options1 = selectorOptions.getOptions();
-		if (options1 == null || options1.equals(new GetOperationOptions()) || options1.equals(GetOperationOptions.createAllowNotFound())) {
+		// TODO FIX THIS!!!
+		if (options1 == null || options1.equals(new GetOperationOptions()) || options1.equals(GetOperationOptions.createAllowNotFound()) || options1.equals(GetOperationOptions.createExecutionPhase())) {
 			return true;
 		}
 		return false;
