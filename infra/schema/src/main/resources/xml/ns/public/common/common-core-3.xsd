@@ -8471,8 +8471,22 @@
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="target" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="inputFilter" type="tns:ValueFilterType" minOccurs="0"/>
-            <xsd:element name="outputFilter" type="tns:ValueFilterType" minOccurs="0"/>
+			<xsd:element name="inputFilter" type="tns:ValueFilterType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="outputFilter" type="tns:ValueFilterType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:plannedRemoval>4.0</a:plannedRemoval>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="range" minOccurs="0" type="tns:ValueSetSpecificationType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8660,6 +8674,7 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:deprecated>true</a:deprecated>
+				<a:plannedRemoval>4.0</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
