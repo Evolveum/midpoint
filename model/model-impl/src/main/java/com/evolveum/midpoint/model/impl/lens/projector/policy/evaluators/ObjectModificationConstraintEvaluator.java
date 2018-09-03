@@ -127,23 +127,22 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
 			LOGGER.trace("Rule {} operation not applicable", ctx.policyRule.getName());
 			return false;
 		}
-		if (constraint.getItem().isEmpty()) {
-			return ctx.focusContext.hasAnyDelta();
-		}
-		ObjectDelta<?> summaryDelta = ObjectDelta.union(ctx.focusContext.getPrimaryDelta(), ctx.focusContext.getSecondaryDelta());
-		if (summaryDelta == null) {
+		if (!ctx.focusContext.hasAnyDelta()) {
 			return false;
 		}
-		boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
-		for (ItemPathType path : constraint.getItem()) {
-			if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), path.getItemPath(), exactPathMatch)) {
+		if (!constraint.getItem().isEmpty()) {
+			ObjectDelta<?> summaryDelta = ObjectDelta.union(ctx.focusContext.getPrimaryDelta(), ctx.focusContext.getSecondaryDelta());
+			if (summaryDelta == null) {
 				return false;
 			}
+			boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
+			for (ItemPathType path : constraint.getItem()) {
+				if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), path.getItemPath(), exactPathMatch)) {
+					return false;
+				}
+			}
 		}
-		if (!expressionPasses(constraintElement, ctx, result)) {
-			return false;
-		}
-		return true;
+		return expressionPasses(constraintElement, ctx, result);
 	}
 
 	private <F extends FocusType> boolean pathMatches(ObjectDelta<?> delta, PrismObject<F> objectOld, ItemPath path,
