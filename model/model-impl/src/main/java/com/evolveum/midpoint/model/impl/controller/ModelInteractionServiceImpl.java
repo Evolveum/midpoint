@@ -284,7 +284,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		}
 
 		OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
-		LensContext<F> context;
+		LensContext<F> context = null;
 
 		try {
 			RepositoryCache.enter();
@@ -320,6 +320,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			throw new SystemException(e);
 			
 		} finally {
+			LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
+
 			RepositoryCache.exit();
 		}
 
