@@ -206,7 +206,7 @@ public class TestExpressionUtil {
 		ItemPath itemPath = toItemPath(path);
 
 		// WHEN
-    	Object resolved = ExpressionUtil.resolvePath(itemPath, variables, null, null, TEST_NAME, null, result);
+    	Object resolved = ExpressionUtil.resolvePath(itemPath, variables, false, null, null, TEST_NAME, null, result);
 
     	// THEN
     	System.out.println("Resolved:");

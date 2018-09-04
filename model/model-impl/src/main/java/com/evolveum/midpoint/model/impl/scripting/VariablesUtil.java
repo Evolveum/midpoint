@@ -120,7 +120,7 @@ public class VariablesUtil {
 			throw new IllegalArgumentException("Path expression: expected ItemPathType but got " + expressionEvaluator.getValue());
 		}
 		ItemPath itemPath = ((ItemPathType) expressionEvaluator.getValue()).getItemPath();
-		return ExpressionUtil.resolvePath(itemPath, createVariables(resultingVariables), null, ctx.objectResolver, shortDesc, ctx.task, result);
+		return ExpressionUtil.resolvePath(itemPath, createVariables(resultingVariables), false, null, ctx.objectResolver, shortDesc, ctx.task, result);
 	}
 
 	private static ExpressionVariables createVariables(HashMap<String, Object> variableMap) {

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objectTemplate oid="8e47c2b2-dde6-44a9-a7c0-de21a14cb70d"
+				xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+				xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+	<name>User template for cartesian assignments</name>
+	<mapping>
+		<strength>strong</strength>
+		<source>
+			<name>x</name>
+			<path>assignment</path>
+			<set>
+				<condition>
+					<script>
+						<code>
+							x != null &amp;&amp; x.targetRef?.type?.localPart == 'RoleType'
+						</code>
+					</script>
+				</condition>
+			</set>
+		</source>
+		<source>
+			<name>y</name>
+			<path>assignment</path>
+			<set>
+				<condition>
+					<script>
+						<code>
+							y != null &amp;&amp; y.targetRef?.type?.localPart == 'OrgType' &amp;&amp; !y.subtype.contains('combined')
+						</code>
+					</script>
+				</condition>
+			</set>
+		</source>
+		<expression>
+			<assignmentTargetSearch>
+				<condition>
+					<script>
+						<code>
+							log.info('condition: x={}, y={}', x?.targetRef?.oid, y?.targetRef?.oid)
+							x != null &amp;&amp; y != null
+						</code>
+					</script>
+				</condition>
+				<targetType>OrgType</targetType>
+				<filter>
+					<q:equal>
+						<q:path>name</q:path>
+						<expression>
+							<script>
+								<code>
+									midpoint.resolveReference(x?.targetRef)?.name + '-' + midpoint.resolveReference(y?.targetRef)?.name
+								</code>
+							</script>
+						</expression>
+					</q:equal>
+				</filter>
+				<assignmentProperties>
+					<subtype>combined</subtype>
+				</assignmentProperties>
+				<createOnDemand>true</createOnDemand>
+				<populateObject>
+					<populateItem>
+						<target>
+							<path>name</path>
+						</target>
+						<expression>
+							<script>
+								<code>
+									midpoint.resolveReference(x?.targetRef)?.name + '-' + midpoint.resolveReference(y?.targetRef)?.name
+								</code>
+							</script>
+						</expression>
+					</populateItem>
+				</populateObject>
+			</assignmentTargetSearch>
+		</expression>
+		<target>
+			<path>assignment</path>
+			<set>
+				<condition>
+					<script>
+						<code>
+							assignment?.subtype.contains('combined')
+						</code>
+					</script>
+				</condition>
+			</set>
+		</target>
+	</mapping>
+</objectTemplate>

@@ -170,8 +170,15 @@ public class ExpressionUtil {
 		return convertedVal;
 	}
 
-	public static Object resolvePath(ItemPath path, ExpressionVariables variables, Object defaultContext,
-			ObjectResolver objectResolver, String shortDesc, Task task, OperationResult result)
+	/**
+	 * normalizeValuesToDelete: Whether to normalize container values that are to be deleted, i.e. convert them
+	 * from id-only to full data (MID-4863).
+	 * TODO:
+	 * 1. consider setting this parameter to true at some other places where it might be relevant
+	 * 2. consider normalizing delete deltas earlier in the clockwork, probably at the very beginning of the operation
+	 */
+	public static Object resolvePath(ItemPath path, ExpressionVariables variables, boolean normalizeValuesToDelete,
+			Object defaultContext, ObjectResolver objectResolver, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		Object root = defaultContext;
@@ -193,6 +200,10 @@ public class ExpressionUtil {
 		}
 		if (relativePath.isEmpty()) {
 			return root;
+		}
+
+		if (normalizeValuesToDelete) {
+			root = normalizeValuesToDelete(root);
 		}
 
 		if (root instanceof ObjectReferenceType) {
@@ -222,7 +233,18 @@ public class ExpressionUtil {
 					"Unexpected root " + root + " (relative path:" + relativePath + ") in " + shortDesc);
 		}
 	}
-	
+
+	private static Object normalizeValuesToDelete(Object root) {
+		if (root instanceof ObjectDeltaObject<?>) {
+			return ((ObjectDeltaObject<?>) root).normalizeValuesToDelete(true);
+		} else if (root instanceof ItemDeltaItem<?, ?>) {
+			// TODO normalize as well
+			return root;
+		} else {
+			return root;
+		}
+	}
+
 	public static <V extends PrismValue, F extends FocusType> Collection<V> computeTargetValues(VariableBindingDefinitionType target,
 			Object defaultTargetContext, ExpressionVariables variables, ObjectResolver objectResolver, String contextDesc,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -238,7 +260,7 @@ public class ExpressionUtil {
 		}
 		ItemPath path = itemPathType.getItemPath();
 
-		Object object = resolvePath(path, variables, defaultTargetContext, objectResolver, contextDesc, task, result);
+		Object object = resolvePath(path, variables, false, defaultTargetContext, objectResolver, contextDesc, task, result);
 		if (object == null) {
 			return new ArrayList<>();
 		} else if (object instanceof Item) {
