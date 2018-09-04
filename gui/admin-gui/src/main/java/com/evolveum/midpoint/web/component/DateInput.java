@@ -31,6 +31,7 @@ import org.joda.time.MutableDateTime;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * @author lazyman
@@ -62,6 +63,29 @@ public class DateInput extends DateTimeField {
         });
         return dateField;
 
+    }
+
+    @Override
+    public void convertInput() {
+        super.convertInput();
+        Date convertedDate = getConvertedInput();
+        Date modelDate = getModelObject();
+        if (convertedDate == null || modelDate == null){
+            return;
+        }
+
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.setTimeInMillis(modelDate.getTime());
+
+        //set seconds and milliseconds only in case when the date input value wasn't changed
+        if (gregorianCalendar.get(13) > 0 || gregorianCalendar.get(14) > 0){
+            GregorianCalendar convertedCalendar = new GregorianCalendar();
+            convertedCalendar.setTimeInMillis(convertedDate.getTime());
+
+            convertedCalendar.set(13, gregorianCalendar.get(13));
+            convertedCalendar.set(14, gregorianCalendar.get(14));
+            setConvertedInput(convertedCalendar.getTime());
+        }
     }
 
     @Override
