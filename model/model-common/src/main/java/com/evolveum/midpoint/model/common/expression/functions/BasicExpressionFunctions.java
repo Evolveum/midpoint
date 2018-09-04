@@ -20,12 +20,7 @@ import java.io.IOException;
 import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,8 +32,10 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.FileUtils;
@@ -549,6 +546,16 @@ public class BasicExpressionFunctions {
 
     public Collection<String> getAttributeStringValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
         return ShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
+    }
+
+    public void setExtensionRealValues(PrismContainerValue<?> containerValue, Map<String, Object> map) throws SchemaException {
+        PrismContainer<Containerable> ext = containerValue.findOrCreateContainer(ObjectType.F_EXTENSION);
+        Map<QName, Object> qnameKeyedMap = new HashMap<>();
+        map.forEach((uri, value) -> qnameKeyedMap.put(QNameUtil.uriToQName(uri, true), value));
+        List<Item<?, ?>> items = ObjectTypeUtil.mapToExtensionItems(qnameKeyedMap, ext.getDefinition(), prismContext);
+        for (Item<?, ?> item : items) {
+            ext.getValue().addReplaceExisting(item);
+        }
     }
 
     public <T> T getIdentifierValue(ShadowType shadow) throws SchemaException {
