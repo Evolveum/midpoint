@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -56,6 +57,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+
+import static java.util.Collections.singletonList;
 
 /**
  * @author mederly
@@ -377,4 +380,54 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
 		return rv.toString();
 	}
 
+	// TODO: polish this method
+	// We should (probably) return only a value if it has been (successfully) written to the focus.
+	@Override
+	public String getFocusPasswordFromEvent(ModelEvent modelEvent) {
+		if (modelEvent.getFocusDeltas().isEmpty()) {
+			LOGGER.trace("getFocusPasswordFromEvent: No user deltas in event");
+			return null;
+		}
+		String password = getPasswordFromDeltas(modelEvent.getFocusDeltas());
+		if (password != null) {
+			LOGGER.trace("getFocusPasswordFromEvent: Found password in user executed delta(s)");
+			return password;
+		}
+		// in executed deltas
+
+		//noinspection unchecked
+		ObjectDelta<FocusType> focusPrimaryDelta = (ObjectDelta) modelEvent.getFocusPrimaryDelta();
+		//noinspection unchecked
+		ObjectDelta<FocusType> focusSecondaryDelta = (ObjectDelta) modelEvent.getFocusSecondaryDelta();
+		if (focusPrimaryDelta == null && focusSecondaryDelta == null) {
+			LOGGER.trace("getFocusPasswordFromEvent: No password in executed delta(s) and no primary/secondary deltas");
+			return null;
+		}
+		if (focusPrimaryDelta != null) {
+			password = getPasswordFromDeltas(singletonList(focusPrimaryDelta));
+			if (password != null) {
+				LOGGER.trace("getFocusPasswordFromEvent: Found password in user primary delta, continuing");
+				return password;
+			}
+		}
+		if (focusSecondaryDelta != null) {
+			password = getPasswordFromDeltas(singletonList(focusSecondaryDelta));
+			if (password != null) {
+				LOGGER.trace("getFocusPasswordFromEvent: Found password in user secondary delta(s)");
+				return password;
+			}
+		}
+		LOGGER.trace("getFocusPasswordFromEvent: No password in executed delta(s) nor in primary/secondary deltas");
+		return null;
+	}
+
+	private String getPasswordFromDeltas(List<ObjectDelta<FocusType>> deltas) {
+		try {
+			//noinspection unchecked
+			return midpointFunctions.getPlaintextUserPasswordFromDeltas((List) deltas);
+		} catch (EncryptionException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't decrypt password from user deltas: {}", e, DebugUtil.debugDump(deltas));
+			return null;
+		}
+	}
 }

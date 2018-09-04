@@ -258,15 +258,15 @@ public class SchemaTransformer {
 					throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
 		Validate.notNull(phase);
 		try {
-			AuthorizationDecisionType globalReadDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), phase);
+			AuthorizationDecisionType globalReadDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
 			if (globalReadDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
 				SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
 				throw new AuthorizationException("Access denied");
 			}
 
-			AuthorizationDecisionType globalAddDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
-			AuthorizationDecisionType globalModifyDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
+			AuthorizationDecisionType globalAddDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
+			AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
 			applySecurityConstraints(object.getValue().getItems(), securityConstraints, globalReadDecision,
 					globalAddDecision, globalModifyDecision, phase);
 			if (object.isEmpty()) {
@@ -300,9 +300,9 @@ public class SchemaTransformer {
 				continue;
 			}
 			ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
-			AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
-			AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.ADD.getUrl(), defaultReadDecision, phase);
-			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultReadDecision, phase);
+			AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
+			AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, phase);
+			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultReadDecision, phase);
 			LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
 					itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
 			if (itemDef != null) {
@@ -380,9 +380,9 @@ public class SchemaTransformer {
 		boolean thisWasSeen = definitionsSeen.containsKey(itemDefinition);
 		definitionsSeen.put(itemDefinition, null);
 
-		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecision, phase);
-		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecision, phase);
-		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecision, phase);
+		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
+		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultAddDecision, phase);
+		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultModifyDecision, phase);
 
 		boolean anySubElementRead = false;
 		boolean anySubElementAdd = false;
@@ -436,9 +436,9 @@ public class SchemaTransformer {
 		}
 	}
 
-    public AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath nameOnlyItemPath, String actionUrl,
+    public AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath nameOnlyItemPath, String[] actionUrls,
 			AuthorizationDecisionType defaultDecision, AuthorizationPhaseType phase) {
-    	AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(nameOnlyItemPath, actionUrl, phase);
+    	AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(nameOnlyItemPath, actionUrls, phase);
 //    	LOGGER.trace("Explicit decision for {} ({} {}): {}", nameOnlyItemPath, actionUrl, phase, explicitDecision);
     	if (explicitDecision != null) {
     		return explicitDecision;

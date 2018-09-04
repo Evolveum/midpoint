@@ -24,6 +24,11 @@ import java.util.UUID;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -60,14 +65,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -133,8 +130,9 @@ public class TestMapping extends AbstractMappingTest {
 	protected static final String DRINK_GRAPPA = "grappa";
 	protected static final String DRINK_GIN = "gin";
 	protected static final String DRINK_MEZCAL = "mezcal";
-	
 
+	private static final String USER_JIM_NAME = "jim";
+	private static final String USER_TYPE_CARTHESIAN = "carthesian";
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -155,6 +153,8 @@ public class TestMapping extends AbstractMappingTest {
 		repoAddObjectFromFile(ROLE_COBALT_NEVERLAND_FILE, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TYPE_CARTHESIAN, USER_TEMPLATE_CARTHESIAN_OID, initResult);
 	}
 
 	/**
@@ -3441,6 +3441,97 @@ public class TestMapping extends AbstractMappingTest {
         assertLinks(userAfter, 0);
 	}
 
+	/**
+	 * MID-4862
+	 */
+	@Test
+	public void test500AssignmentsCombinationSingle() throws Exception {
+		final String TEST_NAME = "test500AssignmentsCombinationSingle";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		UserType jim = prismContext.createKnownObjectable(UserType.class)
+				.name(USER_JIM_NAME)
+				.subtype(USER_TYPE_CARTHESIAN)
+				.beginAssignment()
+					.targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+				.end();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		addObject(jim.asPrismObject());
+
+		// THEN
+		displayThen(TEST_NAME);
+
+		PrismObject<UserType> userAfter = getUser(jim.getOid());
+		display("User after", userAfter);
+		assertAssignments(userAfter, 1);
+	}
+
+	/**
+	 * MID-4862
+	 */
+	@Test
+	public void test510AssignmentsCombinationCouple() throws Exception {
+		final String TEST_NAME = "test500AssignmentsCombinationCouple";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> jim = findUserByUsername(USER_JIM_NAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignOrg(jim.getOid(), ORG_SAVE_ELAINE_OID, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(jim.getOid());
+		display("User after", userAfter);
+		assertAssignments(userAfter, 3);
+	}
+
+	/**
+	 * MID-4863
+	 */
+	@Test
+	public void test520DeleteUserAssignment() throws Exception {
+		final String TEST_NAME = "test520DeleteUserAssignment";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<UserType> jim = findUserByUsername(USER_JIM_NAME);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		AssignmentType orgAssignment = findAssignment(jim, ORG_SAVE_ELAINE_OID, SchemaConstants.ORG_DEFAULT);
+		assertNotNull("org assignment not found", orgAssignment);
+		PrismContainerValue<Containerable> orgAssignmentPcv = new PrismContainerValue<>(prismContext);
+		orgAssignmentPcv.setId(orgAssignment.getId());
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+				.item(UserType.F_ASSIGNMENT).delete(orgAssignmentPcv)
+				.asObjectDeltaCast(jim.getOid());
+		executeChanges(delta, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(jim.getOid());
+		display("User after", userAfter);
+		assertAssignments(userAfter, 1);
+	}
 
 	private String rumFrom(String locality) {
 		return "rum from " + locality;

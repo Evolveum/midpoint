@@ -630,9 +630,29 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID);
 		login(USER_JACK_USERNAME);
 
+		doReadSomeModifySomeUser(TEST_NAME);
+    }
+    
+    /**
+     * Same as test216AutzJackPropReadSomeModifySomeUser, but with get+search instead of read.
+     */
+    @Test
+    public void test217AutzJackPropGetSearchSomeModifySomeUser() throws Exception {
+		final String TEST_NAME = "test217AutzJackPropGetSearchSomeModifySomeUser";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_PROP_GET_SEARCH_SOME_MODIFY_SOME_USER_OID);
+		login(USER_JACK_USERNAME);
+
+		doReadSomeModifySomeUser(TEST_NAME);
+	}
+    
+    private void doReadSomeModifySomeUser(final String TEST_NAME) throws Exception {
+		
 		// WHEN
 		displayWhen(TEST_NAME);
-
+		
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("Jack", userJack);
 		assertUserJackReadSomeModifySome(userJack, 1);

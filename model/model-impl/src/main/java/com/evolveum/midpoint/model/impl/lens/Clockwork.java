@@ -1056,7 +1056,7 @@ public class Clockwork {
 		result.recordFatalError(e);
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
 		recordOperationExecution(context, e, task, result);
-		reclaimSequences(context, task, result);
+		LensUtil.reclaimSequences(context, repositoryService, task, result);
 	}
 
 	private <F extends ObjectType> void auditEvent(LensContext<F> context, AuditEventStage stage,
@@ -1608,21 +1608,4 @@ public class Clockwork {
 		}
 		return processedChangedAssignmentValues;
 	}
-
-	private <F extends ObjectType> void reclaimSequences(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
-		Map<String, Long> sequenceMap = context.getSequences();
-		LOGGER.trace("Context sequence map: {}", sequenceMap);
-		for (Entry<String, Long> sequenceMapEntry: sequenceMap.entrySet()) {
-			Collection<Long> unusedValues = new ArrayList<>(1);
-			unusedValues.add(sequenceMapEntry.getValue());
-			try {
-				LOGGER.trace("Returning value {} to sequence {}", sequenceMapEntry.getValue(), sequenceMapEntry.getKey());
-				repositoryService.returnUnusedValuesToSequence(sequenceMapEntry.getKey(), unusedValues, result);
-			} catch (ObjectNotFoundException e) {
-				LOGGER.error("Cannot return unused value to sequence {}: it does not exist", sequenceMapEntry.getKey(), e);
-				// ... but otherwise ignore it and go on
-			}
-		}
-	}
-
 }

@@ -463,6 +463,7 @@ public abstract class SchemaConstants {
 	public static final QName C_EVENT = new QName(NS_C, "event");
 	public static final QName C_EVENT_HANDLER = new QName(NS_C, "eventHandler");			// TODO: no such element in common-3 - is it OK?
 	public static final QName C_TEXT_FORMATTER = new QName(NS_C, "textFormatter");
+	public static final QName C_NOTIFICATION_FUNCTIONS = new QName(NS_C, "notificationFunctions");
 
 	public static final QName C_TRANSPORT_NAME = new QName(NS_C, "transportName");
 	public static final QName C_FROM = new QName(NS_C, "from");

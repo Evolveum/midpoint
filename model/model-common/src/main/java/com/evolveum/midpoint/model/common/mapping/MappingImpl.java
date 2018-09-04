@@ -815,7 +815,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			throw new SchemaException("Empty source path in "+getMappingContextDescription());
 		}
 
-		Object sourceObject = ExpressionUtil.resolvePath(path, variables, sourceContext, objectResolver, "reference time definition in "+getMappingContextDescription(), task, result);
+		Object sourceObject = ExpressionUtil.resolvePath(path, variables, false, sourceContext, objectResolver, "reference time definition in "+getMappingContextDescription(), task, result);
 		if (sourceObject == null) {
 			return null;
 		}
@@ -871,7 +871,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			name = ItemPath.getName(path.last());
 		}
 		ItemPath resolvePath = path;
-		Object sourceObject = ExpressionUtil.resolvePath(path, variables, sourceContext, objectResolver, "source definition in "+getMappingContextDescription(), task, result);
+		Object sourceObject = ExpressionUtil.resolvePath(path, variables, true, sourceContext, objectResolver, "source definition in "+getMappingContextDescription(), task, result);
 		Item<IV,ID> itemOld = null;
 		ItemDelta<IV,ID> delta = null;
 		Item<IV,ID> itemNew = null;

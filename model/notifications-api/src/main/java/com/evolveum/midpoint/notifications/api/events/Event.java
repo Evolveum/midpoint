@@ -113,4 +113,15 @@ public interface Event extends DebugDumpable, ShortDumpable {
      * A better is to define handlers in system configuration.
      */
     EventHandlerType getAdHocHandler();
+
+    /**
+     * Returns plaintext focus password value, if known.
+     * Beware: might not always work correctly:
+     * 1. If the change execution was only partially successful, the value returned might or might not be stored in the repo
+     * 2. If the password was changed to null, the 'null' value is returned. So the caller cannot distinguish it from "no change"
+     *    situation. A new method for this would be needed.
+     */
+    default String getFocusPassword() {
+        return null;
+    }
 }

@@ -385,13 +385,6 @@ public class GeneralNotifier extends BaseHandler {
         return sb.toString();
     }
 
-    @Override
-    protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
-        ExpressionVariables variables = super.getDefaultVariables(event, result);
-        variables.addVariableDefinition(SchemaConstants.C_TEXT_FORMATTER, textFormatter);
-        return variables;
-    }
-
     public String formatRequester(Event event, OperationResult result) {
         SimpleObjectRef requesterRef = event.getRequester();
         if (requesterRef == null) {

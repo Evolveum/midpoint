@@ -251,6 +251,7 @@
                             <goal>repackage</goal>
                         </goals>
                         <configuration>
+                            <skip>false</skip>
                             <layout>ZIP</layout>
                         </configuration>
                     </execution>

@@ -216,6 +216,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(USER_TEMPLATE_INBOUNDS_FILENAME, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_COMPLEX_INCLUDE_FILENAME, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_CARTHESIAN_FILENAME, initResult);
 
 		// Shadows
 		repoAddObjectFromFile(ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILE, initResult);
