@@ -347,7 +347,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
 				}
 			} else if (variableDefType.getPath() != null) {
 				ItemPath itemPath = variableDefType.getPath().getItemPath();
-				Object resolvedValue = ExpressionUtil.resolvePath(itemPath, variables, null, objectResolver, contextDescription, task, result);
+				Object resolvedValue = ExpressionUtil.resolvePath(itemPath, variables, false, null, objectResolver, contextDescription, task, result);
 				newVariables.addVariableDefinition(varName, resolvedValue);
 			} else {
 				throw new SchemaException("No value for variable "+varName+" in "+contextDescription);

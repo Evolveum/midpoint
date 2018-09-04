@@ -15,35 +15,20 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.repo.common.expression.SourceTriple;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
@@ -350,6 +335,14 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 		final PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<>();
 
+		Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> conditionExpression;
+		if (expressionEvaluatorType.getCondition() != null) {
+			conditionExpression = ExpressionUtil.createCondition(expressionEvaluatorType.getCondition(),
+					evaluationContext.getExpressionFactory(), "condition in " + contextDescription, task, result);
+		} else {
+			conditionExpression = null;
+		}
+
 		Processor<Collection<? extends PrismValue>> processor = pvalues -> {
 			if (includeNulls != null && !includeNulls && MiscUtil.isAllNull(pvalues)) {
 				// The case that all the sources are null. There is no point executing the expression.
@@ -426,8 +419,22 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
 			List<V> scriptResults;
 			try {
-				scriptResults = transformSingleValue(scriptVariables, valueDestination, useNew, evaluationContext,
-						contextDescription, task, result);
+				boolean conditionResult;
+				if (conditionExpression != null) {
+					ExpressionEvaluationContext ctx = new ExpressionEvaluationContext(null, scriptVariables,
+							"condition in " + contextDescription, task, result);
+					PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> triple = conditionExpression.evaluate(ctx);
+					conditionResult = ExpressionUtil.computeConditionResult(triple.getNonNegativeValues());
+				} else {
+					conditionResult = true;
+				}
+				if (conditionResult) {
+					scriptResults = transformSingleValue(scriptVariables, valueDestination, useNew, evaluationContext,
+							contextDescription, task, result);
+				} else {
+					LOGGER.trace("Skipping value transformation because condition evaluated to false in {}", contextDescription);
+					scriptResults = Collections.emptyList();
+				}
 			} catch (ExpressionEvaluationException e) {
 				throw new TunnelException(
 						localizationService.translate(

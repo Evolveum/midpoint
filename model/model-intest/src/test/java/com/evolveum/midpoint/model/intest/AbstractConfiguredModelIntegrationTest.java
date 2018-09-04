@@ -102,6 +102,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_FILENAME = COMMON_DIR + "/user-template-org-assignment.xml";
     protected static final String USER_TEMPLATE_ORG_ASSIGNMENT_OID = "10000000-0000-0000-0000-000000000444";
 
+    protected static final String USER_TEMPLATE_CARTHESIAN_FILENAME = COMMON_DIR + "/user-template-carthesian.xml";
+    protected static final String USER_TEMPLATE_CARTHESIAN_OID = "8e47c2b2-dde6-44a9-a7c0-de21a14cb70d";
+
     protected static final File OBJECT_TEMPLATE_PERSONA_ADMIN_FILE = new File(COMMON_DIR, "object-template-persona-admin.xml");
 	protected static final String OBJECT_TEMPLATE_PERSONA_ADMIN_OID = "894ea1a8-2c0a-11e7-a950-ff2047b0c053";
 

@@ -17,14 +17,9 @@ package com.evolveum.midpoint.repo.common.expression;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PartiallyResolvedItem;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -35,6 +30,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
  * A DTO class defining old object state (before change), delta (change) and new object state (after change).
@@ -306,4 +303,54 @@ public class ObjectDeltaObject<O extends ObjectType> extends ItemDeltaItem<Prism
 		return clone;
 	}
 
+	public ObjectDeltaObject<O> normalizeValuesToDelete(boolean doClone) {
+		if (delta == null || delta.getChangeType() != ChangeType.MODIFY) {
+			return this;
+		}
+		boolean foundIdOnlyDeletion = false;
+		main: for (ItemDelta<?, ?> itemDelta : delta.getModifications()) {
+			for (PrismValue valueToDelete : emptyIfNull(itemDelta.getValuesToDelete())) {
+				if (valueToDelete instanceof PrismContainerValue && ((PrismContainerValue) valueToDelete).isIdOnly()) {
+					foundIdOnlyDeletion = true;
+					break main;
+				}
+			}
+		}
+		if (!foundIdOnlyDeletion) {
+			return this;
+		}
+		ObjectDeltaObject<O> object = doClone ? this.clone() : this;
+
+		boolean anyRealChange = false;
+		for (ItemDelta<?, ?> itemDelta : object.delta.getModifications()) {
+			if (itemDelta.getValuesToDelete() == null) {
+				continue;
+			}
+			boolean itemDeltaChanged = false;
+			List<PrismValue> newValuesToDelete = new ArrayList<>();
+			for (PrismValue valueToDelete : itemDelta.getValuesToDelete()) {
+				if (valueToDelete instanceof PrismContainerValue && ((PrismContainerValue) valueToDelete).isIdOnly()
+						&& object.oldObject != null /* should always be */) {
+					Object oldItem = object.oldObject.find(itemDelta.getPath());
+					if (oldItem instanceof PrismContainer) {
+						PrismContainerValue oldValue = ((PrismContainer) oldItem)
+								.getValue(((PrismContainerValue) valueToDelete).getId());
+						if (oldValue != null) {
+							newValuesToDelete.add(oldValue.clone());
+							itemDeltaChanged = true;
+							continue;
+						}
+					}
+				}
+				newValuesToDelete.add(valueToDelete);
+			}
+			if (itemDeltaChanged) {
+				itemDelta.resetValuesToDelete();
+				//noinspection unchecked
+				((ItemDelta) itemDelta).addValuesToDelete(newValuesToDelete);
+				anyRealChange = true;
+			}
+		}
+		return anyRealChange ? object : this;
+	}
 }
