@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.testing.conntest;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -59,6 +60,12 @@ public class TestOpenLdapDumber extends TestOpenLdap {
 	@Override
 	protected boolean isUsingGroupShortcutAttribute() {
 		return false;
+	}
+	
+	// This is a dumb resource. It cannot count.
+	@Override
+	protected void assertCountAllAccounts(Integer count) {
+		assertEquals("Wrong account count", (Integer)null, count);
 	}
 
 }
