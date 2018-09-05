@@ -2358,10 +2358,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return new ItemPath(ShadowType.F_ATTRIBUTES, getAttributeQName(resource, attributeLocalName));
 	}
 	
-	protected ObjectDelta<ShadowType> createAccountPaswordDelta(String shadowOid, String newPassword) {
-		ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue(newPassword);
-        return ObjectDelta.createModificationReplaceProperty(ShadowType.class, shadowOid, SchemaConstants.PATH_PASSWORD_VALUE, prismContext, userPasswordPs);
+	protected ObjectDelta<ShadowType> createAccountPaswordDelta(String shadowOid, String newPassword, String oldPassword) throws SchemaException {
+		ProtectedStringType newPasswordPs = new ProtectedStringType();
+        newPasswordPs.setClearValue(newPassword);
+        ProtectedStringType oldPasswordPs = null;
+        if (oldPassword != null) {
+        	oldPasswordPs = new ProtectedStringType();
+        	oldPasswordPs.setClearValue(oldPassword);
+        }
+        return (ObjectDelta<ShadowType>) deltaFor(ShadowType.class)
+        	.item(SchemaConstants.PATH_PASSWORD_VALUE)
+        		.oldRealValue(oldPasswordPs)
+        		.replace(newPasswordPs)
+        		.asObjectDelta(shadowOid);
 	}
 	
 	protected PrismObject<ShadowType> getShadowRepo(String shadowOid) throws ObjectNotFoundException, SchemaException {

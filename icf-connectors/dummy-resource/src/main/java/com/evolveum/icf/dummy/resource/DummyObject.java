@@ -47,6 +47,7 @@ public abstract class DummyObject implements DebugDumpable {
 	private Boolean enabled = true;
 	private Date validFrom = null;
 	private Date validTo = null;
+	private String lastModifier;
 	protected DummyResource resource;
 
 	private final Set<String> auxiliaryObjectClassNames = new HashSet<>();
@@ -115,6 +116,14 @@ public abstract class DummyObject implements DebugDumpable {
 		delayOperation();
 		this.validTo = validTo;
 		recordModify();
+	}
+
+	public String getLastModifier() {
+		return lastModifier;
+	}
+
+	public void setLastModifier(String lastModifier) {
+		this.lastModifier = lastModifier;
 	}
 
 	public BreakMode getModifyBreakMode() {
@@ -461,11 +470,6 @@ public abstract class DummyObject implements DebugDumpable {
 	}
 
 	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
@@ -482,6 +486,8 @@ public abstract class DummyObject implements DebugDumpable {
 			DebugUtil.debugDumpLabel(sb, "Validity", indent + 1);
 			sb.append(" ").append(PrettyPrinter.prettyPrint(validFrom)).append(" - ").append(PrettyPrinter.prettyPrint(validTo));
 		}
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "lastModifier", lastModifier, indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "Attributes", attributes, indent + 1);
 		extendDebugDump(sb, indent);

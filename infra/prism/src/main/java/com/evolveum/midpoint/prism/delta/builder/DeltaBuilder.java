@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -196,6 +196,14 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
             if (v != null) {
                 currentDelta.addEstimatedOldValue(toPrismValue(currentDelta, v));
             }
+        }
+        return this;
+    }
+    
+    @Override
+    public <T> S_ValuesEntry oldRealValue(T realValue) {
+        if (realValue != null) {
+            currentDelta.addEstimatedOldValue(toPrismValue(currentDelta, realValue));
         }
         return this;
     }

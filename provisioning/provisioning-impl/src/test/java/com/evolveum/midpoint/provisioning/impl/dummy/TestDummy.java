@@ -73,6 +73,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -1126,7 +1127,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = createAccountPaswordDelta(ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD_NEW);
+		ObjectDelta<ShadowType> delta = createAccountPaswordDelta(ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD_123, null);
 		display("ObjectDelta", delta);
 
 		// WHEN
@@ -1138,11 +1139,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 
-		// Check if the account was created in the dummy resource
-		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
-		assertNotNull("No dummy account", dummyAccount);
-		assertEquals("Wrong password", ACCOUNT_WILL_PASSWORD_NEW, dummyAccount.getPassword());
-		accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD_NEW;
+		assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+			.assertPassword(ACCOUNT_WILL_PASSWORD_123)
+			.assertLastModifier(null);
+		
+		accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD_123;
 
 		// Check if the shadow is in the repo
 		PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
@@ -1150,7 +1151,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		display("Repository shadow", repoShadow);
 
 		checkRepoAccountShadow(repoShadow);
-		assertRepoShadowCredentials(repoShadow, ACCOUNT_WILL_PASSWORD_NEW);
+		assertRepoShadowCredentials(repoShadow, ACCOUNT_WILL_PASSWORD_123);
 
 		syncServiceMock.assertNotifySuccessOnly();
 
@@ -3644,6 +3645,53 @@ public class TestDummy extends AbstractBasicDummyTest {
 		display("Dummy account", dummyAccount);
 		ZonedDateTime enlistTimestamp = dummyAccount.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_ENLIST_TIMESTAMP_NAME, ZonedDateTime.class);
 		assertEqualTime("wrong dummy enlist timestamp", ACCOUNT_MORGAN_PASSWORD_ENLIST_TIMESTAMP_MODIFIED, enlistTimestamp);
+
+		syncServiceMock.assertNotifySuccessOnly();
+
+		assertSteadyResource();
+	}
+	
+	/**
+	 * Change password, using runAsAccountOid option.
+	 * MID-4397
+	 */
+	@Test
+	public void test330ModifyAccountWillPasswordSelfService() throws Exception {
+		final String TEST_NAME = "test330ModifyAccountWillPasswordSelfService";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = createAccountPaswordDelta(ACCOUNT_WILL_OID, ACCOUNT_WILL_PASSWORD_321, ACCOUNT_WILL_PASSWORD_123);
+		display("ObjectDelta", delta);
+
+		ProvisioningOperationOptions options = ProvisioningOperationOptions.createRunAsAccountOid(ACCOUNT_WILL_OID);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), options, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		// Check if the account was created in the dummy resource
+		assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+			.assertPassword(ACCOUNT_WILL_PASSWORD_321)
+			.assertLastModifier(ACCOUNT_WILL_USERNAME);
+		
+		accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD_321;
+
+		// Check if the shadow is in the repo
+		PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_WILL_OID);
+		assertNotNull("Shadow was not created in the repository", repoShadow);
+		display("Repository shadow", repoShadow);
+
+		checkRepoAccountShadow(repoShadow);
+		assertRepoShadowCredentials(repoShadow, ACCOUNT_WILL_PASSWORD_321);
 
 		syncServiceMock.assertNotifySuccessOnly();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -351,11 +351,11 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		changes.add(createDeleteAttributeChange("givenName", "John"));
 
 		ObjectClassComplexTypeDefinition accountDefinition = resourceSchema.findObjectClassDefinition(OpenDJController.OBJECT_CLASS_INETORGPERSON_NAME);
-
-		cc.modifyObject(accountDefinition, null, identifiers, changes, null, result);
-
 		ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
 				accountDefinition, identifiers);
+
+		cc.modifyObject(identification, null, changes, null, null, result);
+		
 		PrismObject<ShadowType> shadow = cc.fetchObject(identification, null, null, result);
 		ResourceAttributeContainer resObj = ShadowUtil.getAttributesContainer(shadow);
 
@@ -747,13 +747,14 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		//set the modificaion type
 		propMod.setModificationType(ModificationTypeType.REPLACE);
 
-		PropertyDelta passDelta = (PropertyDelta)DeltaConvertor.createItemDelta(propMod, shadow.getDefinition());
-		PropertyModificationOperation passwordModification = new PropertyModificationOperation(passDelta);
+		PropertyDelta<ProtectedStringType> passDelta = (PropertyDelta)DeltaConvertor.createItemDelta(propMod, shadow.getDefinition());
+		PropertyModificationOperation<ProtectedStringType> passwordModification = new PropertyModificationOperation(passDelta);
 		changes.add(passwordModification);
+		
+		ResourceObjectIdentification identification = ResourceObjectIdentification.createFromAttributes(
+				accountDefinition, identifiers);
 
-//		PasswordChangeOperation passwordChange = new PasswordChangeOperation(passPs);
-//		changes.add(passwordChange);
-		cc.modifyObject(accountDefinition, null, identifiers, changes, null, result);
+		cc.modifyObject(identification, null, changes, null, null, result);
 
 		// THEN
 

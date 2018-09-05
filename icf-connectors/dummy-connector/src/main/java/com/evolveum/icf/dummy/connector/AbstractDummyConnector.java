@@ -23,6 +23,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectionFailedExcept
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
+import org.identityconnectors.framework.common.exceptions.InvalidPasswordException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
@@ -390,7 +391,8 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         	throw new UnsupportedOperationException();
         }
 
-        SchemaBuilder builder = new SchemaBuilder(AbstractDummyConnector.class);
+        SchemaBuilder builder = new SchemaBuilder(this.getClass());
+        log.ok("Building schema for {0}", this.getClass());
 
     	try {
 
@@ -418,10 +420,16 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			builder.defineOperationOption(OperationOptionInfoBuilder.buildPageSize(), SearchOp.class);
 			builder.defineOperationOption(OperationOptionInfoBuilder.buildSortKeys(), SearchOp.class);
 		}
+		
+		extendSchema(builder);
 
         log.info("schema::end");
         return builder.build();
     }
+
+	protected void extendSchema(SchemaBuilder builder) {
+		// for subclasses
+	}
 
 	private String getAccountObjectClassName() {
 		if (configuration.getUseLegacySchema()) {
@@ -1597,6 +1605,32 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			return true;
 		}
 		return attributesToGet.contains(attrName);
+	}
+	
+	protected void applyModifyMetadata(DummyObject object, OperationOptions options) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
+		String runAsUser = options.getRunAsUser();
+		if (runAsUser != null) {
+			if (!configuration.getSupportRunAs()) {
+				throw new UnsupportedOperationException("runAsUser option is not supported");
+			}
+			DummyAccount runAsAccount = resource.getAccountByUsername(runAsUser);
+			if (runAsAccount == null) {
+				new ConfigurationException("No runAsUser "+runAsUser);
+			}
+			GuardedString runWithPassword = options.getRunWithPassword();
+			if (runWithPassword != null) {
+				runWithPassword.access((clearChars) -> {
+					if (!runAsAccount.getPassword().equals(new String(clearChars))) {
+						throw new InvalidPasswordException("Wrong runWithPassword");
+					}
+				});
+			} else {
+				throw new InvalidPasswordException("No runWithPassword");
+			}
+			object.setLastModifier(runAsUser);
+		} else {
+			object.setLastModifier(null);
+		}
 	}
 
 	public void validate(ObjectClass oc) {

@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2018 Evolveum
+/**
+ * Copyright (c) 2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,25 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
-import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 
 /**
- * Abstract operation for a connector. Subclasses of this class
- * represent specific operations such as attribute modification,
- * script execution and so on.
- *
- * This class is created primarily for type safety, but it may be
- * extended later on.
- *
- * @author Radovan Semancik
+ * @author semancik
  *
  */
-public abstract class Operation implements DebugDumpable {
+public class ConnectorOperationOptions {
+	
+	/**
+	 * Run the operations on resource using the specified identity.
+	 * Provided identification should identify valid, active account.
+	 */
+	private ResourceObjectIdentification runAsIdentification;
 
+	public ResourceObjectIdentification getRunAsIdentification() {
+		return runAsIdentification;
+	}
+
+	public void setRunAsIdentification(ResourceObjectIdentification runAsIdentification) {
+		this.runAsIdentification = runAsIdentification;
+	}
 }

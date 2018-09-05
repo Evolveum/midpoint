@@ -45,6 +45,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private boolean supportSchema = true;
     private boolean supportActivation = true;
     private boolean supportValidity = false;
+    private boolean supportRunAs = true;
     private String uidMode =  UID_MODE_NAME;
     private boolean enforceUniqueName = true;
     private String passwordReadabilityMode = PASSWORD_READABILITY_MODE_UNREADABLE;
@@ -125,6 +126,16 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setSupportValidity(boolean supportValidity) {
 		this.supportValidity = supportValidity;
+	}
+	
+	@ConfigurationProperty(displayMessageKey = "UI_SUPPORT_RUN_AS",
+    		helpMessageKey = "UI_SUPPORT_RUN_AS_HELP")
+	public boolean getSupportRunAs() {
+		return supportRunAs;
+	}
+
+	public void setSupportRunAs(boolean supportRunAs) {
+		this.supportRunAs = supportRunAs;
 	}
 
 	@ConfigurationProperty(displayMessageKey = "UI_UID_MODE",

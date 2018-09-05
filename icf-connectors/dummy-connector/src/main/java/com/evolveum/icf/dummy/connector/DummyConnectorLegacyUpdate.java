@@ -691,4 +691,15 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
         return uid;
     }
     
+    @Override
+	protected void extendSchema(SchemaBuilder builder) {
+		super.extendSchema(builder);
+		
+		if (configuration.getSupportRunAs()) {
+			log.ok("Adding runAs options to schema");
+			builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithUser(), UpdateAttributeValuesOp.class);
+			builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithPassword(), UpdateAttributeValuesOp.class);
+		}
+	}
+    
 }
