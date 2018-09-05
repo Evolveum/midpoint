@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
@@ -104,10 +105,6 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.CacheRegistry;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.repo.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.repo.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -1722,24 +1719,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	public TaskType submitTaskFromTemplate(String templateTaskOid, Map<QName, Object> extensionValues, Task opTask, OperationResult parentResult)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-		List<Item<?, ?>> extensionItems = new ArrayList<>();
 		PrismContainerDefinition<?> extDef = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(TaskType.class).findContainerDefinition(TaskType.F_EXTENSION);
-		for (Map.Entry<QName, Object> entry : extensionValues.entrySet()) {
-			ItemDefinition<Item<PrismValue, ItemDefinition>> def = extDef.findItemDefinition(entry.getKey());
-			if (def == null) {
-				//noinspection unchecked
-				def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(entry.getKey());     // a bit of hack here
-				if (def == null) {
-					throw new SchemaException("No definition of " + entry.getKey() + " in task extension");
-				}
-			}
-			Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
-			if (entry.getValue() != null) {
-				extensionItem.add(PrismValue.fromRealValue(entry.getValue()).clone());
-			}
-			extensionItems.add(extensionItem);
-		}
+		List<Item<?, ?>> extensionItems = ObjectTypeUtil.mapToExtensionItems(extensionValues, extDef, prismContext);
 		return submitTaskFromTemplate(templateTaskOid, extensionItems, opTask, parentResult);
 	}
+
 }

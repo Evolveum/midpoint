@@ -44,13 +44,8 @@ import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 /**
@@ -871,5 +866,41 @@ public class ObjectTypeUtil {
 			return modifyTimestamp;
 		}
 		return metadata.getCreateTimestamp();
+	}
+
+	@NotNull
+	public static List<Item<?, ?>> mapToExtensionItems(Map<QName, Object> values, PrismContainerDefinition<?> extensionDefinition,
+			PrismContext prismContext) throws SchemaException {
+		List<Item<?, ?>> extensionItems = new ArrayList<>();
+		for (Map.Entry<QName, Object> entry : values.entrySet()) {
+			ItemDefinition<Item<PrismValue, ItemDefinition>> def = extensionDefinition != null
+					? extensionDefinition.findItemDefinition(entry.getKey())
+					: null;
+			if (def == null) {
+				//noinspection unchecked
+				def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(entry.getKey());     // a bit of hack here
+				if (def == null) {
+					throw new SchemaException("No definition of " + entry.getKey() + " in task extension");
+				}
+			}
+			Item<PrismValue, ItemDefinition> extensionItem = def.instantiate();
+			if (entry.getValue() != null) {
+				if (entry.getValue() instanceof Collection) {
+					for (Object value : (Collection) entry.getValue()) {
+						addRealValue(extensionItem, value);
+					}
+				} else {
+					addRealValue(extensionItem, entry.getValue());
+				}
+			}
+			extensionItems.add(extensionItem);
+		}
+		return extensionItems;
+	}
+
+	private static void addRealValue(Item<PrismValue, ItemDefinition> extensionItem, Object value) throws SchemaException {
+    	if (value != null) {
+		    extensionItem.add(PrismValue.fromRealValue(value).clone());
+	    }
 	}
 }
