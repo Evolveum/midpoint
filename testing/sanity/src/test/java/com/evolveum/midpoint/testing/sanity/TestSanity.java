@@ -1020,11 +1020,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME, ObjectDeltaType.class);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         OperationResultType result = modifyObjectViaModelWS(objectChange);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
         TestUtil.assertSuccess("modifyObject has failed", result);
@@ -1657,11 +1657,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         OperationResultType result = modifyObjectViaModelWS(objectChange);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
         TestUtil.assertSuccess("modifyObject has failed", result);
@@ -1718,12 +1718,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         assertNoRepoCache();
         displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
         TestUtil.assertSuccess("getObject has failed", resultHolder.value);
@@ -3135,11 +3135,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Entry from LDIF", addEntry);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         TaskType taskType = modelWeb.importFromResource(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         assertNoRepoCache();
         displayJaxb("importFromResource result", taskType.getResult(), SchemaConstants.C_RESULT);
         AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
