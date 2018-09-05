@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExec
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -36,6 +37,7 @@ import java.util.List;
  */
 public class PendingOperationPanel extends BasePanel<List<PendingOperationType>> {
 
+    private static final String ID_LABEL = "label";
     private static final String ID_OPERATION = "operation";
     private static final String ID_TEXT = "text";
 
@@ -57,14 +59,19 @@ public class PendingOperationPanel extends BasePanel<List<PendingOperationType>>
 
             @Override
             protected void populateItem(ListItem<PendingOperationType> item) {
+                item.setRenderBodyOnly(true);
+
+                WebMarkupContainer label = new WebMarkupContainer(ID_LABEL);
+                item.add(label);
+
                 Label text = new Label(ID_TEXT, createLabelText(item.getModel()));
                 text.setRenderBodyOnly(true);
-                item.add(text);
+                label.add(text);
 
-                item.add(AttributeAppender.append("class", createTextClass(item.getModel())));
+                label.add(AttributeAppender.append("class", createTextClass(item.getModel())));
 
-                item.add(AttributeModifier.replace("title", createTextTooltipModel(item.getModel())));
-                item.add(new InfoTooltipBehavior() {
+                label.add(AttributeModifier.replace("title", createTextTooltipModel(item.getModel())));
+                label.add(new InfoTooltipBehavior() {
 
                     @Override
                     public String getCssClass() {
