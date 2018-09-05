@@ -380,10 +380,14 @@ public class ShadowCache {
 			XMLGregorianCalendar now, Task task, OperationResult parentResult) 
 					throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
 		LOGGER.trace("Processing noFetch get for {}", repositoryShadow);
-		
-		// Even with noFetch we still want to delete expired pending operations. And even delete
-		// the shadow if needed.
-		repositoryShadow = refreshShadowQick(ctx, repositoryShadow, now, task, parentResult);
+
+		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		if (!GetOperationOptions.isRaw(rootOptions)) {
+			// Even with noFetch we still want to delete expired pending operations. And even delete
+			// the shadow if needed.
+			repositoryShadow = refreshShadowQick(ctx, repositoryShadow, now, task, parentResult);
+		}
+
 		if (repositoryShadow == null) {
 			ObjectNotFoundException e = new ObjectNotFoundException("Resource object not found");
 			parentResult.recordFatalError(e);

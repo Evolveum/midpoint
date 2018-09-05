@@ -30,16 +30,16 @@ import org.apache.wicket.model.StringResourceModel;
  * Base class for most midPoint GUI panels. It has a constructor and
  * utility methods for convenient handling of the model. It also has
  * other utility methods often used in reusable components.
- *
+ * <p>
  * Almost all reusable components should extend this class.
  *
  * @author lazyman
  * @author semancik
  */
 public class BasePanel<T> extends Panel {
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private IModel<T> model;
+    private IModel<T> model;
 
     public BasePanel(String id) {
         this(id, null);
@@ -66,10 +66,14 @@ public class BasePanel<T> extends Panel {
         return createStringResource(resourceKey, objects).getString();
     }
 
+    public String getString(Enum e) {
+        return createStringResource(e).getString();
+    }
+
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
-    	return new StringResourceModel(resourceKey, this).setModel(null)
-    			.setDefaultValue(resourceKey)
-    			.setParameters(objects);
+        return new StringResourceModel(resourceKey, this).setModel(null)
+                .setDefaultValue(resourceKey)
+                .setParameters(objects);
 //    	return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
     }
 
