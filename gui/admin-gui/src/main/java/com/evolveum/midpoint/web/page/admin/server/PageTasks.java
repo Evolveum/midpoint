@@ -396,13 +396,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		columns.add(check);
 		columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "statusMessage"));
 
-		IColumn<NodeDto, String> menuColumn = new InlineMenuButtonColumn<NodeDto>(createNodesInlineMenu(false), PageTasks.this);
+		IColumn<NodeDto, String> menuColumn = new InlineMenuButtonColumn<NodeDto>(createNodesInlineMenu(), PageTasks.this);
 		columns.add(menuColumn);
 
 		return columns;
 	}
 
-	private List<InlineMenuItem> createNodesInlineMenu(boolean isHeader) {
+	private List<InlineMenuItem> createNodesInlineMenu() {
 		List<InlineMenuItem> items = new ArrayList<>();
 		items.add(new ButtonInlineMenuItem(createStringResource("pageTasks.button.startScheduler")) {
 			private static final long serialVersionUID = 1L;
@@ -1971,7 +1971,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
             return;
         }
 
-        items.addAll(createNodesInlineMenu(false));
+        items.addAll(createNodesInlineMenu());
     }
 
     private IModel<String> getTaskConfirmationMessageModel(ColumnMenuAction action, String actionName){

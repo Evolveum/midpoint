@@ -104,7 +104,7 @@ public class PageRoles extends PageAdminRoles implements FocusListComponent {
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
-				return listInlineMenuHelper.createRowActions(false);
+				return listInlineMenuHelper.createRowActions();
 			}
 
 			@Override

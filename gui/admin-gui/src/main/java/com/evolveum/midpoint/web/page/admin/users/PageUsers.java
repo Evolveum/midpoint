@@ -178,7 +178,7 @@ public class PageUsers extends PageAdminUsers {
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
-				return createRowActions(false);
+				return createRowActions();
 			}
 
 			@Override
@@ -255,7 +255,7 @@ public class PageUsers extends PageAdminUsers {
 		return columns;
 	}
 
-	private List<InlineMenuItem> createRowActions(boolean isHeader) {
+	private List<InlineMenuItem> createRowActions() {
     	List<InlineMenuItem> menu = new ArrayList<>();
 		menu.add(new ButtonInlineMenuItem(createStringResource("pageUsers.menu.enable")) {
 			private static final long serialVersionUID = 1L;

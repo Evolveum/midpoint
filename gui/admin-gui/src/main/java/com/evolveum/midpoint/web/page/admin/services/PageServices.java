@@ -106,7 +106,7 @@ public class PageServices extends PageAdminServices implements FocusListComponen
 
 			@Override
 			protected List<InlineMenuItem> createInlineMenu() {
-				return listInlineMenuHelper.createRowActions(false);
+				return listInlineMenuHelper.createRowActions();
 			}
 
 			@Override
