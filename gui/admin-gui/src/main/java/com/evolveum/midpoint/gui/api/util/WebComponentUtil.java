@@ -59,10 +59,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -2633,6 +2637,21 @@ public final class WebComponentUtil {
         		list.add(row);
         }
         return lookupTable;
+	}
+
+	public static Class getPreviousPageClass(PageBase parentPage){
+		List<Breadcrumb> breadcrumbs = parentPage.getBreadcrumbs();
+		if (breadcrumbs == null || breadcrumbs.size() < 2){
+			return null;
+		}
+		Breadcrumb previousBreadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
+		Class page = null;
+		if (previousBreadcrumb instanceof BreadcrumbPageClass){
+			page = ((BreadcrumbPageClass) previousBreadcrumb).getPage();
+		} else if (previousBreadcrumb instanceof BreadcrumbPageInstance){
+			page = ((BreadcrumbPageInstance) previousBreadcrumb).getPage().getClass();
+		}
+		return page;
 	}
 
 	@NotNull
