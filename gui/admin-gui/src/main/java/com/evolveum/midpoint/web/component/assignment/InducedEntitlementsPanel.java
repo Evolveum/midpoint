@@ -151,11 +151,6 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         return constructionDetailsPanel;
     }
 
-    @Override
-    protected boolean isRelationVisible() {
-        return false;
-    }
-
     protected List<ObjectTypes> getObjectTypesList(){
         return Arrays.asList(ObjectTypes.RESOURCE);
     }
