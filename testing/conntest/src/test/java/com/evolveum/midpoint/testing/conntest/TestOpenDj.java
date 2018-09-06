@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public class TestOpenDj extends AbstractLdapConnTest {
 
 	private static final String OPENDJ_TEMPLATE_NAME = "opendj-4000.template";
 
-	private static final int INITIAL_SYNC_TOKEN = 23;
+	private static final int INITIAL_SYNC_TOKEN = 22;
 
 	@Override
 	protected String getResourceOid() {

@@ -282,10 +282,14 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         displayWhen(TEST_NAME);
         Integer count = modelService.countObjects(ShadowType.class, query, null, task, result);
 
-        assertEquals("Wrong account count", (Integer)getNumberOfAllAccounts(), count);
+        assertCountAllAccounts(count);
 
         assertLdapConnectorInstances(1, 2);
     }
+
+	protected void assertCountAllAccounts(Integer count) {
+		assertEquals("Wrong account count", (Integer)getNumberOfAllAccounts(), count);
+	}
 
 	/**
 	 * Blocksize is 100, so this is in one block.

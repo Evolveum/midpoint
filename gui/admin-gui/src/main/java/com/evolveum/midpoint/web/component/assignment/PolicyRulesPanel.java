@@ -99,7 +99,8 @@ public class PolicyRulesPanel extends AssignmentPanel {
                                      final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
             	ContainerWrapper<PolicyRuleType> policyRuleWrapper = rowModel.getObject().findContainerWrapper(new ItemPath(rowModel.getObject().getPath(), AssignmentType.F_POLICY_RULE));
             	ContainerWrapper<PolicyActionsType> wrapper = policyRuleWrapper.getValues().get(0).findContainerWrapper(new ItemPath(policyRuleWrapper.getValues().get(0).getPath(), PolicyRuleType.F_POLICY_ACTIONS));
-            	String action = PolicyRuleTypeUtil.toShortString(wrapper.getValues().get(0).getContainerValue().getValue(), new ArrayList<>());
+            	String action = wrapper != null ?
+						PolicyRuleTypeUtil.toShortString(wrapper.getValues().get(0).getContainerValue().getValue(), new ArrayList<>()) : null;
                 cellItem.add(new MultiLineLabel(componentId, Model.of(action != null && !action.equals("null") ? action : "")));
             }
 

@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -89,6 +91,7 @@ public class PageResources extends PageAdminResources {
 	private static final String DOT_CLASS = PageResources.class.getName() + ".";
 	private static final String OPERATION_TEST_RESOURCE = DOT_CLASS + "testResource";
 	private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
+	private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
 
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_TABLE = "table";
@@ -269,6 +272,28 @@ public class PageResources extends PageAdminResources {
 			}
 		});
 
+		menuItems.add(new InlineMenuItem(createStringResource("pageResource.button.refreshSchema")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<SelectableBean<ResourceType>>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						SelectableBean<ResourceType> rowDto = getRowModel().getObject();
+						refreshSchemaPerformed(rowDto.getValue(), target);
+					}
+				};
+			}
+
+			@Override
+			public boolean isHeaderMenuItem(){
+				return false;
+			}
+		});
+
 		menuItems.add(new ButtonInlineMenuItem(createStringResource("PageBase.button.delete")) {
 			private static final long serialVersionUID = 1L;
 
@@ -351,6 +376,36 @@ public class PageResources extends PageAdminResources {
 		selected = getResourceTable().getSelectedObjects();
 		return selected;
 
+	}
+
+	private void refreshSchemaPerformed(ResourceType resource, AjaxRequestTarget target) {
+		ConfirmationPanel dialog = new ConfirmationPanel(((PageBase)getPage()).getMainPopupBodyId(),
+				createStringResource("pageResources.message.refreshResourceSchemaConfirm")){
+			@Override
+			public void yesPerformed(AjaxRequestTarget target) {
+				refreshSchemaConfirmPerformed(resource, target);
+			}
+		};
+		((PageBase)getPage()).showMainPopup(dialog, target);
+	}
+
+	private void refreshSchemaConfirmPerformed(ResourceType resource, AjaxRequestTarget target){
+		Task task = createSimpleTask(OPERATION_REFRESH_SCHEMA);
+		OperationResult parentResult = new OperationResult(OPERATION_REFRESH_SCHEMA);
+
+		try {
+			ResourceUtils.deleteSchema(resource.asPrismObject(), getModelService(), getPrismContext(), task, parentResult);
+			getModelService().testResource(resource.getOid(), task);
+		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+				| ExpressionEvaluationException | CommunicationException | ConfigurationException
+				| PolicyViolationException | SecurityViolationException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Error refreshing resource schema", e);
+			parentResult.recordFatalError("Error refreshing resource schema", e);
+		}
+
+		parentResult.computeStatus();
+		showResult(parentResult, "pageResource.refreshSchema.failed");
+		target.add(getFeedbackPanel());
 	}
 
 	private void deleteResourcePerformed(AjaxRequestTarget target, ResourceType single) {

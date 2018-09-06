@@ -51,7 +51,10 @@ public class InfoTooltipBehavior extends TooltipBehavior {
     public void onConfigure(Component component) {
         super.onConfigure(component);
 
-        component.add(AttributeModifier.replace("class", getCssClass()));
+        String cssClass = getCssClass();
+        if (cssClass != null) {
+            component.add(AttributeModifier.replace("class", cssClass));
+        }
     }
 
     @Override

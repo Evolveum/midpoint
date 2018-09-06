@@ -2354,7 +2354,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-    protected void reloadShoppingCartIcon(AjaxRequestTarget target){
+    public void reloadShoppingCartIcon(AjaxRequestTarget target){
         target.add(get(createComponentPath(ID_MAIN_HEADER, ID_NAVIGATION, ID_CART_BUTTON)));
     }
 

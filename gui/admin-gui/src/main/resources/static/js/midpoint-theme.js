@@ -52,11 +52,11 @@ function initAjaxStatusSigns() {
 }
 
 function showAjaxStatusSign() {
-    document.getElementById('ajax_busy').style.display = 'inline';
+    document.getElementById('ajax_busy').style.visibility = 'visible';
 }
 
 function hideAjaxStatusSign() {
-    document.getElementById('ajax_busy').style.display = 'none';
+    document.getElementById('ajax_busy').style.visibility = 'hidden';
 }
 
 /**

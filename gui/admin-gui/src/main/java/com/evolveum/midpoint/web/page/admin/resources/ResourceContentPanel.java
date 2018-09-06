@@ -23,7 +23,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.GuiConstants;
+import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -112,15 +115,6 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Implementation classes : ResourceContentResourcePanel,
@@ -688,6 +682,27 @@ public abstract class ResourceContentPanel extends Panel {
 				body.setOutputMarkupId(true);
 				ResourceContentPanel.this.getPageBase().showMainPopup(body, target);
 
+			}
+		});
+
+		columns.add(new AbstractColumn<SelectableBean<ShadowType>, String>(
+				createStringResource("PageAccounts.accounts.pendingOperations")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
+									 String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
+				cellItem.add(new PendingOperationPanel(componentId, new AbstractReadOnlyModel<List<PendingOperationType>>() {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public List<PendingOperationType> getObject() {
+						SelectableBean<ShadowType> bean = rowModel.getObject();
+						return bean.getValue().getPendingOperation();
+					}
+				}));
 			}
 		});
 		return columns;

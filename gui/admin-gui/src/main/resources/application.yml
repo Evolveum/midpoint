@@ -20,7 +20,27 @@ server:
 auth:
   logout:
     url: / # NOTE: This URL is relative to application root
-
+## Example SSO header authentication configuration
+#  sso:
+#    header: SM_USER
+## Example CAS SSO configuration
+#  cas:
+#    midpoint:
+#      url: http://localhost:38080/midpoint
+#    server:
+#      url: http://localhost:8080/cas
+#    ticketValidator: Cas30ServiceTicketValidator
+## Example LDAP authentication configuration
+#  ldap:
+#    host: ldap://localhost:389/dc=example,dc=com
+#    manager: cn=admin,dc=example,dc=com
+#    password: secret
+#    dn:
+#      pattern: uid={0},ou=people
+#
+#    search:
+#      pattern: (uid={0})
+#      subtree: true
 
 #security:
 #  enable-csrf: false # default for midpoint is true

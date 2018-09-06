@@ -3686,6 +3686,7 @@
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
                     			<a:operational>true</a:operational>
+								<a:displayName>FocusType.roleMembershipRef</a:displayName>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

@@ -130,17 +130,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected ObjectQuery createObjectQuery() {
-        ObjectQuery query = super.createObjectQuery();
-        ObjectFilter filter = query.getFilter();
-        ObjectQuery entitlementsQuery = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
                 .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
-        if (filter != null){
-            query.setFilter(AndFilter.createAnd(filter, entitlementsQuery.getFilter()));
-        } else {
-            query.setFilter(entitlementsQuery.getFilter());
-        }
-        return query;
     }
     
     @Override
@@ -172,11 +164,6 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, Model.of(constructionContainer));
         constructionDetailsPanel.setOutputMarkupId(true);
         return constructionDetailsPanel;
-    }
-
-    @Override
-    protected boolean isRelationVisible() {
-        return false;
     }
 
     protected List<ObjectTypes> getObjectTypesList(){

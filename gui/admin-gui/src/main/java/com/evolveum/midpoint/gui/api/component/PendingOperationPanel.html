@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,14 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
-    <div class="row">
-            <div class="col-md-12" wicket:id="container">
-                <div class="col-md-8" wicket:id="label"></div>
-                <a class="btn btn-primary btn-xs pull-right" wicket:id="button"></a>
-            </div>
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div wicket:id="operation">
+        <span class="label" wicket:id="label"><span wicket:id="text"/></span>
     </div>
 </wicket:panel>
-</html>

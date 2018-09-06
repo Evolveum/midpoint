@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
  */
 public class TestOpenDjDumber extends TestOpenDj {
 
-	private static final int INITIAL_SYNC_TOKEN = 21;
+	private static final int INITIAL_SYNC_TOKEN = 20;
 
 	@Override
 	protected File getBaseDir() {

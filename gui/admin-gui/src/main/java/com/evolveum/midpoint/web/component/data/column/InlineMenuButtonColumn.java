@@ -45,7 +45,6 @@ import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.create
  * @author honchar
  * @author Viliam Repan (lazyman)
  * <p>
- * TODO Still needs more cleanup. Why button column has to understand activation, focus objects or handle modal windows? That should not be here definitely.
  */
 public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColumn<T, String> {
 
