@@ -19,7 +19,10 @@
 <wicket:panel>
 	<div class="row">
 		<div class="pull-left" wicket:id="expandCollapse"/>
-		<span class="prism-title" wicket:id="label"/>
+		<div class="labelContainer" wicket:id="labelContainer">
+			<span class="prism-title" wicket:id="label"/>
+			<i class="helpTextIcon" wicket:id="help"/>
+		</div>
 		<div class="box-tools">
 			<wicket:child/>
 		</div>

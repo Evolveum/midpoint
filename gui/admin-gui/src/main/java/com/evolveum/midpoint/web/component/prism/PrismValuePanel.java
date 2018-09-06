@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -69,6 +70,7 @@ import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -79,6 +81,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -584,6 +587,16 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				
 			} else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
 				panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));
+			} else if (DOMUtil.XSD_DURATION.equals(valueType)) {
+				panel = new TextPanel<>(id, new PropertyModel<String>(getModel(), baseExpression) {
+					
+					private IModel model =  new PropertyModel<Duration>(getModel(), baseExpression);
+					
+					@Override
+					public void setObject(String object) {
+						model.setObject(XmlTypeConverter.createDuration(MiscUtil.nullIfEmpty(object)));
+					}
+				});
 			} else if (DOMUtil.XSD_QNAME.equals(valueType)) {
 				DropDownChoicePanel<QName> panelDropDown = new DropDownChoicePanel<QName>(id, new PropertyModel(getModel(), baseExpression),
 						Model.ofList(WebComponentUtil.createObjectTypeList()), new QNameIChoiceRenderer(OBJECT_TYPE), true);

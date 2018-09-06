@@ -40,6 +40,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.GlobalP
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.LoggingConfigurationTabPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.NotificationConfigTabPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ProfilingConfigurationTabPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ContainerOfSystemConfigurationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigPanelNew;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -214,7 +215,9 @@ public class PageSystemConfigurationNew extends PageAdminObjectDetails<SystemCon
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<ProfilingConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_PROFILING_CONFIGURATION);
+				ContainerWrapperFromObjectWrapperModel<ProfilingConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+						new ItemPath(SystemConfigurationType.F_PROFILING_CONFIGURATION));
+				return new ProfilingConfigurationTabPanel(panelId, model);
 			}
 		});
 

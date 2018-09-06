@@ -99,7 +99,6 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 	
 	private static final Trace LOGGER = TraceManager.getTrace(NotificationConfigTabPanel.class);
 
-	private static final String ID_NOTIFICATION_CONFIG_HEADER = "notificationConfigurationHeader";
 	private static final String ID_MAIL_CONFIG_HEADER = "mailConfigurationHeader";
 	private static final String ID_DEFAULT_FROM = "defaultFrom";
 	private static final String ID_REDIRECT_TO_FILE = "redirectToFile";
@@ -140,9 +139,6 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 		
 		ContainerValueWrapper<NotificationConfigurationType> value = getModel().getObject().getValues().get(0);
 		PropertyWrapper<MailConfigurationType> mailConfig = (PropertyWrapper<MailConfigurationType>)value.findPropertyWrapper(new ItemPath(value.getPath(), NotificationConfigurationType.F_MAIL));
-		
-		
-		add(createHeader(ID_NOTIFICATION_CONFIG_HEADER, NotificationConfigTabPanel.this.getModelObject().getItemDefinition().getTypeName().getLocalPart() + ".details"));
 		
 		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".details"));
 		

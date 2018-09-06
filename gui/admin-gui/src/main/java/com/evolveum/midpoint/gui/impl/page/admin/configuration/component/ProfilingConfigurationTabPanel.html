@@ -17,7 +17,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 	<wicket:panel>
-		<div wicket:id="logging"/>
+		<div wicket:id="profiling"/>
 		
 		<div class="prism-properties">
 	    	<div class="top-level-prism-container">
@@ -25,35 +25,16 @@
 	        		<div class="container-fluid">
 						<div class="prism-header">
 							<div class="row">
-								<span class="prism-title"style="cursor: pointer;"><wicket:message key="LoggingConfigurationType.classLogger"/></span>
+								<span class="prism-title"style="cursor: pointer;"><wicket:message key="LoggingConfigPanel.profiling.entryExit"/></span>
 							</div>
 						</div>
 						<div class="prism-properties">
-							<div wicket:id="loggers"/>
+							<div class="row prism-property" wicket:id="profilingLoggerAppenders"/>
+							<div class="row prism-property" wicket:id="profilingLoggerLevel"/>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		
-		<div class="prism-properties">
-	    	<div class="top-level-prism-container">
-	    		<div class="row prism-property">
-	        		<div class="container-fluid">
-						<div class="prism-header">
-							<div class="row">
-								<span class="prism-title"style="cursor: pointer;"><wicket:message key="LoggingConfigurationType.appender"/></span>
-							</div>
-						</div>
-						<div class="prism-properties">					
-							<div wicket:id="appenders"/>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<div class="top-level-prism-container" wicket:id="audit"/>
-		
 	</wicket:panel>
 </html>
