@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
@@ -118,13 +119,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         form.add(addButton);
     }
 
-    private List<ITab> createAssignmentTabs() {
+    protected List<ITab> createAssignmentTabs() {
         List<ITab> tabs = new ArrayList<>();
-        //TODO check authorization for each tab
-        VisibleEnableBehaviour authorization = new VisibleEnableBehaviour(){
-        };
 
-        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"), authorization) {
+        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"),
+                new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ROLE))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -152,7 +151,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                 });
 
         tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"), authorization) {
+                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"),
+                        new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -186,7 +186,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                 });
 
 
-        tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"), authorization) {
+        tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
+                new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -214,7 +215,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         });
 
         tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"), authorization) {
+                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"),
+                        new VisibleBehaviour(() -> isTabVisible(ObjectTypes.SERVICE))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -243,7 +245,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                 });
 
         tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.RESOURCE"), authorization) {
+                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.RESOURCE"),
+                        new VisibleBehaviour(() -> isTabVisible(ObjectTypes.RESOURCE))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -267,6 +270,15 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                 });
 
         return tabs;
+    }
+
+    private boolean isTabVisible(ObjectTypes objectType){
+        List<ObjectTypes> availableObjectTypesList = getAvailableObjectTypesList();
+        return availableObjectTypesList == null || availableObjectTypesList.size() == 0 || availableObjectTypesList.contains(objectType);
+    }
+
+    protected List<ObjectTypes> getAvailableObjectTypesList(){
+        return WebComponentUtil.createAssignableTypesList();
     }
 
     private int getTabPanelSelectedCount(WebMarkupContainer panel){

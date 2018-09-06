@@ -200,6 +200,11 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                    super.addPerformed(target, newAssignmentsList);
                    addSelectedAssignmentsPerformed(target, newAssignmentsList);
                }
+
+               @Override
+               protected List<ObjectTypes> getAvailableObjectTypesList(){
+                   return getObjectTypesList();
+               }
            };
            popupPanel.setOutputMarkupId(true);
            getPageBase().showMainPopup(popupPanel, target);
