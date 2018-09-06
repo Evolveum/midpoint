@@ -340,7 +340,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                     .item(new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF))
                     .isNull()
                     .endBlock()
-                    .and()
+                    .or()
                     .block()
                     .not()
                     .item(new ItemPath(AssignmentType.F_TARGET_REF))
