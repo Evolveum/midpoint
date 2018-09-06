@@ -473,10 +473,13 @@ public class MappingEvaluator {
 		                	}
 		                }
 		                targetItemDelta.setValuesToReplace(PrismValue.cloneCollection(valuesToReplace));
+		                
+		                applyEstematedOldValueInReplaceCase(targetItemDelta, outputTriple);
 
 		        	} else if (outputTriple.hasMinusSet()) {
 		        		LOGGER.trace("{} resulted in null or empty value for {} and there is a minus set, resetting it (replace with empty)", mappingDesc, targetContext);
 		        		targetItemDelta.setValueToReplace();
+		        		applyEstematedOldValueInReplaceCase(targetItemDelta, outputTriple);
 		
 		        	} else {
 		        		LOGGER.trace("{} resulted in null or empty value for {}, skipping", mappingDesc, targetContext);
@@ -534,7 +537,16 @@ public class MappingEvaluator {
 		return outputTripleMap;
 	}
 
-    private <V extends PrismValue> boolean isMeaningful(PrismValueDeltaSetTriple<V> mappingOutputTriple) {
+    private <V extends PrismValue, D extends ItemDefinition> void applyEstematedOldValueInReplaceCase(ItemDelta<V, D> targetItemDelta,
+			PrismValueDeltaSetTriple<V> outputTriple) {
+		Collection<V> nonPositiveValues = outputTriple.getNonPositiveValues();
+		if (nonPositiveValues == null || nonPositiveValues.isEmpty()) {
+			return;
+		}
+		targetItemDelta.setEstimatedOldValues(PrismValue.cloneCollection(nonPositiveValues));
+	}
+
+	private <V extends PrismValue> boolean isMeaningful(PrismValueDeltaSetTriple<V> mappingOutputTriple) {
 		if (mappingOutputTriple == null) {
 			// this means: mapping not applicable
 			return false;

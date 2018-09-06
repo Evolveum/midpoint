@@ -94,6 +94,13 @@ public class TestDummyLimited extends TestDummy {
 		assertNull("Unexpected native runAs capability", capRunAs);
 	}
 
+	// No runAs capability, modifier is always the default one.
+	// No matter what kind of runAs was requested.
+	@Override
+	protected String getLastModifierName(String expected) {
+		return null;
+	}
+	
 	@Test
 	@Override
 	public void test150DisableAccount() throws Exception {

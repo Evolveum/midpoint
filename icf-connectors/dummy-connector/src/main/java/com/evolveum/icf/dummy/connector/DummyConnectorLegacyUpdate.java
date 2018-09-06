@@ -116,6 +116,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(account, options);
 
 				// we do this before setting attribute values, in case when description itself would be changed
 				resource.changeDescriptionIfNeeded(account);
@@ -179,6 +180,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(group, options);
 
 		        for (Attribute attr : replaceAttributes) {
 		        	if (attr.is(Name.NAME)) {
@@ -229,6 +231,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(priv, options);
 
 		        for (Attribute attr : replaceAttributes) {
 		        	if (attr.is(Name.NAME)) {
@@ -271,6 +274,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (org == null) {
 		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(org, options);
 
 		        for (Attribute attr : replaceAttributes) {
 		        	if (attr.is(Name.NAME)) {
@@ -346,6 +350,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(account, options);
 
 				// we could change the description here, but don't do that not to collide with ADD operation
 				// TODO add the functionality if needed
@@ -391,6 +396,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(group, options);
 
 		        for (Attribute attr : valuesToAdd) {
 		
@@ -435,6 +441,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(priv, options);
 
 		        for (Attribute attr : valuesToAdd) {
 		
@@ -471,6 +478,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (org == null) {
 		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(org, options);
 
 		        for (Attribute attr : valuesToAdd) {
 		
@@ -538,6 +546,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(account, options);
 
 				// we could change the description here, but don't do that not to collide with REMOVE operation
 				// TODO add the functionality if needed
@@ -576,6 +585,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(group, options);
 
 		        for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
@@ -617,6 +627,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(priv, options);
 
 		        for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
@@ -650,6 +661,7 @@ public class DummyConnectorLegacyUpdate extends AbstractDummyConnector implement
 		        if (org == null) {
 		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(org, options);
 
 		        for (Attribute attr : valuesToRemove) {
 		        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {

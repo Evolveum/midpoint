@@ -1627,7 +1627,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			} else {
 				throw new InvalidPasswordException("No runWithPassword");
 			}
-			object.setLastModifier(runAsUser);
+			object.setLastModifier(runAsAccount.getName());
 		} else {
 			object.setLastModifier(null);
 		}

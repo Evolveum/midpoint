@@ -3681,7 +3681,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		// Check if the account was created in the dummy resource
 		assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
 			.assertPassword(ACCOUNT_WILL_PASSWORD_321)
-			.assertLastModifier(ACCOUNT_WILL_USERNAME);
+			.assertLastModifier(getLastModifierName(ACCOUNT_WILL_USERNAME));
 		
 		accountWillCurrentPassword = ACCOUNT_WILL_PASSWORD_321;
 
@@ -3696,6 +3696,10 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 
 		assertSteadyResource();
+	}
+	
+	protected String getLastModifierName(String expected) {
+		return transformNameToResource(expected);
 	}
 
 	// test4xx reserved for subclasses

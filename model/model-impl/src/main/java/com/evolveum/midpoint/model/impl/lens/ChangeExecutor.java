@@ -63,7 +63,9 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -77,6 +79,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -116,6 +119,7 @@ public class ChangeExecutor {
 	@Autowired private PrismContext prismContext;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private Clock clock;
 	@Autowired private ModelObjectResolver objectResolver;
 	@Autowired private OperationalDataManager metadataManager;
@@ -1165,11 +1169,16 @@ public class ChangeExecutor {
 	}
 
 	private <F extends ObjectType> ProvisioningOperationOptions getProvisioningOptions(LensContext<F> context,
-			ModelExecuteOptions modelOptions) {
+			ModelExecuteOptions modelOptions, PrismObject<ShadowType> existingShadow, ObjectDelta<ShadowType> delta) throws SecurityViolationException {
 		if (modelOptions == null && context != null) {
 			modelOptions = context.getOptions();
 		}
 		ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(modelOptions);
+		
+		if (executeAsSelf(context, modelOptions, existingShadow, delta)) {
+			LOGGER.trace("Setting 'execute as self' provisioning option for {}", existingShadow);
+			provisioningOptions.setRunAsAccountOid(existingShadow.getOid());
+		}
 
 		if (context != null && context.getChannel() != null) {
 
@@ -1187,6 +1196,62 @@ public class ChangeExecutor {
 		}
 
 		return provisioningOptions;
+	}
+	
+	// This is a bit of black magic. We only want to execute as self if there a user is changing its own password
+	// and we also have old password value.
+	// Later, this should be improved. Maybe we need special model operation option for this? Or maybe it should be somehow
+	// automatically detected based on resource capabilities? We do not know yet. Therefore let's do the simplest possible
+	// thing. Otherwise we might do something that we will later regret.
+	private <F extends ObjectType> boolean executeAsSelf(LensContext<F> context,
+			ModelExecuteOptions modelOptions, PrismObject<ShadowType> existingShadow, ObjectDelta<ShadowType> delta) throws SecurityViolationException {
+		if (existingShadow == null) {
+			return false;
+		}
+		
+		if (!context.getChannel().equals(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI)) {
+			return false;
+		}
+		
+		if (delta == null) {
+			return false;
+		}
+		if (!delta.isModify()) {
+			return false;
+		}
+		PropertyDelta<ProtectedStringType> passwordDelta = delta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
+		if (passwordDelta == null) {
+			return false;
+		}
+		if (passwordDelta.getEstimatedOldValues() == null || passwordDelta.getEstimatedOldValues().isEmpty()) {
+			return false;
+		}
+		ProtectedStringType oldPassword = passwordDelta.getEstimatedOldValues().iterator().next().getValue();
+		if (!oldPassword.canGetCleartext()) {
+			return false;
+		}
+		
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return false;
+		}
+		if (!focusContext.canRepresent(UserType.class)) {
+			return false;
+		}
+		
+		MidPointPrincipal principal = securityContextManager.getPrincipal();
+		if (principal == null) {
+			return false;
+		}
+		UserType loggedInUser = principal.getUser();
+		if (loggedInUser == null) {
+			return false;
+		}
+		
+		if (!loggedInUser.getOid().equals(focusContext.getOid())) {
+			return false;
+		}
+		return true;
 	}
 
 	private <T extends ObjectType, F extends ObjectType> void logDeltaExecution(ObjectDelta<T> objectDelta,
@@ -1268,7 +1333,8 @@ public class ChangeExecutor {
 				throw new UnsupportedOperationException("NodeType cannot be added using model interface");
 			} else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
 
-				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options);
+				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options, 
+						(PrismObject<ShadowType>)objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>)change);
 
 				oid = addProvisioningObject(objectToAdd, context, objectContext, provisioningOptions,
 						resource, task, result);
@@ -1319,7 +1385,8 @@ public class ChangeExecutor {
 			} else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
 				taskManager.deleteNode(oid, result);
 			} else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options);
+				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
+						(PrismObject<ShadowType>)objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>)change);
 				try {
 					objectAfterModification = deleteProvisioningObject(objectTypeClass, oid, context, objectContext,
 							provisioningOptions, resource, task, result);
@@ -1387,7 +1454,8 @@ public class ChangeExecutor {
 			} else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
 				throw new UnsupportedOperationException("NodeType is not modifiable using model interface");
 			} else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options);
+				ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
+						(PrismObject<ShadowType>)objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>)delta);
 				String oid = modifyProvisioningObject(objectTypeClass, delta.getOid(),
 						delta.getModifications(), context, objectContext, provisioningOptions, resource,
 						task, result);

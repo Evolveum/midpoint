@@ -3237,31 +3237,5 @@ public class ShadowCache {
 //			throw ex;
 //		}
 	}
-	
-	private List<ItemDelta<?, ?>> createShadowLegacyCleanupAndReconciliationDeltas(PrismObject<ShadowType> currentShadow,
-			PrismObject<ShadowType> repoShadowBefore) throws SchemaException {
-		List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
 
-		S_ItemEntry i = DeltaBuilder.deltaFor(ShadowType.class, prismContext);
-		ShadowType repo = repoShadowBefore.asObjectable();
-		if (repo.getAttemptNumber() != null) {
-			i = i.item(ShadowType.F_ATTEMPT_NUMBER).replace();
-		}
-		if (repo.getFailedOperationType() != null) {
-			i = i.item(ShadowType.F_FAILED_OPERATION_TYPE).replace();
-		}
-		if (repo.getObjectChange() != null) {
-			i = i.item(ShadowType.F_OBJECT_CHANGE).replace();
-		}
-		if (repo.getResult() != null) {
-			i = i.item(ShadowType.F_RESULT).replace();
-		}
-		if (repo.getCredentials() != null) {
-			i = i.item(ShadowType.F_CREDENTIALS).replace();
-		}
-		itemDeltas.addAll(i.asItemDeltas());
-		itemDeltas.addAll(ProvisioningUtil.createShadowAttributesReconciliationDeltas(currentShadow, repoShadowBefore, getPrismContext()));
-		itemDeltas.addAll(ProvisioningUtil.createShadowActivationCleanupDeltas(repo, getPrismContext()));
-		return itemDeltas;
-	}
 }

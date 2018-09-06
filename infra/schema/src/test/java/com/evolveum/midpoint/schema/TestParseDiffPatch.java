@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -903,7 +903,7 @@ public class TestParseDiffPatch {
 		triggerToDelete.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/certification/trigger/close-stage/handler-3");
 
 		@SuppressWarnings({"unchecked", "raw"})
-        ObjectDelta<AccessCertificationCampaignType> delta = (ObjectDelta<AccessCertificationCampaignType>)
+        ObjectDelta<AccessCertificationCampaignType> delta =
 				DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, getPrismContext())
 				.item(AccessCertificationCampaignType.F_TRIGGER).delete(triggerToDelete)
 				.asObjectDelta(campaign.getOid());

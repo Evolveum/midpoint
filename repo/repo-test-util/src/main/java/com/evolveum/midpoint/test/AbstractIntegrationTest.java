@@ -1392,36 +1392,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void assertProtectedString(String message, String expectedClearValue, ProtectedStringType actualValue, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
-		switch (storageType) {
-
-			case NONE:
-				assertNull(message+": unexpected value: "+actualValue, actualValue);
-				break;
-
-			case ENCRYPTION:
-				assertNotNull(message+": no value", actualValue);
-				assertTrue(message+": unencrypted value: "+actualValue, actualValue.isEncrypted());
-				String actualClearPassword = protector.decryptString(actualValue);
-				assertEquals(message+": wrong value", expectedClearValue, actualClearPassword);
-				assertFalse(message+": unexpected hashed value: "+actualValue, actualValue.isHashed());
-				assertNull(message+": unexpected clear value: "+actualValue, actualValue.getClearValue());
-				break;
-
-			case HASHING:
-				assertNotNull(message+": no value", actualValue);
-				assertTrue(message+": value not hashed: "+actualValue, actualValue.isHashed());
-				ProtectedStringType expectedPs = new ProtectedStringType();
-				expectedPs.setClearValue(expectedClearValue);
-				assertTrue(message+": hash does not match, expected "+expectedClearValue+", but was "+actualValue,
-						protector.compare(actualValue, expectedPs));
-				assertFalse(message+": unexpected encrypted value: "+actualValue, actualValue.isEncrypted());
-				assertNull(message+": unexpected clear value: "+actualValue, actualValue.getClearValue());
-				break;
-
-			default:
-				throw new IllegalArgumentException("Unknown storage "+storageType);
-		}
-
+		IntegrationTestTools.assertProtectedString(message, expectedClearValue, actualValue, storageType, protector);
 	}
 
 	protected boolean compareProtectedString(String expectedClearValue, ProtectedStringType actualValue, CredentialsStorageTypeType storageType) throws EncryptionException, SchemaException {
@@ -2366,7 +2337,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         	oldPasswordPs = new ProtectedStringType();
         	oldPasswordPs.setClearValue(oldPassword);
         }
-        return (ObjectDelta<ShadowType>) deltaFor(ShadowType.class)
+        return deltaFor(ShadowType.class)
         	.item(SchemaConstants.PATH_PASSWORD_VALUE)
         		.oldRealValue(oldPasswordPs)
         		.replace(newPasswordPs)

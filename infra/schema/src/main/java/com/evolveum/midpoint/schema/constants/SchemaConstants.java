@@ -399,12 +399,24 @@ public abstract class SchemaConstants {
 
 	public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
+	
+	// Init channel, used when system is initializing itself
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
 	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
+	
 	public static final QName CHANNEL_GUI_SELF_REGISTRATION_QNAME = new QName(NS_GUI_CHANNEL, "selfRegistration");
 	public static final String CHANNEL_GUI_SELF_REGISTRATION_URI = QNameUtil.qNameToUri(CHANNEL_GUI_SELF_REGISTRATION_QNAME);
+	
+	// Channel for self-service part of the user interface. These are the pages when user is changing his own data.
+	// E.g. update of his own profile and password change are considered to be self-service.
+	public static final QName CHANNEL_GUI_SELF_SERVICE_QNAME = new QName(NS_GUI_CHANNEL, "selfService");
+	public static final String CHANNEL_GUI_SELF_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_GUI_SELF_SERVICE_QNAME);
+	
+	// Password reset channel. This is *reset*, which means that the user does not know the old password and cannot log in.
 	public static final QName CHANNEL_GUI_RESET_PASSWORD_QNAME = new QName(NS_GUI_CHANNEL, "resetPassword");
 	public static final String CHANNEL_GUI_RESET_PASSWORD_URI = QNameUtil.qNameToUri(CHANNEL_GUI_RESET_PASSWORD_QNAME);
+	
+	// Catch-all channel for all user operations in user interface.
 	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
 	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
 

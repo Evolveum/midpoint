@@ -27,16 +27,22 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik
@@ -127,6 +133,21 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	
 	private ActivationType getActivation() {
 		return getObject().asObjectable().getActivation();
+	}
+	
+	public UserAsserter<RA> assertPassword(String expectedClearPassword) throws SchemaException, EncryptionException {
+		assertPassword(expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertPassword(String expectedClearPassword, CredentialsStorageTypeType storageType) throws SchemaException, EncryptionException {
+		CredentialsType creds = getObject().asObjectable().getCredentials();
+		assertNotNull("No credentials in "+desc(), creds);
+		PasswordType password = creds.getPassword();
+		assertNotNull("No password in "+desc(), password);
+		ProtectedStringType protectedActualPassword = password.getValue();
+		IntegrationTestTools.assertProtectedString("Password for "+desc(), expectedClearPassword, protectedActualPassword, storageType, getProtector());
+		return this;
 	}
 	
 	public UserAsserter<RA> display() {

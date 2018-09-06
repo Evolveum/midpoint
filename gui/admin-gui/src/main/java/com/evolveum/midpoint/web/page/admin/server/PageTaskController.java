@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class PageTaskController implements Serializable {
 			if (property == null) {
 				result.recordWarning("Token is not present in this task.");		// should be treated by isVisible
 			} else {
-				final ObjectDelta<? extends ObjectType> delta = (ObjectDelta<? extends ObjectType>)
+				final ObjectDelta<? extends ObjectType> delta =
 						DeltaBuilder.deltaFor(TaskType.class, parentPage.getPrismContext())
 								.item(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition()).replace()
 								.asObjectDelta(parentPage.getTaskDto().getOid());

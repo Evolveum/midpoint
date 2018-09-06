@@ -190,7 +190,7 @@ public class ProjectionCredentialsProcessor {
 
 		boolean evaluateWeak = getEvaluateWeak(projCtx);
 
-		final ItemDeltaItem<PrismPropertyValue<PasswordType>, PrismPropertyDefinition<ProtectedStringType>> userPasswordIdi = focusContext
+		final ItemDeltaItem<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> userPasswordIdi = focusContext
 				.getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
 
 		ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
@@ -246,6 +246,30 @@ public class ProjectionCredentialsProcessor {
 								// mapping then account initialization won't be possible.
 								LOGGER.trace("We have primary password delta in projection, skipping credentials processing");
 								return false;
+							}
+						}
+					}
+					
+					Collection<PrismPropertyValue<ProtectedStringType>> minusSet = outputTriple.getMinusSet();
+					if (minusSet != null && !minusSet.isEmpty()) {
+						if (!canGetCleartext(minusSet)) {
+							// We have hashed values in minus set. That is not great, we won't be able to get
+							// cleartext from that if we need it (e.g. for runAs in provisioning).
+							// Therefore try to get old value from user password delta. If that matches with
+							// hashed value then we have the cleartext.
+							ProtectedStringType oldProjectionPassword = minusSet.iterator().next().getRealValue();
+							PropertyDelta<ProtectedStringType> userPasswordDelta = (PropertyDelta<ProtectedStringType>) userPasswordIdi.getDelta();
+							Collection<PrismPropertyValue<ProtectedStringType>> userPasswordDeltaOldValues = userPasswordDelta.getEstimatedOldValues();
+							if (userPasswordDeltaOldValues != null && !userPasswordDeltaOldValues.isEmpty()) {
+								ProtectedStringType oldUserPassword = userPasswordDeltaOldValues.iterator().next().getRealValue();
+								try {
+									if (oldUserPassword.canGetCleartext() && protector.compare(oldUserPassword, oldProjectionPassword)) {
+										outputTriple.clearMinusSet();
+										outputTriple.addToMinusSet(new PrismPropertyValue<>(oldUserPassword));
+									}
+								} catch (EncryptionException e) {
+									throw new SystemException(e.getMessage(), e);
+								}
 							}
 						}
 					}

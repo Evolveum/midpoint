@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ public class TestAdHocCertification extends AbstractCertificationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         @SuppressWarnings({ "unchecked", "raw" })
-		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_DESCRIPTION).replace("new description")
 				.item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(USER_INDIGO_OID);
