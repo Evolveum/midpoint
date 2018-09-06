@@ -82,8 +82,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     private static final String ID_SHOPPING_CART_BUTTONS_PANEL = "shoppingCartButtonsPanel";
     private static final String ID_ADD_TO_CART_BUTTON = "addToCartButton";
-    private static final String ID_SHOPPING_CART_BUTTON = "shoppingCartButton";
-    private static final String ID_ITEMS_COUNT = "itemsCount";
 
 	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel,
 			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
@@ -109,7 +107,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			public boolean isVisible(){
 				//show panel only in case if user came to object details from
 				// Role Catalog page
-				return PageAssignmentShoppingCart.class.equals(getPreviousPage(parentPage));
+				return PageAssignmentShoppingCart.class.equals(WebComponentUtil.getPreviousPageClass(parentPage));
 			}
 		});
 		getMainForm().add(shoppingCartButtonsPanel);
@@ -127,7 +125,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			public void onClick(AjaxRequestTarget target) {
 				AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(getObject().asObjectable(), UserDtoStatus.ADD, parentPage);
 				storage.getAssignmentShoppingCart().add(dto);
-				target.add(shoppingCartButtonsPanel);
+				parentPage.reloadShoppingCartIcon(target);
 			}
 		};
 		addToCartButton.add(AttributeAppender.append("class", new LoadableModel<String>() {
@@ -152,61 +150,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 		addToCartButton.add(AttributeAppender.append("title",
 				AssignmentsUtil.getShoppingCartAssignmentsLimitReachedTitleModel(parentPage)));
 		shoppingCartButtonsPanel.add(addToCartButton);
-
-		AjaxButton shoppingCartButton = new AjaxButton(ID_SHOPPING_CART_BUTTON) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-				attributes.setChannel(new AjaxChannel("blocking", AjaxChannel.Type.ACTIVE));
-			}
-
-			@Override
-			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-				parentPage.navigateToNext(PageAssignmentsList.class);
-			}
-		};
-		shoppingCartButton.setOutputMarkupId(true);
-		shoppingCartButtonsPanel.add(shoppingCartButton);
-
-		Label cartItemsCount = new Label(ID_ITEMS_COUNT, new LoadableModel<String>(true) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String load(){
-				return Integer.toString(storage.getAssignmentShoppingCart().size());
-			}
-		});
-		cartItemsCount.add(new VisibleEnableBehaviour() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public boolean isVisible() {
-				if (storage.getAssignmentShoppingCart().size() == 0) {
-					return false;
-				} else {
-					return true;
-				}
-			}
-		});
-		cartItemsCount.setOutputMarkupId(true);
-		shoppingCartButton.add(cartItemsCount);
-
-	}
-
-	private Class getPreviousPage(PageAdminObjectDetails<R> parentPage){
-		List<Breadcrumb> breadcrumbs = parentPage.getBreadcrumbs();
-		if (breadcrumbs == null || breadcrumbs.size() < 2){
-			return null;
-		}
-		Breadcrumb previousBreadcrumb = breadcrumbs.get(breadcrumbs.size() - 2);
-		Class page = null;
-		if (previousBreadcrumb instanceof BreadcrumbPageClass){
-			page = ((BreadcrumbPageClass) previousBreadcrumb).getPage();
-		} else if (previousBreadcrumb instanceof BreadcrumbPageInstance){
-			page = ((BreadcrumbPageInstance) previousBreadcrumb).getPage().getClass();
-		}
-		return page;
 	}
 
 	@Override

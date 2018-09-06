@@ -50,25 +50,25 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     private static final String ID_ADDITIONAL_INFO = "additionalInfo";
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-                             IModel<String> label, String labelSize, String textSize, boolean required) {
-        this(id, value, choices, renderer, label, null, false, labelSize, textSize, required);
+                             IModel<String> label, String labelCssClass, String textCssClass, boolean required) {
+        this(id, value, choices, renderer, label, null, false, labelCssClass, textCssClass, required);
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-                             IModel<String> label, String tooltipKey, boolean isTooltipInModal,  String labelSize, String textSize, boolean required) {
+                             IModel<String> label, String tooltipKey, boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required) {
         super(id, value);
 
-        initLayout(choices, renderer, label, tooltipKey, isTooltipInModal, labelSize, textSize, required);
+        initLayout(choices, renderer, label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required);
     }
 
     private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, final String tooltipKey,
-                            boolean isTooltipInModal, String labelSize, String textSize, final boolean required) {
+                            boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
         Label l = new Label(ID_LABEL, label);
-        if (StringUtils.isNotEmpty(labelSize)) {
-            labelContainer.add(AttributeAppender.prepend("class", labelSize));
+        if (StringUtils.isNotEmpty(labelCssClass)) {
+            labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
         }
         labelContainer.add(l);
 
@@ -109,8 +109,8 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 		labelContainer.add(requiredContainer);
 
         WebMarkupContainer selectWrapper = new WebMarkupContainer(ID_SELECT_WRAPPER);
-        if (StringUtils.isNotEmpty(textSize)) {
-            selectWrapper.add(AttributeAppender.prepend("class", textSize));
+        if (StringUtils.isNotEmpty(textCssClass)) {
+            selectWrapper.add(AttributeAppender.prepend("class", textCssClass));
         }
         add(selectWrapper);
 

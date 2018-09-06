@@ -90,9 +90,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingConfigurationTabPanel.class);
 	
 	private static final String ID_LOGGING = "logging";
-	private static final String ID_APPENDERS_HEADER = "appendersHeader";
 	private static final String ID_APPENDERS = "appenders";
-	private static final String ID_LOGGERS_HEADER = "loggersHeader";
     private static final String ID_LOGGERS = "loggers";
     private static final String ID_AUDITING = "audit";
 
@@ -120,17 +118,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
     			new ContainerWrapperFromObjectWrapperModel<ClassLoggerConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER));
 
     	
-    	PrismContainerHeaderPanel<ClassLoggerConfigurationType> loggersHeader = new PrismContainerHeaderPanel<ClassLoggerConfigurationType>(ID_LOGGERS_HEADER, loggerModel) {
-    		
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected boolean isAddButtonVisible() {
-    			return false;
-    		};
-    	};
-    	add(loggersHeader);
-    	
     	MultivalueContainerListPanel<ClassLoggerConfigurationType> loggersMultivalueContainerListPanel = new MultivalueContainerListPanel<ClassLoggerConfigurationType>(ID_LOGGERS, loggerModel,
     			tableIdLoggers, itemPerPageLoggers, pageStorageLoggers) {
 			
@@ -139,6 +126,13 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			@Override
 			protected List<ContainerValueWrapper<ClassLoggerConfigurationType>> postSearch(
 					List<ContainerValueWrapper<ClassLoggerConfigurationType>> items) {
+				for (int i = 0; i < items.size(); i++) {
+					ContainerValueWrapper<ClassLoggerConfigurationType> logger = items.get(i);
+					if (ProfilingConfigurationTabPanel.LOGGER_PROFILING.equals(((ClassLoggerConfigurationType)logger.getContainerValue().getRealValue()).getPackage())) {
+						items.remove(logger);
+						continue;
+					}
+				}
 				return items;
 			}
 			
@@ -201,17 +195,6 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 		IModel<ContainerWrapper<AppenderConfigurationType>> appenderModel =
     			new ContainerWrapperFromObjectWrapperModel<AppenderConfigurationType, SystemConfigurationType>(Model.of(getModelObject().getObjectWrapper()), new ItemPath(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_APPENDER));
 
-    	PrismContainerHeaderPanel<AppenderConfigurationType> appenderHeader = new PrismContainerHeaderPanel<AppenderConfigurationType>(ID_APPENDERS_HEADER, appenderModel) {
-    		
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected boolean isAddButtonVisible() {
-    			return false;
-    		};
-    	};
-    	add(appenderHeader);
-    	
     	MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType> appendersMultivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType>(ID_APPENDERS, appenderModel,
     			tableIdAppenders, itemPerPageAppenders, pageStorageAppenders) {
 			
@@ -363,7 +346,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			}
 			
 			@Override
-			protected void getBasicContainerValuePanel(String idPanel) {
+			protected void addBasicContainerValuePanel(String idPanel) {
 				Form form = new Form<>("form");
 		    	ItemPath itemPath = getModelObject().getPath();
 		    	IModel<ContainerValueWrapper<AppenderConfigurationType>> model = getModel();

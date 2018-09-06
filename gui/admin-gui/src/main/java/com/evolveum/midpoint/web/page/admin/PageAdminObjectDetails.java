@@ -146,7 +146,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 					name = WebComponentUtil.getName(getObjectWrapper().getObject());
 				}
 
-				String key = "PageAdminObjectDetails.title.edit" + getCompileTimeClass().getSimpleName();
+				String key = (getObjectWrapper().isReadonly() ? "PageAdminObjectDetails.title.view" : "PageAdminObjectDetails.title.edit")
+						+ getCompileTimeClass().getSimpleName();
 				return createStringResource(key, name).getObject();
 			}
 		};

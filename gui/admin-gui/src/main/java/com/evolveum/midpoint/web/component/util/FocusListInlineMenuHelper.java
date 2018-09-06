@@ -78,7 +78,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 		this.focusListComponent = focusListComponent;
 	}
 
-	public List<InlineMenuItem> createRowActions(boolean isHeader) {
+	public List<InlineMenuItem> createRowActions() {
 		List<InlineMenuItem> menu = new ArrayList<>();
 		menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.enable")) {
 			private static final long serialVersionUID = 1L;

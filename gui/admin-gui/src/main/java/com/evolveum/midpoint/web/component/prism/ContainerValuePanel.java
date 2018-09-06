@@ -56,6 +56,7 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerValuePanel.class);
     private static final String ID_HEADER = "header";
+    private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     private static final String STRIPED_CLASS = "striped";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
 
@@ -146,8 +147,8 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 		wrapper.setShowEmpty(!wrapper.isShowEmpty(), false);
 			
 		wrapper.computeStripes();
-		addOrReplacePropertiesAndContainers(model, form, isPanelVisible, true);
-		target.add(ContainerValuePanel.this);
+//		addOrReplaceProperties(model, form, isPanelVisible, true);
+		target.add(addOrReplaceProperties(model, form, isPanelVisible, true));
 		target.add(getPageBase().getFeedbackPanel());
 	}
 
@@ -172,8 +173,11 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
         addOrReplaceContainers(model, form, isPanaleVisible, isToBeReplaced);
     }
     
-    private <IW extends ItemWrapper> void addOrReplaceProperties(IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanalVisible, boolean isToBeReplaced){
+    private <IW extends ItemWrapper> WebMarkupContainer addOrReplaceProperties(IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanalVisible, boolean isToBeReplaced){
     	isVisibleShowMoreButton = false;
+    	
+    	WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
+    	propertiesLabel.setOutputMarkupId(true);
     	
     	ListView<IW> properties = new ListView<IW>("properties",
             new PropertyModel<>(model, "properties")) {
@@ -199,9 +203,7 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 					});
 	                item.add(propertyPanel);
 	                item.add(AttributeModifier.append("class", createStyleClassModel((IModel<ItemWrapper>) item.getModel())));
-	                if(propertyPanel.isVisible(isPanalVisible)
-	                		|| (!((PropertyOrReferenceWrapper)item.getModel().getObject()).canAddAndShowEmpty()  && !((PropertyOrReferenceWrapper)item.getModel().getObject()).isShowEmpty())
-	                		|| (!((PropertyOrReferenceWrapper)item.getModel().getObject()).canReadOrModifyAndShowEmpty()  && !((PropertyOrReferenceWrapper)item.getModel().getObject()).isShowEmpty())) {
+	                if(propertyPanel.isVisible(isPanalVisible) || ((PropertyOrReferenceWrapper)item.getModel().getObject()).isOnlyHide()) {
 	                	isVisibleShowMoreButton = true;
 	                }
 	                return;
@@ -219,10 +221,13 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
         properties.setReuseItems(true);
         properties.setOutputMarkupId(true);
         if (isToBeReplaced) {
-            replace(properties);
+        	replace(propertiesLabel);
+        	propertiesLabel.add(properties);
         } else {
-            add(properties);
+        	add(propertiesLabel);
+        	propertiesLabel.add(properties);
         }
+        return propertiesLabel;
     }
     
     private <IW extends ItemWrapper> void addOrReplaceContainers(IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanalVisible, boolean isToBeReplaced){

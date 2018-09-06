@@ -77,10 +77,6 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
 			model.getObject().setShowOnTopLevel(isModelOnTopLevel);
 		}
         
-        if(model.getObject() != null && model.getObject().getPath() != null) {
-        	setExtendedForEmptyContainers(model);
-        }
-        
         LOGGER.trace("Creating container panel for {}", model.getObject());
 
         //TODO: visible behaviour??
@@ -99,6 +95,16 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
         	add(AttributeModifier.append("class", "prism-multivalue-container"));
         }
         
+    }
+    
+    @Override
+    protected void onConfigure() {
+    	
+    	if(getModel().getObject() != null && getModel().getObject().getPath() != null) {
+        	setExtendedForEmptyContainers(getModel());
+        }
+
+    	super.onConfigure();
     }
 
     private void setExtendedForEmptyContainers(IModel<ContainerWrapper<C>> model) {
@@ -145,7 +151,6 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
 				} 
 				if(!getModelObject().isShowOnTopLevel()) {
 					((ContainerWrapper<C>)itemWrapper).setExpanded(true);
-//					((ContainerWrapper<C>)itemWrapper).setShowEmpty(true, false);
 				} else {
 					((ContainerWrapper<C>)itemWrapper).setExpanded(expandingHigherLevelContainerValue);
 				}

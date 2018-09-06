@@ -149,6 +149,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:experimental>true</a:experimental>
+								<a:displayName>PolicyConstraintsType.objectMinAssigneesViolation</a:displayName>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -161,6 +162,7 @@
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:experimental>true</a:experimental>
+								<a:displayName>PolicyConstraintsType.objectMaxAssigneesViolation</a:displayName>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -619,6 +621,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+				<a:displayName>ExclusionPolicyConstraintType.details</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>

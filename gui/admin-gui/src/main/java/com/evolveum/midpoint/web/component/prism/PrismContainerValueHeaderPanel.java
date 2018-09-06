@@ -17,6 +17,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -236,6 +237,11 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 
 	@Override
 	protected void initHeaderLabel(){
+		WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        labelContainer.setOutputMarkupId(true);
+        
+        add(labelContainer);
+        
 		String displayName = getLabel();
 		if (org.apache.commons.lang3.StringUtils.isEmpty(displayName)) {
 			displayName = "displayName.not.set";
@@ -254,7 +260,8 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 		};
 		labelComponent.setOutputMarkupId(true);
 		labelComponent.add(AttributeAppender.append("style", "cursor: pointer;"));
-		add(labelComponent);
+		labelContainer.add(labelComponent);
+		labelContainer.add(getHelpLabel());
 
 	}
 	
@@ -357,5 +364,15 @@ public class PrismContainerValueHeaderPanel<C extends Containerable> extends Pri
 	@Override
 	public boolean isButtonsVisible() {
 		return PrismContainerValueHeaderPanel.this.getModelObject().isExpanded();
+	}
+	
+	@Override
+	protected String getHelpText() {
+		return WebComponentUtil.loadHelpText(new Model<ContainerWrapper<C>>(getModelObject().getContainer()), PrismContainerValueHeaderPanel.this);
+	}
+	
+	@Override
+	protected boolean isVisibleHelpText() {
+		return getModelObject().getDefinition().isSingleValue();
 	}
 }

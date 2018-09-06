@@ -23,42 +23,58 @@ import com.evolveum.midpoint.web.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.cas.web.CasAuthenticationFilter;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+
+import java.util.Arrays;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 @Order(SecurityProperties.BASIC_AUTH_ORDER - 1)
 @Configuration
-//TODO
-//@EnableGlobalMethodSecurity(securedEnabled = true)
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
+    private Environment environment;
+    @Autowired
     private AuthenticationProvider authenticationProvider;
     @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
     private MidPointGuiAuthorizationEvaluator accessDecisionManager;
+
+    @Value("${auth.sso.header:SM_USER}")
+    private String principalRequestHeader;
+
+    @Value("${auth.cas.server.url:}")
+    private String casServerUrl;
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
     @Value("${auth.logout.url:/}")
     private String authLogoutUrl;
-    
+
+    @Profile("!cas")
     @Bean
-    public WicketLoginUrlAuthenticationEntryPoint wicketAuthenticationEntryPoint() {
+    public AuthenticationEntryPoint authenticationEntryPoint() {
         return new WicketLoginUrlAuthenticationEntryPoint("/login");
     }
 
@@ -69,25 +85,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new MidPointGuiAuthorizationEvaluator(securityEnforcer, securityContextManager, taskManager);
     }
 
-    @Profile("sso")
-    @Bean
-    public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter(AuthenticationManager authenticationManager) {
-        RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
-        filter.setPrincipalRequestHeader("SM_USER");
-        filter.setAuthenticationManager(authenticationManager);
-
-        return filter;
-    }
-
     @Override
     public void configure(WebSecurity web) throws Exception {
-    	// Web (SOAP) services
+        // Web (SOAP) services
         web.ignoring().antMatchers("/model/**");
         web.ignoring().antMatchers("/ws/**");
 
         // REST service
         web.ignoring().antMatchers("/rest/**");
-        
+
         // Special intra-cluster service to download and delete report outputs
         web.ignoring().antMatchers("/report");
 
@@ -135,7 +141,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(authenticationSuccessHandler()).permitAll();
 
         http.exceptionHandling()
-                .authenticationEntryPoint(wicketAuthenticationEntryPoint())
+                .authenticationEntryPoint(authenticationEntryPoint())
                 .accessDeniedHandler(accessDeniedHandler());
 
         if (!csrfEnabled) {
@@ -143,6 +149,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
         http.headers().disable();
+
+        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
+            http.addFilterAt(casFilter(), CasAuthenticationFilter.class);
+            http.addFilterBefore(requestSingleLogoutFilter(), LogoutFilter.class);
+//            http.addFilterBefore(singleSignOutFilter(), CasAuthenticationFilter.class);
+        }
+
+        if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("sso"))) {
+            http.addFilterBefore(requestHeaderAuthenticationFilter(), LogoutFilter.class);
+        }
+    }
+
+    @Bean
+    @Override
+    protected AuthenticationManager authenticationManager() throws Exception {
+        return super.authenticationManager();
     }
 
     @Bean
@@ -150,9 +172,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new MidPointAccessDeniedHandler();
     }
 
-    @Profile({"!ldap", "!cas"})
+    @Profile("default")
+    @Conditional(DefaultProfileOnlyCondition.class)
     @Bean
-    public AuthenticationProvider authenticationProvider() {
+    public AuthenticationProvider midPointAuthenticationProvider() throws Exception {
         return new MidPointAuthenticationProvider();
     }
 
@@ -176,6 +199,58 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         handler.setDefaultTargetUrl(authLogoutUrl);
 
         return handler;
+    }
+
+    @Profile("sso")
+    @Bean
+    public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() {
+        RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
+        filter.setPrincipalRequestHeader(principalRequestHeader);
+        filter.setAuthenticationManager(authenticationManager);
+
+        return filter;
+    }
+
+    @Profile("cas")
+    @Bean
+    public CasAuthenticationFilter casFilter() {
+        CasAuthenticationFilter filter = new CasAuthenticationFilter();
+        filter.setAuthenticationManager(authenticationManager);
+
+        return filter;
+    }
+
+    @Profile("cas")
+    @Bean
+    public LogoutFilter requestSingleLogoutFilter() {
+        LogoutFilter filter = new LogoutFilter(casServerUrl + "/logout", new SecurityContextLogoutHandler());
+        filter.setFilterProcessesUrl("/j_spring_cas_security_logout");
+
+        return filter;
+    }
+
+//    @Profile("cas")
+//    @Bean
+//    public SingleSignOutFilter singleSignOutFilter() {
+//        SingleSignOutFilter filter = new SingleSignOutFilter();
+//        filter.setCasServerUrlPrefix(casServerUrl);
+//
+//        return filter;
+//    }
+
+    private static class DefaultProfileOnlyCondition implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+
+            if (context.getEnvironment() == null) {
+                return true;
+            }
+
+            String[] activeProfiles = context.getEnvironment().getActiveProfiles();
+
+            return !Arrays.stream(activeProfiles).anyMatch(p -> p.equalsIgnoreCase("cas") || p.equalsIgnoreCase("ldap"));
+        }
     }
 }
 
