@@ -1209,7 +1209,7 @@ public class ChangeExecutor {
 			return false;
 		}
 		
-		if (!context.getChannel().equals(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI)) {
+		if (!SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI.equals(context.getChannel())) {
 			return false;
 		}
 		
