@@ -27,7 +27,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,6 +34,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
 /**
@@ -56,6 +56,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private boolean csrfEnabled;
     @Value("${auth.logout.url:/}")
     private String authLogoutUrl;
+    @Value("${auth.sso.header:SM_USER}")
+    private String principalRequestHeader;
     
     @Bean
     public WicketLoginUrlAuthenticationEntryPoint wicketAuthenticationEntryPoint() {
@@ -71,10 +73,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Profile("sso")
     @Bean
-    public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() throws Exception {
         RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
-        filter.setPrincipalRequestHeader("SM_USER");
-        filter.setAuthenticationManager(authenticationManager);
+        filter.setPrincipalRequestHeader(principalRequestHeader);
+        filter.setAuthenticationManager(authenticationManager());
+
+        getHttp().addFilterBefore(filter, LogoutFilter.class);
 
         return filter;
     }
