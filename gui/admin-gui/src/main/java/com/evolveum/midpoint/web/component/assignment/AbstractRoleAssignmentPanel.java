@@ -22,6 +22,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -258,24 +260,18 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
 	}
 
-	protected ObjectQuery createObjectQuery() {
-            return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                    .block()
-                    .not()
-                    .item(new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF))
-                    .isNull()
-                    .endBlock()
-                    .or()
-                    .block()
-                    .not()
-                    .item(new ItemPath(AssignmentType.F_TARGET_REF))
-                    .ref(SchemaConstants.ORG_DEPUTY)
-                    .endBlock()
-                    .and()
-                    .not()
-                    .exists(AssignmentType.F_POLICY_RULE)
-                    .build();
-        }
+    protected ObjectQuery createObjectQuery() {
+        ObjectFilter deputyFilter = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+                .item(new ItemPath(AssignmentType.F_TARGET_REF))
+                .ref(SchemaConstants.ORG_DEPUTY)
+                .buildFilter();
+        ObjectQuery query = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+                .not()
+                .exists(AssignmentType.F_POLICY_RULE)
+                .build();
+        query.addFilter(NotFilter.createNot(deputyFilter));
+        return query;
+    }
 
     private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
 	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){

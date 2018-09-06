@@ -124,17 +124,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
 
     @Override
     protected ObjectQuery createObjectQuery() {
-        ObjectQuery query = super.createObjectQuery();
-        ObjectFilter filter = query.getFilter();
-        ObjectQuery entitlementsQuery = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+        return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
                 .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
-        if (filter != null){
-            query.setFilter(AndFilter.createAnd(filter, entitlementsQuery.getFilter()));
-        } else {
-            query.setFilter(entitlementsQuery.getFilter());
-        }
-        return query;
     }
     
     @Override
