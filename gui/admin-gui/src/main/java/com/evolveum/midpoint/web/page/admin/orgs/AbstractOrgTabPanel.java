@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -88,8 +89,10 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
                             		private static final long serialVersionUID = 1L;
 
                                     protected void onEvent(final AjaxRequestTarget target) {
-                                        SessionStorage storage = getPageBase().getSessionStorage();
-                                        storage.getUsers().setSelectedTabId(tabId);
+                                        UsersStorage usersStorage = getUsersSessionStorage();
+                                        if (usersStorage != null) {
+                                            usersStorage.setSelectedTabId(tabId);
+                                        }
                                     }
                                 }
                             );
@@ -108,12 +111,14 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
             }
         };
 
-        final SessionStorage storage = getPageBase().getSessionStorage();
-        int selectedTab = storage.getUsers().getSelectedTabId() == -1 ? 0 : storage.getUsers().getSelectedTabId();
         List<ITab> tabsList = tabModel.getObject();
-        if (tabsList == null || (selectedTab > tabsList.size() - 1)) {
-            storage.getUsers().setSelectedTabId(0);
-            selectedTab = 0;
+        UsersStorage usersStorage = getUsersSessionStorage();
+        int selectedTab = 0;
+        if (usersStorage != null) {
+            selectedTab = usersStorage.getSelectedTabId() == -1 ? 0 : usersStorage.getSelectedTabId();
+            if (tabsList == null || (selectedTab > tabsList.size() - 1)) {
+                usersStorage.setSelectedTabId(0);
+            }
         }
         AjaxTabbedPanel<ITab> tabbedPanel = new AjaxTabbedPanel<ITab>(ID_TABS, tabModel.getObject(), new Model<>(selectedTab), null){
 
@@ -196,12 +201,18 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
 
     protected void changeTabPerformed(int index){
         if (roots != null && index >= 0 && index <= roots.size()){
-            SessionStorage storage = getPageBase().getSessionStorage();
-            SelectableBean<OrgType> selected = new SelectableBean<>();
-            selected.setValue(roots.get(index).asObjectable());
-            storage.getUsers().setSelectedItem(selected);
-            storage.getUsers().setSelectedTabId(index);
+            UsersStorage usersStorage = getUsersSessionStorage();
+            if (usersStorage != null) {
+                SelectableBean<OrgType> selected = new SelectableBean<>();
+                selected.setValue(roots.get(index).asObjectable());
+                usersStorage.setSelectedItem(selected);
+                usersStorage.setSelectedTabId(index);
+            }
         }
+    }
+
+    protected UsersStorage getUsersSessionStorage(){
+        return getPageBase().getSessionStorage().getUsers();
     }
 
 }
