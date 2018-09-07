@@ -77,6 +77,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 			else {
 				ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
 				return QueryBuilder.queryFor(searchType.getClassDefinition(), getPageBase().getPrismContext())
+						.type(searchType.getClassDefinition())
 						.isDirectChildOf(ref.asReferenceValue()).build();
 			}
 		}
@@ -85,6 +86,7 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 		ObjectReferenceType ref = MemberOperationsHelper.createReference(getModelObject(), getSelectedRelation());
 		ObjectQuery query = QueryBuilder.queryFor(searchType.getClassDefinition(), getPageBase().getPrismContext())
+				.type(searchType.getClassDefinition())
 				.isChildOf(ref.asReferenceValue()).build();
 
 		if (LOGGER.isTraceEnabled()) {
