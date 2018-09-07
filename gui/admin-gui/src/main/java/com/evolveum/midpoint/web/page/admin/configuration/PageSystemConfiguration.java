@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,52 +17,51 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.page.admin.configuration.component.*;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
+
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.GlobalPolicyRuleTabPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.LoggingConfigurationTabPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.NotificationConfigTabPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ObjectPolicyConfigurationTabPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ProfilingConfigurationTabPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ContainerOfSystemConfigurationPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigurationSummaryPanel;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DiffUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 
 /**
  * @author lazyman
+ * @author skublik
  */
 @PageDescriptor(
 		urls = {
-				@Url(mountUrl = "/admin/config", matchUrlForSecurity = "/admin/config"),
-				@Url(mountUrl = "/admin/config/system"),
+				@Url(mountUrl = "/admin/config/new", matchUrlForSecurity = "/admin/config/new"),
+				//@Url(mountUrl = "/admin/config/system/new"),
 		},
 		action = {
 				@AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
@@ -72,7 +71,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 						label = "PageSystemConfiguration.auth.configSystemConfiguration.label",
 						description = "PageSystemConfiguration.auth.configSystemConfiguration.description")
 		})
-public class PageSystemConfiguration extends PageAdminConfiguration {
+public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfigurationType> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -81,88 +80,51 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 	public static final String SERVER_LIST_SIZE = "mailServerListSize";
 
 	public static final int CONFIGURATION_TAB_BASIC = 0;
-	public static final int CONFIGURATION_TAB_NOTIFICATION = 1;
-	public static final int CONFIGURATION_TAB_LOGGING = 2;
-	public static final int CONFIGURATION_TAB_PROFILING = 3;
-	public static final int CONFIGURATION_TAB_ADMIN_GUI = 4;
+	public static final int CONFIGURATION_TAB_OBJECT_POLICY = 1;
+	public static final int CONFIGURATION_TAB_GLOBAL_POLICY_RULE = 2;
+	public static final int CONFIGURATION_TAB_GLOBAL_ACCOUNT_SYNCHRONIZATION = 3;
+	public static final int CONFIGURATION_TAB_CLEANUP_POLICY = 4;
+	public static final int CONFIGURATION_TAB_NOTIFICATION = 5;
+	public static final int CONFIGURATION_TAB_LOGGING = 6;
+	public static final int CONFIGURATION_TAB_PROFILING = 7;
+	public static final int CONFIGURATION_TAB_ADMIN_GUI = 8;
+	public static final int CONFIGURATION_TAB_WORKFLOW = 9;
+	public static final int CONFIGURATION_TAB_ROLE_MANAGEMENT = 10;
+	public static final int CONFIGURATION_TAB_INTERNALS = 11;
+	public static final int CONFIGURATION_TAB_DEPLOYMENT_INFORMATION = 12;
+	public static final int CONFIGURATION_TAB_ACCESS_CERTIFICATION = 13;
+	public static final int CONFIGURATION_TAB_INFRASTRUCTURE = 14;
+	public static final int CONFIGURATION_TAB_FULL_TEXT_SEARCH = 15;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
-
-	private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
-	private static final String TASK_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
-	private static final String TASK_UPDATE_SYSTEM_CONFIG = DOT_CLASS + "updateSystemConfiguration";
-
-	private static final String ID_MAIN_FORM = "mainForm";
-	private static final String ID_TAB_PANEL = "tabPanel";
-	private static final String ID_CANCEL = "cancel";
-	private static final String ID_SAVE = "save";
+	
+	private static final String ID_SUMM_PANEL = "summaryPanel";
 
 	public static final String ROOT_APPENDER_INHERITANCE_CHOICE = "(Inherit root)";
 
-	private LoggingConfigPanel loggingConfigPanel;
-	private ProfilingConfigPanel profilingConfigPanel;
-	private SystemConfigPanel systemConfigPanel;
-	private AdminGuiConfigPanel adminGuiConfigPanel;
-	private NotificationConfigPanel notificationConfigPanel;
-
-	private LoadableModel<SystemConfigurationDto> model;
-
-	private boolean initialized;
-
 	public PageSystemConfiguration() {
-		this(null);
+		initialize(null);
 	}
-
+	
 	public PageSystemConfiguration(PageParameters parameters) {
-		super(parameters);
-
-		model = new LoadableModel<SystemConfigurationDto>(false) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected SystemConfigurationDto load() {
-				return loadSystemConfiguration();
-			}
-		};
-
-		initLayout();
+        getPageParameters().overwriteWith(parameters);
+		initialize(null);
 	}
-
-	private SystemConfigurationDto loadSystemConfiguration() {
-		Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
-		OperationResult result = new OperationResult(TASK_GET_SYSTEM_CONFIG);
-
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
-				GetOperationOptions.createResolve(), SystemConfigurationType.F_DEFAULT_USER_TEMPLATE,
-				SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
-
-		SystemConfigurationDto dto = null;
-		try {
-			PrismObject<SystemConfigurationType> systemConfig = WebModelServiceUtils.loadObject(
-					SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
-					this, task, result);
-			dto = new SystemConfigurationDto(systemConfig);
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
-			result.recordFatalError("Couldn't load system configuration.", ex);
-		}
-
-		// what do you do with null? many components depends on this not to be
-		// null :)
-		if (!WebComponentUtil.isSuccessOrHandledError(result) || dto == null) {
-			showResult(result, false);
-			throw getRestartResponseException(PageError.class);
-		}
-
-		return dto;
-	}
-
-	private void initLayout() {
-		Form mainForm = new Form(ID_MAIN_FORM, true);
-		add(mainForm);
-
+	
+	public PageSystemConfiguration(final PrismObject<SystemConfigurationType> configToEdit) {
+        initialize(configToEdit);
+    }
+	
+	public PageSystemConfiguration(final PrismObject<SystemConfigurationType> configToEdit, boolean isNewObject)  {
+        initialize(configToEdit, isNewObject);
+    }
+	
+	@Override
+	protected void initializeModel(final PrismObject<SystemConfigurationType> configToEdit, boolean isNewObject, boolean isReadonly) {
+		super.initializeModel(WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(this).getObject(), false, isReadonly);
+    }
+	
+	private List<ITab> getTabs(){
 		List<ITab> tabs = new ArrayList<>();
 		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.system.title")) {
 
@@ -170,20 +132,63 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				systemConfigPanel = new SystemConfigPanel(panelId, model);
-				return systemConfigPanel;
+				return new SystemConfigPanel(panelId, getObjectModel());
 			}
 		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.objectPolicy.title")) {
 
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				ContainerWrapperFromObjectWrapperModel<ObjectPolicyConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+						new ItemPath(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION));
+				return new ObjectPolicyConfigurationTabPanel(panelId, model);
+			}
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.globalPolicyRule.title")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				ContainerWrapperFromObjectWrapperModel<GlobalPolicyRuleType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+						new ItemPath(SystemConfigurationType.F_GLOBAL_POLICY_RULE));
+				return new GlobalPolicyRuleTabPanel(panelId, model);
+			}
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.globalAccountSynchronization.title")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ContainerOfSystemConfigurationPanel<ProjectionPolicyType>(panelId, getObjectModel(), SystemConfigurationType.F_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS);
+			}
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.cleanupPolicy.title")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ContainerOfSystemConfigurationPanel<CleanupPoliciesType>(panelId, getObjectModel(), SystemConfigurationType.F_CLEANUP_POLICY);
+			}
+		});
+		
 		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.notifications.title")) {
 
 			private static final long serialVersionUID = 1L;
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				notificationConfigPanel = new NotificationConfigPanel(panelId,
-                    new PropertyModel<>(model, "notificationConfig"), getPageParameters());
-				return notificationConfigPanel;
+				ContainerWrapperFromObjectWrapperModel<NotificationConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+						new ItemPath(SystemConfigurationType.F_NOTIFICATION_CONFIGURATION));
+				return new NotificationConfigTabPanel(panelId, model);
 			}
 		});
 
@@ -193,9 +198,9 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				loggingConfigPanel = new LoggingConfigPanel(panelId,
-                    new PropertyModel<>(model, "loggingConfig"));
-				return loggingConfigPanel;
+				ContainerWrapperFromObjectWrapperModel<LoggingConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+						new ItemPath(SystemConfigurationType.F_LOGGING));
+				return new LoggingConfigurationTabPanel(panelId, model);
 			}
 		});
 
@@ -205,9 +210,11 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				profilingConfigPanel = new ProfilingConfigPanel(panelId,
-                    new PropertyModel<>(model, "profilingDto"), PageSystemConfiguration.this);
-				return profilingConfigPanel;
+				ContainerWrapperFromObjectWrapperModel<ProfilingConfigurationType, SystemConfigurationType> profilingModel = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+						new ItemPath(SystemConfigurationType.F_PROFILING_CONFIGURATION));
+				ContainerWrapperFromObjectWrapperModel<LoggingConfigurationType, SystemConfigurationType> loggingModel = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+						new ItemPath(SystemConfigurationType.F_LOGGING));
+				return new ProfilingConfigurationTabPanel(panelId, profilingModel, loggingModel);
 			}
 		});
 
@@ -217,130 +224,164 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-                adminGuiConfigPanel = new AdminGuiConfigPanel(panelId, model);
-				return adminGuiConfigPanel;
+				return new ContainerOfSystemConfigurationPanel<AdminGuiConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION);
 			}
 		});
-
-		TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.workflow.title")) {
 
 			private static final long serialVersionUID = 1L;
 			
 			@Override
-			protected void onTabChange(int index) {
-				PageParameters params = getPageParameters();
-				params.set(SELECTED_TAB_INDEX, index);
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ContainerOfSystemConfigurationPanel<WfConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_WORKFLOW_CONFIGURATION);
 			}
-		};
-		tabPanel.setOutputMarkupId(true);
-		mainForm.add(tabPanel);
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.roleManagement.title")) {
 
-		initButtons(mainForm);
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ContainerOfSystemConfigurationPanel<RoleManagementConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_ROLE_MANAGEMENT);
+			}
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.internals.title")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ContainerOfSystemConfigurationPanel<InternalsConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_INTERNALS);
+			}
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.deploymentInformation.title")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ContainerOfSystemConfigurationPanel<DeploymentInformationType>(panelId, getObjectModel(), SystemConfigurationType.F_DEPLOYMENT_INFORMATION);
+			}
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.accessCertification.title")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ContainerOfSystemConfigurationPanel<AccessCertificationConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_ACCESS_CERTIFICATION);
+			}
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.infrastructure.title")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ContainerOfSystemConfigurationPanel<InfrastructureConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_INFRASTRUCTURE);
+			}
+		});
+		
+		tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.fullTextSearch.title")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return new ContainerOfSystemConfigurationPanel<FullTextSearchConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_FULL_TEXT_SEARCH);
+			}
+		});
+		
+		
+		return tabs;
+	}
+	
+	@Override
+	public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
+		
 	}
 
 	@Override
-	protected void onBeforeRender() {
-		super.onBeforeRender();
-
-		if (!initialized) {
-			PageParameters params = getPageParameters();
-			StringValue val = params.get(SELECTED_TAB_INDEX);
-			String value = null;
-			if (val != null && !val.isNull()) {
-				value = val.toString();
-			}
-
-			int index = StringUtils.isNumeric(value) ? Integer.parseInt(value) : CONFIGURATION_TAB_BASIC;
-			getTabPanel().setSelectedTab(index);
-
-			initialized = true;
-		}
+	public Class<SystemConfigurationType> getCompileTimeClass() {
+		return SystemConfigurationType.class;
 	}
 
-	private void initButtons(Form mainForm) {
-		AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE, createStringResource("PageBase.button.save")) {
+	@Override
+	protected SystemConfigurationType createNewObject() {
+		return null;
+	}
 
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			protected void onSubmit(AjaxRequestTarget target,
-					org.apache.wicket.markup.html.form.Form<?> form) {
-				savePerformed(target);
-			}
+	@Override
+	protected ObjectSummaryPanel<SystemConfigurationType> createSummaryPanel() {
+		return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, SystemConfigurationType.class, Model.of(getObjectModel().getObject().getObject()), this);
+	}
 
-			@Override
-			protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
-		};
-		mainForm.add(save);
-
-		AjaxButton cancel = new AjaxButton(ID_CANCEL, createStringResource("PageBase.button.cancel")) {
+	@Override
+	protected AbstractObjectMainPanel<SystemConfigurationType> createMainPanel(String id) {
+		return new AbstractObjectMainPanel<SystemConfigurationType>(id, getObjectModel(), this) {
 			
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void onClick(AjaxRequestTarget target) {
-				cancelPerformed(target);
+			protected List<ITab> createTabs(PageAdminObjectDetails<SystemConfigurationType> parentPage) {
+				return getTabs();
+			}
+			
+			@Override
+			protected boolean getOptionsPanelVisibility() {
+				return false;
+			}
+			
+			@Override
+			protected boolean isPreviewButtonVisible() {
+				return false;
+			}
+			
+			@Override
+			protected void initLayoutTabs(PageAdminObjectDetails<SystemConfigurationType> parentPage) {
+				List<ITab> tabs = createTabs(parentPage);
+				TabbedPanel<ITab> tabPanel = new TabbedPanel<ITab>(ID_TAB_PANEL, tabs) {
+
+					private static final long serialVersionUID = 1L;
+					
+					@Override
+					protected void onTabChange(int index) {
+						PageParameters params = getPageParameters();
+						params.set(SELECTED_TAB_INDEX, index);
+						
+						parentPage.updateBreadcrumbParameters(SELECTED_TAB_INDEX, index);
+					}
+				};
+				getMainForm().add(tabPanel);
 			}
 		};
-		mainForm.add(cancel);
 	}
 
-
-	private TabbedPanel<ITab> getTabPanel() {
-		return (TabbedPanel) get(createComponentPath(ID_MAIN_FORM, ID_TAB_PANEL));
+	@Override
+	protected Class<? extends Page> getRestartResponsePage() {
+		return getMidpointApplication().getHomePage();
 	}
 
-
-	private void savePerformed(AjaxRequestTarget target) {
-		OperationResult result = new OperationResult(TASK_UPDATE_SYSTEM_CONFIG);
-		Task task = createSimpleTask(TASK_UPDATE_SYSTEM_CONFIG);
-		try {
-
-
-			SystemConfigurationType newObject = model.getObject().getNewObject();
-
-			ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(model.getObject().getOldObject(), newObject);
-			delta.normalize();
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("System configuration delta:\n{}", delta.debugDump());
-			}
-			if (!delta.isEmpty()) {
-				getPrismContext().adopt(delta);
-				getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
-			}
-
-			result.computeStatusIfUnknown();
-		} catch (Exception e) {
-			result.recomputeStatus();
-			result.recordFatalError("Couldn't save system configuration.", e);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save system configuration.", e);
-		}
-
-		showResult(result);
-		target.add(getFeedbackPanel());
-		resetPerformed(target);
+	@Override
+	public void continueEditing(AjaxRequestTarget target) {
+		
 	}
+	
+	@Override
+	protected void setSummaryPanelVisibility(ObjectSummaryPanel<SystemConfigurationType> summaryPanel) {
+		summaryPanel.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
 
-	private void resetPerformed(AjaxRequestTarget target) {
-		int index = getTabPanel().getSelectedTab();
-
-		PageParameters params = new PageParameters();
-		StringValue mailServerIndex = target.getPageParameters().get(SELECTED_SERVER_INDEX);
-		StringValue mailServerSize = target.getPageParameters().get(SERVER_LIST_SIZE);
-		if (mailServerIndex != null && mailServerIndex.toString() != null) {
-			params.add(SELECTED_SERVER_INDEX, mailServerIndex);
-		}
-		if (mailServerSize != null && mailServerSize.toString() != null) {
-			params.add(SERVER_LIST_SIZE, mailServerSize);
-		}
-		params.add(SELECTED_TAB_INDEX, index);
-		PageSystemConfiguration page = new PageSystemConfiguration(params);
-		setResponsePage(page);
-	}
-
-	private void cancelPerformed(AjaxRequestTarget target) {
-		resetPerformed(target);
+            @Override
+            public boolean isVisible() {
+                return true;
+            }
+        });
 	}
 }

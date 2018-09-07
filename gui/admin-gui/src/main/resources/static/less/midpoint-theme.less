@@ -798,20 +798,20 @@ body .treeview-menu > li > span:hover {
     margin-left: 15px; // aligning multivalue container with superior container
 }
 
-.top-level-prism-container{
-	border-top: 1px solid @table-divider-color;
-	padding-top:10px;
+.top-level-prism-container{							// class for first showed container
+	border-top: 1px solid @table-divider-color;		// line over area of container
+	padding-top:10px;								
 }
 
-.top-level-prism-container > .prism-property > .container-fluid > .prism-properties > .container-wrapper {
-	border-top: 1px solid @table-divider-color;
-	margin-left: -30px;
+.top-level-prism-container > .prism-property > .container-fluid > .prism-properties > .container-wrapper { 
+	border-top: 1px solid @table-divider-color;		// line over area of container
+	margin-left: -30px;								// aligning container on first level with superior container (singlevalue container)
 	padding-left: 15px;
 }
 
 .top-level-prism-container > .prism-properties > .container-wrapper {
-	border-top: 1px solid @table-divider-color;
-	margin-left: -15px;
+	border-top: 1px solid @table-divider-color;		// line over area of container
+	margin-left: -15px;								// aligning container on first level with superior container (multivalue container)
 	padding-left: 15px;
 }
 
@@ -822,7 +822,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .prism-multivalue-container > .prism-properties > div > .prism-property > .success {
-	background-color: #dff0d8; // green background for new value for multivalue container
+	background-color: #dff0d8; // green background for new value of multivalue container
 }
 
 .prism-properties {
@@ -831,9 +831,9 @@ body .treeview-menu > li > span:hover {
 		padding-left: 30px;
 	}
 	
-//	.stripe {
-//		background-color: @table-stripe-bg-color;
-//	}
+	.stripe {
+		background-color: @table-stripe-bg-color;
+	}
 }
 
 .prism-header {
@@ -855,7 +855,7 @@ body .treeview-menu > li > span:hover {
 	padding-bottom: 5px;
 }
 
-.prism-property-label {
+.prism-property-label { //padding because expand collapse button, which have 37px
 	padding-left: 37px;
 }
 
@@ -1362,28 +1362,20 @@ th.shrink {
 	width: -moz-min-content;
 }
 
-.expand-collapse-button {
-	color: @text-label-color;
-	width: 22px;
-	text-align: center;
-}
-.expand-collapse-button {
+.expand-collapse-button, .expand-collapse-button:hover, .expand-collapse-button:focus { //class for expand-collapse button next to title
 	color: @text-label-color;
 	width: 22px;
 	text-align: center;
 	cursor: pointer;
 }
-.expand-collapse-button:hover, .expand-collapse-button:focus {
-	color: @text-label-color;
-}
 
-.show-empty-button, .show-empty-button:hover .show-empty-button:focus{
+.show-empty-button, .show-empty-button:hover .show-empty-button:focus{ //class for show-empty fields button under properties
 	color: @text-label-color;
 	font-size: 12px;
 	padding-bottom: 5px;
 }
 
-.labelContainer > .text-info{
+.labelContainer > .text-info { // aligning i button to one row with title of container
 	float: left;
 }
 
