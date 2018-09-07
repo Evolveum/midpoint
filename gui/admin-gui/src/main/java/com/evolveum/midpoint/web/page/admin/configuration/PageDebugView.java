@@ -16,6 +16,22 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.util.Collection;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.string.StringValue;
+
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -24,7 +40,9 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -37,25 +55,12 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.string.StringValue;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 @PageDescriptor(url = "/admin/config/debug", action = {
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
@@ -70,23 +75,18 @@ public class PageDebugView extends PageAdminConfiguration {
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
     private static final String ID_PLAIN_TEXTAREA = "plain-textarea";
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
+    
+    private static final String ID_FORM = "mainForm";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugView.class);
 
     public static final String PARAM_OBJECT_ID = "objectId";
     public static final String PARAM_OBJECT_TYPE = "objectType";
-    private AceEditor editor;
-    private final IModel<Boolean> encrypt = new Model<>(true);
-    private final IModel<Boolean> saveAsRaw = new Model<>(true);
-    private final IModel<Boolean> reevaluateSearchFilters = new Model<>(false);
-    private final IModel<Boolean> validateSchema = new Model<>(false);
-    private final IModel<Boolean> switchToPlainText = new Model<>(false);
-    private TextArea<String> plainTextarea;
-    final Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
     private String dataLanguage;
-    private boolean isInitialized = false;
-    private IModel<ObjectViewDto> objectViewDtoModel;
-
+    
+    private IModel<ObjectViewDto<?>> objectViewDtoModel;
+    private DebugViewOptions debugViewConfiguration = new DebugViewOptions();
+   
     public PageDebugView() {
 
     }
@@ -95,42 +95,31 @@ public class PageDebugView extends PageAdminConfiguration {
     protected void onInitialize(){
         super.onInitialize();
         dataLanguage = determineDataLanguage();
-        initObjectViewObject();
+        objectViewDtoModel = initObjectViewObject();
         initLayout();
     }
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return new AbstractReadOnlyModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                if (objectViewDtoModel == null || objectViewDtoModel.getObject() == null) {
-                    return "";
-                }
-//                ObjectViewDto object;
-//                try {
-//                    object = objectViewModel.getObject();
-//                } catch (RuntimeException e) {
-//                    // e.g. when the object is unreadable
-//                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get object", e);
-//                    return "";
-//                }
-//                if (object == null) {
-//            		return "";
-//            	} else {
-                    return createStringResource("PageDebugView.title", objectViewDtoModel.getObject().getName()).getString();
-//                }
-            }
-        };
+    	return createStringResource("PageDebugView.title", getName());
+        
     }
+    
+    private String getName() {
+    	if (objectViewDtoModel == null || objectViewDtoModel.getObject() == null) {
+    		return "";
+    	}
+    	
+    	return objectViewDtoModel.getObject().getName();
+    }
+    private LoadableModel<ObjectViewDto<?>> initObjectViewObject() {
+        return new LoadableModel<ObjectViewDto<?>>(false) {
+           
+        	private static final long serialVersionUID = 1L;
 
-    private void initObjectViewObject() {
-        objectViewDtoModel = new LoadableModel<ObjectViewDto>(false) {
-            @Override
-            protected ObjectViewDto load() {
-                ObjectViewDto objectViewDto = new ObjectViewDto();
+			@Override
+            protected ObjectViewDto<?> load() {
+                ObjectViewDto<?> objectViewDto = new ObjectViewDto<>();
                 StringValue objectOid = getPageParameters().get(PARAM_OBJECT_ID);
                 if (objectOid == null || StringUtils.isEmpty(objectOid.toString())) {
                     getSession().error(getString("pageDebugView.message.oidNotDefined"));
@@ -149,29 +138,21 @@ public class PageDebugView extends PageAdminConfiguration {
                     Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
                     // FIXME: ObjectType.class will not work well here. We need more specific type.
                     //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
-                    Class type = ObjectType.class;
-                    StringValue objectType = getPageParameters().get(PARAM_OBJECT_TYPE);
-                    if (objectType != null && StringUtils.isNotBlank(objectType.toString())) {
-                        type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(new QName(SchemaConstantsGenerated.NS_COMMON, objectType.toString()));
-                    }
+                    Class<? extends ObjectType> type = getTypeFromParameters();
+                    
 
                     // TODO make this configurable (or at least do not show campaign cases in production)
                     WebModelServiceUtils.addIncludeOptionsForExportOrView(options, type);
-                    PrismObject<ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
+                    PrismObject<? extends ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
 
                     PrismContext context = application.getPrismContext();
 
                     String lex = context.serializerFor(dataLanguage).serialize(object);
-                    objectViewDto = new ObjectViewDto(object.getOid(), WebComponentUtil.getName(object), object, lex);
+                    objectViewDto = new ObjectViewDto<>(object.getOid(), WebComponentUtil.getName(object), object, lex);
 
                     result.recomputeStatus();
                 } catch (Exception ex) {
                     result.recordFatalError("Couldn't load object.", ex);
-                }
-
-                if (objectViewDto == null) {
-                    showResult(result);
-                    throw new RestartResponseException(PageDebugList.class);
                 }
 
                 showResult(result, false);
@@ -184,76 +165,69 @@ public class PageDebugView extends PageAdminConfiguration {
             }
         };
     }
+    
+    private Class<? extends ObjectType> getTypeFromParameters() {
+    	StringValue objectType = getPageParameters().get(PARAM_OBJECT_TYPE);
+        if (objectType != null && StringUtils.isNotBlank(objectType.toString())) {
+            return getPrismContext().getSchemaRegistry().determineCompileTimeClass(new QName(SchemaConstantsGenerated.NS_COMMON, objectType.toString()));
+        }
+        
+        return ObjectType.class;
+    }
 
     private void initLayout() {
+    	final Form<?> mainForm = new Form<>(ID_FORM);
         add(mainForm);
+        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_ENCRYPT, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_ENCRYPT), "pageDebugView.encrypt", "pageDebugView.encrypt.help"));
+        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_VALIDATE_SCHEMA, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_VALIDATE_SCHEMA), "pageDebugView.validateSchema", "pageDebugView.validateSchema.help"));
+        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_SAVE_AS_RAW, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_SAVE_AS_RAW), "pageDebugView.saveAsRaw", "pageDebugView.saveAsRaw.help"));
+        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS), "pageDebugView.reevaluateSearchFilters", "pageDebugView.reevaluateSearchFilters.help"));
+        mainForm.add(createOptionCheckbox(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT, new PropertyModel<>(debugViewConfiguration, DebugViewOptions.ID_SWITCH_TO_PLAINTEXT), "pageDebugView.switchToPlainText", "pageDebugView.switchToPlainText.help"));
 
-        mainForm.add(new AjaxCheckBox("encrypt", encrypt) {
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-			}
-        });
-
-        mainForm.add(new AjaxCheckBox("saveAsRaw", saveAsRaw) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        });
-
-        mainForm.add(new AjaxCheckBox("reevaluateSearchFilters", reevaluateSearchFilters) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        });
-
-        mainForm.add(new AjaxCheckBox("validateSchema", validateSchema) {
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-			}
-        });
-
-        mainForm.add(new AjaxCheckBox("switchToPlainText", switchToPlainText) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                if (switchToPlainText.getObject()){
-                    editor.setVisible(false);
-                    plainTextarea.setVisible(true);
-                } else {
-                    editor.setVisible(true);
-                    plainTextarea.setVisible(false);
-                }
-                target.add(mainForm);
-            }
-        });
-
-        plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA, new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
-        plainTextarea.setVisible(false);
-
+        TextArea<String> plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA, new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
+        plainTextarea.add(new VisibleBehaviour(() -> isTrue(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT)));
         mainForm.add(plainTextarea);
 
-        addOrReplaceEditor();
+        initAceEditor(mainForm);
 
         initButtons(mainForm);
         initViewButton(mainForm);
 
     }
+    
+    private CheckBoxPanel createOptionCheckbox(String id, IModel<Boolean> model, String labelKey, String helpKey) {
+    	
+      	return new CheckBoxPanel(id, model, null, createStringResource(labelKey), createStringResource(helpKey)) {
 
-    private void addOrReplaceEditor(){
-        editor = new AceEditor("aceEditor", new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onUpdate(AjaxRequestTarget target) {
+				if (DebugViewOptions.ID_SWITCH_TO_PLAINTEXT.equals(id)) {
+					target.add(getMainForm());
+				}
+			}
+        };
+    }
+    
+    private boolean isTrue(String panelId) {
+    	CheckBoxPanel panel = (CheckBoxPanel) get(createComponentPath(ID_FORM, panelId));
+    	if (panel == null) {
+    		LOGGER.error("Cannot find panel: {}", panelId);
+    		 return false;
+    	}
+    	
+    	return panel.getValue();
+    }
+    private Form<?> getMainForm() {
+    	return (Form<?>) get(ID_FORM);
+    }
+
+    private void initAceEditor(Form<?> mainForm){
+        AceEditor editor = new AceEditor("aceEditor", new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         editor.setModeForDataLanguage(dataLanguage);
-        editor.add(new AjaxFormComponentUpdatingBehavior("blur") {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        });
-        mainForm.addOrReplace(editor);
+        editor.add(new VisibleBehaviour(() -> !isTrue(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT)));
+        mainForm.add(editor);
     }
 
     private void initViewButton(Form mainForm) {
@@ -266,7 +240,6 @@ public class PageDebugView extends PageAdminConfiguration {
 			                String objectString) {
 		                objectViewDtoModel.getObject().setXml(objectString);
 		                dataLanguage = updatedLanguage;
-		                addOrReplaceEditor();
 		                target.add(mainForm);
 	                }
 	                @Override
@@ -275,25 +248,25 @@ public class PageDebugView extends PageAdminConfiguration {
 	                }
 	                @Override
 	                protected boolean isValidateSchema() {
-		                return validateSchema.getObject();
+		                return isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA);
 	                }
                 };
         dataLanguagePanel.setOutputMarkupId(true);
         mainForm.add(dataLanguagePanel);
     }
 
-    private void initButtons(final Form mainForm) {
+    private void initButtons(final Form<?> mainForm) {
         AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton",
                 createStringResource("pageDebugView.button.save")) {
             private static final long serialVersionUID = 1L;
-
+            
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
                 savePerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target, org.apache.wicket.markup.html.form.Form<?> form) {
                 target.add(getFeedbackPanel());
             }
         };
@@ -311,18 +284,6 @@ public class PageDebugView extends PageAdminConfiguration {
         mainForm.add(backButton);
     }
     
-    private boolean isReport(PrismObject object){
-    	if (object.getCompileTimeClass() != null && object.getCompileTimeClass() == ReportType.class){
-    		return true;
-    	}
-    	
-    	if (object.getDefinition() != null && object.getDefinition().getName().equals(ReportType.COMPLEX_TYPE)){
-    		return true;
-    	}
-    	
-    	return false;
-    }
-
     public void savePerformed(AjaxRequestTarget target) {
         if (StringUtils.isEmpty(objectViewDtoModel.getObject().getXml())) {
             error(getString("pageDebugView.message.cantSaveEmpty"));
@@ -334,16 +295,16 @@ public class PageDebugView extends PageAdminConfiguration {
         OperationResult result = task.getResult();
         try {
 
-            PrismObject<ObjectType> oldObject = objectViewDtoModel.getObject().getObject();
+            PrismObject<? extends ObjectType> oldObject = objectViewDtoModel.getObject().getObject();
             oldObject.revive(getPrismContext());
 
-            Holder<Objectable> objectHolder = new Holder<>(null);
-            validateObject(result, objectHolder);
+            Holder<? extends ObjectType> objectHolder = new Holder<>(null);
+            validateObject(result, (Holder) objectHolder);
 
 			if (result.isAcceptable()) {
-                PrismObject<ObjectType> newObject = (PrismObject<ObjectType>) objectHolder.getValue().asPrismObject();
+                PrismObject<? extends ObjectType> newObject = objectHolder.getValue().asPrismObject();
 
-				ObjectDelta<ObjectType> delta = oldObject.diff(newObject, true, true);
+				ObjectDelta<? extends ObjectType> delta = oldObject.diff((PrismObject) newObject, true, true);
 
                 if (delta.getPrismContext() == null) {
                 	LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
@@ -361,13 +322,13 @@ public class PageDebugView extends PageAdminConfiguration {
 
                 Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
                 ModelExecuteOptions options = new ModelExecuteOptions();
-                if (saveAsRaw.getObject()) {
+                if (isTrue(DebugViewOptions.ID_SAVE_AS_RAW)) {
                     options.setRaw(true);
                 }
-                if (reevaluateSearchFilters.getObject()) {
+                if (isTrue(DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS)) {
                     options.setReevaluateSearchFilters(true);
                 }
-                if(!encrypt.getObject()) {
+                if(!isTrue(DebugViewOptions.ID_ENCRYPT)) {
                 	options.setNoCrypt(true);
                 }
 
@@ -394,7 +355,24 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void validateObject(OperationResult result, Holder<Objectable> objectHolder) {
-	    parseObject(objectViewDtoModel.getObject().getXml(), objectHolder, dataLanguage, validateSchema.getObject(), false, Objectable.class, result);
+	    parseObject(objectViewDtoModel.getObject().getXml(), (Holder<Objectable>) objectHolder, dataLanguage, isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA), false, Objectable.class, result);
+    }
+    
+    
+ class DebugViewOptions {
+    	
+    	private final static String ID_ENCRYPT = "encrypt";
+    	private final static String ID_SAVE_AS_RAW = "saveAsRaw";
+    	private final static String ID_REEVALUATE_SEARCH_FILTERS = "reevaluateSearchFilters";
+    	private final static String ID_VALIDATE_SCHEMA = "validateSchema";
+    	private final static String ID_SWITCH_TO_PLAINTEXT = "switchToPlainText";
+    	
+    	private final boolean encrypt=true;
+        private final boolean saveAsRaw=true;
+        private final boolean reevaluateSearchFilters = false;
+        private final boolean validateSchema = false;
+        private final boolean switchToPlainText = false;
+    	
     }
 
 }

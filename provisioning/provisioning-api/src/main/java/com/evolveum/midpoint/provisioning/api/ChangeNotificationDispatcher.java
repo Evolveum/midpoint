@@ -17,27 +17,24 @@ package com.evolveum.midpoint.provisioning.api;
 
 /**
  * Dispatcher of change notifications.
- * 
+ *
  * Instances that implement this interface relay notification from the source of the change notification to the
  * destinations. The destinations are chosen dynamically, using a publish-subscribe mechanism.
- * 
+ *
  * This interface also includes ResourceObjectChangeListener. By invoking the notifyChange(..) operation of this
  * interface the change will be relayed to all registered listeners.
- * 
+ *
  * @author Katka Valalikova
  * @author Radovan Semancik
  *
  */
 public interface ChangeNotificationDispatcher extends ResourceObjectChangeListener, ResourceOperationListener, ResourceEventListener {
-	
-	public  void registerNotificationListener(ResourceObjectChangeListener listener);
-	public  void registerNotificationListener(ResourceOperationListener listener);
-	public  void registerNotificationListener(ResourceEventListener listener);
-		
-	public  void unregisterNotificationListener(ResourceObjectChangeListener listener);
-	public  void unregisterNotificationListener(ResourceOperationListener listener);
-	public  void unregisterNotificationListener(ResourceEventListener listener);
-	
-	
-	
+
+    void registerNotificationListener(ResourceObjectChangeListener listener);
+    void registerNotificationListener(ResourceOperationListener listener);
+    void registerNotificationListener(ResourceEventListener listener);
+
+    void unregisterNotificationListener(ResourceObjectChangeListener listener);
+    void unregisterNotificationListener(ResourceOperationListener listener);
+    void unregisterNotificationListener(ResourceEventListener listener);
 }

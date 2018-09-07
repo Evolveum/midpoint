@@ -50,7 +50,7 @@ function initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
         enableBasicAutocompletion: true
     });
 
-    editor.getSession().setTabSize(4);
+    editor.getSession().setTabSize(3);
 
     editor.setTheme("ace/theme/eclipse");
     if (mode != null) {
@@ -62,6 +62,10 @@ function initEditor(textAreaId, readonly, resize, height, minHeight, mode) {
     editor.on('blur', function () {
         $(jqTextArea).val(editor.getSession().getValue());
         $(jqTextArea).trigger('onBlur');
+    });
+    editor.on('change', function () {
+        $(jqTextArea).val(editor.getSession().getValue());
+        $(jqTextArea).trigger('onChange');
     });
 
     //add editor to global map, so we can find it later
