@@ -38,10 +38,12 @@ import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -75,14 +77,14 @@ public class PageDebugView extends PageAdminConfiguration {
 
     public static final String PARAM_OBJECT_ID = "objectId";
     public static final String PARAM_OBJECT_TYPE = "objectType";
-    private AceEditor editor;
+//    private AceEditor editor;
     private final IModel<Boolean> encrypt = new Model<>(true);
     private final IModel<Boolean> saveAsRaw = new Model<>(true);
     private final IModel<Boolean> reevaluateSearchFilters = new Model<>(false);
     private final IModel<Boolean> validateSchema = new Model<>(false);
     private final IModel<Boolean> switchToPlainText = new Model<>(false);
     private TextArea<String> plainTextarea;
-    final Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
+//    final Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
     private String dataLanguage;
     private boolean isInitialized = false;
     private IModel<ObjectViewDto> objectViewDtoModel;
@@ -186,6 +188,7 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     private void initLayout() {
+    	final Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
         add(mainForm);
 
         mainForm.add(new AjaxCheckBox("encrypt", encrypt) {
@@ -220,13 +223,13 @@ public class PageDebugView extends PageAdminConfiguration {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                if (switchToPlainText.getObject()){
-                    editor.setVisible(false);
-                    plainTextarea.setVisible(true);
-                } else {
-                    editor.setVisible(true);
-                    plainTextarea.setVisible(false);
-                }
+//                if (switchToPlainText.getObject()){
+//                    editor.setVisible(false);
+//                    plainTextarea.setVisible(true);
+//                } else {
+//                    editor.setVisible(true);
+//                    plainTextarea.setVisible(false);
+//                }
                 target.add(mainForm);
             }
         });
@@ -236,24 +239,35 @@ public class PageDebugView extends PageAdminConfiguration {
 
         mainForm.add(plainTextarea);
 
-        addOrReplaceEditor();
+        addOrReplaceEditor(mainForm);
 
         initButtons(mainForm);
         initViewButton(mainForm);
 
     }
 
-    private void addOrReplaceEditor(){
-        editor = new AceEditor("aceEditor", new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
+    private void addOrReplaceEditor(Form mainForm){
+        AceEditor editor = new AceEditor("aceEditor", new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         editor.setModeForDataLanguage(dataLanguage);
+        editor.add(new AjaxFormComponentUpdatingBehavior("change") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            	System.out.println("change");
+            }
+        });
         editor.add(new AjaxFormComponentUpdatingBehavior("blur") {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+            	System.out.println("blur");
             }
         });
-        mainForm.addOrReplace(editor);
+        
+        editor.add(new VisibleBehaviour(() -> !BooleanUtils.isTrue(switchToPlainText.getObject())));
+        mainForm.add(editor);
     }
 
     private void initViewButton(Form mainForm) {
@@ -266,7 +280,7 @@ public class PageDebugView extends PageAdminConfiguration {
 			                String objectString) {
 		                objectViewDtoModel.getObject().setXml(objectString);
 		                dataLanguage = updatedLanguage;
-		                addOrReplaceEditor();
+//		                addOrReplaceEditor();
 		                target.add(mainForm);
 	                }
 	                @Override
