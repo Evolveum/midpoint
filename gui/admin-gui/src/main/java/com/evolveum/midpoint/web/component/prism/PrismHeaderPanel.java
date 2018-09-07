@@ -17,17 +17,23 @@
 package com.evolveum.midpoint.web.component.prism;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
  * @author semancik
@@ -40,6 +46,8 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
 	
 	protected static final String ID_LABEL = "label";
 	private static final String ID_EXPAND_COLLAPSE_CONTAINER = "expandCollapse";
+	protected static final String ID_LABEL_CONTAINER = "labelContainer";
+	protected static final String ID_HELP = "help";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismHeaderPanel.class);
 
@@ -65,14 +73,52 @@ public abstract class PrismHeaderPanel<T extends PrismWrapper> extends BasePanel
     }
 
 	protected void initHeaderLabel(){
+		
+		WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        labelContainer.setOutputMarkupId(true);
+        
+        add(labelContainer);
+
         String displayName = getLabel();
         if (StringUtils.isEmpty(displayName)) {
             displayName = "displayName.not.set";
         }
         StringResourceModel headerLabelModel = createStringResource(displayName);
-        add(new Label(ID_LABEL, headerLabelModel));
+        labelContainer.add(new Label(ID_LABEL, headerLabelModel));
+        
+        labelContainer.add(getHelpLabel());
     }
+	
+	protected Label getHelpLabel() {
+		final IModel<String> helpText = new LoadableModel<String>(false) {
+        	private static final long serialVersionUID = 1L;
 
+            @Override
+            protected String load() {
+                return getHelpText();
+            }
+        };
+        Label help = new Label(ID_HELP);
+        help.add(AttributeModifier.replace("title", helpText));
+        help.add(new InfoTooltipBehavior());
+        help.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return StringUtils.isNotEmpty(helpText.getObject()) && isVisibleHelpText();
+            }
+        });
+        return help;
+	}
+	
+	protected String getHelpText() {
+		return "";
+	}
+
+	protected boolean isVisibleHelpText() {
+		return false;
+	}
 
     protected abstract void initButtons();
     

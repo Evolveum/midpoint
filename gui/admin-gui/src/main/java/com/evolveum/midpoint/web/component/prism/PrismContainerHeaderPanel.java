@@ -6,10 +6,12 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -123,6 +125,11 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 	
 	@Override
 	protected void initHeaderLabel(){
+		WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+        labelContainer.setOutputMarkupId(true);
+        
+        add(labelContainer);
+        
 		String displayName = getLabel();
 		if (org.apache.commons.lang3.StringUtils.isEmpty(displayName)) {
 			displayName = "displayName.not.set";
@@ -138,7 +145,19 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends PrismHea
 		};
 		labelComponent.setOutputMarkupId(true);
 		labelComponent.add(AttributeAppender.append("style", "cursor: pointer;"));
-		add(labelComponent);
+		labelContainer.add(labelComponent);
+		
+		labelContainer.add(getHelpLabel());
 
+	}
+	
+	@Override
+	protected String getHelpText() {
+		return WebComponentUtil.loadHelpText(new Model<ContainerWrapper<C>>(getModelObject()), PrismContainerHeaderPanel.this);
+	}
+	
+	@Override
+	protected boolean isVisibleHelpText() {
+		return true;
 	}
 }

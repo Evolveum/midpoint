@@ -91,6 +91,7 @@ import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.IRequestHandler;
@@ -109,6 +110,7 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.DefaultReferencableImpl;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -1123,7 +1125,7 @@ public final class WebComponentUtil {
 			String displayName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() :
 					exclusionConstraint.asPrismContainerValue().getParent().getPath().last())  + " - "
 					+ StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
-			return StringUtils.isNotEmpty(displayName) ? displayName : "Not defined exclusion name";
+			return StringUtils.isNotEmpty(displayName) && StringUtils.isNotEmpty(getName(exclusionConstraint.getTargetRef())) ? displayName : "ExclusionPolicyConstraintType.details";
 		}
 		if (prismContainerValue.canRepresent(AbstractPolicyConstraintType.class)){
 			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) prismContainerValue.asContainerable();
@@ -2726,4 +2728,21 @@ public final class WebComponentUtil {
 		});
 		return menuItems;
 	}
+	
+	public static <IW extends ItemWrapper> String loadHelpText(IModel<IW> model, Panel panel) {
+		if(model == null || model.getObject() == null) {
+			return null;
+		}
+        IW property = (IW) model.getObject();
+        ItemDefinition def = property.getItemDefinition();
+        String doc = def.getHelp();
+        if (StringUtils.isEmpty(doc)) {
+        	doc = def.getDocumentation();
+        	if (StringUtils.isEmpty(doc)) {
+            	return null;
+            }
+        }
+
+        return PageBase.createStringResourceStatic(panel, doc).getString();
+    }
 }
