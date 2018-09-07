@@ -53,6 +53,7 @@
             <artifactId>admin-gui</artifactId>
             <version>3.9-SNAPSHOT</version>
             <type>war</type>
+            <classifier>executable</classifier>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.tools</groupId>
