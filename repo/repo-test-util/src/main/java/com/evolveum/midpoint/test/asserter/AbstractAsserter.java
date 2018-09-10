@@ -19,6 +19,7 @@ import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -35,6 +36,7 @@ public abstract class AbstractAsserter<RA> {
 	private RA returnAsserter;
 	private PrismContext prismContext;
 	private SimpleObjectResolver objectResolver;
+	private Protector protector;
 	
 	public AbstractAsserter() {
 		this(null);
@@ -65,6 +67,14 @@ public abstract class AbstractAsserter<RA> {
 
 	public void setObjectResolver(SimpleObjectResolver objectResolver) {
 		this.objectResolver = objectResolver;
+	}
+
+	protected Protector getProtector() {
+		return protector;
+	}
+
+	public void setProtector(Protector protector) {
+		this.protector = protector;
 	}
 
 	protected String getDetails() {
@@ -98,7 +108,8 @@ public abstract class AbstractAsserter<RA> {
 	abstract protected String desc();
 	
 	protected <T> void copySetupTo(AbstractAsserter<T> other) {
-		other.setPrismContext(getPrismContext());
-		other.setObjectResolver(getObjectResolver());
+		other.setPrismContext(this.getPrismContext());
+		other.setObjectResolver(this.getObjectResolver());
+		other.setProtector(this.getProtector());
 	}
 }

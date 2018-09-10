@@ -34,6 +34,8 @@
 			<icfi:instanceId></icfi:instanceId> <!-- Default instance -->
 			<icfi:uidMode>uuid</icfi:uidMode>
 			<icfi:enforceUniqueName>false</icfi:enforceUniqueName>
+			<!-- runAs is using name as an identifier. But name is not unique in this case. runAs won't work. -->
+			<icfi:supportRunAs>false</icfi:supportRunAs>
 			<icfi:uselessString>Shiver me timbers!</icfi:uselessString>
 			<icfi:uselessGuardedString>       <!-- Add some whitespace -->  
 				<clearValue>Dead men tell no tales</clearValue>

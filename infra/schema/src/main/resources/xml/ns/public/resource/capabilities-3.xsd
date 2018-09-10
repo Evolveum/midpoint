@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2018 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@
             Defines resource capabilities such as ability to enable/disable account,
             ability to reset passwords, etc.
             
-            Version: 3.7
+            Version: 3.9
             Recommended namespace prefix: cap
         </xsd:documentation>
         <xsd:appinfo>
@@ -631,6 +631,27 @@
 	</xsd:complexType>
 	
 	<xsd:element name="auxiliaryObjectClasses" type="tns:AuxiliaryObjectClassesCapabilityType"/>
+	
+	<xsd:complexType name="RunAsCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to execute operations with specified identity.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.9</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+					<!-- TODO: settings whether authentication is required or whether this is just user switch (proxy) -->
+					<!-- TODO: if authentication is required then what credentials are needed? -->
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>	
+	
+	<xsd:element name="runAs" type="tns:RunAsCapabilityType"/>
 
 </xsd:schema>
 

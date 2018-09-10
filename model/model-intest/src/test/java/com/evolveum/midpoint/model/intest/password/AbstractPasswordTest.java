@@ -27,6 +27,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -80,6 +81,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	protected static final String USER_PASSWORD_VALID_2 = "abcd223";
 	protected static final String USER_PASSWORD_VALID_3 = "abcd323";
 	protected static final String USER_PASSWORD_VALID_4 = "abcd423";
+	protected static final String USER_PASSWORD_VALID_5 = "abcd523";
+	protected static final String USER_PASSWORD_VALID_6 = "abcd623";
 	// Very long and very simple password. This is meant to violate the policies.
 	protected static final String USER_PASSWORD_LLL_CLEAR = "lllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll";
 	
@@ -151,6 +154,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		initDummyResourcePirate(RESOURCE_DUMMY_SOUVENIR_NAME, RESOURCE_DUMMY_SOUVENIR_FILE, RESOURCE_DUMMY_SOUVENIR_OID, initTask, initResult);
 
 		repoAddObjectFromFile(USER_THREE_HEADED_MONKEY_FILE, UserType.class, true, initResult);
+		
+		repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
 		
 		importObjectFromFile(PASSWORD_POLICY_MAVERICK_FILE);
 		initDummyResourcePirate(RESOURCE_DUMMY_MAVERICK_NAME, RESOURCE_DUMMY_MAVERICK_FILE, RESOURCE_DUMMY_MAVERICK_OID, initTask, initResult);
@@ -1280,8 +1285,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertFailure(result);
+		assertFailure(result);
 
         assertJackPasswordsWithHistory(USER_PASSWORD_VALID_1, USER_PASSWORD_AA_CLEAR);
 		assertNoUserPasswordNotifications();
@@ -1391,8 +1395,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         modifyUserChangePassword(USER_JACK_OID, newPassword, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         lastPasswordChangeEnd = clock.currentTimeXMLGregorianCalendar();
 
@@ -1426,8 +1429,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         }
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertFailure(result);
+		assertFailure(result);
 
         assertJackPasswordsWithHistory(oldPassword, expectedPasswordHistory);
 
@@ -1478,7 +1480,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("jack", jack);
 		assertEquals("Wrong # of parentOrgRefs", 2, jack.getParentOrgRef().size());
 
-		ObjectDelta<OrgType> orgDelta = (ObjectDelta<OrgType>) DeltaBuilder.deltaFor(OrgType.class, prismContext)
+		ObjectDelta<OrgType> orgDelta = DeltaBuilder.deltaFor(OrgType.class, prismContext)
 				.item(OrgType.F_PASSWORD_POLICY_REF).replace(new PrismReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
 				.asObjectDelta(ORG_GOVERNOR_OFFICE_OID);
 		executeChanges(orgDelta, null, task, result);
@@ -1498,8 +1500,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		}
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertFailure(result);
+		assertFailure(result);
 
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
@@ -1779,8 +1780,8 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 	}
 
 	/**
-	 * Change password again so we have predictable password instead of
-	 * randomly-generated one.
+	 * Change password to set predictable password instead of randomly-generated one.
+	 * That will be nicer for future tests.
 	 */
 	@Test
 	public void test318ChangeUserPassword() throws Exception {
@@ -1791,27 +1792,33 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 		prepareTest();
-
+		
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_3, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
-		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
-		display("User after change execution", userAfter);
-		assertUserPassword(userAfter, USER_PASSWORD_VALID_3);
-		assertLinks(userAfter, 4);
+		PrismObject<UserType> userAfter = assertUserAfter(USER_JACK_OID)
+			.assertPassword(USER_PASSWORD_VALID_3, getPasswordStorageType())
+			.assertLinks(4)
+			.getObject();
 
-		// password mapping is normal
-		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
+		// default password mapping is normal
+		assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertPassword(USER_PASSWORD_VALID_3)
+			// Admin password reset, no runAs
+			.assertLastModifier(null);
 
-		// password mapping is strong
-        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
-        assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_PASSWORD_VALID_3);
+		// RED password mapping is strong
+		assertDummyAccountByUsername(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertEnabled()
+			.assertPassword(USER_PASSWORD_VALID_3)
+			// and RED resource has no runAs capability
+			.assertLastModifier(null);
 
         // password mapping is weak
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
@@ -3486,7 +3493,237 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertDummyPassword(ACCOUNT_JACK_DUMMY_USERNAME, newPassword);
 		assertDummyPassword(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, newPassword);
 	}
+	
+	/**
+	 * Jack changing his own password. He does it as an admin
+	 * and there is no old password specified. RunAs should NOT be used.
+	 * 
+	 * This also sets predictable password for next test.
+	 * 
+	 * MID-4661
+	 */
+	@Test
+	public void test560ChangeJackPasswordSuperuser() throws Exception {
+		final String TEST_NAME = "test560ChangeJackPasswordSuperuser";
+		displayTestTitle(TEST_NAME);
 
+		// GIVEN
+		prepareTest();
+		
+		assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+		
+		// preconditions
+		assertUserBefore(USER_JACK_OID)
+			.displayWithProjections()
+			.assertLinks(4);
+			
+		assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertLastModifier(null);
+		
+		login(USER_JACK_USERNAME);
+		
+		Task task = createTask(TEST_NAME, getSecurityContextPrincipal());
+		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_4, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		login(USER_ADMINISTRATOR_USERNAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_JACK_OID)
+				.assertPassword(USER_PASSWORD_VALID_4, getPasswordStorageType())
+				.assertLinks(4)
+				.getObject();
+
+		// default password mapping is normal
+		assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertPassword(USER_PASSWORD_VALID_4)
+			.assertLastModifier(null);
+
+		// RED password mapping is strong
+		assertDummyAccountByUsername(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertEnabled()
+			.assertPassword(USER_PASSWORD_VALID_4)
+			// and RED resource has no runAs capability
+			.assertLastModifier(null);
+
+        // BLUE password mapping is weak, we do not really care about password change here
+		// we do not really care about ugly resource either
+
+		displayAccountPasswordNotifications();
+		assertAccountPasswordNotifications(2);
+		assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_4);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_4);
+     	// not BLUE, it already has a password
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_VALID_4);
+	}
+	
+
+	private ObjectDelta<UserType> createOldNewPasswordDelta(String oid, String oldPassword, String newPassword) throws SchemaException {
+		ProtectedStringType oldPasswordPs = new ProtectedStringType();
+		oldPasswordPs.setClearValue(oldPassword);
+		
+		ProtectedStringType newPasswordPs = new ProtectedStringType();
+		newPasswordPs.setClearValue(newPassword);
+		
+		return deltaFor(UserType.class)
+			.item(PASSWORD_VALUE_PATH)
+				.oldRealValue(oldPasswordPs)
+				.replace(newPasswordPs)
+				.asObjectDelta(USER_JACK_OID);
+	}
+	
+	/**
+	 * Self-service password change. User's own identity should be used
+	 * to change password on resource that have runAs capability.
+	 * 
+	 * MID-4661
+	 */
+	@Test
+	public void test562ChangeJackPasswordSelfService() throws Exception {
+		final String TEST_NAME = "test562ChangeJackPasswordSelfService";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		prepareTest();
+		
+		// preconditions
+		assertUserBefore(USER_JACK_OID)
+			.displayWithProjections()
+			.assertLinks(4);
+			
+		assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertPassword(USER_PASSWORD_VALID_4)
+			.assertLastModifier(null);
+		
+		login(USER_JACK_USERNAME);
+		
+		Task task = createTask(TEST_NAME, getSecurityContextPrincipal());
+		task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+		OperationResult result = task.getResult();
+
+		ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_JACK_OID, 
+				USER_PASSWORD_VALID_4, USER_PASSWORD_VALID_5);
+		
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(objectDelta, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		login(USER_ADMINISTRATOR_USERNAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_JACK_OID)
+				.assertPassword(USER_PASSWORD_VALID_5, getPasswordStorageType())
+				.assertLinks(4)
+				.getObject();
+
+		// default password mapping is normal
+		assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertPassword(USER_PASSWORD_VALID_5)
+			.assertLastModifier(ACCOUNT_JACK_DUMMY_USERNAME);
+
+		// RED password mapping is strong
+		assertDummyAccountByUsername(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertEnabled()
+			.assertPassword(USER_PASSWORD_VALID_5)
+			// and RED resource has no runAs capability
+			.assertLastModifier(null);
+
+		// BLUE password mapping is weak, we do not really care about password change here
+		// we do not really care about ugly resource either
+		
+		displayAccountPasswordNotifications();
+		assertAccountPasswordNotifications(2);
+		assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_5);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_5);
+     	// not BLUE, it already has a password
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_VALID_5);
+	}
+
+	/**
+	 * Admin is changing Jack's password.
+	 * Old password is (strangely) specified.
+	 * But as this is not user changing its own password then RunAs
+	 * should NOT be used.
+	 * 
+	 * MID-4661
+	 */
+	@Test
+	public void test564ChangeJackPasswordAdmin() throws Exception {
+		final String TEST_NAME = "test564ChangeJackPasswordAdmin";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		
+		prepareTest();
+		
+		// preconditions
+		assertUserBefore(USER_JACK_OID)
+			.displayWithProjections()
+			.assertLinks(4);
+			
+		assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertPassword(USER_PASSWORD_VALID_5)
+			.assertLastModifier(ACCOUNT_JACK_DUMMY_USERNAME);
+		
+		login(USER_ADMINISTRATOR_USERNAME);
+		
+		Task task = createTask(TEST_NAME, getSecurityContextPrincipal());
+		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+		OperationResult result = task.getResult();
+		
+		ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_JACK_OID, 
+				USER_PASSWORD_VALID_5, USER_PASSWORD_VALID_6);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		executeChanges(objectDelta, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		login(USER_ADMINISTRATOR_USERNAME);
+		assertSuccess(result);
+
+		assertUserAfter(USER_JACK_OID)
+				.assertPassword(USER_PASSWORD_VALID_6, getPasswordStorageType())
+				.assertLinks(4)
+				.getObject();
+
+		// default password mapping is normal
+		assertDummyAccountByUsername(null, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertPassword(USER_PASSWORD_VALID_6)
+			.assertLastModifier(null);
+
+		// RED password mapping is strong
+		assertDummyAccountByUsername(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertEnabled()
+			.assertPassword(USER_PASSWORD_VALID_6)
+			// and RED resource has no runAs capability
+			.assertLastModifier(null);
+
+        // BLUE password mapping is weak, we do not really care about password change here
+		// we do not really care about ugly resource either
+
+		displayAccountPasswordNotifications();
+		assertAccountPasswordNotifications(2);
+		assertHasAccountPasswordNotification(null, USER_JACK_USERNAME, USER_PASSWORD_VALID_6);
+     	assertHasAccountPasswordNotification(RESOURCE_DUMMY_RED_NAME, USER_JACK_USERNAME, USER_PASSWORD_VALID_6);
+     	// not BLUE, it already has a password
+		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_VALID_6);
+	}
+
+
+	
 	protected ObjectDelta<ShadowType> createAccountInitializationDelta(String accountOid, String newAccountPassword) {
 		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createEmptyModifyDelta(ShadowType.class, accountOid, prismContext);
 		ProtectedStringType passwordPs = new ProtectedStringType();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -374,7 +374,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		rule.setName("barbossa-0");
 		policyRuleAssignment.setPolicyRule(rule);
 		@SuppressWarnings({"unchecked", "raw" })
-		ObjectDelta<ObjectType> objectDelta = (ObjectDelta<ObjectType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<ObjectType> objectDelta = deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(ROLE_R1_OID, ObjectTypes.ROLE, prismContext),
 						policyRuleAssignment)
@@ -459,7 +459,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		rule.setName("guybrush-0");
 		policyRuleAssignment.setPolicyRule(rule);
 		@SuppressWarnings({"unchecked", "raw" })
-		ObjectDelta<ObjectType> objectDelta = (ObjectDelta<ObjectType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<ObjectType> objectDelta = deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(deputyOfBarbossaAssignment, policyRuleAssignment)
 				.asObjectDelta(USER_GUYBRUSH_OID);
 		executeChangesAssertSuccess(objectDelta, null, task, result);

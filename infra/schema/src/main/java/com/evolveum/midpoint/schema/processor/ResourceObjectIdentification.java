@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.processor;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -72,6 +73,19 @@ public class ResourceObjectIdentification implements Serializable {
 		return (ResourceAttribute<T>) secondaryIdentifiers.iterator().next();
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Collection<? extends ResourceAttribute<?>> getAllIdentifiers() {
+		if (primaryIdentifiers == null) {
+			return secondaryIdentifiers;
+		}
+		if (secondaryIdentifiers == null) {
+			return primaryIdentifiers;
+		}
+		List allIdentifiers = new ArrayList<>(primaryIdentifiers.size() + secondaryIdentifiers.size());
+		allIdentifiers.addAll(primaryIdentifiers);
+		allIdentifiers.addAll(secondaryIdentifiers);
+		return allIdentifiers;
+	}
 
 	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
 		return objectClassDefinition;

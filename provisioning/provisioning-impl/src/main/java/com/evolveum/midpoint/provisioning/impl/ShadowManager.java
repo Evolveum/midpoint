@@ -158,7 +158,10 @@ public class ShadowManager {
 	@Autowired private Protector protector;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowManager.class);
-		
+	
+	public PrismObject<ShadowType> getRepoShadow(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		return repositoryService.getObject(ShadowType.class, oid, null, result);
+	}
 	
 	public void deleteConflictedShadowFromRepo(PrismObject<ShadowType> shadow, OperationResult parentResult){
 		

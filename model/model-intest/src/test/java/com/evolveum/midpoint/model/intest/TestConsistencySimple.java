@@ -175,7 +175,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 
 		if (shadowOperation != ShadowOperation.KEEP) {
 			@SuppressWarnings("unchecked")
-			ObjectDelta<UserType> removeLinkRefDelta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+			ObjectDelta<UserType> removeLinkRefDelta = deltaFor(UserType.class)
 					.item(UserType.F_LINK_REF).replace()
 					.asObjectDelta(USER_JACK_OID);
 			executeChanges(removeLinkRefDelta, ModelExecuteOptions.createRaw(), task, result);
@@ -188,7 +188,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 			} else {
 				if (shadowOperation == ShadowOperation.UNLINK_AND_TOMBSTONE) {
 					@SuppressWarnings("unchecked")
-					ObjectDelta<ShadowType> markAsDead = (ObjectDelta<ShadowType>) DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+					ObjectDelta<ShadowType> markAsDead = deltaFor(ShadowType.class)
 							.item(ShadowType.F_DEAD).replace(Boolean.TRUE)
 							.asObjectDelta(shadowBefore.getOid());
 					executeChanges(markAsDead, ModelExecuteOptions.createRaw(), task, result);
@@ -280,7 +280,7 @@ public class TestConsistencySimple extends AbstractInitializedModelIntegrationTe
 			for (ObjectReferenceType ref : jack.asObjectable().getLinkRef()) {
 				deleteObject(ShadowType.class, ref.getOid());
 			}
-			ObjectDelta<UserType> killLinkRefDelta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+			ObjectDelta<UserType> killLinkRefDelta = deltaFor(UserType.class)
 					.item(UserType.F_LINK_REF).replace().asObjectDelta(USER_JACK_OID);
 			executeChanges(killLinkRefDelta, ModelExecuteOptions.createRaw(), task, result);
 		}

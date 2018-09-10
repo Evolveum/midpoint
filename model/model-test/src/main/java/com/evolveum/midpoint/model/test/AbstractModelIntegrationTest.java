@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -717,7 +717,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         userPasswordPs.setClearValue(newPassword);
         PasswordType passwordType = new PasswordType();
         passwordType.setValue(userPasswordPs);
-        ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+        ObjectDelta<UserType> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
         	.item(SchemaConstants.PATH_PASSWORD).add(passwordType)
         	.asObjectDelta(userOid);
         executeChanges(delta, null, task, result);
@@ -5368,6 +5368,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void initializeAsserter(AbstractAsserter<?> asserter) {
 		asserter.setPrismContext(prismContext);
 		asserter.setObjectResolver(repoSimpleObjectResolver);
+		asserter.setProtector(protector);
 	}
 
 	protected UserAsserter<Void> assertUserAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

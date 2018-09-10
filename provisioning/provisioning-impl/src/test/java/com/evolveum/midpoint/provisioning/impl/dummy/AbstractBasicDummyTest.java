@@ -121,6 +121,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjects
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
@@ -594,12 +595,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		display("Resource", resourceType);
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
-		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
-				CredentialsCapabilityType.class);
+		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList, CredentialsCapabilityType.class);
 		assertNativeCredentialsCapability(capCred);
 
-		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList,
-				ActivationCapabilityType.class);
+		ActivationCapabilityType capAct = CapabilityUtil.getCapability(nativeCapabilitiesList, ActivationCapabilityType.class);
 		if (supportsActivation()) {
 			assertNotNull("native activation capability not present", capAct);
 			assertNotNull("native activation status capability not present", capAct.getStatus());
@@ -607,19 +606,19 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 			assertNull("native activation capability sneaked in", capAct);
 		}
 
-		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList,
-				TestConnectionCapabilityType.class);
+		TestConnectionCapabilityType capTest = CapabilityUtil.getCapability(nativeCapabilitiesList, TestConnectionCapabilityType.class);
 		assertNotNull("native test capability not present", capTest);
-		ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList,
-				ScriptCapabilityType.class);
+		ScriptCapabilityType capScript = CapabilityUtil.getCapability(nativeCapabilitiesList, ScriptCapabilityType.class);
 		assertNotNull("native script capability not present", capScript);
 		assertNotNull("No host in native script capability", capScript.getHost());
 		assertFalse("No host in native script capability", capScript.getHost().isEmpty());
 		// TODO: better look inside
 
-		UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList,
-				UpdateCapabilityType.class);
+		UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList, UpdateCapabilityType.class);
 		assertUpdateCapability(capUpdate);
+		
+		RunAsCapabilityType capRunAs = CapabilityUtil.getCapability(nativeCapabilitiesList, RunAsCapabilityType.class);
+		assertRunAsCapability(capRunAs);
 		
 		capabilitiesCachingMetadataType = resourceType.getCapabilities().getCachingMetadata();
 		assertNotNull("No capabilities caching metadata", capabilitiesCachingMetadataType);
@@ -661,6 +660,10 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNull("native update capability is manual", capUpdate.isManual());
 		assertNotNull("native update capability is null", capUpdate.isDelta());
 		assertTrue("native update capability is NOT delta", capUpdate.isDelta());
+	}
+	
+	protected void assertRunAsCapability(RunAsCapabilityType capRunAs) {
+		assertNotNull("native runAs capability not present", capRunAs);
 	}
 	
 	protected void assertCountConfiguredCapability(CountObjectsCapabilityType capCount) {

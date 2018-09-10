@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -177,7 +177,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		roleEmployeeOid = searchObjectByName(RoleType.class, "employee").getOid();
 
 		PrismReferenceValue employeeOwner = new PrismReferenceValue(roleEmployeeOid, RoleType.COMPLEX_TYPE).relation(SchemaConstants.ORG_OWNER);
-		executeChanges((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		executeChanges(DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(employeeOwner, prismContext))
 				.asObjectDelta(userEmployeeOwnerOid),
 				null, task, result);
@@ -195,7 +195,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		@SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = (ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> activateRoleDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.asObjectDelta(roleEmployeeOid);
 
@@ -230,7 +230,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		@SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = (ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> activateRoleDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.item(RoleType.F_DESCRIPTION).replace("hi")
 				.asObjectDelta(roleEmployeeOid);
@@ -278,7 +278,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 		OperationResult result = task.getResult();
 
 		@SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<RoleType> activateRoleDelta = (ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		ObjectDelta<RoleType> activateRoleDelta = DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_LIFECYCLE_STATE).replace(SchemaConstants.LIFECYCLE_ACTIVE)
 				.item(RoleType.F_DESCRIPTION).replace("hi")
 				.asObjectDelta(roleEmployeeOid);

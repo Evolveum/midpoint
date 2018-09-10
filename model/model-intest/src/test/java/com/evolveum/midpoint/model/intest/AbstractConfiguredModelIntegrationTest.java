@@ -297,6 +297,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File ROLE_ADMINS_FILE = new File(COMMON_DIR, "role-admins.xml");
 	protected static final String ROLE_ADMINS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57v15";
 	
+	protected static final File ROLE_END_USER_FILE = new File(COMMON_DIR, "role-end-user.xml");
+	protected static final String ROLE_END_USER_OID = "00000000-0000-0000-0000-00000000aa0f";
+	
 	public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	public static final String USER_JACK_USERNAME = "jack";
