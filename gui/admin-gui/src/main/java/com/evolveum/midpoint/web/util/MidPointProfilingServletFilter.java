@@ -20,6 +20,7 @@ import com.evolveum.midpoint.util.aspect.ProfilingDataLog;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.catalina.connector.ClientAbortException;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -68,7 +69,7 @@ public class MidPointProfilingServletFilter implements Filter {
             try {
             	chain.doFilter(request, response);
         	} catch (IOException | ServletException | RuntimeException | Error e) {
-        		LOGGER.debug("Encountered exception: {}: {}", e.getClass().getName(), e.getMessage(), e);
+                logException(e);
         		throw e;
         	}
 
@@ -85,7 +86,7 @@ public class MidPointProfilingServletFilter implements Filter {
         	try {
         		chain.doFilter(request, response);
         	} catch (IOException | ServletException | RuntimeException | Error e) {
-        		LOGGER.debug("Encountered exception: {}: {}", e.getClass().getName(), e.getMessage(), e);
+        		logException(e);
         		throw e;
         	}
          }
@@ -99,5 +100,15 @@ public class MidPointProfilingServletFilter implements Filter {
         ProfilingDataManager.getInstance().prepareRequestProfilingEvent(event);
     }
 
+    private void logException(Throwable t) throws IOException, ServletException {
+        if (t instanceof ClientAbortException) {
+            if (LOGGER.isDebugEnabled()) {
+                // client abort exceptions are quite OK as they are not an application/server problem
+                LOGGER.debug("Encountered exception: {}: {}", t.getClass().getName(), t.getMessage(), t);
+            }
+            return;
+        }
 
+        LOGGER.error("Encountered exception: {}: {}", t.getClass().getName(), t.getMessage(), t);
+    }
 }
