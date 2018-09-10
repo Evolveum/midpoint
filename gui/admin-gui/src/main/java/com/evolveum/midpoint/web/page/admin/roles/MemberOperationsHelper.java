@@ -158,7 +158,7 @@ public class MemberOperationsHelper {
 	public static <R extends AbstractRoleType> ObjectQuery createDirectMemberQuery(R targetObject, QName objectType, Collection<QName> relations, ObjectViewDto<OrgType> tenant, ObjectViewDto<OrgType> project, PrismContext prismContext) {
 		ObjectQuery query;
 
-		// TODO MID-3581 fix the query from the point of relations!
+		// We assume tenantRef.relation and orgRef.relation are always default ones (see also MID-3581)
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
 				.ref(createReferenceValuesList(targetObject, relations));
@@ -167,7 +167,7 @@ public class MemberOperationsHelper {
 					prismContext).asReferenceValue());
 		}
 
-		if (project != null && project.getObjectType() !=null) {
+		if (project != null && project.getObjectType() != null) {
 			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(ObjectTypeUtil.createObjectRef(project.getObjectType(),
 					prismContext).asReferenceValue());
 		}
@@ -186,9 +186,8 @@ public class MemberOperationsHelper {
 	
 	public static <R extends AbstractRoleType> List<PrismReferenceValue> createReferenceValuesList(R targetObject, Collection<QName> relations) {
 		List<PrismReferenceValue> referenceValuesList = new ArrayList<>();
-		relations.stream().forEach(relation -> referenceValuesList.add(createReference(targetObject, relation).asReferenceValue()));
+		relations.forEach(relation -> referenceValuesList.add(createReference(targetObject, relation).asReferenceValue()));
 		return referenceValuesList;
-
 	}
 	
 	public static <O extends ObjectType> ObjectQuery createSelectedObjectsQuery(List<O> selectedObjects) {

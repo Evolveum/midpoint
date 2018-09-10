@@ -142,7 +142,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         } else {
             // not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
             query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
-                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPrismContext())     // TODO MID-3581
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
                     .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
         }
         IsolatedCheckBoxPanel includeClosedCases = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES);

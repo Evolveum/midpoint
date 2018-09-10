@@ -1029,7 +1029,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 			throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
 		S_AtomicFilterExit q = QueryUtils
 				.filterForAssignees(QueryBuilder.queryFor(WorkItemType.class, prismContext), SecurityUtil.getPrincipal(),
-						OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, prismContext); // TODO MID-3581
+						OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, relationRegistry);
 		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, q.build(), null, task, result);
 		long found = currentWorkItems.stream().filter(wi -> expectedWorkItem == null || expectedWorkItem.matches(wi)).count();
 		assertEquals("Wrong # of matching work items", count, found);

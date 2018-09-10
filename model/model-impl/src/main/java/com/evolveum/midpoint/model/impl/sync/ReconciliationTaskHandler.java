@@ -553,7 +553,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 					.item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(startTimestamp))
 					.or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
 				.endBlock()
-				.and().item(ShadowType.F_RESOURCE_REF).ref(ObjectTypeUtil.createObjectRef(resource, prismContext).asReferenceValue())   // TODO MID-3581
+				.and().item(ShadowType.F_RESOURCE_REF).ref(ObjectTypeUtil.createObjectRef(resource, prismContext).asReferenceValue())
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(objectclassDef.getTypeName())
 				.build();
 

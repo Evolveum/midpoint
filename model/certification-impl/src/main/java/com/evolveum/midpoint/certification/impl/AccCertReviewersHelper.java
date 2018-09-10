@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -131,11 +132,15 @@ public class AccCertReviewersHelper {
 
 	private List<ObjectReferenceType> getMembers(ObjectReferenceType abstractRoleRef, OperationResult result)
 			throws SchemaException {
-		ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
-				.item(UserType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleRef.getOid())
-				.build();
+		Collection<PrismReferenceValue> references = ObjectQueryUtil
+				.createReferences(abstractRoleRef.getOid(), RelationKindType.MEMBERSHIP, relationRegistry);
+		ObjectQuery query = references.isEmpty()
+				? QueryBuilder.queryFor(UserType.class, prismContext).none().build()
+				: QueryBuilder.queryFor(UserType.class, prismContext)
+					.item(UserType.F_ROLE_MEMBERSHIP_REF).ref(references)
+					.build();
 		return repositoryService.searchObjects(UserType.class, query, null, result).stream()
-				.map(obj -> ObjectTypeUtil.createObjectRef(obj, prismContext))      // TODO MID-3581
+				.map(obj -> ObjectTypeUtil.createObjectRef(obj, prismContext))
 				.collect(Collectors.toList());
 	}
 
