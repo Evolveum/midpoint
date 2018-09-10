@@ -38,16 +38,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 /**
  * @author skublik
  */
-public class SystemConfigPanelNew extends BasePanel<ObjectWrapper<SystemConfigurationType>> {
+public class SystemConfigPanel extends BasePanel<ObjectWrapper<SystemConfigurationType>> {
 	
     private static final long serialVersionUID = 1L;
     
-    private static final Trace LOGGER = TraceManager.getTrace(SystemConfigPanelNew.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SystemConfigPanel.class);
 
     private static final String ID_SYSTEM_CONFIG = "basicSystemConfiguration";
 
     
-    public SystemConfigPanelNew(String id, IModel<ObjectWrapper<SystemConfigurationType>> model) {
+    public SystemConfigPanel(String id, IModel<ObjectWrapper<SystemConfigurationType>> model) {
         super(id, model);
 
         setOutputMarkupId(true);

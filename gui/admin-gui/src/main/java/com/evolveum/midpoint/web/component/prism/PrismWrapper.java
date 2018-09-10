@@ -4,7 +4,9 @@ public abstract class PrismWrapper {
 
 	
 	 	private boolean showEmpty;
-	    private boolean minimalized;
+	 	
+	 	@Deprecated //used only for projections, after switching projection to table, remove it.
+	 	private boolean minimalized=true;
 	    private boolean sorted;
 	    private boolean showMetadata;
 	    private boolean expanded = true;

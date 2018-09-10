@@ -20,9 +20,9 @@
 	<define name="consoleTimezone" class="com.evolveum.midpoint.common.LogbackPropertyDefinerForConsoleTimezone" />
 
 	<appender name="DEFAULT_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-		<layout class="ch.qos.logback.classic.PatternLayout">
+		<encoder>
 			<pattern>${consolePrefix}%date{ISO8601, ${consoleTimezone}} [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
-		</layout>
+		</encoder>
 	</appender>
 
 </included>

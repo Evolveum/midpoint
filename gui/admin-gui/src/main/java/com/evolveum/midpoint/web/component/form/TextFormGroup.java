@@ -43,27 +43,44 @@ public class TextFormGroup extends BasePanel<String> {
     private static final String ID_TOOLTIP = "tooltip";
 	private static final String ID_REQUIRED = "required";
     private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_PROPERTY_LABEL = "propertyLabel";
+    private static final String ID_ROW = "row";
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelCssClass, String textCssClass,
+            boolean required, boolean isSimilarAsPropertyPanel) {
+    	this(id, value, label, null, false, labelCssClass, textCssClass, required, required, isSimilarAsPropertyPanel);
+    }
+    
+    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelCssClass, String textCssClass,
                          boolean required) {
-        this(id, value, label, null, false, labelCssClass, textCssClass, required, required);
+        this(id, value, label, null, false, labelCssClass, textCssClass, required, required, false);
+    }
+    
+    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, boolean isTooltipInModel, String labelCssClass,
+            String textCssClass, boolean required, boolean markAsRequired) {
+    	this(id, value, label, null, false, labelCssClass, textCssClass, required, markAsRequired, false);
     }
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, boolean isTooltipInModel, String labelCssClass,
-                         String textCssClass, boolean required, boolean markAsRequired) {
+                         String textCssClass, boolean required, boolean markAsRequired, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
-        initLayout(label, tooltipKey, isTooltipInModel, labelCssClass, textCssClass, required, markAsRequired);
+        initLayout(label, tooltipKey, isTooltipInModel, labelCssClass, textCssClass, required, markAsRequired, isSimilarAsPropertyPanel);
     }
 
     private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
-			final boolean markAsRequired) {
+			final boolean markAsRequired, boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
         Label l = new Label(ID_LABEL, label);
         if (StringUtils.isNotEmpty(labelCssClass)) {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
+        }
+        if(isSimilarAsPropertyPanel) {
+        	labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
+        } else {
+        	labelContainer.add(AttributeAppender.prepend("class", " control-label "));
         }
         labelContainer.add(l);
 
@@ -95,12 +112,19 @@ public class TextFormGroup extends BasePanel<String> {
 			}
 		});
 		labelContainer.add(requiredContainer);
-
+		WebMarkupContainer propertyLabel = new WebMarkupContainer(ID_PROPERTY_LABEL);
+		WebMarkupContainer rowLabel = new WebMarkupContainer(ID_ROW);
 		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
         if (StringUtils.isNotEmpty(textCssClass)) {
             textWrapper.add(AttributeAppender.prepend("class", textCssClass));
         }
-        add(textWrapper);
+        if(isSimilarAsPropertyPanel) {
+        	propertyLabel.add(AttributeAppender.prepend("class", " col-md-10 prism-property-value "));
+        	rowLabel.add(AttributeAppender.prepend("class", " row "));
+        }
+        propertyLabel.add(rowLabel);
+		rowLabel.add(textWrapper);
+        add(propertyLabel);
 
         TextField text = createText(getModel(), label, required);
         text.setLabel(label);
@@ -120,6 +144,6 @@ public class TextFormGroup extends BasePanel<String> {
     }
 
     public TextField getField(){
-        return (TextField) get(ID_TEXT_WRAPPER + ":" + ID_TEXT);
+        return (TextField) get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_TEXT_WRAPPER, ID_TEXT));
     }
 }

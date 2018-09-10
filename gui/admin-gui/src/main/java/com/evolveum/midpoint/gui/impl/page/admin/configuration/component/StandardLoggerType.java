@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.page.admin.configuration.dto;
+package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 /**
  *  @author shood
