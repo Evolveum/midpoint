@@ -21,17 +21,19 @@
 <wicket:panel>
     <div class="box box-success">
         <div class="box-body no-padding">
-            <table class="table table-striped">
-                <tr wicket:id="objectTypeContainer">
-                    <td><wicket:message key="QueryBasedHandlerPanel.objectType"/></td>
-                    <td><span wicket:id="objectType"/></td>
-                </tr>
-                <tr wicket:id="objectQueryContainer">
-                    <td><wicket:message key="QueryBasedHandlerPanel.query"/></td>
-                    <td><textarea wicket:id="objectQuery" class="form-control input-sm" rows="12"></textarea></td>
-                </tr>
-                <wicket:child/>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <tr wicket:id="objectTypeContainer">
+                        <td><wicket:message key="QueryBasedHandlerPanel.objectType"/></td>
+                        <td><span wicket:id="objectType"/></td>
+                    </tr>
+                    <tr wicket:id="objectQueryContainer">
+                        <td><wicket:message key="QueryBasedHandlerPanel.query"/></td>
+                        <td><textarea wicket:id="objectQuery" class="form-control input-sm" rows="12"></textarea></td>
+                    </tr>
+                    <wicket:child/>
+                </table>
+            </div>
         </div>
     </div>
 </wicket:panel>
