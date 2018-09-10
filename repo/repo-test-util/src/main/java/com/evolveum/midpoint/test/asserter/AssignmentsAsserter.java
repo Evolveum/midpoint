@@ -62,10 +62,6 @@ public class AssignmentsAsserter<F extends FocusType, FA extends FocusAsserter<F
 		return new AssignmentsAsserter<>(FocusAsserter.forFocus(focus));
 	}
 	
-	PrismObject<ShadowType> getLinkTarget(String oid) throws ObjectNotFoundException, SchemaException {
-		return focusAsserter.getLinkTarget(oid);
-	}
-	
 	List<AssignmentType> getAssignments() {
 		if (assignments == null) {
 			assignments = getFocus().asObjectable().getAssignment();

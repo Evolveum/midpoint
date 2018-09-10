@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+ 
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+
+	<org oid="00000000-8888-6666-1111-000000000000">
+		<name>0000</name>
+		<description>Root of the multitenant structure</description>
+		<subtype>tenancy</subtype>
+		<displayName>Multitenant root</displayName>
+		<identifier>0000</identifier>
+	</org>
+
+	<org oid="00000000-8888-6666-1111-000000001000">
+		<name>Corrino</name>
+		<subtype>tenancy</subtype>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-1111-000000000000" type="OrgType"/>
+		</assignment>
+		<displayName>House Corrino</displayName>
+		<identifier>1000</identifier>
+		<locality>Kaitain</locality>
+		<tenant>true</tenant>
+	</org>
+	
+	<role oid="00000000-8888-6666-1111-100000001000">
+		<name>Corrino Admin</name>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-1111-000000001000" type="OrgType"/>
+		</assignment>
+	</role>
+	
+	<org oid="00000000-8888-6666-1111-000000002000">
+		<name>Atreides</name>
+		<subtype>tenancy</subtype>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-1111-000000000000" type="OrgType"/>
+		</assignment>
+		<displayName>House Atreides</displayName>
+		<identifier>2000</identifier>
+		<locality>Caladan</locality>
+		<tenant>true</tenant>
+	</org>
+	
+	<role oid="00000000-8888-6666-1111-100000002000">
+		<name>Atreides Admin</name>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-1111-000000002000" type="OrgType"/>
+		</assignment>
+	</role>
+	
+	<org oid="00000000-8888-6666-1111-000000003000">
+		<name>Harkonnen</name>
+		<subtype>tenancy</subtype>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-1111-000000000000" type="OrgType"/>
+		</assignment>
+		<displayName>House Harkonnen</displayName>
+		<identifier>3000</identifier>
+		<locality>Giedi Prime</locality>
+		<tenant>true</tenant>
+	</org>
+	
+	<role oid="00000000-8888-6666-1111-100000003000">
+		<name>Harkonnen Admin</name>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-1111-000000003000" type="OrgType"/>
+		</assignment>
+	</role>
+	
+</objects>
