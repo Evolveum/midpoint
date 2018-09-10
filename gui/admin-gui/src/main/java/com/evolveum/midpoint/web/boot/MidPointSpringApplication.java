@@ -16,13 +16,12 @@
 
 package com.evolveum.midpoint.web.boot;
 
-import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
-import com.evolveum.midpoint.init.StartupConfiguration;
-import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
-import com.evolveum.midpoint.prism.schema.CatalogImpl;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
+import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.time.Duration;
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
 
 import org.apache.catalina.Valve;
 import org.apache.commons.lang.StringUtils;
@@ -40,8 +39,11 @@ import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoCon
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.embedded.EmbeddedWebServerFactoryCustomizerAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.servlet.*;
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.HttpEncodingAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.MultipartAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryCustomizer;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.ErrorPage;
@@ -59,13 +61,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
+
+import com.evolveum.midpoint.gui.impl.util.ReportPeerQueryInterceptor;
+import com.evolveum.midpoint.init.StartupConfiguration;
+import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
+import com.evolveum.midpoint.prism.schema.CatalogImpl;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.util.MidPointProfilingServletFilter;
+
 import ro.isdc.wro.http.WroFilter;
-
-import javax.servlet.DispatcherType;
-
-import java.io.File;
-import java.lang.management.ManagementFactory;
-import java.time.Duration;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -173,23 +178,24 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     }
     
     @Bean
-    public ServletListenerRegistrationBean requestContextListener() {
-        return new ServletListenerRegistrationBean(new RequestContextListener());
+    public ServletListenerRegistrationBean<RequestContextListener> requestContextListener() {
+        return new ServletListenerRegistrationBean<>(new RequestContextListener());
     }
 
     @Bean
-    public FilterRegistrationBean midPointProfilingServletFilter() {
-        FilterRegistrationBean registration = new FilterRegistrationBean();
+    public FilterRegistrationBean<MidPointProfilingServletFilter> midPointProfilingServletFilter() {
+        FilterRegistrationBean<MidPointProfilingServletFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new MidPointProfilingServletFilter());
+        registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
         registration.addUrlPatterns("/*");
         return registration;
     }
 
     @Bean
-    public FilterRegistrationBean wicket() {
-        FilterRegistrationBean registration = new FilterRegistrationBean();
+    public FilterRegistrationBean<WicketFilter> wicket() {
+        FilterRegistrationBean<WicketFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new WicketFilter());
-        registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.ERROR);
+        registration.setDispatcherTypes(DispatcherType.ERROR, DispatcherType.REQUEST, DispatcherType.FORWARD);
         registration.addUrlPatterns("/*");
         registration.addInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/*");
         registration.addInitParameter(Application.CONFIGURATION, "deployment");     // development
@@ -200,24 +206,24 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     }
     
     @Bean
-    public FilterRegistrationBean springSecurityFilterChain() {
-        FilterRegistrationBean registration = new FilterRegistrationBean();
+    public FilterRegistrationBean<DelegatingFilterProxy> springSecurityFilterChain() {
+        FilterRegistrationBean<DelegatingFilterProxy> registration = new FilterRegistrationBean<>();
         registration.setFilter(new DelegatingFilterProxy());
         registration.addUrlPatterns("/*");
         return registration;
     }
 
     @Bean
-    public FilterRegistrationBean webResourceOptimizer(WroFilter wroFilter) {
-        FilterRegistrationBean registration = new FilterRegistrationBean();
+    public FilterRegistrationBean<WroFilter> webResourceOptimizer(WroFilter wroFilter) {
+        FilterRegistrationBean<WroFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(wroFilter);
         registration.addUrlPatterns("/wro/*");
         return registration;
     }
 
     @Bean
-    public ServletRegistrationBean cxfServlet() {
-        ServletRegistrationBean registration = new ServletRegistrationBean();
+    public ServletRegistrationBean<CXFServlet> cxfServlet() {
+        ServletRegistrationBean<CXFServlet> registration = new ServletRegistrationBean<>();
         registration.setServlet(new CXFServlet());
         registration.addInitParameter("service-list-path", "midpointservices");
         registration.setLoadOnStartup(1);
@@ -227,8 +233,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     }
 
     @Bean
-    public ServletRegistrationBean reportPeerQueryInterceptor() {
-        ServletRegistrationBean registration = new ServletRegistrationBean();
+    public ServletRegistrationBean<ReportPeerQueryInterceptor> reportPeerQueryInterceptor() {
+        ServletRegistrationBean<ReportPeerQueryInterceptor> registration = new ServletRegistrationBean<>();
         registration.setServlet(new ReportPeerQueryInterceptor(nodeAuthenticator));
         registration.addUrlMappings("/report");
 
@@ -236,8 +242,8 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     }
     
     @Bean
-    public ServletRegistrationBean staticWebServlet() {
-        ServletRegistrationBean registration = new ServletRegistrationBean();
+    public ServletRegistrationBean<StaticWebServlet> staticWebServlet() {
+        ServletRegistrationBean<StaticWebServlet> registration = new ServletRegistrationBean<>();
         StaticWebServlet servlet = new StaticWebServlet(
         		new File(startupConfiguration.getMidpointHome(), "static-web"));
         registration.setServlet(servlet);
