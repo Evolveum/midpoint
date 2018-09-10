@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
@@ -135,7 +134,7 @@ public class RTrigger implements Container {
         return result;
     }
 
-    public static void copyToJAXB(RTrigger repo, TriggerType jaxb, PrismContext prismContext) throws
+    public static void copyToJAXB(RTrigger repo, TriggerType jaxb) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -144,27 +143,23 @@ public class RTrigger implements Container {
 
         jaxb.setHandlerUri(repo.getHandlerUri());
         jaxb.setTimestamp(repo.getTimestamp());
-
     }
 
-    public static void copyFromJAXB(TriggerType jaxb, RTrigger repo, RObject parent,
-                                    RepositoryContext repositoryContext) throws DtoTranslationException {
-
+    public static void fromJaxb(TriggerType jaxb, RTrigger repo, RObject parent,
+            RepositoryContext repositoryContext) throws DtoTranslationException {
         repo.setOwner(parent);
-        copyFromJAXB(jaxb, repo, repositoryContext, null);
+        fromJaxb(jaxb, repo, repositoryContext, null);
     }
 
-    public static void copyFromJAXB(TriggerType jaxb, RTrigger repo, ObjectType parent,
-                                    RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
+    public static void fromJaxb(TriggerType jaxb, RTrigger repo, ObjectType parent,
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
-
         repo.setOwnerOid(parent.getOid());
-        copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        fromJaxb(jaxb, repo, repositoryContext, generatorResult);
     }
 
-    private static void copyFromJAXB(TriggerType jaxb, RTrigger repo, RepositoryContext repositoryContext,
-                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
-
+    private static void fromJaxb(TriggerType jaxb, RTrigger repo, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -178,9 +173,9 @@ public class RTrigger implements Container {
         repo.setTimestamp(jaxb.getTimestamp());
     }
 
-    public TriggerType toJAXB(PrismContext prismContext) throws DtoTranslationException {
+    public TriggerType toJAXB() throws DtoTranslationException {
         TriggerType object = new TriggerType();
-        RTrigger.copyToJAXB(this, object, prismContext);
+        RTrigger.copyToJAXB(this, object);
         return object;
     }
 }

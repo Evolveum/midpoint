@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -71,6 +72,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 	@Autowired protected BaseHelper baseHelper;
     @Autowired protected AuditService auditService;
     @Autowired protected PrismContext prismContext;
+    @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected SessionFactory factory;
     @Autowired protected ExtItemDictionary extItemDictionary;
 

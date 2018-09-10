@@ -16,11 +16,16 @@
 
 package com.evolveum.midpoint.schema.constants;
 
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType.*;
+import static java.util.Collections.singletonList;
 
 /**
  * Built-in (hardcoded) relations.
@@ -29,22 +34,31 @@ import javax.xml.namespace.QName;
  */
 public enum RelationTypes {
 
-	MEMBER(SchemaConstants.ORG_DEFAULT, "", AreaCategoryType.ADMINISTRATION, AreaCategoryType.ORGANIZATION, AreaCategoryType.SELF_SERVICE),
-    MANAGER(SchemaConstants.ORG_MANAGER, "Manager", AreaCategoryType.ADMINISTRATION, AreaCategoryType.GOVERNANCE, AreaCategoryType.ORGANIZATION, AreaCategoryType.SELF_SERVICE),
-    META(SchemaConstants.ORG_META, "Meta", AreaCategoryType.POLICY),
-    DEPUTY(SchemaConstants.ORG_DEPUTY, "Deputy" /* no values */),
-    APPROVER(SchemaConstants.ORG_APPROVER, "Approver", AreaCategoryType.ADMINISTRATION, AreaCategoryType.GOVERNANCE, AreaCategoryType.ORGANIZATION, AreaCategoryType.SELF_SERVICE),
-    OWNER(SchemaConstants.ORG_OWNER, "Owner", AreaCategoryType.ADMINISTRATION, AreaCategoryType.GOVERNANCE, AreaCategoryType.ORGANIZATION, AreaCategoryType.SELF_SERVICE),
-    CONSENT(SchemaConstants.ORG_CONSENT, "Consent", AreaCategoryType.DATA_PROTECTION),;
-
+	MEMBER(SchemaConstants.ORG_DEFAULT, "", RelationKindType.MEMBERSHIP, null, ADMINISTRATION, ORGANIZATION, SELF_SERVICE),
+    MANAGER(SchemaConstants.ORG_MANAGER, "Manager", RelationKindType.MANAGER, singletonList(RelationKindType.MEMBERSHIP), ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
+    META(SchemaConstants.ORG_META, "Meta", RelationKindType.META, singletonList(RelationKindType.MEMBERSHIP), POLICY),
+    DEPUTY(SchemaConstants.ORG_DEPUTY, "Deputy", RelationKindType.DELEGATION, null /* no values */),
+    APPROVER(SchemaConstants.ORG_APPROVER, "Approver", RelationKindType.APPROVER, null, ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
+    OWNER(SchemaConstants.ORG_OWNER, "Owner", RelationKindType.OWNER, null, ADMINISTRATION, GOVERNANCE, ORGANIZATION, SELF_SERVICE),
+    CONSENT(SchemaConstants.ORG_CONSENT, "Consent", RelationKindType.CONSENT, null, DATA_PROTECTION);
 
     private final QName relation;
     private final String headerLabel;
+    private final RelationKindType defaultFor;
+    @NotNull private final Collection<RelationKindType> kinds;
     private final AreaCategoryType[] categories;
 
-    RelationTypes(QName relation, String headerLabel, AreaCategoryType... categories) {
+    RelationTypes(QName relation, String headerLabel, RelationKindType defaultFor, Collection<RelationKindType> additionalKinds, AreaCategoryType... categories) {
         this.relation = relation;
         this.headerLabel = headerLabel;
+        this.kinds = new ArrayList<>();
+        if (defaultFor != null) {
+            kinds.add(defaultFor);
+        }
+        if (additionalKinds != null) {
+            kinds.addAll(additionalKinds);
+        }
+        this.defaultFor = defaultFor;
         this.categories = categories;
     }
 
@@ -59,20 +73,17 @@ public enum RelationTypes {
     public String getLabelKey() {
     	return RelationTypes.class.getSimpleName() + "." + relation.getLocalPart();
     }
-    
+
+    public RelationKindType getDefaultFor() {
+        return defaultFor;
+    }
+
+    @NotNull
+    public Collection<RelationKindType> getKinds() {
+        return kinds;
+    }
+
     public AreaCategoryType[] getCategories() {
 		return categories;
 	}
-
-	public static RelationTypes getRelationType(QName relation) {
-        if (ObjectTypeUtil.isDefaultRelation(relation)) {
-            return RelationTypes.MEMBER;
-        }
-        for (RelationTypes relationTypes : RelationTypes.values()) {
-            if (QNameUtil.match(relation, relationTypes.getRelation())) {
-                return relationTypes;
-            }
-        }
-        return RelationTypes.MEMBER;
-    }
 }

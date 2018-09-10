@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
@@ -258,7 +258,12 @@ public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements 
     }
 
     public IModel<String> getRelationDisplayNameModel(Component component) {
-        String localizationKey = ObjectTypeUtil.getRelationNameLocalizationKey(relation, true);
+        String localizationKey;
+        if (WebComponentUtil.isDefaultRelation(relation)) {
+            localizationKey = null;
+        } else {
+            localizationKey = WebComponentUtil.getRelationHeaderLabelKey(relation);
+        }
         return localizationKey != null ? PageBase.createStringResourceStatic(component, localizationKey) : Model.of("");
     }
 }

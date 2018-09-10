@@ -76,6 +76,7 @@ public class RFunctionLibrary extends RObject<FunctionLibraryType> {
         return Objects.hash(super.hashCode(), nameCopy);
     }
 
+    // dynamically called
     public static void copyFromJAXB(FunctionLibraryType jaxb, RFunctionLibrary repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

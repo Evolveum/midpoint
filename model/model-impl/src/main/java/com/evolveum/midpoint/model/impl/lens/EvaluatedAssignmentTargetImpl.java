@@ -18,11 +18,12 @@ package com.evolveum.midpoint.model.impl.lens;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -66,7 +67,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 	}
 
 	@Override
-	public boolean appliesToFocusWithAnyRelation() {
+	public boolean appliesToFocusWithAnyRelation(RelationRegistry relationRegistry) {
 		// TODO clean up this method
 		if (appliesToFocus()) {
 			// This covers any indirectly assigned targets, like user -> org -> parent-org -> root-org -(I)-> role
@@ -77,7 +78,17 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 		// Actually I think these should be also covered by appliesToFocus() i.e. their isMatchingOrder should be true.
 		// But for some reason it is currently not so.
 		EvaluationOrder order = assignmentPath.last().getEvaluationOrder();
-		return order.getSummaryOrder() == 1 || order.getSummaryOrder() == 0 && order.getMatchingRelationOrder(SchemaConstants.ORG_DEPUTY) > 0;
+		if (order.getSummaryOrder() == 1) {
+			return true;
+		}
+		if (order.getSummaryOrder() != 0) {
+			return false;
+		}
+		int delegationCount = 0;
+		for (QName delegationRelation : relationRegistry.getAllRelationsFor(RelationKindType.DELEGATION)) {
+			delegationCount += order.getMatchingRelationOrder(delegationRelation);
+		}
+		return delegationCount > 0;
 	}
 
 	@Override

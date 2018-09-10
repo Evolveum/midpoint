@@ -36,6 +36,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  *
@@ -267,8 +268,20 @@ public interface PrismContext {
 	 */
 	QName getDefaultRelation();
 
+	void setDefaultRelation(QName name);
+
 	/**
 	 * If defined, marks the 'multiple objects' element.
 	 */
 	QName getObjectsElementName();
+
+	boolean isDefaultRelation(QName relation);
+
+	// TODO improve this method to avoid false positives when unqualified relations are defined (minor priority, as that's unsupported anyway)
+	boolean relationsEquivalent(QName relation1, QName relation2);
+
+	boolean relationMatches(QName relationQuery, QName relation);
+
+	boolean relationMatches(@NotNull List<QName> relationQuery, QName relation);
+
 }

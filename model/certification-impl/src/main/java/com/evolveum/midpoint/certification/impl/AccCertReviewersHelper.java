@@ -26,8 +26,8 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -62,6 +62,7 @@ public class AccCertReviewersHelper {
 	@Autowired private OrgStructFunctions orgStructFunctions;
 	@Autowired private PrismContext prismContext;
 	@Autowired private AccCertExpressionHelper expressionHelper;
+	@Autowired private RelationRegistry relationRegistry;
 
     AccessCertificationReviewerSpecificationType findReviewersSpecification(AccessCertificationCampaignType campaign, int stage) {
         AccessCertificationStageDefinitionType stageDef = CertCampaignTypeUtil.findStageDefinition(campaign, stage);
@@ -201,7 +202,7 @@ public class AccCertReviewersHelper {
         }
         ObjectType target = resolveReference(_case.getTargetRef(), ObjectType.class, result);
         if (target instanceof AbstractRoleType) {
-			return getAssignees((AbstractRoleType) target, SchemaConstants.ORG_OWNER, result);
+			return getAssignees((AbstractRoleType) target, RelationKindType.OWNER, result);
         } else if (target instanceof ResourceType) {
             return ResourceTypeUtil.getOwnerRef((ResourceType) target);
         } else {
@@ -209,24 +210,28 @@ public class AccCertReviewersHelper {
         }
     }
 
-	private List<ObjectReferenceType> getAssignees(AbstractRoleType role, QName relation, OperationResult result)
+	private List<ObjectReferenceType> getAssignees(AbstractRoleType role, RelationKindType relationKind, OperationResult result)
 			throws SchemaException {
     	List<ObjectReferenceType> rv = new ArrayList<>();
-		if (SchemaConstants.ORG_OWNER.equals(relation)) {
+		if (relationKind == RelationKindType.OWNER) {
 			CollectionUtils.addIgnoreNull(rv, role.getOwnerRef());
-		} else if (SchemaConstants.ORG_APPROVER.equals(relation)) {
+		} else if (relationKind == RelationKindType.APPROVER) {
 			rv.addAll(role.getApproverRef());
 		} else {
-			throw new AssertionError(relation);
+			throw new AssertionError(relationKind);
 		}
 		// TODO in theory, we could look for approvers/owners of UserType, right?
-		PrismReferenceValue ref = new PrismReferenceValue(role.getOid());
-		ref.setRelation(relation);
+		Collection<PrismReferenceValue> values = new ArrayList<>();
+		for (QName relation : relationRegistry.getAllRelationsFor(relationKind)) {
+			PrismReferenceValue ref = new PrismReferenceValue(role.getOid());
+			ref.setRelation(relation);
+			values.add(ref);
+		}
 		ObjectQuery query = QueryBuilder.queryFor(FocusType.class, prismContext)
-				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(ref)
+				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(values)
 				.build();
 		List<PrismObject<FocusType>> assignees = repositoryService.searchObjects(FocusType.class, query, null, result);
-		LOGGER.trace("Looking for '{}' of {} using {}: found: {}", relation.getLocalPart(), role, query, assignees);
+		LOGGER.trace("Looking for '{}' of {} using {}: found: {}", relationKind, role, query, assignees);
 		assignees.forEach(o -> rv.add(ObjectTypeUtil.createObjectRef(o)));
 		return rv;
 	}
@@ -238,7 +243,7 @@ public class AccCertReviewersHelper {
         }
         ObjectType object = resolveReference(_case.getObjectRef(), ObjectType.class, result);
         if (object instanceof AbstractRoleType) {
-			return getAssignees((AbstractRoleType) object, SchemaConstants.ORG_OWNER, result);
+			return getAssignees((AbstractRoleType) object, RelationKindType.OWNER, result);
         } else {
             return null;
         }
@@ -251,7 +256,7 @@ public class AccCertReviewersHelper {
         }
         ObjectType target = resolveReference(_case.getTargetRef(), ObjectType.class, result);
         if (target instanceof AbstractRoleType) {
-			return getAssignees((AbstractRoleType) target, SchemaConstants.ORG_APPROVER, result);
+			return getAssignees((AbstractRoleType) target, RelationKindType.APPROVER, result);
         } else if (target instanceof ResourceType) {
             return ResourceTypeUtil.getApproverRef((ResourceType) target);
         } else {
@@ -266,7 +271,7 @@ public class AccCertReviewersHelper {
         }
         ObjectType object = resolveReference(_case.getObjectRef(), ObjectType.class, result);
         if (object instanceof AbstractRoleType) {
-			return getAssignees((AbstractRoleType) object, SchemaConstants.ORG_APPROVER, result);
+			return getAssignees((AbstractRoleType) object, RelationKindType.APPROVER, result);
         } else {
             return null;
         }

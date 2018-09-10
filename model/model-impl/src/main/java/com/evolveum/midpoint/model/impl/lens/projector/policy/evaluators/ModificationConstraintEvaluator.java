@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -40,6 +42,8 @@ public abstract class ModificationConstraintEvaluator<T extends ModificationPoli
 	private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintEvaluator.class);
 
 	@Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
+	@Autowired protected PrismContext prismContext;
+	@Autowired protected RelationRegistry relationRegistry;
 
 	@NotNull
 	protected <F extends FocusType> String createStateKey(PolicyRuleEvaluationContext<F> rctx) {

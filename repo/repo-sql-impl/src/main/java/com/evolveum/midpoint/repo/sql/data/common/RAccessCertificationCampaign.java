@@ -194,13 +194,14 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
                 stageNumber);
     }
 
+    // dynamically called
     public static void copyFromJAXB(AccessCertificationCampaignType jaxb, RAccessCertificationCampaign repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
 
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setDefinitionRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getDefinitionRef(), repositoryContext.prismContext));
+        repo.setDefinitionRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getDefinitionRef(), repositoryContext.relationRegistry));
 
         List<AccessCertificationCaseType> cases = jaxb.getCase();
         if (!cases.isEmpty()) {
@@ -211,7 +212,7 @@ public class RAccessCertificationCampaign extends RObject<AccessCertificationCam
             }
         }
 
-        repo.setOwnerRefCampaign(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
+        repo.setOwnerRefCampaign(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.relationRegistry));
         repo.setHandlerUri(jaxb.getHandlerUri());
         repo.setStart(jaxb.getStartTimestamp());
         repo.setEnd(jaxb.getEndTimestamp());

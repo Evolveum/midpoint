@@ -73,6 +73,7 @@ import static com.evolveum.midpoint.prism.query.OrderDirection.ASCENDING;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.util.QNameUtil.unqualify;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_STAGE_NUMBER;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
@@ -1302,11 +1303,16 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             @SuppressWarnings("unchecked")
             Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
             assertEquals("Wrong relation parameter value",
-                    new HashSet<>(Arrays.asList("#", RUtil.qnameToString(SchemaConstants.ORG_DEFAULT))),
+                    new HashSet<>(getVariantsOfDefaultRelation()),
                     new HashSet<>(relationParameter));
         } finally {
             close(session);
         }
+    }
+
+    @NotNull
+    private List<String> getVariantsOfDefaultRelation() {
+        return Arrays.asList("#", RUtil.qnameToString(unqualify(SchemaConstants.ORG_DEFAULT)), RUtil.qnameToString(SchemaConstants.ORG_DEFAULT));
     }
 
     @Test
@@ -1882,9 +1888,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	        @SuppressWarnings("unchecked")
 	        Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
 	        assertEquals("Wrong relation parameter value",
-			        new HashSet<>(Arrays.asList(
-					        "#",
-					        RUtil.qnameToString(SchemaConstants.ORG_DEFAULT))),
+			        new HashSet<>(getVariantsOfDefaultRelation()),
 			        new HashSet<>(relationParameter));
 
         } finally {
@@ -1996,9 +2000,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			@SuppressWarnings("unchecked")
 			Collection<String> relationParameter = (Collection<String>) rQuery.getQuerySource().getParameters().get("relation").getValue();
 			assertEquals("Wrong relation parameter value",
-					new HashSet<>(Arrays.asList(
-							"#",
-							RUtil.qnameToString(SchemaConstants.ORG_DEFAULT))),
+					new HashSet<>(getVariantsOfDefaultRelation()),
 					new HashSet<>(relationParameter));
 
 		} finally {
@@ -5133,7 +5135,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			LOGGER.info("QUERY TYPE TO CONVERT :\n{}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
 		}
 
-		QueryEngine2 engine = new QueryEngine2(baseHelper.getConfiguration(), extItemDictionary, prismContext);
+		QueryEngine2 engine = new QueryEngine2(baseHelper.getConfiguration(), extItemDictionary, prismContext, relationRegistry);
 		RQuery rQuery = engine.interpret(query, type, options, interpretCount, session);
 		//just test if DB will handle it or throws some exception
 		if (interpretCount) {

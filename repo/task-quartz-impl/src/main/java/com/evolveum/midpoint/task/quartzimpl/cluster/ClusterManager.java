@@ -213,12 +213,9 @@ public class ClusterManager {
         clusterManagerThread.start();
     }
 
-
-
     private RepositoryService getRepositoryService() {
         return taskManager.getRepositoryService();
     }
-
 
     public String dumpNodeInfo(NodeType node) {
         return node.getNodeIdentifier() + " (" + node.getHostname() + ")";
@@ -299,6 +296,7 @@ public class ClusterManager {
                 SecurityUtil.setRemoteHostAddressHeaders(config.asObjectable());
 
 				getRepositoryService().applyFullTextSearchConfiguration(config.asObjectable().getFullTextSearch());
+				taskManager.getRelationRegistry().applyRelationConfiguration(config.asObjectable());
                 SystemConfigurationTypeUtil.applyOperationResultHandling(config.asObjectable());
             } else {
                 if (LOGGER.isTraceEnabled()) {

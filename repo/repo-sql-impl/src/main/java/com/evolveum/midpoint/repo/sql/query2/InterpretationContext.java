@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query2.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query2.resolution.ItemPathResolver;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -39,6 +40,7 @@ public class InterpretationContext {
 
     private QueryInterpreter2 interpreter;
     private PrismContext prismContext;
+    private RelationRegistry relationRegistry;
     private Session session;
     private ExtItemDictionary extItemDictionary;
 
@@ -56,17 +58,20 @@ public class InterpretationContext {
     private JpaEntityDefinition rootEntityDefinition;
 
     public InterpretationContext(QueryInterpreter2 interpreter, Class<? extends Containerable> type,
-                                 PrismContext prismContext, ExtItemDictionary extItemDictionary, Session session) throws QueryException {
+            PrismContext prismContext, RelationRegistry relationRegistry,
+            ExtItemDictionary extItemDictionary, Session session) throws QueryException {
 
         Validate.notNull(interpreter, "interpreter");
         Validate.notNull(type, "type");
         Validate.notNull(prismContext, "prismContext");
+        Validate.notNull(relationRegistry, "relationRegistry");
         Validate.notNull(extItemDictionary, "extItemDictionary");
         Validate.notNull(session, "session");
 
         this.interpreter = interpreter;
         this.type = type;
         this.prismContext = prismContext;
+        this.relationRegistry = relationRegistry;
         this.extItemDictionary = extItemDictionary;
         this.session = session;
 
@@ -83,6 +88,10 @@ public class InterpretationContext {
 
     public PrismContext getPrismContext() {
         return prismContext;
+    }
+
+    public RelationRegistry getRelationRegistry() {
+        return relationRegistry;
     }
 
     public Session getSession() {

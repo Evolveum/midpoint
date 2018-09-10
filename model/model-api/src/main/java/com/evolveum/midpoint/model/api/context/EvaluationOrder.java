@@ -50,7 +50,7 @@ public interface EvaluationOrder extends DebugDumpable, ShortDumpable, Cloneable
 	// both current and new states must be defined
 	Map<QName, Integer> diff(EvaluationOrder newState);
 
-	EvaluationOrder applyDifference(Map<QName,Integer> difference);
+	EvaluationOrder applyDifference(Map<QName, Integer> difference);
 
 	boolean isDefined();
 

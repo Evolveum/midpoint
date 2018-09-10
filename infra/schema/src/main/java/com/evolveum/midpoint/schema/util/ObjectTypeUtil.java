@@ -23,14 +23,19 @@ import com.evolveum.midpoint.prism.marshaller.PathHolderSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -59,6 +64,8 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
  * @author Radovan Semancik
  */
 public class ObjectTypeUtil {
+
+	private static final Trace LOGGER = TraceManager.getTrace(ObjectTypeUtil.class);
 
 	/**
 	 * Never returns null. Returns empty collection instead.
@@ -238,7 +245,7 @@ public class ObjectTypeUtil {
 
 	@NotNull
 	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object) {
-		return createAssignmentTo(object, SchemaConstants.ORG_DEFAULT);
+		return createAssignmentTo(object, getPrismContextFromObject(object).getDefaultRelation());
 	}
 
 	@NotNull
@@ -283,9 +290,22 @@ public class ObjectTypeUtil {
         return createObjectRefWithFullObject(objectType.asPrismObject());
     }
 
-	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
-		return createObjectRef(objectType, SchemaConstants.ORG_DEFAULT);
+	public static ObjectReferenceType createObjectRef(ObjectType object) {
+		if (object == null) {
+			return null;
+		}
+		PrismContext prismContext = getPrismContextFromObject(object.asPrismObject());
+		return createObjectRef(object, prismContext.getDefaultRelation());
     }
+
+	@NotNull
+	private static PrismContext getPrismContextFromObject(PrismObject object) {
+		PrismContext prismContext = object.getPrismContext();
+		if (prismContext == null) {
+			throw new IllegalStateException("No prismContext in prism object " + object);
+		}
+		return prismContext;
+	}
 
 	public static ObjectReferenceType createObjectRef(ObjectType objectType, QName relation) {
 		if (objectType == null) {
@@ -295,7 +315,10 @@ public class ObjectTypeUtil {
     }
 
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object) {
-        return createObjectRef(object, SchemaConstants.ORG_DEFAULT);
+		if (object == null) {
+			return null;
+		}
+        return createObjectRef(object, getPrismContextFromObject(object).getDefaultRelation());
     }
 
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, QName relation) {
@@ -629,83 +652,49 @@ public class ObjectTypeUtil {
     	return item != null ? (T) item.getRealValue() : null;
 	}
 
-	@NotNull
-	public static QName normalizeRelation(QName name) {
-    	if (name == null) {
-    		return SchemaConstants.ORG_DEFAULT;
-		} else {
-    		return QNameUtil.setNamespaceIfMissing(name, SchemaConstants.NS_ORG, SchemaConstants.PREFIX_NS_ORG);
-		}
-	}
-
-	public static void normalizeRelation(ObjectReferenceType reference) {
+	public static void normalizeRelation(ObjectReferenceType reference, RelationRegistry relationRegistry) {
     	if (reference != null) {
-			reference.setRelation(normalizeRelation(reference.getRelation()));
+			reference.setRelation(relationRegistry.normalizeRelation(reference.getRelation()));
 		}
 	}
 
-	public static void normalizeRelation(PrismReferenceValue reference) {
+	public static void normalizeRelation(PrismReferenceValue reference, RelationRegistry relationRegistry) {
     	if (reference != null) {
-			reference.setRelation(normalizeRelation(reference.getRelation()));
+			reference.setRelation(relationRegistry.normalizeRelation(reference.getRelation()));
 		}
 	}
 
-	public static void normalizeAllRelations(PrismValue value) {
+	public static void normalizeAllRelations(PrismValue value, RelationRegistry relationRegistry) {
     	if (value != null) {
-			value.accept(createNormalizingVisitor());
+			value.accept(createNormalizingVisitor(relationRegistry));
 		}
 	}
 
-	public static void normalizeAllRelations(Item<?,?> item) {
+	public static void normalizeAllRelations(Item<?, ?> item, RelationRegistry relationRegistry) {
     	if (item != null) {
-			item.accept(createNormalizingVisitor());
+			item.accept(createNormalizingVisitor(relationRegistry));
 		}
 	}
 
-	private static Visitor createNormalizingVisitor() {
+	private static Visitor createNormalizingVisitor(RelationRegistry relationRegistry) {
 		return v -> {
 			if (v instanceof PrismReferenceValue) {
-				normalizeRelation((PrismReferenceValue) v);
+				normalizeRelation((PrismReferenceValue) v, relationRegistry);
 			}
 		};
 	}
 
-	public static void normalizeFilter(ObjectFilter filter) {
+	public static void normalizeFilter(ObjectFilter filter, RelationRegistry relationRegistry) {
 		if (filter != null) {
 			filter.accept(f -> {
 				if (f instanceof RefFilter) {
-					emptyIfNull(((RefFilter) f).getValues()).forEach(v -> normalizeRelation(v));
+					emptyIfNull(((RefFilter) f).getValues()).forEach(v -> normalizeRelation(v, relationRegistry));
 				}
 			});
 		}
 	}
 
-	// This is not the right place for this. But let's leave it here for now.
-	// See MID-3581
-	public static boolean isDelegationRelation(QName relation) {
-		return QNameUtil.match(relation, SchemaConstants.ORG_DEPUTY);
-	}
-
-	// This is not the right place for this. But let's leave it here for now.
-	// See MID-3581
-	public static boolean isMembershipRelation(QName relation) {
-		return isDefaultRelation(relation)
-				|| isManagerRelation(relation)
-				|| QNameUtil.match(relation, SchemaConstants.ORG_META);
-	}
-
-	// This is not the right place for this. But let's leave it here for now.
-	// See MID-3581
-	public static boolean isManagerRelation(QName relation) {
-		return QNameUtil.match(relation, SchemaConstants.ORG_MANAGER);
-	}
-
-	// This is not the right place for this. But let's leave it here for now.
-	// See MID-3581
-	public static boolean isDefaultRelation(QName relation) {
-		return relation == null || QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT);
-	}
-	
+	// TODO
 	public static RelationDefinitionType findRelationDefinition(List<RelationDefinitionType> relationDefinitions, QName qname) {
 		for (RelationDefinitionType relation: relationDefinitions) {
 			if (QNameUtil.match(qname, relation.getRef())) {
@@ -715,33 +704,8 @@ public class ObjectTypeUtil {
 		return null;
 	}
 
-	// We want to make this configurable in the future MID-3581
-	public static boolean processRelationOnLogin(QName relation) {
-		return isMembershipRelation(relation) || isDelegationRelation(relation);
-	}
-
-	// We want to make this configurable in the future MID-3581
-	public static boolean processRelationOnRecompute(QName relation) {
-		return !QNameUtil.match(relation, SchemaConstants.ORG_APPROVER) && !QNameUtil.match(relation, SchemaConstants.ORG_OWNER);
-	}
-
-	public static boolean relationMatches(QName relationQuery, QName relation) {
-		return QNameUtil.match(relationQuery, PrismConstants.Q_ANY) || relationsEquivalent(relationQuery, relation);
-	}
-
-	public static boolean relationMatches(@NotNull List<QName> relationQuery, QName relation) {
-    	return relationQuery.stream().anyMatch(rq -> relationMatches(rq, relation));
-	}
-
-	public static boolean relationsEquivalent(QName relation1, QName relation2) {
-		if (ObjectTypeUtil.isDefaultRelation(relation1)) {
-			return ObjectTypeUtil.isDefaultRelation(relation2);
-		} else {
-			return QNameUtil.match(relation1, relation2);
-		}
-	}
-
-	public static boolean referenceMatches(ObjectReferenceType ref, String targetOid, QName targetType, QName relation) {
+	public static boolean referenceMatches(ObjectReferenceType ref, String targetOid, QName targetType, QName relation,
+			PrismContext prismContext) {
 		if (ref == null) {
 			return false;
 		}
@@ -756,7 +720,7 @@ public class ObjectTypeUtil {
 			}
 		}
 		if (relation != null) {
-			if (!relationMatches(relation, ref.getRelation())) {
+			if (!prismContext.relationMatches(relation, ref.getRelation())) {
 				return false;
 			}
 		}
@@ -838,15 +802,6 @@ public class ObjectTypeUtil {
 						.build();
 	}
 
-	@Nullable
-	public static String getRelationNameLocalizationKey(@Nullable QName relation, boolean defaultAsNull) {
-    	if (relation == null || defaultAsNull && QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT)) {
-    		return null;
-	    } else {
-		    return SchemaConstants.RELATION_NAME_KEY_PREFIX + relation.getLocalPart();
-	    }
-	}
-
 	@NotNull
 	@Deprecated
 	public static <O extends ObjectType> Collection<String> getSubtypeValues(@NotNull PrismObject<O> object) {
@@ -902,5 +857,25 @@ public class ObjectTypeUtil {
     	if (value != null) {
 		    extensionItem.add(PrismValue.fromRealValue(value).clone());
 	    }
+	}
+
+	@NotNull
+	public static ObjectQuery createManagerQuery(Class<? extends ObjectType> objectTypeClass, String orgOid,
+			RelationRegistry relationRegistry, PrismContext prismContext) {
+	    Collection<QName> managerRelations = relationRegistry.getAllRelationsFor(RelationKindType.MANAGER);
+		if (managerRelations.isEmpty()) {
+			LOGGER.warn("No manager relation is defined");
+			return QueryBuilder.queryFor(objectTypeClass, prismContext).none().build();
+		}
+
+		List<PrismReferenceValue> referencesToFind = new ArrayList<>();
+	    for (QName managerRelation : managerRelations) {
+	        PrismReferenceValue parentOrgRefVal = new PrismReferenceValue(orgOid, OrgType.COMPLEX_TYPE);
+	        parentOrgRefVal.setRelation(managerRelation);
+	        referencesToFind.add(parentOrgRefVal);
+	    }
+	    return QueryBuilder.queryFor(objectTypeClass, prismContext)
+	            .item(ObjectType.F_PARENT_ORG_REF).ref(referencesToFind)
+	            .build();
 	}
 }

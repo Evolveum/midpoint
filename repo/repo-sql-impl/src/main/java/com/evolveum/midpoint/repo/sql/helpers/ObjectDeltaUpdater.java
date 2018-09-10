@@ -36,7 +36,7 @@ import com.evolveum.midpoint.repo.sql.helpers.mapper.Mapper;
 import com.evolveum.midpoint.repo.sql.helpers.modify.*;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -72,16 +72,12 @@ public class ObjectDeltaUpdater {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDeltaUpdater.class);
 
-    @Autowired
-    private PrismContext prismContext;
-    @Autowired
-    private RepositoryService repositoryService;
-    @Autowired
-    private EntityRegistry entityRegistry;
-    @Autowired
-    private PrismEntityMapper prismEntityMapper;
-    @Autowired
-    private ExtItemDictionary extItemDictionary;
+    @Autowired private PrismContext prismContext;
+    @Autowired private RepositoryService repositoryService;
+    @Autowired private EntityRegistry entityRegistry;
+    @Autowired private RelationRegistry relationRegistry;
+    @Autowired private PrismEntityMapper prismEntityMapper;
+    @Autowired private ExtItemDictionary extItemDictionary;
 
     /**
      * modify
@@ -234,7 +230,7 @@ public class ObjectDeltaUpdater {
         }
 
         MapperContext context = new MapperContext();
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary));
         context.setDelta(delta);
         context.setOwner(bean);
 
@@ -277,7 +273,7 @@ public class ObjectDeltaUpdater {
         }
 
         MapperContext context = new MapperContext();
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary));
         context.setDelta(delta);
         context.setOwner(bean);
 
@@ -310,7 +306,7 @@ public class ObjectDeltaUpdater {
         }
 
         MapperContext context = new MapperContext();
-        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
+        context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary));
         context.setDelta(delta);
         context.setOwner(bean);
 
@@ -361,7 +357,7 @@ public class ObjectDeltaUpdater {
         idGenerator.generate(prismObject);
 
         // normalize all relations
-        ObjectTypeUtil.normalizeAllRelations(prismObject);
+        ObjectTypeUtil.normalizeAllRelations(prismObject, relationRegistry);
 
         // full object column will be updated later
     }
@@ -396,7 +392,7 @@ public class ObjectDeltaUpdater {
         }
 
         Set<RObjectTextInfo> infos = RObjectTextInfo.createItemsSet((ObjectType) prismObject.asObjectable(), object,
-                new RepositoryContext(repositoryService, prismContext, extItemDictionary));
+                new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary));
 
         if (infos == null || infos.isEmpty()) {
             object.getTextInfoItems().clear();
@@ -914,7 +910,9 @@ public class ObjectDeltaUpdater {
         Collection<PrismEntityPair> results = new ArrayList();
         for (PrismValue value : values) {
             MapperContext context = new MapperContext();
-            context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, extItemDictionary));
+            context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, relationRegistry,
+                    extItemDictionary
+            ));
             context.setDelta(delta);
             context.setOwner(bean);
 

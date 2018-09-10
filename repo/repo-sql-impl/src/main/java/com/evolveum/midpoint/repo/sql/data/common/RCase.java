@@ -128,13 +128,14 @@ public class RCase extends RObject<CaseType> {
                 '}';
     }
 
+    // dynamically called
     public static void copyFromJAXB(CaseType jaxb, RCase repo, RepositoryContext context,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, context, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
-        repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), context.prismContext));
+        repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), context.relationRegistry));
         repo.setState(jaxb.getState());
         for (CaseWorkItemType workItem : jaxb.getWorkItem()) {
             repo.getWorkItems().add(RCaseWorkItem.toRepo(repo, workItem, context));

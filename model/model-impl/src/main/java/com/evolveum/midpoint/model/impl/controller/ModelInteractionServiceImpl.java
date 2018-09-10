@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
@@ -105,12 +106,6 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.CacheRegistry;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -182,6 +177,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private ValuePolicyProcessor policyProcessor;
 	@Autowired private Protector protector;
 	@Autowired private PrismContext prismContext;
@@ -1484,6 +1480,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 						.channel(null)
 						.objectResolver(objectResolver)
 						.systemObjectCache(systemObjectCache)
+						.relationRegistry(relationRegistry)
 						.prismContext(prismContext)
 						.mappingFactory(mappingFactory)
 						.mappingEvaluator(mappingEvaluator)
@@ -1496,7 +1493,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
 		for (AssignmentType assignmentType: potentialDeputy.asObjectable().getAssignment()) {
-			if (!DeputyUtils.isDelegationAssignment(assignmentType)) {
+			if (!DeputyUtils.isDelegationAssignment(assignmentType, relationRegistry)) {
 				continue;
 			}
 			try {
@@ -1512,7 +1509,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				}
 				for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
 					if (target.getTarget() != null && target.getTarget().getOid() != null
-							&& DeputyUtils.isDelegationPath(target.getAssignmentPath())
+							&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)
 							&& ObjectTypeUtil.containsOid(assignees, target.getTarget().getOid())) {
 						List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
 						if (workItem != null && DeputyUtils.limitationsAllow(limitations, privilegeLimitationItemName, workItem)
@@ -1679,8 +1676,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
-	public List<RelationDefinitionType> getRelationDefinitions(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		return systemObjectCache.getRelationDefinitions(parentResult);
+	public List<RelationDefinitionType> getRelationDefinitions() {
+		return relationRegistry.getRelationDefinitions();
 	}
 
 	@NotNull

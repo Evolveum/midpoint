@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -185,6 +187,8 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	@Autowired protected MiscDataUtil miscDataUtil;
 	@Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
 	@Autowired protected GeneralChangeProcessor generalChangeProcessor;
+	@Autowired protected SystemObjectCache systemObjectCache;
+	@Autowired protected RelationRegistry relationRegistry;
 
 	protected PrismObject<UserType> userAdministrator;
 

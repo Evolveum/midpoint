@@ -233,10 +233,10 @@ public class RCaseWorkItem implements Container<RCase> {
         }
         rWorkItem.setId(idInt);
         rWorkItem.setStageNumber(workItem.getStageNumber());
-        rWorkItem.setOriginalAssigneeRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getOriginalAssigneeRef(), context.prismContext));
+        rWorkItem.setOriginalAssigneeRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getOriginalAssigneeRef(), context.relationRegistry));
         rWorkItem.getAssigneeRef().addAll(RCaseWorkItemReference.safeListReferenceToSet(
-                workItem.getAssigneeRef(), context.prismContext, rWorkItem));
-        rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.prismContext));
+                workItem.getAssigneeRef(), rWorkItem, context.relationRegistry));
+        rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.relationRegistry));
         rWorkItem.setOutcome(WorkItemTypeUtil.getOutcome(workItem));
         rWorkItem.setCloseTimestamp(workItem.getCloseTimestamp());
         rWorkItem.setDeadline(workItem.getDeadline());

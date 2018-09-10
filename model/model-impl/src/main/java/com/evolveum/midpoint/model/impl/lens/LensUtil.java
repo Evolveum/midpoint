@@ -906,11 +906,6 @@ public class LensUtil {
 		return objectDeltaOp;
 	}
 
-	@Deprecated
-	public static boolean isDelegationRelation(QName relation) {
-		return ObjectTypeUtil.isDelegationRelation(relation);
-	}
-
 	public static void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers,
 			Collection<String> policySituations) {
 

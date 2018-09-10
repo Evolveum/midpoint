@@ -281,15 +281,15 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return result;
     }
 
-    public static void copyFromJAXB(ExtensionType jaxb, RAssignmentExtension repo, RAssignmentExtensionType type,
-                                    RepositoryContext repositoryContext) throws DtoTranslationException {
+    public static void fromJaxb(ExtensionType jaxb, RAssignmentExtension repo, RAssignmentExtensionType type,
+            RepositoryContext repositoryContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        copyFromJAXB(jaxb.asPrismContainerValue(), repo, type, repositoryContext);
+        fromJaxb(jaxb.asPrismContainerValue(), repo, type, repositoryContext);
     }
 
-    private static void copyFromJAXB(PrismContainerValue containerValue, RAssignmentExtension repo,
+    private static void fromJaxb(PrismContainerValue containerValue, RAssignmentExtension repo,
                                      RAssignmentExtensionType type, RepositoryContext repositoryContext) throws
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext, repositoryContext.extItemDictionary);

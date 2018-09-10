@@ -77,6 +77,7 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(ValuePolicyType jaxb, RValuePolicy repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

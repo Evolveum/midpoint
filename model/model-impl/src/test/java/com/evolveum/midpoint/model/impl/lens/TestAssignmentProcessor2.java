@@ -534,6 +534,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.channel(context.getChannel())
 				.objectResolver(objectResolver)
 				.systemObjectCache(systemObjectCache)
+				.relationRegistry(relationRegistry)
 				.prismContext(prismContext)
 				.mappingFactory(mappingFactory)
 				.mappingEvaluator(mappingEvaluator)

@@ -34,10 +34,7 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
@@ -113,6 +110,7 @@ public class ResourceObjectConverter {
 	@Autowired private ShadowCaretaker shadowCaretaker;
 	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
+	@Autowired private RelationRegistry relationRegistry;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -251,7 +249,8 @@ public class ResourceObjectConverter {
 
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 
-		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry)) {
+		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry,
+				relationRegistry)) {
 			LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
 			SecurityViolationException e = new SecurityViolationException("Cannot get protected shadow " + shadowType);
 			result.recordFatalError(e);
@@ -388,7 +387,7 @@ public class ResourceObjectConverter {
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
 				.getAllIdentifiers(shadow);
 
-		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadow, matchingRuleRegistry)) {
+		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadow, matchingRuleRegistry, relationRegistry)) {
 			LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
 					+ identifiers + "; ignoring the request");
 			SecurityViolationException e = new SecurityViolationException("Cannot delete protected resource object "
@@ -503,7 +502,8 @@ public class ResourceObjectConverter {
 			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
 	
-			if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry)) {
+			if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry,
+					relationRegistry)) {
 				if (hasChangesOnResource(itemDeltas)) {
 					LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
 							+ identifiers);
@@ -1888,7 +1888,7 @@ public class ResourceObjectConverter {
 		}
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		
-		ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry);
+		ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry, relationRegistry);
 		
 		if (resourceObjectType.isExists() != Boolean.FALSE) {
 			resourceObjectType.setExists(true);

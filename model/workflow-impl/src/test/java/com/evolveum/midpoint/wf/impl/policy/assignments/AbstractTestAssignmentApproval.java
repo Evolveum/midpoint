@@ -368,7 +368,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	protected List<PrismReferenceValue> getPotentialAssignees(PrismObject<UserType> user) {
 		List<PrismReferenceValue> rv = new ArrayList<>();
 		rv.add(ObjectTypeUtil.createObjectRef(user).asReferenceValue());
-		rv.addAll(DeputyUtils.getDelegatorReferences(user.asObjectable()));
+		rv.addAll(DeputyUtils.getDelegatorReferences(user.asObjectable(), relationRegistry));
 		return rv;
 	}
 

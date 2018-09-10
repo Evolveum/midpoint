@@ -242,7 +242,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 									protected void assignSelectedOrgPerformed(List<OrgType> selectedOrgs,
 																			  AjaxRequestTarget target) {
 										// TODO Auto-generated method stub
-										addSelectedAssignablePerformed(target, (List) selectedOrgs, SchemaConstants.ORG_DEFAULT,
+										addSelectedAssignablePerformed(target, (List) selectedOrgs, WebComponentUtil.getDefaultRelationOrFail(),
 												getPageBase().getMainPopup().getId());
 										reloadMainFormButtons(target);
 									}

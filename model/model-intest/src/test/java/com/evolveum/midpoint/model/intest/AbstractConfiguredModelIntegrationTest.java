@@ -41,10 +41,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.AssertJUnit;
 import org.testng.IHookCallBack;
@@ -557,16 +554,20 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		ManualConnectorInstance.setRandomDelayRange(0);
 
 		// System Configuration
+		PrismObject<SystemConfigurationType> configuration;
 		try {
 			File systemConfigurationFile = getSystemConfigurationFile();
 			if (systemConfigurationFile != null) {
-				repoAddObjectFromFile(systemConfigurationFile, initResult);
+				configuration = repoAddObjectFromFile(systemConfigurationFile, initResult);
 			} else {
-				addSystemConfigurationObject(initResult);
+				configuration = addSystemConfigurationObject(initResult);
 			}
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
+		}
+		if (configuration != null) {
+			relationRegistry.applyRelationConfiguration(configuration.asObjectable());
 		}
 
 		// Users
@@ -588,8 +589,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	}
 
 	// to be used in very specific cases only (it is invoked when getSystemConfigurationFile returns null).
-	protected void addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
+	protected PrismObject<SystemConfigurationType> addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
 			EncryptionException {
+		return null;
 	}
 
 	protected PrismObject<UserType> getDefaultActor() {

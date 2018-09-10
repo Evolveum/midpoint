@@ -293,8 +293,12 @@ public class QNameUtil {
 		return new QName(null, qname.getLocalPart(), qname.getPrefix());
 	}
 
-    public static boolean isUnqualified(QName targetTypeQName) {
-        return StringUtils.isBlank(targetTypeQName.getNamespaceURI());
+    public static boolean isUnqualified(QName name) {
+        return StringUtils.isBlank(name.getNamespaceURI());
+    }
+
+    public static boolean isQualified(QName name) {
+        return !isUnqualified(name);
     }
 
     public static boolean isTolerateUndeclaredPrefixes() {

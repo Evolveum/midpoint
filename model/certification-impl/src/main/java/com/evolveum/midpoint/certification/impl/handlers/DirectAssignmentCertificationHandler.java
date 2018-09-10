@@ -129,8 +129,8 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
     }
 
     private boolean relationMatches(QName assignmentRelation, List<QName> scopeRelations) {
-        return (!scopeRelations.isEmpty() ? scopeRelations : Collections.singletonList(SchemaConstants.ORG_DEFAULT))
-                .stream().anyMatch(r -> ObjectTypeUtil.relationMatches(r, assignmentRelation));
+        return (!scopeRelations.isEmpty() ? scopeRelations : Collections.singletonList(prismContext.getDefaultRelation()))
+                .stream().anyMatch(r -> prismContext.relationMatches(r, assignmentRelation));
     }
 
     @SuppressWarnings("unused")
