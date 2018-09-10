@@ -348,7 +348,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 		OperationResult result = new OperationResult(OPERATION_DELEGATE_WORK_ITEM);
 		try {
 			WorkItemDto dto = workItemDtoModel.getObject();
-			List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate));
+			List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate, getPrismContext()));
 			try {
 				assumePowerOfAttorneyIfRequested(result);
 				getWorkflowService().delegateWorkItem(dto.getWorkItemId(), delegates, WorkItemDelegationMethodType.ADD_ASSIGNEES, result);

@@ -31,7 +31,7 @@ public class ActivationMapper implements Mapper<ActivationType, RActivation> {
     public RActivation map(ActivationType input, MapperContext context) {
         try {
             RActivation ractivation = new RActivation();
-            RActivation.copyFromJAXB(input, ractivation, null);
+            RActivation.fromJaxb(input, ractivation, null);
 
             return ractivation;
         } catch (DtoTranslationException ex) {

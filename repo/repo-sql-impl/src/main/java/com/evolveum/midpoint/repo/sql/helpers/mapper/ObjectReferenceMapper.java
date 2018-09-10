@@ -44,7 +44,7 @@ public class ObjectReferenceMapper implements Mapper<Referencable, RObjectRefere
             objectRef.setupReferenceValue(input.asReferenceValue());
         }
 
-        ObjectTypeUtil.normalizeRelation(objectRef);
+        ObjectTypeUtil.normalizeRelation(objectRef, context.getRelationRegistry());
 
         RObject owner = (RObject) context.getOwner();
 
@@ -54,7 +54,7 @@ public class ObjectReferenceMapper implements Mapper<Referencable, RObjectRefere
         NameItemPathSegment last = named.lastNamed();
         RReferenceOwner refType = RReferenceOwner.getOwnerByQName(jaxbObjectType, last.getName());
 
-        return RUtil.jaxbRefToRepo(objectRef, context.getPrismContext(), owner, refType);
+        return RUtil.jaxbRefToRepo(objectRef, owner, refType, context.getRelationRegistry());
     }
 }
 

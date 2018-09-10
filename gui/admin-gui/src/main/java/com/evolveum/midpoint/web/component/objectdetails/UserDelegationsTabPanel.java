@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -192,7 +192,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
                     try {
                         AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(
                                 ((PrismObject<UserType>)getObjectWrapper().getObject()).asObjectable(),
-                                SchemaConstants.ORG_DEPUTY, getPageBase(), (UserType) object);
+                                WebComponentUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION), getPageBase(), (UserType) object);
                         dto.setPrivilegeLimitationList(privilegesListModel.getObject());
                         delegationsModel.getObject().add(dto);
                     } catch (Exception e) {

@@ -1775,7 +1775,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
 
 		ActivationType activation = new ActivationType();
 		activation.setValidFrom(getTimestamp("PT10M"));
-		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(resourceDummyFocusExists).activation(activation);
+		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(resourceDummyFocusExists, prismContext).activation(activation);
 
 		// WHEN
 		displayWhen(TEST_NAME);

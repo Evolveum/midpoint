@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -157,6 +158,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient ModelService model;
     @Autowired
     transient ModelInteractionService modelInteractionService;
+    @Autowired
+    transient RelationRegistry relationRegistry;
     @Autowired
     transient TaskService taskService;
     @Autowired
@@ -495,6 +498,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+
+    public RelationRegistry getRelationRegistry() {
+        return relationRegistry;
     }
 
     public static boolean containsLocale(Locale locale) {

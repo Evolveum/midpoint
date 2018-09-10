@@ -414,8 +414,9 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
         return result1;
     }
 
+    // dynamically called
     public static void copyFromJAXB(TaskType jaxb, RTask repo, RepositoryContext repositoryContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         PrismObjectDefinition<TaskType> taskDefinition = jaxb.asPrismObject().getDefinition();
@@ -435,17 +436,17 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
         repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());
 
-        repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), repositoryContext.prismContext));
-        repo.setOwnerRefTask(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
+        repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), repositoryContext.relationRegistry));
+        repo.setOwnerRefTask(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.relationRegistry));
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
 
         WfContextType wfc = jaxb.getWorkflowContext();
         if (wfc != null) {
             repo.setWfProcessInstanceId(wfc.getProcessInstanceId());
-            repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), repositoryContext.prismContext));
-            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRef(), repositoryContext.prismContext));
-            repo.setWfTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getTargetRef(), repositoryContext.prismContext));
+            repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), repositoryContext.relationRegistry));
+            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRef(), repositoryContext.relationRegistry));
+            repo.setWfTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getTargetRef(), repositoryContext.relationRegistry));
             repo.setWfStartTimestamp(wfc.getStartTimestamp());
             repo.setWfEndTimestamp(wfc.getEndTimestamp());
         }

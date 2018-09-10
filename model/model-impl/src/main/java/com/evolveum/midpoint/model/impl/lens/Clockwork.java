@@ -58,6 +58,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -106,7 +107,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.CLOCKWORK;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WAITING;
@@ -138,6 +138,7 @@ public class Clockwork {
     @Autowired private Clock clock;
 	@Autowired private ModelObjectResolver objectResolver;
 	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private transient ProvisioningService provisioningService;
 	@Autowired private transient ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired private ExpressionFactory expressionFactory;
@@ -926,10 +927,10 @@ public class Clockwork {
 			task = task.getParentForLightweightAsynchronousTask();
 		}
 		if (task.isPersistent()) {
-			operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskPrismObject()));
+			operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskPrismObject(), prismContext));
 		}
 		operation.setStatus(overallStatus);
-		operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));		// TODO what if the real initiator is different? (e.g. when executing approved changes)
+		operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));		// TODO what if the real initiator is different? (e.g. when executing approved changes)
 		operation.setChannel(channel);
 		operation.setTimestamp(now);
 	}
@@ -1102,7 +1103,7 @@ public class Clockwork {
 		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
 
 		if (primaryObject != null) {
-			auditRecord.setTarget(primaryObject.clone());
+			auditRecord.setTarget(primaryObject.clone(), prismContext);
 //		} else {
 //			throw new IllegalStateException("No primary object in:\n"+context.dump());
 		}
@@ -1540,7 +1541,7 @@ public class Clockwork {
 			assignmentDelta.addValuesToAdd(changedAssignment.asPrismContainerValue().clone());
 			QName relation = targetRef.getRelation();
 			if (relation == null) {
-				relation = SchemaConstants.ORG_DEFAULT;
+				relation = prismContext.getDefaultRelation();
 			}
 			AuthorizationParameters<O,ObjectType> autzParams = new AuthorizationParameters.Builder<O,ObjectType>()
 					.object(object)
@@ -1570,7 +1571,7 @@ public class Clockwork {
 				LOGGER.debug("{} of target {} to {} allowed with {} authorization", operationDesc, target, object, assignActionUrl);
 				continue;
 			}
-			if (ObjectTypeUtil.isDelegationRelation(relation)) {
+			if (relationRegistry.isDelegation(relation)) {
 				if (securityEnforcer.isAuthorized(ModelAuthorizationAction.DELEGATE.getUrl(), getRequestAuthorizationPhase(context), autzParams, ownerResolver, task, result)) {
 					if (LOGGER.isDebugEnabled()) {
 						LOGGER.debug("{} of target {} to {} allowed with {} authorization", operationDesc, target, object, ModelAuthorizationAction.DELEGATE.getUrl());

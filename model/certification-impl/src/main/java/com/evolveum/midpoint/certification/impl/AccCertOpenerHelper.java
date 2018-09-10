@@ -124,7 +124,7 @@ public class AccCertOpenerHelper {
         newCampaign.setDescription(definition.getDescription());
         newCampaign.setOwnerRef(securityContextManager.getPrincipal().toObjectReference());
         newCampaign.setTenantRef(definition.getTenantRef());
-        newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition));
+        newCampaign.setDefinitionRef(ObjectTypeUtil.createObjectRef(definition, prismContext));
 
         if (definition.getHandlerUri() != null) {
             newCampaign.setHandlerUri(definition.getHandlerUri());

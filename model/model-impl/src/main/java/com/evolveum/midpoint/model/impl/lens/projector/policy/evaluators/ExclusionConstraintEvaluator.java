@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.marshaller.QueryConvertor;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -70,6 +71,7 @@ public class ExclusionConstraintEvaluator implements PolicyConstraintEvaluator<E
 	@Autowired private ConstraintEvaluatorHelper evaluatorHelper;
 	@Autowired private PrismContext prismContext;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private LocalizationService localizationService;
 
 	@Override
@@ -130,7 +132,7 @@ targetB:	for (EvaluatedAssignmentTargetImpl targetB : assignmentB.getNonNegative
 				// To avoid false positives let us check if this target is not already covered by assignment being evaluated
 				// (is this really needed?)
 				for (EvaluatedAssignmentTargetImpl targetA : nonNegativeTargetsA) {
-					if (targetA.appliesToFocusWithAnyRelation()
+					if (targetA.appliesToFocusWithAnyRelation(relationRegistry)
 							&& targetA.getOid() != null && targetA.getOid().equals(targetB.getOid())
 							&& targetA.getAssignmentPath().equivalent(targetB.getAssignmentPath())) {
 						continue targetB;

@@ -16,13 +16,13 @@
 package com.evolveum.midpoint.security.enforcer.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.RelationRegistry;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -66,9 +66,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -129,7 +127,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	@Autowired private TaskManager taskManager;
 	@Autowired private ExpressionFactory expressionFactory;
 	@Autowired private PrismContext prismContext;
-	
+	@Autowired private RelationRegistry relationRegistry;
+
 	@Autowired
 	@Qualifier("securityContextManager")
 	private SecurityContextManager securityContextManager;
@@ -679,7 +678,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								continue;
 							}
 							if (principal.getOid().equals(objectAssignmentTargetRef.getOid())) {
-								if (QNameUtil.match(SchemaConstants.ORG_DEPUTY, objectAssignmentTargetRef.getRelation())) {
+								if (relationRegistry.isDelegation(objectAssignmentTargetRef.getRelation())) {
 									found = true;
 									break;
 								}
@@ -750,7 +749,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private <O extends ObjectType> boolean matchesOrgRelation(PrismObject<O> object, ObjectReferenceType subjectParentOrgRef,
 			OrgRelationObjectSpecificationType specOrgRelation, String autzHumanReadableDesc, String desc) throws SchemaException {
-		if (!MiscSchemaUtil.compareRelation(specOrgRelation.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
+		if (!prismContext.relationMatches(specOrgRelation.getSubjectRelation(), subjectParentOrgRef.getRelation())) {
 			return false;
 		}
 		if (BooleanUtils.isTrue(specOrgRelation.isIncludeReferenceOrg()) && subjectParentOrgRef.getOid().equals(object.getOid())) {
@@ -783,7 +782,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 	private <O extends ObjectType> boolean matchesRoleRelation(PrismObject<O> object, ObjectReferenceType subjectRoleMembershipRef,
 			RoleRelationObjectSpecificationType specRoleRelation, String autzHumanReadableDesc, String desc) throws SchemaException {
-		if (!MiscSchemaUtil.compareRelation(specRoleRelation.getSubjectRelation(), subjectRoleMembershipRef.getRelation())) {
+		if (!prismContext.relationMatches(specRoleRelation.getSubjectRelation(), subjectRoleMembershipRef.getRelation())) {
 			return false;
 		}
 		if (BooleanUtils.isTrue(specRoleRelation.isIncludeReferenceRole()) && subjectRoleMembershipRef.getOid().equals(object.getOid())) {
@@ -797,7 +796,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				if (!subjectRoleMembershipRef.getOid().equals(objectRoleMembershipRef.getOid())) {
 					continue;
 				}
-				if (!MiscSchemaUtil.compareRelation(specRoleRelation.getObjectRelation(), objectRoleMembershipRef.getRelation())) {
+				if (!prismContext.relationMatches(specRoleRelation.getObjectRelation(), objectRoleMembershipRef.getRelation())) {
 					continue;
 				}
 				return true;
@@ -1254,7 +1253,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								ObjectFilter objSpecOrgRelationFilter = null;
 								QName subjectRelation = specOrgRelation.getSubjectRelation();
 								for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-									if (MiscSchemaUtil.compareRelation(subjectRelation, subjectParentOrgRef.getRelation())) {
+									if (prismContext.relationMatches(subjectRelation, subjectParentOrgRef.getRelation())) {
 										S_FilterEntryOrEmpty q = QueryBuilder.queryFor(ObjectType.class, prismContext);
 										S_AtomicFilterExit q2;
 										if (specOrgRelation.getScope() == null || specOrgRelation.getScope() == OrgScopeType.ALL_DESCENDANTS) {
@@ -1484,7 +1483,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				QName subjectRelation = specRoleRelation.getSubjectRelation();
 				boolean isRoleOidOk = false;
 				for (ObjectReferenceType subjectRoleMembershipRef: principal.getUser().getRoleMembershipRef()) {
-					if (!MiscSchemaUtil.compareRelation(subjectRelation, subjectRoleMembershipRef.getRelation())) {
+					if (!prismContext.relationMatches(subjectRelation, subjectRoleMembershipRef.getRelation())) {
 						continue;
 					}
 					if (!PrismReferenceValue.containsOid(queryRoleRefs, subjectRoleMembershipRef.getOid())) {
@@ -1533,7 +1532,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				.item(ownerRefPath, ownerRefDef).ref(principal.getUser().getOid());
 		// TODO don't understand this code
 		for (ObjectReferenceType subjectParentOrgRef: principal.getUser().getParentOrgRef()) {
-			if (ObjectTypeUtil.isDefaultRelation(subjectParentOrgRef.getRelation())) {
+			if (prismContext.isDefaultRelation(subjectParentOrgRef.getRelation())) {
 				builder = builder.or().item(ownerRefPath, ownerRefDef).ref(subjectParentOrgRef.getOid());
 			}
 		}

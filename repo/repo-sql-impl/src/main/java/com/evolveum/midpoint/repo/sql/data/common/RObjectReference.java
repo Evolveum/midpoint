@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang.Validate;
@@ -36,7 +37,6 @@ import org.hibernate.annotations.Persister;
 import javax.persistence.*;
 
 import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.normalizeRelation;
 
 /**
  * @author lazyman
@@ -216,13 +216,13 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
         jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
     }
 
-    public static ObjectReference copyFromJAXB(ObjectReferenceType jaxb, ObjectReference repo) {
+    public static ObjectReference copyFromJAXB(ObjectReferenceType jaxb, ObjectReference repo, RelationRegistry relationRegistry) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
 
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-		repo.setRelation(qnameToString(normalizeRelation(jaxb.getRelation())));
+		repo.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxb.getRelation())));
         repo.setTargetOid(jaxb.getOid());
 
         return repo;

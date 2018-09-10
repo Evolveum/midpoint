@@ -41,6 +41,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.testing.QueryCountInterceptor;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -84,8 +85,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
     private static final QName LOOT = new QName(NS_P, "loot");
     private static final QName WEAPON = new QName(NS_P, "weapon");
 
-    @Autowired
-    private QueryCountInterceptor queryCountInterceptor;
+    @Autowired private QueryCountInterceptor queryCountInterceptor;
+    @Autowired private RelationRegistry relationRegistry;
 
     private String userOid;
 
@@ -291,7 +292,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             AssertJUnit.assertEquals(createRef(OrgType.COMPLEX_TYPE, "444", SchemaConstants.ORG_DEFAULT), targetRef);
 
             assertReferences((Collection) a.getModifyApproverRef(),
-                    RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "555", SchemaConstants.ORG_DEFAULT), new RObjectReference())
+                    RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "555", SchemaConstants.ORG_DEFAULT), new RObjectReference(),
+                            relationRegistry)
             );
         } finally {
             session.close();
@@ -356,8 +358,10 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             RUser u = session.get(RUser.class, userOid);
 
             assertReferences((Collection) u.getLinkRef(),
-                    RObjectReference.copyFromJAXB(createRef(ShadowType.COMPLEX_TYPE, "123", SchemaConstants.ORG_DEFAULT), new RObjectReference()),
-                    RObjectReference.copyFromJAXB(createRef(ShadowType.COMPLEX_TYPE, "789", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
+                    RObjectReference.copyFromJAXB(createRef(ShadowType.COMPLEX_TYPE, "123", SchemaConstants.ORG_DEFAULT), new RObjectReference(),
+                            relationRegistry),
+                    RObjectReference.copyFromJAXB(createRef(ShadowType.COMPLEX_TYPE, "789", SchemaConstants.ORG_DEFAULT), new RObjectReference(),
+                            relationRegistry));
         } finally {
             session.close();
         }
@@ -386,8 +390,10 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
             RUser u = session.get(RUser.class, userOid);
 
             assertReferences((Collection) u.getParentOrgRef(),
-                    RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "123", SchemaConstants.ORG_DEFAULT), new RObjectReference()),
-                    RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "789", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
+                    RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "123", SchemaConstants.ORG_DEFAULT), new RObjectReference(),
+                            relationRegistry),
+                    RObjectReference.copyFromJAXB(createRef(OrgType.COMPLEX_TYPE, "789", SchemaConstants.ORG_DEFAULT), new RObjectReference(),
+                            relationRegistry));
         } finally {
             session.close();
         }
@@ -474,7 +480,8 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(1, u.getCreateApproverRef().size());
 
         assertReferences((Collection) u.getCreateApproverRef(),
-                RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "111", SchemaConstants.ORG_DEFAULT), new RObjectReference()));
+                RObjectReference.copyFromJAXB(createRef(UserType.COMPLEX_TYPE, "111", SchemaConstants.ORG_DEFAULT), new RObjectReference(),
+                        relationRegistry));
     }
 
     @Test

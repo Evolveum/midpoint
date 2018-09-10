@@ -30,8 +30,8 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -122,17 +122,24 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 		return asContainerable(assignmentIdi.getSingleValue(old));
 	}
 
-	@Override
-	public QName getRelation() {
+	private ObjectReferenceType getTargetRef() {
 		AssignmentType assignmentType = getAssignmentType();
 		if (assignmentType == null) {
 			return null;
 		}
-		ObjectReferenceType targetRef = assignmentType.getTargetRef();
-		if (targetRef == null) {
-			return null;
-		}
-		return ObjectTypeUtil.normalizeRelation(targetRef.getRelation());
+		return assignmentType.getTargetRef();
+	}
+
+	@Override
+	public QName getRelation() {
+		ObjectReferenceType targetRef = getTargetRef();
+		return targetRef != null ? targetRef.getRelation() : null;
+	}
+
+	@Override
+	public QName getNormalizedRelation(RelationRegistry relationRegistry) {
+		ObjectReferenceType targetRef = getTargetRef();
+		return targetRef != null ? relationRegistry.normalizeRelation(targetRef.getRelation()) : null;
 	}
 
 	@NotNull

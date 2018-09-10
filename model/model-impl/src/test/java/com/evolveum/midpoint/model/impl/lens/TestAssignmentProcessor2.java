@@ -534,6 +534,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				.channel(context.getChannel())
 				.objectResolver(objectResolver)
 				.systemObjectCache(systemObjectCache)
+				.relationRegistry(relationRegistry)
 				.prismContext(prismContext)
 				.mappingFactory(mappingFactory)
 				.mappingEvaluator(mappingEvaluator)
@@ -2038,7 +2039,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		assign(org11, org1);
 		assign(org21, org2);
 		// org1->roleAdmin
-		AssignmentType inducement = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject())
+		AssignmentType inducement = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject(), prismContext)
 				.beginOrderConstraint()
 					.orderMin("1")
 					.orderMax("unbounded")
@@ -2047,7 +2048,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		org1.getInducement().add(inducement);
 
 		// org2->roleAdmin
-		AssignmentType inducement2 = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject())
+		AssignmentType inducement2 = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject(), prismContext)
 				.beginOrderConstraint()
 					.order(1)
 					.relation(SchemaConstants.ORG_MANAGER)
@@ -2068,7 +2069,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		 *        Org41        Admin
 		 */
 		assign(org41, org4);
-		AssignmentType inducement4 = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject())
+		AssignmentType inducement4 = ObjectTypeUtil.createAssignmentTo(roleAdmin.asPrismObject(), prismContext)
 				.beginOrderConstraint()
 					.orderMin("0")
 					.orderMax("unbounded")
@@ -2228,7 +2229,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private void induce(AbstractRoleType source, AbstractRoleType target, int inducementOrder) {
-		AssignmentType inducement = ObjectTypeUtil.createAssignmentTo(target.asPrismObject());
+		AssignmentType inducement = ObjectTypeUtil.createAssignmentTo(target.asPrismObject(), prismContext);
 		if (inducementOrder > 1) {
 			inducement.setOrder(inducementOrder);
 		}
@@ -2236,12 +2237,12 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 	}
 
 	private void assign(AbstractRoleType source, AbstractRoleType target) {
-		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(target.asPrismObject());
+		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(target.asPrismObject(), prismContext);
 		source.getAssignment().add(assignment);
 	}
 
 	private void assign(AbstractRoleType source, AbstractRoleType target, QName relation) {
-		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(target.asPrismObject());
+		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(target.asPrismObject(), prismContext);
 		assignment.getTargetRef().setRelation(relation);
 		source.getAssignment().add(assignment);
 	}

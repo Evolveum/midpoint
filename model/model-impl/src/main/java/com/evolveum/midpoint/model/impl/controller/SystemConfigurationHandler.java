@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -66,6 +67,7 @@ public class SystemConfigurationHandler implements ChangeHook {
 
     @Autowired private HookRegistry hookRegistry;
     @Autowired private PrismContext prismContext;
+    @Autowired private RelationRegistry relationRegistry;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -141,6 +143,7 @@ public class SystemConfigurationHandler implements ChangeHook {
             applyPrismConfiguration(configType);
 
 			cacheRepositoryService.applyFullTextSearchConfiguration(config.asObjectable().getFullTextSearch());
+			relationRegistry.applyRelationConfiguration(config.asObjectable());
             SystemConfigurationTypeUtil.applyOperationResultHandling(config.asObjectable());
 
             result.recordSuccessIfUnknown();

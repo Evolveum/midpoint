@@ -576,7 +576,7 @@ public class LensUtil {
         if (virtualAssignmenetSpecification != null) {
         
 	        ResultHandler<R> handler = (object, parentResult)  -> {
-	        	AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object);
+	        	AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object, prismContext);
 				return forcedAssignments.add(assignment);
 	        };
 				
@@ -904,11 +904,6 @@ public class LensUtil {
 			objectDeltaOp.setResourceOid(((LensProjectionContext) objectContext).getResourceOid());
 		}
 		return objectDeltaOp;
-	}
-
-	@Deprecated
-	public static boolean isDelegationRelation(QName relation) {
-		return ObjectTypeUtil.isDelegationRelation(relation);
 	}
 
 	public static void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers,

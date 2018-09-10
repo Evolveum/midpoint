@@ -422,10 +422,13 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				}
 
 				AssignmentEditorDto object = getModel().getObject();
-                String propertyKey = RelationTypes.class.getSimpleName() + "." +
-                        (object.getTargetRef() == null || object.getTargetRef().getRelation() == null ?
-                        RelationTypes.MEMBER : RelationTypes.getRelationType(object.getTargetRef().getRelation()));
-				return createStringResource(propertyKey).getString();
+				if (object.getTargetRef() != null) {
+					QName relation = object.getTargetRef() != null ? object.getTargetRef().getRelation() : null;
+					String propertyKey = WebComponentUtil.getRelationHeaderLabelKey(relation);
+					return createStringResource(propertyKey).getString();
+				} else {
+					return "";
+				}
 			}
 		});
 		relationLabel.setOutputMarkupId(true);
@@ -986,7 +989,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		QName assignmentRelation = getModelObject().getTargetRef() != null ? getModelObject().getTargetRef().getRelation() : null;
 		
 		RelationDropDownChoicePanel relationDropDown = new RelationDropDownChoicePanel(ID_RELATION,
-				assignmentRelation != null ? assignmentRelation : SchemaConstants.ORG_DEFAULT, getSupportedRelations(), false);		relationDropDown.setEnabled(getModel().getObject().isEditable());
+				assignmentRelation != null ? assignmentRelation : WebComponentUtil.getDefaultRelationOrFail(), getSupportedRelations(), false);		relationDropDown.setEnabled(getModel().getObject().isEditable());
 		relationDropDown.add(new VisibleEnableBehaviour() {
 
 			private static final long serialVersionUID = 1L;
@@ -1011,33 +1014,32 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		}
 	}
 
-
-	protected IModel<RelationTypes> getRelationModel(){
-		return new IModel<RelationTypes>() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public RelationTypes getObject() {
-				if (getModelObject().getTargetRef() == null) {
-					return RelationTypes.MEMBER;
-				}
-				return RelationTypes.getRelationType(getModelObject().getTargetRef().getRelation());
-			}
-
-			@Override
-			public void setObject(RelationTypes newValue) {
-				ObjectReferenceType ref = getModelObject().getTargetRef();
-				if (ref != null){
-					ref.setRelation(newValue.getRelation());
-				}
-			}
-
-			@Override
-			public void detach() {
-
-			}
-		};
-	}
+//	protected IModel<RelationTypes> getRelationModel() {
+//		return new IModel<RelationTypes>() {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public RelationTypes getObject() {
+//				if (getModelObject().getTargetRef() == null) {
+//					return RelationTypes.MEMBER;
+//				}
+//				return RelationTypes.getRelationType(getModelObject().getTargetRef().getRelation());
+//			}
+//
+//			@Override
+//			public void setObject(RelationTypes newValue) {
+//				ObjectReferenceType ref = getModelObject().getTargetRef();
+//				if (ref != null){
+//					ref.setRelation(newValue.getRelation());
+//				}
+//			}
+//
+//			@Override
+//			public void detach() {
+//
+//			}
+//		};
+//	}
 
 	private <O extends ObjectType> PrismObject<O> getTargetObject(AssignmentEditorDto dto)
 			throws ObjectNotFoundException, SchemaException, SecurityViolationException,

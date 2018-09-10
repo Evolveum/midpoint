@@ -146,12 +146,13 @@ public class RResource extends RObject<ResourceType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(ResourceType jaxb, RResource repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), repositoryContext.prismContext));
+        repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), repositoryContext.relationRegistry));
 
         if (jaxb.getConnector() != null) {
             LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
@@ -161,13 +162,13 @@ public class RResource extends RObject<ResourceType> {
             if (jaxb.getBusiness() != null) {
                 ResourceBusinessConfigurationType business = jaxb.getBusiness();
                 repo.getApproverRef().addAll(RUtil.safeListReferenceToSet(business.getApproverRef(),
-                        repositoryContext.prismContext, repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATON_APPROVER));
+		                repo, RReferenceOwner.RESOURCE_BUSINESS_CONFIGURATON_APPROVER, repositoryContext.relationRegistry));
                 repo.setAdministrativeState(RUtil.getRepoEnumValue(business.getAdministrativeState(),
                         RResourceAdministrativeState.class));
             }
             if (jaxb.getOperationalState() != null) {
                 ROperationalState repoOpState = new ROperationalState();
-                ROperationalState.copyFromJAXB(jaxb.getOperationalState(), repoOpState);
+                ROperationalState.fromJaxb(jaxb.getOperationalState(), repoOpState);
                 repo.setOperationalState(repoOpState);
             }
         } catch (Exception ex) {

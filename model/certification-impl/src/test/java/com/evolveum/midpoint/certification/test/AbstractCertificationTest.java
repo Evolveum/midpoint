@@ -423,7 +423,7 @@ public class AbstractCertificationTest extends AbstractUninitializedCertificatio
 			AccessCertificationDefinitionType certificationDefinition, String expectedOwnerOid) {
 		assertRefEquals("Unexpected ownerRef", ObjectTypeUtil.createObjectRef(expectedOwnerOid, ObjectTypes.USER), campaign.getOwnerRef());
 		assertRefEquals("Unexpected definitionRef",
-				ObjectTypeUtil.createObjectRef(certificationDefinition),
+				ObjectTypeUtil.createObjectRef(certificationDefinition, prismContext),
 				campaign.getDefinitionRef());
 	}
 

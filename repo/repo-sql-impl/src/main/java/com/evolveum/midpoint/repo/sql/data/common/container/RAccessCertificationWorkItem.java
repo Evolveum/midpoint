@@ -256,8 +256,8 @@ public class RAccessCertificationWorkItem implements L2Container<RAccessCertific
 		rWorkItem.setIteration(norm(workItem.getIteration()));
 		rWorkItem.setStageNumber(workItem.getStageNumber());
         rWorkItem.getAssigneeRef().addAll(RCertWorkItemReference.safeListReferenceToSet(
-                workItem.getAssigneeRef(), context.prismContext, rWorkItem));
-        rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.prismContext));
+                workItem.getAssigneeRef(), rWorkItem, context.relationRegistry));
+        rWorkItem.setPerformerRef(RUtil.jaxbRefToEmbeddedRepoRef(workItem.getPerformerRef(), context.relationRegistry));
         rWorkItem.setOutcome(WorkItemTypeUtil.getOutcome(workItem));
         rWorkItem.setOutputChangeTimestamp(workItem.getOutputChangeTimestamp());
         rWorkItem.setCloseTimestamp(workItem.getCloseTimestamp());

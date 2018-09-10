@@ -689,6 +689,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
     }
 
+    // dynamically called
     public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult)
             throws DtoTranslationException {
@@ -709,18 +710,18 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
                 .getVersion()) : 0;
         repo.setVersion(version);
 
-        repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), repositoryContext.prismContext,
-                repo, RReferenceOwner.OBJECT_PARENT_ORG));
+        repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(),
+                repo, RReferenceOwner.OBJECT_PARENT_ORG, repositoryContext.relationRegistry));
 
         for (TriggerType trigger : jaxb.getTrigger()) {
             RTrigger rTrigger = new RTrigger(null);
-            RTrigger.copyFromJAXB(trigger, rTrigger, jaxb, repositoryContext, generatorResult);
+            RTrigger.fromJaxb(trigger, rTrigger, jaxb, repositoryContext, generatorResult);
 
             repo.getTrigger().add(rTrigger);
         }
 
-        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, repositoryContext.prismContext);
-        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.prismContext));
+        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, repositoryContext.prismContext, repositoryContext.relationRegistry);
+        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.relationRegistry));
 
         if (jaxb.getExtension() != null) {
             copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
@@ -729,7 +730,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         repo.getTextInfoItems().addAll(RObjectTextInfo.createItemsSet(jaxb, repo, repositoryContext));
         for (OperationExecutionType opExec : jaxb.getOperationExecution()) {
             ROperationExecution rOpExec = new ROperationExecution(repo);
-            ROperationExecution.copyFromJAXB(opExec, rOpExec, jaxb, repositoryContext, generatorResult);
+            ROperationExecution.fromJaxb(opExec, rOpExec, jaxb, repositoryContext, generatorResult);
             repo.getOperationExecutions().add(rOpExec);
         }
     }
@@ -739,6 +740,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return RUtil.getDebugString(this);
     }
 
+    // dynamically called
     public static void copyFromJAXB(PrismContainerValue<?> containerValue, RObject<?> repo, RepositoryContext repositoryContext,
 			RObjectExtensionType ownerType, IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext, repositoryContext.extItemDictionary);

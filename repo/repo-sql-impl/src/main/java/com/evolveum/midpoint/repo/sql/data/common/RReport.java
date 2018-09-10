@@ -116,6 +116,7 @@ public class RReport extends RObject<ReportType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(ReportType jaxb, RReport repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
 

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -27,11 +28,14 @@ import org.jetbrains.annotations.NotNull;
 public class RepositoryContext {
 	@NotNull public final RepositoryService repositoryService;
 	@NotNull public final PrismContext prismContext;
+	@NotNull public final RelationRegistry relationRegistry;
 	@NotNull public final ExtItemDictionary extItemDictionary;
 
-	public RepositoryContext(@NotNull RepositoryService repositoryService, @NotNull PrismContext prismContext, @NotNull ExtItemDictionary extItemDictionary) {
+	public RepositoryContext(@NotNull RepositoryService repositoryService, @NotNull PrismContext prismContext,
+			@NotNull RelationRegistry relationRegistry, @NotNull ExtItemDictionary extItemDictionary) {
 		this.repositoryService = repositoryService;
 		this.prismContext = prismContext;
+		this.relationRegistry = relationRegistry;
 		this.extItemDictionary = extItemDictionary;
 	}
 }

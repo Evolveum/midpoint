@@ -249,7 +249,7 @@ public class WorkItemManager {
 
 			ObjectReferenceType initiator =
 					causeInformation == null || causeInformation.getType() == WorkItemEventCauseTypeType.USER_ACTION ?
-							ObjectTypeUtil.createObjectRef(principal.getUser()) : null;
+							ObjectTypeUtil.createObjectRef(principal.getUser(), prismContext) : null;
 
 			LOGGER.trace("Delegating work item {} to {}: escalation={}; cause={}", workItemId, delegates,
 					escalation != null ? escalation.getName() + "/" + escalation.getDisplayName() : "none", causeInformation);

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -114,6 +115,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected PrismContext getPrismContext() {
         MidPointApplication application = MidPointApplication.get();
         return application.getPrismContext();
+    }
+
+    protected RelationRegistry getRelationRegistry() {
+        MidPointApplication application = MidPointApplication.get();
+        return application.getRelationRegistry();
     }
 
     protected TaskService getTaskService() {

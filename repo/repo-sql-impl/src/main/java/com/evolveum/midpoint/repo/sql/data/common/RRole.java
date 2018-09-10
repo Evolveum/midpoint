@@ -94,6 +94,7 @@ public class RRole extends RAbstractRole<RoleType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(RoleType jaxb, RRole repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

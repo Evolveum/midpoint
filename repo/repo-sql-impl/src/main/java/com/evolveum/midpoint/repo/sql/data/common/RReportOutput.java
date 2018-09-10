@@ -74,11 +74,12 @@ public class RReportOutput extends RObject<ReportOutputType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(ReportOutputType jaxb, RReportOutput repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setReportRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getReportRef(), repositoryContext.prismContext));
+        repo.setReportRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getReportRef(), repositoryContext.relationRegistry));
     }
 }

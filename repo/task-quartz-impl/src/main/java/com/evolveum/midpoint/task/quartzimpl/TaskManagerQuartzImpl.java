@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
@@ -71,11 +72,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -176,6 +172,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Autowired private PrismContext prismContext;
 	@Autowired private WorkStateManager workStateManager;
 	@Autowired private WorkersManager workersManager;
+	@Autowired private RelationRegistry relationRegistry;
 
 	@Autowired
 	@Qualifier("securityContextManager")
@@ -1742,7 +1739,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return repositoryService;
     }
 
-    public ExecutionManager getExecutionManager() {
+	public RelationRegistry getRelationRegistry() {
+		return relationRegistry;
+	}
+
+	public ExecutionManager getExecutionManager() {
         return executionManager;
     }
 
