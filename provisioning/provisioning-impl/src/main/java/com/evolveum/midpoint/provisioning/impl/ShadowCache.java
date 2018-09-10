@@ -37,6 +37,7 @@ import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandler;
 import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -67,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -560,13 +562,15 @@ public class ShadowCache {
 
 		if (shouldExecuteResourceOperationDirectly(ctx)) {
 			
+			ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
+			
 			LOGGER.trace("ADD {}: resource operation, execution starting", shadowToAdd);
 			
 			try {
 	
 				// RESOURCE OPERATION: add
 				AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = 
-						resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, false, parentResult);
+						resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, connOptions, false, parentResult);
 				opState.processAsyncResult(asyncReturnValue);
 				addedShadow = asyncReturnValue.getReturnValue();
 
@@ -596,7 +600,7 @@ public class ShadowCache {
 						
 						LOGGER.trace("ADD {}: retrying resource operation without uniquness check (previous dead shadow found), execution starting", shadowToAdd);
 						AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = 
-								resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, true, parentResult);
+								resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, connOptions, true, parentResult);
 						opState.processAsyncResult(asyncReturnValue);
 						addedShadow = asyncReturnValue.getReturnValue();
 					
@@ -938,7 +942,8 @@ public class ShadowCache {
 	}
 		
 	private String modifyShadowAttempt(ProvisioningContext ctx,
-			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts,
+			Collection<? extends ItemDelta> modifications,
+			OperationProvisioningScriptsType scripts,
 			ProvisioningOperationOptions options, 
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
 			Task task, OperationResult parentResult)
@@ -974,10 +979,12 @@ public class ShadowCache {
 					LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDump(modifications));
 				}
 
+				ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
+				
 				try {
 				
 					AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue =
-							resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts, modifications, now, parentResult);
+							resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, parentResult);
 					opState.processAsyncResult(asyncReturnValue);
 					
 					Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
@@ -1052,6 +1059,8 @@ public class ShadowCache {
 		ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState = new ProvisioningOperationState<>();
 		opState.setRepoShadow(repoShadow);
 		
+		ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
+		
 		try {
 			
 			if (LOGGER.isTraceEnabled()) {
@@ -1059,7 +1068,7 @@ public class ShadowCache {
 			}
 
 			AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue =
-					resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts, modifications, now, parentResult);
+					resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, parentResult);
 			opState.processAsyncResult(asyncReturnValue);
 			
 			Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
@@ -1161,11 +1170,13 @@ public class ShadowCache {
 				
 			} else {
 				
+				ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
+				
 				LOGGER.trace("DELETE {}: resource deletion, execution starting", repoShadow);
 				
 				try {
 					
-					AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, parentResult);
+					AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, connOptions, parentResult);
 					opState.processAsyncResult(asyncReturnValue);
 					
 					resourceManager.modifyResourceAvailabilityStatus(ctx.getResource().asPrismObject(),
@@ -1227,9 +1238,11 @@ public class ShadowCache {
 		if (shadow.asObjectable().getFailedOperationType() == null
 				|| (shadow.asObjectable().getFailedOperationType() != null
 						&& FailedOperationTypeType.ADD != shadow.asObjectable().getFailedOperationType())) {
+			
+			ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
 			try {
 				
-				AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, shadow, scripts, parentResult);
+				AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, shadow, scripts, connOptions , parentResult);
 				opState.processAsyncResult(asyncReturnValue);
 				
 			} catch (Exception ex) {
@@ -1245,7 +1258,6 @@ public class ShadowCache {
 		return opState;
 	}
 
-	
 	private void notifyAfterDelete(
 			ProvisioningContext ctx,
 			PrismObject<ShadowType> shadow,
@@ -3169,6 +3181,34 @@ public class ShadowCache {
 		return passwordDefinition.getCompareStrategy();
 	}
 	
+	private ConnectorOperationOptions createConnectorOperationOptions(ProvisioningContext ctx, ProvisioningOperationOptions options, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+		if (options == null) {
+			return null;
+		}
+		String runAsAccountOid = options.getRunAsAccountOid();
+		if (runAsAccountOid == null) {
+			return null;
+		}
+		RunAsCapabilityType capRunAs = ctx.getResourceEffectiveCapability(RunAsCapabilityType.class);
+		if (capRunAs == null) {
+			LOGGER.trace("Operation runAs requested, but resource does not have the capability. Ignoring runAs");
+			return null;
+		}
+		PrismObject<ShadowType> runAsShadow;
+		try {
+			runAsShadow = shadowManager.getRepoShadow(runAsAccountOid, result);
+		} catch (ObjectNotFoundException e) {
+			throw new ConfigurationException("Requested non-existing 'runAs' shadow", e);
+		}
+		ProvisioningContext runAsCtx = ctxFactory.create(runAsShadow, null, ctx.getTask(), result);
+		shadowCaretaker.applyAttributesDefinition(runAsCtx, runAsShadow);
+		ResourceObjectIdentification runAsIdentification = ResourceObjectIdentification.createFromShadow(runAsCtx.getObjectClassDefinition(), runAsShadow.asObjectable());
+		ConnectorOperationOptions connOptions = new ConnectorOperationOptions();
+		connOptions.setRunAsIdentification(runAsIdentification);
+		return connOptions;
+	}
+
+	
 	// ----------------------- LEGACY ------ to be removed later (MID-4780)
 	
 	private void cleanLegacyShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
@@ -3198,31 +3238,5 @@ public class ShadowCache {
 //			throw ex;
 //		}
 	}
-	
-	private List<ItemDelta<?, ?>> createShadowLegacyCleanupAndReconciliationDeltas(PrismObject<ShadowType> currentShadow,
-			PrismObject<ShadowType> repoShadowBefore) throws SchemaException {
-		List<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
 
-		S_ItemEntry i = DeltaBuilder.deltaFor(ShadowType.class, prismContext);
-		ShadowType repo = repoShadowBefore.asObjectable();
-		if (repo.getAttemptNumber() != null) {
-			i = i.item(ShadowType.F_ATTEMPT_NUMBER).replace();
-		}
-		if (repo.getFailedOperationType() != null) {
-			i = i.item(ShadowType.F_FAILED_OPERATION_TYPE).replace();
-		}
-		if (repo.getObjectChange() != null) {
-			i = i.item(ShadowType.F_OBJECT_CHANGE).replace();
-		}
-		if (repo.getResult() != null) {
-			i = i.item(ShadowType.F_RESULT).replace();
-		}
-		if (repo.getCredentials() != null) {
-			i = i.item(ShadowType.F_CREDENTIALS).replace();
-		}
-		itemDeltas.addAll(i.asItemDeltas());
-		itemDeltas.addAll(ProvisioningUtil.createShadowAttributesReconciliationDeltas(currentShadow, repoShadowBefore, getPrismContext()));
-		itemDeltas.addAll(ProvisioningUtil.createShadowActivationCleanupDeltas(repo, getPrismContext()));
-		return itemDeltas;
-	}
 }

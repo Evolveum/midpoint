@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration.dto;
+package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 

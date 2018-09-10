@@ -104,35 +104,6 @@
                 </includes>
             </testResource>
         </testResources>
-        <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring.boot.version}</version>
-                <configuration>
-                    <fork>true</fork>
-                    <skip>false</skip>
-                    <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments><!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                        <configuration>
-                            <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.evolveum.midpoint</groupId>
-                        <artifactId>midpoint-war-layout</artifactId>
-                        <version>${project.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-        </plugins>
     </build>
 
     <dependencies>
@@ -219,6 +190,16 @@
             <artifactId>less</artifactId>
             <version>2.5.3</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-cas</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jasig.cas.client</groupId>
+            <artifactId>cas-client-core</artifactId>
+            <version>3.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
@@ -901,13 +882,52 @@
             <version>3.9-SNAPSHOT</version>
         </dependency>
     </dependencies>
+
     <profiles>
+        <profile>
+            <id>executable</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${spring.boot.version}</version>
+                        <configuration>
+                            <fork>true</fork>
+                            <skip>false</skip>
+                            <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments><!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>repackage</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>executable</classifier>
+                                    <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.evolveum.midpoint</groupId>
+                                <artifactId>midpoint-war-layout</artifactId>
+                                <version>${project.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <profile>
             <id>tomcat</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-
             <dependencies>
                 <dependency>
                     <artifactId>jaxb-impl</artifactId>
@@ -924,8 +944,8 @@
                     <scope>runtime</scope>
                 </dependency>
             </dependencies>
-
         </profile>
+
         <profile>
             <!-- can be used for development e.g. in Intellij Idea -->
             <id>ide</id>

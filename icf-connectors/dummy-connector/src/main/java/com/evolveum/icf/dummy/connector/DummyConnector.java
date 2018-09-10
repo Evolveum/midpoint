@@ -23,6 +23,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectionFailedExcept
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException;
+import org.identityconnectors.framework.common.exceptions.InvalidPasswordException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
@@ -125,6 +126,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(account, options);
 
 				// we do this before setting attribute values, in case when description itself would be changed
 				resource.changeDescriptionIfNeeded(account);
@@ -174,6 +176,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 			        	
 		        	}
 		        }
+		        
 
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	
@@ -188,6 +191,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(group, options);
 
 		        for (AttributeDelta delta : modifications) {
 		        	if (delta.is(Name.NAME)) {
@@ -219,6 +223,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 						applyOrdinaryAttributeDelta(group, delta, valuesTransformer);
 		        	}
 		        }
+		        
 
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	
@@ -233,6 +238,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(priv, options);
 
 		        for (AttributeDelta delta : modifications) {
 		        	if (delta.is(Name.NAME)) {
@@ -257,6 +263,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 		        		applyOrdinaryAttributeDelta(priv, delta, null);
 		        	}
 		        }
+		        
 
 	        } else if (objectClass.is(OBJECTCLASS_ORG_NAME)) {
 	
@@ -271,6 +278,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 		        if (org == null) {
 		        	throw new UnknownUidException("Org with UID "+uid+" does not exist on resource");
 		        }
+		        applyModifyMetadata(org, options);
 
 		        for (AttributeDelta delta : modifications) {
 		        	if (delta.is(Name.NAME)) {
@@ -295,7 +303,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
 		        		applyOrdinaryAttributeDelta(org, delta, null);
 		        	}
 		        }
-
+		        
 
 	        } else {
 	        	throw new ConnectorException("Unknown object class "+objectClass);
@@ -321,7 +329,7 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
         log.info("update::end {0}", instanceName);
         return sideEffectChanges;
     }
-    
+
 	private void applyAuxiliaryObjectClassDelta(DummyObject dummyObject, AttributeDelta delta) {
     	List<String> replaceValues = getReplaceValues(delta, String.class);
 		if (replaceValues != null) {
@@ -489,5 +497,16 @@ public class DummyConnector extends AbstractDummyConnector implements PoolableCo
     		builder.addAttribute(connectorInstanceNameAttribute, instanceName);
     	}
     }
+
+	@Override
+	protected void extendSchema(SchemaBuilder builder) {
+		super.extendSchema(builder);
+		
+		if (configuration.getSupportRunAs()) {
+			log.ok("Adding runAs options to schema");
+			builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithUser(), UpdateDeltaOp.class);
+			builder.defineOperationOption(OperationOptionInfoBuilder.buildRunWithPassword(), UpdateDeltaOp.class);
+		}
+	}
 
 }

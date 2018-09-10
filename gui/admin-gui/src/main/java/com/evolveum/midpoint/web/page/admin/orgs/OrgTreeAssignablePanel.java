@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -107,6 +108,11 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 			@Override
 			protected boolean isWarnMessageVisible(){
 				return false;
+			}
+
+			@Override
+			protected UsersStorage getUsersSessionStorage(){
+				return null;
 			}
 
 		};

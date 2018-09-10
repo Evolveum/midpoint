@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ public interface S_ValuesEntry {
     S_ItemEntry replace(Collection<? extends PrismValue> values);
     S_ValuesEntry old(Object... realValues);
     S_ValuesEntry oldRealValues(Collection<?> realValues);
+    <T> S_ValuesEntry oldRealValue(T realValue);
     S_ValuesEntry old(PrismValue... values);
     S_ValuesEntry old(Collection<? extends PrismValue> values);
 }

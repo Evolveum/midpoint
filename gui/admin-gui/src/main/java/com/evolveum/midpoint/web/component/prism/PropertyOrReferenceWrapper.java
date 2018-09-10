@@ -102,13 +102,9 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 
 	public boolean isVisible() {
 		
-        if (getItemDefinition().isOperational() && !isMetadataContainer()) {			// TODO ...or use itemDefinition instead?
+        if (!isVisibleOnBasisOfModel()) {
 			return false;
 		} 
-        
-        if (getItemDefinition().isDeprecated() && isEmpty()) {
-        	return false;
-        }
 
         if (container == null) {
         	return false;           // TODO: ok ?
@@ -127,12 +123,43 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 //		}
 	}
 	
+	private boolean isVisibleOnBasisOfModel() {
+		
+		if (getItemDefinition().isOperational() && !isMetadataContainer()) {			// TODO ...or use itemDefinition instead?
+			return false;
+		} 
+        
+        if (getItemDefinition().isDeprecated() && isEmpty()) {
+        	return false;
+        }
+        return true;
+	}
+	
+	public boolean isOnlyHide() {
+		
+		if (!isVisibleOnBasisOfModel()) {
+			return false;
+		} 
+		
+		if (container == null) {
+        	return false;
+        }
+		
+		switch (container.getObjectStatus()) {
+    		case ADDING : 
+    			return getItemDefinition().canAdd() && !isShowEmpty();
+    		case MODIFYING :
+    			return getItemDefinition().canRead() && !isShowEmpty();
+    		default : return false;
+		}
+	}
+	
 	@Override
 	public ItemProcessing getProcessing() {
 		return getItemDefinition().getProcessing();
 	}
 	
-	public boolean canAddAndShowEmpty() {
+	private boolean canAddAndShowEmpty() {
 		return getItemDefinition().canAdd() && isShowEmpty();
 	}
 	
@@ -144,7 +171,7 @@ public abstract class PropertyOrReferenceWrapper<I extends Item<? extends PrismV
 		return getItemDefinition().canRead() && (!getItem().isEmpty() || getItemDefinition().isEmphasized() || getItemDefinition().getMinOccurs() == 1); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && !getItem().isEmpty();
 	}
 	
-	public boolean canReadOrModifyAndShowEmpty() {
+	private boolean canReadOrModifyAndShowEmpty() {
 		return getItemDefinition().canRead() && isShowEmpty(); //(getItemDefinition().canModify() || getItemDefinition().canRead()) && isShowEmpty();
 	}
 

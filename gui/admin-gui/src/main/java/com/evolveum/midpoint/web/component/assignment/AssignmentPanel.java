@@ -252,9 +252,12 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 			@Override
 			protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
-				PrismContainerValue<AssignmentType> prismContainerValue = item.getModelObject().getContainerValue();
-				ItemPath assignmentPath = item.getModelObject().getContainerValue().getValue().asPrismContainerValue().getPath();
-				return getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
+				return AssignmentPanel.this.getBasicTabVisibity(itemWrapper, parentAssignmentPath, item.getModel());
+			}
+			
+			@Override
+			protected void addBasicContainerValuePanel(String idPanel) {
+				add(getBasicContainerPanel(idPanel, item.getModel()));
 			}
 
 			@Override
@@ -292,6 +295,20 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		
 		};
 		return detailsPanel;
+	}
+	
+	private ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentAssignmentPath, IModel<ContainerValueWrapper<AssignmentType>> model) {
+		PrismContainerValue<AssignmentType> prismContainerValue = model.getObject().getContainerValue();
+		ItemPath assignmentPath = model.getObject().getContainerValue().getValue().asPrismContainerValue().getPath();
+		return getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
+	}
+
+	protected ContainerValuePanel getBasicContainerPanel(String idPanel, IModel<ContainerValueWrapper<AssignmentType>>  model) {
+		Form form = new Form<>("form");
+    	ItemPath itemPath = getModelObject().getPath();
+    	model.getObject().getContainer().setShowOnTopLevel(true);
+		return new ContainerValuePanel<AssignmentType>(idPanel, model, true, form,
+				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath, model), getPageBase());
 	}
 
 	private QName getRelationForDisplayNamePanel(ContainerValueWrapper<AssignmentType> modelObject) {
@@ -477,6 +494,10 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected MultivalueContainerListPanelWithDetailsPanel<AssignmentType> getMultivalueContainerListPanel() {
 		return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType>)get(ID_ASSIGNMENTS));
+	}
+	
+	protected MultivalueContainerDetailsPanel<AssignmentType> getMultivalueContainerDetailsPanel() {
+		return ((MultivalueContainerDetailsPanel<AssignmentType>)get(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS));
 	}
 
 	protected abstract TableId getTableId();

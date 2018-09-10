@@ -16,6 +16,10 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -25,8 +29,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,11 +55,9 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
@@ -64,6 +69,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 /**
  * Created by honchar.
@@ -74,14 +93,10 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentPanel.class);
 
-    private static final String ID_RELATION = "relation";
-    private static final String ID_RELATION_CONTAINER = "relationContainer";
     private static final String ID_SHOW_ALL_ASSIGNMENTS_BUTTON = "showAllAssignmentsButton";
 
     protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
-
-    private RelationTypes relationValue = null;
 
     public AbstractRoleAssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
     	super(id, assignmentContainerWrapperModel);
@@ -89,55 +104,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 
     protected Fragment getCustomSearchPanel(String contentAreaId){
     	Fragment searchContainer = new Fragment(contentAreaId, AssignmentPanel.ID_SEARCH_FRAGMENT, this);
-
-        WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
-         
-        relationContainer.setOutputMarkupId(true);
-        relationContainer.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return AbstractRoleAssignmentPanel.this.isRelationVisible();
-            }
-
-        });
-        searchContainer.addOrReplace(relationContainer);
-
-    	DropDownChoicePanel<RelationTypes> relation = WebComponentUtil.createEnumPanel(RelationTypes.class, ID_RELATION,
-                WebComponentUtil.createReadonlyModelFromEnum(RelationTypes.class),
-                new IModel<RelationTypes>() {
-    		
-					private static final long serialVersionUID = 1L;
-
-					@Override
-                    public RelationTypes getObject() {
-                        return relationValue;
-                    }
-
-                    @Override
-                    public void setObject(RelationTypes relationTypes) {
-                        relationValue = relationTypes;
-                    }
-
-                    @Override
-                    public void detach() {
-
-                    }
-                }, this, true,
-                createStringResource("RelationTypes.ANY").getString());
-        relation.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            	getMultivalueContainerListPanel().refreshTable(target);
-            }
-        });
-        relation.setOutputMarkupId(true);
-        relation.setOutputMarkupPlaceholderTag(true);
-        relationContainer.addOrReplace(relation);
 
         AjaxButton showAllAssignmentsButton = new AjaxButton(ID_SHOW_ALL_ASSIGNMENTS_BUTTON,
                 createStringResource("AssignmentTablePanel.menu.showAllAssignments")) {
@@ -162,11 +128,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return searchContainer;
     }
 
-    private DropDownChoicePanel<RelationTypes> getRelationPanel() {
-    	return (DropDownChoicePanel<RelationTypes>) getAssignmentContainer().get(ID_RELATION_CONTAINER).get(ID_RELATION);
-    }
-
-
     protected void showAllAssignments(AjaxRequestTarget target) {
         PageBase pageBase = getPageBase();
         List<AssignmentInfoDto> previewAssignmentsList;
@@ -190,6 +151,11 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                protected void addPerformed(AjaxRequestTarget target, List newAssignmentsList) {
                    super.addPerformed(target, newAssignmentsList);
                    addSelectedAssignmentsPerformed(target, newAssignmentsList);
+               }
+
+               @Override
+               protected List<ObjectTypes> getAvailableObjectTypesList(){
+                   return getObjectTypesList();
                }
            };
            popupPanel.setOutputMarkupId(true);
@@ -317,38 +283,20 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 		return (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE);
 	}
 
-	protected ObjectQuery createObjectQuery() {
-        QName relation = getRelation();
-        if (PrismConstants.Q_ANY.equals(relation)) {
-	        Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
-			        .getAllRelationsFor(RelationKindType.DELEGATION);
-	        return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                    .block()
-                    .not()
-                    .item(new ItemPath(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF))
-                    .isNull()
-                    .endBlock()
-                    .and()
-                    .block()
-                    .not()
-                    .item(new ItemPath(AssignmentType.F_TARGET_REF))
-                    .ref(delegationRelations.toArray(new QName[0]))
-                    .endBlock()
-                   .and()
-                    .not()
-                    .exists(AssignmentType.F_POLICY_RULE)
-                    .build();
-        } else {
-            return QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
-                    .item(new ItemPath(AssignmentType.F_TARGET_REF))
-                    .ref(relation)
-                    .build();
-        }
-	}
-
-	private QName getRelation() {
-		return relationValue == null ? PrismConstants.Q_ANY : relationValue.getRelation();
-	}
+    protected ObjectQuery createObjectQuery() {
+	    Collection<QName> delegationRelations = getParentPage().getRelationRegistry()
+			    .getAllRelationsFor(RelationKindType.DELEGATION);
+        ObjectFilter deputyFilter = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+                .item(new ItemPath(AssignmentType.F_TARGET_REF))
+                .ref(delegationRelations.toArray(new QName[0]))
+                .buildFilter();
+        ObjectQuery query = QueryBuilder.queryFor(AssignmentType.class, getParentPage().getPrismContext())
+                .not()
+                .exists(AssignmentType.F_POLICY_RULE)
+                .build();
+        query.addFilter(NotFilter.createNot(deputyFilter));
+        return query;
+    }
 
     private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
 	    if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
@@ -390,10 +338,6 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         }
         return Model.of("");
     }
-
-    protected boolean isRelationVisible() {
-		return true;
-	}
 
 	protected List<ObjectTypes> getObjectTypesList(){
         return WebComponentUtil.createAssignableTypesList();

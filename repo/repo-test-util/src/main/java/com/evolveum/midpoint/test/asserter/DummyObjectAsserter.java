@@ -114,6 +114,11 @@ public class DummyObjectAsserter<D extends DummyObject,R> extends AbstractAssert
 		return this;
 	}
 	
+	public DummyObjectAsserter<D,R> assertLastModifier(String expected) {
+		assertEquals("Wrong lastModifier in " + desc(), expected, getDummyObjectAssertExists().getLastModifier());
+		return this;
+	}
+	
 	protected String desc() {
 		if (dummyResourceName == null) {
 			return descWithDetails(dummyObject) + " on default dummy resource";

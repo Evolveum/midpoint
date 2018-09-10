@@ -86,7 +86,12 @@ public class SceneDto implements Serializable {
 	public String getName(Component component) {
 		if (scene.getName() != null) {
 			if (scene.getName().getDisplayName() != null) {
-				return resolve(scene.getName().getDisplayName(), component, scene.getName().namesAreResourceKeys());
+				String name = resolve(scene.getName().getDisplayName(), component, scene.getName().namesAreResourceKeys());
+				if (scene.getSourceAbsPath() != null && scene.getSourceAbsPath().getSegments() != null &&
+						scene.getSourceAbsPath().getSegments().size() > 1){
+					name = name + " (" + scene.getSourceAbsPath().toString() + ")";
+				}
+				return name;
 			} else {
 				return resolve(scene.getName().getSimpleName(), component, scene.getName().namesAreResourceKeys());
 			}

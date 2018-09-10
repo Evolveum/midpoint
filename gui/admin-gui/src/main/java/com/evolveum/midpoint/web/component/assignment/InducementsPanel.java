@@ -39,7 +39,6 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
     @Override
     protected void initCustomPaging() {
         getInducementsTabStorage().setPaging(ObjectPaging.createPaging(0, getItemsPerPage()));
-
     }
 
     @Override

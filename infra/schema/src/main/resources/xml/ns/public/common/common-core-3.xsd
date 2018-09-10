@@ -3686,6 +3686,7 @@
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
                     			<a:operational>true</a:operational>
+								<a:displayName>FocusType.roleMembershipRef</a:displayName>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -15716,6 +15717,9 @@
                         Appender name defined in appenders section in
                         logging configuration
                     </xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>AbstractLoggerConfigurationType.appender</a:displayName>
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
     	</xsd:sequence>
@@ -18133,6 +18137,8 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<a:displayName>CleanupPolicyType.maxAge</a:displayName>
+						<a:help>CleanupPolicyType.maxAge.help</a:help>
+						
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -19881,7 +19887,7 @@
        					</xsd:documentation>
        					<xsd:appinfo>
        						<a:since>3.9</a:since>
-							<a:displayName>GuiObjectListViewType.display</a:displayName>
+							<a:displayName>GuiObjectListViewType.action</a:displayName>
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
@@ -19901,7 +19907,13 @@
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
-       			<xsd:element name="defaultMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="1" default="basic"/>
+       			<xsd:element name="defaultMode" type="tns:SearchBoxModeType" minOccurs="0" maxOccurs="1" default="basic">
+					<xsd:annotation>
+       					<xsd:appinfo>
+							<a:displayName>SearchBoxConfigurationType.defaultMode</a:displayName>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
        			<!-- TODO: default items to display for basic search -->
            	</xsd:sequence>
     </xsd:complexType>
@@ -20006,6 +20018,9 @@
        						for identification of the column and referencing (e.g. previous column). The column definitions
        						that have the same name in different layers (global, role, user) will be merged together.
        					</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectColumnType.name</a:displayName>
+       					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
        			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -20014,6 +20029,9 @@
        						Free-form description. It is not displayed to the user. It is supposed to be used by system
        						administrators to explain the purpose of the configuration.
        					</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectColumnType.description</a:displayName>
+       					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
        			<xsd:element name="path" type="t:ItemPathType" minOccurs="0">
@@ -20025,6 +20043,9 @@
 	           				field that will be used to sort the table when sorting by this column is selected.
 	           				We cannot sort by the output of the expression as that is not stored in the repo.
 	           			</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectColumnType.path</a:displayName>
+       					</xsd:appinfo>
 	           		</xsd:annotation>
 	           	</xsd:element>
        			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
@@ -20034,6 +20055,9 @@
        						label or presentation style.
        						(Only label is implemented in midPoint 3.6)
        					</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectColumnType.display</a:displayName>
+       					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
        			<xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" 
@@ -20043,6 +20067,9 @@
            					Defines, whether this column will be visible or it will be hidden.
            					If not specified then it defaults to automatic visibility.
            				</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectColumnType.visibility</a:displayName>
+       					</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
        			<xsd:element name="previousColumn" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -20057,6 +20084,9 @@
        						time (alphabeting ordering based on "path" or displayOrder from the schema
        						are good candidates for deterministic ordering).
        					</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectColumnType.previousColumn</a:displayName>
+       					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
        			<!-- TODO later: sorting, expression -->
@@ -20082,6 +20112,9 @@
        						for identification of the action and referencing (e.g. previous column). The definitions
        						that have the same name in different layers (global, role, user) will be merged together.
        					</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiActionType.name</a:displayName>
+       					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
        			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
@@ -20090,6 +20123,9 @@
        						Free-form description. It is not displayed to the user. It is supposed to be used by system
        						administrators to explain the purpose of the configuration.
        					</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiActionType.description</a:displayName>
+       					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
        			<xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
@@ -20098,6 +20134,9 @@
        						Specification of action display properties.
        						(Only label is implemented in midPoint 3.9)
        					</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiActionType.display</a:displayName>
+       					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
        			<xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
@@ -20109,6 +20148,7 @@
        					<xsd:appinfo>
        						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
        						<a:since>3.9</a:since>
+							<a:displayName>GuiActionType.taskTemplateRef</a:displayName>
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>

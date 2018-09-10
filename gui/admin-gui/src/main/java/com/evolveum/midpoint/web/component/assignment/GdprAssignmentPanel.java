@@ -95,11 +95,6 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 		return columns;
 	}
 
-	@Override
-	protected boolean isRelationVisible() {
-		return false;
-	}
-
 //	@Override
 //	protected <T extends ObjectType> void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<T> assignmentsList,
 //			QName relation, ShadowKindType kind, String intent) {

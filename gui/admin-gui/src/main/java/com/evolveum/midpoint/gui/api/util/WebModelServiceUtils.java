@@ -29,10 +29,12 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -66,6 +68,7 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
 import org.apache.wicket.ThreadContext;
+import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
@@ -847,5 +850,17 @@ public class WebModelServiceUtils {
 				} 
 		}
 		return true;
+	}
+	
+	public static <C extends Containerable> ContainerValueWrapper<C> createNewItemContainerValueWrapper(PageBase pageBase,
+			IModel<ContainerWrapper<C>> model) {
+    	ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
+		Task task = pageBase.createSimpleTask("Creating new object policy");
+		PrismContainerValue<C> newItem = model.getObject().getItem().createNewValue();
+		ContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(model.getObject(), newItem,
+				model.getObject().getObjectStatus(), ValueStatus.ADDED, model.getObject().getPath(), task);
+		valueWrapper.setShowEmpty(true, true);
+		model.getObject().getValues().add(valueWrapper);
+		return valueWrapper;
 	}
 }

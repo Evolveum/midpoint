@@ -56,6 +56,7 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerValuePanel.class);
     private static final String ID_HEADER = "header";
+    private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     private static final String STRIPED_CLASS = "striped";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
 
@@ -82,33 +83,6 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
     }
 
     private void initLayout(final IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
-    	PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model, isPanelVisible) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onButtonClick(AjaxRequestTarget target) {
-				if(model.getObject().getContainer().isShowOnTopLevel()) {
-					addOrReplaceProperties(model, form, isPanelVisible, true);
-				} else {
-					addOrReplacePropertiesAndContainers(model, form, isPanelVisible, true);
-				}
-				target.add(ContainerValuePanel.this);
-				target.add(getPageBase().getFeedbackPanel());
-			}
-
-        };
-        
-        
-        header.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return showHeader;// && !model.getObject().isMain();
-            }
-        });
-        add(header);
-        header.setOutputMarkupId(true);
         addOrReplacePropertiesAndContainers(model, form, isPanelVisible, false);
         
         AjaxButton labelShowEmpty = new AjaxButton(ID_SHOW_EMPTY_BUTTON, getNameOfShowEmptyButton(model)) {
@@ -130,8 +104,45 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 			}
 		});
 		add(labelShowEmpty);
+		
+		PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model, isPanelVisible) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onButtonClick(AjaxRequestTarget target) {
+				if(model.getObject().getContainer().isShowOnTopLevel()) {
+					addOrReplaceProperties(model, form, isPanelVisible, true);
+				} else {
+					addOrReplacePropertiesAndContainers(model, form, isPanelVisible, true);
+				}
+				target.add(ContainerValuePanel.this);
+				target.add(getPageBase().getFeedbackPanel());
+			}
+
+        };
+        
+        
+        header.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return showHeader && (hasAnyProperty() || !getModelObject().getContainer().isShowOnTopLevel());// && !model.getObject().isMain();
+            }
+        });
+        add(header);
+        header.setOutputMarkupId(true);
 
     }
+    
+    private boolean hasAnyProperty() {
+		for(ItemWrapper item : getModelObject().getItems()) {
+			if(item instanceof PropertyOrReferenceWrapper) {
+				return true;
+			}
+		}
+		return false;
+	}
     
     private StringResourceModel getNameOfShowEmptyButton(IModel<ContainerValueWrapper<C>> model) {
     	if(!model.getObject().isShowEmpty()) {
@@ -146,8 +157,8 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 		wrapper.setShowEmpty(!wrapper.isShowEmpty(), false);
 			
 		wrapper.computeStripes();
-		addOrReplacePropertiesAndContainers(model, form, isPanelVisible, true);
-		target.add(ContainerValuePanel.this);
+//		addOrReplaceProperties(model, form, isPanelVisible, true);
+		target.add(addOrReplaceProperties(model, form, isPanelVisible, true));
 		target.add(getPageBase().getFeedbackPanel());
 	}
 
@@ -172,8 +183,11 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
         addOrReplaceContainers(model, form, isPanaleVisible, isToBeReplaced);
     }
     
-    private <IW extends ItemWrapper> void addOrReplaceProperties(IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanalVisible, boolean isToBeReplaced){
+    private <IW extends ItemWrapper> WebMarkupContainer addOrReplaceProperties(IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanalVisible, boolean isToBeReplaced){
     	isVisibleShowMoreButton = false;
+    	
+    	WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
+    	propertiesLabel.setOutputMarkupId(true);
     	
     	ListView<IW> properties = new ListView<IW>("properties",
             new PropertyModel<>(model, "properties")) {
@@ -199,9 +213,7 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 					});
 	                item.add(propertyPanel);
 	                item.add(AttributeModifier.append("class", createStyleClassModel((IModel<ItemWrapper>) item.getModel())));
-	                if(propertyPanel.isVisible(isPanalVisible)
-	                		|| (!((PropertyOrReferenceWrapper)item.getModel().getObject()).canAddAndShowEmpty()  && !((PropertyOrReferenceWrapper)item.getModel().getObject()).isShowEmpty())
-	                		|| (!((PropertyOrReferenceWrapper)item.getModel().getObject()).canReadOrModifyAndShowEmpty()  && !((PropertyOrReferenceWrapper)item.getModel().getObject()).isShowEmpty())) {
+	                if(propertyPanel.isVisible(isPanalVisible) || ((PropertyOrReferenceWrapper)item.getModel().getObject()).isOnlyHide()) {
 	                	isVisibleShowMoreButton = true;
 	                }
 	                return;
@@ -219,10 +231,13 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
         properties.setReuseItems(true);
         properties.setOutputMarkupId(true);
         if (isToBeReplaced) {
-            replace(properties);
+        	replace(propertiesLabel);
+        	propertiesLabel.add(properties);
         } else {
-            add(properties);
+        	add(propertiesLabel);
+        	propertiesLabel.add(properties);
         }
+        return propertiesLabel;
     }
     
     private <IW extends ItemWrapper> void addOrReplaceContainers(IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanalVisible, boolean isToBeReplaced){

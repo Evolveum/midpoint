@@ -59,7 +59,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     	displayNamePanel.setOutputMarkupId(true);
     	add(displayNamePanel);
 
-		getBasicContainerValuePanel(ID_BASIC_PANEL);
+		addBasicContainerValuePanel(ID_BASIC_PANEL);
 		add(getSpecificContainers(ID_SPECIFIC_CONTAINERS_PANEL));
     }
     
@@ -67,13 +67,17 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     	return new WebMarkupContainer(contentAreaId);
     }
     
-    protected void getBasicContainerValuePanel(String idPanel){
+    protected void addBasicContainerValuePanel(String idPanel){
+		add(getBasicContainerValuePanel(idPanel));
+    }
+    
+    private ContainerValuePanel getBasicContainerValuePanel(String idPanel){
     	Form form = new Form<>("form");
     	ItemPath itemPath = getModelObject().getPath();
     	IModel<ContainerValueWrapper<C>> model = getModel();
     	model.getObject().getContainer().setShowOnTopLevel(true);
-		add(new ContainerValuePanel<C>(idPanel, getModel(), true, form,
-				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase()));
+		return new ContainerValuePanel<C>(idPanel, getModel(), true, form,
+				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
     }
     
     protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentPath) {

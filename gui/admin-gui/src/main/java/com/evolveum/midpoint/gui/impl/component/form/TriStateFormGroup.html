@@ -17,17 +17,19 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="col-xs-2 prism-property-label" wicket:id="labelContainer">
+    <div wicket:id="labelContainer">
         <span wicket:id="label"/>
         <span wicket:id="required" style="color: #f00; font-weight: bold;"
               wicket:message="title:prismPropertyPanel.required">*</span>
         <i wicket:id="tooltip"/>
     </div>
     
-	<div class="col-md-10 prism-property-value">
-    	<div wicket:id="valueWrapper">
+	<div wicket:id="propertyLabel">
+		<div wicket:id="row">
+    		<div wicket:id="valueWrapper">
                 <div wicket:id="value"/>
                 <span class="text-danger" wicket:id="feedback"/>
+            </div>
     	</div>
     </div>
 </wicket:panel>
