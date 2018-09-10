@@ -201,6 +201,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         
         assertOrgAfter(ORG_ATREIDES_OID)
         	.assertIsTenant()
+        	.assertTenantRef(ORG_ATREIDES_OID)
         	.assignments()
         		.single()
         			.assertTargetOid(ORG_ROOT_OID)
@@ -209,8 +210,8 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         	.assertLinks(0)
         	.assertParentOrgRefs(ORG_ROOT_OID);
         
-        assertRoleAfter(ROLE_CORRINO_ADMIN_OID)
-//        	.assertTenantRef(ORG_ATREIDES_OID)
+        assertRoleAfter(ROLE_ATREIDES_ADMIN_OID)
+        	.assertTenantRef(ORG_ATREIDES_OID)
         	.assertParentOrgRefs(ORG_ATREIDES_OID);
         
         assertGlobalStateUntouched();

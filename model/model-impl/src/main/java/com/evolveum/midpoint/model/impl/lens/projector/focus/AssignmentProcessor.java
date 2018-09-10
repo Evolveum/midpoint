@@ -29,6 +29,8 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -787,6 +789,66 @@ public class AssignmentProcessor {
 
 				} catch (TunnelException e) {
 					throw (PolicyViolationException)e.getCause();
+				}
+			}
+		}
+		
+		computeTenantRef(context, result);
+	}
+
+	private <F extends ObjectType> void computeTenantRef(LensContext<F> context, OperationResult result) throws PolicyViolationException, SchemaException {
+		String tenantOid = null;
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		PrismObject<F> objectNew = focusContext.getObjectNew();
+		if (objectNew == null) {
+			return;
+		}
+		
+		if (objectNew.canRepresent(OrgType.class) && BooleanUtils.isTrue(((OrgType)objectNew.asObjectable()).isTenant())) {
+			// Special "zero" case. Tenant org has itself as a tenant.
+			tenantOid = objectNew.getOid();
+			
+		} else {
+		
+			DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+			for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+				if (!evalAssignment.isValid()) {
+					continue;
+				}
+				String assignmentTenantOid = evalAssignment.getTenantOid();
+				if (assignmentTenantOid == null) {
+					continue;
+				}
+				if (tenantOid == null) {
+					tenantOid = assignmentTenantOid;
+				} else {
+					if (!assignmentTenantOid.equals(tenantOid)) {
+						throw new PolicyViolationException("Two different tenants ("+tenantOid+", "+assignmentTenantOid+") applicable to "+context.getFocusContext().getHumanReadableName());
+					}
+				}
+			}
+		}
+		
+		
+		ObjectReferenceType currentTenantRef = objectNew.asObjectable().getTenantRef();
+		if (currentTenantRef == null) {
+			if (tenantOid == null) {
+				return;
+			} else {
+				LOGGER.trace("Setting tenantRef to {}", tenantOid);
+				ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
+				context.getFocusContext().swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
+			}
+		} else {
+			if (tenantOid == null) {
+				LOGGER.trace("Clearing tenantRef");
+				ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
+				context.getFocusContext().swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
+			} else {
+				if (!tenantOid.equals(currentTenantRef.getOid())) {
+					LOGGER.trace("Changing tenantRef to {}", tenantOid);
+					ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
+					context.getFocusContext().swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 				}
 			}
 		}
