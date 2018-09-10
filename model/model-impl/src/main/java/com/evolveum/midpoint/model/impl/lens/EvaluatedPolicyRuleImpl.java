@@ -337,7 +337,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 
 	@Override
 	public void addToEvaluatedPolicyRuleTypes(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options,
-			Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector) {
+			Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector, PrismContext prismContext) {
 		EvaluatedPolicyRuleType rv = new EvaluatedPolicyRuleType();
 		rv.setRuleName(getName());
 		boolean isFull = options.getTriggeredRulesStorageStrategy() == FULL;
@@ -345,7 +345,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			rv.setAssignmentPath(assignmentPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
 		}
 		if (isFull && directOwner != null) {
-			rv.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
+			rv.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner, prismContext));
 			rv.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
 		}
 		for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
@@ -354,10 +354,10 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
 			}
 			if (trigger instanceof EvaluatedSituationTrigger && trigger.isHidden()) {
 				for (EvaluatedPolicyRule sourceRule : ((EvaluatedSituationTrigger) trigger).getSourceRules()) {
-					sourceRule.addToEvaluatedPolicyRuleTypes(rules, options, null);
+					sourceRule.addToEvaluatedPolicyRuleTypes(rules, options, null, prismContext);
 				}
 			} else {
-				rv.getTrigger().add(trigger.toEvaluatedPolicyRuleTriggerType(options));
+				rv.getTrigger().add(trigger.toEvaluatedPolicyRuleTriggerType(options, prismContext));
 			}
 		}
 		if (rv.getTrigger().isEmpty()) {

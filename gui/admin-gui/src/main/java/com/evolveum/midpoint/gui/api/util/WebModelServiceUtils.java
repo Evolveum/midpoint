@@ -33,7 +33,6 @@ import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
 import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.login.PageLogin;
@@ -160,7 +159,7 @@ public class WebModelServiceUtils {
 
                 for(PrismObject<O> object: objects){
                 	referenceMap.put(object.getOid(), WebComponentUtil.getName(object));
-                    references.add(ObjectTypeUtil.createObjectRef(object));
+                    references.add(ObjectTypeUtil.createObjectRef(object, page.getPrismContext()));
 
                 }
                 return references;

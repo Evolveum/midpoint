@@ -576,7 +576,7 @@ public class LensUtil {
         if (virtualAssignmenetSpecification != null) {
         
 	        ResultHandler<R> handler = (object, parentResult)  -> {
-	        	AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object);
+	        	AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object, prismContext);
 				return forcedAssignments.add(assignment);
 	        };
 				

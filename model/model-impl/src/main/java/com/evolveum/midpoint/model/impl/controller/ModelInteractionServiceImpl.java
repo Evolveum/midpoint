@@ -1445,7 +1445,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				continue;
 			}
 			if (determineDeputyValidity(potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, task, result)) {
-				deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
+				deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy, prismContext));
 				oidsToSkip.add(potentialDeputy.getOid());
 			}
 		}
@@ -1465,7 +1465,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 				continue;
 			}
 			if (determineDeputyValidity(potentialDeputy, Collections.singletonList(assigneeRef), null, limitationItemName, task, result)) {
-				deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
+				deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy, prismContext));
 				oidsToSkip.add(potentialDeputy.getOid());
 			}
 		}
@@ -1696,7 +1696,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
 			newTask.setOid(null);
 			newTask.setTaskIdentifier(null);
-			newTask.setOwnerRef(createObjectRef(principal.getUser()));
+			newTask.setOwnerRef(createObjectRef(principal.getUser(), prismContext));
 			newTask.setExecutionStatus(RUNNABLE);
 			for (Item<?, ?> extensionItem : extensionItems) {
 				newTask.asPrismObject().getExtension().add(extensionItem.clone());

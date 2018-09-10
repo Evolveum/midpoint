@@ -24,8 +24,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -2716,7 +2714,7 @@ public class ShadowCache {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
 		}
 		if (resultShadowType.getResource() == null) {
-			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource()));
+			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource(), prismContext));
 		}
 
 		// Attributes
@@ -2847,7 +2845,7 @@ public class ShadowCache {
 							entitlementRepoShadow = lookupOrCreateLiveShadowInRepository(ctxEntitlement,
 									entitlementShadow, false, isDoDiscovery, parentResult);
 						}
-						ObjectReferenceType shadowRefType = ObjectTypeUtil.createObjectRef(entitlementRepoShadow);
+						ObjectReferenceType shadowRefType = ObjectTypeUtil.createObjectRef(entitlementRepoShadow, prismContext);
 						shadowAssociationType.setShadowRef(shadowRefType);
 					}
 				}

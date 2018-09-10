@@ -198,7 +198,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 			SearchResultList<PrismObject<O>> targets = repositoryService.searchObjects(clazz, ObjectQuery.createObjectQuery(evaluatedFilter), null, result);
 
 			return targets.stream()
-					.map(ObjectTypeUtil::createObjectRef)
+					.map(object -> ObjectTypeUtil.createObjectRef(object, prismContext))
 					.collect(Collectors.toList());
 
 		} finally {
@@ -257,7 +257,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             Set<PrismObject<FocusType>> distinctObjects = new HashSet<>(objects);
             LOGGER.trace("Found {} approver(s): {}", distinctObjects.size(), DebugUtil.toStringLazily(distinctObjects));
             return distinctObjects.stream()
-                    .map(ObjectTypeUtil::createObjectRef)
+                    .map(object1 -> ObjectTypeUtil.createObjectRef(object1, prismContext))
                     .collect(Collectors.toList());
         };
     }

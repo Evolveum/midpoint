@@ -238,7 +238,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		long reconStartTimestamp = clock.currentTimeMillis();
 
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
-		requestRecord.setTarget(resource);
+		requestRecord.setTarget(resource, prismContext);
 		requestRecord.setMessage("Stage: " + stage + ", Work bucket: " + workBucket);
 		auditService.audit(requestRecord, localCoordinatorTask);
 
@@ -320,7 +320,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		}
 
 		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
-		executionRecord.setTarget(resource);
+		executionRecord.setTarget(resource, prismContext);
 		executionRecord.setOutcome(OperationResultStatus.SUCCESS);
 		executionRecord.setMessage(requestRecord.getMessage());
 		auditService.audit(executionRecord, localCoordinatorTask);
@@ -391,7 +391,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		task.setName(polyString);
 
 		// Set reference to the resource
-		task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
+		task.setObjectRef(ObjectTypeUtil.createObjectRef(resource, prismContext));
 
 		try {
 			task.setExtensionPropertyValue(ModelConstants.OBJECTCLASS_PROPERTY_NAME, objectclass);
@@ -453,7 +453,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		runResult.setRunResultStatus(runResultStatus);
 
 		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
-		executionRecord.setTarget(resource);
+		executionRecord.setTarget(resource, prismContext);
 		executionRecord.setOutcome(OperationResultStatus.FATAL_ERROR);
 		executionRecord.setMessage(ex.getMessage());
 		auditService.audit(executionRecord , task);
@@ -553,7 +553,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 					.item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(startTimestamp))
 					.or().item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).isNull()
 				.endBlock()
-				.and().item(ShadowType.F_RESOURCE_REF).ref(ObjectTypeUtil.createObjectRef(resource).asReferenceValue())
+				.and().item(ShadowType.F_RESOURCE_REF).ref(ObjectTypeUtil.createObjectRef(resource, prismContext).asReferenceValue())   // TODO MID-3581
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(objectclassDef.getTypeName())
 				.build();
 

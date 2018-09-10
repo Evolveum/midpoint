@@ -116,7 +116,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		display("assignment after creation", assignment);
 		MetadataType metadata = assignment.getMetadata();
 		assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
-		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
+		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator, prismContext), metadata.getRequestorRef());
 		assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
 	}
 
@@ -183,7 +183,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		display("assignment after creation", assignment);
 		MetadataType metadata = assignment.getMetadata();
 		assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
-		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
+		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator, prismContext), metadata.getRequestorRef());
 		assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
 	}
 

@@ -304,7 +304,7 @@ public class AssignmentPolicyAspectPart {
 		instruction.setDeltasToProcess(deltaToApprove);
 
 		instruction.setObjectRef(modelContext, result);
-		instruction.setTargetRef(createObjectRef(target), result);
+		instruction.setTargetRef(createObjectRef(target, prismContext), result);
 
 		String taskNameInDefaultLocale = localizationService.translate(
 				new LocalizableMessageBuilder()

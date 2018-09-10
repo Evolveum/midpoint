@@ -178,7 +178,7 @@ public class PipelineData implements DebugDumpable {
 		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(type, queryBean, context.getPrismContext());
 		SearchResultList<? extends PrismObject<? extends ObjectType>> objects = context.getModelService()
 				.searchObjects(type, query, null, context.getTask(), result);
-		return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o)).collect(Collectors.toList());
+		return objects.stream().map(o -> ObjectTypeUtil.createObjectRef(o, context.getPrismContext())).collect(Collectors.toList());
 	}
 
 	static PipelineData parseFrom(ValueListType input, Map<String, Object> frozenInitialVariables, PrismContext prismContext) {

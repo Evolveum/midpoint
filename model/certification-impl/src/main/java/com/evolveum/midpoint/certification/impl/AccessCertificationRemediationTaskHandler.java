@@ -17,6 +17,7 @@ package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -63,6 +64,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
     @Autowired private AccCertGeneralHelper helper;
     @Autowired private AccCertCaseOperationsHelper caseHelper;
     @Autowired private AccCertQueryHelper queryHelper;
+    @Autowired private PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private static final transient Trace LOGGER = TraceManager.getTrace(AccessCertificationRemediationTaskHandler.class);
@@ -188,7 +190,7 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         task.setName(polyString);
 
         // Set reference to the resource
-        task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign));
+        task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign, prismContext));
 
         task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
 

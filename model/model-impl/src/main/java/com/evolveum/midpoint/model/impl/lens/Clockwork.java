@@ -927,10 +927,10 @@ public class Clockwork {
 			task = task.getParentForLightweightAsynchronousTask();
 		}
 		if (task.isPersistent()) {
-			operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskPrismObject()));
+			operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskPrismObject(), prismContext));
 		}
 		operation.setStatus(overallStatus);
-		operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));		// TODO what if the real initiator is different? (e.g. when executing approved changes)
+		operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));		// TODO what if the real initiator is different? (e.g. when executing approved changes)
 		operation.setChannel(channel);
 		operation.setTimestamp(now);
 	}
@@ -1103,7 +1103,7 @@ public class Clockwork {
 		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
 
 		if (primaryObject != null) {
-			auditRecord.setTarget(primaryObject.clone());
+			auditRecord.setTarget(primaryObject.clone(), prismContext);
 //		} else {
 //			throw new IllegalStateException("No primary object in:\n"+context.dump());
 		}

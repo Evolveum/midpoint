@@ -2023,7 +2023,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         
         ConstructionType construction = new ConstructionType();
         construction.getAttribute().add(attrDefType);
-        construction.setResourceRef(ObjectTypeUtil.createObjectRef(resourceTypeOpenDjrepo));
+        construction.setResourceRef(ObjectTypeUtil.createObjectRef(resourceTypeOpenDjrepo, prismContext));
         
         AssignmentType assignment = new AssignmentType();
         assignment.setConstruction(construction);

@@ -119,7 +119,7 @@ public class PolicyStateRecorder {
 			if (recordAction.getPolicyRules() != TriggeredPolicyRulesStorageStrategyType.NONE) {
 				PolicyRuleExternalizationOptions externalizationOptions = new PolicyRuleExternalizationOptions(
 						recordAction.getPolicyRules(), false, true);
-				rule.addToEvaluatedPolicyRuleTypes(cr.newTriggeredRules, externalizationOptions, null);
+				rule.addToEvaluatedPolicyRuleTypes(cr.newTriggeredRules, externalizationOptions, null, prismContext);
 			}
 		}
 		cr.oldPolicySituations.addAll(existingPolicySituation);

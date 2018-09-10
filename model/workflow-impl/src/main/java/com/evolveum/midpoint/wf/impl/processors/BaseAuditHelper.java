@@ -111,7 +111,7 @@ public class BaseAuditHelper {
 		}
 		try {
 			return ObjectTypeUtil.createObjectRef(
-					repositoryService.getObject(types.getClassDefinition(), ref.getOid(), null, result));
+					repositoryService.getObject(types.getClassDefinition(), ref.getOid(), null, result), prismContext);
 		} catch (ObjectNotFoundException|SchemaException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve {}", e, ref);
 			return ref;

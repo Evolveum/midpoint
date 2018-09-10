@@ -135,7 +135,7 @@ public class AccCertReviewersHelper {
 				.item(UserType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleRef.getOid())
 				.build();
 		return repositoryService.searchObjects(UserType.class, query, null, result).stream()
-				.map(obj -> ObjectTypeUtil.createObjectRef(obj))
+				.map(obj -> ObjectTypeUtil.createObjectRef(obj, prismContext))      // TODO MID-3581
 				.collect(Collectors.toList());
 	}
 
@@ -184,7 +184,7 @@ public class AccCertReviewersHelper {
             }
             List<ObjectReferenceType> retval = new ArrayList<>(managers.size());
             for (UserType manager : managers) {
-                retval.add(ObjectTypeUtil.createObjectRef(manager));
+                retval.add(ObjectTypeUtil.createObjectRef(manager, prismContext));
             }
             return retval;
         } catch (SecurityViolationException e) {
@@ -232,7 +232,7 @@ public class AccCertReviewersHelper {
 				.build();
 		List<PrismObject<FocusType>> assignees = repositoryService.searchObjects(FocusType.class, query, null, result);
 		LOGGER.trace("Looking for '{}' of {} using {}: found: {}", relationKind, role, query, assignees);
-		assignees.forEach(o -> rv.add(ObjectTypeUtil.createObjectRef(o)));
+		assignees.forEach(o -> rv.add(ObjectTypeUtil.createObjectRef(o, prismContext)));
 		return rv;
 	}
 

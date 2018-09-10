@@ -94,9 +94,10 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		ResourceValidationContext(
 				@NotNull PrismObject<ResourceType> resourceObject,
 				@NotNull Scope scope, @NotNull Task task,
-				@NotNull ValidationResult validationResult, ResourceSchema resourceSchema) {
+				@NotNull ValidationResult validationResult, ResourceSchema resourceSchema,
+				PrismContext prismContext) {
 			this.resourceObject = resourceObject;
-			this.resourceRef = ObjectTypeUtil.createObjectRef(resourceObject);
+			this.resourceRef = ObjectTypeUtil.createObjectRef(resourceObject, prismContext);
 			this.scope = scope;
 			this.task = task;
 			this.validationResult = validationResult;
@@ -118,10 +119,10 @@ public class ResourceValidatorImpl implements ResourceValidator {
 		} catch (Throwable t) {
 			vr.add(Issue.Severity.WARNING, CAT_SCHEMA, C_NO_SCHEMA,
 					getString(CLASS_DOT + C_NO_SCHEMA, t.getMessage()),
-					ObjectTypeUtil.createObjectRef(resourceObject), ItemPath.EMPTY_PATH);
+					ObjectTypeUtil.createObjectRef(resourceObject, prismContext), ItemPath.EMPTY_PATH);
 		}
 
-		ResourceValidationContext ctx = new ResourceValidationContext(resourceObject, scope, task, vr, resourceSchema);
+		ResourceValidationContext ctx = new ResourceValidationContext(resourceObject, scope, task, vr, resourceSchema, prismContext);
 
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
 		if (schemaHandling != null) {

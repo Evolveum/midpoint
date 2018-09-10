@@ -138,7 +138,8 @@ public class AccCertQueryHelper {
 			return QueryUtils.filterForAssignees(
 						QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext),
 						principal,
-						OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS)
+						OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS,
+						prismContext)       // TODO MID-3581
 					.and().item(F_CLOSE_TIMESTAMP).isNull()
 					.buildFilter();
         } else {

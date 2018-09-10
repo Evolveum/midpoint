@@ -358,7 +358,7 @@ public class TreeTablePanel extends BasePanel<String> {
 							public void onClick(AjaxRequestTarget target) {
 								try {
 									initObjectForAdd(
-											ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue()),
+											ObjectTypeUtil.createObjectRef(getRowModel().getObject().getValue(), getPageBase().getPrismContext()),
 											OrgType.COMPLEX_TYPE, null, target);
 								} catch (SchemaException e) {
 									throw new SystemException(e.getMessage(), e);
@@ -396,7 +396,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		// TODO: fix MID-3234
 		if (parentOrgRef == null) {
 			ObjectType org = getTreePanel().getSelected().getValue();
-			parentOrgRef = ObjectTypeUtil.createObjectRef(org);
+			parentOrgRef = ObjectTypeUtil.createObjectRef(org, prismContext);
 			parentOrgRef.setRelation(relation);
 			objType.getParentOrgRef().add(parentOrgRef);
 		} else {
@@ -454,7 +454,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		try {
 			for (OrgType parentOrg : toMove.getParentOrg()) {
 				AssignmentType oldRoot = new AssignmentType();
-				oldRoot.setTargetRef(ObjectTypeUtil.createObjectRef(parentOrg));
+				oldRoot.setTargetRef(ObjectTypeUtil.createObjectRef(parentOrg, getPageBase().getPrismContext()));
 
 				moveOrgDelta.addModification(ContainerDelta.createModificationDelete(OrgType.F_ASSIGNMENT,
 						OrgType.class, getPageBase().getPrismContext(), oldRoot.asPrismContainerValue()));
@@ -464,7 +464,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			}
 
 			AssignmentType newRoot = new AssignmentType();
-			newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue()));
+			newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue(), getPageBase().getPrismContext()));
 			moveOrgDelta.addModification(ContainerDelta.createModificationAdd(OrgType.F_ASSIGNMENT,
 					OrgType.class, getPageBase().getPrismContext(), newRoot.asPrismContainerValue()));
 			// moveOrgDelta.addModification(ReferenceDelta.createModificationAdd(OrgType.F_PARENT_ORG_REF,

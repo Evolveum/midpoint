@@ -246,7 +246,7 @@ class ApprovalSchemaBuilder {
 		if (firstFragment.policyRule != null) {
 			List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
 			firstFragment.policyRule.addToEvaluatedPolicyRuleTypes(rules, new PolicyRuleExternalizationOptions(FULL,
-					false, true), null);
+					false, true), null, ctx.prismContext);
 			for (EvaluatedPolicyRuleType rule : rules) {
 				SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
 				attachedRule.setStageMin(from);

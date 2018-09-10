@@ -622,11 +622,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			rv.setAssignmentId(assignment.getId());
 		}
 		if (source != null) {
-			rv.setSourceRef(ObjectTypeUtil.createObjectRef(source));
+			rv.setSourceRef(ObjectTypeUtil.createObjectRef(source, prismContext));
 			rv.setSourceDisplayName(ObjectTypeUtil.getDisplayName(source));
 		}
 		if (target != null) {
-			rv.setTargetRef(ObjectTypeUtil.createObjectRef(target));
+			rv.setTargetRef(ObjectTypeUtil.createObjectRef(target, prismContext));
 			rv.setTargetDisplayName(ObjectTypeUtil.getDisplayName(target));
 		}
 		rv.setMatchingOrder(isMatchingOrder());

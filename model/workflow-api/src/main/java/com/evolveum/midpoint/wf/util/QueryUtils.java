@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -49,12 +50,13 @@ public class QueryUtils {
 	 *
 	 * Note that work item limitations are supported only in the current (crude) form: all or none.
 	 */
+	// TODO consider other default relations here!!! MID-3851
 	public static S_AtomicFilterExit filterForAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal,
-			QName limitationItemName) throws SchemaException {
+			QName limitationItemName, PrismContext prismContext) {
 		if (principal == null) {
 			return q.none();
 		} else {
-			return q.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssigneesForUser(principal, limitationItemName));
+			return q.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssigneesForUser(principal, limitationItemName, prismContext));
 		}
 	}
 
@@ -64,12 +66,12 @@ public class QueryUtils {
 	}
 
 	private static List<PrismReferenceValue> getPotentialAssigneesForUser(MidPointPrincipal principal,
-			QName limitationItemName) throws SchemaException {
+			QName limitationItemName, PrismContext prismContext) {
 		List<PrismReferenceValue> rv = new ArrayList<>();
 		rv.add(new PrismReferenceValue(principal.getOid(), UserType.COMPLEX_TYPE));
 		for (DelegatorWithOtherPrivilegesLimitations delegator : principal.getDelegatorWithOtherPrivilegesLimitationsCollection()) {
 			if (DeputyUtils.limitationsAllow(delegator.getLimitations(), limitationItemName)) {
-				rv.add(ObjectTypeUtil.createObjectRef(delegator.getDelegator()).asReferenceValue());
+				rv.add(ObjectTypeUtil.createObjectRef(delegator.getDelegator(), prismContext).asReferenceValue());
 			}
 		}
 		return rv;

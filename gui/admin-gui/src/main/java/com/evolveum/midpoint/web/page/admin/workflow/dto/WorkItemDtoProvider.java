@@ -184,8 +184,8 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
             return QueryUtils.filterForGroups(q, currentUserOid(), getRepositoryService(), result).build();
         } else {
             // not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
-            return QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
-                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
+            return QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),   // TODO MID-3581
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getPrismContext()).build();
         }
     }
 

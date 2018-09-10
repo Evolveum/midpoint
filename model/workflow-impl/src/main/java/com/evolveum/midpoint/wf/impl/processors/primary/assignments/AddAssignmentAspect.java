@@ -246,7 +246,7 @@ public abstract class AddAssignmentAspect<T extends ObjectType, F extends FocusT
             instruction.setDeltasToProcess(delta);
 
             instruction.setObjectRef(modelContext, result);
-            instruction.setTargetRef(createObjectRef(target), result);
+            instruction.setTargetRef(createObjectRef(target, prismContext), result);
 
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
             instruction.setTaskName("Approval " + andExecuting + "of assigning " + targetName + " to " + assigneeName);

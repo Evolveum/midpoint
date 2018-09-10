@@ -2489,7 +2489,8 @@ public final class WebComponentUtil {
 		return true;
 	}
 
-	public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName, ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
+	public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName,
+			ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
 		List<AR> selectedRoles =  new ArrayList<>();
 		if (action.getRowModel() == null) {
 			selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
@@ -2499,7 +2500,11 @@ public final class WebComponentUtil {
 		OperationResult result = new OperationResult("Search Members");
 		boolean atLeastOneWithMembers = false;
 		for (AR selectedRole : selectedRoles) {
-			ObjectQuery query = QueryBuilder.queryFor(FocusType.class, pageBase.getPrismContext()).item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(ObjectTypeUtil.createObjectRef(selectedRole).asReferenceValue()).maxSize(1).build();
+			ObjectQuery query = QueryBuilder.queryFor(FocusType.class, pageBase.getPrismContext())
+					.item(FocusType.F_ROLE_MEMBERSHIP_REF)// TODO MID-3581
+							.ref(ObjectTypeUtil.createObjectRef(selectedRole, pageBase.getPrismContext()).asReferenceValue())
+					.maxSize(1)
+					.build();
 			List<PrismObject<FocusType>> members = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
 			if (CollectionUtils.isNotEmpty(members)) {
 				atLeastOneWithMembers = true;
@@ -2599,6 +2604,10 @@ public final class WebComponentUtil {
 	@NotNull
 	public static List<RelationDefinitionType> getRelationDefinitions(ModelServiceLocator pageBase) {
 		return pageBase.getModelInteractionService().getRelationDefinitions();
+	}
+
+	public static RelationDefinitionType getRelationDefinition(QName relation) {
+		return getRelationRegistry().getRelationDefinition(relation);
 	}
 
 	public static <T> DropDownChoice createTriStateCombo(String id, IModel<Boolean> model) {

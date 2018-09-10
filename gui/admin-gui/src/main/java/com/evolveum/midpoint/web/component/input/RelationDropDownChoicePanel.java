@@ -108,8 +108,7 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
 
             @Override
             public Object getDisplayValue(QName object) {
-                RelationDefinitionType def =
-                        ObjectTypeUtil.findRelationDefinition(WebComponentUtil.getRelationDefinitions(RelationDropDownChoicePanel.this.getPageBase()), object);
+                RelationDefinitionType def = WebComponentUtil.getRelationDefinition(object);
                 if (def != null){
                     DisplayType display = def.getDisplay();
                     if (display != null){

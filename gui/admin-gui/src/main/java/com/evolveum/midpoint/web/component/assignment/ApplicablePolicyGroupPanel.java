@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -30,7 +29,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -174,7 +172,7 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
             if (added){
             	//TODO: not sure if this is correct way of creating new value.. this value is added directly to the origin object... what about deltas??
                 PrismContainerValue<AssignmentType> newAssignment = assignmentsModel.getObject().getItem().createNewValue();
-                ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(assignmentTargetObject);
+                ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(assignmentTargetObject, getPageBase().getPrismContext());
                 AssignmentType assignmentType = newAssignment.asContainerable();
                 assignmentType.setTargetRef(ref);
                 Task task = getPageBase().createSimpleTask("Creating new applicable policy");

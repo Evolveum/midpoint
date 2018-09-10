@@ -244,8 +244,9 @@ public class ObjectTypeUtil {
 	}
 
 	@NotNull
-	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object) {
-		return createAssignmentTo(object, getPrismContextFromObject(object).getDefaultRelation());
+	public static <T extends ObjectType> AssignmentType createAssignmentTo(@NotNull PrismObject<T> object,
+			PrismContext prismContext) {
+		return createAssignmentTo(object, prismContext.getDefaultRelation());
 	}
 
 	@NotNull
@@ -262,10 +263,11 @@ public class ObjectTypeUtil {
 	}
 
 	@NotNull
-	public static AssignmentType createAssignmentWithConstruction(@NotNull PrismObject<ResourceType> object, ShadowKindType kind, String intent) {
-		AssignmentType assignment = new AssignmentType(object.getPrismContext());
-		ConstructionType construction = new ConstructionType(object.getPrismContext());
-		construction.setResourceRef(createObjectRef(object));
+	public static AssignmentType createAssignmentWithConstruction(@NotNull PrismObject<ResourceType> object, ShadowKindType kind,
+			String intent, PrismContext prismContext) {
+		AssignmentType assignment = new AssignmentType(prismContext);
+		ConstructionType construction = new ConstructionType(prismContext);
+		construction.setResourceRef(createObjectRef(object, prismContext));
 		construction.setKind(kind);
 		construction.setIntent(intent);
 		assignment.setConstruction(construction);
@@ -283,29 +285,19 @@ public class ObjectTypeUtil {
 		return ort;
 	}
 
-	public static ObjectReferenceType createObjectRefWithFullObject(ObjectType objectType) {
+	public static ObjectReferenceType createObjectRefWithFullObject(ObjectType objectType, PrismContext prismContext) {
 		if (objectType == null) {
 			return null;
 		}
-        return createObjectRefWithFullObject(objectType.asPrismObject());
+        return createObjectRefWithFullObject(objectType.asPrismObject(), prismContext);
     }
 
-	public static ObjectReferenceType createObjectRef(ObjectType object) {
+	public static ObjectReferenceType createObjectRef(ObjectType object, PrismContext prismContext) {
 		if (object == null) {
 			return null;
 		}
-		PrismContext prismContext = getPrismContextFromObject(object.asPrismObject());
 		return createObjectRef(object, prismContext.getDefaultRelation());
     }
-
-	@NotNull
-	private static PrismContext getPrismContextFromObject(PrismObject object) {
-		PrismContext prismContext = object.getPrismContext();
-		if (prismContext == null) {
-			throw new IllegalStateException("No prismContext in prism object " + object);
-		}
-		return prismContext;
-	}
 
 	public static ObjectReferenceType createObjectRef(ObjectType objectType, QName relation) {
 		if (objectType == null) {
@@ -314,11 +306,11 @@ public class ObjectTypeUtil {
         return createObjectRef(objectType.asPrismObject(), relation);
     }
 
-    public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object) {
+    public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, PrismContext prismContext) {
 		if (object == null) {
 			return null;
 		}
-        return createObjectRef(object, getPrismContextFromObject(object).getDefaultRelation());
+        return createObjectRef(object, prismContext.getDefaultRelation());
     }
 
     public static <T extends ObjectType> ObjectReferenceType createObjectRef(PrismObject<T> object, QName relation) {
@@ -336,11 +328,12 @@ public class ObjectTypeUtil {
         return ref;
     }
 
-    public static <T extends ObjectType> ObjectReferenceType createObjectRefWithFullObject(PrismObject<T> object) {
+    public static <T extends ObjectType> ObjectReferenceType createObjectRefWithFullObject(PrismObject<T> object,
+		    PrismContext prismContext) {
         if (object == null) {
             return null;
         }
-        ObjectReferenceType ref = createObjectRef(object);
+        ObjectReferenceType ref = createObjectRef(object, prismContext);
         ref.asReferenceValue().setObject(object);
         return ref;
     }
@@ -694,7 +687,6 @@ public class ObjectTypeUtil {
 		}
 	}
 
-	// TODO
 	public static RelationDefinitionType findRelationDefinition(List<RelationDefinitionType> relationDefinitions, QName qname) {
 		for (RelationDefinitionType relation: relationDefinitions) {
 			if (QNameUtil.match(qname, relation.getRef())) {
