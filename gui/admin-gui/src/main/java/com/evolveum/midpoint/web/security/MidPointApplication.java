@@ -196,6 +196,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient ApplicationContext applicationContext;
 
     private WebApplicationConfiguration webApplicationConfiguration;
+    
+    public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
+    public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
+    public static final String MOUNT_FORBIDEN_ERROR = "/error/403";
+    public static final String MOUNT_NOT_FOUND_ERROR = "/error/404";
+    public static final String MOUNT_GONE_ERROR = "/error/410";
 
     @Override
     public Class<? extends PageBase> getHomePage() {
@@ -252,11 +258,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         appSettings.setInternalErrorPage(PageError.class);
         appSettings.setPageExpiredErrorPage(PageError.class);
 
-        mount(new MountedMapper("/error", PageError.class, new PageParametersEncoder()));
-        mount(new MountedMapper("/error/401", PageError401.class, new PageParametersEncoder()));
-        mount(new MountedMapper("/error/403", PageError403.class, new PageParametersEncoder()));
-        mount(new MountedMapper("/error/404", PageError404.class, new PageParametersEncoder()));
-        mount(new MountedMapper("/error/410", PageError410.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_INTERNAL_SERVER_ERROR, PageError.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_UNAUTHORIZED_ERROR, PageError401.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_FORBIDEN_ERROR, PageError403.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_NOT_FOUND_ERROR, PageError404.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_GONE_ERROR, PageError410.class, new PageParametersEncoder()));
 
         getRequestCycleListeners().add(new LoggingRequestCycleListener(this));
 

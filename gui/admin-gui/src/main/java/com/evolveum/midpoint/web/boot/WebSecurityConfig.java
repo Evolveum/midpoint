@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.web.server.ErrorPageRegistrar;
 import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
@@ -159,6 +160,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("sso"))) {
             http.addFilterBefore(requestHeaderAuthenticationFilter(), LogoutFilter.class);
         }
+    }
+    
+    @Bean
+    public ErrorPageRegistrar errorPageRegistrar() {
+    	return new MidPointErrorPageRegistrar();
     }
 
     @Bean
