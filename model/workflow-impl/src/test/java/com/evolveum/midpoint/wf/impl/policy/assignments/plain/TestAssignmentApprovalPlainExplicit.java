@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class TestAssignmentApprovalPlainExplicit extends AbstractTestAssignmentA
 	@Override
 	protected void importLead10(Task task, OperationResult result) throws Exception {
 		super.importLead10(task, result);
-		executeChangesAssertSuccess((ObjectDelta<RoleType>) DeltaBuilder.deltaFor(RoleType.class, prismContext)
+		executeChangesAssertSuccess(DeltaBuilder.deltaFor(RoleType.class, prismContext)
 				.item(RoleType.F_APPROVER_REF)
 						.add(prv(userLead10Oid))
 				.asObjectDelta(getRoleOid(10)), null, task, result);

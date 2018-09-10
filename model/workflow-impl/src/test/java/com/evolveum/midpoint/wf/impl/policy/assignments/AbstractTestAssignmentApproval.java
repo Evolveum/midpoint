@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, userJackOid, result);
 		addFocusDeltaToContext(context,
-				(ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				DeltaBuilder.deltaFor(UserType.class, prismContext)
 						.item(UserType.F_ASSIGNMENT).delete(createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext))
 						.asObjectDelta(userJackOid));
 		clockwork.run(context, task, result);
@@ -288,7 +288,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 		PrismObject<UserType> jack = getUser(userJackOid);
 		AssignmentType assignment = createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext);
 		assignment.getTargetRef().setRelation(relation);
-		ObjectDelta<UserType> addRole1Delta = (ObjectDelta<UserType>) DeltaBuilder
+		ObjectDelta<UserType> addRole1Delta = DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.asObjectDelta(userJackOid);
@@ -387,27 +387,27 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	private void executeAssignRoles123ToJack(String TEST_NAME, boolean immediate, boolean approve1, boolean approve2, boolean approve3) throws Exception {
 		PrismObject<UserType> jack = getUser(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole1Delta = (ObjectDelta<UserType>) DeltaBuilder
+		ObjectDelta<UserType> addRole1Delta = DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(1), ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole2Delta = (ObjectDelta<UserType>) DeltaBuilder
+		ObjectDelta<UserType> addRole2Delta = DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(2), ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole3Delta = (ObjectDelta<UserType>) DeltaBuilder
+		ObjectDelta<UserType> addRole3Delta = DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(3), ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRole4Delta = (ObjectDelta<UserType>) DeltaBuilder
+		ObjectDelta<UserType> addRole4Delta = DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(getRoleOid(4), ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> changeDescriptionDelta = (ObjectDelta<UserType>) DeltaBuilder
+		ObjectDelta<UserType> changeDescriptionDelta = DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_DESCRIPTION).replace(TEST_NAME)
 				.asObjectDelta(userJackOid);
