@@ -570,7 +570,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 					"looks like the previous test haven't cleaned it up", e);
 		}
 		if (configuration != null) {
-			relationRegistry.applyRelationConfiguration(configuration.asObjectable());
+			relationRegistry.applyRelationsConfiguration(configuration.asObjectable());
 		}
 
 		// Users

@@ -96,7 +96,7 @@ class RelationRegistryDummyImpl implements RelationRegistry {
 	}
 
 	@Override
-	public void applyRelationConfiguration(SystemConfigurationType systemConfiguration) {
+	public void applyRelationsConfiguration(SystemConfigurationType systemConfiguration) {
 	}
 
 	@Override

@@ -140,7 +140,7 @@ public interface RelationRegistry {
 	 * This method should be called whenever midPoint determines that the relations definition in system configuration might
 	 * have been changed.
 	 */
-	void applyRelationConfiguration(SystemConfigurationType systemConfiguration);
+	void applyRelationsConfiguration(SystemConfigurationType systemConfiguration);
 
 	/**
 	 * Returns aliases of a relation. Currently these are:

@@ -102,6 +102,11 @@
             <artifactId>audit-api</artifactId>
             <version>3.9-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>security-api</artifactId>
+            <version>3.9-SNAPSHOT</version>
+        </dependency>
 
         <dependency>
             <groupId>org.jetbrains</groupId>

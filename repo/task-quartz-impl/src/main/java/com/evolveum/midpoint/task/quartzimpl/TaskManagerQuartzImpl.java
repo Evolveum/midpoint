@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeApplier;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
@@ -124,6 +125,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Autowired private TaskManagerConfiguration configuration;
     @Autowired private LocalizationService localizationService;
+    @Autowired private SystemConfigurationChangeApplier systemConfigurationChangeApplier;
 
     // instances of all the helper classes (see their definitions for their description)
     private ExecutionManager executionManager = new ExecutionManager(this);
@@ -2235,5 +2237,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	public boolean isLocalNodeClusteringEnabled() {
 		return configuration.isLocalNodeClusteringEnabled();
+	}
+
+	public SystemConfigurationChangeApplier getSystemConfigurationChangeApplier() {
+		return systemConfigurationChangeApplier;
 	}
 }

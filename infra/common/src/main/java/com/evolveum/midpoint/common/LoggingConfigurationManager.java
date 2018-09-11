@@ -50,13 +50,12 @@ public class LoggingConfigurationManager {
 
 	public static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
 
-	final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
+	private final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
 
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
     private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
     private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
     
-	public static final String SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS = "skipRepositoryLoggingSettings";
 	private static final String LOGBACK_CONSOLE_XML_RESOURCE = "logback-console.xml";
 
 	private static String currentlyUsedVersion = null;

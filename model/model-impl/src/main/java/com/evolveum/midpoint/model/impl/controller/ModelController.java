@@ -1611,12 +1611,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
 
 		try {
-			SecurityUtil.setRemoteHostAddressHeaders(ObjectTypeUtil.asObjectable(systemObjectCache.getSystemConfiguration(result)));
-		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't set 'forwardedFor' headers because system configuration couldn't be read", e);
-		}
-
-		try {
+			// Repository service itself might have been initialized.
+			// But there are situations (e.g. in tests or after factory reset) in which only this method is called.
+			// So let's be conservative and rather execute repository postInit twice than zero times.
 			cacheRepositoryService.postInit(result);
 		} catch (SchemaException e) {
 			result.recordFatalError(e);

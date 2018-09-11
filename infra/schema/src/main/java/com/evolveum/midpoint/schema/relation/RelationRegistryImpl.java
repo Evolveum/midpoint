@@ -51,7 +51,7 @@ public class RelationRegistryImpl implements RelationRegistry {
 	private IndexedRelationDefinitions indexedRelationDefinitions = createAndIndexRelationDefinitions(null);
 
 	@Override
-	public void applyRelationConfiguration(SystemConfigurationType systemConfiguration) {
+	public void applyRelationsConfiguration(SystemConfigurationType systemConfiguration) {
 		RoleManagementConfigurationType roleManagement = systemConfiguration != null ? systemConfiguration.getRoleManagement() : null;
 		RelationsDefinitionType relationsDef = roleManagement != null ? roleManagement.getRelations() : null;
 		LOGGER.info("Applying relation configuration ({} entries)", relationsDef != null ? relationsDef.getRelation().size() : 0);
