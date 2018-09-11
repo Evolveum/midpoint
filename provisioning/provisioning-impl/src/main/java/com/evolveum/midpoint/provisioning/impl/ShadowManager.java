@@ -20,12 +20,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,7 +66,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
@@ -125,7 +122,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePasswordDefi
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -1496,13 +1492,13 @@ public class ShadowManager {
 		// convert to the resource reference.
 		if (repoShadowType.getResource() != null) {
 			repoShadowType.setResource(null);
-			repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource()));
+			repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource(), prismContext));
 		}
 
 		// if shadow does not contain resource or resource reference, create it
 		// now
 		if (repoShadowType.getResourceRef() == null) {
-			repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource()));
+			repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource(), prismContext));
 		}
 
 		if (repoShadowType.getName() == null) {

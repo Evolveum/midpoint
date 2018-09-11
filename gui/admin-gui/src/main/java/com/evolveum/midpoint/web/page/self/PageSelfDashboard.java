@@ -288,7 +288,7 @@ public class PageSelfDashboard extends PageSelf {
             // (Note that the current code is consistent with the other places where work items are displayed.)
             S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
             ObjectQuery query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
-                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS)
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
                     .desc(F_CREATE_TIMESTAMP)
                     .build();
             Collection<SelectorOptions<GetOperationOptions>> options =

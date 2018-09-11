@@ -33,8 +33,6 @@ import com.evolveum.midpoint.repo.sql.query2.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query2.hqm.condition.OrCondition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,8 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
-
-import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
+import java.util.stream.Collectors;
 
 /**
  * @author lazyman
@@ -85,7 +82,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
 			}
 			oids.add(value.getOid());
 			if (value.getRelation() == null) {
-				relations.add(SchemaConstants.ORG_DEFAULT);
+				relations.add(context.getPrismContext().getDefaultRelation());
 			} else {
 				// we intentionally don't normalize relations namespaces, to be able to do namespace-insensitive searches
 				// so the caller is responsible to unify namespaces if he needs to optimize queries (use IN instead of OR)
@@ -135,7 +132,7 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
         AndCondition conjunction = hibernateQuery.createAnd();
         conjunction.add(hibernateQuery.createEqOrInOrNull(hqlDataInstance.getHqlPath() + "." + TARGET_OID_HQL_PROPERTY, oids));
 
-        List<String> relationsToTest = getRelationsToTest(relation);
+        List<String> relationsToTest = getRelationsToTest(relation, getContext());
         if (!relationsToTest.isEmpty()) {
 	        conjunction.add(hibernateQuery.createEqOrInOrNull(hqlPath + "." + RELATION_HQL_PROPERTY, relationsToTest));
         }
@@ -151,26 +148,13 @@ public class ReferenceRestriction extends ItemValueRestriction<RefFilter> {
 	//
     // Return: empty list means "nothing to test".
 	@NotNull
-    static List<String> getRelationsToTest(QName relation) {
-	    if (ObjectTypeUtil.isDefaultRelation(relation)) {
-		    // Return references without relation or with "default" relation
-		    return Arrays.asList(RUtil.QNAME_DELIMITER, qnameToString(SchemaConstants.ORG_DEFAULT));
-	    } else if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
-		    // Return all relations => no restriction
-		    return Collections.emptyList();
-	    } else {
-		    // return references with specific relation
-		    List<String> rv = new ArrayList<>();
-		    rv.add(qnameToString(relation));
-		    if (QNameUtil.noNamespace(relation)) {
-			    rv.add(qnameToString(QNameUtil.setNamespaceIfMissing(relation, SchemaConstants.NS_ORG, null)));
-		    } else if (SchemaConstants.NS_ORG.equals(relation.getNamespaceURI())) {
-			    rv.add(qnameToString(new QName(relation.getLocalPart())));
-		    } else {
-			    // non-empty non-standard NS => nothing to add
-		    }
-		    return rv;
-	    }
+    static List<String> getRelationsToTest(QName relation, InterpretationContext context) {
+		if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
+			return Collections.emptyList(); // Return all relations => no restriction
+		} else {
+			Collection<QName> aliases = context.getRelationRegistry().getAliases(relation);
+			return aliases.stream().map(RUtil::qnameToString).collect(Collectors.toList());
+		}
     }
 
 	private Condition handleEqInOrNull(RootHibernateQuery hibernateQuery, String propertyName, Object value) {

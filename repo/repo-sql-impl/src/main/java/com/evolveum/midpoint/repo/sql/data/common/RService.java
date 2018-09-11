@@ -104,6 +104,7 @@ public class RService extends RAbstractRole<ServiceType> {
         return Arrays.hashCode(new Object[]{nameCopy, serviceType, displayOrder});
     }
 
+    // dynamically called
     public static void copyFromJAXB(ServiceType jaxb, RService repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

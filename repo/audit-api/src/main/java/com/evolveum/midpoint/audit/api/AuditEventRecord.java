@@ -258,9 +258,9 @@ public class AuditEventRecord implements DebugDumpable {
 	}
 
 	// Compatibility and convenience
-	public void setTarget(PrismObject<?> targetObject) {
+	public void setTarget(PrismObject<?> targetObject, PrismContext prismContext) {
 		if (targetObject != null) {
-			this.target = ObjectTypeUtil.createObjectRef((ObjectType) targetObject.asObjectable()).asReferenceValue();
+			this.target = ObjectTypeUtil.createObjectRef((ObjectType) targetObject.asObjectable(), prismContext).asReferenceValue();
 		} else {
 			this.target = null;
 		}

@@ -58,7 +58,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         String relationParamName = "";
         QName relation = filter.getOrgRef().getRelation();
         if (doesRelationRestrictionExist(relation)) {
-            relationParamName = hibernateQuery.addParameter("relation", ReferenceRestriction.getRelationsToTest(relation));
+            relationParamName = hibernateQuery.addParameter("relation", ReferenceRestriction.getRelationsToTest(relation, context));
         }
         String oidQueryText;    // oid in ...
         switch (filter.getScope()) {

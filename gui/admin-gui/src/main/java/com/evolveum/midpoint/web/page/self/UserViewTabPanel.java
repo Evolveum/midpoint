@@ -160,8 +160,7 @@ public class UserViewTabPanel extends AbstractShoppingCartTabPanel<AbstractRoleT
                 if (relation == null){
                     return createStringResource("RelationTypes.ANY");
                 }
-                List<RelationDefinitionType> defList = WebComponentUtil.getRelationDefinitions(UserViewTabPanel.this.getPageBase());
-                RelationDefinitionType def = ObjectTypeUtil.findRelationDefinition(defList, model.getObject());
+                RelationDefinitionType def = WebComponentUtil.getRelationDefinition(model.getObject());
                 if (def != null) {
                     DisplayType display = def.getDisplay();
                     if (display != null) {

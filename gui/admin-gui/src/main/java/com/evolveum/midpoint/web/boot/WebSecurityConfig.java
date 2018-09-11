@@ -108,6 +108,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/less/**");
 
         web.ignoring().antMatchers("/wicket/resource/**");
+        
+        web.ignoring().antMatchers("/actuator/**");
     }
 
     @Override
@@ -162,11 +164,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
     
-    @Bean
-    public ErrorPageRegistrar errorPageRegistrar() {
-    	return new MidPointErrorPageRegistrar();
-    }
-
     @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {

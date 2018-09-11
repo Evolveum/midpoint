@@ -334,13 +334,13 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
 			RepositoryContext context) throws DtoTranslationException {
         rCase.setTransient(null);       // we don't try to advise hibernate - let it do its work, even if it would cost some SELECTs
         rCase.setId(RUtil.toInteger(case1.getId()));
-        rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), context.prismContext));
-        rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), context.prismContext));
-        rCase.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTenantRef(), context.prismContext));
-        rCase.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getOrgRef(), context.prismContext));
+        rCase.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getObjectRef(), context.relationRegistry));
+        rCase.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTargetRef(), context.relationRegistry));
+        rCase.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getTenantRef(), context.relationRegistry));
+        rCase.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(case1.getOrgRef(), context.relationRegistry));
         if (case1.getActivation() != null) {
             RActivation activation = new RActivation();
-            RActivation.copyFromJAXB(case1.getActivation(), activation, context);
+            RActivation.fromJaxb(case1.getActivation(), activation, context);
             rCase.setActivation(activation);
         }
 		for (AccessCertificationWorkItemType workItem : case1.getWorkItem()) {

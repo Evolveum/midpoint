@@ -656,14 +656,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     void storeIntoLensElementContextType(LensElementContextType lensElementContextType, boolean reduced) throws SchemaException {
 		if (objectOld != null) {
 			if (reduced) {
-				lensElementContextType.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld));
+				lensElementContextType.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld, getPrismContext()));
 			} else {
 				lensElementContextType.setObjectOld(objectOld.asObjectable());
 			}
 		}
 		if (objectNew != null) {
 			if (reduced) {
-				lensElementContextType.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew));
+				lensElementContextType.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew, getPrismContext()));
 			} else {
 				lensElementContextType.setObjectNew(objectNew.asObjectable());
 			}

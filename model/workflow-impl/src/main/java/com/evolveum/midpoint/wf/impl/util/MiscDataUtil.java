@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -93,6 +94,7 @@ public class MiscDataUtil {
 	@Autowired private WfConfiguration wfConfiguration;
 	@Autowired private ActivitiEngine activitiEngine;
 	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+	@Autowired private RelationRegistry relationRegistry;
 
     public static ObjectReferenceType toObjectReferenceType(LightweightObjectRef ref) {
 		if (ref != null) {
@@ -317,16 +319,17 @@ public class MiscDataUtil {
 			throw new SystemException(e.getMessage(), e);
 		}
 		for (ObjectReferenceType assignee : workItem.getAssigneeRef()) {
-			if (isEqualOrDeputyOf(principal, assignee.getOid())) {
+			if (isEqualOrDeputyOf(principal, assignee.getOid(), relationRegistry)) {
 				return true;
 			}
 		}
 		return isAmongCandidates(principal, workItem.getExternalId());
     }
 
-	public boolean isEqualOrDeputyOf(MidPointPrincipal principal, String eligibleUserOid) {
+	public boolean isEqualOrDeputyOf(MidPointPrincipal principal, String eligibleUserOid,
+			RelationRegistry relationRegistry) {
 		return principal.getOid().equals(eligibleUserOid)
-				|| DeputyUtils.isDelegationPresent(principal.getUser(), eligibleUserOid);
+				|| DeputyUtils.isDelegationPresent(principal.getUser(), eligibleUserOid, relationRegistry);
 	}
 
 	public WfConfigurationType getWorkflowConfiguration(SystemObjectCache systemObjectCache, OperationResult result) throws SchemaException {
@@ -403,7 +406,7 @@ public class MiscDataUtil {
     }
 
 	public boolean matches(ObjectReferenceType groupRef, ObjectReferenceType targetRef) {
-		return (ObjectTypeUtil.isMembershipRelation(targetRef.getRelation()))	// TODO reconsider if we allow managers here
+		return relationRegistry.isMember(targetRef.getRelation())
 				&& targetRef.getOid().equals(groupRef.getOid());
 	}
 

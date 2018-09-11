@@ -22,10 +22,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -99,7 +97,6 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.ObjectLinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -108,7 +105,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentTabPanel.Operation;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
@@ -446,7 +442,7 @@ public abstract class ResourceContentPanel extends Panel {
 		}
 
 		PrismObject<ResourceType> resource = getResourceModel().getObject();
-		taskType.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
+		taskType.setObjectRef(ObjectTypeUtil.createObjectRef(resource, getPageBase().getPrismContext()));
 
 		taskType.setCategory(category);
 		setResponsePage(new PageTaskAdd(taskType));
@@ -1147,7 +1143,7 @@ public abstract class ResourceContentPanel extends Panel {
 					if (owner != null) {
 						delta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF,
 								getFocusDefinition(),
-								ObjectTypeUtil.createObjectRef(shadow).asReferenceValue());
+								ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
 						((Collection) modifications).add(delta);
 						changeOwnerInternal(owner.getOid(), modifications, target);
@@ -1163,7 +1159,7 @@ public abstract class ResourceContentPanel extends Panel {
 				FocusType owner = loadShadowOwner(shadow.getOid());
 				if (owner != null) {
 					delta = ReferenceDelta.createModificationDelete(FocusType.F_LINK_REF,
-							getFocusDefinition(), ObjectTypeUtil.createObjectRef(shadow).asReferenceValue());
+							getFocusDefinition(), ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 
 					((Collection) modifications).add(delta);
 					changeOwnerInternal(owner.getOid(), modifications, target);
@@ -1171,7 +1167,7 @@ public abstract class ResourceContentPanel extends Panel {
 				modifications = new ArrayList<>();
 
 				delta = ReferenceDelta.createModificationAdd(FocusType.F_LINK_REF, getFocusDefinition(),
-						ObjectTypeUtil.createObjectRef(shadow).asReferenceValue());
+						ObjectTypeUtil.createObjectRef(shadow, getPageBase().getPrismContext()).asReferenceValue());
 				((Collection) modifications).add(delta);
 				changeOwnerInternal(ownerToChange.getOid(), modifications, target);
 

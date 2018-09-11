@@ -135,7 +135,7 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 
     }
     
-    private boolean hasAnyProperty() {
+    public boolean hasAnyProperty() {
 		for(ItemWrapper item : getModelObject().getItems()) {
 			if(item instanceof PropertyOrReferenceWrapper) {
 				return true;

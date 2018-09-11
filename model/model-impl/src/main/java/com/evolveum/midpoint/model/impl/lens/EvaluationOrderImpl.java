@@ -22,10 +22,8 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MultiSet;
 import org.jetbrains.annotations.NotNull;
@@ -37,16 +35,24 @@ import org.jetbrains.annotations.NotNull;
 public class EvaluationOrderImpl implements EvaluationOrder {
 
 	public static EvaluationOrder UNDEFINED = new UndefinedEvaluationOrderImpl();
-	public static EvaluationOrder ZERO = createZero();
-	public static EvaluationOrder ONE = ZERO.advance(SchemaConstants.ORG_DEFAULT);
 
 	@NotNull private final HashMap<QName, Integer> orderMap;		// see checkConsistence
+	@NotNull private final RelationRegistry relationRegistry;
+
+	public static EvaluationOrder zero(RelationRegistry relationRegistry) {
+		EvaluationOrderImpl eo = new EvaluationOrderImpl(relationRegistry);
+		eo.orderMap.put(relationRegistry.getDefaultRelation(), 0);
+		return eo;
+	}
 
 	private void checkConsistence() {
 		if (CHECK_CONSISTENCE) {
 			orderMap.forEach((r, v) -> {
-				if (r == null || QNameUtil.noNamespace(r)) {
-					throw new IllegalStateException("Null or unqualified relation " + r + " in " + this);
+				if (r == null) {
+					throw new IllegalStateException("Null relation in " + this);
+				}
+				if (isNotNormalized(r)) {
+					throw new IllegalStateException("Unnormalized relation " + r + " in " + this);
 				}
 				if (v == null) {
 					throw new IllegalStateException("Null value in for relation " + r + " in " + this);
@@ -55,27 +61,27 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		}
 	}
 
+	private boolean isNotNormalized(QName relation) {
+		return relation == null || !relation.equals(relationRegistry.normalizeRelation(relation));
+	}
+
 	private static final boolean CHECK_CONSISTENCE = true;
 
-	private EvaluationOrderImpl() {
+	private EvaluationOrderImpl(@NotNull RelationRegistry relationRegistry) {
+		this.relationRegistry = relationRegistry;
 		orderMap = new HashMap<>();
 	}
 
 	private EvaluationOrderImpl(EvaluationOrderImpl that) {
+		this.relationRegistry = that.relationRegistry;
 		this.orderMap = new HashMap<>(that.orderMap);
-	}
-
-	private static EvaluationOrderImpl createZero() {
-		EvaluationOrderImpl eo = new EvaluationOrderImpl();
-		eo.orderMap.put(SchemaConstants.ORG_DEFAULT, 0);
-		return eo;
 	}
 
 	@Override
 	public int getSummaryOrder() {
 		int rv = 0;
 		for (Entry<QName, Integer> entry : orderMap.entrySet()) {
-			if (!ObjectTypeUtil.isDelegationRelation(entry.getKey())) {
+			if (!relationRegistry.isDelegation(entry.getKey())) {
 				rv += entry.getValue();
 			}
 		}
@@ -107,7 +113,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 
 	// must always be private: public interface will not allow to modify object state!
 	private void advanceThis(QName relation, int amount) {
-		@NotNull QName normalizedRelation = ObjectTypeUtil.normalizeRelation(relation);
+		@NotNull QName normalizedRelation = relationRegistry.normalizeRelation(relation);
 		orderMap.put(normalizedRelation, getMatchingRelationOrder(normalizedRelation) + amount);
 	}
 
@@ -117,13 +123,13 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 		if (relation == null) {
 			return getSummaryOrder();
 		}
-		return orderMap.getOrDefault(ObjectTypeUtil.normalizeRelation(relation), 0);
+		return orderMap.getOrDefault(relationRegistry.normalizeRelation(relation), 0);
 	}
 
 	@Override
 	public EvaluationOrder resetOrder(QName relation, int newOrder) {
 		EvaluationOrderImpl clone = clone();
-		clone.orderMap.put(ObjectTypeUtil.normalizeRelation(relation), newOrder);
+		clone.orderMap.put(relationRegistry.normalizeRelation(relation), newOrder);
 		clone.checkConsistence();
 		return clone;
 	}
@@ -142,7 +148,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	}
 
 	@Override
-	public EvaluationOrder applyDifference(Map<QName,Integer> difference) {
+	public EvaluationOrder applyDifference(Map<QName, Integer> difference) {
 		EvaluationOrderImpl clone = clone();
 		difference.forEach((relation, count) -> clone.advanceThis(relation, count));
 		clone.checkConsistence();
@@ -214,7 +220,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	@Override
 	public Collection<QName> getExtraRelations() {
 		return orderMap.entrySet().stream()
-				.filter(e -> !ObjectTypeUtil.isMembershipRelation(e.getKey()) && !ObjectTypeUtil.isDelegationRelation(e.getKey()) && e.getValue() > 0)
+				.filter(e -> !relationRegistry.isAutomaticallyMatched(e.getKey()) && e.getValue() > 0)
 				.map(e -> e.getKey())
 				.collect(Collectors.toSet());
 	}

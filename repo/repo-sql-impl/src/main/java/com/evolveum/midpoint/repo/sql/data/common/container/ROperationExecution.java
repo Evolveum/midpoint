@@ -190,31 +190,27 @@ public class ROperationExecution implements Container<RObject<?>> {
 		return Objects.hash(trans, getOwnerOid(), id, initiatorRef, taskRef, status);
 	}
 
-	public static void copyFromJAXB(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
+	public static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
 									RObject parent, RepositoryContext repositoryContext) throws DtoTranslationException {
-
 		repo.setOwner(parent);
-		copyFromJAXB(jaxb, repo, repositoryContext, null);
+		fromJaxb(jaxb, repo, repositoryContext, null);
 	}
 
-	public static void copyFromJAXB(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
-									ObjectType parent, RepositoryContext repositoryContext,
-									IdGeneratorResult generatorResult) throws DtoTranslationException {
-
+	public static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
+			ObjectType parent, RepositoryContext repositoryContext,
+			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		repo.setOwnerOid(parent.getOid());
-		copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+		fromJaxb(jaxb, repo, repositoryContext, generatorResult);
 	}
 
-	private static void copyFromJAXB(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
-									 RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
-
+	private static void fromJaxb(@NotNull OperationExecutionType jaxb, @NotNull ROperationExecution repo,
+			RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
     	if (generatorResult != null) {
 			repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
 		}
-
         repo.setId(RUtil.toInteger(jaxb.getId()));
-		repo.setTaskRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTaskRef(), repositoryContext.prismContext));
-		repo.setInitiatorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getInitiatorRef(), repositoryContext.prismContext));
+		repo.setTaskRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTaskRef(), repositoryContext.relationRegistry));
+		repo.setInitiatorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getInitiatorRef(), repositoryContext.relationRegistry));
 		repo.setStatus(RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
 		repo.setTimestamp(jaxb.getTimestamp());
     }

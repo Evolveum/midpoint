@@ -58,6 +58,7 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(SecurityPolicyType jaxb, RSecurityPolicy repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

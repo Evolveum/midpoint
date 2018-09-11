@@ -250,6 +250,10 @@ public class PrismContainerPanel<C extends Containerable> extends BasePanel<Cont
                     if(((ContainerValueWrapper)item.getModelObject()).getContainer() !=null && ((ContainerValueWrapper)item.getModelObject()).getContainer().isShowOnTopLevel()) {
 						item.add(AttributeModifier.append("class", "top-level-prism-container"));
 					}
+                    
+                    if(!containerPanel.hasAnyProperty()) {
+                    	item.add(AttributeModifier.append("style", " border-top: none; padding-top: 0px; "));
+                    }
 
 			}
 			

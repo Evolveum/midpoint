@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.boot;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
-import java.util.EnumSet;
+import java.util.Arrays;
 
 import javax.servlet.DispatcherType;
 
@@ -31,9 +31,16 @@ import org.apache.wicket.protocol.http.WicketFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.servlet.WebMvcEndpointManagementContextConfiguration;
+import org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.web.servlet.ServletManagementContextAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
@@ -47,6 +54,7 @@ import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguratio
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.ErrorPage;
+import org.springframework.boot.web.server.ErrorPageRegistrar;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
@@ -54,6 +62,7 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
@@ -108,7 +117,13 @@ import ro.isdc.wro.http.WroFilter;
 		PropertyPlaceholderAutoConfiguration.class,
 		SecurityFilterAutoConfiguration.class,
 		MultipartAutoConfiguration.class,
-        HttpEncodingAutoConfiguration.class
+        HttpEncodingAutoConfiguration.class,
+        EndpointAutoConfiguration.class,
+        WebEndpointAutoConfiguration.class,
+        WebMvcEndpointManagementContextConfiguration.class,
+        ServletManagementContextAutoConfiguration.class,
+        HealthEndpointAutoConfiguration.class,
+        HealthIndicatorAutoConfiguration.class
 })
 @SpringBootConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {
@@ -186,7 +201,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     public FilterRegistrationBean<MidPointProfilingServletFilter> midPointProfilingServletFilter() {
         FilterRegistrationBean<MidPointProfilingServletFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new MidPointProfilingServletFilter());
-        registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+//        registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
         registration.addUrlPatterns("/*");
         return registration;
     }
@@ -212,7 +227,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.addUrlPatterns("/*");
         return registration;
     }
-
+    
     @Bean
     public FilterRegistrationBean<WroFilter> webResourceOptimizer(WroFilter wroFilter) {
         FilterRegistrationBean<WroFilter> registration = new FilterRegistrationBean<>();
@@ -220,7 +235,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.addUrlPatterns("/wro/*");
         return registration;
     }
-
+    
     @Bean
     public ServletRegistrationBean<CXFServlet> cxfServlet() {
         ServletRegistrationBean<CXFServlet> registration = new ServletRegistrationBean<>();
@@ -250,6 +265,12 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.addUrlMappings("/static-web/*");
         return registration;
     }
+    
+    @Bean
+    public ErrorPageRegistrar errorPageRegistrar() {
+    	return new MidPointErrorPageRegistrar();
+    }
+
     
     @Component
     public class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {

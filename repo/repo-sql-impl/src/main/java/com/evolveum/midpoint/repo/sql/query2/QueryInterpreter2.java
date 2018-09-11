@@ -40,6 +40,7 @@ import com.evolveum.midpoint.repo.sql.query2.resolution.ProperDataSearchResult;
 import com.evolveum.midpoint.repo.sql.query2.restriction.*;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationW
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.hibernate.criterion.Projections;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -110,12 +110,12 @@ public class QueryInterpreter2 {
     }
 
     public RootHibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,
-			Collection<SelectorOptions<GetOperationOptions>> options, @NotNull PrismContext prismContext,
-			boolean countingObjects, @NotNull Session session) throws QueryException {
+		    Collection<SelectorOptions<GetOperationOptions>> options, @NotNull PrismContext prismContext,
+		    @NotNull RelationRegistry relationRegistry, boolean countingObjects, @NotNull Session session) throws QueryException {
 		boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
         LOGGER.trace("Interpreting query for type '{}' (counting={}, distinctRequested={}), query:\n{}", type, countingObjects, distinctRequested, query);
 
-        InterpretationContext context = new InterpretationContext(this, type, prismContext, extItemDictionary, session);
+        InterpretationContext context = new InterpretationContext(this, type, prismContext, relationRegistry, extItemDictionary, session);
 		interpretQueryFilter(context, query);
 		String rootAlias = context.getHibernateQuery().getPrimaryEntityAlias();
 		ResultStyle resultStyle = getResultStyle(context);
@@ -144,7 +144,8 @@ public class QueryInterpreter2 {
 		hibernateQuery.addProjectionElementsFor(resultStyle.getIdentifiers(rootAlias));
 		if (distinct && !distinctBlobCapable) {
 			String subqueryText = "\n" + hibernateQuery.getAsHqlText(2, true);
-			InterpretationContext wrapperContext = new InterpretationContext(this, type, prismContext, extItemDictionary, session);
+			InterpretationContext wrapperContext = new InterpretationContext(this, type, prismContext, relationRegistry,
+					extItemDictionary, session);
 			interpretPagingAndSorting(wrapperContext, query, false);
 			RootHibernateQuery wrapperQuery = wrapperContext.getHibernateQuery();
 			if (repoConfiguration.isUsingSQLServer() && resultStyle.getIdentifiers("").size() > 1) {

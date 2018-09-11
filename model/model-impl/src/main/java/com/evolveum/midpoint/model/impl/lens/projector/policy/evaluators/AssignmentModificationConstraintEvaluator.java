@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
@@ -87,10 +86,11 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 			AssignmentPolicyRuleEvaluationContext<F> ctx, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String keyPostfix = createStateKey(ctx) + createOperationKey(ctx);
+		QName relation = ctx.evaluatedAssignment.getNormalizedRelation(relationRegistry);
 		LocalizableMessage builtInMessage = new LocalizableMessageBuilder()
 				.key(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + CONSTRAINT_KEY_PREFIX + keyPostfix)
 				.arg(ObjectTypeUtil.createDisplayInformation(ctx.evaluatedAssignment.getTarget(), false))
-				.arg(ctx.evaluatedAssignment.getRelation() != null ? ctx.evaluatedAssignment.getRelation().getLocalPart() : null)
+				.arg(relation != null ? relation.getLocalPart() : null)
 				.build();
 		return evaluatorHelper.createLocalizableMessage(constraint, ctx, builtInMessage, result);
 	}
@@ -123,7 +123,7 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
 		List<QName> relationsToCheck = constraint.getRelation().isEmpty() ?
 				singletonList(null) : constraint.getRelation();
 		for (QName constraintRelation : relationsToCheck) {
-			if (MiscSchemaUtil.compareRelation(constraintRelation, ctx.evaluatedAssignment.getRelation())) {
+			if (prismContext.relationMatches(constraintRelation, ctx.evaluatedAssignment.getNormalizedRelation(relationRegistry))) {
 				return true;
 			}
 		}

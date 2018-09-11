@@ -35,7 +35,7 @@ public class OperationExecutionMapper extends ContainerMapper<OperationExecution
         RObject owner = (RObject) context.getOwner();
 
         try {
-            ROperationExecution.copyFromJAXB(input, execution, owner, context.getRepositoryContext());
+            ROperationExecution.fromJaxb(input, execution, owner, context.getRepositoryContext());
         } catch (DtoTranslationException ex) {
             throw new SystemException("Couldn't translate trigger to entity", ex);
         }

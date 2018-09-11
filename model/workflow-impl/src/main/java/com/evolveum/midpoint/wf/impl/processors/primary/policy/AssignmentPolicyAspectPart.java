@@ -265,7 +265,7 @@ public class AssignmentPolicyAspectPart {
 		// (2) default policy action (only if adding)
 		if (triggeredApprovalRules.isEmpty() && assignmentMode == PLUS
 				&& baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
-			if (builder.addPredefined(targetObject, SchemaConstants.ORG_APPROVER, result)) {
+			if (builder.addPredefined(targetObject, RelationKindType.APPROVER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found for {}", evaluatedAssignment);
 			}
 		}
@@ -304,7 +304,7 @@ public class AssignmentPolicyAspectPart {
 		instruction.setDeltasToProcess(deltaToApprove);
 
 		instruction.setObjectRef(modelContext, result);
-		instruction.setTargetRef(createObjectRef(target), result);
+		instruction.setTargetRef(createObjectRef(target, prismContext), result);
 
 		String taskNameInDefaultLocale = localizationService.translate(
 				new LocalizableMessageBuilder()

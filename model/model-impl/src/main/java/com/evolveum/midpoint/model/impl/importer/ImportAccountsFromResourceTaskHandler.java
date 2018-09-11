@@ -140,7 +140,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 
 
         // Set reference to the resource
-        task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
+        task.setObjectRef(ObjectTypeUtil.createObjectRef(resource, prismContext));
 
         try {
         	PrismProperty<QName> objectclassProp = objectclassPropertyDefinition.instantiate();

@@ -47,6 +47,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.*;
@@ -123,14 +124,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.PointInTimeType;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -277,6 +270,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected ModelPortType modelWeb;
 	@Autowired protected RepositoryService repositoryService;
 	@Autowired protected SystemObjectCache systemObjectCache;
+	@Autowired protected RelationRegistry relationRegistry;
 	@Autowired protected ProvisioningService provisioningService;
 	@Autowired protected HookRegistry hookRegistry;
 	@Autowired protected Clock clock;
@@ -981,7 +975,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void assignOrg(String userOid, String orgOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		assignOrg(userOid, orgOid,  SchemaConstants.ORG_DEFAULT);
+		assignOrg(userOid, orgOid, prismContext.getDefaultRelation());
 	}
 
 	protected void assignOrg(String userOid, String orgOid, QName relation)
@@ -1010,7 +1004,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void unassignOrg(String userOid, String orgOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
-		unassignOrg(userOid, orgOid, SchemaConstants.ORG_DEFAULT);
+		unassignOrg(userOid, orgOid, prismContext.getDefaultRelation());
 	}
 
 	protected void unassignOrg(String userOid, String orgOid, Task task, OperationResult result)
@@ -1411,7 +1405,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void assertAssignees(String targetOid, int expectedAssignees) throws SchemaException {
-		assertAssignees(targetOid, SchemaConstants.ORG_DEFAULT, expectedAssignees);
+		assertAssignees(targetOid, prismContext.getDefaultRelation(), expectedAssignees);
 	}
 
 	protected void assertAssignees(String targetOid, QName relation, int expectedAssignees) throws SchemaException {
@@ -1425,7 +1419,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected int countAssignees(String targetOid, OperationResult result) throws SchemaException {
-		return countAssignees(targetOid, SchemaConstants.ORG_DEFAULT, result);
+		return countAssignees(targetOid, prismContext.getDefaultRelation(), result);
 	}
 
 	protected int countAssignees(String targetOid, QName relation, OperationResult result) throws SchemaException {
@@ -1828,7 +1822,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		List<AssignmentType> assignments = user.asObjectable().getAssignment();
 		for (AssignmentType assignment: assignments) {
 			ObjectReferenceType targetRef = assignment.getTargetRef();
-			if (targetRef != null && roleOid.equals(targetRef.getOid()) && ObjectTypeUtil.relationMatches(relation,
+			if (targetRef != null && roleOid.equals(targetRef.getOid()) && prismContext.relationMatches(relation,
 					targetRef.getRelation())) {
 				return assignment;
 			}

@@ -76,6 +76,7 @@ public class RObjectCollection extends RObject<ObjectCollectionType> {
         return Objects.hash(super.hashCode(), nameCopy);
     }
 
+    // dynamically called
     public static void copyFromJAXB(ObjectCollectionType jaxb, RObjectCollection repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

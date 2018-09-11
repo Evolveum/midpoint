@@ -222,11 +222,13 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 	}
 
 	@Override
-    public S_AtomicFilterExit ref(QName relation) {
-		PrismReferenceValue ref = new PrismReferenceValue();
-		ref.setRelation(relation);
-		List<PrismReferenceValue> values = new ArrayList<>();
-		values.add(ref);
+    public S_AtomicFilterExit ref(QName... relations) {
+        List<PrismReferenceValue> values = new ArrayList<>();
+        for (QName relation : relations) {
+            PrismReferenceValue ref = new PrismReferenceValue();
+            ref.setRelation(relation);
+            values.add(ref);
+        }
 		RefFilter filter = RefFilter.createReferenceEqual(itemPath, referenceDefinition, values);
 		filter.setOidNullAsAny(true);
 		filter.setTargetTypeNullAsAny(true);

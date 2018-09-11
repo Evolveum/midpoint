@@ -287,7 +287,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         
         // WHEN
         displayWhen(TEST_NAME);
-        List<RelationDefinitionType> relations = modelInteractionService.getRelationDefinitions(result);
+        List<RelationDefinitionType> relations = modelInteractionService.getRelationDefinitions();
         
         // THEN
  		displayThen(TEST_NAME);

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +79,9 @@ public class CorrelationConfirmationEvaluator {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	
+	@Autowired
+	private RelationRegistry relationRegistry;
+
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
 
@@ -272,7 +276,7 @@ public class CorrelationConfirmationEvaluator {
 		}
 
 		// we assume userType is already normalized w.r.t. relations
-		ObjectTypeUtil.normalizeFilter(q.getFilter());
+		ObjectTypeUtil.normalizeFilter(q.getFilter(), relationRegistry);
 		return ObjectQuery.match(userType, q.getFilter(), matchingRuleRegistry);
 	}
 

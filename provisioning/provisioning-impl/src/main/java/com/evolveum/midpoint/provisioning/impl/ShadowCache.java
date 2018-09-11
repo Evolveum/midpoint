@@ -24,8 +24,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
-import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -123,6 +121,7 @@ public class ShadowCache {
 	@Autowired private ResourceObjectConverter resouceObjectConverter;
 	@Autowired private ShadowCaretaker shadowCaretaker;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private RelationRegistry relationRegistry;
 	@Autowired protected ShadowManager shadowManager;
 	@Autowired private ChangeNotificationDispatcher operationListener;
 	@Autowired private AccessChecker accessChecker;
@@ -1720,7 +1719,7 @@ public class ShadowCache {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ProvisioningContext ctx = ctxFactory.create(shadow, null, parentResult);
 		ctx.assertDefinition();
-		ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry);
+		ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry, relationRegistry);
 	}
 
 	public void applyDefinition(final ObjectQuery query, OperationResult result)
@@ -2048,7 +2047,7 @@ public class ShadowCache {
 					shadowCaretaker.applyAttributesDefinition(ctx, shadow);
 					// fixing MID-1640; hoping that the protected object filter uses only identifiers
 					// (that are stored in repo)
-					ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry);
+					ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry, relationRegistry);
 					
 					validateShadow(shadow, true);
 					
@@ -2610,7 +2609,7 @@ public class ShadowCache {
 				return;
 			}
 
-			ProvisioningUtil.setProtectedFlag(ctx, oldShadow, matchingRuleRegistry);
+			ProvisioningUtil.setProtectedFlag(ctx, oldShadow, matchingRuleRegistry, relationRegistry);
 			change.setOldShadow(oldShadow);
 
 			if (change.getCurrentShadow() != null) {
@@ -2715,7 +2714,7 @@ public class ShadowCache {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
 		}
 		if (resultShadowType.getResource() == null) {
-			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource()));
+			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource(), prismContext));
 		}
 
 		// Attributes
@@ -2736,7 +2735,7 @@ public class ShadowCache {
 		transplantPasswordMetadata(repoShadowType, resultAccountShadow);
 
 		// protected
-		ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry);
+		ProvisioningUtil.setProtectedFlag(ctx, resultShadow, matchingRuleRegistry, relationRegistry);
 		
 		// exists, dead
 		// This may seem strange, but always take exists and dead flags from the repository.
@@ -2846,7 +2845,7 @@ public class ShadowCache {
 							entitlementRepoShadow = lookupOrCreateLiveShadowInRepository(ctxEntitlement,
 									entitlementShadow, false, isDoDiscovery, parentResult);
 						}
-						ObjectReferenceType shadowRefType = ObjectTypeUtil.createObjectRef(entitlementRepoShadow);
+						ObjectReferenceType shadowRefType = ObjectTypeUtil.createObjectRef(entitlementRepoShadow, prismContext);
 						shadowAssociationType.setShadowRef(shadowRefType);
 					}
 				}

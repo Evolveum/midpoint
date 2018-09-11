@@ -28,7 +28,7 @@ public class AutoassignSpecificationMapper implements Mapper<AutoassignSpecifica
     @Override
     public RAutoassignSpecification map(AutoassignSpecificationType input, MapperContext context) {
         RAutoassignSpecification rspec = new RAutoassignSpecification();
-        RAutoassignSpecification.copyFromJAXB(input, rspec);
+        RAutoassignSpecification.formJaxb(input, rspec);
         return rspec;
     }
 }

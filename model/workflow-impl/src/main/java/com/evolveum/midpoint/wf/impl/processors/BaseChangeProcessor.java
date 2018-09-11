@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.wf.impl.processors;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
@@ -26,13 +27,11 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     private String beanName;
     private BeanFactory beanFactory;
 
-    @Autowired
-    private MiscDataUtil miscDataUtil;
+    @Autowired private MiscDataUtil miscDataUtil;
+	@Autowired private PrismContext prismContext;
+    @Autowired private RelationRegistry relationRegistry;
 
-	@Autowired
-	private PrismContext prismContext;
-
-	private boolean enabled = false;
+    private boolean enabled = false;
 
     public String getBeanName() {
         return beanName;
@@ -71,5 +70,10 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     @Override
     public PrismContext getPrismContext() {
         return prismContext;
+    }
+
+    @Override
+    public RelationRegistry getRelationRegistry() {
+        return relationRegistry;
     }
 }

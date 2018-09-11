@@ -259,6 +259,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         return result1;
     }
 
+    // dynamically called
     public static <T extends ShadowType> void copyFromJAXB(ShadowType jaxb, RShadow<T> repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
@@ -277,7 +278,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         }
 
         repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
-        repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), repositoryContext.prismContext));
+        repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), repositoryContext.relationRegistry));
 
         repo.setAttemptNumber(jaxb.getAttemptNumber());
         repo.setExists(jaxb.isExists());

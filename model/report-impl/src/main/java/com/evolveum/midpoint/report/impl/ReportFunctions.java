@@ -150,7 +150,7 @@ public class ReportFunctions {
                     .filter(as -> as.getTargetRef() != null && as.getTargetRef().getOid() != null
                             && filterOids.contains(as.getTargetRef().getOid()))
                     // filter to default relation only - ignores approvers etc
-                    .filter(as -> ObjectTypeUtil.isDefaultRelation(as.getTargetRef().getRelation()))
+                    .filter(as -> prismContext.isDefaultRelation(as.getTargetRef().getRelation()))
                     .collect(Collectors.toList());
         }
 

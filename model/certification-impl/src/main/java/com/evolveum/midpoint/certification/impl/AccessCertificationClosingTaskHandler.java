@@ -265,7 +265,7 @@ public class AccessCertificationClosingTaskHandler implements TaskHandler {
         Task task = taskManager.createTaskInstance();
         task.setHandlerUri(HANDLER_URI);
         task.setName(new PolyStringType("Closing " + campaign.getName()));
-        task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign));
+        task.setObjectRef(ObjectTypeUtil.createObjectRef(campaign, prismContext));
         task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
         taskManager.switchToBackground(task, result);
 		result.setBackgroundTaskOid(task.getOid());

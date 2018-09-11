@@ -60,7 +60,7 @@ public class RAutoassignSpecification {
         return sb.toString();
     }
 
-    public static void copyFromJAXB(AutoassignSpecificationType aa, RAutoassignSpecification raa) {
+    public static void formJaxb(AutoassignSpecificationType aa, RAutoassignSpecification raa) {
         Validate.notNull(aa, "Autoassign specification type must not be null");
         Validate.notNull(raa, "Repo autoassign specification must not be null");
 

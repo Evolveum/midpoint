@@ -2057,7 +2057,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 					if (!expectedOid.equals(hasRef.getOid())) {
 						return false;
 					}
-					if (!ObjectTypeUtil.relationMatches(relation, hasRef.getRelation())) {
+					if (!prismContext.relationMatches(relation, hasRef.getRelation())) {
 						return false;
 					}
 					return true;

@@ -23,8 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.stereotype.Component;
 
@@ -71,7 +69,7 @@ public class ExclusionCertificationHandler extends BaseCertificationHandler {
 	private void processAssignment(AssignmentType assignment, ObjectType object, List<AccessCertificationCaseType> caseList) {
 		AccessCertificationAssignmentCaseType assignmentCase = new AccessCertificationAssignmentCaseType(prismContext);
         assignmentCase.setAssignment(assignment.clone());
-        assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object));
+        assignmentCase.setObjectRef(ObjectTypeUtil.createObjectRef(object, prismContext));
         assignmentCase.setTenantRef(assignment.getTenantRef());
         assignmentCase.setOrgRef(assignment.getOrgRef());
         assignmentCase.setActivation(assignment.getActivation());

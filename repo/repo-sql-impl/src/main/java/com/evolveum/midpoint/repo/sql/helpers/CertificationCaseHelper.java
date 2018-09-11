@@ -39,6 +39,7 @@ import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -77,6 +78,7 @@ public class CertificationCaseHelper {
     private static final Trace LOGGER = TraceManager.getTrace(CertificationCaseHelper.class);
 
     @Autowired private PrismContext prismContext;
+    @Autowired private RelationRegistry relationRegistry;
     @Autowired private GeneralHelper generalHelper;
     @Autowired private NameResolutionHelper nameResolutionHelper;
     @Autowired private ObjectRetriever objectRetriever;
@@ -122,7 +124,7 @@ public class CertificationCaseHelper {
 
     @NotNull
     private RepositoryContext createRepositoryContext() {
-        return new RepositoryContext(repositoryService, prismContext, extItemDictionary);
+        return new RepositoryContext(repositoryService, prismContext, relationRegistry, extItemDictionary);
     }
 
     public void deleteCertificationCampaignCases(Session session, String oid) {

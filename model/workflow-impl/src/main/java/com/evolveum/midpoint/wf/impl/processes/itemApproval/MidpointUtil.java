@@ -130,7 +130,7 @@ public class MidpointUtil {
 			return getCacheRepositoryService()
 					.searchObjects(UserType.class, query, null, new OperationResult("dummy"))
 					.stream()
-					.map(o -> ObjectTypeUtil.createObjectRef(o))
+					.map(o -> ObjectTypeUtil.createObjectRef(o, prismContext))
 					.collect(Collectors.toList());
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't resolve " + approverRef + ": " + e.getMessage(), e);

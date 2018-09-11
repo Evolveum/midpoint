@@ -27,6 +27,8 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
@@ -38,13 +40,11 @@ import com.evolveum.midpoint.prism.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
@@ -542,6 +542,23 @@ public class ObjectQueryUtil {
 		FilterComponents components = new FilterComponents();
 		factorOutFilter(components, simplify(filter), DEFAULT_EXTRACTORS, Arrays.asList(paths), false);
 		return components;
+	}
+
+	// Creates references for querying
+	public static List<PrismReferenceValue> createReferences(String oid, RelationKindType kind,
+			RelationRegistry relationRegistry) {
+		return createReferences(singleton(oid), kind, relationRegistry);
+	}
+
+	public static List<PrismReferenceValue> createReferences(Collection<String> oids, RelationKindType kind,
+			RelationRegistry relationRegistry) {
+		List<PrismReferenceValue> rv = new ArrayList<>();
+		for (QName relation : relationRegistry.getAllRelationsFor(kind)) {
+			for (String oid : oids) {
+				rv.add(new ObjectReferenceType().oid(oid).relation(relation).asReferenceValue());
+			}
+		}
+		return rv;
 	}
 
 	/**

@@ -18,9 +18,6 @@ package com.evolveum.midpoint.web.util;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -67,8 +64,6 @@ public enum ObjectTypeGuiDescriptor {
 
     SECURITY_POLICY(ObjectTypes.SECURITY_POLICY, "ObjectTypeGuiDescriptor.securityPolicy", "", ""),
 
-    USER_ORG_MANAGER(SchemaConstants.ORG_MANAGER, "ObjectTypeGuiDescriptor.orgManager", "silk-user_red", "silk-user_red"),
-
     LOOKUP_TABLE(ObjectTypes.LOOKUP_TABLE, "ObjectTypeGuiDescriptor.lookupTable", "", ""),
 
     ACCESS_CERTIFICATION_DEFINITION(ObjectTypes.ACCESS_CERTIFICATION_DEFINITION, "ObjectTypeGuiDescriptor.accessCertificationDefinition", "", ""),
@@ -89,7 +84,6 @@ public enum ObjectTypeGuiDescriptor {
     public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";
 
     private ObjectTypes type;
-    private QName relation;
     private String localizationKey;
     private String coloredIcon;
     private String blackIcon;
@@ -99,13 +93,6 @@ public enum ObjectTypeGuiDescriptor {
 		this.blackIcon = blackIcon;
         this.localizationKey = localizationKey;
         this.type = type;
-    }
-
-    ObjectTypeGuiDescriptor(QName relation, String localizationKey, String coloredIcon, String blackIcon) {
-        this.coloredIcon = coloredIcon;
-		this.blackIcon = blackIcon;
-        this.localizationKey = localizationKey;
-        this.relation = relation;
     }
 
 	@SuppressWarnings("unused")
@@ -125,10 +112,6 @@ public enum ObjectTypeGuiDescriptor {
         return type;
     }
 
-    public QName getRelation() {
-        return relation;
-    }
-
     public static ObjectTypeGuiDescriptor getDescriptor(Class type) {
         for (ObjectTypeGuiDescriptor descr : ObjectTypeGuiDescriptor.values()) {
             if (descr.getType() != null && descr.getType().getClassDefinition().equals(type)) {
@@ -145,16 +128,6 @@ public enum ObjectTypeGuiDescriptor {
 		}
         for (ObjectTypeGuiDescriptor descr : ObjectTypeGuiDescriptor.values()) {
             if (descr.getType() != null && descr.getType().equals(type)) {
-                return descr;
-            }
-        }
-
-        return null;
-    }
-
-    public static ObjectTypeGuiDescriptor getDescriptor(QName relation) {
-        for (ObjectTypeGuiDescriptor descr : ObjectTypeGuiDescriptor.values()) {
-            if (descr.getRelation() != null && descr.getRelation().equals(relation)) {
                 return descr;
             }
         }

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedLogicalTriggerType;
@@ -77,11 +78,12 @@ public class EvaluatedCompositeTrigger extends EvaluatedPolicyRuleTrigger<Policy
 	}
 
 	@Override
-	public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
+	public EvaluatedLogicalTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+			PrismContext prismContext) {
 		EvaluatedLogicalTriggerType rv = new EvaluatedLogicalTriggerType();
 		fillCommonContent(rv);
 		if (!options.isRespectFinalFlag() || !isFinal()) {
-			innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(options)));
+			innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(options, prismContext)));
 		}
 		return rv;
 	}

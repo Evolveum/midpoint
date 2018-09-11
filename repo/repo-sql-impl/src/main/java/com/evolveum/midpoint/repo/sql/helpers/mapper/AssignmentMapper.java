@@ -48,7 +48,7 @@ public class AssignmentMapper extends ContainerMapper<AssignmentType, RAssignmen
         RObject owner = (RObject) context.getOwner();
 
         try {
-            RAssignment.copyFromJAXB(input, ass, owner, context.getRepositoryContext());
+            RAssignment.fromJaxb(input, ass, owner, context.getRepositoryContext());
         } catch (DtoTranslationException ex) {
             throw new SystemException("Couldn't translate assignment to entity", ex);
         }

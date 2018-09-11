@@ -75,6 +75,7 @@ public class RForm extends RObject<FormType> {
         return Objects.hash(super.hashCode(), nameCopy);
     }
 
+    // dynamically called
 	public static void copyFromJAXB(FormType jaxb, RForm repo, RepositoryContext repositoryContext,
 			IdGeneratorResult generatorResult) throws DtoTranslationException {
 		RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

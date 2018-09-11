@@ -32,7 +32,7 @@ public class MetadataMapper implements Mapper<MetadataType, Metadata> {
     public Metadata map(MetadataType input, MapperContext context) {
         Metadata metadata = (Metadata) context.getOwner();
         try {
-            MetadataFactory.fromJAXB(input, metadata, context.getPrismContext());
+            MetadataFactory.fromJAXB(input, metadata, context.getPrismContext(), context.getRelationRegistry());
         } catch (DtoTranslationException ex) {
             throw new SystemException("Couldn't translate metadata to entity");
         }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -92,7 +93,7 @@ public abstract class RReference implements ObjectReference {
         return result;
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, RReference repo) {
-        RObjectReference.copyFromJAXB(jaxb, repo);
+    public static void fromJaxb(ObjectReferenceType jaxb, RReference repo, RelationRegistry relationRegistry) {
+        RObjectReference.copyFromJAXB(jaxb, repo, relationRegistry);
     }
 }

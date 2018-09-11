@@ -83,7 +83,7 @@ public class ROperationalState {
         }
     }
 
-    public static void copyFromJAXB(OperationalStateType jaxb, ROperationalState repo) throws
+    public static void fromJaxb(OperationalStateType jaxb, ROperationalState repo) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");

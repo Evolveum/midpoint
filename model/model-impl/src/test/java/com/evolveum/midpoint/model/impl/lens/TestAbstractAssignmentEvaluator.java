@@ -37,6 +37,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -95,6 +96,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
 	@Autowired
 	private SystemObjectCache systemObjectCache;
+
+	@Autowired
+	private RelationRegistry relationRegistry;
 
 	@Autowired
 	private Clock clock;
@@ -1002,6 +1006,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 				.focusOdo(focusOdo)
 				.objectResolver(objectResolver)
 				.systemObjectCache(systemObjectCache)
+				.relationRegistry(relationRegistry)
 				.prismContext(prismContext)
 				.activationComputer(activationComputer)
 				.now(clock.currentTimeXMLGregorianCalendar())
