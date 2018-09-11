@@ -50,7 +50,7 @@ class RelationRegistryDummyImpl implements RelationRegistry {
 
 	@Override
 	public boolean isOfKind(QName relation, RelationKindType kind) {
-		return kind == RelationKindType.MEMBERSHIP && (relation == null || QNameUtil.match(relation, ORG_DEFAULT));
+		return kind == RelationKindType.MEMBER && (relation == null || QNameUtil.match(relation, ORG_DEFAULT));
 	}
 
 	@Override
@@ -76,12 +76,12 @@ class RelationRegistryDummyImpl implements RelationRegistry {
 	@NotNull
 	@Override
 	public Collection<QName> getAllRelationsFor(RelationKindType kind) {
-		return kind == RelationKindType.MEMBERSHIP ? singletonList(ORG_DEFAULT) : emptyList();
+		return kind == RelationKindType.MEMBER ? singletonList(ORG_DEFAULT) : emptyList();
 	}
 
 	@Override
 	public QName getDefaultRelationFor(RelationKindType kind) {
-		return kind == RelationKindType.MEMBERSHIP ? ORG_DEFAULT : null;
+		return kind == RelationKindType.MEMBER ? ORG_DEFAULT : null;
 	}
 
 	@NotNull

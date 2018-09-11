@@ -56,7 +56,7 @@ public class RelationRegistryImpl implements RelationRegistry {
 		RelationsDefinitionType relationsDef = roleManagement != null ? roleManagement.getRelations() : null;
 		LOGGER.info("Applying relation configuration ({} entries)", relationsDef != null ? relationsDef.getRelation().size() : 0);
 		indexedRelationDefinitions = createAndIndexRelationDefinitions(relationsDef);
-		prismContext.setDefaultRelation(indexedRelationDefinitions.getDefaultRelationFor(RelationKindType.MEMBERSHIP));
+		prismContext.setDefaultRelation(indexedRelationDefinitions.getDefaultRelationFor(RelationKindType.MEMBER));
 	}
 
 	public List<RelationDefinitionType> getRelationDefinitions() {
@@ -152,7 +152,7 @@ public class RelationRegistryImpl implements RelationRegistry {
 
 	@Override
 	public QName getDefaultRelation() {
-		return getDefaultRelationFor(RelationKindType.MEMBERSHIP);
+		return getDefaultRelationFor(RelationKindType.MEMBER);
 	}
 
 	@NotNull

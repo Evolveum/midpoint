@@ -90,10 +90,10 @@ public class QueryUtils {
 			return rv;
 		}
 		userType.getRoleMembershipRef().stream()
-				.filter(ref -> relationRegistry.isMembership(ref.getRelation()))
+				.filter(ref -> relationRegistry.isMember(ref.getRelation()))
 				.forEach(ref -> rv.add(ref.clone().asReferenceValue()));
 		userType.getDelegatedRef().stream()
-				.filter(ref -> relationRegistry.isMembership(ref.getRelation()))
+				.filter(ref -> relationRegistry.isMember(ref.getRelation()))
 				.filter(ref -> !QNameUtil.match(ref.getType(), UserType.COMPLEX_TYPE))   // we are not interested in deputies (but this should be treated above)
 				.forEach(ref -> rv.add(ref.clone().asReferenceValue()));
 		return rv;

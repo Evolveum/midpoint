@@ -150,7 +150,7 @@ public abstract class SchemaConstants {
 
 	/**
 	 * Default membership relation. Used as a relation value in object references.
-	 * See RelationKind.MEMBERSHIP for more details.
+	 * See RelationKind.MEMBER for more details.
 	 */
 	public static final QName ORG_DEFAULT = new QName(NS_ORG, "default");
 

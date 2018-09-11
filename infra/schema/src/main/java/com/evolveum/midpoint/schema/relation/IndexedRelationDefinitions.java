@@ -108,7 +108,7 @@ class IndexedRelationDefinitions {
 	}
 
 	private void addDefaultRelationToMaps() {
-		QName defaultRelation = defaultRelationByKind.get(RelationKindType.MEMBERSHIP);
+		QName defaultRelation = defaultRelationByKind.get(RelationKindType.MEMBER);
 		if (defaultRelation != null) {
 			relationDefinitionsByRelationName.put(null, relationDefinitionsByRelationName.get(defaultRelation));
 			kindsByRelationName.putAll(null, kindsByRelationName.get(defaultRelation));
@@ -129,7 +129,7 @@ class IndexedRelationDefinitions {
 
 	private List<RelationDefinitionType> validateDefinitions(@NotNull List<RelationDefinitionType> definitions) {
 		List<RelationDefinitionType> validatedDefinitions = new ArrayList<>(definitions.size());
-		boolean membershipRelationExists = false;
+		boolean memberRelationExists = false;
 		for (RelationDefinitionType definition : definitions) {
 			if (definition.getRef() == null) {
 				LOGGER.error("Relation definition with null ref; ignoring: {}", definition);
@@ -138,12 +138,12 @@ class IndexedRelationDefinitions {
 					LOGGER.warn("Unqualified relation name '{}'; please fix it as soon as possible; in {}", definition.getRef(), definition);
 				}
 				validatedDefinitions.add(definition);
-				if (!membershipRelationExists && definition.getKind().contains(RelationKindType.MEMBERSHIP)) {
-					membershipRelationExists = true;
+				if (!memberRelationExists && definition.getKind().contains(RelationKindType.MEMBER)) {
+					memberRelationExists = true;
 				}
 			}
 		}
-		if (!membershipRelationExists) {
+		if (!memberRelationExists) {
 			LOGGER.error("No 'member' relation was defined. This would be a fatal condition, so we define one.");
 			validatedDefinitions.add(RelationRegistryImpl.createRelationDefinitionFromStaticDefinition(RelationTypes.MEMBER));
 		}
@@ -265,7 +265,8 @@ class IndexedRelationDefinitions {
 	// We want to make this configurable in the future MID-3581
 	private Set<QName> computeRelationsToProcessOnLogin() {
 		HashSet<QName> rv = new HashSet<>();
-		rv.addAll(getAllRelationNamesFor(RelationKindType.MEMBERSHIP));
+		rv.addAll(getAllRelationNamesFor(RelationKindType.MEMBER));
+		rv.addAll(getAllRelationNamesFor(RelationKindType.META));
 		rv.addAll(getAllRelationNamesFor(RelationKindType.DELEGATION));
 		return rv;
 	}
@@ -273,7 +274,8 @@ class IndexedRelationDefinitions {
 	// We want to make this configurable in the future MID-3581
 	private Set<QName> computeRelationsToProcessOnRecompute() {
 		HashSet<QName> rv = new HashSet<>();
-		rv.addAll(getAllRelationsFor(RelationKindType.MEMBERSHIP));
+		rv.addAll(getAllRelationsFor(RelationKindType.MEMBER));
+		rv.addAll(getAllRelationsFor(RelationKindType.META));
 		rv.addAll(getAllRelationsFor(RelationKindType.MANAGER));
 		rv.addAll(getAllRelationsFor(RelationKindType.DELEGATION));
 		return rv;
@@ -314,7 +316,7 @@ class IndexedRelationDefinitions {
 
 	// We want to make this configurable in the future MID-3581
 	public boolean includeIntoParentOrgRef(QName relation) {
-		return isOfKind(relation, RelationKindType.MEMBERSHIP) && !isOfKind(relation, RelationKindType.META);
+		return isOfKind(relation, RelationKindType.MEMBER);
 	}
 
 	QName getDefaultRelationFor(RelationKindType kind) {

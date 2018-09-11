@@ -55,12 +55,16 @@ public interface RelationRegistry {
 	 */
 	boolean isOfKind(QName relation, RelationKindType kind);
 
-	default boolean isMembership(QName relation) {
-		return isOfKind(relation, RelationKindType.MEMBERSHIP);
+	default boolean isMember(QName relation) {
+		return isOfKind(relation, RelationKindType.MEMBER);
 	}
 
 	default boolean isManager(QName relation) {
 		return isOfKind(relation, RelationKindType.MANAGER);
+	}
+
+	default boolean isMeta(QName relation) {
+		return isOfKind(relation, RelationKindType.META);
 	}
 
 	default boolean isDelegation(QName relation) {
@@ -78,19 +82,19 @@ public interface RelationRegistry {
 	}
 
 	/**
-	 * Whether this kind of relations is processed on login. Currently only relations of MEMBERSHIP and DELEGATION kinds are.
+	 * Whether this kind of relations is processed on login. Currently only relations of MEMBER and DELEGATION kinds are.
 	 * This is to be configured in the future (MID-3581).
 	 */
 	boolean processRelationOnLogin(QName relation);
 
 	/**
-	 * Whether this kind of relations is processed on recompute. Currently only relations of MEMBERSHIP, MANAGER and DELEGATION kinds are.
+	 * Whether this kind of relations is processed on recompute. Currently only relations of MEMBER, MANAGER and DELEGATION kinds are.
 	 * This is to be configured in the future (MID-3581).
 	 */
 	boolean processRelationOnRecompute(QName relation);
 
 	/**
-	 * Whether this kind of relations is included in parentOrgRef. Currently only relations of MEMBERSHIP but *not* META kinds are.
+	 * Whether this kind of relations is included in parentOrgRef. Currently only relations of MEMBER but *not* META kinds are.
 	 * This is to be configured in the future (MID-3581).
 	 */
 	boolean includeIntoParentOrgRef(QName relation);

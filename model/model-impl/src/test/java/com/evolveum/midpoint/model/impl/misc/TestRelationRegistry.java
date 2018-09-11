@@ -71,13 +71,13 @@ public class TestRelationRegistry extends AbstractInternalModelIntegrationTest {
 		assertFalse(relationRegistry.isManager(unqualify(SchemaConstants.ORG_DEFAULT)));
 		assertFalse(relationRegistry.isManager(null));
 
-		assertTrue(relationRegistry.isMembership(SchemaConstants.ORG_DEFAULT));
-		assertTrue(relationRegistry.isMembership(unqualify(SchemaConstants.ORG_DEFAULT)));
-		assertTrue(relationRegistry.isMembership(null));
-		assertTrue(relationRegistry.isMembership(SchemaConstants.ORG_MANAGER));
-		assertTrue(relationRegistry.isMembership(unqualify(SchemaConstants.ORG_MANAGER)));
-		assertFalse(relationRegistry.isMembership(SchemaConstants.ORG_APPROVER));
-		assertFalse(relationRegistry.isMembership(unqualify(SchemaConstants.ORG_APPROVER)));
+		assertTrue(relationRegistry.isMember(SchemaConstants.ORG_DEFAULT));
+		assertTrue(relationRegistry.isMember(unqualify(SchemaConstants.ORG_DEFAULT)));
+		assertTrue(relationRegistry.isMember(null));
+		assertTrue(relationRegistry.isMember(SchemaConstants.ORG_MANAGER));
+		assertTrue(relationRegistry.isMember(unqualify(SchemaConstants.ORG_MANAGER)));
+		assertFalse(relationRegistry.isMember(SchemaConstants.ORG_APPROVER));
+		assertFalse(relationRegistry.isMember(unqualify(SchemaConstants.ORG_APPROVER)));
 
 		// TODO
 	}

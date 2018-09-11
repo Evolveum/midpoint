@@ -16315,7 +16315,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="membership">
+			<xsd:enumeration value="member">
 				<xsd:annotation>
 					<xsd:documentation>
 						Membership relation, usually meaning "has" or "is member of".
@@ -16327,7 +16327,7 @@
 						ref.relation is null).
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="MEMBERSHIP"/>
+						<jaxb:typesafeEnumMember name="MEMBER"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -16348,9 +16348,6 @@
 						Relations used for metarole assignments. Sometimes it is important to
 						distinguish metarole and member assignments. This kind of relation is used
 						for that purpose.
-
-						Relations of this kind should be also of MEMBERSHIP kind.
-						(Otherwise they would not provide metarole assignment functionality!)
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="META"/>
@@ -16360,7 +16357,7 @@
 			<xsd:enumeration value="delegation">
 				<xsd:annotation>
 					<xsd:documentation>
-						Relation of "is deputy of" kind. Specifies that the subject is a deputy of another user.
+						Relation "is deputy of" kind. Specifies that the subject is a deputy of another user.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="DELEGATION"/>
@@ -16389,7 +16386,7 @@
 			<xsd:enumeration value="owner">
 				<xsd:annotation>
 					<xsd:documentation>
-						Relation of "is owner of" kind.
+						Relation "is owner of" kind.
 
 						Specifies that the subject is a (business) owner of specified (abstract) role.
 						The owner will be asked for decision if the role is modified, when the associated
