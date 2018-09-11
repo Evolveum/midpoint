@@ -157,7 +157,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired private CacheRegistry cacheRegistry;
 	@Autowired private ClockworkMedic clockworkMedic;
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 

@@ -1702,6 +1702,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return new OperationResult(TaskManagerQuartzImpl.class.getName() + "." + methodName);
     }
 
+    @NotNull
     public TaskManagerConfiguration getConfiguration() {
         return configuration;
     }
@@ -2229,5 +2230,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
 	public LocalizationService getLocalizationService() {
 		return localizationService;
+	}
+
+	@Override
+	public boolean isLocalNodeClusteringEnabled() {
+		return configuration.isLocalNodeClusteringEnabled();
 	}
 }

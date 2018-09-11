@@ -20,8 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface CacheDispatcher {
 
-	public void registerCacheListener(CacheListener cacheListener);
-	public void unregisterCacheListener(CacheListener cacheListener);
+	void registerCacheListener(CacheListener cacheListener);
+	void unregisterCacheListener(CacheListener cacheListener);
 	
-	public <O extends ObjectType> void dispatch(Class<O> type, String oid);
+	<O extends ObjectType> void dispatch(Class<O> type, String oid);
 }

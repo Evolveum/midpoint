@@ -54,8 +54,8 @@ public class CacheDispatcherImpl implements CacheDispatcher {
 
     @Override
     public <O extends ObjectType> void dispatch(Class<O> type, String oid) {
-        for (CacheListener listenter : cacheListeners) {
-            listenter.invalidateCache(type, oid);
+        for (CacheListener listener : cacheListeners) {
+            listener.invalidateCache(type, oid);
         }
     }
 }

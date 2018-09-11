@@ -40,7 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -456,7 +455,6 @@ public class RepositoryCache implements RepositoryService {
 
 		globalCache.remove(new CacheKey(type, oid));
 		cacheDispatcher.dispatch(type, oid);
-		
 	}
 
 	@Override

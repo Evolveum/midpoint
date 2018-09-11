@@ -20,6 +20,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public interface CacheListener {
 
-	public <O extends ObjectType> void invalidateCache(Class<O> type, String oid);
+	<O extends ObjectType> void invalidateCache(Class<O> type, String oid);
 	
 }
