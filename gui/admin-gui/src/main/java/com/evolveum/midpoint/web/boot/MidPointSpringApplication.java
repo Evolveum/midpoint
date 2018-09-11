@@ -47,6 +47,7 @@ import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguratio
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.ErrorPage;
+import org.springframework.boot.web.server.ErrorPageRegistrar;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
@@ -186,7 +187,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
     public FilterRegistrationBean<MidPointProfilingServletFilter> midPointProfilingServletFilter() {
         FilterRegistrationBean<MidPointProfilingServletFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new MidPointProfilingServletFilter());
-        registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
+//        registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
         registration.addUrlPatterns("/*");
         return registration;
     }
@@ -250,6 +251,12 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.addUrlMappings("/static-web/*");
         return registration;
     }
+    
+    @Bean
+    public ErrorPageRegistrar errorPageRegistrar() {
+    	return new MidPointErrorPageRegistrar();
+    }
+
     
     @Component
     public class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {

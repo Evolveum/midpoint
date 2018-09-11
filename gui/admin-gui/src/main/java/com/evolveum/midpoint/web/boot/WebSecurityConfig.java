@@ -163,11 +163,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
     
     @Bean
-    public ErrorPageRegistrar errorPageRegistrar() {
-    	return new MidPointErrorPageRegistrar();
-    }
-
-    @Bean
     @Override
     protected AuthenticationManager authenticationManager() throws Exception {
         return super.authenticationManager();
