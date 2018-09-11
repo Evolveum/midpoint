@@ -125,7 +125,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
     }
 
 	protected void replaceIfEmpty(ObjectType object) {
-		ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object);
+		ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext());
 		getModel().setObject((T) ort.asReferenceValue());
 
 	}

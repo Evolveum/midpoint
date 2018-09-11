@@ -131,10 +131,6 @@ public abstract class RContainerReference extends RReference implements ObjectRe
         jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, RContainerReference repo) {
-        RObjectReference.copyFromJAXB(jaxb, repo);
-    }
-
     public ObjectReferenceType toJAXB(PrismContext prismContext) {
         ObjectReferenceType ref = new ObjectReferenceType();
         copyToJAXB(this, ref, prismContext);

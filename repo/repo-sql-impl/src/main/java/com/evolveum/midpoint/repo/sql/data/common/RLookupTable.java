@@ -57,6 +57,7 @@ public class RLookupTable extends RObject<LookupTableType> {
         this.rows = rows;
     }
 
+    // dynamically called
     public static void copyFromJAXB(LookupTableType jaxb, RLookupTable repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException, SchemaException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

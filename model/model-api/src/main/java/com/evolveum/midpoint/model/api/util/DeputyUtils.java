@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -39,33 +39,35 @@ import java.util.stream.Collectors;
 public class DeputyUtils {
 
 	@NotNull
-	public static Collection<PrismReferenceValue> getDelegatorReferences(@NotNull UserType user) {
+	public static Collection<PrismReferenceValue> getDelegatorReferences(@NotNull UserType user,
+			@NotNull RelationRegistry relationRegistry) {
 		return user.getDelegatedRef().stream()
-				.filter(ref -> ObjectTypeUtil.isDelegationRelation(ref.getRelation()))
+				.filter(ref -> relationRegistry.isDelegation(ref.getRelation()))
 				.map(ref -> ref.asReferenceValue().clone())
 				.collect(Collectors.toList());
 	}
 
 	@NotNull
-	public static Collection<String> getDelegatorOids(@NotNull UserType user) {
-		return getDelegatorReferences(user).stream()
+	public static Collection<String> getDelegatorOids(@NotNull UserType user, @NotNull RelationRegistry relationRegistry) {
+		return getDelegatorReferences(user, relationRegistry).stream()
 				.map(PrismReferenceValue::getOid)
 				.collect(Collectors.toList());
 	}
 
-	public static boolean isDelegationPresent(@NotNull UserType deputy, @NotNull String delegatorOid) {
-		return getDelegatorOids(deputy).contains(delegatorOid);
+	public static boolean isDelegationPresent(@NotNull UserType deputy, @NotNull String delegatorOid,
+			@NotNull RelationRegistry relationRegistry) {
+		return getDelegatorOids(deputy, relationRegistry).contains(delegatorOid);
 	}
 
-	public static boolean isDelegationAssignment(AssignmentType assignment) {
+	public static boolean isDelegationAssignment(AssignmentType assignment, @NotNull RelationRegistry relationRegistry) {
 		return assignment != null
 				&& assignment.getTargetRef() != null
-				&& ObjectTypeUtil.isDelegationRelation(assignment.getTargetRef().getRelation());
+				&& relationRegistry.isDelegation(assignment.getTargetRef().getRelation());
 	}
 
-	public static boolean isDelegationPath(AssignmentPath assignmentPath) {
+	public static boolean isDelegationPath(@NotNull AssignmentPath assignmentPath, @NotNull RelationRegistry relationRegistry) {
 		for (AssignmentPathSegment segment : assignmentPath.getSegments()) {
-			if (!isDelegationAssignment(segment.getAssignment())) {
+			if (!isDelegationAssignment(segment.getAssignment(), relationRegistry)) {
 				return false;
 			}
 		}

@@ -37,10 +37,10 @@ public class EmbeddedObjectReferenceMapper implements Mapper<Referencable, REmbe
             objectRef.setupReferenceValue(input.asReferenceValue());
         }
 
-        ObjectTypeUtil.normalizeRelation(objectRef);
+        ObjectTypeUtil.normalizeRelation(objectRef, context.getRelationRegistry());
 
         REmbeddedReference rref = new REmbeddedReference();
-        REmbeddedReference.copyFromJAXB(objectRef, rref);
+        REmbeddedReference.fromJaxb(objectRef, rref, context.getRelationRegistry());
 
         return rref;
     }

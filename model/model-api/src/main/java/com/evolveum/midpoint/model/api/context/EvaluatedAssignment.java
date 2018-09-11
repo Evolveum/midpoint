@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
@@ -52,7 +53,10 @@ public interface EvaluatedAssignment<F extends FocusType> extends DebugDumpable 
 
 	AssignmentType getAssignmentType(boolean old);
 
+	// return value of null is ambiguous: either targetRef is null or targetRef.relation is null
 	QName getRelation();
+
+	QName getNormalizedRelation(RelationRegistry relationRegistry);
 
 	boolean isValid();
 

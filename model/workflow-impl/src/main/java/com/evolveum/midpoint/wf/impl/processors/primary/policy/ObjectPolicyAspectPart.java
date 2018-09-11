@@ -115,7 +115,7 @@ public class ObjectPolicyAspectPart {
 		} else if (baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
 			// default rule
 			ApprovalSchemaBuilder builder = new ApprovalSchemaBuilder(main, approvalSchemaHelper);
-			if (builder.addPredefined(object, SchemaConstants.ORG_OWNER, result)) {
+			if (builder.addPredefined(object, RelationKindType.OWNER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found");
 				generateObjectOidIfNeeded(focusDelta, ctx.modelContext);
 				List<ObjectDelta<T>> deltasToApprove = singletonList(focusDelta.clone());

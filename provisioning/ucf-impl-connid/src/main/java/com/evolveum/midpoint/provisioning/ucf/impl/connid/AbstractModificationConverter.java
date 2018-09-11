@@ -17,28 +17,21 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.objects.Attribute;
-import org.identityconnectors.framework.common.objects.AttributeDelta;
-import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.PredefinedAttributes;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -46,13 +39,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
-import com.evolveum.midpoint.provisioning.ucf.api.PasswordChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -62,7 +53,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -189,9 +179,6 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 					(pvals,midPointAttributeName) -> covertAuxiliaryObjectClassValuesToConnId(pvals, midPointAttributeName, auxiliaryObjectClassMap));
 		}
 		
-		PropertyDelta<ProtectedStringType> passwordDelta = null;
-		PasswordChangeOperation passwordChangeOperation = null;
-		
 		for (Operation operation : changes) {
 			if (operation instanceof PropertyModificationOperation) {
 				PropertyModificationOperation change = (PropertyModificationOperation) operation;
@@ -256,18 +243,13 @@ public abstract class AbstractModificationConverter implements DebugDumpable {
 					
 				} else if (delta.getParentPath().equivalent(new ItemPath(ShadowType.F_ACTIVATION))) {
 					convertFromActivation(delta);
-				} else if (delta.getParentPath().equivalent(
-						new ItemPath(new ItemPath(ShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD))) {
+				} else if (delta.getParentPath().equivalent(SchemaConstants.PATH_PASSWORD)) {
 					convertFromPassword((PropertyDelta<ProtectedStringType>) delta);
 				} else if (delta.getPath().equivalent(new ItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS))) {
 					// already processed
 				} else {
 					throw new SchemaException("Change of unknown attribute " + delta.getPath());
 				}
-
-			} else if (operation instanceof PasswordChangeOperation) {
-				passwordChangeOperation = (PasswordChangeOperation) operation;
-				// TODO: check for multiple occurrences and fail
 
 			} else if (operation instanceof ExecuteProvisioningScriptOperation) {
 				ExecuteProvisioningScriptOperation scriptOperation = (ExecuteProvisioningScriptOperation) operation;

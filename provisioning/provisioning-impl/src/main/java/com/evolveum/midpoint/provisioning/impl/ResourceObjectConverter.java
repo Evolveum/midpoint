@@ -31,13 +31,11 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
@@ -113,6 +111,7 @@ public class ResourceObjectConverter {
 	@Autowired private ShadowCaretaker shadowCaretaker;
 	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
+	@Autowired private RelationRegistry relationRegistry;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -234,9 +233,10 @@ public class ResourceObjectConverter {
 	
 
 	public AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResourceObject(ProvisioningContext ctx, 
-			PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts, boolean skipExplicitUniquenessCheck, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException,
-			ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions,
+			boolean skipExplicitUniquenessCheck, OperationResult parentResult)
+					throws ObjectNotFoundException, SchemaException, CommunicationException,
+					ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		
 		OperationResult result = parentResult.createSubresult(OPERATION_ADD_RESOURCE_OBJECT);
 		
@@ -251,7 +251,8 @@ public class ResourceObjectConverter {
 
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 
-		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry)) {
+		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry,
+				relationRegistry)) {
 			LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
 			SecurityViolationException e = new SecurityViolationException("Cannot get protected shadow " + shadowType);
 			result.recordFatalError(e);
@@ -308,7 +309,7 @@ public class ResourceObjectConverter {
 		}
 		
 		// Execute entitlement modification on other objects (if needed)
-		executeEntitlementChangesAdd(ctx, shadowClone, scripts, result);
+		executeEntitlementChangesAdd(ctx, shadowClone, scripts, connOptions, result);
 		
 		LOGGER.trace("Added resource object {}", shadow);
 
@@ -375,7 +376,7 @@ public class ResourceObjectConverter {
 	}
 
 	public AsynchronousOperationResult deleteResourceObject(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 
-			OperationProvisioningScriptsType scripts, OperationResult parentResult)
+			OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		
@@ -388,7 +389,7 @@ public class ResourceObjectConverter {
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
 				.getAllIdentifiers(shadow);
 
-		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadow, matchingRuleRegistry)) {
+		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadow, matchingRuleRegistry, relationRegistry)) {
 			LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
 					+ identifiers + "; ignoring the request");
 			SecurityViolationException e = new SecurityViolationException("Cannot delete protected resource object "
@@ -404,7 +405,7 @@ public class ResourceObjectConverter {
 		}
 		
 		// Execute entitlement modification on other objects (if needed)
-		executeEntitlementChangesDelete(ctx, shadow, scripts, result);
+		executeEntitlementChangesDelete(ctx, shadow, scripts, connOptions, result);
 
 		Collection<Operation> additionalOperations = new ArrayList<>();
 		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.DELETE, scripts, ctx.getResource(),
@@ -483,6 +484,7 @@ public class ResourceObjectConverter {
 			ProvisioningContext ctx,
 			PrismObject<ShadowType> repoShadow,
 			OperationProvisioningScriptsType scripts,
+			ConnectorOperationOptions connOptions,
 			Collection<? extends ItemDelta> itemDeltas,
 			XMLGregorianCalendar now,
 			OperationResult parentResult)
@@ -503,7 +505,8 @@ public class ResourceObjectConverter {
 			Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 			Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(repoShadow);
 	
-			if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry)) {
+			if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry,
+					relationRegistry)) {
 				if (hasChangesOnResource(itemDeltas)) {
 					LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
 							+ identifiers);
@@ -608,7 +611,7 @@ public class ResourceObjectConverter {
 				}
 				
 				// Execute primary ICF operation on this shadow
-				modifyAsyncRet = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, result);
+				modifyAsyncRet = executeModify(ctx, (preReadShadow == null ? repoShadow.clone() : preReadShadow), identifiers, operations, connOptions, result);
 				if (modifyAsyncRet != null) {
 					sideEffectOperations = modifyAsyncRet.getReturnValue();
 				}
@@ -659,7 +662,7 @@ public class ResourceObjectConverter {
 	        shadowAfter = executeEntitlementChangesModify(ctx, 
 	        		preReadShadow == null ? repoShadow : preReadShadow,
 	        		postReadShadow == null ? shadowAfter : postReadShadow,
-	        		scripts, allDeltas, result);
+	        		scripts, connOptions, allDeltas, result);
 			
 	        if (!sideEffectDeltas.isEmpty()) {
 				if (preReadShadow != null) {
@@ -704,7 +707,7 @@ public class ResourceObjectConverter {
 	@SuppressWarnings("rawtypes")
 	private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(ProvisioningContext ctx, 
 			PrismObject<ShadowType> currentShadow, Collection<? extends ResourceAttribute<?>> identifiers, 
-			Collection<Operation> operations, OperationResult parentResult) 
+			Collection<Operation> operations, ConnectorOperationOptions connOptions, OperationResult parentResult) 
 			throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		
 		Collection<PropertyModificationOperation> sideEffectChanges = new HashSet<>();
@@ -816,7 +819,8 @@ public class ResourceObjectConverter {
 					operationsWave = convertToReplace(ctx, operationsWave, currentShadow);
 				}
 				if (!operationsWave.isEmpty()) {
-					connectorAsyncOpRet = connector.modifyObject(objectClassDefinition, currentShadow, identifiersWorkingCopy, operationsWave, ctx, parentResult);
+					ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiersWorkingCopy);
+					connectorAsyncOpRet = connector.modifyObject(identification, currentShadow, operationsWave, connOptions, ctx, parentResult);
 					Collection<PropertyModificationOperation> sideEffects = connectorAsyncOpRet.getReturnValue();
 					if (sideEffects != null) {
 						sideEffectChanges.addAll(sideEffects);
@@ -1100,21 +1104,22 @@ public class ResourceObjectConverter {
 				ctx.getObjectClassDefinition().isSecondaryIdentifier(propertyDelta.getElementName());
 	}
 
-	private PrismObject<ShadowType> executeEntitlementChangesAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
+	private PrismObject<ShadowType> executeEntitlementChangesAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, 
+			OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		
 		Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 		
 		shadow = entitlementConverter.collectEntitlementsAsObjectOperationInShadowAdd(ctx, roMap, shadow, parentResult);
 		
-		executeEntitlements(ctx, roMap, parentResult);
+		executeEntitlements(ctx, roMap, connOptions, parentResult);
 		
 		return shadow;
 	}
 	
 	private PrismObject<ShadowType> executeEntitlementChangesModify(ProvisioningContext ctx, PrismObject<ShadowType> subjectShadowBefore,
 			PrismObject<ShadowType> subjectShadowAfter,
-            OperationProvisioningScriptsType scripts, Collection<? extends ItemDelta> subjectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions, Collection<? extends ItemDelta> subjectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 		
 		Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 		
@@ -1177,13 +1182,13 @@ public class ResourceObjectConverter {
 			}
 		}
 		
-		executeEntitlements(ctx, roMap, parentResult);
+		executeEntitlements(ctx, roMap, connOptions, parentResult);
 		
 		return subjectShadowAfter;
 	}
 	
 	private void executeEntitlementChangesDelete(ProvisioningContext ctx, PrismObject<ShadowType> subjectShadow, 
-			OperationProvisioningScriptsType scripts,
+			OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions,
 			OperationResult parentResult) throws SchemaException  {
 		
 		try {
@@ -1193,7 +1198,7 @@ public class ResourceObjectConverter {
 			entitlementConverter.collectEntitlementsAsObjectOperationDelete(ctx, roMap,
 					subjectShadow, parentResult);
 		
-			executeEntitlements(ctx, roMap, parentResult);
+			executeEntitlements(ctx, roMap, connOptions, parentResult);
 			
 		// TODO: now just log the errors, but not NOT re-throw the exception (except for some exceptions)
 		// we want the original delete to take place, throwing an exception would spoil that
@@ -1206,7 +1211,7 @@ public class ResourceObjectConverter {
 	}
 	
 	private void executeEntitlements(ProvisioningContext subjectCtx,
-			Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
+			Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap, ConnectorOperationOptions connOptions, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Excuting entitlement chanes, roMap:\n{}", DebugUtil.debugDump(roMap, 1));
@@ -1230,7 +1235,7 @@ public class ResourceObjectConverter {
 			OperationResult result = parentResult.createMinorSubresult(OPERATION_MODIFY_ENTITLEMENT);
 			try {
 				
-				executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), allIdentifiers, operations, result);
+				executeModify(entitlementCtx, entry.getValue().getCurrentShadow(), allIdentifiers, operations, connOptions, result);
 				
 				result.recordSuccess();
 				
@@ -1888,7 +1893,7 @@ public class ResourceObjectConverter {
 		}
 		ShadowType resourceObjectType = resourceObject.asObjectable();
 		
-		ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry);
+		ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry, relationRegistry);
 		
 		if (resourceObjectType.isExists() != Boolean.FALSE) {
 			resourceObjectType.setExists(true);

@@ -92,13 +92,15 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Override
-	protected void addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
+	protected PrismObject<SystemConfigurationType> addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
 			EncryptionException {
 		List<String> configLines = IOUtils.readLines(new FileReader(SYSTEM_CONFIGURATION_FILE));
 		String configString = StringUtils.join(configLines, '\n');
 		int port = startHttpServer();
 		configString = configString.replaceAll("\\$\\$port\\$\\$", Integer.toString(port));
-		repoAddObject(prismContext.parseObject(configString), initResult);
+		PrismObject<SystemConfigurationType> sysconfigObject = prismContext.parseObject(configString);
+		repoAddObject(sysconfigObject, initResult);
+		return sysconfigObject;
 	}
 
 	private int startHttpServer() throws IOException {

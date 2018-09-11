@@ -57,12 +57,14 @@ public class CertCaseOrWorkItemDto extends Selectable {
     private String objectName;
     private String targetName;
     private String deadlineAsString;
+    private QName defaultRelation;
 
     CertCaseOrWorkItemDto(@NotNull AccessCertificationCaseType _case, PageBase page) {
         this.certCase = _case;
         this.objectName = getName(_case.getObjectRef());
         this.targetName = getName(_case.getTargetRef());
         this.deadlineAsString = computeDeadlineAsString(page);
+        this.defaultRelation = page.getPrismContext().getDefaultRelation();
     }
 
     // ugly hack (for now) - we extract the name from serialization metadata
@@ -107,7 +109,7 @@ public class CertCaseOrWorkItemDto extends Selectable {
     }
 
     public ObjectReferenceType getCampaignRef() {
-        return ObjectTypeUtil.createObjectRef(getCampaign());
+        return ObjectTypeUtil.createObjectRef(getCampaign(), defaultRelation);
 	}
 
     public Long getCaseId() {

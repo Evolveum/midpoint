@@ -21,12 +21,14 @@
 <wicket:panel>
     <div class="box box-success">
         <div class="box-body no-padding">
-            <table class="table table-striped">
-                <tr wicket:id="scriptContainer">
-                    <td><wicket:message key="ScriptExecutionHandlerPanel.script"/></td>
-                    <td><textarea wicket:id="script" class="form-control input-sm" rows="15"></textarea></td>
-                </tr>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <tr wicket:id="scriptContainer">
+                        <td><wicket:message key="ScriptExecutionHandlerPanel.script"/></td>
+                        <td><textarea wicket:id="script" class="form-control input-sm" rows="15"></textarea></td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
 </wicket:panel>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -264,14 +264,14 @@ public interface ConnectorInstance {
 	 * E.g. in case of connect timeout or connection refused. Timeout during operation should not cause the
 	 * exception as something might have been done already.
 	 *
-	 * @param identifiers The set of identifiers. Their values may change as a result of the operation, e.g. when the resource object is renamed.
-	 * @param changes
-	 * @throws CommunicationException
-	 * @throws SchemaException
 	 * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
 	 */
-    AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow, Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes, StateReporter reporter,
-																  OperationResult parentResult)
+    AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
+    		ResourceObjectIdentification identification, 
+    		PrismObject<ShadowType> shadow,
+    		Collection<Operation> changes, 
+    		ConnectorOperationOptions options,
+    		StateReporter reporter, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
 			SecurityViolationException, ObjectAlreadyExistsException, ConfigurationException;
 	

@@ -140,6 +140,7 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(AccessCertificationDefinitionType jaxb, RAccessCertificationDefinition repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
@@ -148,7 +149,7 @@ public class RAccessCertificationDefinition extends RObject<AccessCertificationD
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHandlerUri(jaxb.getHandlerUri());
-        repo.setOwnerRefDefinition(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
+        repo.setOwnerRefDefinition(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.relationRegistry));
         repo.setLastCampaignStartedTimestamp(jaxb.getLastCampaignStartedTimestamp());
         repo.setLastCampaignClosedTimestamp(jaxb.getLastCampaignClosedTimestamp());
     }

@@ -41,19 +41,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.AdminGuiConfigTypeUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.LifecycleUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
@@ -108,6 +105,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private MappingFactory mappingFactory;
 	@Autowired private MappingEvaluator mappingEvaluator;
 	@Autowired private SecurityHelper securityHelper;
@@ -238,6 +236,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 							.channel(null)
 							.objectResolver(objectResolver)
 							.systemObjectCache(systemObjectCache)
+							.relationRegistry(relationRegistry)
 							.prismContext(prismContext)
 							.mappingFactory(mappingFactory)
 							.mappingEvaluator(mappingEvaluator)
@@ -282,7 +281,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 						}
 						for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
 							if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
-									&& DeputyUtils.isDelegationPath(target.getAssignmentPath())) {
+									&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
 								List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
 								principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
 										(UserType) target.getTarget().asObjectable(), limitations));

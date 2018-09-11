@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ public interface S_ItemEntry {
     S_ValuesEntry item(ItemPath path, ItemDefinition itemDefinition);
 
     List<ObjectDelta<?>> asObjectDeltas(String oid);
-    ObjectDelta<?> asObjectDelta(String oid);
+    <O extends Objectable> ObjectDelta<O> asObjectDelta(String oid);
 
     // TEMPORARY HACK
     @SuppressWarnings("unchecked")

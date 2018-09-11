@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
@@ -124,15 +124,15 @@ public class RCaseWorkItemReference extends RReference {
 		return super.getType();
 	}
 
-	public static Set<RCaseWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
-			RCaseWorkItem owner) {
+	public static Set<RCaseWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,
+			RCaseWorkItem owner, RelationRegistry relationRegistry) {
         Set<RCaseWorkItemReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {
             return set;
         }
 
         for (ObjectReferenceType ref : list) {
-            RCaseWorkItemReference rRef = jaxbRefToRepo(ref, prismContext, owner);
+            RCaseWorkItemReference rRef = jaxbRefToRepo(ref, owner, relationRegistry);
             if (rRef != null) {
                 set.add(rRef);
             }
@@ -140,8 +140,8 @@ public class RCaseWorkItemReference extends RReference {
         return set;
     }
 
-    public static RCaseWorkItemReference jaxbRefToRepo(ObjectReferenceType reference, PrismContext prismContext,
-			RCaseWorkItem owner) {
+    public static RCaseWorkItemReference jaxbRefToRepo(ObjectReferenceType reference, RCaseWorkItem owner,
+		    RelationRegistry relationRegistry) {
         if (reference == null) {
             return null;
         }
@@ -150,7 +150,7 @@ public class RCaseWorkItemReference extends RReference {
 
         RCaseWorkItemReference repoRef = new RCaseWorkItemReference();
         repoRef.setOwner(owner);
-        RCaseWorkItemReference.copyFromJAXB(reference, repoRef);
+        RCaseWorkItemReference.fromJaxb(reference, repoRef, relationRegistry);
         return repoRef;
     }
 }

@@ -822,7 +822,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				DeltaSetTriple<? extends EvaluatedAssignmentTarget> targetsTriple = evaluatedAssignment.getRoles();
 				Collection<? extends EvaluatedAssignmentTarget> targets = targetsTriple.getNonNegativeValues();
 				for (EvaluatedAssignmentTarget target : targets) {
-					if (target.appliesToFocusWithAnyRelation()) {
+					if (target.appliesToFocusWithAnyRelation(getRelationRegistry())) {
 						assignmentInfoDtoSet.add(createAssignmentsPreviewDto(target, task, result));
 					}
 				}

@@ -35,7 +35,7 @@ public class TriggerMapper extends ContainerMapper<TriggerType, RTrigger> {
         RObject owner = (RObject) context.getOwner();
 
         try {
-            RTrigger.copyFromJAXB(input, trigger, owner, context.getRepositoryContext());
+            RTrigger.fromJaxb(input, trigger, owner, context.getRepositoryContext());
         } catch (DtoTranslationException ex) {
             throw new SystemException("Couldn't translate trigger to entity", ex);
         }

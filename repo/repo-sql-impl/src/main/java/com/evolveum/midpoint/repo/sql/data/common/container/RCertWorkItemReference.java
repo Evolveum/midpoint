@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
@@ -136,15 +136,15 @@ public class RCertWorkItemReference extends RReference {
 		return super.getType();
 	}
 
-	public static Set<RCertWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
-			RAccessCertificationWorkItem owner) {
+	public static Set<RCertWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,
+			RAccessCertificationWorkItem owner, RelationRegistry relationRegistry) {
         Set<RCertWorkItemReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {
             return set;
         }
 
         for (ObjectReferenceType ref : list) {
-            RCertWorkItemReference rRef = jaxbRefToRepo(ref, prismContext, owner);
+            RCertWorkItemReference rRef = jaxbRefToRepo(ref, owner, relationRegistry);
             if (rRef != null) {
                 set.add(rRef);
             }
@@ -152,8 +152,8 @@ public class RCertWorkItemReference extends RReference {
         return set;
     }
 
-    public static RCertWorkItemReference jaxbRefToRepo(ObjectReferenceType reference, PrismContext prismContext,
-			RAccessCertificationWorkItem owner) {
+    public static RCertWorkItemReference jaxbRefToRepo(ObjectReferenceType reference,
+		    RAccessCertificationWorkItem owner, RelationRegistry relationRegistry) {
         if (reference == null) {
             return null;
         }
@@ -162,7 +162,7 @@ public class RCertWorkItemReference extends RReference {
 
         RCertWorkItemReference repoRef = new RCertWorkItemReference();
         repoRef.setOwner(owner);
-        RCertWorkItemReference.copyFromJAXB(reference, repoRef);
+        RCertWorkItemReference.fromJaxb(reference, repoRef, relationRegistry);
         return repoRef;
     }
 }

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -76,29 +77,15 @@ public class ObjectUpdater {
 	@Qualifier("repositoryService")
 	private RepositoryService repositoryService;
 
-    @Autowired
-    private BaseHelper baseHelper;
-
-    @Autowired
-    private ObjectRetriever objectRetriever;
-
-    @Autowired
-    private LookupTableHelper lookupTableHelper;
-
-    @Autowired
-    private CertificationCaseHelper caseHelper;
-
-    @Autowired
-    private OrgClosureManager closureManager;
-
-    @Autowired
-    private ObjectDeltaUpdater objectDeltaUpdater;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private ExtItemDictionary extItemDictionary;
+    @Autowired private BaseHelper baseHelper;
+    @Autowired private ObjectRetriever objectRetriever;
+    @Autowired private LookupTableHelper lookupTableHelper;
+    @Autowired private CertificationCaseHelper caseHelper;
+    @Autowired private OrgClosureManager closureManager;
+    @Autowired private ObjectDeltaUpdater objectDeltaUpdater;
+    @Autowired private PrismContext prismContext;
+    @Autowired private RelationRegistry relationRegistry;
+    @Autowired private ExtItemDictionary extItemDictionary;
 
     public <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
             OperationResult result) throws ObjectAlreadyExistsException, SchemaException {
@@ -117,7 +104,7 @@ public class ObjectUpdater {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Object\n{}", object.debugDump());
             }
-            ObjectTypeUtil.normalizeAllRelations(object);
+            ObjectTypeUtil.normalizeAllRelations(object, relationRegistry);
 
             LOGGER.trace("Translating JAXB to data type.");
             PrismIdentifierGenerator.Operation operation = options.isOverwrite() ?
@@ -432,7 +419,7 @@ public class ObjectUpdater {
 
                     // merge and update object
                     LOGGER.trace("Translating JAXB to data type.");
-                    ObjectTypeUtil.normalizeAllRelations(prismObject);
+                    ObjectTypeUtil.normalizeAllRelations(prismObject, relationRegistry);
                     PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
                     RObject rObject = createDataObjectFromJAXB(prismObject, idGenerator);
                     rObject.setVersion(rObject.getVersion() + 1);
@@ -547,9 +534,12 @@ public class ObjectUpdater {
         Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
         try {
             rObject = clazz.newInstance();
+            // Note that methods named "copyFromJAXB" that were _not_ called from this point were renamed e.g. to "fromJaxb",
+            // in order to avoid confusion with dynamically called "copyFromJAXB" method.
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz,
                     RepositoryContext.class, IdGeneratorResult.class);
-            method.invoke(clazz, object, rObject, new RepositoryContext(repositoryService, prismContext, extItemDictionary), generatorResult);
+            method.invoke(clazz, object, rObject, new RepositoryContext(repositoryService, prismContext, relationRegistry,
+                    extItemDictionary), generatorResult);
         } catch (Exception ex) {
             SerializationRelatedException serializationException = ExceptionUtil.findCause(ex, SerializationRelatedException.class);
             if (serializationException != null) {

@@ -364,7 +364,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
 		DropDownChoicePanel<RelationTypes> relationPanel = (DropDownChoicePanel<RelationTypes>) get(ID_RELATION_CONTAINER).get(ID_RELATION);
 		RelationTypes relation = relationPanel.getModel().getObject();
 		if (relation == null) {
-			return SchemaConstants.ORG_DEFAULT;
+			return WebComponentUtil.getDefaultRelationOrFail();
 		}
 		return relation.getRelation();
 	}

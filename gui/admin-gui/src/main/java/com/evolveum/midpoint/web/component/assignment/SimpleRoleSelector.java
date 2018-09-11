@@ -160,7 +160,7 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
             }
         }
 
-        AssignmentType newAssignment = ObjectTypeUtil.createAssignmentTo(role);
+//        AssignmentType newAssignment = ObjectTypeUtil.createAssignmentTo(role, prismContext);
         //TODO
         //create ContainerValueWrapper for new assignment
 //        getAssignmentModel().getObject().add(newAssignment);

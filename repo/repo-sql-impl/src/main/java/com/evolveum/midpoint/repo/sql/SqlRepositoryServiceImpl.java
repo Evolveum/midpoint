@@ -129,6 +129,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private PrismContext prismContext;
+    @Autowired private RelationRegistry relationRegistry;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
 
@@ -1056,7 +1057,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			if (filterEvaluator != null) {
 				specFilter = filterEvaluator.evaluate(specFilter);
 			}
-            ObjectTypeUtil.normalizeFilter(specFilter);		//  we assume object is already normalized
+            ObjectTypeUtil.normalizeFilter(specFilter, relationRegistry);		//  we assume object is already normalized
             if (specFilter != null) {
 				ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
 			}
@@ -1121,13 +1122,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		fullTextSearchConfiguration = fullTextSearch;
 	}
 
-	@Override
+    @Override
 	public FullTextSearchConfigurationType getFullTextSearchConfiguration() {
 		return fullTextSearchConfiguration;
 	}
 
 	@Override
 	public void postInit(OperationResult result) throws SchemaException {
+
+        LOGGER.info("Executing repository postInit method");
 
 		SystemConfigurationType systemConfiguration;
 		try {
@@ -1152,6 +1155,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 		}
 		applyFullTextSearchConfiguration(systemConfiguration.getFullTextSearch());
+		relationRegistry.applyRelationConfiguration(systemConfiguration);
         SystemConfigurationTypeUtil.applyOperationResultHandling(systemConfiguration);
         applyPrismConfiguration(systemConfiguration);
 	}

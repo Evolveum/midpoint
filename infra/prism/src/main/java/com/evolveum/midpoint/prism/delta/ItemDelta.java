@@ -1178,9 +1178,28 @@ public abstract class ItemDelta<V extends PrismValue,D extends ItemDefinition> i
 				mergeValuesToDelete(PrismValue.cloneValues(deltaToMerge.valuesToDelete));
 			}
 		}
+		
+		if (CollectionUtils.isNotEmpty(deltaToMerge.estimatedOldValues)) {
+			mergeOldValues(PrismValue.cloneValues(deltaToMerge.estimatedOldValues));
+		}
+		
 		// We do not want to clean up the sets during merging (e.g. in removeValue methods) because the set
 		// may become empty and the a values may be added later. So just clean it up when all is done.
 		removeEmptySets();
+	}
+	
+	private void mergeOldValues(Collection<V> oldValues) {
+		if (estimatedOldValues == null) {
+			estimatedOldValues = newValueCollection();
+		}
+		
+		for (V oldValue : oldValues) {
+			if (containsEquivalentValue(estimatedOldValues, oldValue)) {
+				continue;
+			}
+			
+			estimatedOldValues.add(oldValue);
+		}
 	}
 
 	private void removeEmptySets() {

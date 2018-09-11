@@ -161,7 +161,9 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         ShadowKindType kind = getKindValue();
         String intent = getIntentValue();
         selectedObjects.forEach(selectedObject -> {
-            assignmentList.put(selectedObject.getOid(), ObjectTypeUtil.createAssignmentWithConstruction(selectedObject.asPrismObject(), kind, intent));
+            assignmentList.put(selectedObject.getOid(),
+                    ObjectTypeUtil.createAssignmentWithConstruction(
+                            selectedObject.asPrismObject(), kind, intent, getPageBase().getPrismContext()));
         });
         return assignmentList;
     }

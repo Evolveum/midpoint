@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
@@ -359,9 +360,11 @@ public class PageDebugView extends PageAdminConfiguration {
     }
     
     
- class DebugViewOptions {
+ class DebugViewOptions implements Serializable {
     	
-    	private final static String ID_ENCRYPT = "encrypt";
+	 	private static final long serialVersionUID = 1L;
+	 	
+		private final static String ID_ENCRYPT = "encrypt";
     	private final static String ID_SAVE_AS_RAW = "saveAsRaw";
     	private final static String ID_REEVALUATE_SEARCH_FILTERS = "reevaluateSearchFilters";
     	private final static String ID_VALIDATE_SCHEMA = "validateSchema";

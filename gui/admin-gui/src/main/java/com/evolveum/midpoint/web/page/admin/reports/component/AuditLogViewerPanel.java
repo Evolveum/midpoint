@@ -51,7 +51,6 @@ import org.apache.wicket.model.util.ListModel;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
-import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -363,7 +362,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 	// Serializable as it becomes part of panel which is serialized
     private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer =
     		(Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
-        		ObjectTypeUtil.createObjectRef(o);
+        		ObjectTypeUtil.createObjectRef(o, getPageBase().getPrismContext());
 
 	// Serializable as it becomes part of panel which is serialized
     private Function<ObjectType, String> stringTransformer =

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -90,11 +91,12 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
 	}
 
 	@Override
-	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
+	public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+			PrismContext prismContext) {
 		EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
 		fillCommonContent(rv);
 		if (options.getTriggeredRulesStorageStrategy() == FULL) {
-			rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
+			rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget, prismContext));
 			rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
 			if (conflictingPath != null) {
 				rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));

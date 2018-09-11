@@ -276,10 +276,10 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 		ObjectType focus = MiscDataUtil.getFocusObjectNewOrOld(modelContext);
 		ObjectDelta<?> primaryDelta = modelContext.getFocusContext().getPrimaryDelta();
 		if (primaryDelta != null && primaryDelta.isAdd()) {
-			ObjectReferenceType ref = ObjectTypeUtil.createObjectRefWithFullObject(focus);
+			ObjectReferenceType ref = ObjectTypeUtil.createObjectRefWithFullObject(focus, getPrismContext());
 			wfContext.setObjectRef(ref);
 		} else {
-			setObjectRef(ObjectTypeUtil.createObjectRef(focus), result);
+			setObjectRef(ObjectTypeUtil.createObjectRef(focus, getPrismContext()), result);
 		}
 	}
 
@@ -289,7 +289,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 	}
 
     public void setRequesterRef(PrismObject<UserType> requester) {
-		wfContext.setRequesterRef(createObjectRef(requester));
+		wfContext.setRequesterRef(createObjectRef(requester, getPrismContext()));
     }
 
     public void setProcessInterfaceBean(ProcessMidPointInterface processInterfaceBean) {
@@ -373,7 +373,7 @@ public class WfTaskCreationInstruction<PRC extends ProcessorSpecificContent, PCS
 
 		if (taskObject != null) {
 			//noinspection unchecked
-			task.setObjectRef(ObjectTypeUtil.createObjectRef(taskObject));
+			task.setObjectRef(ObjectTypeUtil.createObjectRef(taskObject, getPrismContext()));
 		} else if (parentTask != null && parentTask.getObjectRef() != null) {
 			task.setObjectRef(parentTask.getObjectRef().clone());
 		}

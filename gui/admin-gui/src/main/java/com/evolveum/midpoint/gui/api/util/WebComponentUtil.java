@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.normalizeRelation;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -41,8 +40,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -52,13 +49,10 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -66,8 +60,6 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -138,8 +130,6 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -205,7 +195,11 @@ public final class WebComponentUtil {
 	private static final String KEY_BOOLEAN_TRUE = "Boolean.TRUE";
 	private static final String KEY_BOOLEAN_FALSE = "Boolean.FALSE";
 
-	private static DatatypeFactory df = null;
+	/**
+	 * To be used only for tests when there's no MidpointApplication.
+	 * (Quite a hack. Replace eventually by a more serious solution.)
+	 */
+	private static RelationRegistry staticallyProvidedRelationRegistry;
 
 	private static Map<Class<?>, Class<? extends PageBase>> objectDetailsPageMap;
 
@@ -478,14 +472,6 @@ public final class WebComponentUtil {
 
 		public String getChannel() {
 			return channel;
-		}
-	}
-
-	static {
-		try {
-			df = DatatypeFactory.newInstance();
-		} catch (DatatypeConfigurationException dce) {
-			throw new IllegalStateException("Exception while obtaining Datatype Factory instance", dce);
 		}
 	}
 
@@ -1113,8 +1099,8 @@ public final class WebComponentUtil {
 		if (prismContainerValue.canRepresent(AssignmentType.class)) {
 			AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
 			if (assignmentType.getTargetRef() != null){
-				ObjectReferenceType assignemntTargetRef = assignmentType.getTargetRef();
-				return getName(assignemntTargetRef) + " - " + normalizeRelation(assignemntTargetRef.getRelation()).getLocalPart();
+				ObjectReferenceType assignmentTargetRef = assignmentType.getTargetRef();
+				return getName(assignmentTargetRef) + " - " + normalizeRelation(assignmentTargetRef.getRelation()).getLocalPart();
 			} else {
 				return "AssignmentTypeDetailsPanel.containerTitle";
 			}
@@ -1190,6 +1176,10 @@ public final class WebComponentUtil {
 			return cvalClass.getSimpleName() + ".details";
 		}
 		return "ContainerPanel.containerProperties";
+	}
+
+	public static QName normalizeRelation(QName relation) {
+		return getRelationRegistry().normalizeRelation(relation);
 	}
 
 	public static String getDisplayNameOrName(PrismObject object) {
@@ -1667,6 +1657,79 @@ public final class WebComponentUtil {
 		}
 	}
 
+	// can this implementation be made more efficient? [pm]
+	@SuppressWarnings("WeakerAccess")
+	public static boolean isOfKind(QName relation, RelationKindType kind) {
+		return getRelationRegistry().isOfKind(relation, kind);
+	}
+
+	protected static RelationRegistry getRelationRegistry() {
+		if (staticallyProvidedRelationRegistry != null) {
+			return staticallyProvidedRelationRegistry;
+		} else {
+			return MidPointApplication.get().getRelationRegistry();
+		}
+	}
+
+	public static boolean isManagerRelation(QName relation) {
+		return isOfKind(relation, RelationKindType.MANAGER);
+	}
+
+	public static boolean isDefaultRelation(QName relation) {
+		return getRelationRegistry().isDefault(relation);
+	}
+
+	@SuppressWarnings("WeakerAccess")
+	public static QName getDefaultRelation() {
+		return getRelationRegistry().getDefaultRelation();
+	}
+
+	@NotNull
+	public static QName getDefaultRelationOrFail() {
+		QName relation = getDefaultRelation();
+		if (relation != null) {
+			return relation;
+		} else {
+			throw new IllegalStateException("No default relation is defined");
+		}
+	}
+
+	@SuppressWarnings("WeakerAccess")
+	@Nullable
+	public static QName getDefaultRelationFor(RelationKindType kind) {
+		return getRelationRegistry().getDefaultRelationFor(kind);
+	}
+
+	@NotNull
+	public static QName getDefaultRelationOrFail(RelationKindType kind) {
+		QName relation = getDefaultRelationFor(kind);
+		if (relation != null) {
+			return relation;
+		} else {
+			throw new IllegalStateException("No default relation for kind " + kind);
+		}
+	}
+
+	@NotNull
+	public static String getRelationHeaderLabelKey(QName relation) {
+		String label = getRelationHeaderLabelKeyIfKnown(relation);
+		if (label != null) {
+			return label;
+		} else {
+			return relation != null ? relation.getLocalPart() : "default";
+		}
+	}
+
+	@Nullable
+	public static String getRelationHeaderLabelKeyIfKnown(QName relation) {
+		RelationDefinitionType definition = getRelationRegistry().getRelationDefinition(relation);
+		if (definition != null && definition.getDisplay() != null && definition.getDisplay().getLabel() != null) {
+			return definition.getDisplay().getLabel();
+		} else {
+			return null;
+		}
+	}
+
 	public static String createUserIcon(PrismObject<UserType> object) {
 		UserType user = object.asObjectable();
 
@@ -1688,7 +1751,7 @@ public final class WebComponentUtil {
 
 		boolean isManager = false;
 		for (ObjectReferenceType parentOrgRef : user.getParentOrgRef()) {
-			if (ObjectTypeUtil.isManagerRelation(parentOrgRef.getRelation())) {
+			if (isManagerRelation(parentOrgRef.getRelation())) {
 				isManager = true;
 				break;
 			}
@@ -2003,7 +2066,7 @@ public final class WebComponentUtil {
 		List<ObjectReferenceType> parentOrgRefs = objectType.getParentOrgRef();
 
 		for (ObjectReferenceType ref : parentOrgRefs) {
-			if (ObjectTypeUtil.isManagerRelation(ref.getRelation())) {
+			if (isManagerRelation(ref.getRelation())) {
 				return true;
 			}
 		}
@@ -2426,7 +2489,8 @@ public final class WebComponentUtil {
 		return true;
 	}
 
-	public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName, ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
+	public static <AR extends AbstractRoleType> IModel<String> createAbstractRoleConfirmationMessage(String actionName,
+			ColumnMenuAction action, MainObjectListPanel<AR> abstractRoleTable, PageBase pageBase) {
 		List<AR> selectedRoles =  new ArrayList<>();
 		if (action.getRowModel() == null) {
 			selectedRoles.addAll(abstractRoleTable.getSelectedObjects());
@@ -2436,7 +2500,11 @@ public final class WebComponentUtil {
 		OperationResult result = new OperationResult("Search Members");
 		boolean atLeastOneWithMembers = false;
 		for (AR selectedRole : selectedRoles) {
-			ObjectQuery query = QueryBuilder.queryFor(FocusType.class, pageBase.getPrismContext()).item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(ObjectTypeUtil.createObjectRef(selectedRole).asReferenceValue()).maxSize(1).build();
+			ObjectQuery query = QueryBuilder.queryFor(FocusType.class, pageBase.getPrismContext())
+					.item(FocusType.F_ROLE_MEMBERSHIP_REF)// TODO MID-3581
+							.ref(ObjectTypeUtil.createObjectRef(selectedRole, pageBase.getPrismContext()).asReferenceValue())
+					.maxSize(1)
+					.build();
 			List<PrismObject<FocusType>> members = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
 			if (CollectionUtils.isNotEmpty(members)) {
 				atLeastOneWithMembers = true;
@@ -2518,32 +2586,28 @@ public final class WebComponentUtil {
 	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, ModelServiceLocator pageBase){
 		List<QName> relationsList = new ArrayList<>();
 		List<RelationDefinitionType> defList = getRelationDefinitions(pageBase);
-		if (defList != null) {
-			defList.forEach(def -> {
-				if (def.getCategory() != null && def.getCategory().contains(category)) {
-					relationsList.add(def.getRef());
-				}
-			});
-		}
+		defList.forEach(def -> {
+			if (def.getCategory() != null && def.getCategory().contains(category)) {
+				relationsList.add(def.getRef());
+			}
+		});
 		return relationsList;
 	}
 	
 	public static List<QName> getAllRelations(ModelServiceLocator pageBase) {
-		List<RelationDefinitionType> allRelationdefinitions = getRelationDefinitions(pageBase);
-		List<QName> allRelationsQName = new ArrayList<>(allRelationdefinitions.size());
-		allRelationdefinitions.stream().forEach(relation -> allRelationsQName.add(relation.getRef()));
+		List<RelationDefinitionType> allRelationDefinitions = getRelationDefinitions(pageBase);
+		List<QName> allRelationsQName = new ArrayList<>(allRelationDefinitions.size());
+		allRelationDefinitions.forEach(relation -> allRelationsQName.add(relation.getRef()));
 		return allRelationsQName;
 	}
 
-	public static List<RelationDefinitionType> getRelationDefinitions(ModelServiceLocator pageBase){
-		OperationResult result = new OperationResult("get relation definitions");
-		try {
-			return pageBase.getModelInteractionService().getRelationDefinitions(result);
-		} catch (ObjectNotFoundException | SchemaException ex){
-			result.computeStatus();
-			LOGGER.error("Unable to load relation definitions, " + ex.getLocalizedMessage());
-		}
-		return null;
+	@NotNull
+	public static List<RelationDefinitionType> getRelationDefinitions(ModelServiceLocator pageBase) {
+		return pageBase.getModelInteractionService().getRelationDefinitions();
+	}
+
+	public static RelationDefinitionType getRelationDefinition(QName relation) {
+		return getRelationRegistry().getRelationDefinition(relation);
 	}
 
 	public static <T> DropDownChoice createTriStateCombo(String id, IModel<Boolean> model) {
@@ -2728,7 +2792,16 @@ public final class WebComponentUtil {
 		});
 		return menuItems;
 	}
-	
+
+	@SuppressWarnings("unused")
+	public static RelationRegistry getStaticallyProvidedRelationRegistry() {
+		return staticallyProvidedRelationRegistry;
+	}
+
+	public static void setStaticallyProvidedRelationRegistry(RelationRegistry staticallyProvidedRelationRegistry) {
+		WebComponentUtil.staticallyProvidedRelationRegistry = staticallyProvidedRelationRegistry;
+	}
+
 	public static <IW extends ItemWrapper> String loadHelpText(IModel<IW> model, Panel panel) {
 		if(model == null || model.getObject() == null) {
 			return null;

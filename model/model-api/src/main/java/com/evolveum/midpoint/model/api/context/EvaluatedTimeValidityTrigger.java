@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,8 @@ public class EvaluatedTimeValidityTrigger extends EvaluatedPolicyRuleTrigger<Tim
 	}
 
 	@Override
-	public EvaluatedTimeValidityTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
+	public EvaluatedTimeValidityTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+			PrismContext prismContext) {
 		EvaluatedTimeValidityTriggerType rv = new EvaluatedTimeValidityTriggerType();
 		fillCommonContent(rv);
 		return rv;

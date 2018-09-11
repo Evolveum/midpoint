@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -75,11 +76,12 @@ public class EvaluatedTransitionTrigger extends EvaluatedPolicyRuleTrigger<Trans
 	}
 
 	@Override
-	public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
+	public EvaluatedTransitionTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+			PrismContext prismContext) {
 		EvaluatedTransitionTriggerType rv = new EvaluatedTransitionTriggerType();
 		fillCommonContent(rv);
 		if (!options.isRespectFinalFlag() || !isFinal()) {
-			innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(options)));
+			innerTriggers.forEach(t -> rv.getEmbedded().add(t.toEvaluatedPolicyRuleTriggerType(options, prismContext)));
 		}
 		return rv;
 	}

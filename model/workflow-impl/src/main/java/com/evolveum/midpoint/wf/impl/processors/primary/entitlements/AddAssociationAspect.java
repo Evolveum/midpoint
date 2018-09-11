@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,7 +248,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
             instruction.setDeltasToProcesses(objectTreeDeltas);
 
             instruction.setObjectRef(modelContext, result);     // TODO - or should we take shadow as an object?
-            instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target), result);
+            instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target, prismContext), result);
 
             // set the names of midPoint task and activiti process instance
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and execution " : "";
@@ -270,7 +270,7 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
         ResourceShadowDiscriminator shadowDiscriminator =
                 ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(addition.getResourceShadowDiscriminator());
         String projectionOid = modelContext.findProjectionContext(shadowDiscriminator).getOid();
-        ObjectDelta<ShadowType> objectDelta = (ObjectDelta<ShadowType>) DeltaBuilder.deltaFor(ShadowType.class, prismContext)
+        ObjectDelta<ShadowType> objectDelta = DeltaBuilder.deltaFor(ShadowType.class, prismContext)
                 .item(ShadowType.F_ASSOCIATION).add(addition.getAssociation().clone())
                 .asObjectDelta(projectionOid);
 

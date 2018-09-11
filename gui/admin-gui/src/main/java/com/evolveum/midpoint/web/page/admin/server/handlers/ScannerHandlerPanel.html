@@ -21,12 +21,14 @@
 <wicket:panel>
     <div class="box box-success">
         <div class="box-body no-padding">
-            <table class="table table-striped">
-                <tr wicket:id="lastScanTimestampContainer">
-                    <td><wicket:message key="ScannerHandlerPanel.lastScanTimestamp"/></td>
-                    <td><span wicket:id="lastScanTimestamp"/></td>
-                </tr>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <tr wicket:id="lastScanTimestampContainer">
+                        <td><wicket:message key="ScannerHandlerPanel.lastScanTimestamp"/></td>
+                        <td><span wicket:id="lastScanTimestamp"/></td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
 </wicket:panel>

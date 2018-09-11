@@ -44,19 +44,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @DirtiesContext
 public class TestConnectorManager extends AbstractIntegrationTest {
 
-	private static final String CONNID_FRAMEWORK_VERSION = "1.4.3.41";
+	private static final String CONNID_FRAMEWORK_VERSION = "1.4.3.43";
 
-	@Autowired
-	private ProvisioningService provisioningService;
-
-	@Autowired
-	private ConnectorManager connectorManager;
+	@Autowired private ProvisioningService provisioningService;
+	@Autowired private ConnectorManager connectorManager;
 
 	private static Trace LOGGER = TraceManager.getTrace(TestConnectorManager.class);
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		// do NOT postInit proviosioning. postInit would start connector disovery
+		// do NOT postInit provisioning. postInit would start connector discovery
 		// we want to test the state before discovery
 //		provisioningService.postInit(initResult);
 	}

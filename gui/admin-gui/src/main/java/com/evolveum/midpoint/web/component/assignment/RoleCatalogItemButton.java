@@ -318,7 +318,7 @@ public class RoleCatalogItemButton extends BasePanel<AssignmentEditorDto>{
     protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
     }
 
-    protected QName getNewAssignmentRelation(){
-        return SchemaConstants.ORG_DEFAULT;
+    protected QName getNewAssignmentRelation() {
+        return WebComponentUtil.getDefaultRelationOrFail();
     }
 }

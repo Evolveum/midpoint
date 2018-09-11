@@ -297,12 +297,9 @@ public class AssignmentsUtil {
     		return;
     	}
 
-    	RelationDefinitionType relationDef = ObjectTypeUtil.findRelationDefinition(
-    	        WebComponentUtil.getRelationDefinitions(pageBase),
-                assignment.getTargetRef().getRelation());
-        if (relationDef != null && relationDef.getDisplay() != null &&
-                !relationDef.getDisplay().getLabel().isEmpty()) {
-            sb.append(" - "  + pageBase.createStringResource(relationDef.getDisplay().getLabel()).getString());
+	    String labelKey = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(assignment.getTargetRef().getRelation());
+        if (StringUtils.isNotEmpty(labelKey)) {
+            sb.append(" - ").append(pageBase.createStringResource(labelKey).getString());
         }
 
     }

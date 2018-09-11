@@ -19,15 +19,9 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -35,8 +29,6 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -93,8 +85,7 @@ public abstract class MultiTypesMemberPopupTabPanel<O extends ObjectType> extend
     @Override
     protected ObjectDelta prepareDelta(){
         Class classType = WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getObjectType().getTypeQName());
-        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getAbstractRoleTypeObject());
-        ref.setRelation(getRelationValue());
+        ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(getAbstractRoleTypeObject(), getRelationValue());
         return ObjectDelta.createModificationAddReference(classType, "fakeOid",
                 ObjectType.F_PARENT_ORG_REF, getPageBase().getPrismContext(),
                 ref.asReferenceValue());

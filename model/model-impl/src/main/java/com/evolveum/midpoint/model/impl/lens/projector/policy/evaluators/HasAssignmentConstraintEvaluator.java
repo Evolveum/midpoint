@@ -192,8 +192,8 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
 				? Collections.singletonList(primaryRelationToMatch)
 				: new ArrayList<>(secondaryRelationsToMatch);
 		if (relationsToMatch.isEmpty()) {
-			relationsToMatch.add(SchemaConstants.ORG_DEFAULT);
+			relationsToMatch.add(prismContext.getDefaultRelation());
 		}
-		return ObjectTypeUtil.relationMatches(relationsToMatch, assignment.getTargetRef().getRelation());
+		return prismContext.relationMatches(relationsToMatch, assignment.getTargetRef().getRelation());
 	}
 }

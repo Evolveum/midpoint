@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -138,7 +137,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		final String TEST_NAME = "test200UserDeltaBasic";
 		Task task = createTask(TEST_NAME);
 
-		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<?> delta = deltaFor(UserType.class)
 				.item(UserType.F_NAME).replace("admin")
 				.asObjectDelta(USER_ADMINISTRATOR_OID);
 
@@ -164,7 +163,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		ass1.getActivation().setValidTo(XmlTypeConverter.createXMLGregorianCalendar(2017, 1, 1, 0, 0, 0));
 		ass1.setTargetRef(createObjectRef(ROLE_SUPERUSER_OID, ROLE));
 
-		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<?> delta = deltaFor(UserType.class)
 				.item(UserType.F_NAME).replace("admin")
 				.item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.ENABLED)
 				.item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_TARGET_REF).replace(createObjectRef("123", ROLE).asReferenceValue())
@@ -188,7 +187,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		final String TEST_NAME = "test212UserDeltaContainerSimple";
 		Task task = createTask(TEST_NAME);
 
-		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<?> delta = deltaFor(UserType.class)
 				.item(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).replace(ActivationStatusType.ENABLED)
 				.item(UserType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
 				.asObjectDelta(USER_ADMINISTRATOR_OID);
@@ -218,7 +217,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		ActivationType act1 = new ActivationType(prismContext);
 		act1.setAdministrativeStatus(ActivationStatusType.DISABLED);
 
-		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<?> delta = deltaFor(UserType.class)
 				.item(UserType.F_NAME).replace("admin")
 				.item(UserType.F_ACTIVATION).replace(act1)
 				.item(UserType.F_ASSIGNMENT).replace(ass1)
@@ -246,7 +245,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		AssignmentType ass2 = new AssignmentType(prismContext);
 		ass2.setId(99999L);
 
-		ObjectDelta<?> delta = DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<?> delta = deltaFor(UserType.class)
 				.item(UserType.F_NAME).replace("admin")
 				.item(UserType.F_ASSIGNMENT).delete(ass1, ass2)
 				.asObjectDelta(USER_ADMINISTRATOR_OID);
@@ -274,7 +273,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		ass1.setConstruction(new ConstructionType(prismContext));
 		ass1.getConstruction().setResourceRef(createObjectRef(RESOURCE_DUMMY_OID, RESOURCE));
 
-		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(ass1)
 				.asObjectDelta(USER_JACK_OID);
 
@@ -309,7 +308,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		ass1.setConstruction(new ConstructionType());
 		ass1.getConstruction().setResourceRef(createObjectRef(RESOURCE_DUMMY_OID, RESOURCE));
 
-		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(ass1)
 				.asObjectDelta(USER_JACK_OID);
 
@@ -332,7 +331,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		final String TEST_NAME = "test307UserDisablePreview";
 		Task task = createTask(TEST_NAME);
 
-		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = deltaFor(UserType.class)
 				.item(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(USER_JACK_OID);
 
@@ -381,7 +380,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		assertEquals("wrong # of linkrefs", 1, jack.getLinkRef().size());
 		dummyAccountOid = jack.getLinkRef().get(0).getOid();
 
-		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = deltaFor(UserType.class)
 				.item(UserType.F_LINK_REF).delete(createObjectRef(dummyAccountOid, SHADOW).asReferenceValue())
 				.asObjectDelta(USER_JACK_OID);
 
@@ -401,7 +400,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		final String TEST_NAME = "test320UserLinkRefAdd";
 		Task task = createTask(TEST_NAME);
 
-		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = deltaFor(UserType.class)
 				.item(UserType.F_LINK_REF).add(createObjectRef(dummyAccountOid, SHADOW).asReferenceValue())
 				.asObjectDelta(USER_JACK_OID);
 
@@ -421,7 +420,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		final String TEST_NAME = "test330UserLinkRefReplaceNoOp";
 		Task task = createTask(TEST_NAME);
 
-		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = deltaFor(UserType.class)
 				.item(UserType.F_LINK_REF).replace(createObjectRef(dummyAccountOid, SHADOW).asReferenceValue())
 				.asObjectDelta(USER_JACK_OID);
 
@@ -441,7 +440,7 @@ public class TestVisualizer extends AbstractInternalModelIntegrationTest {
 		final String TEST_NAME = "test340UserLinkRefReplaceOp";
 		Task task = createTask(TEST_NAME);
 
-		ObjectDelta<UserType> delta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> delta = deltaFor(UserType.class)
 				.item(UserType.F_LINK_REF).replace(createObjectRef("777", SHADOW).asReferenceValue())
 				.asObjectDelta(USER_JACK_OID);
 

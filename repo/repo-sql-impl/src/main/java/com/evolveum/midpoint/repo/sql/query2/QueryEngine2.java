@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.query2.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,11 +45,14 @@ public class QueryEngine2 {
     private SqlRepositoryConfiguration repoConfiguration;
     private ExtItemDictionary extItemDictionary;
     private PrismContext prismContext;
+    private final RelationRegistry relationRegistry;
 
-    public QueryEngine2(SqlRepositoryConfiguration config, ExtItemDictionary extItemDictionary, PrismContext prismContext) {
+    public QueryEngine2(SqlRepositoryConfiguration config, ExtItemDictionary extItemDictionary, PrismContext prismContext,
+            RelationRegistry relationRegistry) {
         this.repoConfiguration = config;
         this.extItemDictionary = extItemDictionary;
         this.prismContext = prismContext;
+        this.relationRegistry = relationRegistry;
     }
 
     public RQuery interpret(ObjectQuery query, Class<? extends Containerable> type,
@@ -56,7 +60,7 @@ public class QueryEngine2 {
             boolean countingObjects, Session session) throws QueryException {
 
         QueryInterpreter2 interpreter = new QueryInterpreter2(repoConfiguration, extItemDictionary);
-        RootHibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, countingObjects, session);
+        RootHibernateQuery hibernateQuery = interpreter.interpret(query, type, options, prismContext, relationRegistry, countingObjects, session);
         Query hqlQuery = hibernateQuery.getAsHqlQuery(session);
 
         if (LOGGER.isTraceEnabled()) {

@@ -31,7 +31,7 @@ public class OperationalStateMapper implements Mapper<OperationalStateType, ROpe
     public ROperationalState map(OperationalStateType input, MapperContext context) {
         try {
             ROperationalState rstate = new ROperationalState();
-            ROperationalState.copyFromJAXB(input, rstate);
+            ROperationalState.fromJaxb(input, rstate);
             return rstate;
         } catch (DtoTranslationException ex) {
             throw new SystemException("Couldn't translate operational state to entity", ex);

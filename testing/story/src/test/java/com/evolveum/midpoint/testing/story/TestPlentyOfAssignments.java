@@ -748,7 +748,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 	private void assertRoleMembershipRef(PrismObject<UserType> user, String roleOid, QName relation) {
 		List<ObjectReferenceType> roleMembershipRefs = user.asObjectable().getRoleMembershipRef();
 		for (ObjectReferenceType roleMembershipRef: roleMembershipRefs) {
-			if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, RoleType.COMPLEX_TYPE, relation)) {
+			if (ObjectTypeUtil.referenceMatches(roleMembershipRef, roleOid, RoleType.COMPLEX_TYPE, relation, prismContext)) {
 				return;
 			}
 		}

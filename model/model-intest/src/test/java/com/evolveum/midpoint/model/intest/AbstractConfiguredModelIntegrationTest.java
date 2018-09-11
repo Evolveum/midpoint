@@ -41,10 +41,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.AssertJUnit;
 import org.testng.IHookCallBack;
@@ -296,6 +293,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final File ROLE_ADMINS_FILE = new File(COMMON_DIR, "role-admins.xml");
 	protected static final String ROLE_ADMINS_OID = "be835a70-e3f4-11e6-82cb-9b47ecb57v15";
+	
+	protected static final File ROLE_END_USER_FILE = new File(COMMON_DIR, "role-end-user.xml");
+	protected static final String ROLE_END_USER_OID = "00000000-0000-0000-0000-00000000aa0f";
 	
 	public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -557,16 +557,20 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		ManualConnectorInstance.setRandomDelayRange(0);
 
 		// System Configuration
+		PrismObject<SystemConfigurationType> configuration;
 		try {
 			File systemConfigurationFile = getSystemConfigurationFile();
 			if (systemConfigurationFile != null) {
-				repoAddObjectFromFile(systemConfigurationFile, initResult);
+				configuration = repoAddObjectFromFile(systemConfigurationFile, initResult);
 			} else {
-				addSystemConfigurationObject(initResult);
+				configuration = addSystemConfigurationObject(initResult);
 			}
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
+		}
+		if (configuration != null) {
+			relationRegistry.applyRelationConfiguration(configuration.asObjectable());
 		}
 
 		// Users
@@ -588,8 +592,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	}
 
 	// to be used in very specific cases only (it is invoked when getSystemConfigurationFile returns null).
-	protected void addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
+	protected PrismObject<SystemConfigurationType> addSystemConfigurationObject(OperationResult initResult) throws IOException, CommonException,
 			EncryptionException {
+		return null;
 	}
 
 	protected PrismObject<UserType> getDefaultActor() {

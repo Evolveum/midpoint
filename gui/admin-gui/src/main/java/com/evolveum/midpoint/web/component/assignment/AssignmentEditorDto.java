@@ -24,9 +24,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -41,7 +40,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -148,7 +146,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		this.altName = getAlternativeName(assignment);
 
 		this.attributes = prepareAssignmentAttributes(assignment, pageBase);
-		this.isOrgUnitManager = determineUserOrgRelation(assignment);
+		this.isOrgUnitManager = isOrgUnitManager(assignment);
 		this.privilegeLimitationList = getAssignmentPrivilegesList(assignment);
 	}
 
@@ -164,7 +162,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 																	 PageBase pageBase, UserType delegationOwner) {
 		AssignmentEditorDto dto = createDtoFromObject(object, UserDtoStatus.ADD, relation, pageBase);
 		dto.setDelegationOwner(delegationOwner);
-		if (SchemaConstants.ORG_DEPUTY.equals(relation)){
+		if (pageBase.getRelationRegistry().isDelegation(relation)) {
 			OtherPrivilegesLimitationType limitations = new OtherPrivilegesLimitationType();
 
 			WorkItemSelectorType approvalWorkItemSelector = new WorkItemSelectorType();
@@ -245,18 +243,11 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		}
 		return list;
 	}
-	private Boolean determineUserOrgRelation(AssignmentType assignment) {
-
-		if (assignment == null || assignment.getTargetRef() == null
-				|| ObjectTypeUtil.isDefaultRelation(assignment.getTargetRef().getRelation())) {
-			return Boolean.FALSE;
-		}
-
-		if (ObjectTypeUtil.isManagerRelation(assignment.getTargetRef().getRelation())) {
-			return Boolean.TRUE;
-		}
-
-		return Boolean.FALSE;
+	private boolean isOrgUnitManager(AssignmentType assignment) {
+		RelationRegistry relationRegistry = pageBase.getRelationRegistry();
+		return assignment != null
+				&& assignment.getTargetRef() != null
+				&& relationRegistry.isManager(assignment.getTargetRef().getRelation());
 	}
 
 	private List<ACAttributeDto> prepareAssignmentAttributes(AssignmentType assignment, PageBase pageBase) {
@@ -439,7 +430,9 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		}
 
 		if (assignment.getTargetRef() != null && assignment.getTargetRef().getRelation() != null) {
-			sb.append(" - "  + RelationTypes.getRelationType(assignment.getTargetRef().getRelation()).getHeaderLabel());
+			String relationName = pageBase
+					.getString(WebComponentUtil.getRelationHeaderLabelKey(assignment.getTargetRef().getRelation()));
+			sb.append(" - ").append(relationName);
 		}
 
 		return sb.toString();
