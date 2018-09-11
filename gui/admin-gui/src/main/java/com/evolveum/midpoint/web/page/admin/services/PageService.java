@@ -96,23 +96,6 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public AbstractRoleMemberPanel<ServiceType> createMemberPanel(String panelId) {
-				
-				return new AbstractRoleMemberPanel<ServiceType>(panelId, Model.of(getObject().asObjectable()), TableId.SERVICE_MEMEBER_PANEL, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS) {
-					
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected List<QName> getSupportedRelations() {
-						List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, PageService.this);
-						List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageService.this);
-						governance.forEach(r -> relations.remove(r));
-						return relations;
-					}
-				};
-			}
-
-			@Override
 			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<ServiceType> object, String date){
 				PageService.this.navigateToNext(new PageServiceHistory(object, date));
 			}
@@ -122,19 +105,6 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 				return PageService.this.isFocusHistoryPage();
 			}
 
-			@Override
-			public AbstractRoleMemberPanel<ServiceType> createGovernancePanel(String panelId) {
-				
-				return new AbstractRoleMemberPanel<ServiceType>(panelId, Model.of(getObject().asObjectable()), TableId.SERVICE_MEMEBER_PANEL, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS) {
-					
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected List<QName> getSupportedRelations() {
-						return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageService.this);
-					}
-				};
-			}
 		};
 	}
 

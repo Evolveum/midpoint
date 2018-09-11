@@ -152,7 +152,9 @@ public class TreeTablePanel extends BasePanel<String> {
 	}
 
 		private OrgMemberPanel createMemberPanel(OrgType org) {
-		OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS) {
+		OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org)) {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected List<QName> getSupportedRelations() {

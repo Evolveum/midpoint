@@ -57,8 +57,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	private static final long serialVersionUID = 1L;
 
-	public OrgMemberPanel(String id, IModel<OrgType> model, TableId tableId, Map<String, String> authorizations) {
-		super(id, model, tableId, authorizations);
+	public OrgMemberPanel(String id, IModel<OrgType> model) {
+		super(id, model);
 		setOutputMarkupId(true);
 	}
 

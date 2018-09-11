@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +45,7 @@ import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.springframework.security.access.AuthorizationServiceException;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -88,6 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
@@ -117,7 +121,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	private static final String ID_OBJECT_TYPE = "type";
 	private static final String ID_TENANT = "tenant";
 	private static final String ID_PROJECT = "project";
-	private static final String ID_INDIRECT_MEMBERS_CONTAINER = "indirectMembersContainer";
 	private static final String ID_INDIRECT_MEMBERS = "indirectMembers";
 
 	protected static final String ID_SEARCH_SCOPE = "searchScope";
@@ -128,15 +131,24 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	
 	protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
-	private TableId tableId;
-	private Map<String, String> authorizations;
-	
+//	private TableId tableId;
+	private static Map<QName, Map<String, String>> authorizations = new HashMap<>();
+	private static Map<QName, TableId> tablesId = new HashMap<>();
 
+	static {
+		tablesId.put(RoleType.COMPLEX_TYPE, TableId.ROLE_MEMEBER_PANEL);
+		tablesId.put(ServiceType.COMPLEX_TYPE, TableId.SERVICE_MEMEBER_PANEL);
+		tablesId.put(OrgType.COMPLEX_TYPE, TableId.ORG_MEMEBER_PANEL);
+	}
 	
-	public AbstractRoleMemberPanel(String id, IModel<R> model, TableId tableId, Map<String, String> authorizations) {
+	static {
+		authorizations.put(RoleType.COMPLEX_TYPE, GuiAuthorizationConstants.ROLE_MEMBERS_AUTHORIZATIONS);
+		authorizations.put(ServiceType.COMPLEX_TYPE, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS);
+		authorizations.put(OrgType.COMPLEX_TYPE, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
+	}
+	
+	public AbstractRoleMemberPanel(String id, IModel<R> model) {
 		super(id, model);
-		this.tableId = tableId;
-		this.authorizations = authorizations;
 	}
 
 	@Override
@@ -153,10 +165,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		initMemberTable(form);
 		setOutputMarkupId(true);
 		
-//		initCustomLayout(form, getPageBase());
 	}
-
-//	protected abstract void initCustomLayout(Form<?> form, ModelServiceLocator serviceLocator);
 
 	protected Form<?> getForm() {
 		return (Form) get(ID_FORM);
@@ -170,7 +179,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 		PageBase pageBase =  getPageBase();
 		MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
-				ID_MEMBER_TABLE, ObjectType.class, tableId, getSearchOptions(), pageBase) {
+				ID_MEMBER_TABLE, ObjectType.class, getTableId(getComplexTypeQName()), getSearchOptions(), pageBase) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -235,6 +244,18 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
     }
+	
+	private TableId getTableId(QName complextType) {
+		return tablesId.get(complextType);
+	}
+	
+	private Map<String, String> getAuthorizations(QName complexType) {
+		return authorizations.get(complexType);
+	}
+	
+	private QName getComplexTypeQName() {
+		return getModelObject().asPrismObject().getComplexTypeDefinition().getTypeName();
+	}
 
     private List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
@@ -343,7 +364,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	protected abstract List<QName> getSupportedRelations();
 	
 	private boolean isAuthorized(String action) {
-		return WebComponentUtil.isAuthorized(authorizations.get(action));
+		Map<String, String> memeberAuthz = getAuthorizations(getComplexTypeQName());
+		return WebComponentUtil.isAuthorized(memeberAuthz.get(action));
 	}
 	
 	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
