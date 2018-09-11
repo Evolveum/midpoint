@@ -37,12 +37,14 @@ import org.w3c.dom.Document;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -63,6 +65,9 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_IMPORT_FILTERS_FILE = new File(TEST_DIR, "role-import-filters.xml");
 	protected static final String ROLE_IMPORT_FILTERS_OID = "aad19b9a-d511-11e7-8bf7-cfecde275e59";
 	
+	protected static final File ROLE_SHIP_FILE = new File(TEST_DIR, "role-ship.xml");
+	protected static final String ROLE_SHIP_OID = "bbd19b9a-d511-11e7-8bf7-cfecde275e59";
+	
 	protected static final File RESOURCE_SCRIPTY_FILE = new File(TEST_DIR, "resource-dummy-scripty.xml");
 	protected static final String RESOURCE_SCRIPTY_OID = "399f5308-0447-11e8-91e9-a7f9c4100ffb";
 	protected static final String RESOURCE_DUMMY_SCRIPTY_NAME = "scripty";
@@ -82,6 +87,8 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 		
 		initDummyResourcePirate(RESOURCE_DUMMY_SCRIPTY_NAME,
 				RESOURCE_SCRIPTY_FILE, RESOURCE_SCRIPTY_OID, initTask, initResult);
+		
+		importObjectFromFile(ROLE_SHIP_FILE);
 	}
 
 	@Test
@@ -325,6 +332,97 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(RESOURCE_DUMMY_SCRIPTY_NAME, ACCOUNT_JACK_DUMMY_USERNAME,
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
         		"Mr. POLY JACK SPARROW");
+	}
+
+	
+	/**
+	 * MID-4504
+	 * midpoint.getLinkedShadow fails recomputing without throwing exception during shadow delete
+	 * 
+	 * the ship attribute in the role "Ship" has mapping with calling midpoint.getLinkedShadow() on the reosurce which doesn't exist
+	 */
+	@Test
+	public void test600jackAssignRoleShip() throws Exception {
+		final String TEST_NAME = "test600jackAssignRoleShip";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+       
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_SHIP_OID);
+        
+        //THEN
+        displayThen(TEST_NAME);
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User before", userAfter);
+        assertAssignments(userAfter, 2);
+        assertLinks(userAfter, 1);
+        
+        PrismReference linkRef = userAfter.findReference(UserType.F_LINK_REF);
+	    assertTrue(!linkRef.isEmpty());
+	            
+//	    PrismObject<ShadowType> shadowModel = getShadowModel(linkRef.getOid());
+	      
+	    assertDummyAccountAttribute(RESOURCE_DUMMY_SCRIPTY_NAME, USER_JACK_USERNAME, "ship", "ship");
+        
+	}
+	
+	@Test
+	public void test601jackUnassignResourceAccount() throws Exception {
+		final String TEST_NAME = "test601jackUnassignResourceAccount";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User before", userBefore);
+        assertAssignments(userBefore, 2);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignAccount(USER_JACK_OID, RESOURCE_SCRIPTY_OID, null);
+        
+        //THEN
+        displayThen(TEST_NAME);
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User after", userAfter);
+        assertAssignments(userAfter, 1);
+        assertLinks(userAfter, 1);
+	}
+	
+	
+	/**
+	 * MID-4504
+	 * midpoint.getLinkedShadow fails recomputing without throwing exception during shadow delete
+	 * 
+	 * first assign role ship, the ship attribute in the role has mapping with calling midpoint.getLinkedShadow()
+	 */
+	@Test
+	public void test602jackUnssigndRoleShip() throws Exception {
+		final String TEST_NAME = "test602jackUnssigndRoleShip";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+       
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        unassignRole(USER_JACK_OID, ROLE_SHIP_OID);
+        
+        //THEN
+        displayThen(TEST_NAME);
+        PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
+        display("User before", userAfter);
+        assertAssignments(userAfter, 0);
+        assertLinks(userAfter, 0);
+        
 	}
 
 }

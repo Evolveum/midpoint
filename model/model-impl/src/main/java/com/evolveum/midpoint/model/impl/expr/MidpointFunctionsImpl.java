@@ -481,6 +481,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				// It is safe to ignore this error in this method.
 				LOGGER.trace("Ignoring shadow " + linkRef.getOid() + " linked in " + focus
 						+ " because it no longer exists in repository");
+				getCurrentResult().muteLastSubresultError();
 				continue;
 			}
 			if (shadowType.getResourceRef().getOid().equals(resourceOid)) {
@@ -493,6 +494,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 						// It is safe to ignore this error in this method.
 						LOGGER.trace("Ignoring shadow " + linkRef.getOid() + " linked in " + focus
 								+ " because it no longer exists on resource");
+						getCurrentResult().muteLastSubresultError();
 						continue;
 					}
 				}
