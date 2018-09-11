@@ -54,31 +54,6 @@ class RelationRegistryDummyImpl implements RelationRegistry {
 	}
 
 	@Override
-	public boolean isManager(QName relation) {
-		return false;
-	}
-
-	@Override
-	public boolean isDelegation(QName relation) {
-		return false;
-	}
-
-	@Override
-	public boolean isMembership(QName relation) {
-		return isOfKind(relation, RelationKindType.MEMBERSHIP);
-	}
-
-	@Override
-	public boolean isOwner(QName relation) {
-		return false;
-	}
-
-	@Override
-	public boolean isApprover(QName relation) {
-		return false;
-	}
-
-	@Override
 	public boolean processRelationOnLogin(QName relation) {
 		return false;
 	}
@@ -116,7 +91,7 @@ class RelationRegistryDummyImpl implements RelationRegistry {
 	}
 
 	@Override
-	public void applyRelationConfiguration(SystemConfigurationType relationsDefinition) {
+	public void applyRelationConfiguration(SystemConfigurationType systemConfiguration) {
 	}
 
 	@Override

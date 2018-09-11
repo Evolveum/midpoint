@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -107,14 +108,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
             }
         };
         addButton.add(AttributeAppender.append("title", getAddButtonTitleModel()));
-        addButton.add(new VisibleEnableBehaviour(){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isEnabled(){
-                return isAssignButtonEnabled();
-            }
-        });
+        addButton.add(new EnableBehaviour(() -> isAssignButtonEnabled()));
         addButton.setOutputMarkupId(true);
         form.add(addButton);
     }
@@ -289,7 +283,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     private void tabLabelPanelUpdate(AjaxRequestTarget target){
-        target.add(AssignmentPopup.this);
+        getTabbedPanel().reloadCountLabels(target);
+        target.add(get(ID_FORM).get(ID_ASSIGN_BUTTON));
     }
 
     private TabbedPanel getTabbedPanel(){

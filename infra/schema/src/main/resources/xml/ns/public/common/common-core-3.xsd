@@ -16319,7 +16319,6 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						Membership relation, usually meaning "has" or "is member of".
-						Used as a relation value in object references.
 						Specifies that the subject is a member of organization, or that the subject
 						has been assigned a role in a way that he gets authorizations and other content
 						provided by that role.
@@ -16377,9 +16376,6 @@
 						The approver will be asked for decision if the role is assigned, if there is
 						a rule conflict during assignment (e.g. SoD conflict) or if there is any similar
 						situation.
-
-						This is a generic approver used for all the situation. The system may be customized
-						with more specific approver roles, e.g. technicalApprover, securityApprover, etc.
 
 						This approver is responsible for the use of the role, which mostly means
 						that he decides about role assignment. It is NOT meant to approve role changes.

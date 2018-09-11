@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.InOidFilter;
@@ -32,13 +33,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
@@ -100,19 +104,34 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                tabs.forEach(panelTab -> {
+                boolean orgPanelProcessed = false;
+                for (ITab panelTab : tabs){
                     WebMarkupContainer tabPanel = ((CountablePanelTab)panelTab).getPanel();
                     if (tabPanel == null){
-                        return;
+                        continue;
                     }
-
                     MemberPopupTabPanel memberPanel = (MemberPopupTabPanel) tabPanel;
-                    executeMemberOperation(memberPanel.getObjectType().getTypeQName(), createInOidQuery(memberPanel.getSelectedObjectsList()),
+                    if (memberPanel.getObjectType().equals(ObjectTypes.ORG) && orgPanelProcessed){
+                        continue;
+                    }
+                    List<ObjectType> selectedObjects = memberPanel.getObjectType().equals(ObjectTypes.ORG) ? memberPanel.getPreselectedObjects() :
+                            memberPanel.getSelectedObjectsList();
+
+                    if (selectedObjects == null || selectedObjects.size() == 0){
+                        continue;
+                    }
+                    executeMemberOperation(memberPanel.getObjectType().getTypeQName(),
+                            createInOidQuery(selectedObjects),
                            memberPanel.prepareDelta(), target);
-                });
+                    if (memberPanel.getObjectType().equals(ObjectTypes.ORG)){
+                        orgPanelProcessed = true;
+                    }
+                }
                 ChooseMemberPopup.this.getPageBase().hideMainPopup(target);
             }
         };
+        addButton.add(AttributeAppender.append("title", getAddButtonTitleModel()));
+        addButton.add(new EnableBehaviour(() -> isAddButtonEnabled()));
         addButton.setOutputMarkupId(true);
         form.add(addButton);
     }
@@ -304,7 +323,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
     }
 
     protected void tabLabelPanelUpdate(AjaxRequestTarget target){
-        target.add(getTabbedPanel());
+        getTabbedPanel().reloadCountLabels(target);
+        target.add(get(ID_FORM).get(ID_ADD_BUTTON));
+
     }
 
     private TabbedPanel getTabbedPanel(){
@@ -318,6 +339,30 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         }
 
         return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+    }
+
+    private IModel<String> getAddButtonTitleModel(){
+        return new LoadableModel<String>(true) {
+            @Override
+            protected String load() {
+                return !isAddButtonEnabled() ? createStringResource("AssignmentPopup.addButtonTitle").getString() : "";
+            }
+        };
+    }
+
+    private boolean isAddButtonEnabled(){
+        TabbedPanel tabbedPanel = getTabbedPanel();
+        List<ITab> tabs = (List<ITab>) tabbedPanel.getTabs().getObject();
+        for (ITab tab : tabs){
+            WebMarkupContainer memberPanel = ((CountablePanelTab)tab).getPanel();
+            if (memberPanel == null){
+                continue;
+            }
+            if (((MemberPopupTabPanel) memberPanel).getSelectedObjectsList().size() > 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void executeMemberOperation(QName type, ObjectQuery memberQuery,
