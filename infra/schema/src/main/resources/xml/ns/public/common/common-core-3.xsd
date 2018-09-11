@@ -16287,9 +16287,59 @@
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
-			<!-- TODO: type: membership, delegation, general -->
-			<!-- TODO: isDefault -->
-			<!-- TODO: isManager, processOnLogin, processOnRecompute  -->
+			<xsd:element name="processedOnLogin" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this relation is processed during login. The default value is true for member, meta and delegation
+						kinds, false otherwise. EXPERIMENTAL.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.processedOnLogin</a:displayName>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="processedOnRecompute" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this relation is (by default) processed during recomputation. The default value is true
+						for member, meta, manager and delegation kinds, false otherwise. EXPERIMENTAL.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.processedOnRecompute</a:displayName>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="storedIntoParentOrgRef" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this relation is stored into parentOrgRef item. The default value is true
+						for member kind, false otherwise. EXPERIMENTAL.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.storedIntoParentOrgRef</a:displayName>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="automaticallyMatched" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this relation is automatically matched by order constraints (without the need to explicitly
+						list them). The default value is true for member, meta and delegation kinds, false otherwise.
+						EXPERIMENTAL.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.automaticallyMatched</a:displayName>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

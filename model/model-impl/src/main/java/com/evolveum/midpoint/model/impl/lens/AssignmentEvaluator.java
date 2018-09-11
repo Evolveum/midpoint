@@ -435,12 +435,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 			}
 			if (assignmentType.getTarget() != null || assignmentType.getTargetRef() != null) {
 				QName relation = getRelation(assignmentType);
-				if (loginMode && !relationRegistry.processRelationOnLogin(relation)) {
+				if (loginMode && !relationRegistry.isProcessedOnLogin(relation)) {
 					LOGGER.trace("Skipping processing of assignment target {} because relation {} is configured for login skip", assignmentType.getTargetRef().getOid(), relation);
 					// Skip - to optimize logging-in, we skip all assignments with non-membership/non-delegation relations (e.g. approver, owner, etc)
 					// We want to make this configurable in the future MID-3581
 				} else if (!loginMode && !isChanged(ctx.primaryAssignmentMode) &&
-						!relationRegistry.processRelationOnRecompute(relation) && !shouldEvaluateAllAssignmentRelationsOnRecompute()) {
+						!relationRegistry.isProcessedOnRecompute(relation) && !shouldEvaluateAllAssignmentRelationsOnRecompute()) {
 					LOGGER.debug("Skipping processing of assignment target {} because relation {} is configured for recompute skip (mode={})", assignmentType.getTargetRef().getOid(), relation, relativeMode);
 					// Skip - to optimize recompute, we skip all assignments with non-membership/non-delegation relations (e.g. approver, owner, etc)
 					// never skip this if assignment has changed. We want to process this, e.g. to enforce min/max assignee rules
@@ -1117,7 +1117,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 						"membershipRef", targetDesc);
 			}
 		}
-		if (OrgType.class.isAssignableFrom(targetClass) && relationRegistry.includeIntoParentOrgRef(relation)) {
+		if (OrgType.class.isAssignableFrom(targetClass) && relationRegistry.isStoredIntoParentOrgRef(relation)) {
 			addIfNotThere(ctx.evalAssignment.getOrgRefVals(), ctx.evalAssignment::addOrgRefVal, membershipRefVal,
 					"orgRef", targetDesc);
 		}

@@ -82,22 +82,25 @@ public interface RelationRegistry {
 	}
 
 	/**
-	 * Whether this kind of relations is processed on login. Currently only relations of MEMBER and DELEGATION kinds are.
-	 * This is to be configured in the future (MID-3581).
+	 * Whether this kind of relations is processed on login. By default, only relations of MEMBER and DELEGATION kinds are.
 	 */
-	boolean processRelationOnLogin(QName relation);
+	boolean isProcessedOnLogin(QName relation);
 
 	/**
-	 * Whether this kind of relations is processed on recompute. Currently only relations of MEMBER, MANAGER and DELEGATION kinds are.
-	 * This is to be configured in the future (MID-3581).
+	 * Whether this kind of relations is processed on recompute. By default, only relations of MEMBER, MANAGER and DELEGATION kinds are.
 	 */
-	boolean processRelationOnRecompute(QName relation);
+	boolean isProcessedOnRecompute(QName relation);
 
 	/**
-	 * Whether this kind of relations is included in parentOrgRef. Currently only relations of MEMBER but *not* META kinds are.
-	 * This is to be configured in the future (MID-3581).
+	 * Whether this kind of relations is stored in parentOrgRef. By default, only relations of MEMBER are.
 	 */
-	boolean includeIntoParentOrgRef(QName relation);
+	boolean isStoredIntoParentOrgRef(QName relation);
+
+	/**
+	 * Whether this kind of relations is automatically matched by order constraints. By default, only relations of MEMBER,
+	 * META and DELEGATION kinds are.
+	 */
+	boolean isAutomaticallyMatched(QName relation);
 
 	/**
 	 * Returns the default relation i.e. the one that is equivalent to the null relation name.

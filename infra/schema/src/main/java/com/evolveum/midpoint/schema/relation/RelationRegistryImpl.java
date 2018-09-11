@@ -125,18 +125,23 @@ public class RelationRegistryImpl implements RelationRegistry {
 	}
 
 	@Override
-	public boolean processRelationOnLogin(QName relation) {
-		return indexedRelationDefinitions.processRelationOnLogin(relation);
+	public boolean isProcessedOnLogin(QName relation) {
+		return indexedRelationDefinitions.isProcessedOnLogin(relation);
 	}
 
 	@Override
-	public boolean processRelationOnRecompute(QName relation) {
-		return indexedRelationDefinitions.processRelationOnRecompute(relation);
+	public boolean isProcessedOnRecompute(QName relation) {
+		return indexedRelationDefinitions.isProcessedOnRecompute(relation);
 	}
 
 	@Override
-	public boolean includeIntoParentOrgRef(QName relation) {
-		return indexedRelationDefinitions.includeIntoParentOrgRef(relation);
+	public boolean isStoredIntoParentOrgRef(QName relation) {
+		return indexedRelationDefinitions.isStoredIntoParentOrgRef(relation);
+	}
+
+	@Override
+	public boolean isAutomaticallyMatched(QName relation) {
+		return indexedRelationDefinitions.isAutomaticallyMatched(relation);
 	}
 
 	@Override

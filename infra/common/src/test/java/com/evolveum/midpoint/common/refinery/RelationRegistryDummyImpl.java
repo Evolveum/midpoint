@@ -54,17 +54,22 @@ class RelationRegistryDummyImpl implements RelationRegistry {
 	}
 
 	@Override
-	public boolean processRelationOnLogin(QName relation) {
+	public boolean isProcessedOnLogin(QName relation) {
 		return false;
 	}
 
 	@Override
-	public boolean processRelationOnRecompute(QName relation) {
+	public boolean isProcessedOnRecompute(QName relation) {
 		return false;
 	}
 
 	@Override
-	public boolean includeIntoParentOrgRef(QName relation) {
+	public boolean isStoredIntoParentOrgRef(QName relation) {
+		return false;
+	}
+
+	@Override
+	public boolean isAutomaticallyMatched(QName relation) {
 		return false;
 	}
 

@@ -220,9 +220,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	@Override
 	public Collection<QName> getExtraRelations() {
 		return orderMap.entrySet().stream()
-				.filter(e -> !relationRegistry.isMember(e.getKey()) &&
-						!relationRegistry.isMeta(e.getKey()) &&
-						!relationRegistry.isDelegation(e.getKey()) && e.getValue() > 0)
+				.filter(e -> !relationRegistry.isAutomaticallyMatched(e.getKey()) && e.getValue() > 0)
 				.map(e -> e.getKey())
 				.collect(Collectors.toSet());
 	}
