@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSelectorType;
@@ -106,12 +107,13 @@ public class FocusTypeUtil {
 		return sb.toString();
 	}
 
-	public static boolean selectorMatches(AssignmentSelectorType assignmentSelector, AssignmentType assignmentType) {
+	public static boolean selectorMatches(AssignmentSelectorType assignmentSelector, AssignmentType assignmentType,
+			PrismContext prismContext) {
 		if (assignmentType.getTargetRef() == null) {
 			return false;
 		}
 		for (ObjectReferenceType selectorTargetRef: assignmentSelector.getTargetRef()) {
-			if (MiscSchemaUtil.referenceMatches(selectorTargetRef, assignmentType.getTargetRef())) {
+			if (MiscSchemaUtil.referenceMatches(selectorTargetRef, assignmentType.getTargetRef(), prismContext)) {
 				return true;
 			}
 		}

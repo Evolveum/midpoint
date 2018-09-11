@@ -87,7 +87,8 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final String ACCOUNT_WILL_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	protected static final String ACCOUNT_WILL_USERNAME = "Will";
 	protected static final String ACCOUNT_WILL_PASSWORD = "3lizab3th";
-	protected static final String ACCOUNT_WILL_PASSWORD_NEW = "3lizab3th123";
+	protected static final String ACCOUNT_WILL_PASSWORD_123 = "3lizab3th123";
+	protected static final String ACCOUNT_WILL_PASSWORD_321 = "3lizab3th321";
 	protected static final XMLGregorianCalendar ACCOUNT_WILL_ENABLE_TIMESTAMP = XmlTypeConverter.createXMLGregorianCalendar(2013, 5, 30, 12, 30, 42);
 
 	protected static final File ACCOUNT_ELIZABETH_FILE = new File(TEST_DIR, "account-elizabeth.xml");

@@ -47,25 +47,42 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
     private static final String ID_TOOLTIP = "tooltip";
     private static final String ID_REQUIRED = "required";
     private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_PROPERTY_LABEL = "propertyLabel";
+    private static final String ID_ROW = "row";
 
+    public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
+        this(id, value, label, null, false, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
+    }
+    
     public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String labelCssClass, String textCssClass, boolean required) {
-        this(id, value, label, null, false, labelCssClass, textCssClass, required);
+        this(id, value, label, null, false, labelCssClass, textCssClass, required, false);
+    }
+    
+    public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String tooltipKey,
+            boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required) {
+    	this(id, value, label, null, false, labelCssClass, textCssClass, required, false);
     }
 
     public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String tooltipKey,
-                          boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required) {
+                          boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
-        initLayout(label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required);
+        initLayout(label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
     }
 
-    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required) {
+    private void initLayout(IModel<String> label, final String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass,
+    		boolean required, boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
         Label l = new Label(ID_LABEL, label);
 
         if (StringUtils.isNotEmpty(labelCssClass)) {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
+        }
+        if(isSimilarAsPropertyPanel) {
+        	labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
+        } else {
+        	labelContainer.add(AttributeAppender.prepend("class", " control-label "));
         }
         labelContainer.add(l);
 
@@ -98,11 +115,19 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
 		});
 		labelContainer.add(requiredContainer);
 
+		WebMarkupContainer propertyLabel = new WebMarkupContainer(ID_PROPERTY_LABEL);
+		WebMarkupContainer rowLabel = new WebMarkupContainer(ID_ROW);
         WebMarkupContainer valueWrapper = new WebMarkupContainer(ID_VALUE_WRAPPER);
         if (StringUtils.isNotEmpty(textCssClass)) {
             valueWrapper.add(AttributeAppender.prepend("class", textCssClass));
         }
-        add(valueWrapper);
+        if(isSimilarAsPropertyPanel) {
+        	propertyLabel.add(AttributeAppender.prepend("class", " col-md-10 prism-property-value "));
+        	rowLabel.add(AttributeAppender.prepend("class", " row "));
+        }
+        propertyLabel.add(rowLabel);
+		rowLabel.add(valueWrapper);
+        add(propertyLabel);
         
         TriStateComboPanel triStateCombo = new TriStateComboPanel(ID_VALUE, getModel());;
         valueWrapper.add(triStateCombo);

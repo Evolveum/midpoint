@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.schema.RelationRegistry;
 
 /**
  * @author Viliam Repan (lazyman).
@@ -48,6 +49,10 @@ public class MapperContext {
 
     public PrismContext getPrismContext() {
         return repositoryContext.prismContext;
+    }
+
+    public RelationRegistry getRelationRegistry() {
+        return repositoryContext.relationRegistry;
     }
 
     public Object getOwner() {

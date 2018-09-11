@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         @SuppressWarnings({"unchecked", "raw"})
-		ObjectDelta<UserType> objectDelta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(ROLE_PIRATE_OID, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(ROLE_SAILOR_OID, ObjectTypes.ROLE, prismContext))
@@ -131,7 +131,7 @@ public class TestRaceConditions extends AbstractInitializedModelIntegrationTest 
 		try {
 			login(userAdministrator);
 			@SuppressWarnings({ "unchecked", "raw" })
-			ObjectDelta<UserType> objectDelta = (ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+			ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
 					.item(FocusType.F_ASSIGNMENT).delete(user.asObjectable().getAssignment().get(index).clone())
 					.asObjectDelta(USER_JACK_OID);
 			modelService.executeChanges(Collections.singletonList(objectDelta), null, task,

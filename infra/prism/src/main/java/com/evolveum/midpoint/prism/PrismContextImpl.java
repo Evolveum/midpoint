@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -46,6 +47,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * @author semancik
@@ -474,5 +476,29 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	public LexicalProcessorRegistry getLexicalProcessorRegistry() {
 		return lexicalProcessorRegistry;
+	}
+
+	@Override
+	public boolean isDefaultRelation(QName relation) {
+		return relation == null || defaultRelation != null && QNameUtil.match(relation, defaultRelation);
+	}
+
+	@Override
+	public boolean relationsEquivalent(QName relation1, QName relation2) {
+		if (isDefaultRelation(relation1)) {
+			return isDefaultRelation(relation2);
+		} else {
+			return QNameUtil.match(relation1, relation2);
+		}
+	}
+
+	@Override
+	public boolean relationMatches(QName relationQuery, QName relation) {
+		return QNameUtil.match(relationQuery, PrismConstants.Q_ANY) || relationsEquivalent(relationQuery, relation);
+	}
+
+	@Override
+	public boolean relationMatches(@NotNull List<QName> relationQuery, QName relation) {
+		return relationQuery.stream().anyMatch(rq -> relationMatches(rq, relation));
 	}
 }

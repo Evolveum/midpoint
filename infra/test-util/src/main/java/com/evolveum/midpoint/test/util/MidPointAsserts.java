@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -73,7 +74,7 @@ public class MidPointAsserts {
 			if (targetRef != null) {
 				if (refType.equals(targetRef.getType())) {
 					if (targetOid.equals(targetRef.getOid()) &&
-							MiscSchemaUtil.compareRelation(targetRef.getRelation(), relation)) {
+							getPrismContext().relationMatches(targetRef.getRelation(), relation)) {
 						return;
 					}
 				}
@@ -233,7 +234,7 @@ public class MidPointAsserts {
             ObjectReferenceType targetRef = assignmentType.getTargetRef();
             if (targetRef != null) {
                 if (OrgType.COMPLEX_TYPE.equals(targetRef.getType())) {
-                    if (orgOid.equals(targetRef.getOid()) && ObjectTypeUtil.relationMatches(relation, targetRef.getRelation())) {
+                    if (orgOid.equals(targetRef.getOid()) && getPrismContext().relationMatches(relation, targetRef.getRelation())) {
                         AssertJUnit.fail(user + " does have assigned OrgType "+orgOid+" with relation "+relation+" while not expecting it");
                     }
                 }
@@ -265,7 +266,7 @@ public class MidPointAsserts {
 	public static <O extends ObjectType> boolean hasOrg(PrismObject<O> user, String orgOid, QName relation) {
 		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
 			if (orgOid.equals(orgRef.getOid()) &&
-					MiscSchemaUtil.compareRelation(relation, orgRef.getRelation())) {
+					getPrismContext().relationMatches(relation, orgRef.getRelation())) {
 				return true;
 			}
 		}
@@ -346,5 +347,9 @@ public class MidPointAsserts {
 		assertNotNull(message+" is null", object);
 		assertTrue(message+" is not instance of "+expectedClass+", it is "+object.getClass(),
 				expectedClass.isAssignableFrom(object.getClass()));
+	}
+
+	private static PrismContext getPrismContext() {
+		return TestSpringContextHolder.getPrismContext();
 	}
 }

@@ -243,8 +243,9 @@ public class RUser extends RFocus<UserType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(UserType jaxb, RUser repo, RepositoryContext repositoryContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
         RFocus.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));

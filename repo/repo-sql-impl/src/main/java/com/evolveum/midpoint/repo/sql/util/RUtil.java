@@ -28,13 +28,13 @@ import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedNamedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -158,15 +158,15 @@ public final class RUtil {
         return list;
     }
 
-    public static Set safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
-                                             RObject owner, RReferenceOwner refOwner) {
+    public static Set safeListReferenceToSet(List<ObjectReferenceType> list,
+            RObject owner, RReferenceOwner refOwner, RelationRegistry relationRegistry) {
         Set<RObjectReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {
             return set;
         }
 
         for (ObjectReferenceType ref : list) {
-            RObjectReference rRef = RUtil.jaxbRefToRepo(ref, prismContext, owner, refOwner);
+            RObjectReference rRef = RUtil.jaxbRefToRepo(ref, owner, refOwner, relationRegistry);
             if (rRef != null) {
                 set.add(rRef);
             }
@@ -174,8 +174,8 @@ public final class RUtil {
         return set;
     }
 
-    public static RObjectReference jaxbRefToRepo(ObjectReferenceType reference, PrismContext prismContext,
-                                                 RObject owner, RReferenceOwner refOwner) {
+    public static RObjectReference jaxbRefToRepo(ObjectReferenceType reference,
+            RObject owner, RReferenceOwner refOwner, RelationRegistry relationRegistry) {
         if (reference == null) {
             return null;
         }
@@ -186,31 +186,31 @@ public final class RUtil {
         RObjectReference repoRef = new RObjectReference();
         repoRef.setReferenceType(refOwner);
         repoRef.setOwner(owner);
-        RObjectReference.copyFromJAXB(reference, repoRef);
+        RObjectReference.copyFromJAXB(reference, repoRef, relationRegistry);
 
         return repoRef;
     }
 
     public static REmbeddedReference jaxbRefToEmbeddedRepoRef(ObjectReferenceType jaxb,
-                                                              PrismContext prismContext) {
+            RelationRegistry relationRegistry) {
         if (jaxb == null) {
             return null;
         }
         REmbeddedReference ref = new REmbeddedReference();
-        REmbeddedReference.copyFromJAXB(jaxb, ref);
+        REmbeddedReference.fromJaxb(jaxb, ref, relationRegistry);
 
         return ref;
     }
 
-    public static REmbeddedNamedReference jaxbRefToEmbeddedNamedRepoRef(ObjectReferenceType jaxb) {
-        if (jaxb == null) {
-            return null;
-        }
-        REmbeddedNamedReference ref = new REmbeddedNamedReference();
-        REmbeddedNamedReference.copyFromJAXB(jaxb, ref);
-
-        return ref;
-    }
+//    public static REmbeddedNamedReference jaxbRefToEmbeddedNamedRepoRef(ObjectReferenceType jaxb) {
+//        if (jaxb == null) {
+//            return null;
+//        }
+//        REmbeddedNamedReference ref = new REmbeddedNamedReference();
+//        REmbeddedNamedReference.copyFromJAXB(jaxb, ref);
+//
+//        return ref;
+//    }
 
     public static Integer getIntegerFromString(String val) {
         if (val == null || !val.matches("[0-9]+")) {

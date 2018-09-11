@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1389,7 +1387,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public List<ObjectReferenceType> getMembersAsReferences(String orgOid) throws SchemaException, SecurityViolationException,
 			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		return getMembers(orgOid).stream()
-				.map(obj -> createObjectRef(obj))
+				.map(obj -> createObjectRef(obj, prismContext))
 				.collect(Collectors.toList());
 	}
 
@@ -1607,7 +1605,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random()*10000)));
 		newTask.setOid(null);
 		newTask.setTaskIdentifier(null);
-		newTask.setOwnerRef(createObjectRef(principal.getUser()));
+		newTask.setOwnerRef(createObjectRef(principal.getUser(), prismContext));
 		newTask.setExecutionStatus(RUNNABLE);
 		newTask.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
 		if (deltas.isEmpty()) {

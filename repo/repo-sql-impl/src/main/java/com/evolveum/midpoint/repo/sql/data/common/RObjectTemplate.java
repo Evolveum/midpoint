@@ -116,6 +116,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
@@ -124,6 +125,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
         repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(
-                jaxb.getIncludeRef(), repositoryContext.prismContext, repo, RReferenceOwner.INCLUDE));
+                jaxb.getIncludeRef(), repo, RReferenceOwner.INCLUDE, repositoryContext.relationRegistry));
     }
 }

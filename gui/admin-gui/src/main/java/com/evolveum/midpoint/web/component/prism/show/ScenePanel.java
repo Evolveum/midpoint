@@ -42,8 +42,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 /**
  * @author mederly
  */
@@ -147,7 +145,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 				PrismContainerValue<?> value = getModelObject().getScene().getSourceValue();
 				if (value != null && value.getParent() instanceof PrismObject) {
 					PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) value.getParent();
-					WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object), getPageBase(), false);
+					WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext()), getPageBase(), false);
 				}
 			}
 		};

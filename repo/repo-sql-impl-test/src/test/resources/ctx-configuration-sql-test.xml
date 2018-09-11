@@ -56,5 +56,10 @@
     <bean name="lightweightIdentifierGenerator"
           class="com.evolveum.midpoint.repo.sql.testing.LightweightIdentifierGeneratorMock"/>
 
+    <context:component-scan base-package="com.evolveum.midpoint.schema" />
+    <context:component-scan base-package="com.evolveum.midpoint.init" />
+    <context:component-scan base-package="com.evolveum.midpoint.test.util" />		<!-- HACK -->
+    <context:annotation-config />
+
 </beans>
 

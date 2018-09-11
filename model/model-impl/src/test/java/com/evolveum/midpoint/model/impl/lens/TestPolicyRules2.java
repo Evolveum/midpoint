@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -244,7 +244,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		fillContextWithUser(context, USER_JACK_OID, result);
 		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
 		assignment.beginActivation().validTo("2099-01-01T00:00:00");
-		context.getFocusContext().addPrimaryDelta((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		context.getFocusContext().addPrimaryDelta(DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.item(UserType.F_COST_CENTER).replace("1900")
 				.asObjectDelta(USER_JACK_OID));
@@ -297,7 +297,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 		fillContextWithUser(context, USER_JACK_OID, result);
 		AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext);
 		assignment.beginActivation().validTo("2099-01-01T00:00:00");
-		context.getFocusContext().addPrimaryDelta((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		context.getFocusContext().addPrimaryDelta(DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(assignment)
 				.item(UserType.F_COST_CENTER).replace("1900")
 				.asObjectDelta(USER_JACK_OID));
@@ -353,7 +353,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, USER_JACK_OID, result);
-		context.getFocusContext().addPrimaryDelta((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		context.getFocusContext().addPrimaryDelta(DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_ACTIVATION, ActivationType.F_VALID_TO).replace()
 				.asObjectDelta(USER_JACK_OID));
 		display("Input context", context);
@@ -501,7 +501,7 @@ public class TestPolicyRules2 extends AbstractLensTest {
 
 		LensContext<UserType> context = createUserLensContext();
 		fillContextWithUser(context, userFrankOid, result);
-		context.getFocusContext().addPrimaryDelta((ObjectDelta<UserType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+		context.getFocusContext().addPrimaryDelta(DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(roleStudentOid, ObjectTypes.ROLE, prismContext)
 								.beginActivation()

@@ -94,7 +94,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 	private ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(TaskType wfTask, boolean purePreview, Task opTask,
 			OperationResult result) {
 		ApprovalSchemaExecutionInformationType rv = new ApprovalSchemaExecutionInformationType(prismContext);
-		rv.setTaskRef(ObjectTypeUtil.createObjectRefWithFullObject(wfTask));
+		rv.setTaskRef(ObjectTypeUtil.createObjectRefWithFullObject(wfTask, prismContext));
 		WfContextType wfc = wfTask.getWorkflowContext();
 		if (wfc == null) {
 			result.recordFatalError("Workflow context in " + wfTask + " is missing or not accessible.");

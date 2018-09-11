@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
@@ -50,33 +52,36 @@ public class QueryUtils {
 	 * Note that work item limitations are supported only in the current (crude) form: all or none.
 	 */
 	public static S_AtomicFilterExit filterForAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal,
-			QName limitationItemName) throws SchemaException {
+			QName limitationItemName, RelationRegistry relationRegistry) {
 		if (principal == null) {
 			return q.none();
 		} else {
-			return q.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssigneesForUser(principal, limitationItemName));
+			return q.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssigneesForUser(principal, limitationItemName, relationRegistry));
 		}
 	}
 
-	public static S_FilterExit filterForGroups(S_FilterEntryOrEmpty q, String userOid, RepositoryService repositoryService, OperationResult result)
+	public static S_FilterExit filterForGroups(S_FilterEntryOrEmpty q, String userOid, RepositoryService repositoryService,
+			RelationRegistry relationRegistry, OperationResult result)
 			throws SchemaException {
-		return q.item(WorkItemType.F_CANDIDATE_REF).ref(getGroupsForUser(userOid, repositoryService, result));
+		return q.item(WorkItemType.F_CANDIDATE_REF).ref(getGroupsForUser(userOid, repositoryService, relationRegistry, result));
 	}
 
 	private static List<PrismReferenceValue> getPotentialAssigneesForUser(MidPointPrincipal principal,
-			QName limitationItemName) throws SchemaException {
+			QName limitationItemName, RelationRegistry relationRegistry) {
+		// As for relations, WorkItem.assigneeRef should contain only the default ones.
+		QName defaultRelation = relationRegistry.getDefaultRelation();
 		List<PrismReferenceValue> rv = new ArrayList<>();
-		rv.add(new PrismReferenceValue(principal.getOid(), UserType.COMPLEX_TYPE));
+		rv.add(ObjectTypeUtil.createObjectRef(principal.getOid(), ObjectTypes.USER).relation(defaultRelation).asReferenceValue());
 		for (DelegatorWithOtherPrivilegesLimitations delegator : principal.getDelegatorWithOtherPrivilegesLimitationsCollection()) {
 			if (DeputyUtils.limitationsAllow(delegator.getLimitations(), limitationItemName)) {
-				rv.add(ObjectTypeUtil.createObjectRef(delegator.getDelegator()).asReferenceValue());
+				rv.add(ObjectTypeUtil.createObjectRef(delegator.getDelegator(), defaultRelation).asReferenceValue());
 			}
 		}
 		return rv;
 	}
 
 	private static List<PrismReferenceValue> getGroupsForUser(String userOid, RepositoryService repositoryService,
-			OperationResult result) throws SchemaException {
+			RelationRegistry relationRegistry, OperationResult result) throws SchemaException {
 		List<PrismReferenceValue> rv = new ArrayList<>();
 		UserType userType;
 		try {
@@ -84,14 +89,13 @@ public class QueryUtils {
 		} catch (ObjectNotFoundException e) {
 			return rv;
 		}
-		userType.getRoleMembershipRef().forEach(ref -> rv.add(ref.clone().asReferenceValue()));
-		userType.getDelegatedRef().forEach(ref ->
-				{
-					if (!QNameUtil.match(ref.getType(), UserType.COMPLEX_TYPE)) {
-						rv.add(ref.clone().asReferenceValue());
-					}
-				}
-		);
+		userType.getRoleMembershipRef().stream()
+				.filter(ref -> relationRegistry.isMembership(ref.getRelation()))
+				.forEach(ref -> rv.add(ref.clone().asReferenceValue()));
+		userType.getDelegatedRef().stream()
+				.filter(ref -> relationRegistry.isMembership(ref.getRelation()))
+				.filter(ref -> !QNameUtil.match(ref.getType(), UserType.COMPLEX_TYPE))   // we are not interested in deputies (but this should be treated above)
+				.forEach(ref -> rv.add(ref.clone().asReferenceValue()));
 		return rv;
 	}
 

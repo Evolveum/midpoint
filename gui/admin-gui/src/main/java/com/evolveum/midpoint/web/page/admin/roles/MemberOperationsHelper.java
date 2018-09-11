@@ -158,15 +158,18 @@ public class MemberOperationsHelper {
 	public static <R extends AbstractRoleType> ObjectQuery createDirectMemberQuery(R targetObject, QName objectType, Collection<QName> relations, ObjectViewDto<OrgType> tenant, ObjectViewDto<OrgType> project, PrismContext prismContext) {
 		ObjectQuery query;
 
+		// We assume tenantRef.relation and orgRef.relation are always default ones (see also MID-3581)
 		S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext)
 				.item(FocusType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
 				.ref(createReferenceValuesList(targetObject, relations));
 		if (tenant != null && tenant.getObjectType() != null) {
-			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(ObjectTypeUtil.createObjectRef(tenant.getObjectType()).asReferenceValue());
+			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_TENANT_REF).ref(ObjectTypeUtil.createObjectRef(tenant.getObjectType(),
+					prismContext).asReferenceValue());
 		}
 
-		if (project != null && project.getObjectType() !=null) {
-			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(ObjectTypeUtil.createObjectRef(project.getObjectType()).asReferenceValue());
+		if (project != null && project.getObjectType() != null) {
+			q = q.and().item(FocusType.F_ASSIGNMENT, AssignmentType.F_ORG_REF).ref(ObjectTypeUtil.createObjectRef(project.getObjectType(),
+					prismContext).asReferenceValue());
 		}
 
 		query = q.build();
@@ -183,9 +186,8 @@ public class MemberOperationsHelper {
 	
 	public static <R extends AbstractRoleType> List<PrismReferenceValue> createReferenceValuesList(R targetObject, Collection<QName> relations) {
 		List<PrismReferenceValue> referenceValuesList = new ArrayList<>();
-		relations.stream().forEach(relation -> referenceValuesList.add(createReference(targetObject, relation).asReferenceValue()));
+		relations.forEach(relation -> referenceValuesList.add(createReference(targetObject, relation).asReferenceValue()));
 		return referenceValuesList;
-
 	}
 	
 	public static <O extends ObjectType> ObjectQuery createSelectedObjectsQuery(List<O> selectedObjects) {
@@ -311,7 +313,8 @@ public class MemberOperationsHelper {
 	protected static <R extends AbstractRoleType> ObjectDelta getAddParentOrgDelta(R targetObject, Collection<QName> relations, PrismContext prismContext) throws SchemaException {
 		ObjectDelta delta = ObjectDelta.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);
 		if (relations == null || relations.isEmpty()) {
-			delta.addModificationAddReference(ObjectType.F_PARENT_ORG_REF, ObjectTypeUtil.createObjectRef(targetObject).asReferenceValue());
+			delta.addModificationAddReference(ObjectType.F_PARENT_ORG_REF, ObjectTypeUtil.createObjectRef(targetObject,
+					prismContext).asReferenceValue());
 			return delta;
 		} 
 
@@ -324,7 +327,7 @@ public class MemberOperationsHelper {
 	protected static <R extends AbstractRoleType> ObjectDelta getDeleteParentOrgDelta(R targetObject,  Collection<QName> relations, PrismContext prismContext) throws SchemaException {
 		if (relations == null || relations.isEmpty()) {
 			return ObjectDelta.createModificationDeleteReference(ObjectType.class, "fakeOid",
-					ObjectType.F_PARENT_ORG_REF, prismContext, ObjectTypeUtil.createObjectRef(targetObject).asReferenceValue());
+					ObjectType.F_PARENT_ORG_REF, prismContext, ObjectTypeUtil.createObjectRef(targetObject, prismContext).asReferenceValue());
 		}
 		
 		ObjectDelta delta =  ObjectDelta.createEmptyModifyDelta(ObjectType.class, "fakeOid", prismContext);

@@ -305,10 +305,6 @@ public class MiscSchemaUtil {
 		return assignmentPolicyEnforcement;
 	}
 
-	public static boolean compareRelation(QName query, QName refRelation) {
-    	return ObjectTypeUtil.relationMatches(query, refRelation);
-	}
-
 	public static PrismReferenceValue objectReferenceTypeToReferenceValue(ObjectReferenceType refType) {
 		if (refType == null) {
 			return null;
@@ -397,14 +393,15 @@ public class MiscSchemaUtil {
         }
 	}
 
-	public static boolean referenceMatches(ObjectReferenceType refPattern, ObjectReferenceType ref) {
+	public static boolean referenceMatches(ObjectReferenceType refPattern, ObjectReferenceType ref,
+			PrismContext prismContext) {
 		if (refPattern.getOid() != null && !refPattern.getOid().equals(ref.getOid())) {
 			return false;
 		}
 		if (refPattern.getType() != null && !QNameUtil.match(refPattern.getType(), ref.getType())) {
 			return false;
 		}
-		if (!ObjectTypeUtil.relationMatches(refPattern.getRelation(), ref.getRelation())) {
+		if (!prismContext.relationMatches(refPattern.getRelation(), ref.getRelation())) {
 			return false;
 		}
 		return true;

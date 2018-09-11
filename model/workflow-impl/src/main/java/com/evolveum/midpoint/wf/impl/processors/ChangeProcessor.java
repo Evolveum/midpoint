@@ -21,6 +21,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -126,5 +127,7 @@ public interface ChangeProcessor {
     MiscDataUtil getMiscDataUtil();
 
     PrismContext getPrismContext();
+
+	RelationRegistry getRelationRegistry();
 }
 

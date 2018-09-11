@@ -20,40 +20,39 @@
     <include resource="logback-console.xml" />
 
     <appender name="MIDPOINT_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <!--See http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
-        <!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy-->
-        <!--for further documentation-->
+        <!-- See http://logback.qos.ch/manual/appenders.html#RollingFileAppender -->
+        <!-- and http://logback.qos.ch/manual/appenders.html#SizeAndTimeBasedRollingPolicy -->
+        <!-- for further documentation -->
         <Append>true</Append>
         <File>${midpoint.home}/log/midpoint.log</File>
         <encoder>
             <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${midpoint.home}/log/midpoint-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxFileSize>100MB</maxFileSize>
             <maxHistory>10</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
             <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
     </appender>
 
     <!-- Appender for profiling purposes -->
     <appender name="MIDPOINT_PROFILE_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <!--See http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
-        <!--and http://logback.qos.ch/manual/appenders.html#TimeBasedRollingPolicy-->
-        <!--for further documentation-->
+        <!-- See http://logback.qos.ch/manual/appenders.html#RollingFileAppender -->
+        <!-- and http://logback.qos.ch/manual/appenders.html#SizeAndTimeBasedRollingPolicy -->
+        <!-- for further documentation -->
         <Append>true</Append>
         <File>${midpoint.home}/log/midpoint-profile.log</File>
         <encoder>
             <pattern>%date %level: %msg%n</pattern>
         </encoder>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${midpoint.home}/log/midpoint-profile-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxFileSize>100MB</maxFileSize>
             <maxHistory>10</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
         </rollingPolicy>
     </appender>
     <!-- Appender for profiling purposes -->

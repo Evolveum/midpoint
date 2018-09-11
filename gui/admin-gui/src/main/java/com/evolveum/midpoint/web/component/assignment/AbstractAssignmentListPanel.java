@@ -16,8 +16,8 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -28,7 +28,6 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 
@@ -138,7 +137,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
             }
             if (object instanceof UserType) {
                 AssignmentEditorDto dto = AssignmentEditorDto.createDtoAddFromSelectedObject(object,
-                        SchemaConstants.ORG_DEPUTY, getPageBase());
+                        WebComponentUtil.getDefaultRelationOrFail(RelationKindType.DELEGATION), getPageBase());
                 dto.getTargetRef().setRelation(relation);
                 return dto;
             } else {

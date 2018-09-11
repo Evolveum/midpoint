@@ -78,6 +78,12 @@ public class DummyAccountAsserter<R> extends DummyObjectAsserter<DummyAccount,R>
 		return this;
 	}
 	
+	@Override
+	public DummyAccountAsserter<R> assertLastModifier(String expected) {
+		super.assertLastModifier(expected);
+		return this;
+	}
+	
 	public DummyAccountAsserter<R> assertFullName(String expected) {
 		assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expected);
 		return this;

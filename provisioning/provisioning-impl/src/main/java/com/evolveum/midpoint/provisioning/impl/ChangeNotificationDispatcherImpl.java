@@ -69,6 +69,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 */
 	@Override
 	public synchronized void registerNotificationListener(ResourceObjectChangeListener listener) {
+		Validate.notNull(listener);
+
 		if (changeListeners.contains(listener)) {
 			LOGGER.warn(
 					"Resource object change listener '{}' is already registered. Subsequent registration is ignored",
@@ -84,6 +86,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 */
 	@Override
 	public synchronized void registerNotificationListener(ResourceOperationListener listener) {
+		Validate.notNull(listener);
+
 		if (operationListeners.contains(listener)) {
 			LOGGER.warn(
 					"Resource operation listener '{}' is already registered. Subsequent registration is ignored",
@@ -95,6 +99,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	}
 	@Override
 	public synchronized void registerNotificationListener(ResourceEventListener listener) {
+		Validate.notNull(listener);
+
 		if (eventListeners.contains(listener)) {
 			LOGGER.warn(
 					"Resource event listener '{}' is already registered. Subsequent registration is ignored",
@@ -147,7 +153,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by object change listener {}: {}", e.getClass(), listener.getName(),
 							e.getMessage(), e);
-					parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyChange").recordWarning("Change listener has thrown unexpected exception", e);
+					parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyChange")
+							.recordWarning("Change listener has thrown unexpected exception", e);
                     throw e;
 				}
 			}
@@ -170,7 +177,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
 		failureDescription.checkConsistence();
 
-		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
+		if ((null != operationListeners) && (!operationListeners.isEmpty())) {
 			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
@@ -178,7 +185,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by operation failure listener {}: {}-{}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
-                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyFailure").recordWarning("Operation failure listener has thrown unexpected exception", e);
+                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyFailure")
+							.recordWarning("Operation failure listener has thrown unexpected exception", e);
 				}
 			}
 		} else {
@@ -190,25 +198,26 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void notifySuccess(ResourceOperationDescription failureDescription,
+	public void notifySuccess(ResourceOperationDescription successDescription,
 			Task task, OperationResult parentResult) {
-		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
+		Validate.notNull(successDescription, "Operation description of resource object shadow must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Resource operation success notification\n{} ", failureDescription.debugDump());
+			LOGGER.trace("Resource operation success notification\n{} ", successDescription.debugDump());
 		}
 
-		failureDescription.checkConsistence();
+		successDescription.checkConsistence();
 
-		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
+		if ((null != operationListeners) && (!operationListeners.isEmpty())) {
 			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
-					listener.notifySuccess(failureDescription, task, parentResult);
+					listener.notifySuccess(successDescription, task, parentResult);
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by operation success listener {}: {}-{}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
-                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifySuccess").recordWarning("Operation success listener has thrown unexpected exception", e);
+                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifySuccess")
+							.recordWarning("Operation success listener has thrown unexpected exception", e);
 				}
 			}
 		} else {
@@ -220,25 +229,26 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener#notifyFailure(com.evolveum.midpoint.provisioning.api.ResourceObjectShadowFailureDescription, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void notifyInProgress(ResourceOperationDescription failureDescription,
+	public void notifyInProgress(ResourceOperationDescription inProgressDescription,
 			Task task, OperationResult parentResult) {
-		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
+		Validate.notNull(inProgressDescription, "Operation description of resource object shadow must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Resource operation in-progress notification\n{} ", failureDescription.debugDump());
+			LOGGER.trace("Resource operation in-progress notification\n{} ", inProgressDescription.debugDump());
 		}
 
-		failureDescription.checkConsistence();
+		inProgressDescription.checkConsistence();
 
-		if ((null != changeListeners) && (!changeListeners.isEmpty())) {
+		if ((null != operationListeners) && (!operationListeners.isEmpty())) {
 			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
-					listener.notifyInProgress(failureDescription, task, parentResult);
+					listener.notifyInProgress(inProgressDescription, task, parentResult);
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by operation in-progress listener {}: {}-{}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
-                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyInProgress").recordWarning("Operation in-progress listener has thrown unexpected exception", e);
+                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyInProgress")
+							.recordWarning("Operation in-progress listener has thrown unexpected exception", e);
 				}
 			}
 		} else {
@@ -281,7 +291,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 				} catch (RuntimeException e) {
 					LOGGER.error("Exception {} thrown by event listener {}: {}-{}", new Object[]{
 							e.getClass(), listener.getName(), e.getMessage(), e });
-                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyEvent").recordWarning("Event listener has thrown unexpected exception", e);
+                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyEvent")
+							.recordWarning("Event listener has thrown unexpected exception", e);
                     throw e;
 				}
 			}

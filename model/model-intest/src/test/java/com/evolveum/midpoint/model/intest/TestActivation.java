@@ -2664,7 +2664,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> user1 = prismContext.createObject(UserType.class);
 		DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_NAME).replace(new PolyString("user1"))
-				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(resourceDummyCoral).asPrismContainerValue())
+				.item(UserType.F_ASSIGNMENT).add(ObjectTypeUtil.createAssignmentTo(resourceDummyCoral, prismContext).asPrismContainerValue())
 				.item(ACTIVATION_ADMINISTRATIVE_STATUS_PATH).replace(ActivationStatusType.DISABLED)
 				.asObjectDelta(null)
 				.applyTo((PrismObject) user1);

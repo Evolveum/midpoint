@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		display("assignment after creation", assignment);
 		MetadataType metadata = assignment.getMetadata();
 		assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
-		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
+		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator, prismContext), metadata.getRequestorRef());
 		assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
 	}
 
@@ -183,7 +183,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		display("assignment after creation", assignment);
 		MetadataType metadata = assignment.getMetadata();
 		assertNotNull("Null request timestamp in metadata", metadata.getRequestTimestamp());
-		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator), metadata.getRequestorRef());
+		assertRefEquals("Wrong requestorRef in metadata", ObjectTypeUtil.createObjectRef(userAdministrator, prismContext), metadata.getRequestorRef());
 		assertEquals("Wrong requestorComment in metadata", REQUESTER_COMMENT, metadata.getRequestorComment());
 	}
 
@@ -315,7 +315,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		// WHEN
 		@SuppressWarnings({"raw", "unchecked"})
 		ObjectDelta<? extends ObjectType> delta =
-				(ObjectDelta<? extends ObjectType>) DeltaBuilder.deltaFor(UserType.class, prismContext)
+				DeltaBuilder.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT)
 						.add(ObjectTypeUtil.createAssignmentTo(roleRole1aOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);

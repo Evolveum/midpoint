@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -40,12 +41,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
 
 /**
  * Almost the same as TestDummy but quite limited:
  * - no activation support
  * - no paging
  * - no count simulation using sequential search
+ * - no runAs
  * Let's test that we are able to do all the operations without NPEs and other side effects.
  *
  * @author Radovan Semancik
@@ -85,7 +88,19 @@ public class TestDummyLimited extends TestDummy {
 	protected CountObjectsSimulateType getCountSimulationMode() {
 		return CountObjectsSimulateType.SEQUENTIAL_SEARCH;
 	}
+	
+	@Override
+	protected void assertRunAsCapability(RunAsCapabilityType capRunAs) {
+		assertNull("Unexpected native runAs capability", capRunAs);
+	}
 
+	// No runAs capability, modifier is always the default one.
+	// No matter what kind of runAs was requested.
+	@Override
+	protected String getLastModifierName(String expected) {
+		return null;
+	}
+	
 	@Test
 	@Override
 	public void test150DisableAccount() throws Exception {

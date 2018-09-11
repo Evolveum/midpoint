@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -119,12 +119,12 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 		String originalDescription = jack.asObjectable().getDescription();
 
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addPirateDelta = (ObjectDelta<UserType>) DeltaBuilder
+		ObjectDelta<UserType> addPirateDelta = DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(rolePirateOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> changeDescriptionDelta = (ObjectDelta<UserType>) DeltaBuilder
+		ObjectDelta<UserType> changeDescriptionDelta = DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_DESCRIPTION).replace("Pirate Judge")
 				.asObjectDelta(userJackOid);
@@ -240,7 +240,7 @@ public class AbstractTestSoD extends AbstractWfTestPolicy {
 		// WHEN+THEN
 		PrismObject<UserType> jack = getUser(userJackOid);
 		@SuppressWarnings("unchecked")
-		ObjectDelta<UserType> addRespectableDelta = (ObjectDelta<UserType>) DeltaBuilder
+		ObjectDelta<UserType> addRespectableDelta = DeltaBuilder
 				.deltaFor(UserType.class, prismContext)
 				.item(UserType.F_ASSIGNMENT).add(createAssignmentTo(roleRespectableOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDelta(userJackOid);

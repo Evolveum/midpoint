@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -265,7 +265,7 @@ public class AssignmentPolicyAspectPart {
 		// (2) default policy action (only if adding)
 		if (triggeredApprovalRules.isEmpty() && assignmentMode == PLUS
 				&& baseConfigurationHelper.getUseDefaultApprovalPolicyRules(ctx.wfConfiguration) != DefaultApprovalPolicyRulesUsageType.NEVER) {
-			if (builder.addPredefined(targetObject, SchemaConstants.ORG_APPROVER, result)) {
+			if (builder.addPredefined(targetObject, RelationKindType.APPROVER, result)) {
 				LOGGER.trace("Added default approval action, as no explicit one was found for {}", evaluatedAssignment);
 			}
 		}
@@ -304,7 +304,7 @@ public class AssignmentPolicyAspectPart {
 		instruction.setDeltasToProcess(deltaToApprove);
 
 		instruction.setObjectRef(modelContext, result);
-		instruction.setTargetRef(createObjectRef(target), result);
+		instruction.setTargetRef(createObjectRef(target, prismContext), result);
 
 		String taskNameInDefaultLocale = localizationService.translate(
 				new LocalizableMessageBuilder()
@@ -348,7 +348,7 @@ public class AssignmentPolicyAspectPart {
 		S_ValuesEntry item = DeltaBuilder.deltaFor(focusClass, prismContext)
 				.item(FocusType.F_ASSIGNMENT);
 		S_ItemEntry op = assignmentRemoved ? item.delete(value) : item.add(value);
-		return (ObjectDelta<? extends FocusType>) op.asObjectDelta(objectOid);
+		return op.asObjectDelta(objectOid);
 	}
 
 }

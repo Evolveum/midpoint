@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang.StringUtils;
@@ -32,7 +33,6 @@ import org.hibernate.annotations.NotFoundAction;
 import javax.persistence.*;
 
 import static com.evolveum.midpoint.repo.sql.util.RUtil.*;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 
 /**
  * @author lazyman
@@ -131,14 +131,15 @@ public class REmbeddedReference implements ObjectReference {
         }
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, REmbeddedReference repo) {
+    public static void fromJaxb(ObjectReferenceType jaxb, REmbeddedReference repo,
+            RelationRegistry relationRegistry) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
         if (jaxb.getFilter() == null) {
             Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
         }
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-        repo.setRelation(qnameToString(normalizeRelation(jaxb.getRelation())));
+        repo.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxb.getRelation())));
         repo.setTargetOid(jaxb.getOid());
 
     }

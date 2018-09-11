@@ -35,13 +35,12 @@ import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -107,6 +106,9 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 
     @Autowired
     protected PrismContext prismContext;
+
+    @Autowired
+    protected RelationRegistry relationRegistry;
 
     @Autowired
     protected ItemApprovalProcessInterface itemApprovalProcessInterface;
@@ -196,7 +198,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 			SearchResultList<PrismObject<O>> targets = repositoryService.searchObjects(clazz, ObjectQuery.createObjectQuery(evaluatedFilter), null, result);
 
 			return targets.stream()
-					.map(ObjectTypeUtil::createObjectRef)
+					.map(object -> ObjectTypeUtil.createObjectRef(object, prismContext))
 					.collect(Collectors.toList());
 
 		} finally {
@@ -241,7 +243,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             S_AtomicFilterExit q = QueryBuilder.queryFor(FocusType.class, prismContext).none();
             for (QName approverRelation : relations) {
                 PrismReferenceValue approverReference = new PrismReferenceValue(object.getOid());
-                approverReference.setRelation(QNameUtil.qualifyIfNeeded(approverRelation, SchemaConstants.NS_ORG));
+                approverReference.setRelation(relationRegistry.normalizeRelation(approverRelation));
                 q = q.or().item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(approverReference);
             }
             ObjectQuery query = q.build();
@@ -255,7 +257,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
             Set<PrismObject<FocusType>> distinctObjects = new HashSet<>(objects);
             LOGGER.trace("Found {} approver(s): {}", distinctObjects.size(), DebugUtil.toStringLazily(distinctObjects));
             return distinctObjects.stream()
-                    .map(ObjectTypeUtil::createObjectRef)
+                    .map(object1 -> ObjectTypeUtil.createObjectRef(object1, prismContext))
                     .collect(Collectors.toList());
         };
     }

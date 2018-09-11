@@ -16264,19 +16264,168 @@
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
+			<xsd:element name="defaultFor" type="tns:RelationKindType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            If this relation is a default for a relation kind, specify the kind here.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.defaultFor</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="kind" type="tns:RelationKindType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Kind(s) of which this relation is. A value of "defaultFor", if present, is automatically considered
+						to be a kind for this relation, so it is not necessary to list it here.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.kind</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
 			<!-- TODO: type: membership, delegation, general -->
 			<!-- TODO: isDefault -->
 			<!-- TODO: isManager, processOnLogin, processOnRecompute  -->
         </xsd:sequence>
     </xsd:complexType>
-    
+
+	<xsd:simpleType name="RelationKindType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Denotes a set of relations serving a single purpose.
+
+				Until midPoint 3.9, there were fixed relations denoting e.g. manager of an organization (org:manager) or an approver
+				of a role (org:approver). Starting with 3.9, relations are configurable, and each relation is characterized by its kind
+				or sometimes a set of kinds.
+
+				So we can have e.g. three approver relations (e:securityApprover, e:technicalApprover, e:businessApprover),
+				a set of membership relations (org:default, e:assistant, e:external), etc. Note that here 'e' is a prefix for a custom
+				namespace used to define these custom (extension) relations.
+
+				Each relation has 0, 1 or more kinds. For example, the default org:manager relation is of MANAGER and MEMBERSHIP kinds.
+
+				For each kind, there should be a single relation marked as the default one.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>3.9</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="membership">
+				<xsd:annotation>
+					<xsd:documentation>
+						Membership relation, usually meaning "has" or "is member of".
+						Specifies that the subject is a member of organization, or that the subject
+						has been assigned a role in a way that he gets authorizations and other content
+						provided by that role.
+
+						Default relation of MEMBERSHIP kind is also considered to be the overall default relation (i.e. used when
+						ref.relation is null).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MEMBERSHIP"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="manager">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relations of "is manager of" kind. Specifies that the subject is a manager of organizational unit.
+						Relations of this kind are usually also of MEMBERSHIP kind.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MANAGER"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="meta">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relations used for metarole assignments. Sometimes it is important to
+						distinguish metarole and member assignments. This kind of relation is used
+						for that purpose.
+
+						Relations of this kind should be also of MEMBERSHIP kind.
+						(Otherwise they would not provide metarole assignment functionality!)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="META"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="delegation">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relation of "is deputy of" kind. Specifies that the subject is a deputy of another user.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DELEGATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="approver">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relation "is approver of" kind.
+
+						Specifies that the subject is a (general) approver of specified (abstract) role.
+						The approver will be asked for decision if the role is assigned, if there is
+						a rule conflict during assignment (e.g. SoD conflict) or if there is any similar
+						situation.
+
+						This approver is responsible for the use of the role, which mostly means
+						that he decides about role assignment. It is NOT meant to approve role changes.
+						Role owner is meant for that purpose.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="APPROVER"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="owner">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relation of "is owner of" kind.
+
+						Specifies that the subject is a (business) owner of specified (abstract) role.
+						The owner will be asked for decision if the role is modified, when the associated
+						policy changes and so on.
+
+						This owner is responsible for maintaining role definition and policies. It is
+						NOT necessarily concerned with role use (e.g. assignment). The approver relation kind
+						is meant for that purpose.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="OWNER"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="consent">
+				<xsd:annotation>
+					<xsd:documentation>
+						Relation "is consent for" kind.
+
+						Specifies that the subject gave a consent for using personnel information related to this role.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CONSENT"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
     <xsd:simpleType name="AreaCategoryType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Specifies category or "area" of a particular concept. Such category can be used
 				to display the concepts in appropriate parts of user interface. For example the
 				category may be used to display only governance-related relations in the governance
-				UI spanels.
+				UI panels.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.9</a:since>

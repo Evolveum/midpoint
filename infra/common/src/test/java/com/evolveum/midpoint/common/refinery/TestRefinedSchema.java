@@ -33,6 +33,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.processor.*;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
@@ -84,6 +85,8 @@ public class TestRefinedSchema {
 	private static final String ENTITLEMENT_UNIX_GROUP_INTENT = "unixGroup";
 
 	private static final QName OBJECT_CLASS_INETORGPERSON_QNAME = new QName(MidPointConstants.NS_RI, "inetOrgPerson");
+
+	private final RelationRegistry relationRegistry = new RelationRegistryDummyImpl();
 
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -544,9 +547,9 @@ public class TestRefinedSchema {
 		ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com","confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
 		attributesContainer.add(confusingAttr2);
 
-		assertTrue("Test attr not matched in "+message, protectedPattern.matches(shadow, null));
+		assertTrue("Test attr not matched in "+message, protectedPattern.matches(shadow, null, relationRegistry));
 		nameAttr.setRealValue("huhulumululul");
-		assertFalse("Test attr nonsense was matched in "+message, protectedPattern.matches(shadow, null));
+		assertFalse("Test attr nonsense was matched in "+message, protectedPattern.matches(shadow, null, relationRegistry));
 	}
 
 	private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {

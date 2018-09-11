@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,5 @@ import com.evolveum.midpoint.util.DebugDumpable;
  *
  */
 public abstract class Operation implements DebugDumpable {
-
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
 
 }

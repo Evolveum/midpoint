@@ -516,7 +516,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         	throw new IllegalStateException("Found more than one node with ID " + task.getNode());
         }
 
-        reportOutputType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next()));
+        reportOutputType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next(), prismContext));
 
         ObjectDelta<ReportOutputType> objectDelta = null;
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();

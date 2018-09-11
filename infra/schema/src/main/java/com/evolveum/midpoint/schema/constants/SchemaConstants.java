@@ -139,64 +139,54 @@ public abstract class SchemaConstants {
 	// public static final QName T_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C,
 	// "ProtectedByteArrayType");
 
+	/*
+	 * Constants for default relations.
+	 *
+	 * Please DO NOT use these in production code. Use RelationKind values instead.
+	 * ===========================================
+	 *
+	 * You can, however, freely use these in tests.
+	 */
+
 	/**
-	 * Default relation, usually meaning "has" or "is member of". Used as a relation value in object references.
-	 * Specifies that the subject is a member of organization, or that the subject
-	 * has been assigned a role in a way that he gets authorizations and other content
-	 * provided by that role.
+	 * Default membership relation. Used as a relation value in object references.
+	 * See RelationKind.MEMBERSHIP for more details.
 	 */
 	public static final QName ORG_DEFAULT = new QName(NS_ORG, "default");
 
 	/**
-	 * Relation "is manager of". Used as a relation value in object references.
-	 * Specifies that the subject is a manager of organizational unit.
+	 * Default 'manager' relation. Used as a relation value in object references.
+	 * See RelationKind.MANAGER for more details.
 	 */
 	public static final QName ORG_MANAGER = new QName(NS_ORG, "manager");
 
 	/**
-	 * Relation used for metarole assignments. Sometimes it is important to
-	 * distinguish metarole and member assignments. This relation is used
-	 * for that purpose.
+	 * Default 'metarole assignment' relation. Used as a relation value in object references.
+	 * See RelationKind.META for more details.
 	 */
 	public static final QName ORG_META = new QName(NS_ORG, "meta");
 
 	/**
-	 * Relation "is deputy of". Used as a relation value in object references.
-	 * Specifies that the subject is a deputy of another user.
+	 * Default delegation relation. Used as a relation value in object references.
+	 * See RelationKind.DELEGATION for more details.
 	 */
 	public static final QName ORG_DEPUTY = new QName(NS_ORG, "deputy");
 
 	/**
-	 * Relation "is approver of". Used as a relation value in object references.
-	 * Specifies that the subject is a (general) approver of specified (abstract) role.
-	 * The approver will be asked for decision if the role is assigned, if there is
-	 * a rule conflict during assignment (e.g. SoD conflict) or if there is any similar
-	 * situation.
-	 *
-	 * This is a generic approver used for all the situation. The system may be customized
-	 * with more specific approver roles, e.g. technicalApprover, securityApprover, etc.
-	 *
-	 * This approver is responsible for the use of the role, which mostly means
-	 * that he decides about role assignment. It is NOT meant to approve role changes.
-	 * Role owner is meant for that purpose.
+	 * Default 'approver' relation. Used as a relation value in object references.
+	 * See RelationKind.APPROVER for more details.
 	 */
 	public static final QName ORG_APPROVER = new QName(NS_ORG, "approver");
 
 	/**
-	 * Relation "is owner of". Used as a relation value in object references.
-	 * Specifies that the subject is a (business) owner of specified (abstract) role.
-	 * The owner will be asked for decision if the role is modified, when the associated
-	 * policy changes and so on.
-	 *
-	 * This owner is responsible for maintaining role definition and policies. It is
-	 * NPT necessarily concerned with role use (e.g. assignment). The approver relation
-	 * is meant for that purpose.
+	 * Default 'owner' relation. Used as a relation value in object references.
+	 * See RelationKind.OWNER for more details.
 	 */
 	public static final QName ORG_OWNER = new QName(NS_ORG, "owner");
 
 	/**
-	 * Relation "is consent for". Used as a relation value in object references.
-	 * Specifies that the subject gave a consent for using personnel information related to this role.
+	 * Default 'consent' relation. Used as a relation value in object references.
+	 * See RelationKind.CONSENT for more details.
 	 */
 	public static final QName ORG_CONSENT = new QName(NS_ORG, "consent");
 
@@ -399,12 +389,24 @@ public abstract class SchemaConstants {
 
 	public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
 	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
+	
+	// Init channel, used when system is initializing itself
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
 	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
+	
 	public static final QName CHANNEL_GUI_SELF_REGISTRATION_QNAME = new QName(NS_GUI_CHANNEL, "selfRegistration");
 	public static final String CHANNEL_GUI_SELF_REGISTRATION_URI = QNameUtil.qNameToUri(CHANNEL_GUI_SELF_REGISTRATION_QNAME);
+	
+	// Channel for self-service part of the user interface. These are the pages when user is changing his own data.
+	// E.g. update of his own profile and password change are considered to be self-service.
+	public static final QName CHANNEL_GUI_SELF_SERVICE_QNAME = new QName(NS_GUI_CHANNEL, "selfService");
+	public static final String CHANNEL_GUI_SELF_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_GUI_SELF_SERVICE_QNAME);
+	
+	// Password reset channel. This is *reset*, which means that the user does not know the old password and cannot log in.
 	public static final QName CHANNEL_GUI_RESET_PASSWORD_QNAME = new QName(NS_GUI_CHANNEL, "resetPassword");
 	public static final String CHANNEL_GUI_RESET_PASSWORD_URI = QNameUtil.qNameToUri(CHANNEL_GUI_RESET_PASSWORD_QNAME);
+	
+	// Catch-all channel for all user operations in user interface.
 	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
 	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
 

@@ -183,8 +183,9 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         return result;
     }
 
+    // dynamically called
     public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
-                                                                 RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
+		    RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
 			throws DtoTranslationException {
 
         RFocus.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
@@ -196,19 +197,19 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
 		if (jaxb.getAutoassign() != null) {
 		    RAutoassignSpecification aa = new RAutoassignSpecification();
-		    RAutoassignSpecification.copyFromJAXB(jaxb.getAutoassign(), aa);
+		    RAutoassignSpecification.formJaxb(jaxb.getAutoassign(), aa);
             repo.setAutoassign(aa);
         }
 
 		for (AssignmentType inducement : jaxb.getInducement()) {
             RAssignment rInducement = new RAssignment(repo, RAssignmentOwner.ABSTRACT_ROLE);
-            RAssignment.copyFromJAXB(inducement, rInducement, jaxb, repositoryContext, generatorResult);
+            RAssignment.fromJaxb(inducement, rInducement, jaxb, repositoryContext, generatorResult);
 
             repo.getAssignments().add(rInducement);
         }
 
         for (ObjectReferenceType approverRef : jaxb.getApproverRef()) {
-            RObjectReference ref = RUtil.jaxbRefToRepo(approverRef, repositoryContext.prismContext, repo, RReferenceOwner.ROLE_APPROVER);
+            RObjectReference ref = RUtil.jaxbRefToRepo(approverRef, repo, RReferenceOwner.ROLE_APPROVER, repositoryContext.relationRegistry);
             if (ref != null) {
                 repo.getApproverRef().add(ref);
             }
@@ -218,6 +219,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
         repo.setApprovalProcess(jaxb.getApprovalProcess());
 
-        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.prismContext));
+        repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), repositoryContext.relationRegistry));
     }
 }

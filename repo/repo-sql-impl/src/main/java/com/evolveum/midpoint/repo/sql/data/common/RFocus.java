@@ -306,6 +306,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         return result;
     }
 
+    // dynamically called
     public static <T extends FocusType> void copyFromJAXB(FocusType jaxb, RFocus<T> repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult)
             throws DtoTranslationException {
@@ -315,29 +316,29 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         repo.setCostCenter(jaxb.getCostCenter());
 
         repo.getLinkRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getLinkRef(), repositoryContext.prismContext, repo, RReferenceOwner.USER_ACCOUNT));
+                RUtil.safeListReferenceToSet(jaxb.getLinkRef(), repo, RReferenceOwner.USER_ACCOUNT, repositoryContext.relationRegistry));
 
         repo.getRoleMembershipRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getRoleMembershipRef(), repositoryContext.prismContext, repo, RReferenceOwner.ROLE_MEMBER));
+                RUtil.safeListReferenceToSet(jaxb.getRoleMembershipRef(), repo, RReferenceOwner.ROLE_MEMBER, repositoryContext.relationRegistry));
 
         repo.getDelegatedRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getDelegatedRef(), repositoryContext.prismContext, repo, RReferenceOwner.DELEGATED));
+                RUtil.safeListReferenceToSet(jaxb.getDelegatedRef(), repo, RReferenceOwner.DELEGATED, repositoryContext.relationRegistry));
 
         repo.getPersonaRef().addAll(
-                RUtil.safeListReferenceToSet(jaxb.getPersonaRef(), repositoryContext.prismContext, repo, RReferenceOwner.PERSONA));
+                RUtil.safeListReferenceToSet(jaxb.getPersonaRef(), repo, RReferenceOwner.PERSONA, repositoryContext.relationRegistry));
 
         repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
 
         for (AssignmentType assignment : jaxb.getAssignment()) {
             RAssignment rAssignment = new RAssignment(repo, RAssignmentOwner.FOCUS);
-            RAssignment.copyFromJAXB(assignment, rAssignment, jaxb, repositoryContext, generatorResult);
+            RAssignment.fromJaxb(assignment, rAssignment, jaxb, repositoryContext, generatorResult);
 
             repo.getAssignments().add(rAssignment);
         }
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
-            RActivation.copyFromJAXB(jaxb.getActivation(), activation, repositoryContext);
+            RActivation.fromJaxb(jaxb.getActivation(), activation, repositoryContext);
             repo.setActivation(activation);
         }
 

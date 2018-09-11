@@ -30,7 +30,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigPanelNew;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.validator.ResourceValidator;
@@ -48,6 +47,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -165,9 +165,7 @@ import org.w3c.dom.Node;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
-import javax.xml.namespace.QName;
 
-import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -358,7 +356,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
                     S_FilterEntryOrEmpty q = QueryBuilder.queryFor(WorkItemType.class, getPrismContext());
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
-                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS).build();
+                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry()).build();
                     return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
                 } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
@@ -470,6 +468,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
+    }
+
+    public RelationRegistry getRelationRegistry() {
+        return getMidpointApplication().getRelationRegistry();
     }
 
     public ExpressionFactory getExpressionFactory() {
@@ -1534,18 +1536,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return menus;
     }
     
-//    private MainMenuItem createSystemConfigurationItems() {
-//        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON_COLORED,
-//                createStringResource("PageAdmin.menu.top.configuration.basic.new"), PageSystemConfigurationNew.class);
-//
-//        addMenuItem(item, "PageAdmin.menu.top.configuration.basic", SystemConfigPanelNew.class);
-//        addMenuItem(item, "PageAdmin.menu.top.configuration.objectPolicy", PageUsers.class);
-//        addMenuItem(item, "PageAdmin.menu.top.users.list", PageUsers.class);
-//
-//        addUsersViewMenuItems(item.getItems());
-//
-//        return item;
-//    }
 
     private void createConfigurationMenu(SideBarMenuItem item) {
         addMainMenuItem(item, "fa fa-bullseye", "PageAdmin.menu.top.configuration.bulkActions", PageBulkAction.class);
@@ -1559,53 +1549,40 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
         debugs.getItems().add(menu);
         
-        MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic.new", null);
+        MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null);
         
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.basic",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_BASIC);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.objectPolicy",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_OBJECT_POLICY);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.globalPolicyRule",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_GLOBAL_POLICY_RULE);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.globalAccountSynchronization",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_GLOBAL_ACCOUNT_SYNCHRONIZATION);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.cleanupPolicy",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_CLEANUP_POLICY);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.notifications",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_NOTIFICATION);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.logging",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_LOGGING);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.profiling",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_PROFILING);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.adminGui",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_ADMIN_GUI);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.workflow",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_WORKFLOW);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.roleManagement",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_ROLE_MANAGEMENT);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.internals",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_INTERNALS);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.deploymentInformation",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_DEPLOYMENT_INFORMATION);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.accessCertification",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_ACCESS_CERTIFICATION);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.infrastructure",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_INFRASTRUCTURE);
-        addSystemMenuItemNew(systemItemNew, "PageAdmin.menu.top.configuration.fullTextSearch",
-                PageSystemConfigurationNew.CONFIGURATION_TAB_FULL_TEXT_SEARCH);
-
-        MainMenuItem systemItem = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null);
-
-        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.basic",
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.basic",
                 PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
-        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.notifications",
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.objectPolicy",
+                PageSystemConfiguration.CONFIGURATION_TAB_OBJECT_POLICY);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.globalPolicyRule",
+                PageSystemConfiguration.CONFIGURATION_TAB_GLOBAL_POLICY_RULE);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.globalAccountSynchronization",
+                PageSystemConfiguration.CONFIGURATION_TAB_GLOBAL_ACCOUNT_SYNCHRONIZATION);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.cleanupPolicy",
+                PageSystemConfiguration.CONFIGURATION_TAB_CLEANUP_POLICY);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.notifications",
                 PageSystemConfiguration.CONFIGURATION_TAB_NOTIFICATION);
-        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.logging",
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.logging",
                 PageSystemConfiguration.CONFIGURATION_TAB_LOGGING);
-        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.profiling",
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.profiling",
                 PageSystemConfiguration.CONFIGURATION_TAB_PROFILING);
-        addSystemMenuItem(systemItem, "PageAdmin.menu.top.configuration.adminGui",
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.adminGui",
                 PageSystemConfiguration.CONFIGURATION_TAB_ADMIN_GUI);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.workflow",
+                PageSystemConfiguration.CONFIGURATION_TAB_WORKFLOW);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.roleManagement",
+                PageSystemConfiguration.CONFIGURATION_TAB_ROLE_MANAGEMENT);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.internals",
+                PageSystemConfiguration.CONFIGURATION_TAB_INTERNALS);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.deploymentInformation",
+                PageSystemConfiguration.CONFIGURATION_TAB_DEPLOYMENT_INFORMATION);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.accessCertification",
+                PageSystemConfiguration.CONFIGURATION_TAB_ACCESS_CERTIFICATION);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.infrastructure",
+                PageSystemConfiguration.CONFIGURATION_TAB_INFRASTRUCTURE);
+        addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.fullTextSearch",
+                PageSystemConfiguration.CONFIGURATION_TAB_FULL_TEXT_SEARCH);
 
         addMainMenuItem(item, "fa fa-archive", "PageAdmin.menu.top.configuration.internals", PageInternals.class);
         addMainMenuItem(item, "fa fa-search", "PageAdmin.menu.top.configuration.repoQuery", PageRepositoryQuery.class);
@@ -1620,8 +1597,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         params.add(PageSystemConfiguration.SELECTED_TAB_INDEX, tabIndex);
         MenuItem menu = new MenuItem(createStringResource(key), PageSystemConfiguration.class, params, null) {
 
-        	private static final long serialVersionUID = 1L;
-        	
             @Override
             public boolean isMenuActive(WebPage page) {
                 if (!PageSystemConfiguration.class.equals(page.getClass())) {
@@ -1629,24 +1604,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 }
 
                 int index = getSelectedTabForConfiguration(page);
-                return tabIndex == index ? true : false;
-            }
-        };
-        mainItem.getItems().add(menu);
-    }
-    
-    private void addSystemMenuItemNew(MainMenuItem mainItem, String key, int tabIndex) {
-        PageParameters params = new PageParameters();
-        params.add(PageSystemConfigurationNew.SELECTED_TAB_INDEX, tabIndex);
-        MenuItem menu = new MenuItem(createStringResource(key), PageSystemConfigurationNew.class, params, null) {
-
-            @Override
-            public boolean isMenuActive(WebPage page) {
-                if (!PageSystemConfigurationNew.class.equals(page.getClass())) {
-                    return false;
-                }
-
-                int index = getSelectedTabForNewConfiguration(page);
                 return tabIndex == index ? true : false;
             }
         };
@@ -1802,17 +1759,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
 
         return StringUtils.isNumeric(value) ? Integer.parseInt(value) : PageSystemConfiguration.CONFIGURATION_TAB_BASIC;
-    }
-    
-    private int getSelectedTabForNewConfiguration(WebPage page) {
-        PageParameters params = page.getPageParameters();
-        StringValue val = params.get(PageSystemConfigurationNew.SELECTED_TAB_INDEX);
-        String value = null;
-        if (val != null && !val.isNull()) {
-            value = val.toString();
-        }
-
-        return StringUtils.isNumeric(value) ? Integer.parseInt(value) : PageSystemConfigurationNew.CONFIGURATION_TAB_BASIC;
     }
 
     private void createSelfServiceMenu(SideBarMenuItem menu) {

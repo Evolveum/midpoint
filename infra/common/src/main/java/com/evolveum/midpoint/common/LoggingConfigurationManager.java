@@ -296,7 +296,7 @@ public class LoggingConfigurationManager {
 
 		if (isRolling) {
 			//rolling policy
-			sb.append("\t\t<rollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\">\n");
+			sb.append("\t\t<rollingPolicy class=\"ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy\">\n");
 			sb.append("\t\t\t<fileNamePattern>");
 			sb.append(filePattern);
 			sb.append("</fileNamePattern>\n");
@@ -305,16 +305,12 @@ public class LoggingConfigurationManager {
 				sb.append(appender.getMaxHistory());
 				sb.append("</maxHistory>\n");
 			}
-			sb.append("\t\t\t<cleanHistoryOnStart>true</cleanHistoryOnStart>");
+			sb.append("\t\t\t<cleanHistoryOnStart>true</cleanHistoryOnStart>\n");
 
-			// file triggering
-			// if max size is defined
 			if (!StringUtils.isEmpty(appender.getMaxFileSize())) {
-				sb.append("\t\t\t<timeBasedFileNamingAndTriggeringPolicy class=\"ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP\">\n");
-				sb.append("\t\t\t\t<maxFileSize>");
+				sb.append("\t\t\t<maxFileSize>");
 				sb.append(appender.getMaxFileSize());
 				sb.append("</maxFileSize>\n");
-				sb.append("\t\t\t</timeBasedFileNamingAndTriggeringPolicy>\n");
 			}
 			sb.append("\t\t</rollingPolicy>\n");
 		}

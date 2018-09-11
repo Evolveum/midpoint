@@ -80,7 +80,7 @@ public class EvaluatedAssignmentTargetCache implements DebugDumpable {
 
 	public boolean canSkip(AssignmentPathSegmentImpl segment, PlusMinusZero mode) {
 		ObjectType target = segment.getTarget();
-		if (target == null || !(target instanceof AbstractRoleType)) {
+		if (!(target instanceof AbstractRoleType)) {
 //			LOGGER.trace("Non-skippable target: {}", target);
 			return false;
 		}

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -54,6 +55,7 @@ public class AccCertQueryHelper {
     private static final transient Trace LOGGER = TraceManager.getTrace(AccCertQueryHelper.class);
 
     @Autowired private PrismContext prismContext;
+    @Autowired private RelationRegistry relationRegistry;
     @Autowired protected AccCertGeneralHelper helper;
 	@Autowired @Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
@@ -138,7 +140,8 @@ public class AccCertQueryHelper {
 			return QueryUtils.filterForAssignees(
 						QueryBuilder.queryFor(AccessCertificationWorkItemType.class, prismContext),
 						principal,
-						OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS)
+						OtherPrivilegesLimitationType.F_CERTIFICATION_WORK_ITEMS,
+						relationRegistry)
 					.and().item(F_CLOSE_TIMESTAMP).isNull()
 					.buildFilter();
         } else {

@@ -449,7 +449,7 @@ public class NameStep extends WizardStep {
 				ResourceType resourceType = resource.asObjectable();
 				resourceType.setName(PolyStringType.fromOrig(resourceNameModel.getObject()));
 				resourceType.setDescription(resourceDescriptionModel.getObject());
-				resourceType.setConnectorRef(ObjectTypeUtil.createObjectRef(connector));
+				resourceType.setConnectorRef(ObjectTypeUtil.createObjectRef(connector, prismContext));
 				delta = ObjectDelta.createAddDelta(resource);
 			} else {
 				PrismObject<ResourceType> oldResourceObject =
@@ -470,7 +470,7 @@ public class NameStep extends WizardStep {
 				String oldConnectorOid = oldResource.getConnectorRef() != null ? oldResource.getConnectorRef().getOid() : null;
 				String newConnectorOid = connector.getOid();
 				if (!StringUtils.equals(oldConnectorOid, newConnectorOid)) {
-					i = i.item(ResourceType.F_CONNECTOR_REF).replace(ObjectTypeUtil.createObjectRef(connector).asReferenceValue());
+					i = i.item(ResourceType.F_CONNECTOR_REF).replace(ObjectTypeUtil.createObjectRef(connector, prismContext).asReferenceValue());
 				}
 				if (!isConfigurationSchemaCompatible(connector)) {
 					i = i.item(ResourceType.F_CONNECTOR_CONFIGURATION).replace();

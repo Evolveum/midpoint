@@ -88,6 +88,7 @@ public class RGenericObject extends RObject<GenericObjectType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(GenericObjectType jaxb, RGenericObject repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

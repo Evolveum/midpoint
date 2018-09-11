@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,6 +122,9 @@ public class AssignmentProcessor {
 
     @Autowired
 	private SystemObjectCache systemObjectCache;
+
+    @Autowired
+    private RelationRegistry relationRegistry;
 
     @Autowired
     private PrismContext prismContext;
@@ -725,7 +729,7 @@ public class AssignmentProcessor {
         ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(FocusType.F_ASSIGNMENT, focusClass, prismContext);
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
-		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));
+		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource(), prismContext));
 		assignment.setConstruction(constructionType);
 		assignmentDelta.addValueToAdd(assignment.asPrismContainerValue());
 		PrismContainerDefinition<AssignmentType> containerDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass).findContainerDefinition(FocusType.F_ASSIGNMENT);
@@ -970,15 +974,15 @@ public class AssignmentProcessor {
 			boolean found = false;
 			for (PrismReferenceValue exVal: extractedReferences) {
 				if (MiscUtil.equals(exVal.getOid(), reference.getOid())
-						&& ObjectTypeUtil.relationsEquivalent(exVal.getRelation(), reference.getRelation())) {
+						&& prismContext.relationsEquivalent(exVal.getRelation(), reference.getRelation())) {
 					found = true;
 					break;
 				}
 			}
 			if (!found) {
 				PrismReferenceValue ref = reference.cloneComplex(CloneStrategy.REUSE);		// clone without full object instead of calling canonicalize()
-				if (ref.getRelation() != null && QNameUtil.isUnqualified(ref.getRelation())) {
-					ref.setRelation(new QName(SchemaConstants.NS_ORG, ref.getRelation().getLocalPart(), SchemaConstants.PREFIX_NS_ORG));
+				if (ref.getRelation() == null || QNameUtil.isUnqualified(ref.getRelation())) {
+					ref.setRelation(relationRegistry.normalizeRelation(ref.getRelation()));
 				}
 				extractedReferences.add(ref);
 			}
@@ -994,6 +998,7 @@ public class AssignmentProcessor {
 				.channel(context.getChannel())
 				.objectResolver(objectResolver)
 				.systemObjectCache(systemObjectCache)
+				.relationRegistry(relationRegistry)
 				.prismContext(prismContext)
 				.mappingFactory(mappingFactory)
 				.mappingEvaluator(mappingEvaluator)

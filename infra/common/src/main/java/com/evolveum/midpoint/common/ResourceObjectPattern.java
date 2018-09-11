@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -61,18 +62,19 @@ public class ResourceObjectPattern implements Serializable {
 	}
 
 	public static boolean matches(PrismObject<ShadowType> shadowToMatch,
-			Collection<ResourceObjectPattern> protectedAccountPatterns, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+			Collection<ResourceObjectPattern> protectedAccountPatterns, MatchingRuleRegistry matchingRuleRegistry,
+			RelationRegistry relationRegistry) throws SchemaException {
 		for (ResourceObjectPattern pattern: protectedAccountPatterns) {
-			if (pattern.matches(shadowToMatch, matchingRuleRegistry)) {
+			if (pattern.matches(shadowToMatch, matchingRuleRegistry, relationRegistry)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean matches(PrismObject<ShadowType> shadowToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+	public boolean matches(PrismObject<ShadowType> shadowToMatch, MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
 		if (objectFilter != null) {
-			ObjectTypeUtil.normalizeFilter(objectFilter);	// we suppose references in shadowToMatch are normalized (on return from repo)
+			ObjectTypeUtil.normalizeFilter(objectFilter, relationRegistry);	// we suppose references in shadowToMatch are normalized (on return from repo)
 			return ObjectQuery.match(shadowToMatch, objectFilter, matchingRuleRegistry);
 		} else {
 			// Deprecated method

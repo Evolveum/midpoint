@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.api.context;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,8 @@ public class EvaluatedMultiplicityTrigger extends EvaluatedPolicyRuleTrigger<Mul
 	}
 
 	@Override
-	public EvaluatedMultiplicityTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options) {
+	public EvaluatedMultiplicityTriggerType toEvaluatedPolicyRuleTriggerType(PolicyRuleExternalizationOptions options,
+			PrismContext prismContext) {
 		EvaluatedMultiplicityTriggerType rv = new EvaluatedMultiplicityTriggerType();
 		fillCommonContent(rv);
 		return rv;

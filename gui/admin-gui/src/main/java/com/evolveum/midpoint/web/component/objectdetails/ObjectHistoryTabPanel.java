@@ -48,14 +48,12 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
-import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Created by honchar.
@@ -166,7 +164,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
 
     private AuditSearchDto createAuditSearchDto(F focus) {
         AuditSearchDto searchDto = new AuditSearchDto();
-        ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(focus);
+        ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(focus, getPrismContext());
         searchDto.setTargetNames(asList(ort));
         searchDto.setEventStage(AuditEventStageType.EXECUTION);
         return searchDto;

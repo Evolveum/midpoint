@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.context.PolicyRuleExternalizationOptions;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -137,9 +138,9 @@ class ApprovalSchemaBuilder {
 	}
 
 	// checks the existence of approvers beforehand, because we don't want to have an empty stage
-	boolean addPredefined(PrismObject<?> targetObject, @NotNull QName relationName, OperationResult result) {
+	boolean addPredefined(PrismObject<?> targetObject, RelationKindType relationKind, OperationResult result) {
 		RelationResolver resolver = primaryChangeAspect.createRelationResolver(targetObject, result);
-		List<ObjectReferenceType> approvers = resolver.getApprovers(Collections.singletonList(relationName));
+		List<ObjectReferenceType> approvers = resolver.getApprovers(getRelationRegistry().getAllRelationsFor(relationKind));
 		if (!approvers.isEmpty()) {
 			ApprovalStageDefinitionType stageDef = new ApprovalStageDefinitionType();
 			stageDef.getApproverRef().addAll(approvers);
@@ -148,6 +149,10 @@ class ApprovalSchemaBuilder {
 		} else {
 			return false;
 		}
+	}
+
+	private RelationRegistry getRelationRegistry() {
+		return primaryChangeAspect.getChangeProcessor().getRelationRegistry();
 	}
 
 	void addPredefined(PrismObject<?> targetObject, ApprovalStageDefinitionType stageDef) {
@@ -241,7 +246,7 @@ class ApprovalSchemaBuilder {
 		if (firstFragment.policyRule != null) {
 			List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
 			firstFragment.policyRule.addToEvaluatedPolicyRuleTypes(rules, new PolicyRuleExternalizationOptions(FULL,
-					false, true), null);
+					false, true), null, ctx.prismContext);
 			for (EvaluatedPolicyRuleType rule : rules) {
 				SchemaAttachedPolicyRuleType attachedRule = new SchemaAttachedPolicyRuleType();
 				attachedRule.setStageMin(from);

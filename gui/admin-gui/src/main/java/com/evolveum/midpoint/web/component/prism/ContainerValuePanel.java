@@ -83,33 +83,6 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
     }
 
     private void initLayout(final IModel<ContainerValueWrapper<C>> model, final Form form, ItemVisibilityHandler isPanelVisible, boolean showHeader) {
-    	PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model, isPanelVisible) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onButtonClick(AjaxRequestTarget target) {
-				if(model.getObject().getContainer().isShowOnTopLevel()) {
-					addOrReplaceProperties(model, form, isPanelVisible, true);
-				} else {
-					addOrReplacePropertiesAndContainers(model, form, isPanelVisible, true);
-				}
-				target.add(ContainerValuePanel.this);
-				target.add(getPageBase().getFeedbackPanel());
-			}
-
-        };
-        
-        
-        header.add(new VisibleEnableBehaviour() {
-        	private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return showHeader;// && !model.getObject().isMain();
-            }
-        });
-        add(header);
-        header.setOutputMarkupId(true);
         addOrReplacePropertiesAndContainers(model, form, isPanelVisible, false);
         
         AjaxButton labelShowEmpty = new AjaxButton(ID_SHOW_EMPTY_BUTTON, getNameOfShowEmptyButton(model)) {
@@ -131,8 +104,45 @@ public class ContainerValuePanel<C extends Containerable> extends BasePanel<Cont
 			}
 		});
 		add(labelShowEmpty);
+		
+		PrismContainerValueHeaderPanel<C> header = new PrismContainerValueHeaderPanel<C>(ID_HEADER, model, isPanelVisible) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onButtonClick(AjaxRequestTarget target) {
+				if(model.getObject().getContainer().isShowOnTopLevel()) {
+					addOrReplaceProperties(model, form, isPanelVisible, true);
+				} else {
+					addOrReplacePropertiesAndContainers(model, form, isPanelVisible, true);
+				}
+				target.add(ContainerValuePanel.this);
+				target.add(getPageBase().getFeedbackPanel());
+			}
+
+        };
+        
+        
+        header.add(new VisibleEnableBehaviour() {
+        	private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return showHeader && (hasAnyProperty() || !getModelObject().getContainer().isShowOnTopLevel());// && !model.getObject().isMain();
+            }
+        });
+        add(header);
+        header.setOutputMarkupId(true);
 
     }
+    
+    public boolean hasAnyProperty() {
+		for(ItemWrapper item : getModelObject().getItems()) {
+			if(item instanceof PropertyOrReferenceWrapper) {
+				return true;
+			}
+		}
+		return false;
+	}
     
     private StringResourceModel getNameOfShowEmptyButton(IModel<ContainerValueWrapper<C>> model) {
     	if(!model.getObject().isShowEmpty()) {

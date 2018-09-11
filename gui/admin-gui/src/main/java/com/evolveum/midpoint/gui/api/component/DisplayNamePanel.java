@@ -163,8 +163,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 	// TODO: maybe move relation methods to subclass if we want this panel to be really reusable
 	
 	private boolean isRelationVisible() {
-		QName relation = getRelation();
-		return relation != null && !QNameUtil.match(SchemaConstants.ORG_DEFAULT, relation);
+		return !WebComponentUtil.isDefaultRelation(getRelation());
 	}
 
 	private boolean isKindIntentVisible(IModel<String> kindIntentLabelModel) {

@@ -19,14 +19,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
@@ -67,7 +65,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 						continue;
 					}
 					QName relation = assignment.getTargetRef().getRelation();
-					if (relation != null && !QNameUtil.match(SchemaConstants.ORG_DEFAULT, relation)) {
+					if (!WebComponentUtil.isDefaultRelation(relation)) {
 						continue;
 					}
 					if (SystemObjectsType.ROLE_SUPERUSER.value().equals(assignment.getTargetRef().getOid())) {
@@ -106,7 +104,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
 				boolean isManager = false;
 				boolean isMember = false;
 				for (ObjectReferenceType parentOrgRef: wrapper.getObject().asObjectable().getParentOrgRef()) {
-					if (ObjectTypeUtil.isManagerRelation(parentOrgRef.getRelation())) {
+					if (WebComponentUtil.isManagerRelation(parentOrgRef.getRelation())) {
 						isManager = true;
 					} else {
 						isMember = true;

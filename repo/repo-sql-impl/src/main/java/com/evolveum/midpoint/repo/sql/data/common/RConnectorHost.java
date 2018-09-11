@@ -99,6 +99,7 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

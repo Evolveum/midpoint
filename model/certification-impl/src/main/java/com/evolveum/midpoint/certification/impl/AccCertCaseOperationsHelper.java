@@ -43,7 +43,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -99,7 +98,7 @@ public class AccCertCaseOperationsHelper {
 			throw new ObjectNotFoundException("Work item " + workItemId + " was not found in campaign " + toShortString(campaign) + ", case " + caseId);
 		}
 
-		ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getUser());
+		ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getUser(), prismContext);
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		ItemPath workItemPath = new ItemPath(F_CASE, caseId, F_WORK_ITEM, workItemId);
 		Collection<ItemDelta<?,?>> deltaList = DeltaBuilder.deltaFor(AccessCertificationCampaignType.class, prismContext)
@@ -146,8 +145,8 @@ public class AccCertCaseOperationsHelper {
 
 		MidPointPrincipal principal = securityContextManager.getPrincipal();
 		result.addContext("user", toShortString(principal.getUser()));
-		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
-		ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney());
+		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser(), prismContext);
+		ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney(), prismContext);
 
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		List<ItemDelta<?, ?>> deltas = new ArrayList<>();
@@ -212,8 +211,8 @@ public class AccCertCaseOperationsHelper {
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException {
 		MidPointPrincipal principal = securityContextManager.getPrincipal();
 		result.addContext("user", toShortString(principal.getUser()));
-		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser());
-		ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney());
+		ObjectReferenceType initiator = ObjectTypeUtil.createObjectRef(principal.getUser(), prismContext);
+		ObjectReferenceType attorney = ObjectTypeUtil.createObjectRef(principal.getAttorney(), prismContext);
 
 		List<AccessCertificationWorkItemType> workItems = queryHelper.searchOpenWorkItems(
 				CertCampaignTypeUtil.createWorkItemsForCampaignQuery(campaignOid, prismContext),

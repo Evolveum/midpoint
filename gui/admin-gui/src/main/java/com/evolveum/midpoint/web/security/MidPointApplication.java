@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -158,6 +159,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient ModelInteractionService modelInteractionService;
     @Autowired
+    transient RelationRegistry relationRegistry;
+    @Autowired
     transient TaskService taskService;
     @Autowired
     transient PrismContext prismContext;
@@ -193,6 +196,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient ApplicationContext applicationContext;
 
     private WebApplicationConfiguration webApplicationConfiguration;
+    
+    public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
+    public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
+    public static final String MOUNT_FORBIDEN_ERROR = "/error/403";
+    public static final String MOUNT_NOT_FOUND_ERROR = "/error/404";
+    public static final String MOUNT_GONE_ERROR = "/error/410";
 
     @Override
     public Class<? extends PageBase> getHomePage() {
@@ -249,11 +258,11 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         appSettings.setInternalErrorPage(PageError.class);
         appSettings.setPageExpiredErrorPage(PageError.class);
 
-        mount(new MountedMapper("/error", PageError.class, new PageParametersEncoder()));
-        mount(new MountedMapper("/error/401", PageError401.class, new PageParametersEncoder()));
-        mount(new MountedMapper("/error/403", PageError403.class, new PageParametersEncoder()));
-        mount(new MountedMapper("/error/404", PageError404.class, new PageParametersEncoder()));
-        mount(new MountedMapper("/error/410", PageError410.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_INTERNAL_SERVER_ERROR, PageError.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_UNAUTHORIZED_ERROR, PageError401.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_FORBIDEN_ERROR, PageError403.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_NOT_FOUND_ERROR, PageError404.class, new PageParametersEncoder()));
+        mount(new MountedMapper(MOUNT_GONE_ERROR, PageError410.class, new PageParametersEncoder()));
 
         getRequestCycleListeners().add(new LoggingRequestCycleListener(this));
 
@@ -489,6 +498,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+
+    public RelationRegistry getRelationRegistry() {
+        return relationRegistry;
     }
 
     public static boolean containsLocale(Locale locale) {

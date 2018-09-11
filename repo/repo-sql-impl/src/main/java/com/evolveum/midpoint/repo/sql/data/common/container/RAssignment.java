@@ -433,20 +433,19 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return result;
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, RObject parent,
-                                    RepositoryContext repositoryContext) throws DtoTranslationException{
-        copyFromJAXB(jaxb, repo, repositoryContext, null);
+    public static void fromJaxb(AssignmentType jaxb, RAssignment repo, RObject parent,
+            RepositoryContext repositoryContext) throws DtoTranslationException{
+        fromJaxb(jaxb, repo, repositoryContext, null);
         repo.setOwner(parent);
     }
 
-    public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, RepositoryContext repositoryContext,
-                                    IdGeneratorResult generatorResult) throws DtoTranslationException {
-
-        copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+    public static void fromJaxb(AssignmentType jaxb, RAssignment repo, ObjectType parent, RepositoryContext repositoryContext,
+            IdGeneratorResult generatorResult) throws DtoTranslationException {
+        fromJaxb(jaxb, repo, repositoryContext, generatorResult);
         repo.setOwnerOid(parent.getOid());
     }
 
-    private static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, RepositoryContext repositoryContext,
+    private static void fromJaxb(AssignmentType jaxb, RAssignment repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -465,13 +464,13 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
             extension.setOwner(repo);
 
             repo.setExtension(extension);
-            RAssignmentExtension.copyFromJAXB(jaxb.getExtension(), extension, RAssignmentExtensionType.EXTENSION,
+            RAssignmentExtension.fromJaxb(jaxb.getExtension(), extension, RAssignmentExtensionType.EXTENSION,
                     repositoryContext);
         }
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
-            RActivation.copyFromJAXB(jaxb.getActivation(), activation, repositoryContext);
+            RActivation.fromJaxb(jaxb.getActivation(), activation, repositoryContext);
             repo.setActivation(activation);
         }
 
@@ -479,17 +478,17 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
             LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }
 
-        repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), repositoryContext.prismContext));
+        repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), repositoryContext.relationRegistry));
 
-        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.prismContext));
+        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.relationRegistry));
 
-        repo.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOrgRef(), repositoryContext.prismContext));
+        repo.setOrgRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOrgRef(), repositoryContext.relationRegistry));
 
         if (jaxb.getConstruction() != null) {
-            repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConstruction().getResourceRef(), repositoryContext.prismContext));
+            repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConstruction().getResourceRef(), repositoryContext.relationRegistry));
         }
 
-        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, repositoryContext.prismContext);
+        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, repositoryContext.prismContext, repositoryContext.relationRegistry);
     }
 
     @Override

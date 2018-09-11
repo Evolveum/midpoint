@@ -120,6 +120,7 @@ public class ROrg extends RAbstractRole<OrgType> {
         return result;
     }
 
+    // dynamically called
     public static void copyFromJAXB(OrgType jaxb, ROrg repo, RepositoryContext repositoryContext,
                                     IdGeneratorResult generatorResult) throws DtoTranslationException {
         RAbstractRole.copyFromJAXB(jaxb, repo, repositoryContext, generatorResult);

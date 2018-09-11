@@ -48,27 +48,45 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     private static final String ID_REQUIRED = "required";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_ADDITIONAL_INFO = "additionalInfo";
+    private static final String ID_PROPERTY_LABEL = "propertyLabel";
+    private static final String ID_ROW = "row";
 
+    public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
+            IModel<String> label, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
+    	this(id, value, choices, renderer, label, null, false, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
+    }
+    
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
                              IModel<String> label, String labelCssClass, String textCssClass, boolean required) {
-        this(id, value, choices, renderer, label, null, false, labelCssClass, textCssClass, required);
+        this(id, value, choices, renderer, label, null, false, labelCssClass, textCssClass, required, false);
     }
-
+    
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-                             IModel<String> label, String tooltipKey, boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required) {
+            IModel<String> label, String tooltipKey, boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required) {
+    	this(id, value, choices, renderer, label, null, false, labelCssClass, textCssClass, required, false);
+    }
+    
+    public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, String tooltipKey,
+    		boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
-        initLayout(choices, renderer, label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required);
+        initLayout(choices, renderer, label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
     }
 
     private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, final String tooltipKey,
-                            boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required) {
+                            boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
+                            boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         add(labelContainer);
 
         Label l = new Label(ID_LABEL, label);
         if (StringUtils.isNotEmpty(labelCssClass)) {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
+        }
+        if(isSimilarAsPropertyPanel) {
+        	labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
+        } else {
+        	labelContainer.add(AttributeAppender.prepend("class", " control-label "));
         }
         labelContainer.add(l);
 
@@ -108,11 +126,19 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 		});
 		labelContainer.add(requiredContainer);
 
+		WebMarkupContainer propertyLabel = new WebMarkupContainer(ID_PROPERTY_LABEL);
+		WebMarkupContainer rowLabel = new WebMarkupContainer(ID_ROW);
         WebMarkupContainer selectWrapper = new WebMarkupContainer(ID_SELECT_WRAPPER);
         if (StringUtils.isNotEmpty(textCssClass)) {
             selectWrapper.add(AttributeAppender.prepend("class", textCssClass));
         }
-        add(selectWrapper);
+        if(isSimilarAsPropertyPanel) {
+        	propertyLabel.add(AttributeAppender.prepend("class", " col-md-10 prism-property-value "));
+        	rowLabel.add(AttributeAppender.prepend("class", " row "));
+        }
+        propertyLabel.add(rowLabel);
+		rowLabel.add(selectWrapper);
+        add(propertyLabel);
 
         DropDownChoice<T> select = createDropDown(ID_SELECT, choices, renderer, required);
         select.setLabel(label);
@@ -134,7 +160,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
 	}
 
 	public Component getAdditionalInfoComponent() {
-		return get(createComponentPath(ID_SELECT_WRAPPER, ID_ADDITIONAL_INFO));
+		return get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_SELECT_WRAPPER, ID_ADDITIONAL_INFO));
 	}
 
 	protected DropDownChoice<T> createDropDown(String id, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
@@ -154,6 +180,6 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     }
 
     public DropDownChoice<T> getInput() {
-        return (DropDownChoice<T>) get(createComponentPath(ID_SELECT_WRAPPER, ID_SELECT));
+        return (DropDownChoice<T>) get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_SELECT_WRAPPER, ID_SELECT));
     }
 }

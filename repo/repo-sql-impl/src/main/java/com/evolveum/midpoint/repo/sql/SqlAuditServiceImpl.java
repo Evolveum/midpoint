@@ -234,7 +234,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 // TODO what if original name (in audit log) differs from the current one (in repo) ?
                 audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), defaultIfNull(raudit.getInitiatorType(), RObjectType.USER)));
                 audit.setAttorney(resolve(session, raudit.getAttorneyOid(), raudit.getAttorneyName(), RObjectType.USER));
-                audit.setTarget(resolve(session, raudit.getTargetOid(), raudit.getTargetName(), raudit.getTargetType()));
+                audit.setTarget(resolve(session, raudit.getTargetOid(), raudit.getTargetName(), raudit.getTargetType()),
+		                getPrismContext());
                 audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid(), raudit.getTargetOwnerName(), raudit.getTargetOwnerType()));
                 count++;
                 if (!handler.handle(audit)) {

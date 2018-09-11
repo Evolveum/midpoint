@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
@@ -139,8 +140,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 	@Override
 	public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
-			ObjectClassComplexTypeDefinition objectClass, PrismObject<ShadowType> shadow,
-			Collection<? extends ResourceAttribute<?>> identifiers, Collection<Operation> changes,
+			ResourceObjectIdentification identification,
+			PrismObject<ShadowType> shadow,
+			Collection<Operation> changes,
+			ConnectorOperationOptions options,
 			StateReporter reporter, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException,
 			SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ConfigurationException {
@@ -154,7 +157,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 		try {
 			
-			ticketIdentifier = createTicketModify(objectClass, shadow, identifiers, reporter.getResourceOid(), changes, result);
+			ticketIdentifier = createTicketModify(identification.getObjectClassDefinition(), shadow, identification.getAllIdentifiers(), reporter.getResourceOid(), changes, result);
 			
 		} catch (ObjectNotFoundException | CommunicationException | GenericFrameworkException | SchemaException |
 				ObjectAlreadyExistsException | ConfigurationException | RuntimeException | Error e) {

@@ -62,7 +62,7 @@ import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfigurationNew;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -94,12 +94,12 @@ public class ObjectPolicyConfigurationTabPanel extends BasePanel<ContainerWrappe
     		super.onInitialize();
     		
     		PageParameters params = getPage().getPageParameters();
-    		StringValue val = params.get(PageSystemConfigurationNew.SELECTED_TAB_INDEX);
+    		StringValue val = params.get(PageSystemConfiguration.SELECTED_TAB_INDEX);
     		String value = null;
     		if (val != null && !val.isNull()) {
-    			params.remove(params.getPosition(PageSystemConfigurationNew.SELECTED_TAB_INDEX));
+    			params.remove(params.getPosition(PageSystemConfiguration.SELECTED_TAB_INDEX));
     		} 
-    		params.set(PageSystemConfigurationNew.SELECTED_TAB_INDEX, PageSystemConfigurationNew.CONFIGURATION_TAB_OBJECT_POLICY);
+    		params.set(PageSystemConfiguration.SELECTED_TAB_INDEX, PageSystemConfiguration.CONFIGURATION_TAB_OBJECT_POLICY);
     		
     		initLayout();
     }

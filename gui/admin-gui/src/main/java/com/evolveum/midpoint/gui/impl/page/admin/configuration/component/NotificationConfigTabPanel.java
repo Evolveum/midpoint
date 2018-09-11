@@ -148,13 +148,13 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 		
 		mailConfigType = (MailConfigurationType)mailConfig.getValues().get(0).getValue().getRealValue();
 		
-		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false));
+		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
 		
-		add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<String>(mailConfigType, "redirectToFile"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false));
+		add(new TextFormGroup(ID_REDIRECT_TO_FILE, new PropertyModel<String>(mailConfigType, "redirectToFile"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".redirectToFile"), "", getInputCssClass(), false, true));
 		
-		add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<String>(mailConfigType, "logToFile"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false));
+		add(new TextFormGroup(ID_LOG_TO_FILE, new PropertyModel<String>(mailConfigType, "logToFile"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".logToFile"), "", getInputCssClass(), false, true));
 		
-		add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<Boolean>(mailConfigType, "debug"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false));
+		add(new TriStateFormGroup(ID_DEBUG, new PropertyModel<Boolean>(mailConfigType, "debug"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".debug"), "", getInputCssClass(), false, true));
 		
 		add(createHeader(ID_MAIL_SERVER_CONFIG_HEADER, MailServerConfigurationType.COMPLEX_TYPE.getLocalPart() + ".details"));
 		
@@ -191,7 +191,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
                     };
                     item.add(removeButton);
                 	
-                    TextFormGroup name = new TextFormGroup(ID_FILE_NAME, fileConfigType != null ? new PropertyModel<String>(fileConfigType, "name") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".name")), "", getInputCssClass(), false);
+                    TextFormGroup name = new TextFormGroup(ID_FILE_NAME, fileConfigType != null ? new PropertyModel<String>(fileConfigType, "name") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".name")), "", getInputCssClass(), false, true);
                     name.getField().add(new OnChangeAjaxBehavior() {
 						
 						private static final long serialVersionUID = 1L;
@@ -203,7 +203,7 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 					});
                 	item.add(name);
                 	
-                	TextFormGroup file = new TextFormGroup(ID_FILE_PATH, fileConfigType != null ? new PropertyModel<String>(fileConfigType, "file") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".file")), "", getInputCssClass(), false);
+                	TextFormGroup file = new TextFormGroup(ID_FILE_PATH, fileConfigType != null ? new PropertyModel<String>(fileConfigType, "file") : Model.of(""), createStringResource(fileConfigType == null ? "" : (fileConfigType.COMPLEX_TYPE.getLocalPart() + ".file")), "", getInputCssClass(), false, true);
                 	file.getField().add(new OnChangeAjaxBehavior() {
 						
 						private static final long serialVersionUID = 1L;
