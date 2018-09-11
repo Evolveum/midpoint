@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.WicketRuntimeException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.CountModelProvider;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,6 +51,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
      * id used for child panels
      */
     public static final String TAB_PANEL_ID = "panel";
+    public static final String ID_TABS_CONTAINER = "tabs-container";
+    public static final String ID_TABS = "tabs";
     public static final String RIGHT_SIDE_TAB_ITEM_ID = "rightSideTabItem";
     public static final String RIGHT_SIDE_TAB_ID = "rightSideTab";
 
@@ -106,11 +110,11 @@ public class TabbedPanel<T extends ITab> extends Panel {
             }
         };
 
-        WebMarkupContainer tabsContainer = newTabsContainer("tabs-container");
+        WebMarkupContainer tabsContainer = newTabsContainer(ID_TABS_CONTAINER);
         add(tabsContainer);
 
         // add the loop used to generate tab names
-        tabsContainer.add(new Loop("tabs", tabCount) {
+        tabsContainer.add(new Loop(ID_TABS, tabCount) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -131,6 +135,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
                 }
 				Label countLabel = new Label(ID_COUNT, countModel);
 				countLabel.setVisible(countModel != null);
+				countLabel.setOutputMarkupId(true);
 				countLabel.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
 					private static final long serialVersionUID = 1L;
 
@@ -492,4 +497,15 @@ public class TabbedPanel<T extends ITab> extends Panel {
     public interface RightSideItemProvider extends Serializable {
 		Component createRightSideItem(String id);
 	}
+
+	public void reloadCountLabels(AjaxRequestTarget target){
+        Loop tabbedPanel = ((Loop)get(ID_TABS_CONTAINER).get(ID_TABS));
+        int tabsCount = tabbedPanel.getIterations();
+        for (int i = 0; i < tabsCount; i++){
+            Component countLabel = tabbedPanel.get(Integer.toString(i)).get(ID_LINK).get(ID_COUNT);
+            if (countLabel != null) {
+                target.add(countLabel);
+            }
+        }
+    }
 }
