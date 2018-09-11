@@ -125,31 +125,6 @@ public class RelationRegistryImpl implements RelationRegistry {
 	}
 
 	@Override
-	public boolean isMembership(QName relation) {
-		return isOfKind(relation, RelationKindType.MEMBERSHIP);
-	}
-
-	@Override
-	public boolean isManager(QName relation) {
-		return isOfKind(relation, RelationKindType.MANAGER);
-	}
-
-	@Override
-	public boolean isDelegation(QName relation) {
-		return isOfKind(relation, RelationKindType.DELEGATION);
-	}
-
-	@Override
-	public boolean isOwner(QName relation) {
-		return isOfKind(relation, RelationKindType.OWNER);
-	}
-
-	@Override
-	public boolean isApprover(QName relation) {
-		return isOfKind(relation, RelationKindType.APPROVER);
-	}
-
-	@Override
 	public boolean processRelationOnLogin(QName relation) {
 		return indexedRelationDefinitions.processRelationOnLogin(relation);
 	}
