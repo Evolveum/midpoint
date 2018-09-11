@@ -47,3 +47,13 @@ auth:
 
 # more properties with default values can be found here:
 # https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+
+management:
+  endpoint:
+    health:
+      enabled: true
+  
+
+logging:
+  level:
+    org.springframework: TRACE

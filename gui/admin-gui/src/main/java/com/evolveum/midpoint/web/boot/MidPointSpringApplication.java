@@ -35,6 +35,17 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.actuate.autoconfigure.endpoint.EndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.health.HealthEndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.health.HealthIndicatorAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.web.mappings.MappingsEndpointAutoConfiguration;
+import org.springframework.boot.actuate.autoconfigure.web.servlet.ServletManagementContextAutoConfiguration;
+import org.springframework.boot.actuate.endpoint.EndpointFilter;
+import org.springframework.boot.actuate.endpoint.ExposableEndpoint;
+import org.springframework.boot.actuate.endpoint.web.EndpointServlet;
+import org.springframework.boot.actuate.endpoint.web.annotation.ServletEndpointDiscoverer;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
@@ -62,6 +73,7 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 import ro.isdc.wro.http.WroFilter;
 
 import javax.servlet.DispatcherType;
+import javax.servlet.Servlet;
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
@@ -103,7 +115,10 @@ import java.time.Duration;
 		PropertyPlaceholderAutoConfiguration.class,
 		SecurityFilterAutoConfiguration.class,
 		MultipartAutoConfiguration.class,
-        HttpEncodingAutoConfiguration.class
+        HttpEncodingAutoConfiguration.class,
+        WebEndpointAutoConfiguration.class,
+        ServletManagementContextAutoConfiguration.class,
+        HealthEndpointAutoConfiguration.class
 })
 @SpringBootConfiguration
 public class MidPointSpringApplication extends SpringBootServletInitializer {
@@ -206,7 +221,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.addUrlPatterns("/*");
         return registration;
     }
-
+    
     @Bean
     public FilterRegistrationBean webResourceOptimizer(WroFilter wroFilter) {
         FilterRegistrationBean registration = new FilterRegistrationBean();
@@ -214,6 +229,14 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.addUrlPatterns("/wro/*");
         return registration;
     }
+    
+//    @Bean
+//    public ServletRegistrationBean actuatorServlet(Servlet endpointServlet ) {
+//    	ServletRegistrationBean registration = new ServletRegistrationBean();
+//        registration.setServlet(endpointServlet);
+//        registration.addUrlMappings("/actuator/*");
+//        return registration;
+//    }
 
     @Bean
     public ServletRegistrationBean cxfServlet() {
