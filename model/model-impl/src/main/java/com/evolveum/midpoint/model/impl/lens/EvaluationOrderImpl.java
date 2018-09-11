@@ -23,7 +23,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MultiSet;
@@ -221,8 +220,7 @@ public class EvaluationOrderImpl implements EvaluationOrder {
 	@Override
 	public Collection<QName> getExtraRelations() {
 		return orderMap.entrySet().stream()
-				.filter(e -> !relationRegistry.isMembership(e.getKey()) &&
-						!relationRegistry.isDelegation(e.getKey()) && e.getValue() > 0)
+				.filter(e -> !relationRegistry.isAutomaticallyMatched(e.getKey()) && e.getValue() > 0)
 				.map(e -> e.getKey())
 				.collect(Collectors.toSet());
 	}

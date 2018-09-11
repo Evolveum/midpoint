@@ -56,7 +56,7 @@ public class RelationRegistryImpl implements RelationRegistry {
 		RelationsDefinitionType relationsDef = roleManagement != null ? roleManagement.getRelations() : null;
 		LOGGER.info("Applying relation configuration ({} entries)", relationsDef != null ? relationsDef.getRelation().size() : 0);
 		indexedRelationDefinitions = createAndIndexRelationDefinitions(relationsDef);
-		prismContext.setDefaultRelation(indexedRelationDefinitions.getDefaultRelationFor(RelationKindType.MEMBERSHIP));
+		prismContext.setDefaultRelation(indexedRelationDefinitions.getDefaultRelationFor(RelationKindType.MEMBER));
 	}
 
 	public List<RelationDefinitionType> getRelationDefinitions() {
@@ -125,18 +125,23 @@ public class RelationRegistryImpl implements RelationRegistry {
 	}
 
 	@Override
-	public boolean processRelationOnLogin(QName relation) {
-		return indexedRelationDefinitions.processRelationOnLogin(relation);
+	public boolean isProcessedOnLogin(QName relation) {
+		return indexedRelationDefinitions.isProcessedOnLogin(relation);
 	}
 
 	@Override
-	public boolean processRelationOnRecompute(QName relation) {
-		return indexedRelationDefinitions.processRelationOnRecompute(relation);
+	public boolean isProcessedOnRecompute(QName relation) {
+		return indexedRelationDefinitions.isProcessedOnRecompute(relation);
 	}
 
 	@Override
-	public boolean includeIntoParentOrgRef(QName relation) {
-		return indexedRelationDefinitions.includeIntoParentOrgRef(relation);
+	public boolean isStoredIntoParentOrgRef(QName relation) {
+		return indexedRelationDefinitions.isStoredIntoParentOrgRef(relation);
+	}
+
+	@Override
+	public boolean isAutomaticallyMatched(QName relation) {
+		return indexedRelationDefinitions.isAutomaticallyMatched(relation);
 	}
 
 	@Override
@@ -152,7 +157,7 @@ public class RelationRegistryImpl implements RelationRegistry {
 
 	@Override
 	public QName getDefaultRelation() {
-		return getDefaultRelationFor(RelationKindType.MEMBERSHIP);
+		return getDefaultRelationFor(RelationKindType.MEMBER);
 	}
 
 	@NotNull

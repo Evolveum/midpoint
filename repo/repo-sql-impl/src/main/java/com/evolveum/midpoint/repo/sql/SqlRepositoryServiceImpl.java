@@ -1130,7 +1130,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	@Override
 	public void postInit(OperationResult result) throws SchemaException {
 
-        LOGGER.info("Executing repository postInit method");
+        LOGGER.debug("Executing repository postInit method");
 
 		SystemConfigurationType systemConfiguration;
 		try {

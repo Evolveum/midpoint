@@ -1233,7 +1233,8 @@ public class BeanUnmarshaller {
 			}
 		}
 		if (javaEnumString == null) {
-			throw new SchemaException("Cannot find enum value for string '"+primValue+"' in "+beanClass);
+			pc.warnOrThrow(LOGGER, "Cannot find enum value for string '"+primValue+"' in "+beanClass);
+			return null;
 		}
 
 		@SuppressWarnings("unchecked")
