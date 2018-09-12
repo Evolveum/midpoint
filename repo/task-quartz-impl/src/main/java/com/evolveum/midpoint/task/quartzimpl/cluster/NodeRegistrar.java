@@ -102,6 +102,7 @@ public class NodeRegistrar {
             PrismObject<NodeType> nodeInRepo = nodesInRepo.get(0);
             // copy all information that need to be preserved from the repository
             nodeToBe.setTaskExecutionLimitations(nodeInRepo.asObjectable().getTaskExecutionLimitations());
+            nodeToBe.setUrl(nodeInRepo.asObjectable().getUrl());
             ObjectDelta<NodeType> nodeDelta = nodeInRepo.diff(nodeToBe.asPrismObject(), false, true);
             LOGGER.debug("Applying delta to existing node object:\n{}", nodeDelta.debugDumpLazily());
             try {
@@ -435,7 +436,7 @@ public class NodeRegistrar {
 				for (InetAddress inetAddress: Collections.list(netint.getInetAddresses())) {
 					String hostAddress = inetAddress.getHostAddress();
 					String normalizedAddress = normalizeAddress(hostAddress);
-					if (!isLocalAddress(normalizedAddress)) {
+					if (!isLocalAddress(normalizedAddress) || taskManager.isLocalNodeClusteringEnabled()) {
 						addresses.add(normalizedAddress);
 					}
 				}

@@ -11,7 +11,7 @@ public enum RestAuthenticationMethod {
 
 	private String method;
 
-	private RestAuthenticationMethod(String method) {
+	RestAuthenticationMethod(String method) {
 		this.method = method;
 	}
 

@@ -78,6 +78,8 @@ public class TaskManagerConfiguration {
     private static final String RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY = "runNowKeepsOriginalSchedule";
     private static final String SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY = "schedulerInitiallyStopped";
 
+    private static final String LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY = "localNodeClusteringEnabled";
+
     private static final String WORK_ALLOCATION_MAX_RETRIES_ENTRY = "workAllocationMaxRetries";
     private static final String WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY = "workAllocationRetryIntervalBase";
     private static final String WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY = "workAllocationRetryIntervalLimit";
@@ -130,6 +132,7 @@ public class TaskManagerConfiguration {
     private int stalledTasksRepeatedNotificationInterval;
     private boolean runNowKeepsOriginalSchedule;
     private boolean schedulerInitiallyStopped;
+    private boolean localNodeClusteringEnabled;
 
     private int workAllocationMaxRetries;
     private long workAllocationRetryIntervalBase;
@@ -200,6 +203,7 @@ public class TaskManagerConfiguration {
             STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY,
             RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY,
 			SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY,
+		    LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY,
 		    WORK_ALLOCATION_MAX_RETRIES_ENTRY,
             WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY,
             WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY,
@@ -297,6 +301,7 @@ public class TaskManagerConfiguration {
         stalledTasksRepeatedNotificationInterval = c.getInt(STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY, STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_DEFAULT);
         runNowKeepsOriginalSchedule = c.getBoolean(RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY, RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_DEFAULT);
         schedulerInitiallyStopped = c.getBoolean(SCHEDULER_INITIALLY_STOPPED_CONFIG_ENTRY, false);
+        localNodeClusteringEnabled = c.getBoolean(LOCAL_NODE_CLUSTERING_ENABLED_CONFIG_ENTRY, false);
 
         workAllocationMaxRetries = c.getInt(WORK_ALLOCATION_MAX_RETRIES_ENTRY, WORK_ALLOCATION_MAX_RETRIES_DEFAULT);
         workAllocationRetryIntervalBase = c.getLong(WORK_ALLOCATION_RETRY_INTERVAL_BASE_ENTRY, WORK_ALLOCATION_RETRY_INTERVAL_DEFAULT);
@@ -562,6 +567,11 @@ public class TaskManagerConfiguration {
     public boolean isSchedulerInitiallyStopped() {
 		return schedulerInitiallyStopped;
 	}
+
+    @SuppressWarnings("WeakerAccess")
+    public boolean isLocalNodeClusteringEnabled() {
+        return localNodeClusteringEnabled;
+    }
 
     public int getWorkAllocationMaxRetries() {
         return workAllocationMaxRetries;

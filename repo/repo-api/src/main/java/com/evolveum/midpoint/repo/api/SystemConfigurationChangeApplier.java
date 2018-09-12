@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.repo.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
-public interface CacheDispatcher {
+/**
+ * @author mederly
+ */
+public interface SystemConfigurationChangeApplier {
 
-	void registerCacheListener(CacheListener cacheListener);
-	void unregisterCacheListener(CacheListener cacheListener);
-	
-	<O extends ObjectType> void dispatch(Class<O> type, String oid);
+	void applySystemConfiguration(boolean ignoreVersion, boolean allowNotFound, OperationResult result) throws SchemaException;
+
 }

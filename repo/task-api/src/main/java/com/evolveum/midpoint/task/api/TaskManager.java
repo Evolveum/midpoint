@@ -662,4 +662,10 @@ public interface TaskManager {
 	TaskHandler createAndRegisterPartitioningTaskHandler(String handlerUri, Function<Task, TaskPartitionsDefinition> partitioningStrategy);
 
 	void setFreeBucketWaitInterval(long value);
+
+	/**
+	 * EXPERIMENTAL. Relaxes some assumptions on cluster structure e.g. that IP addresses of cluster members must be different.
+	 * To be used for demonstration/testing only. Avoid using in production environments.
+	 */
+	boolean isLocalNodeClusteringEnabled();
 }

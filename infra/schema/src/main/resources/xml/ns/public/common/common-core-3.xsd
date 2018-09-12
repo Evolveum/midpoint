@@ -1980,7 +1980,19 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Hostname of the node that can be used by other nodes to contact this node over the
-                                network.
+                                network. It is automatically determined and updated.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="url" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                URL of midPoint that can be used by other nodes to contact this node over the
+                                network. It is manually configured. If not present, it is automatically derived by
+								infrastructure/intraClusterHttpUrlPattern system configuration property.
+
+								Use only if really necessary. Support for this item is currently limited
+								to clusterwide cache invalidation.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

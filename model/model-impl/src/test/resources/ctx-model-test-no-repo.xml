@@ -43,4 +43,8 @@
     <import resource="ctx-audit.xml"/>
     <import resource="ctx-security.xml"/>
     <import resource="ctx-common.xml"/>
+
+	<!-- Repository is not here but we need this bean -->
+	<bean id="dummySystemConfigurationChangeApplier" class="com.evolveum.midpoint.model.impl.controller.DummySystemConfigurationChangeApplierImpl"/>
+
 </beans>

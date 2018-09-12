@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -39,6 +40,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -689,16 +691,7 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
 									 String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
-				cellItem.add(new PendingOperationPanel(componentId, new AbstractReadOnlyModel<List<PendingOperationType>>() {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public List<PendingOperationType> getObject() {
-						SelectableBean<ShadowType> bean = rowModel.getObject();
-						return bean.getValue().getPendingOperation();
-					}
-				}));
+				cellItem.add(new PendingOperationPanel(componentId, new PropertyModel<List<PendingOperationType>>(rowModel, SelectableBean.F_VALUE + "." + ShadowType.F_PENDING_OPERATION.getLocalPart())));
 			}
 		});
 		return columns;

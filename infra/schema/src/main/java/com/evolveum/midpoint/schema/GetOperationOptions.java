@@ -306,6 +306,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.resolve = resolve;
 	}
 
+	public GetOperationOptions resolve(Boolean resolve) {
+		this.resolve = resolve;
+		return this;
+	}
+
 	public static boolean isResolve(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -362,6 +367,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.noFetch = noFetch;
 	}
 
+	public GetOperationOptions noFetch(Boolean noFetch) {
+		this.noFetch = noFetch;
+		return this;
+	}
+
 	public static boolean isNoFetch(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -404,6 +414,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.resolveNames = resolveNames;
 	}
 
+	public GetOperationOptions resolveNames(Boolean resolveNames) {
+		this.resolveNames = resolveNames;
+		return this;
+	}
+
 	public static boolean isResolveNames(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -429,6 +444,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
     public void setTolerateRawData(Boolean value) {
         this.tolerateRawData = value;
+    }
+
+    public GetOperationOptions tolerateRawData(Boolean value) {
+        this.tolerateRawData = value;
+        return this;
     }
 
     public static boolean isTolerateRawData(GetOperationOptions options) {
@@ -458,6 +478,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
     public void setRaw(Boolean raw) {
         this.raw = raw;
+    }
+
+    public GetOperationOptions raw(Boolean raw) {
+        this.raw = raw;
+        return this;
     }
 
     public static boolean isRaw(GetOperationOptions options) {
@@ -505,6 +530,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.doNotDiscovery = force;
 	}
 
+	public GetOperationOptions doNotDiscovery(Boolean force) {
+		this.doNotDiscovery = force;
+		return this;
+	}
+
 	public static boolean isDoNotDiscovery(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -546,6 +576,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.allowNotFound = allowNotFound;
 	}
 
+	public GetOperationOptions allowNotFound(Boolean allowNotFound) {
+		this.allowNotFound = allowNotFound;
+		return this;
+	}
+
 	public static boolean isAllowNotFound(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -580,6 +615,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.readOnly = readOnly;
 	}
 
+	public GetOperationOptions readOnly(Boolean readOnly) {
+		this.readOnly = readOnly;
+		return this;
+	}
+
 	public static boolean isReadOnly(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -596,6 +636,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
 	public void setPointInTimeType(PointInTimeType pointInTimeType) {
 		this.pointInTimeType = pointInTimeType;
+	}
+
+	public GetOperationOptions pointInTimeType(PointInTimeType pointInTimeType) {
+		this.pointInTimeType = pointInTimeType;
+		return this;
 	}
 
 	/**
@@ -630,6 +675,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
 	public void setStaleness(Long staleness) {
 		this.staleness = staleness;
+	}
+
+	public GetOperationOptions staleness(Long staleness) {
+		this.staleness = staleness;
+		return this;
 	}
 
 	/**
@@ -672,6 +722,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.forceRefresh = forceRefresh;
 	}
 
+	public GetOperationOptions forceRefresh(Boolean forceRefresh) {
+		this.forceRefresh = forceRefresh;
+		return this;
+	}
+
 	public static boolean isForceRefresh(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -694,6 +749,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
 	public void setDistinct(Boolean distinct) {
 		this.distinct = distinct;
+	}
+
+	public GetOperationOptions distinct(Boolean distinct) {
+		this.distinct = distinct;
+		return this;
 	}
 
 	public static boolean isDistinct(GetOperationOptions options) {
@@ -730,6 +790,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.attachDiagData = value;
 	}
 
+	public GetOperationOptions attachDiagData(Boolean value) {
+		this.attachDiagData = value;
+		return this;
+	}
+
 	public static boolean isAttachDiagData(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -757,6 +822,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.executionPhase = executionPhase;
 	}
 	
+	public GetOperationOptions executionPhase(Boolean executionPhase) {
+		this.executionPhase = executionPhase;
+		return this;
+	}
+
 	public static boolean isExecutionPhase(GetOperationOptions options) {
 		if (options == null) {
 			return false;
@@ -781,6 +851,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.definitionProcessing = definitionProcessing;
 	}
 
+	public GetOperationOptions definitionProcessing(DefinitionProcessingOption definitionProcessing) {
+		this.definitionProcessing = definitionProcessing;
+		return this;
+	}
+
 	public static DefinitionProcessingOption getDefinitionProcessing(GetOperationOptions options) {
 		return options != null ? options.definitionProcessing : null;
 	}
@@ -802,6 +877,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		this.iterationMethod = iterationMethod;
 	}
 
+	public GetOperationOptions iterationMethod(IterationMethodType iterationMethod) {
+		this.iterationMethod = iterationMethod;
+		return this;
+	}
+
 	public static IterationMethodType getIterationMethod(GetOperationOptions options) {
 		return options != null ? options.iterationMethod : null;
 	}
@@ -821,6 +901,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
 	public void setRelationalValueSearchQuery(RelationalValueSearchQuery relationalValueSearchQuery) {
 		this.relationalValueSearchQuery = relationalValueSearchQuery;
+	}
+
+	public GetOperationOptions relationalValueSearchQuery(RelationalValueSearchQuery relationalValueSearchQuery) {
+		this.relationalValueSearchQuery = relationalValueSearchQuery;
+		return this;
 	}
 
 	@Override

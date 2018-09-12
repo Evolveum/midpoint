@@ -62,11 +62,11 @@ public class ScriptExpressionFactory implements Cacheable{
 
 	private Map<String, FunctionLibrary> customFunctionLibraryCache;
 	
-	private CacheRegistry cahceRegistry;
+	private CacheRegistry cacheRegistry;
 	
 	@PostConstruct
 	public void register() {
-		cahceRegistry.registerCacheableService(this);
+		cacheRegistry.registerCacheableService(this);
 	}
 	
 	public ScriptExpressionFactory(PrismContext prismContext, Protector protector, RepositoryService repositoryService) {
@@ -101,12 +101,12 @@ public class ScriptExpressionFactory implements Cacheable{
 		return evaluatorMap;
 	}
 	
-	public CacheRegistry geCachetRegistry() {
-		return cahceRegistry;
+	public CacheRegistry geCacheRegistry() {
+		return cacheRegistry;
 	}
 	
 	public void setCacheRegistry(CacheRegistry registry) {
-		this.cahceRegistry = registry;
+		this.cacheRegistry = registry;
 	}
 
 	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition,
