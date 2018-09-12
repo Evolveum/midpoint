@@ -241,7 +241,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 				if (!useRepository) {
 					searchIterative((Class<O>) type, query, searchOptions, resultHandler, localCoordinatorTask, opResult);
 				} else {
-					repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, false, opResult);    // TODO think about this
+					repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, true, opResult);
 				}
 				resultHandler.completeProcessing(localCoordinatorTask, opResult);
 
@@ -447,7 +447,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	 */
 	protected <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> searchOptions, ResultHandler<O> resultHandler, Task coordinatorTask, OperationResult opResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		repositoryService.searchObjectsIterative(type, query, resultHandler, searchOptions, false, opResult);    // TODO think about this
+		repositoryService.searchObjectsIterative(type, query, resultHandler, searchOptions, true, opResult);
 	}
 
 	/**

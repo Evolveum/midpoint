@@ -1233,14 +1233,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			if (actual > 20) {
 				AssertJUnit.fail("Unexpected number of (repository) shadows. Expected " + expected + " but was " + actual + " (too many to display)");
 			}
-			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-				@Override
-				public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
-					display("found shadow", object);
-					return true;
-				}
+			ResultHandler<ShadowType> handler = (object, parentResult) -> {
+				display("found shadow", object);
+				return true;
 			};
-			repositoryService.searchObjectsIterative(ShadowType.class, null, handler, null, false, result);
+			repositoryService.searchObjectsIterative(ShadowType.class, null, handler, null, true, result);
 			AssertJUnit.fail("Unexpected number of (repository) shadows. Expected " + expected + " but was " + actual);
 		}
 	}

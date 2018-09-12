@@ -35,11 +35,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.schema.DefinitionProcessingOption;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -462,13 +458,11 @@ public class ModelRestService {
 
 			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS);
 
-			List<T> objects = new ArrayList<>();
-			ResultHandler<T> handler = (object, parentResult1) -> objects.add(object.asObjectable());
-			
-			modelService.searchObjectsIterative(clazz, null, handler, searchOptions, task, parentResult);
-
+			List<PrismObject<T>> objects = modelService.searchObjects(clazz, null, searchOptions, task, parentResult);
 			ObjectListType listType = new ObjectListType();
-			listType.getObject().addAll(objects);
+			for (PrismObject<T> object : objects) {
+				listType.getObject().add(object.asObjectable());
+			}
 
 			response = RestServiceUtil.createResponse(Response.Status.OK, listType, parentResult, true);
 //			response = Response.ok().entity(listType).build();

@@ -15,29 +15,22 @@
  */
 package com.evolveum.midpoint.repo.common;
 
-import java.util.Collection;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import java.util.Collection;
 
 /**
  * This is only used in tests. But due to complicated dependencies this is
@@ -60,17 +53,14 @@ public class RepoObjectResolver implements ObjectResolver {
 	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, Task task,
 			OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
-
-		cacheRepositoryService.searchObjectsIterative(type, query, handler, options, false, parentResult);
+			throws SchemaException {
+		cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);
 	}
 
 	@Override
 	public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType,
 			Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription, Task task,
-			OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
-			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			OperationResult result) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -78,8 +68,7 @@ public class RepoObjectResolver implements ObjectResolver {
 	@Override
 	public <O extends ObjectType> O getObject(Class<O> expectedType, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-			SecurityViolationException, ExpressionEvaluationException {
+			throws ObjectNotFoundException, SchemaException {
 		return cacheRepositoryService.getObject(expectedType, oid, options, parentResult).asObjectable();
 	}
 

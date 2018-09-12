@@ -40,33 +40,33 @@ public class ObjectPaging implements DebugDumpable, Serializable {
 	protected ObjectPaging() {
 	}
 	
-	ObjectPaging(Integer offset, Integer maxSize) {
+	private ObjectPaging(Integer offset, Integer maxSize) {
 		this.offset = offset;
 		this.maxSize = maxSize;
 	}
 
-    ObjectPaging(Integer offset, Integer maxSize, ItemPath groupBy) {
+    private ObjectPaging(Integer offset, Integer maxSize, ItemPath groupBy) {
         this.offset = offset;
         this.maxSize = maxSize;
         setGrouping(groupBy);
     }
 
-	ObjectPaging(ItemPath orderBy, OrderDirection direction) {
+	private ObjectPaging(ItemPath orderBy, OrderDirection direction) {
 		setOrdering(orderBy, direction);
 	}
 
-    ObjectPaging(ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
+    private ObjectPaging(ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
         setOrdering(orderBy, direction);
         setGrouping(groupBy);
     }
 
-    ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
+    private ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction) {
 		this.offset = offset;
 		this.maxSize = maxSize;
 		setOrdering(orderBy, direction);
 	}
 
-    ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
+    private ObjectPaging(Integer offset, Integer maxSize, ItemPath orderBy, OrderDirection direction, ItemPath groupBy) {
         this.offset = offset;
         this.maxSize = maxSize;
         setOrdering(orderBy, direction);
@@ -74,7 +74,7 @@ public class ObjectPaging implements DebugDumpable, Serializable {
         setGrouping(groupBy);
     }
 
-	ObjectPaging(ItemPath groupBy) {
+	private ObjectPaging(ItemPath groupBy) {
         setGrouping(groupBy);
     }
 	
