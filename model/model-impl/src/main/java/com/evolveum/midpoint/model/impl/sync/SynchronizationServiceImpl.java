@@ -1,4 +1,5 @@
 /*
+
  * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -284,22 +285,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return evaluateSynchronizationDivision(divider, syncCtx, task, subResult);
 
 	}
-
-//	private boolean isPolicyApplicable(ObjectSynchronizationDiscriminatorType synchronizationDiscriminator, ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource) throws SchemaException {
-//		if (synchronizationDiscriminator == null) {
-//			return false;
-//		}
-//		return SynchronizationUtils.isPolicyApplicable(synchronizationDiscriminator, synchronizationPolicy, expressionFactory, resource);
-//	}
 	
 	private <F extends FocusType> boolean isPolicyApplicable(ObjectSynchronizationType synchronizationPolicy, ObjectSynchronizationDiscriminatorType synchronizationDiscriminator, SynchronizationContext<F> syncCtx)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-
 		return SynchronizationServiceUtils.isPolicyApplicable(synchronizationPolicy, synchronizationDiscriminator, expressionFactory, syncCtx);
-
-//		Boolean conditionResult = evaluateSynchronizationPolicyCondition(synchronizationPolicy, syncCtx.getApplicableShadow(),
-//				syncCtx.getResource(), syncCtx.getSystemConfiguration(), task, result);
-//		return conditionResult != null ? conditionResult : true;
 	}
 	
 	private <F extends FocusType> ObjectSynchronizationDiscriminatorType evaluateSynchronizationDivision(ObjectSynchronizationSorterType synchronizationSorterType,
@@ -329,27 +318,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		}
 	}
 	
-	private Boolean evaluateSynchronizationPolicyCondition(ObjectSynchronizationType synchronizationPolicy,
-			PrismObject<? extends ShadowType> currentShadow, PrismObject<ResourceType> resource,
-			PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result)
-					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		if (synchronizationPolicy.getCondition() == null) {
-			return null;
-		}
-		ExpressionType conditionExpressionType = synchronizationPolicy.getCondition();
-		String desc = "condition in object synchronization " + synchronizationPolicy.getName();
-		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, currentShadow, null,
-				resource, configuration, null);
-		try {
-			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(task, result));
-			PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables,
-					conditionExpressionType, expressionFactory, desc, task, result);
-			return evaluateCondition.getValue();
-		} finally {
-			ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-		}
-	}
-	
 	private void traceObjectSynchronization(ObjectSynchronizationType obejctSynchronization) {
 		if (LOGGER.isTraceEnabled()) {
 			String policyDesc = null;
@@ -373,7 +341,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					+ syncCtx.getApplicableShadow().asObjectable().getObjectClass() + ") " + " on " + syncCtx.getResource()
 					+ ", ignoring change from channel " + syncCtx.getChanel();
 			LOGGER.debug(message);
-			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx.getApplicableShadow(), null);
+			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, false);
 			executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, subResult);
 			subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 			eventInfo.setNoSynchronizationPolicy();
@@ -385,7 +353,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			String message = "SYNCHRONIZATION is not enabled for " + syncCtx.getResource()
 					+ " ignoring change from channel " + syncCtx.getChanel();
 			LOGGER.debug(message);
-			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx.getApplicableShadow(), obejctSynchronization.getIntent());
+			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
 			executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, subResult);
 			subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 			eventInfo.setSynchronizationNotEnabled();
@@ -416,8 +384,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		if (!satisfyTaskConstraints(obejctSynchronization, task)) {
 			LOGGER.trace("SYNCHRONIZATION skipping {} because it does not match kind/intent defined in task",
 					new Object[] { syncCtx.getApplicableShadow() });
-			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx.getApplicableShadow(),
-					obejctSynchronization.getIntent());
+			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, 
+					false);
 			executeShadowModifications(syncCtx.getCurrentShadow(), modifications, task, subResult);
 			subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
 					"Skipped because it does not match objectClass/kind/intent");
@@ -459,7 +427,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	
 	private <F extends FocusType> boolean checkProtected(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, Task task, OperationResult subResult) {
 		if (isProtected(syncCtx.getApplicableShadow())) {
-			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx.getApplicableShadow(), syncCtx.getObjectSynchronization().getIntent());
+			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
 			executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, subResult);
 			subResult.recordSuccess();
 			eventInfo.setProtected();
@@ -505,12 +473,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return true;
 	}
 	
-	private List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(PrismObject<ShadowType> currentShadow,
-			String intent) {
-		List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(currentShadow);
-		if (StringUtils.isNotBlank(intent)) {
+	private <F extends FocusType> List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(SynchronizationContext<F> syncCtx, boolean saveIntent) {
+		List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(syncCtx.getApplicableShadow());
+		if (saveIntent && StringUtils.isNotBlank(syncCtx.getObjectSynchronization().getIntent())) {
 			PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_INTENT,
-					currentShadow.getDefinition(), intent);
+					syncCtx.getApplicableShadow().getDefinition(), syncCtx.getObjectSynchronization().getIntent());
 			modifications.add(intentDelta);
 		}
 		return modifications;
