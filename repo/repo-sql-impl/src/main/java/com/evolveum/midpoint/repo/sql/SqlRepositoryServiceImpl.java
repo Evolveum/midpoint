@@ -130,6 +130,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
+    @Autowired private SystemConfigurationChangeApplier systemConfigurationChangeApplier;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
 
@@ -1129,52 +1130,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	@Override
 	public void postInit(OperationResult result) throws SchemaException {
-
-        LOGGER.info("Executing repository postInit method");
-
-		SystemConfigurationType systemConfiguration;
-		try {
-			systemConfiguration = getObject(SystemConfigurationType.class,
-					SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result).asObjectable();
-		} catch (ObjectNotFoundException e) {
-			// ok, no problem e.g. for tests or initial startup
-			result.muteLastSubresultError();
-			LOGGER.debug("System configuration not found, exiting postInit method.");
-			return;
-		}
-
-		Configuration systemConfigFromFile = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION);
-		if (systemConfigFromFile != null && systemConfigFromFile
-				.getBoolean(LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS, false)) {
-			LOGGER.warn("Skipping application of repository logging configuration because {}=true", LoggingConfigurationManager.SYSTEM_CONFIGURATION_SKIP_REPOSITORY_LOGGING_SETTINGS);
-		} else {
-			LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(
-					systemConfiguration.asPrismObject());
-			if (loggingConfig != null) {
-				LoggingConfigurationManager.configure(loggingConfig, systemConfiguration.getVersion(), result);
-			}
-		}
-		applyFullTextSearchConfiguration(systemConfiguration.getFullTextSearch());
-		relationRegistry.applyRelationConfiguration(systemConfiguration);
-        SystemConfigurationTypeUtil.applyOperationResultHandling(systemConfiguration);
-        applyPrismConfiguration(systemConfiguration);
+        LOGGER.debug("Executing repository postInit method");
+        systemConfigurationChangeApplier.applySystemConfiguration(true, true, result);
 	}
 	
-	 private void applyPrismConfiguration(SystemConfigurationType configType) {
-	    	PolyStringNormalizerConfigurationType normalizerConfig = null;
-			InternalsConfigurationType internals = configType.getInternals();
-			if (internals != null) {
-				normalizerConfig = internals.getPolyStringNormalizer();
-			}
-			try {
-				prismContext.configurePolyStringNormalizer(normalizerConfig);
-				LOGGER.trace("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
-			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-				LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
-				throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
-			}
-		}
-
     @Override
     public ConflictWatcher createAndRegisterConflictWatcher(String oid) {
 	    List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();

@@ -107,9 +107,8 @@ public class MidpointRestAuthenticationHandler implements ContainerRequestFilter
 			
 			if (RestAuthenticationMethod.CLUSTER.equals(authenticationType)) {
 				HttpConnectionInformation connectionInfo = SecurityUtil.getCurrentConnectionInformation();
-				String remoteAddress  = connectionInfo.getRemoteHostAddress();
+				String remoteAddress = connectionInfo.getRemoteHostAddress();
 
-				
 				if (!nodeAuthenticator.authenticate(null, remoteAddress, "invalidateCache")) {
 					RestServiceUtil.createAbortMessage(requestCtx);
 					return;

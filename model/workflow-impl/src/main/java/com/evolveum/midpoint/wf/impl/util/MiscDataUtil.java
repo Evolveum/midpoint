@@ -406,7 +406,7 @@ public class MiscDataUtil {
     }
 
 	public boolean matches(ObjectReferenceType groupRef, ObjectReferenceType targetRef) {
-		return (relationRegistry.isMembership(targetRef.getRelation()))	// TODO reconsider if we allow managers here
+		return relationRegistry.isMember(targetRef.getRelation())
 				&& targetRef.getOid().equals(groupRef.getOid());
 	}
 

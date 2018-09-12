@@ -78,11 +78,19 @@ class IndexedRelationDefinitions {
 	/**
 	 * Relations to be processed on login. Each relation is listed here under all its names.
 	 */
-	@NotNull private final Set<QName> relationsToProcessOnLogin;
+	@NotNull private final Set<QName> relationsProcessedOnLogin;
 	/**
 	 * Relations to be processed on recompute. Each relation is listed here under all its names.
 	 */
-	@NotNull private final Set<QName> relationsToProcessOnRecompute;
+	@NotNull private final Set<QName> relationsProcessedOnRecompute;
+	/**
+	 * Relations to be stored into parentOrgRef item. Each relation is listed here under all its names.
+	 */
+	@NotNull private final Set<QName> relationsStoredIntoParentOrgRef;
+	/**
+	 * Relations to be automatically matched by order constraints. Each relation is listed here under all its names.
+	 */
+	@NotNull private final Set<QName> relationsAutomaticallyMatched;
 	/**
 	 * Aliases for each normalized relation QName.
 	 */
@@ -99,16 +107,17 @@ class IndexedRelationDefinitions {
 		defaultRelationByKind = computeDefaultRelationByKind();
 
 		addDefaultRelationToMaps();
-
-		relationsToProcessOnLogin = computeRelationsToProcessOnLogin();
-		relationsToProcessOnRecompute = computeRelationsToProcessOnRecompute();
-
 		aliases = computeAliases();
+
+		relationsProcessedOnLogin = computeRelationsProcessedOnLogin();
+		relationsProcessedOnRecompute = computeRelationsProcessedOnRecompute();
+		relationsStoredIntoParentOrgRef = computeRelationsStoredIntoParentOrgRef();
+		relationsAutomaticallyMatched = computeRelationsAutomaticallyMatched();
 		logState();
 	}
 
 	private void addDefaultRelationToMaps() {
-		QName defaultRelation = defaultRelationByKind.get(RelationKindType.MEMBERSHIP);
+		QName defaultRelation = defaultRelationByKind.get(RelationKindType.MEMBER);
 		if (defaultRelation != null) {
 			relationDefinitionsByRelationName.put(null, relationDefinitionsByRelationName.get(defaultRelation));
 			kindsByRelationName.putAll(null, kindsByRelationName.get(defaultRelation));
@@ -121,15 +130,17 @@ class IndexedRelationDefinitions {
 			LOGGER.trace("relationDefinitionsByRelationName = {}", relationDefinitionsByRelationName);
 			LOGGER.trace("relationsByKind = {}", relationsByKind);
 			LOGGER.trace("defaultRelationByKind = {}", defaultRelationByKind);
-			LOGGER.trace("relationsToProcessOnLogin = {}", relationsToProcessOnLogin);
-			LOGGER.trace("relationsToProcessOnRecompute = {}", relationsToProcessOnRecompute);
 			LOGGER.trace("aliases = {}", aliases);
+			LOGGER.trace("relationsProcessedOnLogin = {}", relationsProcessedOnLogin);
+			LOGGER.trace("relationsProcessedOnRecompute = {}", relationsProcessedOnRecompute);
+			LOGGER.trace("relationsStoredIntoParentOrgRef = {}", relationsStoredIntoParentOrgRef);
+			LOGGER.trace("relationsAutomaticallyMatched = {}", relationsAutomaticallyMatched);
 		}
 	}
 
 	private List<RelationDefinitionType> validateDefinitions(@NotNull List<RelationDefinitionType> definitions) {
 		List<RelationDefinitionType> validatedDefinitions = new ArrayList<>(definitions.size());
-		boolean membershipRelationExists = false;
+		boolean memberRelationExists = false;
 		for (RelationDefinitionType definition : definitions) {
 			if (definition.getRef() == null) {
 				LOGGER.error("Relation definition with null ref; ignoring: {}", definition);
@@ -138,12 +149,12 @@ class IndexedRelationDefinitions {
 					LOGGER.warn("Unqualified relation name '{}'; please fix it as soon as possible; in {}", definition.getRef(), definition);
 				}
 				validatedDefinitions.add(definition);
-				if (!membershipRelationExists && definition.getKind().contains(RelationKindType.MEMBERSHIP)) {
-					membershipRelationExists = true;
+				if (!memberRelationExists && definition.getKind().contains(RelationKindType.MEMBER)) {
+					memberRelationExists = true;
 				}
 			}
 		}
-		if (!membershipRelationExists) {
+		if (!memberRelationExists) {
 			LOGGER.error("No 'member' relation was defined. This would be a fatal condition, so we define one.");
 			validatedDefinitions.add(RelationRegistryImpl.createRelationDefinitionFromStaticDefinition(RelationTypes.MEMBER));
 		}
@@ -219,6 +230,7 @@ class IndexedRelationDefinitions {
 	}
 
 	// not optimized for speed
+	@SuppressWarnings("unused")
 	@NotNull
 	private Collection<QName> getAllRelationNamesFor(RelationKindType kind) {
 		Set<QName> rv = new HashSet<>();
@@ -262,21 +274,71 @@ class IndexedRelationDefinitions {
 		return rv;
 	}
 
-	// We want to make this configurable in the future MID-3581
-	private Set<QName> computeRelationsToProcessOnLogin() {
+	private Set<QName> computeRelationsProcessedOnLogin() {
 		HashSet<QName> rv = new HashSet<>();
-		rv.addAll(getAllRelationNamesFor(RelationKindType.MEMBERSHIP));
-		rv.addAll(getAllRelationNamesFor(RelationKindType.DELEGATION));
+		for (Map.Entry<QName, RelationDefinitionType> entry : relationDefinitionsByRelationName.entrySet()) {
+			Boolean configured = entry.getValue().isProcessedOnLogin();
+			if (Boolean.TRUE.equals(configured) || configured == null && isProcessedOnLoginByDefault(entry.getValue().getRef())) {
+				rv.addAll(getAliases(entry.getKey()));
+			}
+		}
 		return rv;
 	}
 
-	// We want to make this configurable in the future MID-3581
-	private Set<QName> computeRelationsToProcessOnRecompute() {
+	private boolean isProcessedOnLoginByDefault(QName relation) {
+		return isOfKind(relation, RelationKindType.MEMBER)
+				|| isOfKind(relation, RelationKindType.META)
+				|| isOfKind(relation, RelationKindType.DELEGATION);
+	}
+
+	private Set<QName> computeRelationsProcessedOnRecompute() {
 		HashSet<QName> rv = new HashSet<>();
-		rv.addAll(getAllRelationsFor(RelationKindType.MEMBERSHIP));
-		rv.addAll(getAllRelationsFor(RelationKindType.MANAGER));
-		rv.addAll(getAllRelationsFor(RelationKindType.DELEGATION));
+		for (Map.Entry<QName, RelationDefinitionType> entry : relationDefinitionsByRelationName.entrySet()) {
+			Boolean configured = entry.getValue().isProcessedOnRecompute();
+			if (Boolean.TRUE.equals(configured) || configured == null && isProcessedOnRecomputeByDefault(entry.getValue().getRef())) {
+				rv.addAll(getAliases(entry.getKey()));
+			}
+		}
 		return rv;
+	}
+
+	private boolean isProcessedOnRecomputeByDefault(QName relation) {
+		return isOfKind(relation, RelationKindType.MEMBER)
+				|| isOfKind(relation, RelationKindType.META)
+				|| isOfKind(relation, RelationKindType.MANAGER)     // ok?
+				|| isOfKind(relation, RelationKindType.DELEGATION);
+	}
+
+	private Set<QName> computeRelationsStoredIntoParentOrgRef() {
+		HashSet<QName> rv = new HashSet<>();
+		for (Map.Entry<QName, RelationDefinitionType> entry : relationDefinitionsByRelationName.entrySet()) {
+			Boolean configured = entry.getValue().isStoredIntoParentOrgRef();
+			if (Boolean.TRUE.equals(configured) || configured == null && isStoredIntoParentOrgRefByDefault(entry.getValue().getRef())) {
+				rv.addAll(getAliases(entry.getKey()));
+			}
+		}
+		return rv;
+	}
+
+	private boolean isStoredIntoParentOrgRefByDefault(QName relation) {
+		return isOfKind(relation, RelationKindType.MEMBER);
+	}
+
+	private Set<QName> computeRelationsAutomaticallyMatched() {
+		HashSet<QName> rv = new HashSet<>();
+		for (Map.Entry<QName, RelationDefinitionType> entry : relationDefinitionsByRelationName.entrySet()) {
+			Boolean configured = entry.getValue().isAutomaticallyMatched();
+			if (Boolean.TRUE.equals(configured) || configured == null && isAutomaticallyMatchedByDefault(entry.getValue().getRef())) {
+				rv.addAll(getAliases(entry.getKey()));
+			}
+		}
+		return rv;
+	}
+
+	private boolean isAutomaticallyMatchedByDefault(QName relation) {
+		return isOfKind(relation, RelationKindType.MEMBER)
+				|| isOfKind(relation, RelationKindType.META)
+				|| isOfKind(relation, RelationKindType.DELEGATION);
 	}
 
 	private SetValuedMap<QName, QName> computeAliases() {
@@ -304,17 +366,20 @@ class IndexedRelationDefinitions {
 		return relationKinds != null && relationKinds.contains(kind);
 	}
 
-	boolean processRelationOnLogin(QName relation) {
-		return relationsToProcessOnLogin.contains(relation);
+	boolean isProcessedOnLogin(QName relation) {
+		return relationsProcessedOnLogin.contains(relation);
 	}
 
-	boolean processRelationOnRecompute(QName relation) {
-		return relationsToProcessOnRecompute.contains(relation);
+	boolean isProcessedOnRecompute(QName relation) {
+		return relationsProcessedOnRecompute.contains(relation);
 	}
 
-	// We want to make this configurable in the future MID-3581
-	public boolean includeIntoParentOrgRef(QName relation) {
-		return isOfKind(relation, RelationKindType.MEMBERSHIP) && !isOfKind(relation, RelationKindType.META);
+	boolean isStoredIntoParentOrgRef(QName relation) {
+		return relationsStoredIntoParentOrgRef.contains(relation);
+	}
+
+	boolean isAutomaticallyMatched(QName relation) {
+		return relationsAutomaticallyMatched.contains(relation);
 	}
 
 	QName getDefaultRelationFor(RelationKindType kind) {

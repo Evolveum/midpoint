@@ -379,8 +379,11 @@ public class PrismUnmarshaller {
             	if (expression != null) {
             		PrismPropertyValue<T> ppv = new PrismPropertyValue<>(null, prismContext, null, null, expression);
             		return ppv;
-
-            	}
+            	} else {
+                    // There's no point in returning PPV(null) as it would soon fail on internal PP check.
+            	    // We are probably recovering from an error in COMPAT mode here, so let's just skip this value.
+            	    return null;
+                }
             }
             PrismPropertyValue<T> ppv = new PrismPropertyValue<>(realValue);
             ppv.setPrismContext(prismContext);

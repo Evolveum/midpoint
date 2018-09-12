@@ -17,13 +17,15 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
@@ -44,9 +46,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -56,10 +55,12 @@ import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
-import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
+import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -223,7 +224,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
 			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage());
 			tabs.add(
-					new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
+					new PanelTab<R>(parentPage.createStringResource("pageAdminFocus.objectHistory"), authorization) {
 
 						private static final long serialVersionUID = 1L;
 
@@ -236,7 +237,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, isFocusHistoryPage());
-		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"), authorization) {
+		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.members"), authorization) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -256,7 +257,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
 				ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, isFocusHistoryPage());
 
-		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"), authorization) {
+		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.governance"), authorization) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -274,8 +275,38 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 		return tabs;
 	}
 
-	public abstract AbstractRoleMemberPanel<R> createGovernancePanel(String panelId);
 	
+	public AbstractRoleMemberPanel<R> createMemberPanel(String panelId) {
+		
+		return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected List<QName> getSupportedRelations() {
+				List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
+				List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+				governance.forEach(r -> relations.remove(r));
+				return relations;
+			}
+			
+		};
+	}
+
+	
+	public AbstractRoleMemberPanel<R> createGovernancePanel(String panelId) {
+		
+		return new AbstractRoleMemberPanel<R>(panelId, new Model<>(getObject().asObjectable())) {
+			
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected List<QName> getSupportedRelations() {
+				return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+			}
+		
+		};
+	}
 	
 	private boolean isAllowedToReadRoleMembership(String abstractRoleOid, PageBase parentPage){
 		return isAllowedToReadRoleMembershipItemForType(abstractRoleOid, UserType.class, parentPage)
@@ -284,7 +315,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 				|| isAllowedToReadRoleMembershipItemForType(abstractRoleOid, ServiceType.class, parentPage);
 	}
 
-	private boolean isAllowedToReadRoleMembershipItemForType(String abstractRoleOid, Class type, PageBase parentPage){
+	private <F extends FocusType> boolean isAllowedToReadRoleMembershipItemForType(String abstractRoleOid, Class<F> type, PageBase parentPage){
 		ObjectQuery query = QueryBuilder.queryFor(type, parentPage.getPrismContext())
 				.item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(abstractRoleOid).build();
 		Task task = parentPage.createSimpleTask(OPERATION_CAN_SEARCH_ROLE_MEMBERSHIP_ITEM);
@@ -299,8 +330,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         return isAllowed;
     }
 
-	public abstract AbstractRoleMemberPanel<R> createMemberPanel(String panelId);
-
+	
 	private WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<R> parentPage) {
 		return new FocusPolicyRulesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
 	}

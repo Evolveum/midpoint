@@ -103,23 +103,6 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public AbstractRoleMemberPanel<OrgType> createMemberPanel(String panelId) {
-				
-				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS) {
-					
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected List<QName> getSupportedRelations() {
-						List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, PageOrgUnit.this);
-						List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageOrgUnit.this);
-						governance.forEach(r -> relations.remove(r));
-						return relations;
-					}
-				};
-			}
-
-			@Override
 			protected boolean isFocusHistoryPage(){
 				return PageOrgUnit.this.isFocusHistoryPage();
 			}
@@ -129,19 +112,6 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 				PageOrgUnit.this.navigateToNext(new PageOrgUnitHistory(object, date));
 			}
 
-			@Override
-			public AbstractRoleMemberPanel<OrgType> createGovernancePanel(String panelId) {
-				
-				return new OrgMemberPanel(panelId, Model.of(getObject().asObjectable()), TableId.ORG_MEMEBER_PANEL, GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS) {
-					
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected List<QName> getSupportedRelations() {
-						return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, PageOrgUnit.this);
-					}
-				};
-			}
 		};
 	}
 

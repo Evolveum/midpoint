@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
@@ -39,7 +40,6 @@ public class CacheRegistry implements CacheListener {
 		dispatcher.registerCacheListener(this);
 	}
 	
-	
 	public void registerCacheableService(Cacheable cacheableService) {
 		cacheableServices.add(cacheableService);
 	}
@@ -56,8 +56,7 @@ public class CacheRegistry implements CacheListener {
 	
 	@Override
 	public <O extends ObjectType> void invalidateCache(Class<O> type, String oid) {
-		
-		if (FunctionLibraryType.class.equals(type)) {
+		if (FunctionLibraryType.class.equals(type) || SystemConfigurationType.class.equals(type)) {
 			clearAllCaches();
 		}
 	}

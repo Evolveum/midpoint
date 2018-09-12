@@ -75,7 +75,7 @@
         <h2.version>1.4.193</h2.version>
         <jdbc.postgres>42.2.2</jdbc.postgres>
         <jdbc.sqlserver>6.4.0.jre8</jdbc.sqlserver>
-        <jdbc.mariadb>1.5.5</jdbc.mariadb>
+        <jdbc.mariadb>2.3.0</jdbc.mariadb>
         <jdbc.mysql>6.0.6</jdbc.mysql>
         <wicket.version>7.10.0</wicket.version>
         <groovy.version>2.4.14</groovy.version>

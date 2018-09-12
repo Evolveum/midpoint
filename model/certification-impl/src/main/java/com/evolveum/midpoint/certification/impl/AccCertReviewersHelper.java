@@ -133,7 +133,7 @@ public class AccCertReviewersHelper {
 	private List<ObjectReferenceType> getMembers(ObjectReferenceType abstractRoleRef, OperationResult result)
 			throws SchemaException {
 		Collection<PrismReferenceValue> references = ObjectQueryUtil
-				.createReferences(abstractRoleRef.getOid(), RelationKindType.MEMBERSHIP, relationRegistry);
+				.createReferences(abstractRoleRef.getOid(), RelationKindType.MEMBER, relationRegistry);
 		ObjectQuery query = references.isEmpty()
 				? QueryBuilder.queryFor(UserType.class, prismContext).none().build()
 				: QueryBuilder.queryFor(UserType.class, prismContext)

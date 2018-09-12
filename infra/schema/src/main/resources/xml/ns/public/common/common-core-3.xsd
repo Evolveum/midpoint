@@ -1980,7 +1980,19 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 Hostname of the node that can be used by other nodes to contact this node over the
-                                network.
+                                network. It is automatically determined and updated.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="url" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                URL of midPoint that can be used by other nodes to contact this node over the
+                                network. It is manually configured. If not present, it is automatically derived by
+								infrastructure/intraClusterHttpUrlPattern system configuration property.
+
+								Use only if really necessary. Support for this item is currently limited
+								to clusterwide cache invalidation.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -16287,9 +16299,59 @@
 					</xsd:appinfo>
 			    </xsd:annotation>
 			</xsd:element>
-			<!-- TODO: type: membership, delegation, general -->
-			<!-- TODO: isDefault -->
-			<!-- TODO: isManager, processOnLogin, processOnRecompute  -->
+			<xsd:element name="processedOnLogin" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this relation is processed during login. The default value is true for member, meta and delegation
+						kinds, false otherwise. EXPERIMENTAL.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.processedOnLogin</a:displayName>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="processedOnRecompute" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this relation is (by default) processed during recomputation. The default value is true
+						for member, meta, manager and delegation kinds, false otherwise. EXPERIMENTAL.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.processedOnRecompute</a:displayName>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="storedIntoParentOrgRef" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this relation is stored into parentOrgRef item. The default value is true
+						for member kind, false otherwise. EXPERIMENTAL.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.storedIntoParentOrgRef</a:displayName>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="automaticallyMatched" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this relation is automatically matched by order constraints (without the need to explicitly
+						list them). The default value is true for member, meta and delegation kinds, false otherwise.
+						EXPERIMENTAL.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:displayName>RelationDefinitionType.automaticallyMatched</a:displayName>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -16315,7 +16377,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="membership">
+			<xsd:enumeration value="member">
 				<xsd:annotation>
 					<xsd:documentation>
 						Membership relation, usually meaning "has" or "is member of".
@@ -16327,7 +16389,7 @@
 						ref.relation is null).
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="MEMBERSHIP"/>
+						<jaxb:typesafeEnumMember name="MEMBER"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -16348,9 +16410,6 @@
 						Relations used for metarole assignments. Sometimes it is important to
 						distinguish metarole and member assignments. This kind of relation is used
 						for that purpose.
-
-						Relations of this kind should be also of MEMBERSHIP kind.
-						(Otherwise they would not provide metarole assignment functionality!)
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="META"/>
@@ -16360,7 +16419,7 @@
 			<xsd:enumeration value="delegation">
 				<xsd:annotation>
 					<xsd:documentation>
-						Relation of "is deputy of" kind. Specifies that the subject is a deputy of another user.
+						Relation "is deputy of" kind. Specifies that the subject is a deputy of another user.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="DELEGATION"/>
@@ -16389,7 +16448,7 @@
 			<xsd:enumeration value="owner">
 				<xsd:annotation>
 					<xsd:documentation>
-						Relation of "is owner of" kind.
+						Relation "is owner of" kind.
 
 						Specifies that the subject is a (business) owner of specified (abstract) role.
 						The owner will be asked for decision if the role is modified, when the associated

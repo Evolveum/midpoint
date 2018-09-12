@@ -55,12 +55,16 @@ public interface RelationRegistry {
 	 */
 	boolean isOfKind(QName relation, RelationKindType kind);
 
-	default boolean isMembership(QName relation) {
-		return isOfKind(relation, RelationKindType.MEMBERSHIP);
+	default boolean isMember(QName relation) {
+		return isOfKind(relation, RelationKindType.MEMBER);
 	}
 
 	default boolean isManager(QName relation) {
 		return isOfKind(relation, RelationKindType.MANAGER);
+	}
+
+	default boolean isMeta(QName relation) {
+		return isOfKind(relation, RelationKindType.META);
 	}
 
 	default boolean isDelegation(QName relation) {
@@ -78,22 +82,25 @@ public interface RelationRegistry {
 	}
 
 	/**
-	 * Whether this kind of relations is processed on login. Currently only relations of MEMBERSHIP and DELEGATION kinds are.
-	 * This is to be configured in the future (MID-3581).
+	 * Whether this kind of relations is processed on login. By default, only relations of MEMBER and DELEGATION kinds are.
 	 */
-	boolean processRelationOnLogin(QName relation);
+	boolean isProcessedOnLogin(QName relation);
 
 	/**
-	 * Whether this kind of relations is processed on recompute. Currently only relations of MEMBERSHIP, MANAGER and DELEGATION kinds are.
-	 * This is to be configured in the future (MID-3581).
+	 * Whether this kind of relations is processed on recompute. By default, only relations of MEMBER, MANAGER and DELEGATION kinds are.
 	 */
-	boolean processRelationOnRecompute(QName relation);
+	boolean isProcessedOnRecompute(QName relation);
 
 	/**
-	 * Whether this kind of relations is included in parentOrgRef. Currently only relations of MEMBERSHIP but *not* META kinds are.
-	 * This is to be configured in the future (MID-3581).
+	 * Whether this kind of relations is stored in parentOrgRef. By default, only relations of MEMBER are.
 	 */
-	boolean includeIntoParentOrgRef(QName relation);
+	boolean isStoredIntoParentOrgRef(QName relation);
+
+	/**
+	 * Whether this kind of relations is automatically matched by order constraints. By default, only relations of MEMBER,
+	 * META and DELEGATION kinds are.
+	 */
+	boolean isAutomaticallyMatched(QName relation);
 
 	/**
 	 * Returns the default relation i.e. the one that is equivalent to the null relation name.
@@ -133,7 +140,7 @@ public interface RelationRegistry {
 	 * This method should be called whenever midPoint determines that the relations definition in system configuration might
 	 * have been changed.
 	 */
-	void applyRelationConfiguration(SystemConfigurationType systemConfiguration);
+	void applyRelationsConfiguration(SystemConfigurationType systemConfiguration);
 
 	/**
 	 * Returns aliases of a relation. Currently these are:

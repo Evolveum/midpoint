@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.api;
+package com.evolveum.midpoint.model.impl.controller;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeApplier;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
-public interface CacheDispatcher {
+/**
+ * @author mederly
+ */
+public class DummySystemConfigurationChangeApplierImpl implements SystemConfigurationChangeApplier {
 
-	void registerCacheListener(CacheListener cacheListener);
-	void unregisterCacheListener(CacheListener cacheListener);
-	
-	<O extends ObjectType> void dispatch(Class<O> type, String oid);
+	@Override
+	public void applySystemConfiguration(boolean ignoreVersion, boolean allowNotFound, OperationResult result) {
+	}
 }
