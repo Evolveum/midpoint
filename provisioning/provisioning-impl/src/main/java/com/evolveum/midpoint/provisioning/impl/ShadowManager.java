@@ -711,7 +711,7 @@ public class ShadowManager {
 		ObjectQuery repoQuery = query.clone();
 		processQueryMatchingRules(repoQuery, ctx.getObjectClassDefinition());
 		
-		return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, false, parentResult);	// TODO think about strictSequential flag
+		return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, true, parentResult);
 	}
 
 	/**

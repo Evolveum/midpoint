@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -55,7 +54,7 @@ public class MultiPropagationResultHandler extends AbstractSearchIterativeResult
 
 	@Override
 	protected boolean handleObject(PrismObject<ResourceType> resource, Task workerTask, OperationResult taskResult)
-			throws CommonException, PreconditionViolationException {
+			throws CommonException {
 		
 		LOGGER.trace("Propagating provisioning operations on {}", resource);
 		ObjectQuery query = new ObjectQuery();
@@ -72,7 +71,7 @@ public class MultiPropagationResultHandler extends AbstractSearchIterativeResult
 					return true;
 				};
 		
-		repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, false, taskResult);
+		repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, true, taskResult);
 		
 		LOGGER.trace("Propagation of {} done", resource);
 		
