@@ -16,71 +16,201 @@
   -->
  
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
-	<org oid="00000000-8888-6666-1111-000000000000">
+	<org oid="00000000-8888-6666-a000-000000000000">
 		<name>0000</name>
 		<description>Root of the multitenant structure</description>
 		<subtype>tenancy</subtype>
 		<displayName>Multitenant root</displayName>
-		<identifier>0000</identifier>
+		<identifier>000</identifier>
 	</org>
+	
+	<role oid="00000000-8888-6666-a000-100000000000">
+		<name>Tenant Admin Role</name>
+		<!-- No tenant assignment here -->
+		<authorization>
+	    	<name>tenant admin autz</name>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+	    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
+	    	<object>
+	    		<tenant>
+	    			<sameAsSubject>true</sameAsSubject>
+	    		</tenant>
+	    	</object>
+	    	<exceptItem>tenant</exceptItem>
+	    	<exceptItem>tenantRef</exceptItem>
+	    </authorization>
+	</role>
+	
 
-	<org oid="00000000-8888-6666-1111-000000001000">
+	<!-- ===[ Spacing Guild ]=== -->
+
+	<org oid="00000000-8888-6666-a001-000000000000">
+		<name>Spacing Guild</name>
+		<description>Organizational structure, but not a tenant</description>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a000-000000000000" type="OrgType"/> <!-- root -->
+		</assignment>
+		<displayName>Spacing Guild</displayName>
+		<identifier>001</identifier>
+	</org>
+	
+	<role oid="00000000-8888-6666-a001-100000000001">
+		<name>Broken Spacing Guild Admin</name>
+		<description>Spacing guild administrator that does not really work.</description>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a001-000000000000" type="OrgType"/> <!-- Spacing Guild -->
+		</assignment>
+		<inducement>
+			<!-- This does not really makes sense - by purpose. Spacing guild is not a tenant.
+			     We want to make sure that the tenant admin role won't give any authorizations. -->
+			<targetRef oid="00000000-8888-6666-a000-100000000000" type="RoleType"/> <!-- Tenant admin role -->
+		</inducement>
+	</role>
+	
+	<user oid="00000000-8888-6666-a001-200000000000">
+		<name>edric</name>
+		<givenName>Edric</givenName>
+		<fullName>Navigator Edric</fullName>
+		<honorificPrefix>Navigator</honorificPrefix>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a001-000000000000" type="OrgType"/> <!-- Spacing Guild -->
+		</assignment>
+		<assignment id="2">
+			<targetRef oid="00000000-8888-6666-a001-100000000001" type="RoleType"/> <!-- Broken Spacing Guild Admin -->
+		</assignment>
+	</user>
+	
+	
+	<!-- ===[ House Corrino ]=== -->
+
+	<org oid="00000000-8888-6666-a100-000000000000">
 		<name>Corrino</name>
 		<subtype>tenancy</subtype>
 		<assignment id="1">
-			<targetRef oid="00000000-8888-6666-1111-000000000000" type="OrgType"/>
+			<targetRef oid="00000000-8888-6666-a000-000000000000" type="OrgType"/> <!-- root -->
 		</assignment>
 		<displayName>House Corrino</displayName>
-		<identifier>1000</identifier>
+		<identifier>100</identifier>
 		<locality>Kaitain</locality>
 		<tenant>true</tenant>
 	</org>
 	
-	<role oid="00000000-8888-6666-1111-100000001000">
+	<role oid="00000000-8888-6666-a100-100000000000">
 		<name>Corrino Admin</name>
 		<assignment id="1">
-			<targetRef oid="00000000-8888-6666-1111-000000001000" type="OrgType"/>
+			<targetRef oid="00000000-8888-6666-a100-000000000000" type="OrgType"/> <!-- House Corrino -->
 		</assignment>
+		<inducement>
+			<targetRef oid="00000000-8888-6666-a000-100000000000" type="RoleType"/> <!-- Tenant admin role -->
+		</inducement>
 	</role>
 	
-	<org oid="00000000-8888-6666-1111-000000002000">
+	<user oid="00000000-8888-6666-a100-200000000000">
+		<name>shaddam</name>
+		<givenName>Shaddam</givenName>
+		<familyName>Corrino</familyName>
+		<fullName>Padishah Emperor Shaddam IV</fullName>
+		<honorificPrefix>Padishah Emperor</honorificPrefix>
+		<honorificSuffix>IV</honorificSuffix>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a100-000000000000" type="OrgType"/> <!-- House Corrino -->
+		</assignment>
+		<assignment id="2">
+			<targetRef oid="00000000-8888-6666-a100-100000000000" type="RoleType"/> <!-- Corrino Admin -->
+		</assignment>
+	</user>
+	
+	
+	<!-- ===[ House Atreides ]=== -->
+	
+	<org oid="00000000-8888-6666-a200-000000000000">
 		<name>Atreides</name>
 		<subtype>tenancy</subtype>
 		<assignment id="1">
-			<targetRef oid="00000000-8888-6666-1111-000000000000" type="OrgType"/>
+			<targetRef oid="00000000-8888-6666-a000-000000000000" type="OrgType"/>
 		</assignment>
 		<displayName>House Atreides</displayName>
-		<identifier>2000</identifier>
+		<identifier>200</identifier>
 		<locality>Caladan</locality>
 		<tenant>true</tenant>
 	</org>
 	
-	<role oid="00000000-8888-6666-1111-100000002000">
+	<role oid="00000000-8888-6666-a200-100000000000">
 		<name>Atreides Admin</name>
 		<assignment id="1">
-			<targetRef oid="00000000-8888-6666-1111-000000002000" type="OrgType"/>
+			<targetRef oid="00000000-8888-6666-a200-000000000000" type="OrgType"/>
 		</assignment>
+		<inducement>
+			<targetRef oid="00000000-8888-6666-a000-100000000000" type="RoleType"/> <!-- Tenant admin role -->
+		</inducement>
 	</role>
 	
-	<org oid="00000000-8888-6666-1111-000000003000">
+	<user oid="00000000-8888-6666-a200-200000000000">
+		<name>leto</name>
+		<givenName>Leto</givenName>
+		<familyName>Atreides</familyName>
+		<fullName>Duke Leto Atreides</fullName>
+		<honorificPrefix>Duke</honorificPrefix>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a200-000000000000" type="OrgType"/> <!-- House Atreides -->
+		</assignment>
+		<assignment id="2">
+			<targetRef oid="00000000-8888-6666-a200-100000000000" type="RoleType"/> <!-- Atreides Admin -->
+		</assignment>
+	</user>
+	
+	<user oid="00000000-8888-6666-a200-200000000001">
+		<name>paul</name>
+		<givenName>Paul</givenName>
+		<familyName>Atreides</familyName>
+		<fullName>Paul Atreides</fullName>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a200-000000000000" type="OrgType"/> <!-- House Atreides -->
+		</assignment>
+	</user>
+	
+	
+	<!-- ===[ House Harkonnen ]=== -->
+	
+	<org oid="00000000-8888-6666-a300-000000000000">
 		<name>Harkonnen</name>
 		<subtype>tenancy</subtype>
 		<assignment id="1">
-			<targetRef oid="00000000-8888-6666-1111-000000000000" type="OrgType"/>
+			<targetRef oid="00000000-8888-6666-a000-000000000000" type="OrgType"/>
 		</assignment>
 		<displayName>House Harkonnen</displayName>
-		<identifier>3000</identifier>
+		<identifier>300</identifier>
 		<locality>Giedi Prime</locality>
 		<tenant>true</tenant>
 	</org>
 	
-	<role oid="00000000-8888-6666-1111-100000003000">
+	<role oid="00000000-8888-6666-a300-100000000000">
 		<name>Harkonnen Admin</name>
 		<assignment id="1">
-			<targetRef oid="00000000-8888-6666-1111-000000003000" type="OrgType"/>
+			<targetRef oid="00000000-8888-6666-a300-000000000000" type="OrgType"/>
 		</assignment>
+		<inducement>
+			<targetRef oid="00000000-8888-6666-a000-100000000000" type="RoleType"/> <!-- Tenant admin role -->
+		</inducement>
 	</role>
+
+	<user oid="00000000-8888-6666-a300-200000000000">
+		<name>baronharkonnen</name>
+		<givenName>Vladimir</givenName>
+		<familyName>Harkonnen</familyName>
+		<fullName>Baron Vladimir Harkonnen</fullName>
+		<honorificPrefix>Baron</honorificPrefix>
+		<assignment id="1">
+			<targetRef oid="00000000-8888-6666-a300-000000000000" type="OrgType"/> <!-- House Harkonnen -->
+		</assignment>
+		<assignment id="2">
+			<targetRef oid="00000000-8888-6666-a300-100000000000" type="RoleType"/> <!-- Harkonnen Admin -->
+		</assignment>
+	</user>
 	
 </objects>

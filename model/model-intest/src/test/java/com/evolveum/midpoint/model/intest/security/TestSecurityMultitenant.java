@@ -105,25 +105,37 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	
 	protected static final File ORG_MULTITENANT_FILE = new File(TEST_DIR, "org-multitenant.xml");
 	
-	protected static final String ORG_ROOT_OID = "00000000-8888-6666-1111-000000000000";
+	protected static final String ORG_ROOT_OID = "00000000-8888-6666-a000-000000000000";
+	protected static final String ROLE_TENANT_ADMIN_OID = "00000000-8888-6666-a000-100000000000";
 	
-	protected static final String ORG_CORRINO_OID = "00000000-8888-6666-1111-000000001000";
-	protected static final String ROLE_CORRINO_ADMIN_OID = "00000000-8888-6666-1111-100000001000";
+	protected static final String ORG_GUILD_OID = "00000000-8888-6666-a001-000000000000";
+	protected static final String ROLE_GUILD_BROKEN_ADMIN_OID = "00000000-8888-6666-a001-100000000001";
+	protected static final String USER_EDRIC_OID = "00000000-8888-6666-a001-200000000000";
+	protected static final String USER_EDRIC_NAME = "edric";
+	protected static final String USER_EDRIC_FULL_NAME = "Navigator Edric";
 	
-	protected static final String ORG_ATREIDES_OID = "00000000-8888-6666-1111-000000002000";
-	protected static final String ROLE_ATREIDES_ADMIN_OID = "00000000-8888-6666-1111-100000002000";
+	protected static final String ORG_CORRINO_OID = "00000000-8888-6666-a100-000000000000";
+	protected static final String ROLE_CORRINO_ADMIN_OID = "00000000-8888-6666-a100-100000000000";
+	protected static final String USER_SHADDAM_CORRINO_OID = "00000000-8888-6666-a100-200000000000";
+	protected static final String USER_SHADDAM_CORRINO_NAME = "shaddam";
+	protected static final String USER_SHADDAM_CORRINO_FULL_NAME = "Padishah Emperor Shaddam IV";
 	
-	protected static final String ORG_HARKONNEN_OID = "00000000-8888-6666-1111-000000003000";
-	protected static final String ROLE_HARKONNEN_ADMIN_OID = "00000000-8888-6666-1111-100000003000";
+	protected static final String ORG_ATREIDES_OID = "00000000-8888-6666-a200-000000000000";
+	protected static final String ROLE_ATREIDES_ADMIN_OID = "00000000-8888-6666-a200-100000000000";
+	protected static final String USER_LETO_ATREIDES_OID = "00000000-8888-6666-a200-200000000000";
+	protected static final String USER_LETO_ATREIDES_NAME = "leto";
+	protected static final String USER_LETO_ATREIDES_FULL_NAME = "Duke Leto Atreides";
+	protected static final String USER_PAUL_ATREIDES_OID = "00000000-8888-6666-a200-200000000001";
+	protected static final String USER_PAUL_ATREIDES_NAME = "paul";
+	protected static final String USER_PAUL_ATREIDES_FULL_NAME = "Paul Atreides";
 	
-//	protected static final File ROLE_X_FILE = new File(TEST_DIR, "role-vault-dweller.xml");
-//	protected static final String ROLE_X_OID = "8d8471f4-2906-11e8-9078-4f2b205aa01d";
+	protected static final String ORG_HARKONNEN_OID = "00000000-8888-6666-a300-000000000000";
+	protected static final String ROLE_HARKONNEN_ADMIN_OID = "00000000-8888-6666-a300-100000000000";
+	protected static final String USER_VLADIMIR_HARKONNEN_OID = "00000000-8888-6666-a300-200000000000";
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		
-//		repoAddObjectFromFile(ROLE_VAULT_DWELLER_FILE, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		
@@ -174,6 +186,9 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	/**
 	 * Stay logged in as administrator. 
 	 * Import orgstruct with tenant and roles and everything.
+	 * Make sure that tenantRefs are properly set (they are NOT part of imported file)
+	 * 
+	 * MID-4882
 	 */
 	@Test
     public void test010ImportOrgstruct() throws Exception {
@@ -214,41 +229,168 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         	.assertTenantRef(ORG_ATREIDES_OID)
         	.assertParentOrgRefs(ORG_ATREIDES_OID);
         
+        assertUserAfter(USER_LETO_ATREIDES_OID)
+        	.assertName(USER_LETO_ATREIDES_NAME)
+        	.assertFullName(USER_LETO_ATREIDES_FULL_NAME)
+        	.assignments()
+        		.assertOrg(ORG_ATREIDES_OID)
+        		.assertRole(ROLE_ATREIDES_ADMIN_OID)
+        		.end()
+    		.assertTenantRef(ORG_ATREIDES_OID)
+        	.assertParentOrgRefs(ORG_ATREIDES_OID)
+        	.assertLinks(0);
+
+        assertUserAfter(USER_PAUL_ATREIDES_OID)
+	    	.assertName(USER_PAUL_ATREIDES_NAME)
+	    	.assertFullName(USER_PAUL_ATREIDES_FULL_NAME)
+	    	.assignments()
+	    		.assertOrg(ORG_ATREIDES_OID)
+	    		.assertNoRole()
+	    		.end()
+			.assertTenantRef(ORG_ATREIDES_OID)
+	    	.assertParentOrgRefs(ORG_ATREIDES_OID)
+	    	.assertLinks(0);
+        
+        assertOrgAfter(ORG_GUILD_OID)
+        	.assertTenant(null)
+        	.assertTenantRef(null)
+        	.assignments()
+	    		.single()
+	    			.assertTargetOid(ORG_ROOT_OID)
+	    			.end()
+	    		.end()
+	    	.assertLinks(0)
+	    	.assertParentOrgRefs(ORG_ROOT_OID);
+        
+        assertUserAfter(USER_EDRIC_OID)
+	    	.assertName(USER_EDRIC_NAME)
+	    	.assertFullName(USER_EDRIC_FULL_NAME)
+	    	.assignments()
+	    		.assertOrg(ORG_GUILD_OID)
+	    		.assertRole(ROLE_GUILD_BROKEN_ADMIN_OID)
+	    		.end()
+			.assertTenantRef(null)
+	    	.assertParentOrgRefs(ORG_GUILD_OID)
+	    	.assertLinks(0);
+
         assertGlobalStateUntouched();
 	}
 
 	/**
+	 * Leto is Atreides admin. He can see all of House Atreides.
+	 * But nothing else.
+	 * 
+	 * MID-4882
 	 */
-	@Test(enabled=false) // work in progress
-    public void test080AutzJackEndUserPassword() throws Exception {
-		final String TEST_NAME = "test080AutzJackEndUserPassword";
+	@Test
+    public void test100AutzLetoRead() throws Exception {
+		final String TEST_NAME = "test100AutzLetoRead";
         displayTestTitle(TEST_NAME);
         // GIVEN
-        cleanupAutzTest(USER_JACK_OID);
+        cleanupAutzTest(null);
 
-//        assignRole(USER_JACK_OID, ROLE_END_USER_OID);
-        
-        login(USER_JACK_USERNAME);
+        login(USER_LETO_ATREIDES_NAME);
         
         // WHEN
         displayWhen(TEST_NAME);
+
+        // Matching tenant
+        assertGetAllow(UserType.class, USER_LETO_ATREIDES_OID);
+        assertGetAllow(UserType.class, USER_PAUL_ATREIDES_OID);
+        assertGetAllow(OrgType.class, ORG_ATREIDES_OID);
+        assertGetAllow(RoleType.class, ROLE_ATREIDES_ADMIN_OID);
         
-//        assertAllow("set jack's password",
-//        		(task, result) -> modifyUserSetPassword(USER_JACK_OID, "nbusr123", task, result) );
+        // Wrong tenant
+        assertGetDeny(UserType.class, USER_VLADIMIR_HARKONNEN_OID);
+        assertGetDeny(OrgType.class, ORG_HARKONNEN_OID);
+        assertGetDeny(RoleType.class, ROLE_HARKONNEN_ADMIN_OID);
+        
+        // No tenant
+        assertGetDeny(OrgType.class, ORG_GUILD_OID);
+        assertGetDeny(RoleType.class, ROLE_TENANT_ADMIN_OID);
+        assertGetDeny(UserType.class, USER_EDRIC_OID);
+        
+        assertSearch(UserType.class, null, USER_LETO_ATREIDES_OID, USER_PAUL_ATREIDES_OID);
+        assertSearch(RoleType.class, null, ROLE_ATREIDES_ADMIN_OID);
+        assertSearch(OrgType.class, null, ORG_ATREIDES_OID);
         
         // THEN
         displayThen(TEST_NAME);
         
-//        XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
-//        
-//        user = getUser(USER_JACK_OID);
-//        display("user after password change", user);
-//        PasswordType passwordType = assertUserPassword(user, "nbusr123");
-//        MetadataType metadata = passwordType.getMetadata();
-//        assertNotNull("No password metadata", metadata);
-//        assertMetadata("password metadata", metadata, true, false, startTs, endTs, USER_JACK_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-4882
+	 */
+	@Test
+    public void test102AutzLetoModify() throws Exception {
+		final String TEST_NAME = "test102AutzLetoModify";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
 
+        login(USER_LETO_ATREIDES_NAME);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        // Matching tenant
+        assertModifyAllow(UserType.class, USER_PAUL_ATREIDES_OID, UserType.F_LOCALITY, createPolyString("Arrakis"));
+        
+        // Wrong tenant
+        assertModifyDeny(UserType.class, USER_VLADIMIR_HARKONNEN_OID, UserType.F_LOCALITY, createPolyString("Deepest hell"));
+        
+        // No tenant
+        assertModifyDeny(UserType.class, USER_EDRIC_OID, UserType.F_LOCALITY, createPolyString("Whatever"));
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
         assertGlobalStateUntouched();
 	}	
+	
+	/**
+	 * Edric is part of Spacing Guld. But the Guild is not tenant.
+	 * Edric has a broken role that should work only for tenants.
+	 * Therefore the role should not work. Edric should not be
+	 * able to access anything.
+	 * 
+	 * MID-4882
+	 */
+	@Test
+    public void test120AutzEdricRead() throws Exception {
+		final String TEST_NAME = "test120AutzEdricRead";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_EDRIC_NAME);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        // Wrong tenant
+        assertGetDeny(UserType.class, USER_LETO_ATREIDES_OID);
+        assertGetDeny(UserType.class, USER_PAUL_ATREIDES_OID);
+        assertGetDeny(OrgType.class, ORG_ATREIDES_OID);
+        assertGetDeny(RoleType.class, ROLE_ATREIDES_ADMIN_OID);
+        
+        // No tenant
+        assertGetDeny(OrgType.class, ORG_GUILD_OID);
+        assertGetDeny(RoleType.class, ROLE_TENANT_ADMIN_OID);
+        assertGetDeny(UserType.class, USER_EDRIC_OID);
+        
+        assertSearch(UserType.class, null, 0);
+        assertSearch(RoleType.class, null, 0);
+        assertSearch(OrgType.class, null, 0);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertGlobalStateUntouched();
+	}	
+	
+
 	
 }

@@ -111,6 +111,9 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 	
 	public PrismObjectAsserter<O,RA> assertTenantRef(String expectedOid) {
 		ObjectReferenceType tenantRef = getObject().asObjectable().getTenantRef();
+		if (tenantRef == null && expectedOid == null) {
+			return this;
+		}
 		assertNotNull("No tenantRef in "+desc(), tenantRef);
 		assertEquals("Wrong tenantRef OID in "+desc(), expectedOid, tenantRef.getOid());
 		return this;
@@ -151,6 +154,9 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 	
 	protected <T> void assertPropertyEquals(QName propName, T expected) {
 		PrismProperty<T> prop = getObject().findProperty(propName);
+		if (prop == null && expected == null) {
+			return;
+		}
 		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
 		T realValue = prop.getRealValue();
 		assertNotNull("No value in "+propName.getLocalPart()+" in "+desc(), realValue);

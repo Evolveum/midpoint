@@ -192,6 +192,11 @@ public class OrgAsserter<RA> extends FocusAsserter<OrgType,RA> {
 		return this;
 	}
 	
+	public OrgAsserter<RA> assertTenant(Boolean expected) {
+		assertPropertyEquals(OrgType.F_TENANT, expected);
+		return this;
+	}
+	
 	public OrgAsserter<RA> assertIsTenant() {
 		assertPropertyEquals(OrgType.F_TENANT, true);
 		return this;

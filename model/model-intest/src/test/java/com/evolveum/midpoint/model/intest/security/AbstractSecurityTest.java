@@ -663,10 +663,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        PrismObject<UserType> user = getUser(userOid);
-        assertAssignments(user, expectedAssignments);
-        if (expectedAssignments == 0) {
-        	assertLinks(user, 0);
+        if (userOid != null) {
+	        PrismObject<UserType> user = getUser(userOid);
+	        assertAssignments(user, expectedAssignments);
+	        if (expectedAssignments == 0) {
+	        	assertLinks(user, 0);
+	        }
         }
 	}
 	

@@ -105,6 +105,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleRelationObjectSp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TenantSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -692,7 +693,34 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						return false;
 					}
 				}
+			}
 				
+			// Tenant
+			TenantSelectorType tenantSpec = ((OwnedObjectSelectorType)objectSelector).getTenant();
+			if (tenantSpec != null) {
+				if (BooleanUtils.isTrue(tenantSpec.isSameAsSubject())) {
+					ObjectReferenceType subjectTenantRef = principal.getUser().getTenantRef();
+					if (subjectTenantRef == null || subjectTenantRef.getOid() == null) {
+						LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because subject does not have tenantRef",
+								autzHumanReadableDesc, desc, object.getOid());
+						return false;
+					}
+					ObjectReferenceType objectTenantRef = object.asObjectable().getTenantRef();
+					if (objectTenantRef == null || objectTenantRef.getOid() == null) {
+						LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because object does not have tenantRef",
+								autzHumanReadableDesc, desc, object.getOid());
+						return false;
+					}
+					if (!subjectTenantRef.getOid().equals(objectTenantRef.getOid())) {
+						LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because of tenant mismatch",
+								autzHumanReadableDesc, desc, object.getOid());
+						return false;
+					}
+				}
+			} else {
+				LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because there is a strange tenant specificaiton in authorization",
+						autzHumanReadableDesc, desc, object.getOid());
+				return false;
 			}
 		}
 
@@ -1137,6 +1165,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 							OrgRelationObjectSpecificationType specOrgRelation = objectSpecType.getOrgRelation();
 							RoleRelationObjectSpecificationType specRoleRelation = objectSpecType.getRoleRelation();
+							TenantSelectorType specTenant = objectSpecType.getTenant();
 							QName specTypeQName = objectSpecType.getType();
 							PrismObjectDefinition<T> objectDefinition = null;
 
@@ -1204,8 +1233,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									LOGGER.trace("    Skipping authorization, because specials are present: {}", specSpecial);
 									applicable = false;
 								}
-								if (specFilterType != null || specOrgRef != null || specOrgRelation != null || specRoleRelation != null) {
-									throw new SchemaException("Both filter/org/role and special object specification specified in authorization");
+								if (specFilterType != null || specOrgRef != null || specOrgRelation != null || specRoleRelation != null || specTenant != null) {
+									throw new SchemaException("Both filter/org/role/tenant and special object specification specified in authorization");
 								}
 								ObjectFilter specialFilter = null;
 								for (SpecialObjectSpecificationType special: specSpecial) {
@@ -1294,6 +1323,30 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								if (objSpecRoleRelationFilter != null) {
 									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecRoleRelationFilter);
 									LOGGER.trace("  applying roleRelation filter {}", objSpecRoleRelationFilter);
+								}
+							} else {
+								LOGGER.trace("    roleRelation empty");
+							}
+
+							if (objSpecTypeFilter != null) {
+								objSpecTypeFilter.setFilter(objSpecSecurityFilter);
+								objSpecSecurityFilter = objSpecTypeFilter;
+							}
+							
+							// tenant
+							if (specTenant != null) {
+								ObjectFilter objSpecTenantFilter = processTenantFilter(principal, autz, specTenant, queryItemsSpec, origFilter);
+								if (objSpecTenantFilter == null) {
+									if (autz.maySkipOnSearch()) {
+										LOGGER.trace("    not applying tenant filter {} because it is not efficient and maySkipOnSearch is set", objSpecTenantFilter);
+										applicable = false;
+									} else {
+										objSpecTenantFilter = NoneFilter.createNone();
+									}
+								}
+								if (objSpecTenantFilter != null) {
+									objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, objSpecTenantFilter);
+									LOGGER.trace("  applying tenant filter {}", objSpecTenantFilter);
 								}
 							} else {
 								LOGGER.trace("    roleRelation empty");
@@ -1503,6 +1556,28 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 
 		return ObjectQueryUtil.filterOr(refRoleFilter, membersFilter);
+	}
+	
+	private ObjectFilter processTenantFilter(MidPointPrincipal principal, Authorization autz,
+			TenantSelectorType specTenant, AutzItemPaths queryItemsSpec, ObjectFilter origFilter) {
+		ObjectFilter tenantFilter = null;
+		if (BooleanUtils.isTrue(specTenant.isSameAsSubject())) {
+			ObjectReferenceType subjectTenantRef = principal.getUser().getTenantRef();
+			if (subjectTenantRef == null || subjectTenantRef.getOid() == null) {
+				LOGGER.trace("    subject tenant empty (none filter)");
+				tenantFilter = NoneFilter.createNone();
+			} else {
+				tenantFilter = QueryBuilder.queryFor(ObjectType.class, prismContext)
+					.item(ObjectType.F_TENANT_REF).ref(subjectTenantRef.getOid())
+					.buildFilter();
+				LOGGER.trace("    applying tenant filter {}", tenantFilter);
+			}
+		} else {
+			tenantFilter = NoneFilter.createNone();
+			LOGGER.trace("    tenant authorization empty (none filter)");
+		}
+
+		return tenantFilter;
 	}
 
 	private List<PrismReferenceValue> getRoleOidsFromFilter(ObjectFilter origFilter) {
