@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.*;
@@ -84,8 +83,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Shadow cache is a facade that covers all the operations with shadows. It
@@ -1268,29 +1265,9 @@ public abstract class ShadowCache {
 								existsDelta.setValuesToReplace(new PrismPropertyValue<>(true));
 								shadowDelta.addModification(existsDelta);
 							}
-
+							
 							if (pendingDelta.isModify()) {
-								PrismContainer<ShadowAttributesType> shadowAttributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
-								ResourceAttributeContainer resourceAttributeContainer = ResourceAttributeContainer.convertFromContainer(shadowAttributesContainer, ctx.getObjectClassDefinition());
-								ResourceAttribute<?> resourceNamingAttribute = resourceAttributeContainer.getNamingAttribute();
-								QName namingAttributeElement = resourceNamingAttribute.getElementName();
-
 								for (ItemDelta<?, ?> pendingModification: pendingDelta.getModifications()) {
-
-									//Update the shadow name if the modified attribute is the naming attribute
-									if (pendingModification.getElementName().equals(namingAttributeElement)) {
-										Collection<?> valuesToReplace =  pendingModification.getValuesToReplace();
-										Stream<?> valueStream = valuesToReplace.stream();
-										Optional<?> valueToReplace = valueStream.findFirst();
-
-										if (valuesToReplace.size() == 1 && valueToReplace.isPresent()) {
-											// Add naming attribute change delta
-											PropertyDelta<PolyString> nameDelta = shadowDelta.createPropertyModification(new ItemPath(ShadowType.F_NAME));
-											nameDelta.setValuesToReplace(new PrismPropertyValue<>(new PolyString(((PrismPropertyValue<String>)valueToReplace.get()).getValue())));
-											shadowDelta.addModification(nameDelta);
-										}
-
-									}
 									shadowDelta.addModification(pendingModification.clone());
 								}
 							}
