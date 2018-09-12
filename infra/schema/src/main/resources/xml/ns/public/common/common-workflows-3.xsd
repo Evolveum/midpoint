@@ -1132,7 +1132,6 @@
                     <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.addUserAbstractRoleAssignmentAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1142,7 +1141,6 @@
                     <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyUserAbstractRoleAssignmentAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1152,7 +1150,6 @@
                     <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.addUserResourceAssignmentAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1162,7 +1159,6 @@
                     <xsd:element name="modifyUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyUserResourceAssignmentAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1172,7 +1168,6 @@
                     <xsd:element name="addAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.addAbstractRoleAbstractRoleAssignmentAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1182,7 +1177,6 @@
                     <xsd:element name="modifyAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyAbstractRoleAbstractRoleAssignmentAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1192,7 +1186,6 @@
                     <xsd:element name="addAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.addAbstractRoleResourceAssignmentAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1202,7 +1195,6 @@
                     <xsd:element name="modifyAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyAbstractRoleResourceAssignmentAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1212,7 +1204,6 @@
                     <xsd:element name="addAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.addAbstractRoleAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1222,7 +1213,6 @@
                     <xsd:element name="modifyAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyAbstractRoleAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1232,7 +1222,6 @@
                     <xsd:element name="addUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.addUserAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1242,7 +1231,6 @@
                     <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyUserAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1252,7 +1240,6 @@
                     <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.addResourceAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1262,7 +1249,6 @@
                     <xsd:element name="modifyResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.modifyResourceAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
@@ -1280,7 +1266,6 @@
                     <xsd:element name="otherAspect" type="tns:GenericPcpAspectConfigurationType" minOccurs="0" maxOccurs="unbounded">
 					   <xsd:annotation>
 							<xsd:appinfo>
-								<a:displayName>PrimaryChangeProcessorConfigurationType.otherAspect</a:displayName>
 								<a:deprecated>true</a:deprecated>
 								<a:deprecatedSince>3.9</a:deprecatedSince>
 								<a:plannedRemoval>4.0</a:plannedRemoval>
