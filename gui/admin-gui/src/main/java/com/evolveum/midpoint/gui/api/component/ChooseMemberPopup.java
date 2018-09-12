@@ -219,6 +219,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                             @Override
                             protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
+                                selectedOrgsListUpdate(rowModel);
                                 tabLabelPanelUpdate(target);
                             }
 
@@ -262,7 +263,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     }
 
                     @Override
-                    protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){
+                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
+                        selectedOrgsListUpdate(rowModel);
                         tabLabelPanelUpdate(target);
                     }
 
@@ -340,6 +342,17 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         }
 
         return ObjectQuery.createObjectQuery(InOidFilter.createInOid(oids));
+    }
+
+    private void selectedOrgsListUpdate(IModel<SelectableBean<OrgType>> rowModel){
+        if (rowModel == null){
+            return;
+        }
+        if (rowModel.getObject().isSelected()){
+            selectedOrgsList.add(rowModel.getObject().getValue());
+        } else {
+            selectedOrgsList.removeIf((OrgType org) -> org.getOid().equals(rowModel.getObject().getValue().getOid()));
+        }
     }
 
     private IModel<String> getAddButtonTitleModel(){

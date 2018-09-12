@@ -50,25 +50,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
 
             @Override
             protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
-                if (rowModel != null && rowModel.getObject() != null) {
-                    List<OrgType> preselectedObjects = getPreselectedObjects();
-                    if (preselectedObjects == null) {
-                        preselectedObjects = new ArrayList<>();
-                    }
-                    boolean isAlreadyInList = false;
-                    Iterator<OrgType> it = preselectedObjects.iterator();
-                    while (it.hasNext()){
-                        OrgType org = it.next();
-                        if (org.getOid().equals(rowModel.getObject().getValue().getOid())) {
-                            isAlreadyInList = true;
-                            it.remove();
-                        }
-                    }
-                    if (!isAlreadyInList){
-                        preselectedObjects.add(rowModel.getObject().getValue());
-                    }
-                }
-                OrgTreeMemberPopupTabPanel.this.onOrgTreeCheckBoxSelectionPerformed(target);
+                onSelectionPerformed(target, rowModel);
             }
 
             @Override
@@ -99,6 +81,4 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
     protected ObjectTypes getObjectType(){
         return ObjectTypes.ORG;
     }
-
-    protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){}
 }
