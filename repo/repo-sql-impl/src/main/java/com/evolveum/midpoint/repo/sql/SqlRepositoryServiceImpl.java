@@ -124,7 +124,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
-    @Autowired private SystemConfigurationChangeApplier systemConfigurationChangeApplier;
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
 
@@ -826,11 +826,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		        	if (isCustomPagingOkWithPagedSeqIteration(query)) {
 				        iterationMethod = IterationMethodType.STRICTLY_SEQUENTIAL_PAGING;
 			        } else {
-		        		// TODO switch to LOGGER.error
-		        		throw new IllegalArgumentException("Iterative search was defined in the repository configuration, and strict sequentiality "
+		        		LOGGER.warn("Iterative search was defined in the repository configuration, and strict sequentiality "
 						        + "was requested. However, a custom paging precludes its application. Therefore switching to "
 						        + "simple paging iteration method. Paging requested: " + query.getPaging());
-				        //iterationMethod = IterationMethodType.SIMPLE_PAGING;
+				        iterationMethod = IterationMethodType.SIMPLE_PAGING;
 			        }
 		        } else {
 		        	iterationMethod = IterationMethodType.SIMPLE_PAGING;
@@ -1145,7 +1144,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	@Override
 	public void postInit(OperationResult result) throws SchemaException {
         LOGGER.debug("Executing repository postInit method");
-        systemConfigurationChangeApplier.applySystemConfiguration(true, true, result);
+        systemConfigurationChangeDispatcher.dispatch(true, true, result);
 	}
 	
     @Override
