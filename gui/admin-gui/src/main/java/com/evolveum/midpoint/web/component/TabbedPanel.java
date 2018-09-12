@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.WicketRuntimeException;

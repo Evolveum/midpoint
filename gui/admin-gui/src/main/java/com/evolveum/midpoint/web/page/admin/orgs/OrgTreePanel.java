@@ -70,6 +70,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	private boolean selectable;
     private String treeTitleKey = "";
 	SessionStorage storage;
+	List<OrgType> preselecteOrgsList = new ArrayList<>();
 
 
 	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator) {
@@ -77,6 +78,11 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
     }
 
 	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator, String treeTitleKey) {
+		this(id, rootOid, selectable, serviceLocator, "", new ArrayList<>());
+	}
+
+	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator, String treeTitleKey,
+						List<OrgType> preselecteOrgsList) {
 		super(id, rootOid);
 
 		MidPointAuthWebSession session = OrgTreePanel.this.getSession();
@@ -84,6 +90,9 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 		this.treeTitleKey = treeTitleKey;
 		this.selectable = selectable;
+		if (preselecteOrgsList != null){
+			this.preselecteOrgsList.addAll(preselecteOrgsList);
+		}
 		selected = new LoadableModel<SelectableBean<OrgType>>() {
 			private static final long serialVersionUID = 1L;
 
@@ -139,7 +148,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 				new Model<>((Serializable) createTreeMenuInternal(serviceLocator.getAdminGuiConfiguration())));
 		treeHeader.add(treeMenu);
 
-		ISortableTreeProvider provider = new OrgTreeProvider(this, getModel()) {
+		ISortableTreeProvider provider = new OrgTreeProvider(this, getModel(), preselecteOrgsList) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -159,8 +168,9 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 				}
 
 				@Override
-				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<OrgType>> rowModel) {
-					super.onUpdateRow(target, table, rowModel);
+				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<OrgType>> rowModel, IModel<Boolean> selected) {
+					super.onUpdateRow(target, table, rowModel, selected);
+					rowModel.getObject().setSelected(selected.getObject());
 					onOrgTreeCheckBoxSelectionPerformed(target, rowModel);
 				}
 			});

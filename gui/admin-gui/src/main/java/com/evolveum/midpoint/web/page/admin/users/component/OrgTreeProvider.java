@@ -57,17 +57,21 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     private Component component;
     private IModel<String> rootOid;
     private SelectableBean<OrgType> root;
+    private List<OrgType> selectedOrgs = new ArrayList<>();
 
-    private List<SelectableBean<OrgType>> availableData;
+    private Map<String, SelectableBean<OrgType>> availableData;
 
-    public OrgTreeProvider(Component component, IModel<String> rootOid) {
+    public OrgTreeProvider(Component component, IModel<String> rootOid, List<OrgType> selectedOrgs) {
         this.component = component;
         this.rootOid = rootOid;
+        if (selectedOrgs != null) {
+            this.selectedOrgs.addAll(selectedOrgs);
+        }
     }
 
-    public List<SelectableBean<OrgType>> getAvailableData() {
+    public Map<String, SelectableBean<OrgType>> getAvailableData() {
 		if (availableData == null){
-			availableData = new ArrayList<>();
+			availableData = new HashMap<>();
 		}
     	return availableData;
 	}
@@ -139,7 +143,9 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
                 getPageBase().showResult(result);
                 throw new RestartResponseException(PageOrgTree.class);
             }
-            getAvailableData().addAll(children);
+            children.forEach(orgUnit -> {
+                getAvailableData().putIfAbsent(orgUnit.getValue().getOid(), orgUnit);
+            });
         }
         LOGGER.debug("Finished getting children.");
         lastFetchOperation = System.currentTimeMillis();
@@ -192,8 +198,8 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
         List<SelectableBean<OrgType>> list = new ArrayList<>();
         if (root != null) {
             list.add(root);
-            if (!getAvailableData().contains(root)){
-            	getAvailableData().add(root);
+            if (!getAvailableData().containsKey(root.getValue().getOid())){
+            	getAvailableData().put(root.getValue().getOid(), root);
             }
 
         }
@@ -211,13 +217,12 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
     }
 
     public List<OrgType> getSelectedObjects(){
-    	List<OrgType> selectedOrgs = new ArrayList<>();
-    	for (SelectableBean<OrgType> selected : getAvailableData()){
+        List<OrgType> selectedOrgs = new ArrayList<>();
+    	for (SelectableBean<OrgType> selected : getAvailableData().values()){
     		if (selected.isSelected() && selected.getValue() != null) {
     			selectedOrgs.add(selected.getValue());
     		}
     	}
-
     	return selectedOrgs;
     }
 }

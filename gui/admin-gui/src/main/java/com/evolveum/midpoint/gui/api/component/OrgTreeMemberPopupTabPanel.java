@@ -45,7 +45,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
     protected void onInitialize() {
         super.onInitialize();
         OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-                ID_ORG_TREE_VIEW_PANEL, true, getPageBase(), getPreselectedObjects()) {
+                ID_ORG_TREE_VIEW_PANEL, true, getPageBase()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -72,6 +72,11 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
             }
 
             @Override
+            protected List<OrgType> getPreselectedOrgsList(){
+                return getPreselectedObjects();
+            }
+
+            @Override
             protected boolean isAssignButtonVisible(){
                 return false;
             }
@@ -86,7 +91,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
         return false;
     }
 
-    protected List getSelectedObjectsList(){
+    protected List<OrgType> getSelectedObjectsList(){
         return getPreselectedObjects();
     }
 

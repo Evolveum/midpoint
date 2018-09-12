@@ -15,8 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.orgs;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.web.session.UsersStorage;
@@ -50,29 +49,26 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 	private static final String ID_ORG_TABS = "orgTabs";
 	private static final String ID_ASSIGN = "assign";
 	private boolean selectable;
-	private List<OrgType> selectedOrgsList;
+	List<OrgType> allTabsSelectedOrgs = new ArrayList<>();
 
 	public OrgTreeAssignablePanel(String id, boolean selectable, PageBase parentPage) {
-		this(id, selectable, parentPage, null);
-	}
-
-	public OrgTreeAssignablePanel(String id, boolean selectable, PageBase parentPage, List<OrgType> selectedOrgsList){
 		super(id);
 		this.selectable = selectable;
-		this.selectedOrgsList = selectedOrgsList;
 		setParent(parentPage);
 		initLayout();
 	}
 
 	private void initLayout() {
-
+		if (getPreselectedOrgsList() != null) {
+			allTabsSelectedOrgs.addAll(getPreselectedOrgsList());
+		}
 		AbstractOrgTabPanel tabbedPanel = new AbstractOrgTabPanel(ID_ORG_TABS, getPageBase()) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected Panel createTreePanel(String id, Model<String> model, PageBase pageBase) {
-				OrgTreePanel panel = new OrgTreePanel(id, model, selectable, pageBase) {
+				OrgTreePanel panel = new OrgTreePanel(id, model, selectable, pageBase, "", allTabsSelectedOrgs) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -81,22 +77,32 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 
 							@Override
 							public Boolean load() {
-								boolean isSelected = false;
-								if (selectedOrgsList != null) {
-									for (OrgType org : selectedOrgsList)
-										if (rowModel.getObject().getValue().getOid().equals(org.getOid())){
-											isSelected = true;
-											break;
-										}
+								for (OrgType org : allTabsSelectedOrgs){
+									if (rowModel.getObject().getValue().getOid().equals(org.getOid())) {
+										return true;
 									}
-								return isSelected;
-
+								}
+								return false;
 							}
 						};
 					}
 
 					@Override
 					protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
+							if (rowModel != null && rowModel.getObject() != null) {
+								boolean isAlreadyInList = false;
+								Iterator<OrgType> it = allTabsSelectedOrgs.iterator();
+								while (it.hasNext()){
+									OrgType org = it.next();
+									if (org.getOid().equals(rowModel.getObject().getValue().getOid())) {
+										isAlreadyInList = true;
+										it.remove();
+									}
+								}
+								if (!isAlreadyInList){
+									allTabsSelectedOrgs.add(rowModel.getObject().getValue());
+								}
+							}
 						OrgTreeAssignablePanel.this.onOrgTreeCheckBoxSelectionPerformed(target, rowModel);
 					}
 				};
@@ -127,14 +133,7 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				AbstractOrgTabPanel orgPanel = (AbstractOrgTabPanel) getParent().get(ID_ORG_TABS);
-				Panel treePanel = orgPanel.getPanel();
-				List<OrgType> selectedOrgs = new ArrayList<>();
-				if (treePanel != null && treePanel instanceof OrgTreePanel) {
-					selectedOrgs = ((OrgTreePanel)treePanel).getSelectedOrgs();
-				}
-				assignSelectedOrgPerformed(selectedOrgs, target);
-
+				assignSelectedOrgPerformed(getAllTabPanelsSelectedOrgs(), target);
 			}
 		};
 		assignButton.setOutputMarkupId(true);
@@ -158,8 +157,16 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 
 	}
 
+	public List<OrgType> getAllTabPanelsSelectedOrgs(){
+		return allTabsSelectedOrgs;
+	}
+
 	protected void onItemSelect(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
 
+	}
+
+	protected List<OrgType> getPreselectedOrgsList(){
+		return null;
 	}
 
 	protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){}

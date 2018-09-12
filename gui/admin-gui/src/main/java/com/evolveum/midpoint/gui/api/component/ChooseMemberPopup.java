@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
@@ -148,11 +149,11 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel(panelId, availableRelationList){
+                return new MemberPopupTabPanel<UserType>(panelId, availableRelationList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target){
+                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel){
                         tabLabelPanelUpdate(target);
                     }
 
@@ -180,11 +181,11 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MemberPopupTabPanel(panelId, availableRelationList){
+                return new MemberPopupTabPanel<RoleType>(panelId, availableRelationList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target){
+                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel){
                         tabLabelPanelUpdate(target);
                     }
 
@@ -213,11 +214,11 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel(panelId, availableRelationList){
+                        return new MemberPopupTabPanel<OrgType>(panelId, availableRelationList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target){
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
                                 tabLabelPanelUpdate(target);
                             }
 
@@ -285,7 +286,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new MemberPopupTabPanel(panelId, availableRelationList){
+                        return new MemberPopupTabPanel<ServiceType>(panelId, availableRelationList){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -299,7 +300,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                             }
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target){
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel){
                                 tabLabelPanelUpdate(target);
                             }
 

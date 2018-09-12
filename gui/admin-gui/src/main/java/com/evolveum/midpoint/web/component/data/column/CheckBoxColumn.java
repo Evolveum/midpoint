@@ -56,7 +56,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
             @Override
             public void onUpdate(AjaxRequestTarget target) {
                 DataTable table = findParent(DataTable.class);
-                onUpdateRow(target, table, rowModel);
+                onUpdateRow(target, table, rowModel, selected);
 
                 //updating table row
 //                target.add(cellItem.findParent(SelectableDataTable.SelectableRowItem.class));
@@ -89,7 +89,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
         this.enabled.setObject(enabled);
     }
 
-    protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel) {
+    protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel, IModel<Boolean> selected) {
     }
 
     protected String getPropertyExpression() {
