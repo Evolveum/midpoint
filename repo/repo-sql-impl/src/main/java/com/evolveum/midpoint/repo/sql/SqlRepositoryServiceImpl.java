@@ -826,11 +826,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		        	if (isCustomPagingOkWithPagedSeqIteration(query)) {
 				        iterationMethod = IterationMethodType.STRICTLY_SEQUENTIAL_PAGING;
 			        } else {
-		        		// TODO switch to LOGGER.error
-		        		throw new IllegalArgumentException("Iterative search was defined in the repository configuration, and strict sequentiality "
+		        		LOGGER.warn("Iterative search was defined in the repository configuration, and strict sequentiality "
 						        + "was requested. However, a custom paging precludes its application. Therefore switching to "
 						        + "simple paging iteration method. Paging requested: " + query.getPaging());
-				        //iterationMethod = IterationMethodType.SIMPLE_PAGING;
+				        iterationMethod = IterationMethodType.SIMPLE_PAGING;
 			        }
 		        } else {
 		        	iterationMethod = IterationMethodType.SIMPLE_PAGING;
