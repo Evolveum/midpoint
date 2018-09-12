@@ -15,81 +15,21 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertEquals;
-
 import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -109,29 +49,53 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String ROLE_TENANT_ADMIN_OID = "00000000-8888-6666-a000-100000000000";
 	
 	protected static final String ORG_GUILD_OID = "00000000-8888-6666-a001-000000000000";
+	
 	protected static final String ROLE_GUILD_BROKEN_ADMIN_OID = "00000000-8888-6666-a001-100000000001";
+	
 	protected static final String USER_EDRIC_OID = "00000000-8888-6666-a001-200000000000";
 	protected static final String USER_EDRIC_NAME = "edric";
 	protected static final String USER_EDRIC_FULL_NAME = "Navigator Edric";
 	
+	protected static final File USER_DMURR_FILE = new File(TEST_DIR, "user-dmurr.xml");
+	protected static final String USER_DMURR_OID = "00000000-8888-6666-a001-200000000001";
+	protected static final String USER_DMURR_NAME = "dmurr";
+	protected static final String USER_DMURR_FULL_NAME = "D'murr Pilru";
+	
 	protected static final String ORG_CORRINO_OID = "00000000-8888-6666-a100-000000000000";
+	
 	protected static final String ROLE_CORRINO_ADMIN_OID = "00000000-8888-6666-a100-100000000000";
+	
 	protected static final String USER_SHADDAM_CORRINO_OID = "00000000-8888-6666-a100-200000000000";
 	protected static final String USER_SHADDAM_CORRINO_NAME = "shaddam";
 	protected static final String USER_SHADDAM_CORRINO_FULL_NAME = "Padishah Emperor Shaddam IV";
 	
 	protected static final String ORG_ATREIDES_OID = "00000000-8888-6666-a200-000000000000";
+	
 	protected static final String ROLE_ATREIDES_ADMIN_OID = "00000000-8888-6666-a200-100000000000";
+	
 	protected static final String USER_LETO_ATREIDES_OID = "00000000-8888-6666-a200-200000000000";
 	protected static final String USER_LETO_ATREIDES_NAME = "leto";
 	protected static final String USER_LETO_ATREIDES_FULL_NAME = "Duke Leto Atreides";
+	
 	protected static final String USER_PAUL_ATREIDES_OID = "00000000-8888-6666-a200-200000000001";
 	protected static final String USER_PAUL_ATREIDES_NAME = "paul";
 	protected static final String USER_PAUL_ATREIDES_FULL_NAME = "Paul Atreides";
 	
+	protected static final File USER_DUNCAN_FILE = new File(TEST_DIR, "user-duncan.xml");
+	protected static final String USER_DUNCAN_OID = "00000000-8888-6666-a200-200000000002";
+	protected static final String USER_DUNCAN_NAME = "duncan";
+	protected static final String USER_DUNCAN_FULL_NAME = "Duncan Idaho";
+	
 	protected static final String ORG_HARKONNEN_OID = "00000000-8888-6666-a300-000000000000";
+	
 	protected static final String ROLE_HARKONNEN_ADMIN_OID = "00000000-8888-6666-a300-100000000000";
+	
 	protected static final String USER_VLADIMIR_HARKONNEN_OID = "00000000-8888-6666-a300-200000000000";
+	
+	protected static final File USER_PITER_FILE = new File(TEST_DIR, "user-piter.xml");
+	protected static final String USER_PITER_OID = "00000000-8888-6666-a300-200000000001";
+	protected static final String USER_PITER_NAME = "piter";
+	protected static final String USER_PITER_FULL_NAME = "Piter De Vries";
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -324,8 +288,51 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	 * MID-4882
 	 */
 	@Test
-    public void test102AutzLetoModify() throws Exception {
-		final String TEST_NAME = "test102AutzLetoModify";
+    public void test102AutzLetoAdd() throws Exception {
+		final String TEST_NAME = "test102AutzLetoAdd";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_LETO_ATREIDES_NAME);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        // Matching tenant
+        assertAddAllow(USER_DUNCAN_FILE);
+        
+        // Wrong tenant
+        assertAddDeny(USER_PITER_FILE);
+        
+        // No tenant
+        assertAddDeny(USER_DMURR_FILE);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        login(USER_ADMINISTRATOR_USERNAME);
+        
+        assertUserAfter(USER_DUNCAN_OID)
+        	.assertName(USER_DUNCAN_NAME)
+        	.assertFullName(USER_DUNCAN_FULL_NAME)
+        	.assignments()
+	    		.assertOrg(ORG_ATREIDES_OID)
+	    		.assertNoRole()
+	    		.end()
+			.assertTenantRef(ORG_ATREIDES_OID)
+	    	.assertParentOrgRefs(ORG_ATREIDES_OID)
+	    	.assertLinks(0);
+        
+        assertGlobalStateUntouched();
+	}
+	
+	/**
+	 * MID-4882
+	 */
+	@Test
+    public void test104AutzLetoModify() throws Exception {
+		final String TEST_NAME = "test104AutzLetoModify";
         displayTestTitle(TEST_NAME);
         // GIVEN
         cleanupAutzTest(null);
@@ -348,7 +355,37 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         displayThen(TEST_NAME);
         
         assertGlobalStateUntouched();
-	}	
+	}
+	
+	/**
+	 * MID-4882
+	 */
+	@Test
+    public void test109AutzLetoDelete() throws Exception {
+		final String TEST_NAME = "test109AutzLetoDelete";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_LETO_ATREIDES_NAME);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        // Matching tenant
+        assertDeleteAllow(UserType.class, USER_DUNCAN_OID);
+        
+        // Wrong tenant
+        assertDeleteDeny(UserType.class, USER_PITER_OID);
+        
+        // No tenant
+        assertDeleteDeny(UserType.class, USER_DMURR_OID);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertGlobalStateUntouched();
+	}
 	
 	/**
 	 * Edric is part of Spacing Guld. But the Guild is not tenant.
