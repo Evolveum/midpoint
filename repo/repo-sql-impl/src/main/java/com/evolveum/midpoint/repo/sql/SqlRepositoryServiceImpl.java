@@ -124,7 +124,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
-    @Autowired private SystemConfigurationChangeApplier systemConfigurationChangeApplier;
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
 
@@ -1144,7 +1144,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	@Override
 	public void postInit(OperationResult result) throws SchemaException {
         LOGGER.debug("Executing repository postInit method");
-        systemConfigurationChangeApplier.applySystemConfiguration(true, true, result);
+        systemConfigurationChangeDispatcher.dispatch(true, true, result);
 	}
 	
     @Override

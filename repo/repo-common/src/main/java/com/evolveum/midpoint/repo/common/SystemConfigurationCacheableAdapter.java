@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.common;
 
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeApplier;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -35,7 +35,7 @@ public class SystemConfigurationCacheableAdapter implements Cacheable {
 	private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationCacheableAdapter.class);
 
 	@Autowired private CacheRegistry cacheRegistry;
-	@Autowired private SystemConfigurationChangeApplier changeApplier;
+	@Autowired private SystemConfigurationChangeDispatcher changeDispatcher;
 
 	@PostConstruct
 	public void register() {
@@ -46,9 +46,9 @@ public class SystemConfigurationCacheableAdapter implements Cacheable {
 	public void clearCache() {
 		try {
 			OperationResult result = new OperationResult(SystemConfigurationCacheableAdapter.class.getName() + ".clearCache");
-			changeApplier.applySystemConfiguration(true, true, result);
+			changeDispatcher.dispatch(true, true, result);
 		} catch (Throwable t) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply updated system configuration", t);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't dispatch information about updated system configuration", t);
 		}
 	}
 

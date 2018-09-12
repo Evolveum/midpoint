@@ -16,15 +16,24 @@
 
 package com.evolveum.midpoint.model.impl.controller;
 
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeApplier;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * @author mederly
  */
-public class DummySystemConfigurationChangeApplierImpl implements SystemConfigurationChangeApplier {
+public class DummySystemConfigurationChangeDispatcherImpl implements SystemConfigurationChangeDispatcher {
 
 	@Override
-	public void applySystemConfiguration(boolean ignoreVersion, boolean allowNotFound, OperationResult result) {
+	public void dispatch(boolean ignoreVersion, boolean allowNotFound, OperationResult result) {
+	}
+
+	@Override
+	public void registerListener(SystemConfigurationChangeListener listener) {
+	}
+
+	@Override
+	public void unregisterListener(SystemConfigurationChangeListener listener) {
 	}
 }
