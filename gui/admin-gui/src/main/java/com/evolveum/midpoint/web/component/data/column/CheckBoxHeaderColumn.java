@@ -160,7 +160,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
      * This method is called after checkbox in row is updated
      */
     @Override
-    protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel) {
+    protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel, IModel<Boolean> selected) {
         //update header checkbox
         IsolatedCheckBoxPanel header = findCheckBoxColumnHeader(table);
         if (header == null) {

@@ -45,30 +45,17 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
     protected void onInitialize() {
         super.onInitialize();
         OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-                ID_ORG_TREE_VIEW_PANEL, true, getPageBase(), getPreselectedObjects()) {
+                ID_ORG_TREE_VIEW_PANEL, true, getPageBase()) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
-                if (rowModel != null && rowModel.getObject() != null) {
-                    List<OrgType> preselectedObjects = getPreselectedObjects();
-                    if (preselectedObjects == null) {
-                        preselectedObjects = new ArrayList<>();
-                    }
-                    boolean isAlreadyInList = false;
-                    Iterator<OrgType> it = preselectedObjects.iterator();
-                    while (it.hasNext()){
-                        OrgType org = it.next();
-                        if (org.getOid().equals(rowModel.getObject().getValue().getOid())) {
-                            isAlreadyInList = true;
-                            it.remove();
-                        }
-                    }
-                    if (!isAlreadyInList){
-                        preselectedObjects.add(rowModel.getObject().getValue());
-                    }
-                }
-                OrgTreeMemberPopupTabPanel.this.onOrgTreeCheckBoxSelectionPerformed(target);
+                onSelectionPerformed(target, rowModel);
+            }
+
+            @Override
+            protected List<OrgType> getPreselectedOrgsList(){
+                return getPreselectedObjects();
             }
 
             @Override
@@ -86,7 +73,7 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
         return false;
     }
 
-    protected List getSelectedObjectsList(){
+    protected List<OrgType> getSelectedObjectsList(){
         return getPreselectedObjects();
     }
 
@@ -94,6 +81,4 @@ public abstract class OrgTreeMemberPopupTabPanel extends MemberPopupTabPanel<Org
     protected ObjectTypes getObjectType(){
         return ObjectTypes.ORG;
     }
-
-    protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){}
 }
