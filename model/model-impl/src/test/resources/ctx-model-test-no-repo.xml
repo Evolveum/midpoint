@@ -45,6 +45,6 @@
     <import resource="ctx-common.xml"/>
 
 	<!-- Repository is not here but we need this bean -->
-	<bean id="dummySystemConfigurationChangeApplier" class="com.evolveum.midpoint.model.impl.controller.DummySystemConfigurationChangeApplierImpl"/>
+	<bean id="dummySystemConfigurationChangeDispatcher" class="com.evolveum.midpoint.model.impl.controller.DummySystemConfigurationChangeDispatcherImpl"/>
 
 </beans>

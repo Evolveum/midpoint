@@ -271,10 +271,14 @@ public class RepositoryCache implements RepositoryService {
 		// DON't cache the object here. The object may not have proper "JAXB" form, e.g. some pieces may be
 		// DOM element instead of JAXB elements. Not to cache it is safer and the performance loss
 		// is acceptable.
-		if (cache != null) {
-			// Invalidate the cache entry if it happens to be there
-			cache.removeObject(oid);
-			cache.clearQueryResults(object.getCompileTimeClass());
+		if (options != null && options.isOverwrite()) {
+			invalidateCacheEntry(object.getCompileTimeClass(), oid);
+		} else {
+			// just for sure (the object should not be there but ...)
+			if (cache != null) {
+				cache.removeObject(oid);
+				cache.clearQueryResults(object.getCompileTimeClass());
+			}
 		}
 		return oid;
 	}
@@ -348,12 +352,9 @@ public class RepositoryCache implements RepositoryService {
 		// TODO use cached query result if applicable
 		log("Cache: PASS searchObjectsIterative ({})", type.getSimpleName());
 		final Cache cache = getCache();
-		ResultHandler<T> myHandler = new ResultHandler<T>() {
-			@Override
-			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
-				cacheObject(cache, object, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
-				return handler.handle(object, parentResult);
-			}
+		ResultHandler<T> myHandler = (object, parentResult1) -> {
+			cacheObject(cache, object, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
+			return handler.handle(object, parentResult1);
 		};
 		Long startTime = repoOpStart();
 		try {
@@ -446,7 +447,7 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
-	protected <T extends ObjectType> void invalidateCacheEntry(Class<T> type, String oid) {
+	private <T extends ObjectType> void invalidateCacheEntry(Class<T> type, String oid) {
 		Cache cache = getCache();
 		if (cache != null) {
 			cache.removeObject(oid);

@@ -75,7 +75,7 @@ public class ExportProducerWorker extends BaseWorker<ExportOptions, PrismObject>
             };
 
             RepositoryService repository = context.getRepository();
-            repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, false, operation.getResult());
+            repository.searchObjectsIterative(type.getClassDefinition(), query, handler, opts, true, operation.getResult());
         } catch (SchemaException ex) {
             log.error("Unexpected exception, reason: {}", ex, ex.getMessage());
         } catch (NinjaException ex) {

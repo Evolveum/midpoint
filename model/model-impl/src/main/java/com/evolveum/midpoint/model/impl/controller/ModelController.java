@@ -1138,7 +1138,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
 			try {
                 switch (searchProvider) {
-                    case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, false, result); break;		// TODO move strictSequential flag to model API in some form
+                    case REPOSITORY: metadata = cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, true, result); break;
                     case PROVISIONING: metadata = provisioning.searchObjectsIterative(type, query, options, internalHandler, task, result); break;
                     case TASK_MANAGER: metadata = taskManager.searchObjectsIterative(type, query, options, internalHandler, result); break;
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);

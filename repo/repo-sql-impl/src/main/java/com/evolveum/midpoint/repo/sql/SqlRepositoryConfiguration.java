@@ -557,15 +557,8 @@ public class SqlRepositoryConfiguration {
     }
 
     private void computeDefaultIterativeSearchParameters() {
-        if (isUsingH2()) {
-            defaultIterativeSearchByPaging = true;
-            defaultIterativeSearchByPagingBatchSize = 50;
-        } else if (isUsingMySqlCompatible()) {
-	        defaultIterativeSearchByPaging = true;
-	        defaultIterativeSearchByPagingBatchSize = 50;
-        } else {
-	        defaultIterativeSearchByPaging = false;
-        }
+	    defaultIterativeSearchByPaging = true;
+	    defaultIterativeSearchByPagingBatchSize = 50;
     }
 
     /**

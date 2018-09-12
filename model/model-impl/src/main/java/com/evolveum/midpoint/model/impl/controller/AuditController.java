@@ -247,7 +247,7 @@ public class AuditController implements ModelAuditService {
 			PrismObject<O> object, AuditEventRecord lastEvent) {
 		OperationResult executionResult = lastEventDeltasOperation.getExecutionResult();
 		ObjectDelta<O> objectDelta = (ObjectDelta<O>) lastEventDeltasOperation.getObjectDelta();
-		if (executionResult.getStatus() == OperationResultStatus.FATAL_ERROR) {
+		if (executionResult != null && executionResult.getStatus() == OperationResultStatus.FATAL_ERROR) {
 			LOGGER.trace("Skipping delta {} in event {} because it is {}", objectDelta, lastEvent.getEventIdentifier(),
 					executionResult.getStatus());
 			return false;

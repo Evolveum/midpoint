@@ -96,7 +96,7 @@ public class ProcessInstancesPanel extends BasePanel {
 
 			@Override
 			protected boolean isFooterVisible(long providerSize, int pageSize){
-				return !(providerSize <= pageSize);
+				return providerSize <= pageSize;
 			}
 		};
 		table.setOutputMarkupId(true);

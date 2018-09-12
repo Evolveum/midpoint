@@ -218,11 +218,10 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	 * Note: this may return dead shadow.
 	 */
 	private List<PrismObject<ShadowType>> findConflictingShadowsInRepo(ObjectQuery query, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
-					SecurityViolationException, ExpressionEvaluationException {
+			throws SchemaException {
 		final List<PrismObject<ShadowType>> foundAccount = new ArrayList<>();
 		
-		repositoryService.searchObjectsIterative(ShadowType.class, query, (object,result) -> foundAccount.add(object), null, false, parentResult);
+		repositoryService.searchObjectsIterative(ShadowType.class, query, (object,result) -> foundAccount.add(object), null, true, parentResult);
 		
 		return foundAccount;
 	}

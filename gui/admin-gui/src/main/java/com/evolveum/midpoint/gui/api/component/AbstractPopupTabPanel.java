@@ -62,16 +62,18 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
 
     protected Component initObjectListPanel(){
         PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)getObjectType().getClassDefinition(),
-                null, true, getPageBase(), getPreselectedObjects()) {
+                true, getPageBase()) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onUpdateCheckbox(AjaxRequestTarget target) {
-                getPreselectedObjects().clear();
-                getPreselectedObjects().addAll(getSelectedObjectsList());
+            protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel) {
+                onSelectionPerformed(target, rowModel);
+            }
 
-                onSelectionPerformed(target);
+            @Override
+            protected List<O> getPreselectedObjectList(){
+                return getPreselectedObjects();
             }
 
             @Override
@@ -99,22 +101,22 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     protected abstract void initParametersPanel(Fragment parametersPanel);
 
     protected List<O> getPreselectedObjects(){
-        return preSelectedObjects;
+        return null;
     }
 
     protected List<O> getSelectedObjectsList(){
-        PopupObjectListPanel objectListPanel = (PopupObjectListPanel)getObjectListPanel();
+        PopupObjectListPanel objectListPanel = getObjectListPanel();
         if (objectListPanel == null){
             return new ArrayList();
         }
         return objectListPanel.getSelectedObjects();
     }
 
-    protected Component getObjectListPanel(){
-        return get(ID_OBJECT_LIST_PANEL);
+    protected PopupObjectListPanel getObjectListPanel(){
+        return (PopupObjectListPanel)get(ID_OBJECT_LIST_PANEL);
     }
 
-    protected void onSelectionPerformed(AjaxRequestTarget target){}
+    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel){}
 
     protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel){
         return Model.of(true);

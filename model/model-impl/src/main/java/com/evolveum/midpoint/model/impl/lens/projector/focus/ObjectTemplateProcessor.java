@@ -493,7 +493,7 @@ public class ObjectTemplateProcessor {
 			}
 			return true;
 		};
-		cacheRepositoryService.searchObjectsIterative(AbstractRoleType.class, query, handler, GetOperationOptions.createReadOnlyCollection(), false, result);		
+		cacheRepositoryService.searchObjectsIterative(AbstractRoleType.class, query, handler, GetOperationOptions.createReadOnlyCollection(), true, result);
 	}
 
 	private void setMappingTarget(MappingType mapping, ItemPathType path) {

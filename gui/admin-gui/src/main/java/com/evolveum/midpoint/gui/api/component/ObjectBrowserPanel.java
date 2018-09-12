@@ -178,7 +178,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 		Class typeClass = type.getClassDefinition();
 
 		PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_TABLE, typeClass, getOptions(),
-				multiselect, parentPage, selectedObjectsList) {
+				multiselect, parentPage) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -196,6 +196,11 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 					query.addFilter(queryFilter);
 				}
 				return query;
+			}
+
+			@Override
+			protected List<O> getPreselectedObjectList(){
+				return selectedObjectsList;
 			}
 		};
 		listPanel.setOutputMarkupId(true);

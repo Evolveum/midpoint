@@ -88,7 +88,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		kindIntent.add(new VisibleBehaviour(() -> isKindIntentVisible(kindIntentLabelModel)));
         add(kindIntent);
         
-        if(getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
+        if(getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
         	add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart())));
         } else {
         	add(new Label(ID_DESCRIPTION, Model.of("")));

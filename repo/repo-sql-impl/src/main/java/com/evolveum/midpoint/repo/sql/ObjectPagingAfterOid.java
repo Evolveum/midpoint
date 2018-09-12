@@ -20,7 +20,9 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 
 /**
  * @author Pavol
- */ // Temporary hack. Represents special paging object that means
+ */
+
+// Temporary hack. Represents special paging object that means
 // "give me objects with OID greater than specified one, sorted by OID ascending".
 //
 // TODO: replace by using cookie that is part of the standard ObjectPaging

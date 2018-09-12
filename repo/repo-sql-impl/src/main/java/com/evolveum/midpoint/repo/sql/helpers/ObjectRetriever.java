@@ -65,6 +65,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 
 import static org.apache.commons.lang3.ArrayUtils.getLength;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author lazyman, mederly
@@ -851,7 +852,7 @@ main:       while (remaining > 0) {
      *
      * Constraints:
      *  - There can be no ordering prescribed. We use our own ordering.
-     *  - Moreover, for simplicity we disallow any explicit paging.
+     *  - We also disallow any explicit paging - except for maxSize setting.
      *
      *  Implementation is very simple - we fetch objects ordered by OID, and remember last OID fetched.
      *  Obviously no object will be present in output more than once.
@@ -863,20 +864,28 @@ main:       while (remaining > 0) {
             throws SchemaException {
 
         try {
-            ObjectQuery pagedQuery = query != null ? query.clone() : new ObjectQuery();
+	        if (!SqlRepositoryServiceImpl.isCustomPagingOkWithPagedSeqIteration(query)) {
+		        throw new IllegalArgumentException("Externally specified paging is not supported on strictly sequential "
+				        + "iterative search. Query = " + query);
+	        }
+	        Integer maxSize;
+	        ObjectQuery pagedQuery;
+	        if (query != null) {
+		        maxSize = query.getPaging() != null ? query.getPaging().getMaxSize() : null;
+		        pagedQuery = query.clone();
+	        } else {
+		        maxSize = null;
+	        	pagedQuery = new ObjectQuery();
+	        }
 
             String lastOid = "";
             final int batchSize = getConfiguration().getIterativeSearchByPagingBatchSize();
-
-            if (pagedQuery.getPaging() != null) {
-                throw new IllegalArgumentException("Externally specified paging is not supported on strictly sequential iterative search.");
-            }
 
             ObjectPagingAfterOid paging = new ObjectPagingAfterOid();
             pagedQuery.setPaging(paging);
 main:       for (;;) {
                 paging.setOidGreaterThan(lastOid);
-                paging.setMaxSize(batchSize);
+                paging.setMaxSize(Math.min(batchSize, defaultIfNull(maxSize, Integer.MAX_VALUE)));
 
                 List<PrismObject<T>> objects = repositoryService.searchObjects(type, pagedQuery, options, result);
 
@@ -886,9 +895,14 @@ main:       for (;;) {
                         break main;
                     }
                 }
-
-                if (objects.size() == 0) {
+				if (objects.size() == 0) {
                     break;
+                }
+                if (maxSize != null) {
+                	maxSize -= objects.size();
+	                if (maxSize <= 0) {
+	                	break;
+	                }
                 }
             }
         } finally {
@@ -898,7 +912,7 @@ main:       for (;;) {
         }
     }
 
-    public boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
+	public boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
         Session session = null;
         try {
             session = baseHelper.beginReadOnlyTransaction();

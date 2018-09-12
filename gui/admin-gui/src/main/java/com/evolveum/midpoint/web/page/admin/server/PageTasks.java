@@ -526,7 +526,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<TaskDto> rowModel) {
+			protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<TaskDto> rowModel, IModel<Boolean> selectedModel) {
 				TaskDtoProvider taskTableProvider = (TaskDtoProvider) table.getDataProvider();
 				List<TaskDto> objects = taskTableProvider.getAvailableData();
 				if (objects == null || objects.isEmpty()) {
@@ -538,7 +538,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 						taskDto.setSelected(selected);
 					}
 				});
-				super.onUpdateRow(target, table, rowModel);
+				super.onUpdateRow(target, table, rowModel, selectedModel);
 			}
 		};
 		columns.add(column);

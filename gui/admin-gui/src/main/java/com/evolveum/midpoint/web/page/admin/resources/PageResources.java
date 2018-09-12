@@ -383,29 +383,10 @@ public class PageResources extends PageAdminResources {
 				createStringResource("pageResources.message.refreshResourceSchemaConfirm")){
 			@Override
 			public void yesPerformed(AjaxRequestTarget target) {
-				refreshSchemaConfirmPerformed(resource, target);
+				WebComponentUtil.refreshResourceSchema(resource.asPrismObject(), OPERATION_REFRESH_SCHEMA, target, PageResources.this);
 			}
 		};
 		((PageBase)getPage()).showMainPopup(dialog, target);
-	}
-
-	private void refreshSchemaConfirmPerformed(ResourceType resource, AjaxRequestTarget target){
-		Task task = createSimpleTask(OPERATION_REFRESH_SCHEMA);
-		OperationResult parentResult = new OperationResult(OPERATION_REFRESH_SCHEMA);
-
-		try {
-			ResourceUtils.deleteSchema(resource.asPrismObject(), getModelService(), getPrismContext(), task, parentResult);
-			getModelService().testResource(resource.getOid(), task);
-		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-				| ExpressionEvaluationException | CommunicationException | ConfigurationException
-				| PolicyViolationException | SecurityViolationException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Error refreshing resource schema", e);
-			parentResult.recordFatalError("Error refreshing resource schema", e);
-		}
-
-		parentResult.computeStatus();
-		showResult(parentResult, "pageResource.refreshSchema.failed");
-		target.add(getFeedbackPanel());
 	}
 
 	private void deleteResourcePerformed(AjaxRequestTarget target, ResourceType single) {

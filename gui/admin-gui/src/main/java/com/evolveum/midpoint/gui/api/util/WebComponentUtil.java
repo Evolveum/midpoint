@@ -47,12 +47,14 @@ import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
@@ -140,8 +142,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -2581,6 +2581,25 @@ public final class WebComponentUtil {
 		
 		return ItemVisibility.AUTO;
 		
+	}
+
+	public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase){
+		Task task = pageBase.createSimpleTask(operation);
+		OperationResult parentResult = new OperationResult(operation);
+
+		try {
+			ResourceUtils.deleteSchema(resource, pageBase.getModelService(), pageBase.getPrismContext(), task, parentResult);
+			pageBase.getModelService().testResource(resource.getOid(), task);					// try to load fresh scehma
+		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+				| ExpressionEvaluationException | CommunicationException | ConfigurationException
+				| PolicyViolationException | SecurityViolationException e) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Error refreshing resource schema", e);
+			parentResult.recordFatalError("Error refreshing resource schema", e);
+		}
+
+		parentResult.computeStatus();
+		pageBase.showResult(parentResult, "pageResource.refreshSchema.failed");
+		target.add(pageBase.getFeedbackPanel());
 	}
 
 	public static List<QName> getCategoryRelationChoices(AreaCategoryType category, ModelServiceLocator pageBase){

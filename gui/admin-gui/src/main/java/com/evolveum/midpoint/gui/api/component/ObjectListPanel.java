@@ -93,8 +93,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	private TableId tableId;
 
-	protected List<O> selectedObjects = null;
-
 	private String addutionalBoxCssClasses;
 
 	public Class<? extends O> getType() {
@@ -106,24 +104,23 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	 */
 	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
 			PageBase parentPage) {
-		this(id, defaultType, tableId, options, false, parentPage, null);
+		this(id, defaultType, tableId, options, false, parentPage);
 	}
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
 	ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, boolean multiselect, PageBase parentPage) {
-		this(id, defaultType, tableId, null, multiselect, parentPage, null);
+		this(id, defaultType, tableId, null, multiselect, parentPage);
 	}
 
 	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
-						   boolean multiselect, PageBase parentPage, List<O> selectedObjectsList) {
+						   boolean multiselect, PageBase parentPage) {
 		super(id);
 		this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
 		this.parentPage = parentPage;
 		this.options = options;
 		this.multiselect = multiselect;
-		this.selectedObjects = selectedObjectsList;
 		this.tableId = tableId;
 		initLayout();
 	}
@@ -134,7 +131,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	public int getSelectedObjectsCount(){
 		List<O> selectedList = getSelectedObjects();
-		return selectedList == null ? 0 : selectedList.size();
+		return selectedList.size();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -383,9 +380,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
-		Set<O> selectedObjectsSet = selectedObjects == null ? null : new HashSet<>(selectedObjects);
+		List<O> preSelectedObjectList = getPreselectedObjectList();
 		SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
-				parentPage, (Class) type.getClassDefinition(), selectedObjectsSet) {
+				parentPage, (Class) type.getClassDefinition(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -437,6 +434,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		provider.setQuery(getQuery());
 
 		return provider;
+	}
+
+	protected List<O> getPreselectedObjectList(){
+		return null;
 	}
 
 	protected List<ObjectOrdering> createCustomOrdering(SortParam<String> sortParam) {

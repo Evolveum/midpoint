@@ -23,11 +23,13 @@ import com.evolveum.midpoint.schema.constants.RelationTypes;
  * Created by honchar
  */
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
 import java.util.List;
@@ -48,11 +50,11 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                return new MultiTypesMemberPopupTabPanel(panelId, availableRelationList){
+                return new MultiTypesMemberPopupTabPanel<O>(panelId, availableRelationList){
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target){
+                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel){
                         tabLabelPanelUpdate(target);
                     }
 

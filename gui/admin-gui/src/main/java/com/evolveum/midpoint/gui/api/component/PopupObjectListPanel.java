@@ -50,9 +50,8 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 	}
 
 	public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
-								boolean multiselect, PageBase parentPage, List<O> selectedObjectsList) {
-		super(id, defaultType, null, options, multiselect, parentPage, selectedObjectsList);
-
+								boolean multiselect, PageBase parentPage) {
+		super(id, defaultType, null, options, multiselect, parentPage);
 	}
 
 	@Override
@@ -62,42 +61,21 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<O>> rowModel) {
-					super.onUpdateRow(target, table, rowModel);
-					onUpdateCheckbox(target);
+				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<O>> rowModel, IModel<Boolean> selected) {
+					super.onUpdateRow(target, table, rowModel, selected);
+					onUpdateCheckbox(target, rowModel);
 				};
 
 				@Override
 				protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
 					super.onUpdateHeader(target, selected, table);
-					onUpdateCheckbox(target);
+					onUpdateCheckbox(target, null);
 				}
 
 				@Override
 				protected IModel<Boolean> getEnabled(IModel<SelectableBean<O>> rowModel) {
 						return PopupObjectListPanel.this.getCheckBoxEnableModel(rowModel);
 				}
-
-				@Override
-				protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<O>> rowModel){
-					IModel<Boolean> model = super.getCheckBoxValueModel(rowModel);
-					if (selectedObjects != null && rowModel != null) {
-						boolean isInList = false;
-						for (O selectedObject : selectedObjects){
-							if (rowModel.getObject().getValue().getOid().equals(selectedObject.getOid())){
-								isInList = true;
-								break;
-							}
-						}
-						if (isInList){
-							model.setObject(true);
-						} else {
-							model.setObject(false);
-						}
-					}
-					return model;
-				}
-
 			};
 		}
 		return null;
@@ -150,7 +128,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 	}
 
 
-	protected void onUpdateCheckbox(AjaxRequestTarget target){
+	protected void onUpdateCheckbox(AjaxRequestTarget target, IModel<SelectableBean<O>> rowModel){
 
 	}
 

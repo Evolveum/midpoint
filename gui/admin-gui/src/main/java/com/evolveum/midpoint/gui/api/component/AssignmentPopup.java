@@ -23,8 +23,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,8 +34,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.protocol.http.ClientProperties;
-import org.apache.wicket.protocol.http.WebSession;
 
 import java.util.*;
 
@@ -123,11 +121,11 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ROLE){
+                        return new FocusTypeAssignmentPopupTabPanel<RoleType>(panelId, ObjectTypes.ROLE){
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target){
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel){
                                 tabLabelPanelUpdate(target);
                             }
 
@@ -152,11 +150,12 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.ORG){
+                        return new FocusTypeAssignmentPopupTabPanel<OrgType>(panelId, ObjectTypes.ORG){
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target){
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
+                                selectedOrgsListUpdate(rowModel);
                                 tabLabelPanelUpdate(target);
                             }
 
@@ -169,7 +168,6 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             protected List<OrgType> getPreselectedObjects(){
                                 return selectedOrgsList;
                             }
-
                         };
                     }
 
@@ -191,7 +189,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target){
+                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
+                        selectedOrgsListUpdate(rowModel);
                         tabLabelPanelUpdate(target);
                     }
 
@@ -216,7 +215,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel(panelId, ObjectTypes.SERVICE){
+                        return new FocusTypeAssignmentPopupTabPanel<ServiceType>(panelId, ObjectTypes.SERVICE){
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -225,7 +224,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             }
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target){
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel){
                                 tabLabelPanelUpdate(target);
                             }
 
@@ -250,8 +249,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target){
-                                super.onSelectionPerformed(target);
+                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel){
+                                super.onSelectionPerformed(target, rowModel);
                                 tabLabelPanelUpdate(target);
                             }
                         };
@@ -287,6 +286,17 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         target.add(get(ID_FORM).get(ID_ASSIGN_BUTTON));
     }
 
+    private void selectedOrgsListUpdate(IModel<SelectableBean<OrgType>> rowModel){
+        if (rowModel == null){
+            return;
+        }
+        if (rowModel.getObject().isSelected()){
+            selectedOrgsList.add(rowModel.getObject().getValue());
+        } else {
+            selectedOrgsList.removeIf((OrgType org) -> org.getOid().equals(rowModel.getObject().getValue().getOid()));
+        }
+    }
+
     private TabbedPanel getTabbedPanel(){
         return (TabbedPanel) get(ID_FORM).get(ID_TABS_PANEL);
     }
@@ -305,8 +315,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     }
 
     private boolean isAssignButtonEnabled(){
-        TabbedPanel tabbedPanel = getTabbedPanel();
-        List<ITab> tabs = (List<ITab>) tabbedPanel.getTabs().getObject();
+        TabbedPanel<ITab> tabbedPanel = getTabbedPanel();
+        List<ITab> tabs = tabbedPanel.getTabs().getObject();
         for (ITab tab : tabs){
             WebMarkupContainer assignmentPanel = ((CountablePanelTab)tab).getPanel();
             if (assignmentPanel == null){

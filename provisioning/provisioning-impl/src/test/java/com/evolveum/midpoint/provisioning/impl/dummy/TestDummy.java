@@ -2361,7 +2361,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		displayWhen(TEST_NAME);
 		SearchResultMetadata searchMetadata;
         if (useRepo) {
-        	searchMetadata = repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, false, result);
+        	searchMetadata = repositoryService.searchObjectsIterative(ShadowType.class, query, handler, null, true, result);
         } else {
             searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, null, result);
         }
