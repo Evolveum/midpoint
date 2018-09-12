@@ -411,7 +411,6 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 			} else {
 
 				PropertyOrReferenceWrapper propOrRef = (PropertyOrReferenceWrapper) item;
-				ItemPath path = propOrRef.getPath();
 				ItemDelta itemDelta = collectAddModifications(propOrRef);
 				
 				ItemPath itemPath = itemDelta.getParentPath().remainder(getContainer().getPath());

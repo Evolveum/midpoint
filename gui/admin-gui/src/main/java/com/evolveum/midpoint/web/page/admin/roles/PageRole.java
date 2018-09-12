@@ -23,15 +23,12 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.objectdetails.RoleMainPanel;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractRoleMainPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUserHistory;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -95,7 +92,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 
 	@Override
 	protected AbstractObjectMainPanel<RoleType> createMainPanel(String id) {
-		return new RoleMainPanel(id, getObjectModel(), getProjectionModel(), this){
+		return new AbstractRoleMainPanel<RoleType>(id, getObjectModel(), getProjectionModel(), this) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
