@@ -271,7 +271,7 @@ public class RepositoryCache implements RepositoryService {
 		// DON't cache the object here. The object may not have proper "JAXB" form, e.g. some pieces may be
 		// DOM element instead of JAXB elements. Not to cache it is safer and the performance loss
 		// is acceptable.
-		if (options.isOverwrite()) {
+		if (options != null && options.isOverwrite()) {
 			invalidateCacheEntry(object.getCompileTimeClass(), oid);
 		} else {
 			// just for sure (the object should not be there but ...)
