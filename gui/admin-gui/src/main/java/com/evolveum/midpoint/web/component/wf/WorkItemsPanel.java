@@ -169,7 +169,7 @@ public class WorkItemsPanel extends BasePanel {
 
 			@Override
 			protected boolean isFooterVisible(long providerSize, int pageSize){
-				return !(providerSize <= pageSize);
+				return providerSize > pageSize;
 			}
 		};
 		workItemsTable.setAdditionalBoxCssClasses("without-box-header-top-border");
