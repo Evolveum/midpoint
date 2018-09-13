@@ -81,6 +81,7 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
@@ -147,10 +148,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -199,7 +197,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private static final String ID_RIGHT_MENU = "rightMenu";
     private static final String ID_LOCALE = "locale";
     private static final String ID_MENU_TOGGLE = "menuToggle";
-//    private static final String ID_BREADCRUMBS = "breadcrumbs";
     private static final String ID_BREADCRUMB = "breadcrumb";
     private static final String ID_BC_LINK = "bcLink";
     private static final String ID_BC_ICON = "bcIcon";
@@ -307,7 +304,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private LoadableModel<Integer> workItemCountModel;
     private LoadableModel<Integer> certWorkItemCountModel;
-    private LoadableModel<DeploymentInformationType> deploymentInfoModel;
 
     // No need to store this in the session. Retrieval is cheap.
     private transient AdminGuiConfigurationType adminGuiConfiguration;
@@ -379,14 +375,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load certification work item count", e);
                     return null;
                 }
-            }
-        };
-        deploymentInfoModel = new LoadableModel<DeploymentInformationType>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected DeploymentInformationType load() {
-                return loadDeploymentInformationType();
             }
         };
     }
@@ -666,9 +654,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         super.renderHead(response);
 
         String skinCssString = CLASS_DEFAULT_SKIN;
-        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getSkin())) {
-            skinCssString = deploymentInfoModel.getObject().getSkin();
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        if (info != null && StringUtils.isNotEmpty(info.getSkin())) {
+            skinCssString = info.getSkin();
         }
 
         String skinCssPath = String.format("../../../../../../webjars/adminlte/2.3.11/dist/css/skins/%s.min.css", skinCssString);
@@ -677,11 +665,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                         PageBase.class, skinCssPath)
                 )
         );
-        // this attaches jquery.js as first header item, which is used in our
-        // scripts.
-        CoreLibrariesContributor.contribute(getApplication(), response);
 
-//		response.render(JavaScriptHeaderItem.forScript("alert(window.name);", "windowNameScript"));
+        // this attaches jquery.js as first header item, which is used in our scripts.
+        CoreLibrariesContributor.contribute(getApplication(), response);
     }
 
     @Override
@@ -717,21 +703,23 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
         pageTitleContainer.add(pageTitle);
 
-        String environmentName = "";
-        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getName())) {
-            environmentName = deploymentInfoModel.getObject().getName();
-        }
-        Model<String> deploymentNameModel = new Model<>(StringUtils.isNotEmpty(environmentName) ? environmentName + ": " : "");
-        Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
-        deploymentName.add(new VisibleEnableBehaviour() {
-          	
-        	private static final long serialVersionUID = 1L;
+        IModel<String> deploymentNameModel = new AbstractReadOnlyModel<String>() {
 
-			public boolean isVisible() {
-                return StringUtils.isNotEmpty(deploymentNameModel.getObject());
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+                if (info == null) {
+                    return "";
+                }
+
+                return StringUtils.isEmpty(info.getName()) ? "" : info.getName() + ": ";
             }
-        });
+        };
+
+        Label deploymentName = new Label(ID_DEPLOYMENT_NAME, deploymentNameModel);
+        deploymentName.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(deploymentNameModel.getObject())));
         deploymentName.setRenderBodyOnly(true);
         pageTitle.add(deploymentName);
 
@@ -751,8 +739,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         
         ListView<Breadcrumb> breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB, breadcrumbsModel) {
 
-           
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
 			@Override
             protected void populateItem(ListItem<Breadcrumb> item) {
@@ -801,6 +788,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 });
             }
         };
+        breadcrumbs.add(new VisibleBehaviour(() -> !isErrorPage()));
         mainHeader.add(breadcrumbs);
 
         initCartButton(mainHeader);
@@ -847,14 +835,20 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         body.add(new AttributeAppender("class", "hold-transition ", " "));
         body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
 
-        Boolean usingSkin = deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getSkin());
+        body.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
 
-        if (usingSkin) {
-            body.add(new AttributeAppender("class", deploymentInfoModel.getObject().getSkin(), " "));
-        } else {
-            body.add(new AttributeAppender("class", CLASS_DEFAULT_SKIN, " "));
-        }
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+                if (info == null || StringUtils.isEmpty(info.getSkin())) {
+                    return CLASS_DEFAULT_SKIN;
+                }
+
+                return info.getSkin();
+            }
+        }));
         add(body);
 
         WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
@@ -862,6 +856,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         add(mainHeader);
 
         AjaxLink<String> logo = new AjaxLink<String>(ID_LOGO) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -871,16 +866,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         logo.add(new VisibleEnableBehaviour() {
-        	
-        	 private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return !isCustomLogoVisible();
             }
-            
+
             @Override
             public boolean isEnabled() {
-            	return isLogoLinkEnabled();
+                return isLogoLinkEnabled();
             }
         });
         mainHeader.add(logo);
@@ -910,21 +906,51 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         mainHeader.add(navigation);
 
 
-        WebMarkupContainer customLogoImgSrc = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_SRC);
-        WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
-        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-                deploymentInfoModel.getObject().getLogo() != null) {
-            if (StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getCssClass())) {
-                customLogoImgCss.add(new AttributeAppender("class", deploymentInfoModel.getObject().getLogo().getCssClass()));
-                customLogoImgSrc.setVisible(false);
-            } else {
-                customLogoImgSrc.add(new AttributeAppender("src",
-                        deploymentInfoModel.getObject().getLogo().getImageUrl()));
-                customLogoImgCss.setVisible(false);
+        IModel<IconType> logoModel = new AbstractReadOnlyModel<IconType>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public IconType getObject() {
+                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+                return info != null ? info.getLogo() : null;
             }
-            mainHeader.add(new AttributeAppender("style",
-                    "background-color: " + GuiStyleConstants.DEFAULT_BG_COLOR + "; !important;"));
-        }
+        };
+
+        WebMarkupContainer customLogoImgSrc = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_SRC);
+        customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
+        customLogoImgSrc.add(new AttributeAppender("src", new AbstractReadOnlyModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return logoModel.getObject() != null ? logoModel.getObject().getImageUrl() : null;
+            }
+        }));
+
+        WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
+        customLogoImgCss.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isNotEmpty(logoModel.getObject().getCssClass())));
+        customLogoImgCss.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return logoModel.getObject() != null ? logoModel.getObject().getCssClass() : null;
+            }
+        }));
+
+        mainHeader.add(new AttributeAppender("style", new AbstractReadOnlyModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return logoModel.getObject() != null ? "background-color: " + GuiStyleConstants.DEFAULT_BG_COLOR + "; !important;" : null;
+            }
+        }));
+
         customLogo.add(customLogoImgSrc);
         customLogo.add(customLogoImgCss);
 
@@ -935,33 +961,42 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         initHeaderLayout(navigation);
         initTitleLayout(navigation);
 
-        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null &&
-                StringUtils.isNotEmpty(deploymentInfoModel.getObject().getHeaderColor())) {
-            logo.add(new AttributeAppender("style",
-                    "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
-            customLogo.add(new AttributeAppender("style",
-                    "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
-            mainHeader.add(new AttributeAppender("style",
-                    "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
-            //using a skin overrides the navigation color
-            if (!usingSkin) {
-                navigation.add(new AttributeAppender("style",
-                        "background-color: " + deploymentInfoModel.getObject().getHeaderColor() + "; !important;"));
-            }
-        }
+        logo.add(createHeaderColorStyleModel(false));
+        customLogo.add(createHeaderColorStyleModel(false));
+        mainHeader.add(createHeaderColorStyleModel(false));
+
+        navigation.add(createHeaderColorStyleModel(true));
+
         initDebugBarLayout();
 
-        List<SideBarMenuItem> menuItems = createMenuItems();
-        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new ListModel<>(menuItems));
+        SideBarMenuPanel sidebarMenu = new SideBarMenuPanel(ID_SIDEBAR_MENU, new LoadableModel<List<SideBarMenuItem>>(false) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<SideBarMenuItem> load() {
+                return createMenuItems();
+            }
+        });
         sidebarMenu.add(createUserStatusBehaviour(true));
         add(sidebarMenu);
 
         WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+        footerContainer.add(new VisibleBehaviour(() -> !isErrorPage()));
         footerContainer.setOutputMarkupId(true);
-        footerContainer.add(AttributeAppender.append("class", isFooterVisible() ? "main-footer" : "main-footer-invisible"));
+        footerContainer.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                return isFooterVisible() ? "main-footer" : "main-footer-invisible";
+            }
+        }));
         add(footerContainer);
 
         WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
+
             private static final long serialVersionUID = 1L;
 
             @Deprecated
@@ -969,14 +1004,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 return PageBase.this.getDescribe();
             }
         };
-        version.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
-            }
-        });
+        version.add(new VisibleBehaviour(() ->
+                isFooterVisible() && RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType())));
         footerContainer.add(version);
 
         WebMarkupContainer copyrightMessage = new WebMarkupContainer(ID_COPYRIGHT_MESSAGE);
@@ -1016,6 +1045,27 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         add(mainPopup);
     }
 
+    private AttributeAppender createHeaderColorStyleModel(boolean checkSkinUsage) {
+        return new AttributeAppender("style", new AbstractReadOnlyModel<String>() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+                if (info == null || StringUtils.isEmpty(info.getHeaderColor())) {
+                    return null;
+                }
+
+                if (checkSkinUsage && StringUtils.isEmpty(info.getSkin())) {
+                    return null;
+                }
+
+                return "background-color: " + info.getHeaderColor() + "; !important;";
+            }
+        });
+    }
+
     public MainPopupDialog getMainPopup() {
         return (MainPopupDialog) get(ID_MAIN_POPUP);
     }
@@ -1043,7 +1093,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             public boolean isVisible() {
-                return isSideMenuVisible(visibleIfLoggedIn);
+                return !isErrorPage() && isSideMenuVisible(visibleIfLoggedIn);
             }
         };
     }
@@ -2244,13 +2294,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private boolean isCustomLogoVisible() {
-        if (deploymentInfoModel != null && deploymentInfoModel.getObject() != null
-                && deploymentInfoModel.getObject().getLogo() != null
-                && (StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getImageUrl())
-                || StringUtils.isNotEmpty(deploymentInfoModel.getObject().getLogo().getCssClass()))) {
-            return true;
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        if (info == null || info.getLogo() == null) {
+            return false;
         }
-        return false;
+
+        IconType logo = info.getLogo();
+        return StringUtils.isNotEmpty(logo.getImageUrl()) || StringUtils.isNotEmpty(logo.getCssClass());
     }
     
     protected boolean isLogoLinkEnabled() {
@@ -2258,10 +2308,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private String getSubscriptionId() {
-        if (deploymentInfoModel == null || deploymentInfoModel.getObject() == null) {
-            return null;
-        }
-        return deploymentInfoModel.getObject().getSubscriptionIdentifier();
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        return info != null ? info.getSubscriptionIdentifier() : null;
     }
 
     private VisibleEnableBehaviour getFooterVisibleBehaviour() {
@@ -2312,5 +2360,5 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public Locale getLocale() {
     	return getSession().getLocale();
     }
-    
+
 }

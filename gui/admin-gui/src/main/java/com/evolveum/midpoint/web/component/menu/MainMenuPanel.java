@@ -64,7 +64,20 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
     public MainMenuPanel(String id, IModel<MainMenuItem> model) {
         super(id, model);
-        initLayout();
+    }
+
+    private boolean initialized =false;
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        if (initialized) {
+            return;
+        }
+
+        initLayout();   // moved to here just to postpone initialization (if not visible, should not be executed at all)
+        initialized = true;
     }
 
     private void initLayout() {

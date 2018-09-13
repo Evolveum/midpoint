@@ -16,19 +16,32 @@
 package com.evolveum.midpoint.model.intest.security;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -48,6 +61,9 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String ORG_ROOT_OID = "00000000-8888-6666-a000-000000000000";
 	protected static final String ROLE_TENANT_ADMIN_OID = "00000000-8888-6666-a000-100000000000";
 	
+	
+	// ===[ Spacing Guild ]===
+	
 	protected static final String ORG_GUILD_OID = "00000000-8888-6666-a001-000000000000";
 	
 	protected static final String ROLE_GUILD_BROKEN_ADMIN_OID = "00000000-8888-6666-a001-100000000001";
@@ -61,6 +77,12 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String USER_DMURR_NAME = "dmurr";
 	protected static final String USER_DMURR_FULL_NAME = "D'murr Pilru";
 	
+	private static final File RESOURCE_DUMMY_JUNCTION_FILE = new File(TEST_DIR, "resource-dummy-junction.xml");
+	private static final String RESOURCE_DUMMY_JUNCTION_OID = "00000000-8888-6666-a001-300000000000";
+	
+	
+	// ===[ House Corrino ]===
+	
 	protected static final String ORG_CORRINO_OID = "00000000-8888-6666-a100-000000000000";
 	
 	protected static final String ROLE_CORRINO_ADMIN_OID = "00000000-8888-6666-a100-100000000000";
@@ -68,6 +90,9 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String USER_SHADDAM_CORRINO_OID = "00000000-8888-6666-a100-200000000000";
 	protected static final String USER_SHADDAM_CORRINO_NAME = "shaddam";
 	protected static final String USER_SHADDAM_CORRINO_FULL_NAME = "Padishah Emperor Shaddam IV";
+	
+	
+	// ===[ House Atreides ]===
 	
 	protected static final String ORG_ATREIDES_OID = "00000000-8888-6666-a200-000000000000";
 	
@@ -86,6 +111,11 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String USER_DUNCAN_NAME = "duncan";
 	protected static final String USER_DUNCAN_FULL_NAME = "Duncan Idaho";
 	
+	private static final File RESOURCE_DUMMY_CASTLE_CALADAN_FILE = new File(TEST_DIR, "resource-dummy-castle-caladan.xml");
+	private static final String RESOURCE_DUMMY_CASTLE_CALADAN_OID = "00000000-8888-6666-a200-300000000000";
+	
+	// ===[ House Harkonnen ]===
+	
 	protected static final String ORG_HARKONNEN_OID = "00000000-8888-6666-a300-000000000000";
 	
 	protected static final String ROLE_HARKONNEN_ADMIN_OID = "00000000-8888-6666-a300-100000000000";
@@ -97,12 +127,18 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	protected static final String USER_PITER_NAME = "piter";
 	protected static final String USER_PITER_FULL_NAME = "Piter De Vries";
 	
+	private static final File RESOURCE_DUMMY_BARONY_FILE = new File(TEST_DIR, "resource-dummy-barony.xml");
+	private static final String RESOURCE_DUMMY_BARONY_OID = "00000000-8888-6666-a300-300000000000";
+	
+	protected PrismObject<ConnectorType> dummyConnector;
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		
+		dummyConnector = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, initResult);
 	}
 	
 	@Override
@@ -116,6 +152,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	}
 	
 	protected static final int NUMBER_OF_IMPORTED_ROLES = 0;
+
 	
 	protected int getNumberOfRoles() {
 		return super.getNumberOfRoles() + NUMBER_OF_IMPORTED_ROLES;
@@ -357,6 +394,52 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 	
+	/**
+	 * MID-4882
+	 */
+	@Test
+    public void test106AutzLetoAddResourceTask() throws Exception {
+		final String TEST_NAME = "test106AutzLetoAddResourceTask";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(null);
+
+        login(USER_LETO_ATREIDES_NAME);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        // Matching tenant
+        assertAddDummyResourceAllow(RESOURCE_DUMMY_CASTLE_CALADAN_FILE);
+        
+        // Wrong tenant
+        assertAddDummyResourceDeny(RESOURCE_DUMMY_BARONY_FILE);
+        
+        // No tenant
+        assertAddDummyResourceDeny(RESOURCE_DUMMY_JUNCTION_FILE);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        
+        login(USER_ADMINISTRATOR_USERNAME);
+                
+        assertGlobalStateUntouched();
+	}
+	
+	private void assertAddDummyResourceAllow(File file) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(file);
+		resource.asObjectable()
+			.connectorRef(dummyConnector.getOid(), ConnectorType.COMPLEX_TYPE);
+        assertAddAllow(resource, null);
+	}
+	
+	private void assertAddDummyResourceDeny(File file) throws SchemaException, IOException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		PrismObject<ResourceType> resource = PrismTestUtil.parseObject(file);
+		resource.asObjectable()
+			.connectorRef(dummyConnector.getOid(), ConnectorType.COMPLEX_TYPE);
+        assertAddDeny(resource, null);
+	}
+
 	/**
 	 * MID-4882
 	 */
