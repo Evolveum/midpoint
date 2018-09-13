@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,6 +81,7 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 	// usually, these rules do not cause direct action (e.g. in the case of approvals);
 	// however, there are situations in which they are used (e.g. for exclusion rules)
 	@NotNull private final Collection<EvaluatedPolicyRule> otherTargetsPolicyRules = new ArrayList<>();
+	private String tenantOid;
 
 	private PrismObject<?> target;
 	private boolean virtual;
@@ -250,6 +251,14 @@ public class EvaluatedAssignmentImpl<F extends FocusType> implements EvaluatedAs
 
 	public void addDelegationRefVal(PrismReferenceValue org) {
 		delegationRefVals.add(org);
+	}
+
+	public String getTenantOid() {
+		return tenantOid;
+	}
+
+	public void setTenantOid(String tenantOid) {
+		this.tenantOid = tenantOid;
 	}
 
 	@NotNull

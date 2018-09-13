@@ -12380,6 +12380,9 @@
 
 								LIMITATION: Supported only for TaskType and not for search pre-processing.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="assignee" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
@@ -12391,9 +12394,12 @@
 								LIMITATION: Supported only for TaskType with work items fully fetched; and not for search
 								pre-processing.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="object" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+					<xsd:element name="relatedObject" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation>
 								The object matches the specification if it has a related object specified by this element.
@@ -12401,6 +12407,19 @@
 
 								LIMITATION: Supported only for TaskType; and for search pre-processing it is limited to "self".
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="tenant" type="tns:TenantSelectorType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it is related to the specified tenant.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 		        </xsd:sequence>
@@ -12442,6 +12461,32 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="TenantSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects an object by comparing tenant information.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="sameAsSubject" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Selects object/target if it has the same tenant as subject.
+                       Subject must be part of the tenant (must have tenantRef set).
+                       This authorization will not select any object if subject tenantRef is empty.
+                   </xsd:documentation>
+               </xsd:annotation>
+           </xsd:element>
+			<!-- allow empty tenant? -->
+			<!-- TODO: add explicit tenantRef? -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
@@ -18496,6 +18541,23 @@
 							Uses the "strictly sequential paging" method: sorting returned objects by OID. This
 							is (almost) reliable in such a way that no object would be skipped. However, custom
 							paging cannot be used in this mode.
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="fetchAll">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FETCH_ALL"/>
+						<xsd:documentation>
+							This is a workaround for situations when STRICTLY_SEQUENTIAL_PAGING cannot be used because
+							a client-supplied paging is present. All the objects are fetched as in regular searchObjects()
+							call and then send to the client one-by-one. (This defeats the basic purpose of
+							searchObjectsIterative but can be safely used for small numbers of objects.)
+
+							So this method is a safe fallback that is used when STRICTLY_SEQUENTIAL_PAGING is implicitly
+							chosen but a custom paging exists, provided that the paging contains maxSize clause with a number
+							not greater than a specified limit (maxObjectsForImplicitFetchAllIterationMethod).
 						</xsd:documentation>
 					</xsd:appinfo>
 				</xsd:annotation>

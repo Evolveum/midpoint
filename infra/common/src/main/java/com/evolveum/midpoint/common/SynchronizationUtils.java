@@ -161,8 +161,7 @@ public class SynchronizationUtils {
 		return valuesToDelete;
 	}
 	
-public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent, ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource) throws SchemaException{
-		
+	public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent, ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource, boolean strictIntent) throws SchemaException {
 		List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
 
 		if (policyObjectClasses == null || policyObjectClasses.isEmpty()) {
@@ -198,8 +197,8 @@ public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind,
 
 		// kind
 		ShadowKindType policyKind = synchronizationPolicy.getKind();
-		LOGGER.trace("Comparing kinds, policy kind: {}, current kind: {}", policyKind, kind);
-		if (policyKind != null && kind != null && !policyKind.equals(kind)) {
+		boolean kindMatch = policyKind != null ? policyKind.equals(kind) : kind == null ? true : false; 
+		if (!kindMatch) {
 			LOGGER.trace("Kinds don't match, skipping policy {}", synchronizationPolicy);
 			return false;
 		}
@@ -208,13 +207,24 @@ public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind,
 		// TODO is the intent always present in shadow at this time? [med]
 		String policyIntent = synchronizationPolicy.getIntent();
 		LOGGER.trace("Comparing intents, policy intent: {}, current intent: {}", policyIntent, intent);
-		if (policyIntent != null && intent != null
-				&& !MiscSchemaUtil.equalsIntent(intent, policyIntent)) {
-			LOGGER.trace("Intents don't match, skipping policy {}", synchronizationPolicy);
-			return false;
+		if (!strictIntent) {
+			if (intent != null && !MiscSchemaUtil.equalsIntent(intent, policyIntent)) {
+				LOGGER.trace("Intents don't match, skipping policy {}", synchronizationPolicy);
+				return false;
+			}
+		} else {
+			if (!MiscSchemaUtil.equalsIntent(intent, policyIntent)) {
+				LOGGER.trace("Intents don't match, skipping policy {}", synchronizationPolicy);
+				return false;
+			}
 		}
 		
 		return true;
+	}
+	
+	public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent, ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource) throws SchemaException{
+		return isPolicyApplicable(objectClass, kind, intent, synchronizationPolicy, resource, false);
+		
 	}
 
 }

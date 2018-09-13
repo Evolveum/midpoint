@@ -249,7 +249,7 @@ public class ClusterManager {
     private void checkSystemConfigurationChanged(OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(CHECK_SYSTEM_CONFIGURATION_CHANGED);
         try {
-            taskManager.getSystemConfigurationChangeApplier().applySystemConfiguration(false, false, result);
+            taskManager.getSystemConfigurationChangeDispatcher().dispatch(false, false, result);
             result.computeStatus();
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply system configuration", t);

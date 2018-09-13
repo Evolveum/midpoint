@@ -17,15 +17,25 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
+
+import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -33,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class SynchronizationContext<F extends FocusType> {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
 	private PrismObject<ShadowType> applicableShadow;
 	private PrismObject<ShadowType> currentShadow;
@@ -62,6 +74,50 @@ public class SynchronizationContext<F extends FocusType> {
 		this.task = task;
 		this.result = result;
 	}
+	
+	public boolean isSynchronizationEnabled() {
+		if (objectSynchronization == null) {
+			return false;
+		}
+		return BooleanUtils.isNotFalse(objectSynchronization.isEnabled());
+	}
+	
+	public boolean isProtected() {
+		if (applicableShadow == null) {
+			return false;
+		}
+
+		ShadowType currentShadowType = applicableShadow.asObjectable();
+		return BooleanUtils.isTrue(currentShadowType.isProtectedObject());
+	}
+	
+	public boolean isSatisfyTaskConstraints() throws SchemaException {
+		
+		ShadowKindType kind = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_KIND);
+		String intent = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_INTENT);
+		QName objectClass = getTaskPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
+		
+		LOGGER.trace("checking task constraints: {}", task);
+		
+		boolean isApplicable = SynchronizationUtils.isPolicyApplicable(objectClass, kind, intent, objectSynchronization, resource, true);
+		//this mean that kind/intent are null in the task..but this can be a case, so check if at least the objectClass is the same
+		if (!isApplicable && objectClass != null) {
+			return QNameUtil.matchAny(objectClass, objectSynchronization.getObjectClass());
+		}
+		
+		return isApplicable;
+	}
+	
+	//TODO multi-threded tasks?
+	private <T> T getTaskPropertyValue(QName propertyName) {
+		PrismProperty<T> prop = task.getExtensionProperty(propertyName);
+		if (prop == null || prop.isEmpty()) {
+			return null;
+		}
+		
+		return prop.getRealValue();
+	}
+	
 	
 	public PrismObject<ShadowType> getApplicableShadow() {
 		return applicableShadow;
@@ -193,4 +249,5 @@ public class SynchronizationContext<F extends FocusType> {
 	public void setForceIntentChange(boolean forceIntentChange) {
 		this.forceIntentChange = forceIntentChange;
 	}
+	
 }

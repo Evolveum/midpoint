@@ -21,7 +21,8 @@ import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeApplier;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -43,22 +44,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * @author mederly
  */
 @Component
-public class SystemConfigurationChangeApplierImpl implements SystemConfigurationChangeApplier {
+public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurationChangeDispatcher {
 
-	private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationChangeApplierImpl.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationChangeDispatcherImpl.class);
 
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private RelationRegistry relationRegistry;
 
+	private static final Collection<SystemConfigurationChangeListener> listeners = new HashSet<>();
+
 	private String lastVersionApplied = null;
 
-	public synchronized void applySystemConfiguration(boolean ignoreVersion, boolean allowNotFound,
+	public synchronized void dispatch(boolean ignoreVersion, boolean allowNotFound,
 			OperationResult result) throws SchemaException {
 		LOGGER.trace("Applying system configuration: lastVersionApplied = {}, ignoreVersion = {}", lastVersionApplied,
 				ignoreVersion);
@@ -74,8 +78,9 @@ public class SystemConfigurationChangeApplierImpl implements SystemConfiguration
 				LOGGER.debug("System configuration not found");
 				result.muteLastSubresultError();
 			} else {
-				LOGGER.warn("System configuration not found");
+				LOGGER.warn("System configuration not found", e);
 			}
+			notifyListeners(null);
 			lastVersionApplied = null;
 			return;
 		}
@@ -93,6 +98,7 @@ public class SystemConfigurationChangeApplierImpl implements SystemConfiguration
 		// because this method is called also from the cluster management thread.
 		lastVersionApplied = currentVersion;
 
+		notifyListeners(configuration);
 		applyLoggingConfiguration(configurationObject, result);
 		applyRemoteHostAddressHeadersConfiguration(configuration);
 		applyPolyStringNormalizerConfiguration(configuration);
@@ -104,6 +110,17 @@ public class SystemConfigurationChangeApplierImpl implements SystemConfiguration
 			LOGGER.trace("System configuration version {} applied successfully", lastVersionApplied);
 		} else {
 			LOGGER.warn("There was a problem during application of the system configuration");
+		}
+	}
+
+	private void notifyListeners(SystemConfigurationType configuration) {
+		for (SystemConfigurationChangeListener listener : listeners) {
+			try {
+				listener.update(configuration);
+			} catch (Throwable t) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update system configuration listener {}", t, listener);
+				lastVersionApplied = null;
+			}
 		}
 	}
 
@@ -168,6 +185,24 @@ public class SystemConfigurationChangeApplierImpl implements SystemConfiguration
 		} catch (Throwable t) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply operation result handling configuration", t);
 			lastVersionApplied = null;
+		}
+	}
+
+	@Override
+	public synchronized void registerListener(SystemConfigurationChangeListener listener) {
+		if (!listeners.contains(listener)) {
+			listeners.add(listener);
+		} else {
+			LOGGER.warn("Attempt to register already-registered listener: {}", listener);
+		}
+	}
+
+	@Override
+	public synchronized void unregisterListener(SystemConfigurationChangeListener listener) {
+		if (listeners.contains(listener)) {
+			listeners.remove(listener);
+		} else {
+			LOGGER.warn("Attempt to unregister a listener that was not registered: {}", listener);
 		}
 	}
 }

@@ -124,7 +124,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
-    @Autowired private SystemConfigurationChangeApplier systemConfigurationChangeApplier;
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private final ThreadLocal<List<ConflictWatcherImpl>> conflictWatchersThreadLocal = new ThreadLocal<>();
 
@@ -825,12 +825,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		        if (strictlySequential) {
 		        	if (isCustomPagingOkWithPagedSeqIteration(query)) {
 				        iterationMethod = IterationMethodType.STRICTLY_SEQUENTIAL_PAGING;
-			        } else {
-		        		// TODO switch to LOGGER.error
-		        		throw new IllegalArgumentException("Iterative search was defined in the repository configuration, and strict sequentiality "
+			        } else if (isCustomPagingOkWithFetchAllIteration(query)) {
+				        LOGGER.debug("Iterative search by paging was defined in the repository configuration, and strict sequentiality "
 						        + "was requested. However, a custom paging precludes its application. Therefore switching to "
-						        + "simple paging iteration method. Paging requested: " + query.getPaging());
-				        //iterationMethod = IterationMethodType.SIMPLE_PAGING;
+						        + "'fetch all' iteration method. Paging requested: " + query.getPaging());
+				        iterationMethod = IterationMethodType.FETCH_ALL;
+			        } else {
+		        		LOGGER.warn("Iterative search by paging was defined in the repository configuration, and strict sequentiality "
+						        + "was requested. However, a custom paging precludes its application and maxSize is either "
+						        + "undefined or too large (over " + getConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod()
+						        + "). Therefore switching to simple paging iteration method. Paging requested: " + query.getPaging());
+				        iterationMethod = IterationMethodType.SIMPLE_PAGING;
 			        }
 		        } else {
 		        	iterationMethod = IterationMethodType.SIMPLE_PAGING;
@@ -856,10 +861,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         	case SINGLE_TRANSACTION: searchObjectsIterativeBySingleTransaction(type, query, handler, options, subResult); break;
         	case SIMPLE_PAGING: objectRetriever.searchObjectsIterativeByPaging(type, query, handler, options, subResult); break;
 	        case STRICTLY_SEQUENTIAL_PAGING: objectRetriever.searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult); break;
+	        case FETCH_ALL: objectRetriever.searchObjectsIterativeByFetchAll(type, query, handler, options, subResult); break;
 	        default: throw new AssertionError("iterationMethod: " + iterationMethod);
         }
 	    return null;
     }
+
+	private boolean isCustomPagingOkWithFetchAllIteration(ObjectQuery query) {
+		return query != null
+				&& query.getPaging() != null
+				&& query.getPaging().getMaxSize() != null
+				&& query.getPaging().getMaxSize() <= getConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod();
+	}
 
 	public static boolean isCustomPagingOkWithPagedSeqIteration(ObjectQuery query) {
     	if (query == null || query.getPaging() == null) {
@@ -1145,7 +1158,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	@Override
 	public void postInit(OperationResult result) throws SchemaException {
         LOGGER.debug("Executing repository postInit method");
-        systemConfigurationChangeApplier.applySystemConfiguration(true, true, result);
+        systemConfigurationChangeDispatcher.dispatch(true, true, result);
 	}
 	
     @Override

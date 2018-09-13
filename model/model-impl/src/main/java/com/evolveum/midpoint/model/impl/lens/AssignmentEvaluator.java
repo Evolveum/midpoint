@@ -1092,6 +1092,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 		refVal.setTargetName(targetType.getName().toPolyString());
 		
 		collectMembershipRefVal(refVal, targetType.getClass(), relation, targetType, ctx);
+		
+		if (targetType instanceof OrgType) {
+			if (BooleanUtils.isTrue(((OrgType)targetType).isTenant()) && ctx.evalAssignment.getTenantOid() == null) {
+				ctx.evalAssignment.setTenantOid(targetType.getOid());
+			}
+		}
 	}
 	
 	private void collectMembership(ObjectReferenceType targetRef, QName relation, EvaluationContext ctx) {

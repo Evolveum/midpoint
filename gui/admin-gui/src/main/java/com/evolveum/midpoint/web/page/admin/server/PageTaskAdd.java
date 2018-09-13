@@ -199,7 +199,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
     	PrismProperty<QName> pObjectClass;
 		try {
-			pObjectClass = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
+			pObjectClass = taskType.asPrismObject().findOrCreateProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
 			QName objectClass = pObjectClass.getRealValue();
 			if (objectClass != null){
 	    		taskAdd.setObjectClass(objectClass.getLocalPart());
@@ -772,7 +772,7 @@ public class PageTaskAdd extends PageAdminTasks {
 
         if(dto.getObjectClass() != null && StringUtils.isNotEmpty(dto.getObjectClass())){
             PrismObject<TaskType> prismTask = task.asPrismObject();
-            ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
+            ItemPath path = new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
             PrismProperty objectClassProperty = prismTask.findOrCreateProperty(path);
 
             QName objectClass = null;
@@ -783,7 +783,7 @@ public class PageTaskAdd extends PageAdminTasks {
             }
 
             SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
+            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
             objectClassProperty.setDefinition(def);
             objectClassProperty.setRealValue(objectClass);
         }
