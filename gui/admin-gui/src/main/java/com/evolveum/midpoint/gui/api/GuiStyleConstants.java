@@ -170,5 +170,7 @@ public class GuiStyleConstants {
 	public static final String CLASS_ASSIGN = "fa fa-link";
 	public static final String CLASS_UNASSIGN = "fa fa-unlink";
 	public static final String CLASS_RECONCILE = "fa fa-refresh";
+	public static final String CLASS_ADD_NEW_OBJECT = "fa fa-plus";
+	public static final String CLASS_UPLOAD = "fa fa-upload";
 	public static final String CLASS_CREATE_FOCUS = "fa fa-user-plus";
 }
