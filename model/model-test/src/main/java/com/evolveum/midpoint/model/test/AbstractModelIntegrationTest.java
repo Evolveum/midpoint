@@ -157,6 +157,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.asserter.FocusAsserter;
+import com.evolveum.midpoint.test.asserter.OrgAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
@@ -174,6 +175,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
@@ -422,8 +424,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void importObjectFromFile(File file, Task task, OperationResult result) throws FileNotFoundException {
+		importObjectFromFile(file, MiscSchemaUtil.getDefaultImportOptions(), task, result);
+	}
+	
+	protected void importObjectFromFile(File file, ImportOptionsType options, Task task, OperationResult result) throws FileNotFoundException {
 		FileInputStream stream = new FileInputStream(file);
-		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, result);
+		modelService.importObjectsFromStream(stream, PrismContext.LANG_XML, options, task, result);
 	}
 
 	protected Throwable findCause(OperationResult result) {
@@ -5399,6 +5405,37 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		PrismObject<UserType> user = findUserByUsername(username);
 		UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
 		initializeAsserter(asserter);
+		return asserter;
+	}
+	
+	protected OrgAsserter<Void> assertOrg(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<OrgType> org = getObject(OrgType.class, oid);
+		OrgAsserter<Void> asserter = OrgAsserter.forOrg(org, message);
+		initializeAsserter(asserter);
+		asserter.assertOid(oid);
+		return asserter;
+	}
+	
+	protected OrgAsserter<Void> assertOrgAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		OrgAsserter<Void> asserter = assertOrg(oid, "after");
+		asserter.display();
+		asserter.assertOid(oid);
+		return asserter;
+	}
+	
+	protected FocusAsserter<RoleType,Void> assertRole(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<RoleType> role = getObject(RoleType.class, oid);
+		// TODO: change to ServiceAsserter later
+		FocusAsserter<RoleType,Void> asserter = FocusAsserter.forFocus(role, message);
+		initializeAsserter(asserter);
+		asserter.assertOid(oid);
+		return asserter;
+	}
+	
+	protected FocusAsserter<RoleType,Void> assertRoleAfter(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		FocusAsserter<RoleType,Void> asserter = assertRole(oid, "after");
+		asserter.display();
+		asserter.assertOid(oid);
 		return asserter;
 	}
 	

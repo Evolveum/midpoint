@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -51,8 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F,RA> {
-	
-	private Map<String,PrismObject<ShadowType>> projectionCache = new HashMap<>();
 	
 	public FocusAsserter(PrismObject<F> focus) {
 		super(focus);
@@ -73,6 +72,16 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	public static <F extends FocusType> FocusAsserter<F,Void> forFocus(PrismObject<F> focus, String details) {
 		return new FocusAsserter<>(focus, details);
 	}
+
+	// ::::::::::::::::::::::::::::::::::::::::::
+	// : NOTE : WARNING : ATTENTION : LOOK HERE :
+	// ::::::::::::::::::::::::::::::::::::::::::
+	//
+	// If you add any method here, add it also in UserAsserter, OrgAsserter and other subclasses.
+	//
+	// It is insane to override all those methods from superclass.
+	// But there is no better way to specify something like <SELF> type in Java.
+	// This is lesser evil.
 	
 	@Override
 	public FocusAsserter<F,RA> assertOid() {
@@ -107,6 +116,12 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	@Override
 	public FocusAsserter<F,RA> assertDescription(String expected) {
 		super.assertDescription(expected);
+		return this;
+	}
+	
+	@Override
+	public FocusAsserter<F,RA> assertTenantRef(String expectedOid) {
+		super.assertTenantRef(expectedOid);
 		return this;
 	}
 	
@@ -178,6 +193,19 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		return asserter;
 	}
 	
+	@Override
+	public ParentOrgRefsAsserter<F, ? extends FocusAsserter<F,RA>, RA> parentOrgRefs() {
+		ParentOrgRefsAsserter<F,FocusAsserter<F,RA>,RA> asserter = new ParentOrgRefsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	@Override
+	public FocusAsserter<F,RA> assertParentOrgRefs(String... expectedOids) {
+		super.assertParentOrgRefs(expectedOids);
+		return this;
+	}
+	
 	public FocusAsserter<F,RA> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		PrismObject<ShadowType> shadow = findProjectionOnResource(resourceOid);
 		assertNotNull("Projection for resource "+resourceOid+" not found in "+desc(), shadow);
@@ -219,19 +247,12 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
         for (ObjectReferenceType linkRefType: focusType.getLinkRef()) {
         	String linkTargetOid = linkRefType.getOid();
 	        assertFalse("No linkRef oid in "+desc(), StringUtils.isBlank(linkTargetOid));
-	        shadows.add(getLinkTarget(linkTargetOid));
+	        shadows.add(getCachedObject(ShadowType.class, linkTargetOid));
         }
         return shadows;
 	}
 
-	PrismObject<ShadowType> getLinkTarget(String oid) throws ObjectNotFoundException, SchemaException {
-		PrismObject<ShadowType> shadow = projectionCache.get(oid);
-		if (shadow == null) {
-			shadow = resolveObject(ShadowType.class, oid);
-			projectionCache.put(oid, shadow);
-		}
-		return shadow;
-	}
+	
 	
 	public  FocusAsserter<F,RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
 		StringBuilder sb = new StringBuilder();
@@ -242,7 +263,7 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 			String linkTargetOid = linkRefType.getOid();
 	        assertFalse("No linkRef oid in "+desc(), StringUtils.isBlank(linkTargetOid));
 	        try {
-		        PrismObject<ShadowType> linkTarget = getLinkTarget(linkTargetOid);
+		        PrismObject<ShadowType> linkTarget = getCachedObject(ShadowType.class, linkTargetOid);
 				sb.append(linkTarget);
 				ShadowType shadowType = linkTarget.asObjectable();
 				ObjectReferenceType resourceRef = shadowType.getResourceRef();

@@ -288,6 +288,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_LECHUCK_OID);
+        display("HEREHERE");
         assertGetAllow(UserType.class, USER_CHARLES_OID);
 
 //        TODO: MID-3899

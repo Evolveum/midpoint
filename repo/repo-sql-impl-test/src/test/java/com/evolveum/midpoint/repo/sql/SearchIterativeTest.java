@@ -117,6 +117,44 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test103SimpleSequentialIterationWithCustomPagingLarge() throws Exception {
+        OperationResult result = new OperationResult("test103SimpleSequentialIterationWithCustomPagingLarge");
+
+        final List<PrismObject<UserType>> objects = new ArrayList<>();
+
+        ResultHandler<UserType> handler = (object, parentResult) -> {
+            objects.add(object);
+            return true;
+        };
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(ObjectPaging.createPaging(1, null));
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
+        result.recomputeStatus();
+
+        assertTrue(result.isSuccess());
+        assertObjects(objects, COUNT - 1);
+    }
+
+    @Test
+    public void test104SimpleSequentialIterationWithCustomPagingSmall() throws Exception {
+        OperationResult result = new OperationResult("test104SimpleSequentialIterationWithCustomPagingSmall");
+
+        final List<PrismObject<UserType>> objects = new ArrayList<>();
+
+        ResultHandler<UserType> handler = (object, parentResult) -> {
+            objects.add(object);
+            return true;
+        };
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(ObjectPaging.createPaging(1, 200));
+        repositoryService.searchObjectsIterative(UserType.class, query, handler, null, true, result);
+        result.recomputeStatus();
+
+        assertTrue(result.isSuccess());
+        assertObjects(objects, 200);
+    }
+
+    @Test
     public void test105SimpleNonSequentialIteration() throws Exception {
         OperationResult result = new OperationResult("test105SimpleNonSequentialIteration");
 

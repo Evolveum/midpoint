@@ -112,6 +112,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	private static final Trace LOGGER = TraceManager.getTrace(MidpointFunctionsImpl.class);
 
 	@Autowired private PrismContext prismContext;
+	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private ModelService modelService;
 	@Autowired private ModelInteractionService modelInteractionService;
 	@Autowired private ModelObjectResolver modelObjectResolver;
@@ -133,8 +134,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return "Hello " + name;
 	}
 
+	@Override
 	public PrismContext getPrismContext() {
 		return prismContext;
+	}
+
+	@Override
+	public RelationRegistry getRelationRegistry() {
+		return relationRegistry;
 	}
 
 	@Override

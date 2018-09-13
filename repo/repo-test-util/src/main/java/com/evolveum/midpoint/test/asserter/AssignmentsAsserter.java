@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -60,10 +61,6 @@ public class AssignmentsAsserter<F extends FocusType, FA extends FocusAsserter<F
 	
 	public static <F extends FocusType> AssignmentsAsserter<F,FocusAsserter<F,Void>,Void> forFocus(PrismObject<F> focus) {
 		return new AssignmentsAsserter<>(FocusAsserter.forFocus(focus));
-	}
-	
-	PrismObject<ShadowType> getLinkTarget(String oid) throws ObjectNotFoundException, SchemaException {
-		return focusAsserter.getLinkTarget(oid);
 	}
 	
 	List<AssignmentType> getAssignments() {
@@ -139,6 +136,14 @@ public class AssignmentsAsserter<F extends FocusType, FA extends FocusAsserter<F
 		by()
 			.targetType(RoleType.COMPLEX_TYPE)
 			.assertNone();
+		return this;
+	}
+	
+	public AssignmentsAsserter<F,FA,RA> assertOrg(String orgOid) throws ObjectNotFoundException, SchemaException {
+		by()
+			.targetOid(orgOid)
+			.targetType(OrgType.COMPLEX_TYPE)
+			.find();
 		return this;
 	}
 

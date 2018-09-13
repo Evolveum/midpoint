@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsStorageTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -48,86 +49,86 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * @author semancik
  *
  */
-public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
+public class OrgAsserter<RA> extends FocusAsserter<OrgType,RA> {
 	
-	public UserAsserter(PrismObject<UserType> focus) {
+	public OrgAsserter(PrismObject<OrgType> focus) {
 		super(focus);
 	}
 	
-	public UserAsserter(PrismObject<UserType> focus, String details) {
+	public OrgAsserter(PrismObject<OrgType> focus, String details) {
 		super(focus, details);
 	}
 	
-	public UserAsserter(PrismObject<UserType> focus, RA returnAsserter, String details) {
+	public OrgAsserter(PrismObject<OrgType> focus, RA returnAsserter, String details) {
 		super(focus, returnAsserter, details);
 	}
 	
-	public static UserAsserter<Void> forUser(PrismObject<UserType> focus) {
-		return new UserAsserter<>(focus);
+	public static OrgAsserter<Void> forOrg(PrismObject<OrgType> focus) {
+		return new OrgAsserter<>(focus);
 	}
 	
-	public static UserAsserter<Void> forUser(PrismObject<UserType> focus, String details) {
-		return new UserAsserter<>(focus, details);
+	public static OrgAsserter<Void> forOrg(PrismObject<OrgType> focus, String details) {
+		return new OrgAsserter<>(focus, details);
 	}
 	
 	// It is insane to override all those methods from superclass.
 	// But there is no better way to specify something like <SELF> type in Java.
 	// This is lesser evil.
 	@Override
-	public UserAsserter<RA> assertOid() {
+	public OrgAsserter<RA> assertOid() {
 		super.assertOid();
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertOid(String expected) {
+	public OrgAsserter<RA> assertOid(String expected) {
 		super.assertOid(expected);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertOidDifferentThan(String oid) {
+	public OrgAsserter<RA> assertOidDifferentThan(String oid) {
 		super.assertOidDifferentThan(oid);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertName() {
+	public OrgAsserter<RA> assertName() {
 		super.assertName();
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertName(String expectedOrig) {
+	public OrgAsserter<RA> assertName(String expectedOrig) {
 		super.assertName(expectedOrig);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertDescription(String expected) {
+	public OrgAsserter<RA> assertDescription(String expected) {
 		super.assertDescription(expected);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertTenantRef(String expectedOid) {
+	public OrgAsserter<RA> assertTenantRef(String expectedOid) {
 		super.assertTenantRef(expectedOid);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertLifecycleState(String expected) {
+	public OrgAsserter<RA> assertLifecycleState(String expected) {
 		super.assertLifecycleState(expected);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertActiveLifecycleState() {
+	public OrgAsserter<RA> assertActiveLifecycleState() {
 		super.assertActiveLifecycleState();
 		return this;
 	}
 	
-	public UserAsserter<RA> assertAdministrativeStatus(ActivationStatusType expected) {
+	public OrgAsserter<RA> assertAdministrativeStatus(ActivationStatusType expected) {
 		ActivationType activation = getActivation();
 		if (activation == null) {
 			if (expected == null) {
@@ -143,112 +144,103 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	private ActivationType getActivation() {
 		return getObject().asObjectable().getActivation();
 	}
-	
-	public UserAsserter<RA> assertPassword(String expectedClearPassword) throws SchemaException, EncryptionException {
-		assertPassword(expectedClearPassword, CredentialsStorageTypeType.ENCRYPTION);
-		return this;
-	}
-	
-	public UserAsserter<RA> assertPassword(String expectedClearPassword, CredentialsStorageTypeType storageType) throws SchemaException, EncryptionException {
-		CredentialsType creds = getObject().asObjectable().getCredentials();
-		assertNotNull("No credentials in "+desc(), creds);
-		PasswordType password = creds.getPassword();
-		assertNotNull("No password in "+desc(), password);
-		ProtectedStringType protectedActualPassword = password.getValue();
-		IntegrationTestTools.assertProtectedString("Password for "+desc(), expectedClearPassword, protectedActualPassword, storageType, getProtector());
-		return this;
-	}
-	
-	public UserAsserter<RA> display() {
+		
+	public OrgAsserter<RA> display() {
 		super.display();
 		return this;
 	}
 	
-	public UserAsserter<RA> display(String message) {
+	public OrgAsserter<RA> display(String message) {
 		super.display(message);
 		return this;
 	}
 	
 	@Override
-	public ActivationAsserter<UserType, UserAsserter<RA>, RA> activation() {
-		ActivationAsserter<UserType, UserAsserter<RA>, RA> asserter = new ActivationAsserter<>(this, getDetails());
+	public ActivationAsserter<OrgType, OrgAsserter<RA>, RA> activation() {
+		ActivationAsserter<OrgType, OrgAsserter<RA>, RA> asserter = new ActivationAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
 
 	@Override
-	public LinksAsserter<UserType, UserAsserter<RA>, RA> links() {
-		LinksAsserter<UserType, UserAsserter<RA>, RA> asserter = new LinksAsserter<>(this, getDetails());
+	public LinksAsserter<OrgType, OrgAsserter<RA>, RA> links() {
+		LinksAsserter<OrgType, OrgAsserter<RA>, RA> asserter = new LinksAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertLinks(int expected) {
+	public OrgAsserter<RA> assertLinks(int expected) {
 		super.assertLinks(expected);
 		return this;
 	}
 	
 	@Override
-	public AssignmentsAsserter<UserType, UserAsserter<RA>, RA> assignments() {
-		AssignmentsAsserter<UserType, UserAsserter<RA>, RA> asserter = new AssignmentsAsserter<>(this, getDetails());
+	public AssignmentsAsserter<OrgType, OrgAsserter<RA>, RA> assignments() {
+		AssignmentsAsserter<OrgType, OrgAsserter<RA>, RA> asserter = new AssignmentsAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
 
-	public UserAsserter<RA> assertFullName(String expectedOrig) {
-		assertPolyStringProperty(UserType.F_FULL_NAME, expectedOrig);
+	public OrgAsserter<RA> assertDisplayName(String expectedOrig) {
+		assertPolyStringProperty(OrgType.F_DISPLAY_NAME, expectedOrig);
 		return this;
 	}
 	
-	public UserAsserter<RA> assertLocality(String expectedOrig) {
-		assertPolyStringProperty(UserType.F_LOCALITY, expectedOrig);
+	public OrgAsserter<RA> assertLocality(String expectedOrig) {
+		assertPolyStringProperty(OrgType.F_LOCALITY, expectedOrig);
 		return this;
 	}
 	
-	public UserAsserter<RA> assertOrganizationalUnit(String expectedOrig) {
-		assertPolyStringProperty(UserType.F_ORGANIZATIONAL_UNIT, expectedOrig);
+	public OrgAsserter<RA> assertTenant(Boolean expected) {
+		assertPropertyEquals(OrgType.F_TENANT, expected);
+		return this;
+	}
+	
+	public OrgAsserter<RA> assertIsTenant() {
+		assertPropertyEquals(OrgType.F_TENANT, true);
 		return this;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
+	public OrgAsserter<RA> assertHasProjectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		super.assertHasProjectionOnResource(resourceOid);
 		return this;
 	}
 	
 	@Override
-	public ShadowAsserter<UserAsserter<RA>> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
+	public ShadowAsserter<OrgAsserter<RA>> projectionOnResource(String resourceOid) throws ObjectNotFoundException, SchemaException {
 		return super.projectionOnResource(resourceOid);
 	}
 	
 	@Override
-	public UserAsserter<RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
+	public OrgAsserter<RA> displayWithProjections() throws ObjectNotFoundException, SchemaException {
 		super.displayWithProjections();
 		return this;
 	}
 
 	@Override
-	public ShadowReferenceAsserter<UserAsserter<RA>> singleLink() {
-		return (ShadowReferenceAsserter<UserAsserter<RA>>) super.singleLink();
+	public ShadowReferenceAsserter<OrgAsserter<RA>> singleLink() {
+		return (ShadowReferenceAsserter<OrgAsserter<RA>>) super.singleLink();
 	}
 
 	@Override
-	public UserAsserter<RA> assertAssignments(int expected) {
+	public OrgAsserter<RA> assertAssignments(int expected) {
 		super.assertAssignments(expected);
 		return this;
 	}
 	
 	@Override
-	public ParentOrgRefsAsserter<UserType, UserAsserter<RA>, RA> parentOrgRefs() {
-		ParentOrgRefsAsserter<UserType, UserAsserter<RA>, RA> asserter = new ParentOrgRefsAsserter<>(this, getDetails());
+	public ParentOrgRefsAsserter<OrgType, OrgAsserter<RA>, RA> parentOrgRefs() {
+		ParentOrgRefsAsserter<OrgType, OrgAsserter<RA>, RA> asserter = new ParentOrgRefsAsserter<>(this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}
 	
 	@Override
-	public UserAsserter<RA> assertParentOrgRefs(String... expectedOids) {
+	public OrgAsserter<RA> assertParentOrgRefs(String... expectedOids) {
 		super.assertParentOrgRefs(expectedOids);
 		return this;
 	}
+	
 }
