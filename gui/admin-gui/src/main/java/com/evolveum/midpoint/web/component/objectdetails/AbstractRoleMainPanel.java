@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -303,6 +304,11 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			protected List<QName> getSupportedRelations() {
 				return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+			}
+			
+			@Override
+			protected Map<String, String> getAuthorizations(QName complexType) {
+				return GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS;
 			}
 		
 		};

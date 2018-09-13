@@ -131,7 +131,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	
 	protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
-//	private TableId tableId;
+
 	private static Map<QName, Map<String, String>> authorizations = new HashMap<>();
 	private static Map<QName, TableId> tablesId = new HashMap<>();
 
@@ -249,7 +249,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		return tablesId.get(complextType);
 	}
 	
-	private Map<String, String> getAuthorizations(QName complexType) {
+	protected Map<String, String> getAuthorizations(QName complexType) {
 		return authorizations.get(complexType);
 	}
 	
