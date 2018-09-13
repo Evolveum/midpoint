@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -56,6 +58,7 @@ import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 import org.apache.commons.configuration.Configuration;
@@ -84,6 +87,7 @@ import org.apache.wicket.settings.ApplicationSettings;
 import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -194,8 +198,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient AsyncWebProcessManager asyncWebProcessManager;
     @Autowired
     transient ApplicationContext applicationContext;
+    @Autowired
+    transient SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private WebApplicationConfiguration webApplicationConfiguration;
+
+    private DeploymentInformationType deploymentInfo;
     
     public static final String MOUNT_INTERNAL_SERVER_ERROR = "/error";
     public static final String MOUNT_UNAUTHORIZED_ERROR = "/error/401";
@@ -226,6 +234,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                         "../../../../../webjars/adminlte/2.3.11/plugins/jQuery/jquery-2.2.3.min.js"));
 
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
+
+        systemConfigurationChangeDispatcher.registerListener(new DeploymentInformationChangeListener(this));
+        SystemConfigurationType config = getSystemConfigurationIfAvailable();
+        if (config != null) {
+            deploymentInfo = config.getDeploymentInformation();
+        }
 
         ResourceSettings resourceSettings = getResourceSettings();
         resourceSettings.setParentFolderPlaceholder("$-$");
@@ -303,6 +317,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         // for schrodinger selenide library
         initializeSchrodinger();
+    }
+
+    public DeploymentInformationType getDeploymentInfo() {
+        return deploymentInfo;
     }
 
     private void initializeSchrodinger() {
@@ -633,6 +651,22 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 }
                 return bundle;
             }
+        }
+    }
+
+    private static class DeploymentInformationChangeListener implements SystemConfigurationChangeListener {
+
+        private MidPointApplication application;
+
+        public DeploymentInformationChangeListener(MidPointApplication application) {
+            this.application = application;
+        }
+
+        @Override
+        public boolean update(@Nullable SystemConfigurationType value) {
+            application.deploymentInfo = value != null ? value.getDeploymentInformation() : null;
+
+            return true;
         }
     }
 }
