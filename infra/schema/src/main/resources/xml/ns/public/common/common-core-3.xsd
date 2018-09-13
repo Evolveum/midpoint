@@ -12380,6 +12380,9 @@
 
 								LIMITATION: Supported only for TaskType and not for search pre-processing.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element name="assignee" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
@@ -12391,9 +12394,12 @@
 								LIMITATION: Supported only for TaskType with work items fully fetched; and not for search
 								pre-processing.
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="object" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+					<xsd:element name="relatedObject" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation>
 								The object matches the specification if it has a related object specified by this element.
@@ -12401,6 +12407,19 @@
 
 								LIMITATION: Supported only for TaskType; and for search pre-processing it is limited to "self".
 							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="tenant" type="tns:TenantSelectorType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								The object matches the specification if it is related to the specified tenant.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>3.9</a:since>
+							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
 		        </xsd:sequence>
@@ -12442,6 +12461,32 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+	
+	<xsd:complexType name="TenantSelectorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects an object by comparing tenant information.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>3.9</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="sameAsSubject" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Selects object/target if it has the same tenant as subject.
+                       Subject must be part of the tenant (must have tenantRef set).
+                       This authorization will not select any object if subject tenantRef is empty.
+                   </xsd:documentation>
+               </xsd:annotation>
+           </xsd:element>
+			<!-- allow empty tenant? -->
+			<!-- TODO: add explicit tenantRef? -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>

@@ -21,7 +21,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -31,6 +33,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -39,9 +44,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public class PrismObjectAsserter<O extends ObjectType,R> extends AbstractAsserter<R> {
+public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAsserter<RA> {
 	
 	private PrismObject<O> object;
+	
+	// Cache of focus-related objects: projections, targets, orgs, ...
+	private Map<String,PrismObject<? extends ObjectType>> objectCache = new HashMap<>();
 
 	public PrismObjectAsserter(PrismObject<O> object) {
 		super();
@@ -53,7 +61,7 @@ public class PrismObjectAsserter<O extends ObjectType,R> extends AbstractAsserte
 		this.object = object;
 	}
 	
-	public PrismObjectAsserter(PrismObject<O> object, R returnAsserter, String details) {
+	public PrismObjectAsserter(PrismObject<O> object, RA returnAsserter, String details) {
 		super(returnAsserter, details);
 		this.object = object;
 	}
@@ -70,43 +78,53 @@ public class PrismObjectAsserter<O extends ObjectType,R> extends AbstractAsserte
 		return new PrismObjectAsserter<>(shadow, details);
 	}
 	
-	public PrismObjectAsserter<O,R> assertOid() {
+	public PrismObjectAsserter<O,RA> assertOid() {
 		assertNotNull("No OID in "+desc(), getObject().getOid());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O,R> assertOid(String expected) {
+	public PrismObjectAsserter<O,RA> assertOid(String expected) {
 		assertEquals("Wrong OID in "+desc(), expected, getObject().getOid());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O,R> assertOidDifferentThan(String oid) {
+	public PrismObjectAsserter<O,RA> assertOidDifferentThan(String oid) {
 		assertFalse("Expected that "+desc()+" will have different OID than "+oid+", but it has the same", oid.equals(getObject().getOid()));
 		return this;
 	}
 
 	
-	public PrismObjectAsserter<O,R> assertName() {
+	public PrismObjectAsserter<O,RA> assertName() {
 		assertNotNull("No name in "+desc(), getObject().getName());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O,R> assertName(String expectedOrig) {
+	public PrismObjectAsserter<O,RA> assertName(String expectedOrig) {
 		PrismAsserts.assertEqualsPolyString("Wrong name in "+desc(), expectedOrig, getObject().getName());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O,R> assertDescription(String expected) {
+	public PrismObjectAsserter<O,RA> assertDescription(String expected) {
 		assertEquals("Wrong description in "+desc(), expected, getObject().asObjectable().getDescription());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O,R> assertLifecycleState(String expected) {
+	public PrismObjectAsserter<O,RA> assertTenantRef(String expectedOid) {
+		ObjectReferenceType tenantRef = getObject().asObjectable().getTenantRef();
+		if (tenantRef == null && expectedOid == null) {
+			return this;
+		}
+		assertNotNull("No tenantRef in "+desc(), tenantRef);
+		assertEquals("Wrong tenantRef OID in "+desc(), expectedOid, tenantRef.getOid());
+		return this;
+	}
+	
+	public PrismObjectAsserter<O,RA> assertLifecycleState(String expected) {
 		assertEquals("Wrong lifecycleState in "+desc(), expected, getObject().asObjectable().getLifecycleState());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O,R> assertActiveLifecycleState() {
+	public PrismObjectAsserter<O,RA> assertActiveLifecycleState() {
 		String actualLifecycleState = getObject().asObjectable().getLifecycleState();
 		if (actualLifecycleState != null) {
 			assertEquals("Wrong lifecycleState in "+desc(), SchemaConstants.LIFECYCLE_ACTIVE, actualLifecycleState);
@@ -118,12 +136,12 @@ public class PrismObjectAsserter<O extends ObjectType,R> extends AbstractAsserte
 		return descWithDetails(object);
 	}
 	
-	public PrismObjectAsserter<O,R> display() {
+	public PrismObjectAsserter<O,RA> display() {
 		display(desc());
 		return this;
 	}
 	
-	public PrismObjectAsserter<O,R> display(String message) {
+	public PrismObjectAsserter<O,RA> display(String message) {
 		IntegrationTestTools.display(message, object);
 		return this;
 	}
@@ -134,8 +152,39 @@ public class PrismObjectAsserter<O extends ObjectType,R> extends AbstractAsserte
 		PrismAsserts.assertEqualsPolyString("Wrong "+propName.getLocalPart()+" in "+desc(), expectedOrig, prop.getRealValue());
 	}
 	
+	protected <T> void assertPropertyEquals(QName propName, T expected) {
+		PrismProperty<T> prop = getObject().findProperty(propName);
+		if (prop == null && expected == null) {
+			return;
+		}
+		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
+		T realValue = prop.getRealValue();
+		assertNotNull("No value in "+propName.getLocalPart()+" in "+desc(), realValue);
+		assertEquals("Wrong "+propName.getLocalPart()+" in "+desc(), expected, realValue);
+	}
+	
 	public String getOid() {
 		return getObject().getOid();
+	}
+	
+	public ParentOrgRefsAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> parentOrgRefs() {
+		ParentOrgRefsAsserter<O,PrismObjectAsserter<O,RA>,RA> asserter = new ParentOrgRefsAsserter<>(this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public PrismObjectAsserter<O,RA> assertParentOrgRefs(String... expectedOids) {
+		parentOrgRefs().assertRefs(expectedOids);
+		return this;
+	}
+
+	<CO extends ObjectType> PrismObject<CO> getCachedObject(Class<CO> type, String oid) throws ObjectNotFoundException, SchemaException {
+		PrismObject<CO> object = (PrismObject<CO>) objectCache.get(oid);
+		if (object == null) {
+			object = resolveObject(type, oid);
+			objectCache.put(oid, object);
+		}
+		return object;
 	}
 
 }

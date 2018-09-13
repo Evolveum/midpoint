@@ -20,6 +20,8 @@ import java.util.*;
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -816,4 +818,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	}
 
 	public abstract void deleteSecondaryDeltas();
+	
+	public S_ItemEntry deltaBuilder() throws SchemaException {
+		return DeltaBuilder.deltaFor(getObjectTypeClass(), getPrismContext());
+	}
 }
