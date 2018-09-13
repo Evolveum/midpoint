@@ -787,9 +787,7 @@ public class ObjectRetriever {
     }
 
     public <T extends ObjectType> void searchObjectsIterativeByPaging(Class<T> type, ObjectQuery query,
-                                                                      ResultHandler<T> handler,
-                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                      OperationResult result)
+		    ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws SchemaException {
 
         try {
@@ -911,6 +909,25 @@ main:       for (;;) {
             }
         }
     }
+
+	public <T extends ObjectType> void searchObjectsIterativeByFetchAll(Class<T> type, ObjectQuery query,
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+			throws SchemaException {
+		try {
+			SearchResultList<PrismObject<T>> objects = repositoryService.searchObjects(type, query, options, result);
+			for (PrismObject<T> object : objects) {
+				if (!handler.handle(object, result)) {
+					break;
+				}
+			}
+		} finally {
+			if (result.isUnknown()) {
+				result.computeStatus();
+			}
+			result.setSummarizeSuccesses(true);
+			result.summarize();
+		}
+	}
 
 	public boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
         Session session = null;

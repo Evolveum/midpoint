@@ -112,6 +112,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
 
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_ITERATIVE_SEARCH_BY_PAGING);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD);
 
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_USE_ZIP);
         updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MIN_POOL_SIZE);

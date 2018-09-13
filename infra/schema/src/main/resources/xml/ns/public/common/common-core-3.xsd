@@ -18500,6 +18500,23 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
+			<xsd:enumeration value="fetchAll">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FETCH_ALL"/>
+						<xsd:documentation>
+							This is a workaround for situations when STRICTLY_SEQUENTIAL_PAGING cannot be used because
+							a client-supplied paging is present. All the objects are fetched as in regular searchObjects()
+							call and then send to the client one-by-one. (This defeats the basic purpose of
+							searchObjectsIterative but can be safely used for small numbers of objects.)
+
+							So this method is a safe fallback that is used when STRICTLY_SEQUENTIAL_PAGING is implicitly
+							chosen but a custom paging exists, provided that the paging contains maxSize clause with a number
+							not greater than a specified limit (maxObjectsForImplicitFetchAllIterationMethod).
+						</xsd:documentation>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
 
