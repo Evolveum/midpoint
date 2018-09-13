@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.util.DebugUtil;
 
 /**
  * @author Pavol
@@ -50,10 +51,20 @@ public class ObjectPagingAfterOid extends ObjectPaging {
         return clone;
     }
 
-    protected void copyTo(ObjectPagingAfterOid clone) {
+    private void copyTo(ObjectPagingAfterOid clone) {
         super.copyTo(clone);
         clone.oidGreaterThan = this.oidGreaterThan;
     }
+
+	@Override
+	public String debugDump(int indent) {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append(super.debugDump(indent));
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent + 1);
+		sb.append("Oid greater than: ").append(oidGreaterThan);
+		return sb.toString();
+	}
 
 	public boolean equals(Object o, boolean exact) {
 		if (this == o)
@@ -66,7 +77,6 @@ public class ObjectPagingAfterOid extends ObjectPaging {
 		ObjectPagingAfterOid that = (ObjectPagingAfterOid) o;
 
 		return oidGreaterThan != null ? oidGreaterThan.equals(that.oidGreaterThan) : that.oidGreaterThan == null;
-
 	}
 
 	@Override

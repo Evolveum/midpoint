@@ -876,7 +876,7 @@ main:       while (remaining > 0) {
 	        	pagedQuery = new ObjectQuery();
 	        }
 
-            String lastOid = "";
+            String lastOid = null;
             final int batchSize = getConfiguration().getIterativeSearchByPagingBatchSize();
 
             ObjectPagingAfterOid paging = new ObjectPagingAfterOid();
