@@ -17,7 +17,9 @@ package com.evolveum.midpoint.web.boot;
 
 import javax.servlet.Servlet;
 
+import org.apache.catalina.connector.Connector;
 import org.apache.catalina.startup.Tomcat;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -52,10 +54,27 @@ public class EmbeddedTomcatAutoConfiguration {
 	@ConditionalOnClass({ Servlet.class, Tomcat.class })
 	@ConditionalOnMissingBean(value = TomcatServletWebServerFactory.class, search = SearchStrategy.CURRENT)
 	public static class EmbeddedTomcat {
-
+		
+		@Value( "${server.tomcat.ajp.enabled:false}" )
+		private boolean enableAjp;
+		
+		@Value( "${server.tomcat.ajp.port:9090}" )
+		private int port;
+		
 		@Bean
 		public TomcatServletWebServerFactory tomcatEmbeddedServletContainerFactory() {
-			return new MidPointTomcatServletWebServerFactory();
+			MidPointTomcatServletWebServerFactory tomcat = new MidPointTomcatServletWebServerFactory();
+			
+			if(enableAjp) {
+				Connector ajpConnector = new Connector("AJP/1.3");
+				ajpConnector.setPort(port);
+				ajpConnector.setSecure(false);
+				ajpConnector.setScheme("http");
+				ajpConnector.setAllowTrace(false);
+				tomcat.addAdditionalTomcatConnectors(ajpConnector);
+			}
+			
+			return tomcat;
 		}
 
 	}

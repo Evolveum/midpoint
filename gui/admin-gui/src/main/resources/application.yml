@@ -10,6 +10,10 @@ server:
   tomcat:
     basedir: ${midpoint.home}
     max-http-post-size: 104857600 # in bytes
+## Enable and configuration ajp connector for mp
+#    ajp:
+#      enabled: true
+#      port: 9090
   servlet:
     context-path: /midpoint
     application-display-name: MidPoint
