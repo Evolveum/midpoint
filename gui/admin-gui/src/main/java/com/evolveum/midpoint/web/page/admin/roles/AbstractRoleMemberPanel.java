@@ -508,7 +508,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		form.add(typeSelect);
 
 		RelationDropDownChoicePanel relationSelector = new RelationDropDownChoicePanel(ID_SEARCH_BY_RELATION, null,
-				getSupportedRelations(), false){
+				getSupportedRelations(), true){
 			private static final long serialVersionUID = 1L;
 
 			@Override
