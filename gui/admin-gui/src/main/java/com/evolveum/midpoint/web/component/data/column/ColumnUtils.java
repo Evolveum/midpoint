@@ -506,7 +506,7 @@ public class ColumnUtils {
 				SelectableBean<TaskType> object = (SelectableBean<TaskType>) rowModel.getObject();
 				PrismProperty<QName> pObjectClass = object.getValue() != null ?
 						object.getValue().asPrismObject().findProperty(
-								new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME))
+								new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS))
 						: null;
 				if (pObjectClass != null) {
 					cellItem.add(new Label(componentId, pObjectClass.getRealValue().getLocalPart()));

@@ -378,10 +378,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	 * @param task
 	 * @param subResult
 	 * @return
+	 * @throws SchemaException 
 	 */
-	private <F extends FocusType> boolean checkTaskConstraints(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, Task task, OperationResult subResult) {
-		ObjectSynchronizationType obejctSynchronization = syncCtx.getObjectSynchronization();
-		if (!satisfyTaskConstraints(obejctSynchronization, task)) {
+	private <F extends FocusType> boolean checkTaskConstraints(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, Task task, OperationResult subResult) throws SchemaException {
+		if (!satisfyTaskConstraints(syncCtx)) {
 			LOGGER.trace("SYNCHRONIZATION skipping {} because it does not match kind/intent defined in task",
 					new Object[] { syncCtx.getApplicableShadow() });
 			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, 
@@ -397,33 +397,31 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return true;
 	}
 	
-	private boolean satisfyTaskConstraints(ObjectSynchronizationType synchronizationPolicy, Task task) {
-		PrismProperty<ShadowKindType> kind = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_KIND);
-		if (kind != null && !kind.isEmpty()) {
-			ShadowKindType kindValue = kind.getRealValue();
-			ShadowKindType policyKind = synchronizationPolicy.getKind();
-			if (policyKind == null) {
-				policyKind = ShadowKindType.ACCOUNT; // TODO is this ok? [med]
-			}
-			if (!policyKind.equals(kindValue)) {
-				return false;
-			}
+	private <F extends FocusType> boolean satisfyTaskConstraints(SynchronizationContext<F> syncCtx) throws SchemaException {
+		
+		ShadowKindType kind = getPropertyValue(syncCtx.getTask(), SchemaConstants.MODEL_EXTENSION_KIND);
+		String intent = getPropertyValue(syncCtx.getTask(), SchemaConstants.MODEL_EXTENSION_INTENT);
+		QName objectClass = getPropertyValue(syncCtx.getTask(), SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
+		
+		LOGGER.trace("checking task constraints: {}", syncCtx.getTask());
+		
+		boolean isApplicable = SynchronizationUtils.isPolicyApplicable(objectClass, kind, intent, syncCtx.getObjectSynchronization(), syncCtx.getResource(), true);
+		//this mean that kind/intent are null in the task..but this can be a case, so check if at least the objectClass is the same
+		if (!isApplicable && objectClass != null) {
+			return QNameUtil.matchAny(objectClass, syncCtx.getObjectSynchronization().getObjectClass());
 		}
-
-		PrismProperty<String> intent = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_INTENT);
-		if (intent != null && !intent.isEmpty()) {
-			String intentValue = intent.getRealValue();
-			if (StringUtils.isEmpty(synchronizationPolicy.getIntent())) {
-				return false;
-			}
-			if (!synchronizationPolicy.getIntent().equals(intentValue)) {
-				return false;
-			}
-		}
-
-		return true;
+		
+		return isApplicable;
 	}
 
+	private <T> T getPropertyValue(Task task, QName propertyName) {
+		PrismProperty<T> prop = task.getExtensionProperty(propertyName);
+		if (prop == null || prop.isEmpty()) {
+			return null;
+		}
+		
+		return prop.getRealValue();
+	}
 	
 	private <F extends FocusType> boolean checkProtected(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, Task task, OperationResult subResult) {
 		if (isProtected(syncCtx.getApplicableShadow())) {
