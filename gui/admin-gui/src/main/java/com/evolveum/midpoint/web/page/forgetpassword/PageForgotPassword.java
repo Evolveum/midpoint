@@ -231,6 +231,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 		};
 		submit.setOutputMarkupId(true);
 		form.add(submit);
+		form.setDefaultButton(submit);
 
 		AjaxButton backButton = new AjaxButton(ID_BACK, createStringResource("PageForgetPassword.back")) {
 
