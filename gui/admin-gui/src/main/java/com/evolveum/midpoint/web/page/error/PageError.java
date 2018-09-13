@@ -21,9 +21,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -47,6 +52,7 @@ public class PageError extends PageBase {
     private static final String ID_ERROR_MESSAGE = "errorMessage";
     private static final String ID_BACK = "back";
     private static final String ID_HOME = "home";
+    private static final String ID_CSRF_FIELD = "csrfField";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageError.class);
 
@@ -138,6 +144,10 @@ public class PageError extends PageBase {
             }
         };
         add(home);
+
+        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
+        csrfField.add(new VisibleBehaviour(() -> SecurityUtils.getPrincipalUser() != null));
+        add(csrfField);
     }
 
     private int getCode() {
@@ -149,6 +159,13 @@ public class PageError extends PageBase {
         super.configureResponse(response);
 
         response.setStatus(getCode());
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        response.render(OnDomReadyHeaderItem.forScript("$('div.content-wrapper').css('margin-left', '0');"));
     }
 
     @Override
