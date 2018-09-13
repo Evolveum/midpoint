@@ -722,11 +722,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								autzHumanReadableDesc, desc, object.getOid());
 						return false;
 					}
+				} else {
+					LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because there is a strange tenant specificaiton in authorization",
+							autzHumanReadableDesc, desc, object.getOid());
+					return false;
 				}
-			} else {
-				LOGGER.trace("    {}: tenant object spec not applicable for {}, object OID {} because there is a strange tenant specificaiton in authorization",
-						autzHumanReadableDesc, desc, object.getOid());
-				return false;
 			}
 		}
 
@@ -1334,11 +1334,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								LOGGER.trace("    roleRelation empty");
 							}
 
-							if (objSpecTypeFilter != null) {
-								objSpecTypeFilter.setFilter(objSpecSecurityFilter);
-								objSpecSecurityFilter = objSpecTypeFilter;
-							}
-							
 							// tenant
 							if (specTenant != null) {
 								ObjectFilter objSpecTenantFilter = processTenantFilter(principal, autz, specTenant, queryItemsSpec, origFilter);
@@ -1355,7 +1350,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									LOGGER.trace("  applying tenant filter {}", objSpecTenantFilter);
 								}
 							} else {
-								LOGGER.trace("    roleRelation empty");
+								LOGGER.trace("    tenant empty");
 							}
 
 							if (objSpecTypeFilter != null) {
