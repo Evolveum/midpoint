@@ -60,7 +60,7 @@ public class LinksAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,
 	}
 	
 	PrismObject<ShadowType> getLinkTarget(String oid) throws ObjectNotFoundException, SchemaException {
-		return focusAsserter.getLinkTarget(oid);
+		return focusAsserter.getCachedObject(ShadowType.class, oid);
 	}
 	
 	List<PrismReferenceValue> getLinks() {

@@ -18,16 +18,21 @@ package com.evolveum.midpoint.test.asserter;
 import static org.testng.AssertJUnit.assertEquals;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -42,71 +47,69 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * 
  * @author semancik
  */
-public class LinkFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA> {
+public class ParentOrgRefFinder<O extends ObjectType, OA extends PrismObjectAsserter<O, RA>,RA> {
 
-	private final LinksAsserter<F,FA,RA> linksAsserter;
-	private String resourceOid;
-	private Boolean dead;
+	private final ParentOrgRefsAsserter<O,OA,RA> refsAsserter;
+	private String targetOid;
+	private QName relation;
 	
-	public LinkFinder(LinksAsserter<F,FA,RA> linksAsserter) {
-		this.linksAsserter = linksAsserter;
+	public ParentOrgRefFinder(ParentOrgRefsAsserter<O,OA,RA> refsAsserter) {
+		this.refsAsserter = refsAsserter;
 	}
 	
-	public LinkFinder<F,FA,RA> resourceOid(String resourceOid) {
-		this.resourceOid = resourceOid;
+	public ParentOrgRefFinder<O,OA,RA> targetOid(String targetOid) {
+		this.targetOid = targetOid;
 		return this;
 	}
 	
-	public LinkFinder<F,FA,RA> dead(boolean dead) {
-		this.dead = dead;
+	public ParentOrgRefFinder<O,OA,RA> relation(QName relation) {
+		this.relation = relation;
 		return this;
 	}
 
-	public ShadowReferenceAsserter<LinksAsserter<F, FA, RA>> find() throws ObjectNotFoundException, SchemaException {
+	public ParentOrgRefAsserter<ParentOrgRefsAsserter<O, OA, RA>> find() throws ObjectNotFoundException, SchemaException {
 		PrismReferenceValue found = null;
-		PrismObject<ShadowType> foundTarget = null;
-		for (PrismReferenceValue link: linksAsserter.getLinks()) {
-			PrismObject<ShadowType> linkTarget = linksAsserter.getLinkTarget(link.getOid());
-			if (matches(link, linkTarget)) {
+		PrismObject<OrgType> foundTarget = null;
+		for (PrismReferenceValue ref: refsAsserter.getRefs()) {
+			PrismObject<OrgType> refTarget = refsAsserter.getRefTarget(ref.getOid());
+			if (matches(ref, refTarget)) {
 				if (found == null) {
-					found = link;
-					foundTarget = linkTarget;
+					found = ref;
+					foundTarget = refTarget;
 				} else {
-					fail("Found more than one link that matches search criteria");
+					fail("Found more than one parentOrgRef that matches search criteria");
 				}
 			}
 		}
 		if (found == null) {
-			fail("Found no link that matches search criteria");
+			fail("Found no parentOrgRef that matches search criteria");
 		}
-		return linksAsserter.forLink(found, foundTarget);
+		return refsAsserter.forRef(found, foundTarget);
 	}
 	
-	public LinksAsserter<F,FA,RA> assertCount(int expectedCount) throws ObjectNotFoundException, SchemaException {
+	public ParentOrgRefsAsserter<O,OA,RA> assertCount(int expectedCount) throws ObjectNotFoundException, SchemaException {
 		int foundCount = 0;
-		for (PrismReferenceValue link: linksAsserter.getLinks()) {
-			PrismObject<ShadowType> linkTarget = linksAsserter.getLinkTarget(link.getOid());
-			if (matches(link, linkTarget)) {
+		for (PrismReferenceValue ref: refsAsserter.getRefs()) {
+			PrismObject<OrgType> linkTarget = refsAsserter.getRefTarget(ref.getOid());
+			if (matches(ref, linkTarget)) {
 				foundCount++;
 			}
 		}
-		assertEquals("Wrong number of links for specified criteria in "+linksAsserter.desc(), expectedCount, foundCount);
-		return linksAsserter;
+		assertEquals("Wrong number of links for specified criteria in "+refsAsserter.desc(), expectedCount, foundCount);
+		return refsAsserter;
 	}
 	
-	private boolean matches(PrismReferenceValue refVal, PrismObject<ShadowType> linkTarget) throws ObjectNotFoundException, SchemaException {
-		ShadowType linkTargetType = linkTarget.asObjectable();
+	private boolean matches(PrismReferenceValue refVal, PrismObject<OrgType> refTarget) throws ObjectNotFoundException, SchemaException {
+		OrgType refTargetType = refTarget.asObjectable();
 		
-		if (resourceOid != null) {
-			if (!resourceOid.equals(linkTargetType.getResourceRef().getOid())) {
+		if (targetOid != null) {
+			if (!targetOid.equals(refVal.getOid())) {
 				return false;
 			}
 		}
 		
-		if (dead != null) {
-			if (dead && !ShadowUtil.isDead(linkTargetType)) {
-				return false;
-			} else if (!dead && ShadowUtil.isDead(linkTargetType)) {
+		if (relation != null) {
+			if (!QNameUtil.match(relation, refVal.getRelation())) {
 				return false;
 			}
 		}		

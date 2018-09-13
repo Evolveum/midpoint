@@ -116,7 +116,7 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
 			}
 		}
 		
-		if (targetObjectType != null) {
+		if (targetType != null) {
 			if (targetRef == null || !QNameUtil.match(targetType, targetRef.getType())) {
 				return false;
 			}

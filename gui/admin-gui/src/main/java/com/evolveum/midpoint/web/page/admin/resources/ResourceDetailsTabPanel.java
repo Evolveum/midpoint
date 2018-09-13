@@ -409,7 +409,7 @@ public class ResourceDetailsTabPanel extends Panel {
 			}
 
 			PrismProperty<QName> taskObjectClass = task.findProperty(
-					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
+					new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
 			QName taskObjectClassValue = null;
 			if (taskObjectClass != null) {
 				taskObjectClassValue = taskObjectClass.getRealValue();
@@ -442,7 +442,7 @@ public class ResourceDetailsTabPanel extends Panel {
 			}
 
 			if (SynchronizationUtils.isPolicyApplicable(taskObjectClassValue, taskKindValue, taskIntentValue,
-					synchronizationPolicy, resource)) {
+					synchronizationPolicy, resource, true)) {
 				syncTasks.add(task.asObjectable());
 			}
 		}

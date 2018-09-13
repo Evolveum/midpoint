@@ -468,7 +468,7 @@ public abstract class ResourceContentPanel extends Panel {
 			
 			if (taskKind == null) {
 				PrismProperty<QName> taskObjectClass = task
-						.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.OBJECTCLASS_PROPERTY_NAME));
+						.findProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS));
 				
 				if (taskObjectClass == null) {
 					LOGGER.warn("Bad task definition. Task {} doesn't contain definition either of objectClass or kind/intent", task.getOid());

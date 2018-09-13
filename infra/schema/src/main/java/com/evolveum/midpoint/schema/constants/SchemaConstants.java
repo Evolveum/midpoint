@@ -291,7 +291,7 @@ public abstract class SchemaConstants {
 	public static final QName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new QName(NS_MODEL_EXTENSION, "finishOperationsOnly");
 	public static final QName MODEL_EXTENSION_KIND = new QName(NS_MODEL_EXTENSION, "kind");
 	public static final QName MODEL_EXTENSION_INTENT = new QName(NS_MODEL_EXTENSION, "intent");
-	public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "objectclass");
+	public static final QName MODEL_EXTENSION_OBJECTCLASS = new QName(NS_MODEL_EXTENSION, "objectclass");
 	public static final QName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new QName(
 			NS_MODEL_EXTENSION, "lastScanTimestamp");
 

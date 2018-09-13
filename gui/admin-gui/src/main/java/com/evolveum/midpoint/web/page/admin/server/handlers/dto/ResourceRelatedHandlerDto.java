@@ -90,7 +90,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 			intent = intentItem.getRealValue();
 		}
 
-		PrismProperty<QName> objectClassItem = task.getExtension().findProperty(SchemaConstants.OBJECTCLASS_PROPERTY_NAME);
+		PrismProperty<QName> objectClassItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_OBJECTCLASS);
 		if(objectClassItem != null && objectClassItem.getRealValue() != null){
 			objectClass = objectClassItem.getRealValue().getLocalPart();
 		}
@@ -239,7 +239,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 					objectClassQName = q;
 				}
 			}
-			addExtensionDelta(rv, SchemaConstants.OBJECTCLASS_PROPERTY_NAME, objectClassQName, prismContext);
+			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_OBJECTCLASS, objectClassQName, prismContext);
 		}
 		return rv;
 	}
