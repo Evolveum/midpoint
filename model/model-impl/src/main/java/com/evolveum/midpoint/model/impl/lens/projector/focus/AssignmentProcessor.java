@@ -740,7 +740,7 @@ public class AssignmentProcessor {
 
 	}
 
-	public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, OperationResult result) throws SchemaException, PolicyViolationException {
+	public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
@@ -797,10 +797,10 @@ public class AssignmentProcessor {
 			}
 		}
 		
-		computeTenantRef(context, result);
+		computeTenantRef(context, task, result);
 	}
 
-	private <F extends ObjectType> void computeTenantRef(LensContext<F> context, OperationResult result) throws PolicyViolationException, SchemaException {
+	private <F extends ObjectType> void computeTenantRef(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		String tenantOid = null;
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		PrismObject<F> objectNew = focusContext.getObjectNew();
@@ -831,9 +831,68 @@ public class AssignmentProcessor {
 					}
 				}
 			}
+			
+			if (tenantOid == null && (objectNew.canRepresent(ResourceType.class) || objectNew.canRepresent(TaskType.class))) {
+				// This is somehow "future legacy" code. It will be removed later when we have better support for organizational structure
+				// membership in resources and tasks.
+				String desc = "parentOrgRef in "+objectNew;
+				for (ObjectReferenceType parentOrgRef: objectNew.asObjectable().getParentOrgRef()) {
+					OrgType parentOrg = objectResolver.resolve(parentOrgRef, OrgType.class, null, desc, task, result);
+					ObjectReferenceType parentTenantRef = parentOrg.getTenantRef();
+					if (parentTenantRef == null || parentTenantRef.getOid() == null) {
+						continue;
+					}
+					if (tenantOid == null) {
+						tenantOid = parentTenantRef.getOid();
+					} else {
+						if (!parentTenantRef.getOid().equals(tenantOid)) {
+							throw new PolicyViolationException("Two different tenants ("+tenantOid+", "+parentTenantRef.getOid()+") applicable to "+context.getFocusContext().getHumanReadableName());
+						}
+					}
+				}
+			}
 		}
 		
+		addTenantRefDelta(context, objectNew, tenantOid);
+	}
+	
+	/**
+	 * This is somehow "future legacy" code. It will be removed later when we have better support for organizational structure
+	 * membership in resources and tasks.
+	 */
+	public <O extends ObjectType> void computeTenantRefLegacy(LensContext<O> context, Task task, OperationResult result) throws PolicyViolationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		String tenantOid = null;
 		
+		LensFocusContext<O> focusContext = context.getFocusContext();
+		PrismObject<O> objectNew = focusContext.getObjectNew();
+		if (objectNew == null) {
+			return;
+		}
+		if (!objectNew.canRepresent(ResourceType.class) && !objectNew.canRepresent(TaskType.class)) {
+			return;
+		}
+		
+		String desc = "parentOrgRef in "+objectNew;
+		for (ObjectReferenceType parentOrgRef: objectNew.asObjectable().getParentOrgRef()) {
+			OrgType parentOrg = objectResolver.resolve(parentOrgRef, OrgType.class, null, desc, task, result);
+			ObjectReferenceType parentTenantRef = parentOrg.getTenantRef();
+			if (parentTenantRef == null || parentTenantRef.getOid() == null) {
+				continue;
+			}
+			if (tenantOid == null) {
+				tenantOid = parentTenantRef.getOid();
+			} else {
+				if (!parentTenantRef.getOid().equals(tenantOid)) {
+					throw new PolicyViolationException("Two different tenants ("+tenantOid+", "+parentTenantRef.getOid()+") applicable to "+context.getFocusContext().getHumanReadableName());
+				}
+			}
+		}
+		
+		addTenantRefDelta(context, objectNew, tenantOid);
+	}
+	
+	private <F extends ObjectType> void addTenantRefDelta(LensContext<F> context, PrismObject<F> objectNew, String tenantOid) throws SchemaException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
 		ObjectReferenceType currentTenantRef = objectNew.asObjectable().getTenantRef();
 		if (currentTenantRef == null) {
 			if (tenantOid == null) {
@@ -841,18 +900,18 @@ public class AssignmentProcessor {
 			} else {
 				LOGGER.trace("Setting tenantRef to {}", tenantOid);
 				ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
-				context.getFocusContext().swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
+				focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 			}
 		} else {
 			if (tenantOid == null) {
 				LOGGER.trace("Clearing tenantRef");
 				ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
-				context.getFocusContext().swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
+				focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 			} else {
 				if (!tenantOid.equals(currentTenantRef.getOid())) {
 					LOGGER.trace("Changing tenantRef to {}", tenantOid);
 					ReferenceDelta tenantRefDelta = ReferenceDelta.createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
-					context.getFocusContext().swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
+					focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
 				}
 			}
 		}
