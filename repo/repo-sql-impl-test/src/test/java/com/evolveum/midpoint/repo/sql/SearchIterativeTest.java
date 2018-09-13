@@ -258,10 +258,6 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
     @Test
     public void test130AddOneForOne() throws Exception {
 
-        if (getRepositoryConfiguration().isUsingOracle()) {
-            return;     // MID-4896
-        }
-
         OperationResult result = new OperationResult("test130AddOneForOne");
 
         final List<PrismObject<UserType>> objects = new ArrayList<>();
