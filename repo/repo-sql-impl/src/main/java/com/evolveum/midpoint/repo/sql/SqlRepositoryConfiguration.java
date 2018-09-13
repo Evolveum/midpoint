@@ -195,6 +195,7 @@ public class SqlRepositoryConfiguration {
 	private static final int DEFAULT_EMBEDDED_H2_PORT = 5437;
 	private static final int DEFAULT_MIN_POOL_SIZE = 8;
 	private static final int DEFAULT_MAX_POOL_SIZE = 20;
+	private static final int DEFAULT_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD = 500;
 
 	private static final String USER_HOME_VARIABLE = "user.home";
 	private static final String MIDPOINT_HOME_VARIABLE = "midpoint.home";
@@ -230,6 +231,7 @@ public class SqlRepositoryConfiguration {
     //other
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING = "iterativeSearchByPaging";
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE = "iterativeSearchByPagingBatchSize";
+    public static final String PROPERTY_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD = "maxObjectsForImplicitFetchAllIterationMethod";
 
     //closure
     public static final String PROPERTY_IGNORE_ORG_CLOSURE = "ignoreOrgClosure";
@@ -294,6 +296,7 @@ public class SqlRepositoryConfiguration {
 
     private boolean defaultIterativeSearchByPaging;
     private int defaultIterativeSearchByPagingBatchSize;
+	private final int maxObjectsForImplicitFetchAllIterationMethod;
 
     private final boolean iterativeSearchByPaging;
     private int iterativeSearchByPagingBatchSize;               // not final only because of testing
@@ -396,6 +399,8 @@ public class SqlRepositoryConfiguration {
         computeDefaultIterativeSearchParameters();
         iterativeSearchByPaging = configuration.getBoolean(PROPERTY_ITERATIVE_SEARCH_BY_PAGING, defaultIterativeSearchByPaging);
         iterativeSearchByPagingBatchSize = configuration.getInt(PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE, defaultIterativeSearchByPagingBatchSize);
+        maxObjectsForImplicitFetchAllIterationMethod = configuration.getInt(PROPERTY_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD,
+		        DEFAULT_MAX_OBJECTS_FOR_IMPLICIT_FETCH_ALL_ITERATION_METHOD);
 
         ignoreOrgClosure = configuration.getBoolean(PROPERTY_IGNORE_ORG_CLOSURE, false);
         orgClosureStartupAction = OrgClosureManager.StartupAction.fromValue(
@@ -744,7 +749,11 @@ public class SqlRepositoryConfiguration {
         this.iterativeSearchByPagingBatchSize = iterativeSearchByPagingBatchSize;
     }
 
-    public String getDataSource() {
+	public int getMaxObjectsForImplicitFetchAllIterationMethod() {
+		return maxObjectsForImplicitFetchAllIterationMethod;
+	}
+
+	public String getDataSource() {
         return dataSource;
     }
 

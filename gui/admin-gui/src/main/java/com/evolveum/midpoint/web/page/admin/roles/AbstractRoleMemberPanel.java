@@ -25,11 +25,13 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -200,10 +202,28 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected void newObjectPerformed(AjaxRequestTarget target) {
-                AbstractRoleMemberPanel.this.assignMembers(target, getSupportedRelations());
+                AbstractRoleMemberPanel.this.createFocusMemberPerformed(target);
             }
 
-            @Override
+			@Override
+			protected List<Component> createToolbarButtonsList(String buttonId){
+				List<Component> buttonsList = super.createToolbarButtonsList(buttonId);
+				AjaxIconButton assignButton = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ASSIGN), 	//TODO change icon class
+						createStringResource("TreeTablePanel.menu.addMembers")) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						AbstractRoleMemberPanel.this.assignMembers(target, getSupportedRelations());
+					}
+				};
+				assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
+				buttonsList.add(1, assignButton);
+				return buttonsList;
+			}
+
+			@Override
             protected List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
                 return createMembersColumns();
             }
@@ -260,7 +280,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     private List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
-            menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign")) {
+            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -274,13 +294,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         }
                     };
                 }
-
-                @Override
-                public String getButtonIconCssClass() {
-                    return GuiStyleConstants.CLASS_ASSIGN;
-                }
-
-            });
+			});
         }
 
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
@@ -308,7 +322,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         }
 
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_RECOMPUTE)) {
-            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute")) {
+            menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -322,7 +336,13 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                         }
                     };
                 }
-            });
+
+				@Override
+				public String getButtonIconCssClass() {
+					return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+				}
+
+			});
         }
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE)) {
             menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create")) {
