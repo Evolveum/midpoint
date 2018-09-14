@@ -16246,8 +16246,8 @@
 			<xsd:element name="includeDefaultRelations" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
 			    <xsd:annotation>
 			        <xsd:documentation>
-			            If set to true then default (hardcoded) relations will be included in addition to those
-			            relations that are defined above. If set to false then only those relations that are defined
+			            If set to true then default (hardcoded, statically defined) relations will be included in addition
+						to those relations that are defined above. If set to false then only those relations that are defined
 			            above will be used in the system.
 			            EXPERIMENTAL: only partially supported
 			        </xsd:documentation>
@@ -16394,6 +16394,18 @@
 						<a:since>3.9</a:since>
 						<a:displayName>RelationDefinitionType.automaticallyMatched</a:displayName>
 						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="staticallyDefined" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether this relation was statically defined in midPoint code. Do not set this flag explicitly,
+						it is filled-in when relations are parsed.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>3.9</a:since>
+						<a:operational>true</a:operational>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
