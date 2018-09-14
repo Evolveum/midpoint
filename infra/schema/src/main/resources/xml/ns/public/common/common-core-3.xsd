@@ -10719,6 +10719,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="unknown">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNKNOWN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
              </xsd:restriction>
     </xsd:simpleType>
     

@@ -63,6 +63,8 @@ public class SynchronizationContext<F extends FocusType> {
 	
 	private SynchronizationReactionType reaction;
 	
+	private boolean unrelatedChange = false;
+	
 	private boolean shadowExistsInRepo = true;
 	private boolean forceIntentChange;
 	
@@ -216,6 +218,14 @@ public class SynchronizationContext<F extends FocusType> {
 	
 	public void setReaction(SynchronizationReactionType reaction) {
 		this.reaction = reaction;
+	}
+	
+	public boolean isUnrelatedChange() {
+		return unrelatedChange;
+	}
+	
+	public void setUnrelatedChange(boolean unrelatedChange) {
+		this.unrelatedChange = unrelatedChange;
 	}
 	
 	public Task getTask() {
