@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.QueryBuilder;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -246,10 +247,17 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
 
         int count = repositoryService.countObjects(UserType.class, null, null, result);
         assertEquals("Wrong # of objects after operation", COUNT/2, count);
+
+        ObjectQuery query = QueryBuilder.queryFor(UserType.class, prismContext)
+                .asc(UserType.F_NAME)
+                .build();
+        List<PrismObject<UserType>> objectsAfter = repositoryService.searchObjects(UserType.class, query, null, result);
+        objectsAfter.forEach(o -> System.out.println("Exists: " + o.asObjectable().getName()));
     }
 
     @Test
     public void test130AddOneForOne() throws Exception {
+
         OperationResult result = new OperationResult("test130AddOneForOne");
 
         final List<PrismObject<UserType>> objects = new ArrayList<>();
@@ -257,6 +265,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         ResultHandler<UserType> handler = (object, parentResult) -> {
             objects.add(object);
             System.out.print("Got object " + object.getOid());
+            LOGGER.info("Got object {} ({})", object.getOid(), object.asObjectable().getName().getOrig());
             try {
                 int number = Integer.parseInt(object.asObjectable().getCostCenter());
                 if (number >= 0) {

@@ -29,10 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 
@@ -78,7 +75,7 @@ public class RelationRegistryImpl implements RelationRegistry {
 			relations.add(cloneAndNormalize(configuredRelation));
 		}
 		if (includeDefaultRelations) {
-			addDefaultRelations(relations);
+			addStaticallyDefinedRelations(relations);
 		}
 		return new IndexedRelationDefinitions(relations);
 	}
@@ -88,13 +85,14 @@ public class RelationRegistryImpl implements RelationRegistry {
 		if (clone.getDefaultFor() != null && !clone.getKind().contains(clone.getDefaultFor())) {
 			clone.getKind().add(clone.getDefaultFor());
 		}
+		clone.setStaticallyDefined(false);
 		return clone;
 	}
 
-	private void addDefaultRelations(List<RelationDefinitionType> relations) {
-		for (RelationTypes defaultRelationDefinition : RelationTypes.values()) {
-			if (ObjectTypeUtil.findRelationDefinition(relations, defaultRelationDefinition.getRelation()) == null) {
-				relations.add(createRelationDefinitionFromStaticDefinition(defaultRelationDefinition));
+	private void addStaticallyDefinedRelations(List<RelationDefinitionType> relations) {
+		for (RelationTypes staticRelationDefinition : RelationTypes.values()) {
+			if (ObjectTypeUtil.findRelationDefinition(relations, staticRelationDefinition.getRelation()) == null) {
+				relations.add(createRelationDefinitionFromStaticDefinition(staticRelationDefinition));
 			}
 		}
 	}
@@ -109,6 +107,7 @@ public class RelationRegistryImpl implements RelationRegistry {
 		relationDef.setDefaultFor(defaultRelationDefinition.getDefaultFor());
 		relationDef.getKind().addAll(defaultRelationDefinition.getKinds());
 		relationDef.getCategory().addAll(Arrays.asList(defaultRelationDefinition.getCategories()));
+		relationDef.setStaticallyDefined(true);
 		return relationDef;
 	}
 

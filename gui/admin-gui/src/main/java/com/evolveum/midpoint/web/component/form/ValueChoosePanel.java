@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -82,7 +83,8 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
 		textWrapper.setOutputMarkupId(true);
 
-		TextField<String> text = new TextField<>(ID_TEXT, createTextModel());
+		IModel<String> textModel = createTextModel();
+		TextField<String> text = new TextField<>(ID_TEXT, textModel);
 		text.add(new AjaxFormComponentUpdatingBehavior("blur") {
 			private static final long serialVersionUID = 1L;
 
@@ -90,6 +92,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 			protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
 			}
 		});
+		text.add(AttributeAppender.append("title", textModel));
 		text.setRequired(isRequired());
 		text.setEnabled(false);
 		textWrapper.add(text);
