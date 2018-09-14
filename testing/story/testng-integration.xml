@@ -54,6 +54,7 @@
             <class name="com.evolveum.midpoint.testing.story.TestServiceAccounts"/>
             <class name="com.evolveum.midpoint.testing.story.TestLimitedResources"/>
             <class name="com.evolveum.midpoint.testing.story.TestConsistencyMechanism"/>
+            <class name="com.evolveum.midpoint.testing.story.TestPrivacy"/>
         </classes>
     </test>
 </suite>
