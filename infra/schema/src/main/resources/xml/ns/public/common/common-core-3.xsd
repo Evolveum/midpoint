@@ -9683,7 +9683,18 @@
         		<xsd:annotation>
         			<xsd:documentation>
         				Object classes that will be processed by this definition.
+        				
+        				This property should NOT be multi-value. Multiple object classes here do not
+        				make sense any more. That might make sense in early midPoint versions. But
+        				we cannot have several object classes that map to the same kind/intent.
+        				This is still formally multi-valued property in the schema, so we won't break
+        				upgrades. But multiple values in this property won't work.
         			</xsd:documentation>
+        			<xsd:appinfo>
+        				<!-- This property will be set to single-value. Therefore there will be incompatible
+        				     change in 4.0. Thereofre marking it, so it won't escape the review. -->
+        				<a:plannedChange>4.0</a:plannedChange>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="1">
@@ -21499,14 +21510,14 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="left" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1" default="ignore">
+			<xsd:element name="left" type="tns:MergeStrategyType" minOccurs="0" maxOccurs="1" default="ignore">
 				<xsd:annotation>
 					<xsd:documentation>
 						Strategy to process values from the left-hand-side object. 
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="right" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1" default="ignore">
+			<xsd:element name="right" type="tns:MergeStrategyType" minOccurs="0" maxOccurs="1" default="ignore">
 				<xsd:annotation>
 					<xsd:documentation>
 						Strategy to process values from the right-hand-side object.
@@ -21562,7 +21573,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 	
-	<xsd:simpleType name="MergeStategyType">
+	<xsd:simpleType name="MergeStrategyType">
 		<xsd:annotation>
 			<xsd:documentation>
 				TODO

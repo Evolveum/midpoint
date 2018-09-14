@@ -418,6 +418,16 @@
             </xsd:documentation>
         </xsd:annotation>    
     </xsd:element>
+    
+    <xsd:element name="plannedChange" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Version of data model in which the item is likely to be changed in a non-compatible way.
+                This annotation is used for items that will be retained in future versions, but their definition is likely to change
+                in a non-compatible way. It may also be used for major change in meaning or behavior of the item.
+            </xsd:documentation>
+        </xsd:annotation>    
+    </xsd:element>
 
     <xsd:element name="label" type="xsd:string">
         <xsd:annotation>

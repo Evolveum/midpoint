@@ -928,44 +928,6 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 		return (definition.getAllowedValues() != null && definition.getAllowedValues().size() > 0);
 	}
 
-	// TODO - try to get rid of <br> attributes when creating new lines in
-	// association attributes pop-up
-	private String createAssociationTooltipText(PrismProperty property) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(getString("prismValuePanel.message.association.attributes")).append("<br>");
-
-		if (property.getParent() != null && property.getParent().getParent() != null) {
-			PrismObject<ShadowType> shadowPrism = (PrismObject<ShadowType>) property.getParent().getParent();
-
-			Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadowPrism);
-			if (attributes == null || attributes.isEmpty()) {
-				return sb.toString();
-			}
-
-			// TODO - this is a dirty fix for situation, when attribute value is
-			// too long and it is a string without white chars,
-			// thus it will not break in tooltip. break-all is also not good,
-			// since it can brake in the middle of words. What we
-			// are doing here is replacing every, with ,&#8203;, &#8203; (the
-			// same with @) is a zero-width space, so the attribute value
-			// will break after comma. This dirty fix will be removed when
-			// association editor is completed.
-			for (ResourceAttribute<?> attr : attributes) {
-				for (Object realValue : attr.getRealValues()) {
-					sb.append(getAttributeName(attr));
-					sb.append(":");
-					if (realValue != null) {
-						sb.append(
-								realValue.toString().replace(",", ",&#8203;").replace("@", "@&#8203;").replace("_", "@&#8203;"));
-					}
-					sb.append("<br>");
-				}
-			}
-		}
-
-		return sb.toString();
-	}
-
 	private String getAttributeName(ResourceAttribute<?> attr) {
 		if (attr.getDisplayName() != null) {
 			return attr.getDisplayName();

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016-2017 Evolveum
+ * Copyright (c) 2016-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemMergeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefMergeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeStategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionMergeConfigurationType;
@@ -414,7 +414,7 @@ public class ObjectMerger {
 		return projections;
 	}
 
-	private void takeProjections(MergeStategyType strategy, List<ShadowType> mergedProjections,
+	private void takeProjections(MergeStrategyType strategy, List<ShadowType> mergedProjections,
 			List<ShadowType> matchedProjections, List<ShadowType> candidateProjections,
 			List<ShadowType> projectionsLeft, List<ShadowType> projectionsRight,
 			ProjectionMergeConfigurationType projectionMergeConfig) {
@@ -431,10 +431,10 @@ public class ObjectMerger {
 				LOGGER.trace("Projection matches {}", candidateProjection);
 				matchedProjections.add(candidateProjection);
 
-				if (strategy == MergeStategyType.TAKE) {
+				if (strategy == MergeStrategyType.TAKE) {
 					mergedProjections.add(candidateProjection);
 
-				} else if (strategy == null || strategy == MergeStategyType.IGNORE) {
+				} else if (strategy == null || strategy == MergeStrategyType.IGNORE) {
 					// Nothing to do here
 
 				} else {
@@ -466,9 +466,9 @@ public class ObjectMerger {
 		return true;
 	}
 
-	private void takeUnmatchedProjections(MergeStategyType strategy, List<ShadowType> mergedProjections,
+	private void takeUnmatchedProjections(MergeStrategyType strategy, List<ShadowType> mergedProjections,
 			List<ShadowType> matchedProjections, List<ShadowType> candidateProjections) {
-		if (strategy == MergeStategyType.TAKE) {
+		if (strategy == MergeStrategyType.TAKE) {
 
 			for (ShadowType candidateProjection: candidateProjections) {
 				if (!hasProjection(matchedProjections, candidateProjection)) {
@@ -476,7 +476,7 @@ public class ObjectMerger {
 				}
 			}
 
-		} else if (strategy == null || strategy == MergeStategyType.IGNORE) {
+		} else if (strategy == null || strategy == MergeStrategyType.IGNORE) {
 			return;
 		} else {
 			throw new UnsupportedOperationException("Merge strategy "+strategy+" is not supported");
@@ -555,10 +555,10 @@ public class ObjectMerger {
 		}
 
 		ItemDelta itemDelta = itemDefinition.createEmptyDelta(itemPath);
-		MergeStategyType leftStrategy = itemMergeConfig.getLeft();
-		MergeStategyType rightStrategy = itemMergeConfig.getRight();
-		if (leftStrategy == null || leftStrategy == MergeStategyType.IGNORE) {
-			if (rightStrategy == null || rightStrategy == MergeStategyType.IGNORE) {
+		MergeStrategyType leftStrategy = itemMergeConfig.getLeft();
+		MergeStrategyType rightStrategy = itemMergeConfig.getRight();
+		if (leftStrategy == null || leftStrategy == MergeStrategyType.IGNORE) {
+			if (rightStrategy == null || rightStrategy == MergeStrategyType.IGNORE) {
 				// IGNORE both
 				if (itemLeft == null) {
 					return null;
@@ -578,8 +578,8 @@ public class ObjectMerger {
 				return itemDelta;
 			}
 		} else {
-			if (rightStrategy == null || rightStrategy == MergeStategyType.IGNORE) {
-				if (leftStrategy == MergeStategyType.TAKE) {
+			if (rightStrategy == null || rightStrategy == MergeStrategyType.IGNORE) {
+				if (leftStrategy == MergeStrategyType.TAKE) {
 					// TAKE left, IGNORE right
 					return null;
 				} else {
@@ -650,14 +650,14 @@ public class ObjectMerger {
 	}
 
 	private <O extends ObjectType, I extends Item> Collection<PrismValue> getValuesToTake(PrismObject<O> objectLeft, PrismObject<O> objectRight,
-			String side, I origItem, MergeStategyType strategy, Expression<PrismValue, ItemDefinition> valueExpression, Task task, OperationResult result)
+			String side, I origItem, MergeStrategyType strategy, Expression<PrismValue, ItemDefinition> valueExpression, Task task, OperationResult result)
 					throws ConfigurationException, SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
 		if (origItem == null) {
 			return new ArrayList<>(0);
 		}
-		if (strategy == MergeStategyType.TAKE) {
+		if (strategy == MergeStrategyType.TAKE) {
 			return cleanContainerIds(origItem.getClonedValues());
-		} else if (strategy == MergeStategyType.EXPRESSION) {
+		} else if (strategy == MergeStrategyType.EXPRESSION) {
 			if (valueExpression == null) {
 				throw new ConfigurationException("Expression strategy specified but no expression present");
 			}
