@@ -9683,7 +9683,18 @@
         		<xsd:annotation>
         			<xsd:documentation>
         				Object classes that will be processed by this definition.
+        				
+        				This property should NOT be multi-value. Multiple object classes here do not
+        				make sense any more. That might make sense in early midPoint versions. But
+        				we cannot have several object classes that map to the same kind/intent.
+        				This is still formally multi-valued property in the schema, so we won't break
+        				upgrades. But multiple values in this property won't work.
         			</xsd:documentation>
+        			<xsd:appinfo>
+        				<!-- This property will be set to single-value. Therefore there will be incompatible
+        				     change in 4.0. Thereofre marking it, so it won't escape the review. -->
+        				<a:plannedChange>4.0</a:plannedChange>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
         	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="1">
