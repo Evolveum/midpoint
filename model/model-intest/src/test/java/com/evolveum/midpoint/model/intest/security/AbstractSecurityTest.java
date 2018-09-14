@@ -379,11 +379,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final String TASK_T5_OID = "a507e1c8-30e4-11e7-a739-538d921aa79e";
 	protected static final String TASK_T6_OID = "a522b610-30e4-11e7-ab1c-6f834b9ae963";
 
-	protected static final String LOG_PREFIX_FAIL = "SSSSS=X ";
-	protected static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
-	protected static final String LOG_PREFIX_DENY = "SSSSS=- ";
-	protected static final String LOG_PREFIX_ALLOW = "SSSSS=+ ";
-
     protected static final File CAMPAIGNS_FILE = new File(TEST_DIR, "campaigns.xml");
 
     protected static final ItemPath PASSWORD_PATH = new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
@@ -818,184 +813,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertDeleteAllow(UserType.class, USER_LECHUCK_OID, ModelExecuteOptions.createRaw());
 	}
 
-	protected <O extends ObjectType> void assertGetDeny(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		assertGetDeny(type, oid, null);
-	}
 
-	protected <O extends ObjectType> void assertGetDeny(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertGetDeny");
-        OperationResult result = task.getResult();
-		try {
-			logAttempt("get", type, oid, null);
-			PrismObject<O> object = modelService.getObject(type, oid, options, task, result);
-			failDeny("get", type, oid, null);
-		} catch (SecurityViolationException e) {
-			// this is expected
-			logDeny("get", type, oid, null);
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-		}
-	}
-
-	protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		return assertGetAllow(type, oid, null);
-	}
-
-	protected <O extends ObjectType> PrismObject<O> assertGetAllow(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertGetAllow");
-        OperationResult result = task.getResult();
-        logAttempt("get", type, oid, null);
-		PrismObject<O> object = modelService.getObject(type, oid, options, task, result);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-		logAllow("get", type, oid, null);
-		return object;
-	}
-
-	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, int expectedResults) throws Exception {
-		assertSearch(type, ObjectQuery.createObjectQuery(filter), null, expectedResults);
-	}
-	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
-		assertSearch(type, query, null, expectedResults);
-	}
-	
-	protected <O extends ObjectType> void assertSearchRaw(Class<O> type, ObjectQuery query, int expectedResults) throws Exception {
-		assertSearch(type, query, SelectorOptions.createCollection(GetOperationOptions.createRaw()), expectedResults);
-	}
 
 	protected <C extends Containerable> void assertContainerSearch(Class<C> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertContainerSearch(type, query, null, expectedResults);
     }
 
-	protected <O extends ObjectType> void assertSearchDeny(Class<O> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
-		try {
-			assertSearch(type, query, options, 0);
-		} catch (SecurityViolationException e) {
-			// This is expected. The search should either return zero results or throw an exception.
-			logDeny("search");
-		}
-	}
-	
-	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws Exception {
-		assertSearch(type, query, options, 
-				new SearchAssertion<O>() {
-
-					@Override
-					public void assertObjects(String message, List<PrismObject<O>> objects) throws Exception {
-						if (objects.size() > expectedResults) {
-							failDeny(message, type, query, expectedResults, objects.size());
-						} else if (objects.size() < expectedResults) {
-							failAllow(message, type, query, expectedResults, objects.size());
-						}
-					}
-
-					@Override
-					public void assertCount(int count) throws Exception {
-						if (count > expectedResults) {
-							failDeny("count", type, query, expectedResults, count);
-						} else if (count < expectedResults) {
-							failAllow("count", type, query, expectedResults, count);
-						}
-					}
-			
-			});
-	}
-	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, String... expectedOids) throws Exception {
-		assertSearch(type, query, null, expectedOids);
-	}
-	
-	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter,
-			Collection<SelectorOptions<GetOperationOptions>> options, String... expectedOids) throws Exception {
-		assertSearch(type, ObjectQuery.createObjectQuery(filter), options, expectedOids);
-	}
-	
-	protected <O extends ObjectType> void assertSearchFilter(Class<O> type, ObjectFilter filter, String... expectedOids) throws Exception {
-		assertSearch(type, ObjectQuery.createObjectQuery(filter), expectedOids);
-	}
-	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, String... expectedOids) throws Exception {
-		assertSearch(type, query, options, 
-				new SearchAssertion<O>() {
-
-					@Override
-					public void assertObjects(String message, List<PrismObject<O>> objects) throws Exception {
-						if (!MiscUtil.unorderedCollectionEquals(objects, Arrays.asList(expectedOids), 
-								(object,expectedOid) -> expectedOid.equals(object.getOid()))) {
-							failAllow(message, type, (query==null?"null":query.toString())+", expected "+Arrays.toString(expectedOids)+", actual "+objects, null);
-						}
-					}
-
-					@Override
-					public void assertCount(int count) throws Exception {
-						if (count != expectedOids.length) {
-							failAllow("count", type, query, expectedOids.length, count);
-						}
-					}
-			
-			});
-	}
-	
-	protected <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, SearchAssertion<O> assertion) throws Exception {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertSearchObjects");
-        OperationResult result = task.getResult();
-		try {
-			logAttempt("search", type, query);
-			List<PrismObject<O>> objects = modelService.searchObjects(type, query, options, task, result);
-			display("Search returned", objects.toString());
-			assertion.assertObjects("search", objects);
-			assertSuccess(result);
-		} catch (SecurityViolationException e) {
-			// this should not happen
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-			failAllow("search", type, query, e);
-		}
-
-		task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertSearchObjectsIterative");
-        result = task.getResult();
-		try {
-			logAttempt("searchIterative", type, query);
-			final List<PrismObject<O>> objects = new ArrayList<>();
-			ResultHandler<O> handler = new ResultHandler<O>() {
-				@Override
-				public boolean handle(PrismObject<O> object, OperationResult parentResult) {
-					objects.add(object);
-					return true;
-				}
-			};
-			modelService.searchObjectsIterative(type, query, handler, options, task, result);
-			display("Search iterative returned", objects.toString());
-			assertion.assertObjects("searchIterative", objects);
-			assertSuccess(result);
-		} catch (SecurityViolationException e) {
-			// this should not happen
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-			failAllow("searchIterative", type, query, e);
-		}
-
-		task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertSearchObjects.count");
-        result = task.getResult();
-		try {
-			logAttempt("count", type, query);
-			int numObjects = modelService.countObjects(type, query, options, task, result);
-			display("Count returned", numObjects);
-			assertion.assertCount(numObjects);
-			assertSuccess(result);
-		} catch (SecurityViolationException e) {
-			// this should not happen
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-			failAllow("search", type, query, e);
-		}
-	}
 
 	protected <C extends Containerable>
     void assertContainerSearch(Class<C> type, ObjectQuery query,
@@ -1021,58 +844,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         }
     }
 
-	protected void assertAddDeny(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-		assertAddDeny(file, null);
-	}
-	
-	protected void assertAddDenyRaw(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-		assertAddDeny(file, ModelExecuteOptions.createRaw());
-	}
-
-	protected <O extends ObjectType> void assertAddDeny(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-        PrismObject<O> object = PrismTestUtil.parseObject(file);
-        assertAddDeny(object, options);
-	}
-	
-	protected <O extends ObjectType> void assertAddDeny(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertAddDeny");
-        OperationResult result = task.getResult();
-    	ObjectDelta<O> addDelta = object.createAddDelta();
-        try {
-        	logAttempt("add", object.getCompileTimeClass(), object.getOid(), null);
-            modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), options, task, result);
-            failDeny("add", object.getCompileTimeClass(), object.getOid(), null);
-        } catch (SecurityViolationException e) {
-			// this is expected
-        	logDeny("add", object.getCompileTimeClass(), object.getOid(), null);
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-		}
-	}
-
-	protected void assertAddAllow(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
-		assertAddAllow(file, null);
-	}
-
-	protected <O extends ObjectType> void assertAddAllow(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
-        PrismObject<O> object = PrismTestUtil.parseObject(file);
-        assertAddAllow(object, options);
-	}
-	
-	protected <O extends ObjectType> void assertAddAllow(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertAddAllow");
-        OperationResult result = task.getResult();
-    	ObjectDelta<O> addDelta = object.createAddDelta();
-    	logAttempt("add", object.getCompileTimeClass(), object.getOid(), null);
-    	try {
-    		modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), options, task, result);
-    	} catch (SecurityViolationException e) {
-			failAllow("add", object.getCompileTimeClass(), object.getOid(), null, e);
-		}
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-		logAllow("add", object.getCompileTimeClass(), object.getOid(), null);
-	}
 
 	protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		XMLGregorianCalendar oneHourAgo = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "-PT1H");
@@ -1165,50 +936,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		logAllow("modify", type, oid, itemPath);
 	}
 
-	protected <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		assertDeleteDeny(type, oid, null);
-	}
-
-	protected <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertDeleteDeny");
-        OperationResult result = task.getResult();
-        ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
-        try {
-        	logAttempt("delete", type, oid, null);
-    		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
-    		failDeny("delete", type, oid, null);
-		} catch (SecurityViolationException e) {
-			// this is expected
-			logDeny("delete", type, oid, null);
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-		} catch (ObjectNotFoundException e) {
-			// MID-3221
-			// still consider OK ... for now
-			logError("delete", type, oid, null);
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-		}
-	}
-
-	protected <O extends ObjectType> void assertDeleteAllow(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		assertDeleteAllow(type, oid, null);
-	}
-
-	protected <O extends ObjectType> void assertDeleteAllow(Class<O> type, String oid, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertDeleteAllow");
-        OperationResult result = task.getResult();
-        ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
-        logAttempt("delete", type, oid, null);
-        try {
-        	modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
-        } catch (SecurityViolationException e) {
-			failAllow("delete", type, oid, null, e);
-		}
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-		logAllow("delete", type, oid, null);
-	}
+	
 
 	protected void assertImportDeny(File file) throws FileNotFoundException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertImportDeny");
@@ -1266,131 +994,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		TestUtil.assertSetEquals("Wrong action in "+authorization, authorization.getAction(), action);
 	}
 
-	protected void failDeny(String action, Class<?> type, ObjectQuery query, int expected, int actual) {
-		failDeny(action, type, (query==null?"null":query.toString())+", expected "+expected+", actual "+actual);
-	}
 
-	protected void failDeny(String action, Class<?> type, String oid, ItemPath itemPath) {
-		failDeny(action, type, oid+" prop "+itemPath);
-	}
 
-	protected void failDeny(String action, Class<?> type, String desc) {
-		String msg = "Failed to deny "+action+" of "+type.getSimpleName()+":"+desc;
-		System.out.println(LOG_PREFIX_FAIL+msg);
-		LOGGER.error(LOG_PREFIX_FAIL+msg);
-		AssertJUnit.fail(msg);
-	}
-
-	protected <O extends ObjectType> void failDeny(String action) {
-		String msg = "Failed to deny "+action;
-		System.out.println(LOG_PREFIX_FAIL+msg);
-		LOGGER.error(LOG_PREFIX_FAIL+msg);
-		AssertJUnit.fail(msg);
-	}
-
-	protected void failAllow(String action, Class<?> type, ObjectQuery query, SecurityViolationException e) throws SecurityViolationException {
-		failAllow(action, type, query==null?"null":query.toString(), e);
-	}
-
-	protected void failAllow(String action, Class<?> type, ObjectQuery query, int expected, int actual) throws SecurityViolationException {
-		failAllow(action, type, (query==null?"null":query.toString())+", expected "+expected+", actual "+actual, null);
-	}
-
-	protected void failAllow(String action, Class<?> type, String oid, ItemPath itemPath, SecurityViolationException e) throws SecurityViolationException {
-		failAllow(action, type, oid+" prop "+itemPath, e);
-	}
-
-	protected void failAllow(String action, Class<?> type, String desc, SecurityViolationException e) throws SecurityViolationException {
-		String msg = "Failed to allow "+action+" of "+type.getSimpleName()+":"+desc;
-		System.out.println(LOG_PREFIX_FAIL+msg);
-		LOGGER.error(LOG_PREFIX_FAIL+msg);
-		if (e != null) {
-			throw new SecurityViolationException(msg+": "+e.getMessage(), e);
-		} else {
-			AssertJUnit.fail(msg);
-		}
-	}
-
-	protected <O extends ObjectType> void failAllow(String action, SecurityViolationException e) throws SecurityViolationException {
-		String msg = "Failed to allow "+action;
-		System.out.println(LOG_PREFIX_FAIL+msg);
-		LOGGER.error(LOG_PREFIX_FAIL+msg);
-		if (e != null) {
-			throw new SecurityViolationException(msg+": "+e.getMessage(), e);
-		} else {
-			AssertJUnit.fail(msg);
-		}
-	}
-
-	protected void logAttempt(String action, Class<?> type, ObjectQuery query) {
-		logAttempt(action, type, query==null?"null":query.toString());
-	}
-
-	protected void logAttempt(String action, Class<?> type, String oid, ItemPath itemPath) {
-		logAttempt(action, type, oid+" prop "+itemPath);
-	}
-
-	protected void logAttempt(String action, Class<?> type, String desc) {
-		String msg = LOG_PREFIX_ATTEMPT+"Trying "+action+" of "+type.getSimpleName()+":"+desc;
-		System.out.println(msg);
-		LOGGER.info(msg);
-	}
-
-	protected <O extends ObjectType> void logAttempt(String action) {
-		String msg = LOG_PREFIX_ATTEMPT+"Trying "+action;
-		System.out.println(msg);
-		LOGGER.info(msg);
-	}
-
-	protected <O extends ObjectType> void logDeny(String action, Class<O> type, ObjectQuery query) {
-		logDeny(action, type, query==null?"null":query.toString());
-	}
-
-	protected <O extends ObjectType> void logDeny(String action, Class<O> type, String oid, ItemPath itemPath) {
-		logDeny(action, type, oid+" prop "+itemPath);
-	}
-
-	protected <O extends ObjectType> void logDeny(String action, Class<O> type, String desc) {
-		String msg = LOG_PREFIX_DENY+"Denied "+action+" of "+type.getSimpleName()+":"+desc;
-		System.out.println(msg);
-		LOGGER.info(msg);
-	}
-
-	protected <O extends ObjectType> void logDeny(String action) {
-		String msg = LOG_PREFIX_DENY+"Denied "+action;
-		System.out.println(msg);
-		LOGGER.info(msg);
-	}
-
-	protected <O extends ObjectType> void logAllow(String action, Class<O> type, ObjectQuery query) {
-		logAllow(action, type, query==null?"null":query.toString());
-	}
-
-	protected <O extends ObjectType> void logAllow(String action, Class<O> type, String oid, ItemPath itemPath) {
-		logAllow(action, type, oid+" prop "+itemPath);
-	}
-
-	protected <O extends ObjectType> void logAllow(String action, Class<O> type, String desc) {
-		String msg = LOG_PREFIX_ALLOW+"Allowed "+action+" of "+type.getSimpleName()+":"+desc;
-		System.out.println(msg);
-		LOGGER.info(msg);
-	}
-
-	protected <O extends ObjectType> void logAllow(String action) {
-		String msg = LOG_PREFIX_ALLOW+"Allowed "+action;
-		System.out.println(msg);
-		LOGGER.info(msg);
-	}
-
-	protected <O extends ObjectType> void logError(String action, Class<O> type, String oid, ItemPath itemPath, Throwable e) {
-		logError(action, type, oid+" prop "+itemPath, e);
-	}
-
-	protected <O extends ObjectType> void logError(String action, Class<O> type, String desc, Throwable e) {
-		String msg = LOG_PREFIX_DENY+"Error "+action+" of "+type.getSimpleName()+":"+desc + "("+e+")";
-		System.out.println(msg);
-		LOGGER.info(msg);
-	}
 	
 	protected <O extends ObjectType, T extends ObjectType> void assertIsAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O,T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertIsAuthorized");
@@ -1410,61 +1015,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		TestUtil.assertSuccess(result);
 	}
 		
-	protected <O extends ObjectType> void asAdministrator(Attempt attempt) throws Exception {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".asAdministrator");
-        OperationResult result = task.getResult();
-        MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
-        login(USER_ADMINISTRATOR_USERNAME);
-        task.setOwner(getSecurityContextPrincipalUser());
-		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-        try {
-        	attempt.run(task, result);
-        } catch (Throwable e) {
-        	login(origPrincipal);
-        	throw e;
-		}
-        login(origPrincipal);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-	}
 
-	protected <O extends ObjectType> void assertDeny(String opname, Attempt attempt) throws Exception {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertDeny."+opname);
-		task.setOwner(getSecurityContextPrincipalUser());
-		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-        OperationResult result = task.getResult();
-        try {
-        	logAttempt(opname);
-        	attempt.run(task, result);
-            failDeny(opname);
-        } catch (SecurityViolationException e) {
-			// this is expected
-        	logDeny(opname);
-			result.computeStatus();
-			TestUtil.assertFailure(result);
-		}
-	}
 
-	protected <O extends ObjectType> void assertAllow(String opname, Attempt attempt) throws Exception {
-		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertAllow."+opname);
-		task.setOwner(getSecurityContextPrincipalUser());
-		task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
-        OperationResult result = task.getResult();
-        try {
-        	logAttempt(opname);
-        	attempt.run(task, result);
-        } catch (SecurityViolationException e) {
-			failAllow(opname, e);
-		}
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
-		logAllow(opname);
-	}
-
-	@FunctionalInterface
-	interface Attempt {
-		void run(Task task, OperationResult result) throws Exception;
-	}
 
 	protected void assertGlobalStateUntouched() throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(getDummyResourceObject());

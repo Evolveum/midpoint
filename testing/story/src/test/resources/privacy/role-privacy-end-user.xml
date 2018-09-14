@@ -1,0 +1,67 @@
+<!--
+  ~ Copyright (c) 2014-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<role oid="d6f2c30a-b816-11e8-88c5-4f735c761a81"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Privacy End User</name>    
+    <authorization>
+    	<name>autz-get</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+    	<object>
+    		<type>UserType</type>
+    	</object>
+    </authorization>
+    <authorization>
+    	<name>autz-search</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#search</action>
+    	<object>
+    		<type>UserType</type>
+    		<filter>
+    			<q:or>
+		            <q:equal>
+		               <q:path>lifecycleState</q:path>
+		               <q:value>active</q:value>
+		            </q:equal>
+   		            <q:equal>
+		               <q:path>lifecycleState</q:path>
+		            </q:equal>		            
+	            </q:or>
+	        </filter>
+    	</object>
+    </authorization>
+    <authorization>
+    	<!-- MID-4892 -->
+		<name>delegator-read-delagate-assignments</name>
+		<description>
+    		Authorization to read the assignments and assignment-related items from my delegates.
+    		This authorization is necessary so the self-service GUI can properly display user's
+    		delegations. Delegations are in fact assignments in the delegate object, not delegator
+    		object. Therefore authorization to read just "self" will not display the delegations.
+    	</description>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+		<object>
+			<type>UserType</type>
+			<delegator>
+				<special>self</special>
+				<allowInactive>true</allowInactive>
+			</delegator>
+		</object>
+		<item>assignment</item>
+		<item>delegatedRef</item>
+	</authorization>
+</role>

@@ -1214,21 +1214,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								}
 							}
 
-//							// Delegator
-//							if (objectSpecType.getDelegator() != null) {
-//								if (objectDefinition == null) {
-//									objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
-//								}
-//								// TODO: MID-3899
-//								if (UserType.class.isAssignableFrom(objectType)) { TODO
-//									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(AbstractRoleType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
-//								} else if (TaskType.class.isAssignableFrom(objectType)) {
-//									objSpecSecurityFilter = applyOwnerFilterOwnerRef(new ItemPath(TaskType.F_OWNER_REF), objSpecSecurityFilter,  principal, objectDefinition);
-//								} else {
-//									LOGGER.trace("  Authorization not applicable for object because it has owner specification (this is not applicable for search)");
-//									continue;
-//								}
-//							}
+							// Delegator
+							if (objectSpecType.getDelegator() != null) {
+								// TODO: MID-3899
+								LOGGER.trace("    Authorization not applicable for object because it has delegator specification (this is not applicable for search)");
+								continue;
+							}
 
 							applicable = true;
 
