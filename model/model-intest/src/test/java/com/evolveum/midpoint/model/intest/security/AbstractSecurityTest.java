@@ -1030,9 +1030,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	}
 
 	protected <O extends ObjectType> void assertAddDeny(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
+        PrismObject<O> object = PrismTestUtil.parseObject(file);
+        assertAddDeny(object, options);
+	}
+	
+	protected <O extends ObjectType> void assertAddDeny(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertAddDeny");
         OperationResult result = task.getResult();
-        PrismObject<O> object = PrismTestUtil.parseObject(file);
     	ObjectDelta<O> addDelta = object.createAddDelta();
         try {
         	logAttempt("add", object.getCompileTimeClass(), object.getOid(), null);
@@ -1051,9 +1055,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	}
 
 	protected <O extends ObjectType> void assertAddAllow(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+        PrismObject<O> object = PrismTestUtil.parseObject(file);
+        assertAddAllow(object, options);
+	}
+	
+	protected <O extends ObjectType> void assertAddAllow(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertAddAllow");
         OperationResult result = task.getResult();
-        PrismObject<O> object = PrismTestUtil.parseObject(file);
     	ObjectDelta<O> addDelta = object.createAddDelta();
     	logAttempt("add", object.getCompileTimeClass(), object.getOid(), null);
     	try {

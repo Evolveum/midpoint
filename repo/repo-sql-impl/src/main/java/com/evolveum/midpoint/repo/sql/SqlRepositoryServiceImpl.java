@@ -371,9 +371,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return;
         }
 
-        LOGGER.trace("Full query\n{}\nFull paging\n{}",
-                query == null ? "undefined" : query.debugDump(),
-                paging != null ? paging.debugDump() : "undefined");
+        LOGGER.trace("Full query\n{}", query == null ? "undefined" : query.debugDump());
 
         if (iterative) {
             LOGGER.trace("Iterative search by paging defined by the configuration: {}, batch size {}",

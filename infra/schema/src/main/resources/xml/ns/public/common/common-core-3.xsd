@@ -18559,6 +18559,9 @@
 							chosen but a custom paging exists, provided that the paging contains maxSize clause with a number
 							not greater than a specified limit (maxObjectsForImplicitFetchAllIterationMethod).
 						</xsd:documentation>
+						<xsd:annotation>
+							<a:since>3.9</a:since>
+						</xsd:annotation>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

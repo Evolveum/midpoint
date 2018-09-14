@@ -202,4 +202,8 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 	protected <C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException {
 		return DeltaBuilder.deltaFor(objectClass, prismContext);
 	}
+
+	protected SqlRepositoryConfiguration getRepositoryConfiguration() {
+		return ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+	}
 }

@@ -118,14 +118,23 @@ public class FocusProcessor {
     		return;
     	}
 
-    	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-    		// We can do this only for FocusType objects.
-    		return;
+    	if (FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		processFocusFocus((LensContext<F>)context, activityDescription, now, task, result);
+    	} else {
+    		processFocusNonFocus(context, activityDescription, now, task, result);
     	}
-
-    	processFocusFocus((LensContext<F>)context, activityDescription, now, task, result);
 	}
 
+	private <O extends ObjectType> void processFocusNonFocus(LensContext<O> context, String activityDescription,
+			XMLGregorianCalendar now, Task task, OperationResult result) 
+					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
+					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
+		// This is somehow "future legacy" code. It will be removed later when we have better support for organizational structure
+		// membership in resources and tasks.
+		assignmentProcessor.computeTenantRefLegacy(context, task, result);
+		
+	}
+	
 	private <F extends FocusType> void processFocusFocus(LensContext<F> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
@@ -233,7 +242,7 @@ public class FocusProcessor {
 						partialProcessingOptions::getAssignments);
 
 				medic.partialExecute("assignmentsOrg",
-						() -> assignmentProcessor.processOrgAssignments(context, result),
+						() -> assignmentProcessor.processOrgAssignments(context, task, result),
 						partialProcessingOptions::getAssignmentsOrg);
 
 

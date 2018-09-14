@@ -327,7 +327,11 @@ public class QueryInterpreter2 {
         if (paging.getOrderBy() != null || paging.getDirection() != null || paging.getOffset() != null) {
             throw new IllegalArgumentException("orderBy, direction nor offset is allowed on ObjectPagingAfterOid");
         }
-        hibernateQuery.addOrdering(rootAlias + ".oid", OrderDirection.ASCENDING);
+        if (repoConfiguration.isUsingOracle()) {
+	        hibernateQuery.addOrdering("NLSSORT(" + rootAlias + ".oid, 'NLS_SORT=BINARY_AI')", OrderDirection.ASCENDING);
+        } else {
+	        hibernateQuery.addOrdering(rootAlias + ".oid", OrderDirection.ASCENDING);
+        }
         if (paging.getMaxSize() != null) {
             hibernateQuery.setMaxResults(paging.getMaxSize());
         }
