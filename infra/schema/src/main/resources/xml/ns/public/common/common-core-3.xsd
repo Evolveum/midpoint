@@ -21487,14 +21487,14 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="left" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1" default="ignore">
+			<xsd:element name="left" type="tns:MergeStrategyType" minOccurs="0" maxOccurs="1" default="ignore">
 				<xsd:annotation>
 					<xsd:documentation>
 						Strategy to process values from the left-hand-side object. 
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="right" type="tns:MergeStategyType" minOccurs="0" maxOccurs="1" default="ignore">
+			<xsd:element name="right" type="tns:MergeStrategyType" minOccurs="0" maxOccurs="1" default="ignore">
 				<xsd:annotation>
 					<xsd:documentation>
 						Strategy to process values from the right-hand-side object.
@@ -21550,7 +21550,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 	
-	<xsd:simpleType name="MergeStategyType">
+	<xsd:simpleType name="MergeStrategyType">
 		<xsd:annotation>
 			<xsd:documentation>
 				TODO
