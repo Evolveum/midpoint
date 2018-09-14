@@ -2106,11 +2106,17 @@ public class ShadowCache {
 
 			repoShadow = createShadowInRepository(ctx, resourceShadow, unknownIntent, isDoDiscovery, parentResult);
 		} else {
+			//check and fix kind/intent
+			ShadowType repoShadowType = repoShadow.asObjectable();
+			if (repoShadowType.getKind() == null || repoShadowType.getIntent() == null) { //TODO: check also empty?
+				fixKindIntentForShadow(repoShadow, ctx.getResource().asPrismObject(), false);
+			}
+			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadow(repoShadow));
 			}
 		}
-
+		
 		return repoShadow;
 	}
 
@@ -2154,15 +2160,7 @@ public class ShadowCache {
 			// We have object for which there was no shadow. Which means that midPoint haven't known about this shadow before.
 			// Invoke notifyChange() so the new shadow is properly initialized.
 	
-			ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
-			shadowChangeDescription.setResource(ctx.getResource().asPrismObject());
-			shadowChangeDescription.setOldShadow(null);
-			shadowChangeDescription.setCurrentShadow(resourceShadow);
-			shadowChangeDescription.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
-			shadowChangeDescription.setUnrelatedChange(true);
-	
-			Task task = taskManager.createTaskInstance();
-			notifyResourceObjectChangeListeners(shadowChangeDescription, task, task.getResult());
+			fixKindIntentForShadow(resourceShadow, ctx.getResource().asPrismObject(), true);
 		}
 
 		if (unknownIntent) {
@@ -2176,6 +2174,18 @@ public class ShadowCache {
 		}
 
 		return repoShadow;
+	}
+	
+	private void fixKindIntentForShadow(PrismObject<ShadowType> resourceShadow, PrismObject<ResourceType> resource, boolean newShadow) {
+		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
+		shadowChangeDescription.setResource(resource);
+		shadowChangeDescription.setOldShadow(newShadow ? null : resourceShadow);
+		shadowChangeDescription.setCurrentShadow(resourceShadow);
+		shadowChangeDescription.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
+		shadowChangeDescription.setUnrelatedChange(true);
+
+		Task task = taskManager.createTaskInstance();
+		notifyResourceObjectChangeListeners(shadowChangeDescription, task, task.getResult());
 	}
 
 	public Integer countObjects(ObjectQuery query, Task task, final OperationResult result)

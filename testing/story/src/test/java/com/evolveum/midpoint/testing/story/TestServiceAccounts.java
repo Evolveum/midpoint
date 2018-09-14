@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -321,7 +322,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		
 		// THEN
 		displayThen(TEST_NAME);
-		assertTaskExecutionStatus(TASK_LIVE_SYNC_DUMMY_OID, TaskExecutionStatusType.SUSPENDED);
+		assertTaskExecutionStatus(TASK_LIVE_SYNC_DUMMY_OID, TaskExecutionStatus.SUSPENDED);
 	}
 	
 	@Test
@@ -414,7 +415,7 @@ public class TestServiceAccounts extends AbstractStoryTest {
 		
 		// THEN
 		displayThen(TEST_NAME);
-		assertTaskExecutionStatus(TASK_RECONCILE_DUMMY_OID, TaskExecutionStatusType.SUSPENDED);
+		assertTaskExecutionStatus(TASK_RECONCILE_DUMMY_OID, TaskExecutionStatus.SUSPENDED);
 	}
 	
 	/**

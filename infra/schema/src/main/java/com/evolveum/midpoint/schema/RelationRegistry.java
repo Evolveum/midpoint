@@ -92,7 +92,7 @@ public interface RelationRegistry {
 	boolean isProcessedOnRecompute(QName relation);
 
 	/**
-	 * Whether this kind of relations is stored in parentOrgRef. By default, only relations of MEMBER are.
+	 * Whether this kind of relations is stored in parentOrgRef. By default, only relations of MEMBER kind are.
 	 */
 	boolean isStoredIntoParentOrgRef(QName relation);
 
