@@ -148,6 +148,7 @@ public class PageCertDecisions extends PageAdminCertification {
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
         BoxedTablePanel<CertWorkItemDto> table = new BoxedTablePanel<CertWorkItemDto>(ID_DECISIONS_TABLE, provider, initColumns(),
                 UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL, itemsPerPage) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
@@ -205,7 +206,9 @@ public class PageCertDecisions extends PageAdminCertification {
 			column = new LinkColumn<CertWorkItemDto>(
 					createStringResource("PageCertDecisions.table.campaignName"),
 					SearchingUtils.CAMPAIGN_NAME, CertWorkItemDto.F_CAMPAIGN_NAME) {
-				@Override
+                private static final long serialVersionUID = 1L;
+
+                @Override
 				public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, IModel<CertWorkItemDto> rowModel) {
 					super.populateItem(item, componentId, rowModel);
 					AccessCertificationCampaignType campaign = rowModel.getObject().getCampaign();
@@ -225,7 +228,9 @@ public class PageCertDecisions extends PageAdminCertification {
 			};
 		} else {
 			column = new AbstractColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.campaignName"), SearchingUtils.CAMPAIGN_NAME) {
-				@Override
+                private static final long serialVersionUID = 1L;
+
+                @Override
 				public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId,
 						final IModel<CertWorkItemDto> rowModel) {
 					item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
@@ -239,12 +244,22 @@ public class PageCertDecisions extends PageAdminCertification {
 		}
         columns.add(column);
 
-        column = new PropertyColumn<>(createStringResource("PageCertDecisions.table.iteration"),
-                CertCaseOrWorkItemDto.F_ITERATION);
+        column = new PropertyColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.iteration"),
+                CertCaseOrWorkItemDto.F_ITERATION) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getCssClass() {
+                return "countLabel";
+            }
+
+        };
         columns.add(column);
 
         column = new AbstractColumn<CertWorkItemDto, String>(
                 createStringResource("PageCertDecisions.table.campaignStage")) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
@@ -260,11 +275,18 @@ public class PageCertDecisions extends PageAdminCertification {
                     item.add(new TooltipBehavior());
                 }
             }
+
+            @Override
+            public String getCssClass() {
+                return "countLabel";
+            }
         };
         columns.add(column);
 
         column = new AbstractColumn<CertWorkItemDto, String>(
                 createStringResource("PageCertDecisions.table.escalation")) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
@@ -281,12 +303,19 @@ public class PageCertDecisions extends PageAdminCertification {
                     item.add(new TooltipBehavior());
                 }
             }
+
+            @Override
+            public String getCssClass() {
+                return "countLabel";
+            }
         };
         columns.add(column);
 
         column = new PropertyColumn<CertWorkItemDto, String>(
                 createStringResource("PageCertDecisions.table.requested"),
                 SearchingUtils.CURRENT_REVIEW_REQUESTED_TIMESTAMP, CertWorkItemDto.F_REVIEW_REQUESTED) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, IModel<CertWorkItemDto> rowModel) {
                 super.populateItem(item, componentId, rowModel);
@@ -300,17 +329,19 @@ public class PageCertDecisions extends PageAdminCertification {
         };
         columns.add(column);
 
-        column = new PropertyColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.deadline"),
+            column = new PropertyColumn<CertWorkItemDto, String>(createStringResource("PageCertDecisions.table.deadline"),
                 SearchingUtils.CURRENT_REVIEW_DEADLINE, CertWorkItemDto.F_DEADLINE_AS_STRING) {
-            @Override
-            public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
-                super.populateItem(item, componentId, rowModel);
-                XMLGregorianCalendar deadline = rowModel.getObject().getCertCase().getCurrentStageDeadline();
-                if (deadline != null) {
-                    item.add(AttributeModifier.replace("title", WebComponentUtil.formatDate(deadline)));
-                    item.add(new TooltipBehavior());
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void populateItem(Item<ICellPopulator<CertWorkItemDto>> item, String componentId, final IModel<CertWorkItemDto> rowModel) {
+                    super.populateItem(item, componentId, rowModel);
+                    XMLGregorianCalendar deadline = rowModel.getObject().getCertCase().getCurrentStageDeadline();
+                    if (deadline != null) {
+                        item.add(AttributeModifier.replace("title", WebComponentUtil.formatDate(deadline)));
+                        item.add(new TooltipBehavior());
+                    }
                 }
-            }
         };
         columns.add(column);
 
@@ -355,6 +386,8 @@ public class PageCertDecisions extends PageAdminCertification {
         column = new DirectlyEditablePropertyColumn<CertWorkItemDto>(
                 createStringResource("PageCertDecisions.table.comment"),
                 CertWorkItemDto.F_COMMENT) {
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onBlur(AjaxRequestTarget target, IModel model) {
                 // TODO determine somehow if the model.comment was really changed
@@ -543,6 +576,7 @@ public class PageCertDecisions extends PageAdminCertification {
 
         private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
             return new AjaxFormComponentUpdatingBehavior("change") {
+                private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
