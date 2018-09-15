@@ -149,6 +149,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 @Listeners({ CurrentTestResultHolder.class })
 public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContextTests {
 
+	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
+	
 	public static final String COMMON_DIR_NAME = "common";
 	@Deprecated
 	public static final String COMMON_DIR_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/" + COMMON_DIR_NAME;

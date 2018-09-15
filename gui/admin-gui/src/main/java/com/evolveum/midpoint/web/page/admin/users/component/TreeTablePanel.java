@@ -217,15 +217,11 @@ public class TreeTablePanel extends BasePanel<String> {
 		List<InlineMenuItem> items = new ArrayList<>();
 		try {
 			boolean allowModify = org == null ||
-					// TODO: the modify authorization here is probably wrong.
-					// It is a model autz. UI autz should be here instead?
 					parentPage.isAuthorized(ModelAuthorizationAction.MODIFY.getUrl(),
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			boolean allowRead = org == null ||
-					// TODO: the authorization URI here is probably wrong.
-					// It is a model autz. UI autz should be here instead?
-					parentPage.isAuthorized(ModelAuthorizationAction.READ.getUrl(),
+					parentPage.isAuthorized(ModelAuthorizationAction.GET.getUrl(),
 							AuthorizationPhaseType.REQUEST, org.asPrismObject(),
 							null, null, null);
 			InlineMenuItem item;

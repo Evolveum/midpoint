@@ -2272,12 +2272,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
-        assertDeny("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result);
-			}
-		});
+        assertDeny("assign application role to jack", (task, result) -> 
+				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
 
         assertAllow("unassign business role from jack",
         	(task, result) ->
@@ -2422,12 +2418,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignments(user, 3);
         assertAssignedRole(user, ROLE_BUSINESS_1_OID);
 
-        assertDeny("assign application role to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result);
-			}
-		});
+        assertDeny("assign application role to jack", 
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_BUSINESS_2_OID, task, result));
 
         // End-user role has authorization to assign, but not to unassign
         assertDeny("unassign business role from jack",
@@ -2558,12 +2550,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAssignments(user, 2);
         assertAssignedRole(user, ROLE_APPLICATION_1_OID);
 
-        assertDeny("assign application role 2 to jack", new Attempt() {
-			@Override
-			public void run(Task task, OperationResult result) throws Exception {
-				assignRole(USER_JACK_OID, ROLE_APPLICATION_2_OID, task, result);
-			}
-		});
+        assertDeny("assign application role 2 to jack", 
+        		(task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_2_OID, task, result));
 
         assertAllow("unassign application role 1 from jack",
         		(task,result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result));
