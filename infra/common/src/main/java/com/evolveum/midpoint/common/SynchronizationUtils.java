@@ -164,10 +164,18 @@ public class SynchronizationUtils {
 	public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent, ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource, boolean strictIntent) throws SchemaException {
 		List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
 
+		ShadowKindType policyKind = synchronizationPolicy.getKind();
+		if (policyKind == null) {
+			policyKind = ShadowKindType.ACCOUNT;
+		}
+		
+		String policyIntent = synchronizationPolicy.getIntent();
+		
+		boolean containsPolicyObjectClass = false;
+		
+//		List<QName> applicablePolicyObjectClasses = new ArrayList<>();
 		if (policyObjectClasses == null || policyObjectClasses.isEmpty()) {
-
-			String policyIntent = synchronizationPolicy.getIntent();
-			ShadowKindType policyKind = synchronizationPolicy.getKind();
+			
 			ObjectClassComplexTypeDefinition policyObjectClass = null;
 			RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 			if (schema == null) {
@@ -185,27 +193,27 @@ public class SynchronizationUtils {
 				}
 
 			}
+			if (policyObjectClass != null) {
+				containsPolicyObjectClass = true;
+			}
 			if (policyObjectClass != null && !policyObjectClass.getTypeName().equals(objectClass)) {
 				return false;
 			}
-		}
-		if (policyObjectClasses != null && !policyObjectClasses.isEmpty()) {
+		} else {
+			containsPolicyObjectClass = true;
 			if (objectClass != null && !QNameUtil.contains(policyObjectClasses, objectClass)) {
 				return false;
 			}
 		}
 
 		// kind
-		ShadowKindType policyKind = synchronizationPolicy.getKind();
-		boolean kindMatch = policyKind != null ? policyKind.equals(kind) : kind == null ? true : false; 
-		if (!kindMatch) {
+		if (!policyKind.equals(kind) && !containsPolicyObjectClass) {
 			LOGGER.trace("Kinds don't match, skipping policy {}", synchronizationPolicy);
 			return false;
 		}
 
 		// intent
 		// TODO is the intent always present in shadow at this time? [med]
-		String policyIntent = synchronizationPolicy.getIntent();
 		LOGGER.trace("Comparing intents, policy intent: {}, current intent: {}", policyIntent, intent);
 		if (!strictIntent) {
 			if (intent != null && !MiscSchemaUtil.equalsIntent(intent, policyIntent)) {

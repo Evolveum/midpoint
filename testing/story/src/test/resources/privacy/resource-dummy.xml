@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<resource oid="0069ac14-8377-11e8-b404-5b5a1a8af0db"
+<resource oid="dfc012e2-b813-11e8-82af-679b6f0a6ad4"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -165,99 +165,6 @@
             
 		</objectType>
 
-		<!-- Service accounts. Same as user accounts, just no outbound mappings. -->
-		<objectType>
-			<kind>account</kind>
-			<intent>service</intent>
-			<default>false</default>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<attribute>
-				<ref>icfs:name</ref>
-				<displayName>Username</displayName>
-				<inbound>
-					<target>
-						<path>name</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:fullname</ref>
-				<inbound>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
-			</attribute>
-			<configuredCapabilities>
-				<cap:create>
-					<cap:enabled>false</cap:enabled>
-				</cap:create>
-				<cap:update>
-					<cap:enabled>false</cap:enabled>
-				</cap:update>
-				<cap:delete>
-					<cap:enabled>false</cap:enabled>
-				</cap:delete>
-			</configuredCapabilities>
-		</objectType>
-		
 	</schemaHandling>
 	
-	<consistency>
-		<connectorErrorCriticality>
-			<!-- We need to set this to critical.
-				 Otherwise disabled capabilities will cause only partial errors and inbound expressions may still be processed. -->
-			<unsupported>fatal</unsupported>
-		</connectorErrorCriticality>
-	</consistency>
-	
-	<synchronization>
-	
-		<!-- TODO: This should be modified to use classification expression.
-		     For now hardcoded to service accounts to test MID-4522 -->
-	
-		<objectSynchronization>
-			<objectClass>ri:AccountObjectClass</objectClass>
-			<kind>account</kind>
-			<intent>service</intent>
-			<focusType>ServiceType</focusType>
-			<enabled>true</enabled>
-			<correlation>
-				<q:equal>
-					<q:path>name</q:path>
-					<expression>
-						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
-                            $account/attributes/icfs:name</path>
-					</expression>
-				</q:equal>
-			</correlation>
-			<reaction>
-	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
-	        </reaction>
-	        <reaction>
-	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
-	            </action>
-	        </reaction>
-	        <reaction>
-	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus</handlerUri>
-	            </action>
-	        </reaction>
-        </objectSynchronization>
-
-	</synchronization>
-
 </resource>

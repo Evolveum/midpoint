@@ -1363,6 +1363,14 @@ th.shrink {
 	width: -moz-min-content;
 }
 
+th.countLabel{
+	// The content of this column is just some integer value.
+	// WARNING: this means both the header and the table data
+	//          have just some integer value.
+	// See com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions
+	width: 70px;
+}
+
 .expand-collapse-button, .expand-collapse-button:hover, .expand-collapse-button:focus { //class for expand-collapse button next to title
 	color: @text-label-color;
 	width: 22px;

@@ -169,15 +169,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(subResult);
 			SynchronizationContext<F> syncCtx = loadSynchronizationContext(applicableShadow, currentShadow, change.getResource(), change.getSourceChannel(), configuration, task, subResult);
-
+			syncCtx.setUnrelatedChange(change.isUnrelatedChange());
+			
 			ObjectSynchronizationType obejctSynchronization = syncCtx.getObjectSynchronization();
 			traceObjectSynchronization(obejctSynchronization);
 
 			if (!checkSynchronizationPolicy(syncCtx, eventInfo)) {
-				return;
-			}
-
-			if (!checkTaskConstraints(syncCtx, eventInfo)) {
 				return;
 			}
 
@@ -192,7 +189,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			setupSituation(syncCtx, eventInfo, change);
 			
-			if (!checkDryRunAndUnrelatedChange(syncCtx, eventInfo, change, now)) {
+			if (!checkDryRunAndUnrelatedChange(syncCtx, eventInfo, now)) {
 				return;
 			}
 
@@ -338,6 +335,32 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		ObjectSynchronizationType obejctSynchronization = syncCtx.getObjectSynchronization();
 		OperationResult subResult = syncCtx.getResult();
 		Task task = syncCtx.getTask();
+		
+		if (syncCtx.isUnrelatedChange()) {
+			PrismObject<ShadowType> applicableShadow = syncCtx.getApplicableShadow();
+			Validate.notNull(applicableShadow, "No current nor old shadow present: ");
+			List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(applicableShadow);
+			ShadowType applicableShadowType = applicableShadow.asObjectable();
+			if (applicableShadowType.getIntent() == null) {
+				String intent = syncCtx.getObjectSynchronization() != null ? syncCtx.getObjectSynchronization().getIntent() : "unknown";
+				PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_INTENT,
+						syncCtx.getApplicableShadow().getDefinition(), intent);
+				modifications.add(intentDelta);
+			}
+			if (applicableShadowType.getKind() == null) {
+				ShadowKindType kind = syncCtx.getObjectSynchronization() != null ? syncCtx.getObjectSynchronization().getKind() : ShadowKindType.UNKNOWN;
+				PropertyDelta<ShadowKindType> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_KIND,
+						syncCtx.getApplicableShadow().getDefinition(), kind);
+				modifications.add(intentDelta);
+			}
+			
+			executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, subResult);
+			subResult.recordSuccess();
+			eventInfo.record(task);
+			LOGGER.debug("SYNCHRONIZATION: UNRELATED CHNAGE for {}", syncCtx.getApplicableShadow());
+			return false;
+		}
+		
 		if (obejctSynchronization == null) {
 			String message = "SYNCHRONIZATION no matching policy for " + syncCtx.getApplicableShadow() + " ("
 					+ syncCtx.getApplicableShadow().asObjectable().getObjectClass() + ") " + " on " + syncCtx.getResource()
@@ -350,7 +373,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			eventInfo.record(task);
 			return false;
 		}
-
+		
 		if (!syncCtx.isSynchronizationEnabled()) {
 			String message = "SYNCHRONIZATION is not enabled for " + syncCtx.getResource()
 					+ " ignoring change from channel " + syncCtx.getChanel();
@@ -366,33 +389,33 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return true;
 	}
 	
-	/**
-	 * check if the kind/intent in the syncPolicy satisfy constraints defined in task
-	 * @param syncCtx
-	 * @param eventInfo
-	 * @param task
-	 * @param subResult
-	 * @return
-	 * @throws SchemaException 
-	 */
-	private <F extends FocusType> boolean checkTaskConstraints(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo) throws SchemaException {
-		if (!syncCtx.isSatisfyTaskConstraints()) {
-			OperationResult subResult = syncCtx.getResult();
-			Task task = syncCtx.getTask();
-			LOGGER.trace("SYNCHRONIZATION skipping {} because it does not match kind/intent defined in task",
-					new Object[] { syncCtx.getApplicableShadow() });
-			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, 
-					false);
-			executeShadowModifications(syncCtx.getCurrentShadow(), modifications, task, subResult);
-			subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
-					"Skipped because it does not match objectClass/kind/intent");
-			eventInfo.setDoesNotMatchTaskSpecification();
-			eventInfo.record(task);
-			return false;
-		}
-		
-		return true;
-	}
+//	/**
+//	 * check if the kind/intent in the syncPolicy satisfy constraints defined in task
+//	 * @param syncCtx
+//	 * @param eventInfo
+//	 * @param task
+//	 * @param subResult
+//	 * @return
+//	 * @throws SchemaException 
+//	 */
+//	private <F extends FocusType> boolean checkTaskConstraints(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo) throws SchemaException {
+//		if (!syncCtx.isSatisfyTaskConstraints()) {
+//			OperationResult subResult = syncCtx.getResult();
+//			Task task = syncCtx.getTask();
+//			LOGGER.trace("SYNCHRONIZATION skipping {} because it does not match kind/intent defined in task",
+//					new Object[] { syncCtx.getApplicableShadow() });
+//			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, 
+//					false);
+//			executeShadowModifications(syncCtx.getCurrentShadow(), modifications, task, subResult);
+//			subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
+//					"Skipped because it does not match objectClass/kind/intent");
+//			eventInfo.setDoesNotMatchTaskSpecification();
+//			eventInfo.record(task);
+//			return false;
+//		}
+//		
+//		return true;
+//	}
 	
 		
 	private <F extends FocusType> boolean checkProtected(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo) {
@@ -410,30 +433,22 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		return true;
 	}
 	
-	private <F extends FocusType> boolean checkDryRunAndUnrelatedChange(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, ResourceObjectShadowChangeDescription change, XMLGregorianCalendar now) throws SchemaException {
+	private <F extends FocusType> boolean checkDryRunAndUnrelatedChange(SynchronizationContext<F> syncCtx, SynchronizationEventInformation eventInfo, XMLGregorianCalendar now) throws SchemaException {
 		OperationResult subResult = syncCtx.getResult();
 		Task task = syncCtx.getTask();
-		if (change.isUnrelatedChange() || ModelImplUtils.isDryRun(task)) {
-			if (syncCtx.getApplicableShadow() == null) { 
-				throw new IllegalStateException("No current nor old shadow present: " + change);
-			}
-
-			List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
-					syncCtx.getApplicableShadow(), syncCtx.getSituation(), task.getChannel(), false, now);
-			if (StringUtils.isNotBlank(syncCtx.getObjectSynchronization().getIntent())) {
-				modifications.add(PropertyDelta.createModificationReplaceProperty(ShadowType.F_INTENT,
-						syncCtx.getApplicableShadow().getDefinition(), syncCtx.getObjectSynchronization().getIntent()));
-			}
+		if (ModelImplUtils.isDryRun(task)) {
+			List<PropertyDelta<?>> modifications = createShadowIntentAndSynchronizationTimestampDelta(syncCtx, true);
 			executeShadowModifications(syncCtx.getApplicableShadow(), modifications, task, subResult);
 			subResult.recordSuccess();
 			eventInfo.record(task);
-			LOGGER.debug("SYNCHRONIZATION: DONE (dry run/unrelated) for {}", syncCtx.getApplicableShadow());
+			LOGGER.debug("SYNCHRONIZATION: DONE (dry run) for {}", syncCtx.getApplicableShadow());
 			return false;
 		}
 		return true;
 	}
 	
 	private <F extends FocusType> List<PropertyDelta<?>> createShadowIntentAndSynchronizationTimestampDelta(SynchronizationContext<F> syncCtx, boolean saveIntent) {
+		Validate.notNull(syncCtx.getApplicableShadow(), "No current nor old shadow present: ");
 		List<PropertyDelta<?>> modifications = SynchronizationUtils.createSynchronizationTimestampsDelta(syncCtx.getApplicableShadow());
 		if (saveIntent && StringUtils.isNotBlank(syncCtx.getObjectSynchronization().getIntent())) {
 			PropertyDelta<String> intentDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_INTENT,
@@ -1258,10 +1273,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			newStateIncrement.setCountSynchronizationDisabled(1);
 		}
 
-		public void setDoesNotMatchTaskSpecification() {
-			originalStateIncrement.setCountNotApplicableForTask(1);
-			newStateIncrement.setCountNotApplicableForTask(1);
-		}
+//		public void setDoesNotMatchTaskSpecification() {
+//			originalStateIncrement.setCountNotApplicableForTask(1);
+//			newStateIncrement.setCountNotApplicableForTask(1);
+//		}
 
 		private void setSituation(SynchronizationInformation.Record increment,
 				SynchronizationSituationType situation) {

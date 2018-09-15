@@ -36,7 +36,7 @@
             <class name="com.evolveum.midpoint.model.impl.controller.ModelUtilsTest"/>
         </classes>
     </test>
-    <test name="Expresions" preserve-order="true" parallel="false" verbose="10">
+    <test name="Expressions" preserve-order="true" parallel="false" verbose="10">
         <classes>
             <class name="com.evolveum.midpoint.model.impl.expr.ExpressionHandlerImplTest"/>
             <class name="com.evolveum.midpoint.model.impl.expr.TestFilterExpression" />
@@ -85,6 +85,7 @@
             <class name="com.evolveum.midpoint.model.impl.security.TestSecurityQuestionsAuthenticationEvaluator"/>
             <class name="com.evolveum.midpoint.model.impl.security.TestUserProfileService"/>
             <class name="com.evolveum.midpoint.model.impl.misc.TestCaseManagement"/>
+            <class name="com.evolveum.midpoint.model.impl.misc.TestRelationRegistry"/>
         </classes>
     </test>
 </suite>

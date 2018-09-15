@@ -199,15 +199,10 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
         
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        
-        ImportOptionsType options = MiscSchemaUtil.getDefaultImportOptions();
-        ModelExecuteOptionsType modelOptions = new ModelExecuteOptionsType();
-        modelOptions.setRaw(false);
-		options.setModelExecutionOptions(modelOptions);
 
         // WHEN
         displayWhen(TEST_NAME);
-        importObjectFromFile(ORG_MULTITENANT_FILE, options, task, result);
+        importObjectsFromFileNotRaw(ORG_MULTITENANT_FILE, task, result);
         
         // THEN
         displayThen(TEST_NAME);

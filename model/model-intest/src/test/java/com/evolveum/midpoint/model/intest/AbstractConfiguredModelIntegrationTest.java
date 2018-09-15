@@ -76,7 +76,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
 	protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR + "/user-template.xml";
 	protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";

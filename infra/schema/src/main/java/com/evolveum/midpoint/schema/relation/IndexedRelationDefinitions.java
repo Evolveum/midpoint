@@ -27,6 +27,7 @@ import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.util.CollectionUtils;
 
@@ -251,18 +252,30 @@ class IndexedRelationDefinitions {
 				continue;
 			}
 			Set<QName> defaultRelationNames = new HashSet<>();
+			Set<QName> userDefinedDefaultRelationNames = new HashSet<>();
 			for (QName relationName : relationNames) {
 				RelationDefinitionType definition = relationDefinitionsByRelationName.get(relationName);
 				assert definition != null;
 				if (definition.getDefaultFor() == kind) {
 					defaultRelationNames.add(relationName);
+					if (BooleanUtils.isNotTrue(definition.isStaticallyDefined())) {
+						userDefinedDefaultRelationNames.add(relationName);
+					}
 				}
 			}
 			QName chosen;
 			if (defaultRelationNames.size() > 1) {
-				chosen = defaultRelationNames.iterator().next();
-				LOGGER.error("More than one default relation set up for kind '{}': {}. Please choose one! Temporarily selecting '{}'",
-						kind, defaultRelationNames, chosen);
+				if (userDefinedDefaultRelationNames.size() == 1) {
+					chosen = userDefinedDefaultRelationNames.iterator().next();       // i.e. we ignore statically defined relations here
+				} else if (userDefinedDefaultRelationNames.size() > 1) {
+					chosen = userDefinedDefaultRelationNames.iterator().next();       // i.e. we choose only from user-defined relations
+					LOGGER.error(
+							"More than one default relation set up for kind '{}': {}. Please choose one! Temporarily selecting '{}'",
+							kind, defaultRelationNames, chosen);
+				} else {
+					throw new AssertionError("Multiple default relations set up for kind '" + kind +
+							"' among statically defined relations: " + defaultRelationNames);
+				}
 			} else if (defaultRelationNames.size() == 1) {
 				chosen = defaultRelationNames.iterator().next();
 			} else {
