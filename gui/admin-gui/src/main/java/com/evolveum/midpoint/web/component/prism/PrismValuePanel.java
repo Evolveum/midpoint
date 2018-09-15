@@ -586,11 +586,10 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 				
 				if (!(getPageBase() instanceof PageUser)) {
 					return new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
-						getModel().getObject().isReadonly(), true);
+						getModel().getObject().isReadonly(), true, true);
 				} 
-				
-				panel = new PasswordPanel(id, new PropertyModel<>(getModel(), baseExpression),
-							getModel().getObject().isReadonly());
+				PropertyModel propModel = new PropertyModel<>(getModel(), baseExpression);
+				panel = new PasswordPanel(id, propModel, getModel().getObject().isReadonly(), propModel.getObject() == null, true);
 				
 			} else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
 				panel = new TriStateComboPanel(id, new PropertyModel<>(getModel(), baseExpression));

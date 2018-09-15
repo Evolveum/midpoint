@@ -38,6 +38,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditablePropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -76,6 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -290,6 +292,7 @@ public class LoggingConfigurationTabPanel extends BasePanel<ContainerWrapper<Log
 			public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<ClassLoggerConfigurationType>> rowModel) {
 				loggerEditPerformed(target, rowModel, null);
 			}
+			
 		});
 		
 		columns.add(new EditablePropertyWrapperColumn<ClassLoggerConfigurationType, String>(createStringResource("LoggingConfigurationTabPanel.loggers.level"), ClassLoggerConfigurationType.F_LEVEL, getPageBase()));

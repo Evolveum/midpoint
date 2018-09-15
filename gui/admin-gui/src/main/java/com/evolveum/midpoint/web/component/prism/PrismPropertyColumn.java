@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -25,11 +27,13 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,6 +55,24 @@ public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyColumn.class);
+	
+	private static final Map<String, LoggingComponentType> componentMap = new HashMap<>();
+
+	static {
+		componentMap.put("com.evolveum.midpoint", LoggingComponentType.ALL);
+		componentMap.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
+		componentMap.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
+		componentMap.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
+		componentMap.put("com.evolveum.midpoint.web", LoggingComponentType.WEB);
+		componentMap.put("com.evolveum.midpoint.gui", LoggingComponentType.GUI);
+		componentMap.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
+		componentMap.put("com.evolveum.midpoint.model.sync",
+				LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
+		componentMap.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
+		componentMap.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
+		componentMap.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
+		componentMap.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
+	}
     
     private boolean labelContainerVisible = true;
     private PageBase pageBase;
@@ -81,8 +103,9 @@ public class PrismPropertyColumn<IW extends ItemWrapper> extends BasePanel<IW> {
         	}
         	for(LoggingComponentType componentLogger : componentLoggers.getObject()) {
         		LookupTableRowType row = new LookupTableRowType();
-        		row.setKey(componentLogger.value());
-        		row.setValue(componentLogger.value());
+	    			String value = ComponentLoggerType.getPackageByValue(componentLogger);
+        		row.setKey(value);
+        		row.setValue(value);
         		row.setLabel(new PolyStringType(createStringResource("LoggingComponentType." + componentLogger.name()).getString()));
         		list.add(row);
         	}
