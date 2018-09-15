@@ -2981,6 +2981,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				type, prismContext);
 		propDef.setDynamic(true);
 		propDef.setMaxOccurs(1);
+		propDef.setIndexed(false);          // redundant, as dynamic extension items are not indexed by default
 		PrismProperty<T> property = propDef.instantiate();
 		property.addValues(syncTokenValues);
 		return property;
