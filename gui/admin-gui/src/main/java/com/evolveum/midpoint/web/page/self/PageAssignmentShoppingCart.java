@@ -310,6 +310,11 @@ public class PageAssignmentShoppingCart<R extends AbstractRoleType> extends Page
             }
 
             @Override
+            protected String getTargetUserButtonClass(){
+                return "btn-sm";
+            }
+
+            @Override
             protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
                 super.onDeleteSelectedUsersPerformed(target);
                 getRoleCatalogStorage().setTargetUserList(new ArrayList<>());
