@@ -1,0 +1,61 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+	  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xmlns:my="http://example.com/xml/ns/mySchema"
+	  oid="oid-1">
+	<name>name-1</name>
+	<description>description-1</description>
+	<lifecycleState>active</lifecycleState>
+	<metadata>
+		<certifierComment>hello world</certifierComment>
+	</metadata>
+	<activation>
+		<administrativeStatus>enabled</administrativeStatus>
+		<effectiveStatus>enabled</effectiveStatus>
+	</activation>
+	<assignment id="1">
+		<targetRef oid="role-approver-meta-role" relation="org:default" type="c:RoleType"/>
+		<activation>
+			<effectiveStatus>enabled</effectiveStatus>
+		</activation>
+	</assignment>
+	<assignment>
+		<targetRef oid="manager-approved-meta-role" relation="org:default" type="c:RoleType"/>
+		<activation>
+			<effectiveStatus>enabled</effectiveStatus>
+		</activation>
+	</assignment>
+	<assignment>
+		<targetRef oid="unassign-role-workflow-meta-role" relation="org:default" type="c:RoleType"/>
+		<activation>
+			<effectiveStatus>enabled</effectiveStatus>
+		</activation>
+	</assignment>
+	<assignment>
+		<targetRef oid="org-aplikacni-role" relation="org:default" type="c:OrgType"/>
+		<activation>
+			<effectiveStatus>enabled</effectiveStatus>
+		</activation>
+	</assignment>
+	<requestable>false</requestable>
+	<idempotence>conservative</idempotence>
+</role>
