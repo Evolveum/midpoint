@@ -118,7 +118,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             }
         };
         addValueButtonPanel.setOutputMarkupId(true);
-        addValueButtonPanel.getButtonContainer().add(new VisibleEnableBehaviour(){
+        addValueButtonPanel.add(new VisibleEnableBehaviour(){
             private static final long serialVersionUID = 1L;
 
             @Override

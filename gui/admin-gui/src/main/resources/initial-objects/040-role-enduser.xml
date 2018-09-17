@@ -150,14 +150,14 @@
     	</object>
     </authorization>
     <authorization>
-    	<name>assignment-target-read</name>
+    	<name>assignment-target-get</name>
     	<description>
     		Authorization that allows to read all the object that are possible assignment targets. We want that
     		to display the targets in the selection windows.
     		Note that this authorization may be too broad for production use. Normally it should be limited to just
     		selected properties such as name and description.
     	</description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
         <object>
             <type>OrgType</type>
         </object>

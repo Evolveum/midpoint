@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
 
@@ -82,6 +83,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
@@ -146,7 +148,13 @@ public class NotificationConfigTabPanel extends BasePanel<ContainerWrapper<Notif
 		
 		
 		
-		mailConfigType = (MailConfigurationType)mailConfig.getValues().get(0).getValue().getRealValue();
+		mailConfigType = (MailConfigurationType)((PrismPropertyValue<MailConfigurationType>)mailConfig.getValues().get(0).getValue()).getValue();
+		
+		if(mailConfigType == null) {
+			mailConfigType = new MailConfigurationType();
+//			((PrismPropertyValue<MailConfigurationType>)mailConfig.createAddedValue().getValue()).setValue(mailConfigType);
+			((PrismPropertyValue<MailConfigurationType>)mailConfig.getValues().get(0).getValue()).setValue(mailConfigType);;
+    	}
 		
 		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getItemDefinition().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
 		

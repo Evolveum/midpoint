@@ -427,7 +427,9 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 	protected abstract void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<ContainerValueWrapper<C>> rowModel, List<ContainerValueWrapper<C>> listItems);
 	
 	private void deleteItemPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<C>> toDelete) {
-		if (toDelete == null){
+		if (toDelete == null || toDelete.isEmpty()){
+			warn(createStringResource("MultivalueContainerListPanel.message.noAssignmentSelected").getString());
+			target.add(getPageBase().getFeedbackPanel());
 			return;
 		}
 		toDelete.forEach(value -> {

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -80,6 +81,7 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
                 showUserSelectionPopup = true;
             }
         };
+        userSelectionButton.add(AttributeModifier.append("class", getTargetUserButtonClass()));
         userSelectionButton.setOutputMarkupId(true);
         userSelectionButton.add(new AttributeAppender("title", new AbstractReadOnlyModel<String>() {
             private static final long serialVersionUID = 1L;
@@ -127,6 +129,10 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
 
     protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
         showUserSelectionPopup = false;
+    }
+
+    protected String getTargetUserButtonClass(){
+        return "";
     }
 
     private void initUserSelectionPopup(AjaxRequestTarget target) {
