@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Checker context related to one object type (resource + kind).
+ * Checker context related to one object type (resource + object class).
  *
  * @author Pavol Mederly
  */
