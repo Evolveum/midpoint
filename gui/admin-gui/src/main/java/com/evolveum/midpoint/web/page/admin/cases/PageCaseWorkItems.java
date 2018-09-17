@@ -174,7 +174,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
             if (onlyOutcomeItems != null && onlyOutcomeItems.getValue()) {
                 query.addFilter(
                         QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
-                                .item(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq("SUCCESS")
+                                .item(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq(OperationResultStatusType.SUCCESS.value())
                                 .build().getFilter()
                 );
             }
@@ -193,7 +193,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                                         .block()
                                             // or directly closed case work items
                                             .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq(SEARCH_FILTER_CASES_CLOSED)
-                                            .and().item(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq("SUCCESS")
+                                            .and().item(AbstractWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).eq(OperationResultStatusType.SUCCESS.value())
                                         .endBlock()
                                 .endBlock()
                                 .build().getFilter()
