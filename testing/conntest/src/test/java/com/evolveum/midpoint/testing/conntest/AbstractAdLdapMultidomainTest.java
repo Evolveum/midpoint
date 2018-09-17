@@ -118,6 +118,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	public static final String ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME = "msExchHideFromAddressLists";
 
 	protected static final String ACCOUNT_JACK_SAM_ACCOUNT_NAME = "jack";
+	protected static final String ACCOUNT_JACK_SID = "S-1-5-21-3305462238-3617280118-659738602-4878";
 	protected static final String ACCOUNT_JACK_FULL_NAME = "Jack Sparrow";
 	protected static final String ACCOUNT_JACK_PASSWORD = "qwe.123";
 
@@ -365,14 +366,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
 
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME));
+        assertSid(shadow, ACCOUNT_JACK_SID);
         jackAccountOid = shadow.getOid();
 
 //        assertConnectorOperationIncrement(2);
@@ -410,14 +411,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         assertEquals("Unexpected search result: "+shadows, 1, shadows.size());
 
         PrismObject<ShadowType> shadow = shadows.get(0);
         display("Shadow", shadow);
         assertAccountShadow(shadow, jackDn);
+        assertSid(shadow, ACCOUNT_JACK_SID);
 
 //        assertConnectorOperationIncrement(2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -457,8 +458,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         assertEquals("Unexpected search result: "+shadows, 0, shadows.size());
 
@@ -2140,6 +2140,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		assertNotNull("No primary identifier ("+getPrimaryIdentifierAttributeQName()+" in "+shadow, primaryIdAttr);
 		String primaryId = primaryIdAttr.getRealValue();
 		assertTrue("Unexpected chars in primary ID: '"+primaryId+"'", primaryId.matches("[a-z0-9\\-]+"));
+		
+		ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI,AdUtils.ATTRIBUTE_OBJECT_SID_NAME));
+		assertNotNull("No SID in "+shadow, objectSidAttr);
+		display("SID of " + dn + ": " + objectSidAttr);
+	}
+	
+	protected void assertSid(PrismObject<ShadowType> shadow, String expectedSid) throws SchemaException {
+		ResourceAttribute<String> objectSidAttr = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI,AdUtils.ATTRIBUTE_OBJECT_SID_NAME));
+		assertNotNull("No SID in "+shadow, objectSidAttr);
+		display("SID of " + shadow + ": " + objectSidAttr);
+		assertEquals("Wrong SID in "+shadow, expectedSid, objectSidAttr.getRealValue());
 	}
 
 	@Override
