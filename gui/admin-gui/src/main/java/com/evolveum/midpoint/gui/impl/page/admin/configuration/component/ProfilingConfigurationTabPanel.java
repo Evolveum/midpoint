@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -53,6 +55,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ProfilingConfigurationTabPanel.class);
 	
+	private static final String ID_PROFILING_ENABLED_NOTE = "profilingEnabledNote";
 	private static final String ID_PROFILING = "profiling";
 	private static final String ID_PROFILING_LOGGER_APPENDERS = "profilingLoggerAppenders";
 	private static final String ID_PROFILING_LOGGER_LEVEL = "profilingLoggerLevel";
@@ -81,6 +84,11 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     }
     
     protected void initLayout() {
+    	
+    	WebMarkupContainer profilingEnabledNote = new WebMarkupContainer(ID_PROFILING_ENABLED_NOTE);
+		profilingEnabledNote.setVisible(!getPageBase().getMidpointConfiguration().isProfilingEnabled());
+		add(profilingEnabledNote);
+    	
     	PrismContainerPanel<ProfilingConfigurationType> profilingPanel = new PrismContainerPanel<ProfilingConfigurationType>(ID_PROFILING, getProfilingModel(), true, new Form<>("form"), null, getPageBase());
     	add(profilingPanel);
     	
@@ -120,7 +128,6 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
 					@Override
 					public void setObject(ProfilingLevel object) {
 						super.setObject(object);
-						LOGGER.info("XXXXXXXXXXXX levelModel: " + levelModel);
 						levelModel.setObject(ProfilingLevel.toLoggerLevelType(object));
 					}
     		

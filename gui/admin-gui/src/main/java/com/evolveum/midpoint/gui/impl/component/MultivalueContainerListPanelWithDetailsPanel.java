@@ -158,18 +158,23 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<ContainerValueWrapper<C>> rowModel,
 			List<ContainerValueWrapper<C>> listItems) {
 		
-		setItemDetailsVisible(true);
-    	detailsPanelItemsList.clear();
-    	if(rowModel == null) {
-    		detailsPanelItemsList.addAll(listItems);
-    		listItems.forEach(itemConfigurationTypeContainerValueWrapper -> {
-    			itemConfigurationTypeContainerValueWrapper.setSelected(false);
-    		});
-    	} else {
-    		detailsPanelItemsList.add(rowModel.getObject());
-    		rowModel.getObject().setSelected(false);
-    	}
-    	target.add(MultivalueContainerListPanelWithDetailsPanel.this);
+		if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
+			setItemDetailsVisible(true);
+			detailsPanelItemsList.clear();
+			if(rowModel == null) {
+				detailsPanelItemsList.addAll(listItems);
+				listItems.forEach(itemConfigurationTypeContainerValueWrapper -> {
+					itemConfigurationTypeContainerValueWrapper.setSelected(false);
+				});
+			} else {
+				detailsPanelItemsList.add(rowModel.getObject());
+				rowModel.getObject().setSelected(false);
+			}
+			target.add(MultivalueContainerListPanelWithDetailsPanel.this);
+		} else {
+			warn(createStringResource("MultivalueContainerListPanel.message.noAssignmentSelected").getString());
+			target.add(getPageBase().getFeedbackPanel());
+		}
 	}
 	
 	@Override

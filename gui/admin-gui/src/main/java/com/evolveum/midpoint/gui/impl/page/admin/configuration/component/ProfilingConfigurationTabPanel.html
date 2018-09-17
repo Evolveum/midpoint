@@ -17,6 +17,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 	<wicket:panel>
+		
+		<div class="box box-warning box-solid" wicket:id="profilingEnabledNote">
+    		<div class="box-header">
+        		<h3 class="box-title"><wicket:message key="Note"/></h3>
+    		</div>
+    		<div class="box-body">
+        		<wicket:message key="ProfilingConfigPanel.profilingMustBeEnabled" />
+    		</div>
+		</div>
+	
 		<div wicket:id="profiling"/>
 		
 		<div class="prism-properties">

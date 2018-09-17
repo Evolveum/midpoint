@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
@@ -298,7 +299,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         try {
             List<Item<?,?>> items = containerValue.getItems();
             for (Item item : items) {
-                values.addAll(converter.convertToRValue(item, true));
+                values.addAll(converter.convertToRValue(item, true, RObjectExtensionType.EXTENSION));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

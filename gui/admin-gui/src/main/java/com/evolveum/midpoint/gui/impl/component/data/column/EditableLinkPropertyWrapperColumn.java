@@ -44,7 +44,7 @@ public class EditableLinkPropertyWrapperColumn<C extends Containerable> extends 
 	
 	private static final Trace LOGGER = TraceManager.getTrace(EditableLinkPropertyWrapperColumn.class);
 	
-	private QName qNameOfProperty;
+	protected QName qNameOfProperty;
 	private PageBase page;
 
 	public EditableLinkPropertyWrapperColumn(IModel<String> displayModel, QName item, PageBase page) {
@@ -85,7 +85,6 @@ public class EditableLinkPropertyWrapperColumn<C extends Containerable> extends 
     
     @Override
     protected IModel createLinkModel(IModel<ContainerValueWrapper<C>> rowModel) {
-    	Form form= new Form("form");
     	PropertyWrapperFromContainerValueWrapperModel model = new PropertyWrapperFromContainerValueWrapperModel<>(rowModel, qNameOfProperty);
     	return Model.of(String.valueOf(model.getObject().getItem().getRealValue()));
     }
