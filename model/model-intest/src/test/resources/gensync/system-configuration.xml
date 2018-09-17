@@ -62,6 +62,7 @@
     			</display>
     			<category>policy</category>
     			<category>governance</category>
+				<defaultFor>owner</defaultFor>
     		</relation>
     	</relations>
     </roleManagement>
