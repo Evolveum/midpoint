@@ -698,8 +698,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             SessionFactoryImpl sessionFactoryImpl = (SessionFactoryImpl) sessionFactory;
             // we try to override configuration which was read from sql repo configuration with
             // real configuration from session factory
-            String dialect = sessionFactoryImpl.getDialect() != null ? sessionFactoryImpl.getDialect().getClass().getName() : null;
-            details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialect));
+            if(sessionFactoryImpl.getDialect() != null) {
+            	for(int i =0; i<details.size(); i++) {
+            		if(details.get(i).getLabel().equals(DETAILS_HIBERNATE_DIALECT)) {
+            			details.remove(i);
+            			break;
+            		}
+            	}
+            	String dialect = sessionFactoryImpl.getDialect().getClass().getName();
+                details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialect));
+            }
+            
         } catch (Throwable th) {
             //nowhere to report error (no operation result available)
             session.getTransaction().rollback();

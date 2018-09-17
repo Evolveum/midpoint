@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
 import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueWrapper;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
@@ -86,7 +87,15 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     protected void initLayout() {
     	
     	WebMarkupContainer profilingEnabledNote = new WebMarkupContainer(ID_PROFILING_ENABLED_NOTE);
-		profilingEnabledNote.setVisible(!getPageBase().getMidpointConfiguration().isProfilingEnabled());
+    	profilingEnabledNote.add(new VisibleEnableBehaviour() {
+    		
+			private static final long serialVersionUID = 1L;
+
+			@Override
+    		public boolean isVisible() {
+    			return !getPageBase().getMidpointConfiguration().isProfilingEnabled();
+    		}
+    	});
 		add(profilingEnabledNote);
     	
     	PrismContainerPanel<ProfilingConfigurationType> profilingPanel = new PrismContainerPanel<ProfilingConfigurationType>(ID_PROFILING, getProfilingModel(), true, new Form<>("form"), null, getPageBase());
