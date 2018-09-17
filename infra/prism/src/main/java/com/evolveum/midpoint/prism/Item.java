@@ -611,7 +611,7 @@ public abstract class Item<V extends PrismValue, D extends ItemDefinition> imple
 	@Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
-		for(PrismValue value: getValues()) {
+		for (PrismValue value: getValues()) {
 			value.accept(visitor);
 		}
 	}

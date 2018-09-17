@@ -1662,6 +1662,18 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		return rv;
 	}
 
+	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<ItemPath> ignoreItems) {
+		if (object != null) {
+			object.getValue().removeItems(ignoreItems);
+		}
+	}
+
+	private <T extends ObjectType> void removeOperationalItems(PrismObject<T> object) {
+		if (object != null) {
+			object.getValue().removeOperationalItems();
+		}
+	}
+
 	private <T extends ObjectType> PrismObject<T> fetchCurrentObject(Class<T> type, String oid, PolyString name,
 			Collection<SelectorOptions<GetOperationOptions>> readOptions, Task task,
 			OperationResult result)
@@ -1699,37 +1711,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		} else {
 			throw new SchemaException("More than 1 object of type " + type + " with the name of " + name + ": There are " + objects.size() + " of them.");
 		}
-	}
-
-	private <T extends ObjectType> void removeIgnoredItems(PrismObject<T> object, List<ItemPath> ignoreItems) {
-		if (object == null) {
-			return;
-		}
-		for (ItemPath path : ignoreItems) {
-			Item item = object.findItem(path);		// reduce to "removeItem" after fixing that method implementation
-			if (item != null) {
-				object.removeItem(item.getPath(), Item.class);
-			}
-		}
-	}
-
-	// TODO write in cleaner way
-	private <T extends ObjectType> void removeOperationalItems(PrismObject<T> object) {
-		if (object == null) {
-			return;
-		}
-		final List<ItemPath> operationalItems = new ArrayList<>();
-		object.accept(visitable -> {
-			if (visitable instanceof Item) {
-				Item item = ((Item) visitable);
-				if (item.getDefinition() != null && item.getDefinition().isOperational()) {
-					operationalItems.add(item.getPath());
-					// it would be nice if we could stop visiting children here but that's not possible now
-				}
-			}
-		});
-		LOGGER.trace("Operational items: {}", operationalItems);
-		removeIgnoredItems(object, operationalItems);
 	}
 
 	private Collection<SelectorOptions<GetOperationOptions>> preProcessOptionsSecurity(Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
