@@ -86,6 +86,7 @@
             <class name="com.evolveum.midpoint.model.impl.security.TestUserProfileService"/>
             <class name="com.evolveum.midpoint.model.impl.misc.TestCaseManagement"/>
             <class name="com.evolveum.midpoint.model.impl.misc.TestRelationRegistry"/>
+            <class name="com.evolveum.midpoint.model.impl.misc.ShadowIntegrityCheckerTest"/>
         </classes>
     </test>
 </suite>
