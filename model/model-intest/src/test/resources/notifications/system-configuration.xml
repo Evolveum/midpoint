@@ -260,6 +260,36 @@ Channel: $!event.channel</code>
                 <transport>sms:with-post-multi</transport>
             </generalNotifier>
         </handler>
+        <handler>
+            <category>customEvent</category>
+            <expressionFilter>
+                <script>
+                    <code>
+                        event.subtype == 'check-variables'
+                    </code>
+                </script>
+            </expressionFilter>
+            <customNotifier>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            if (notificationFunctions != null &amp;&amp;
+                                textFormatter != null &amp;&amp;
+                                configuration != null) {
+                                body = "variables ok"
+                            } else {
+                                body = "variables NOT ok"       // very probably we got an exception instead of getting here
+                            }
+                            m = new NotificationMessageType()
+                            m.setBody(body)
+                            m
+                        </code>
+                    </script>
+                </expression>
+                <transport>dummy:check-variables</transport>
+            </customNotifier>
+        </handler>
         <mail>
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>

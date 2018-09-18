@@ -113,7 +113,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	@Override
 	protected void unassignMembersPerformed(QName objectType, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
 		super.unassignMembersPerformed(objectType, scope, relations, target);
-		MemberOperationsHelper.unassignOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
+		if (relations != null && relations.size() > 0) {
+			MemberOperationsHelper.unassignOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
+		}
 	}
 
 	@Override

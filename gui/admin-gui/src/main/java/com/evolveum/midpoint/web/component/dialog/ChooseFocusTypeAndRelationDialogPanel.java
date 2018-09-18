@@ -7,8 +7,10 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -28,10 +30,18 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 	private static final String ID_OBJECT_TYPE = "type";
 	private static final String ID_RELATION = "relation";
 	private static final String ID_BUTTON_OK = "ok";
+	private static final String ID_CANCEL_OK = "cancel";
+	private static final String ID_WARNING_MESSAGE = "warningMessage";
+
+	private IModel<String> messageModel = null;
 
 	public ChooseFocusTypeAndRelationDialogPanel(String id) {
+		this(id, null);
+	}
+
+	public ChooseFocusTypeAndRelationDialogPanel(String id, IModel<String> messageModel) {
 		super(id);
-		
+		this.messageModel = messageModel;
 	}
 
 	@Override
@@ -59,6 +69,10 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 	    relation.setOutputMarkupId(true);
 	    add(relation);
 
+	    Label label = new Label(ID_WARNING_MESSAGE, messageModel);
+	    label.add(new VisibleBehaviour(() -> messageModel != null && messageModel.getObject() != null));
+	    add(label);
+
 		AjaxButton confirmButton = new AjaxButton(ID_BUTTON_OK, createStringResource("Button.ok")) {
 
 			private static final long serialVersionUID = 1L;
@@ -75,10 +89,18 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 
 			}
 		};
-
 		add(confirmButton);
 
-		
+		AjaxButton cancelButton = new AjaxButton(ID_CANCEL_OK,
+				createStringResource("Button.cancel")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				getPageBase().hideMainPopup(target);
+			}
+		};
+		add(cancelButton);
 
 	}
 

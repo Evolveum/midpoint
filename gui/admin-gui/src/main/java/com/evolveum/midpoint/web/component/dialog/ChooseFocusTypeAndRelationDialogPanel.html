@@ -25,9 +25,10 @@
         	<label class="col-md-4"><wicket:message key="chooseFocusTypeAndRelationDialogPanel.relation"/></label>
         	<div class="col-md-8" wicket:id="relation" />
         </div> 
-        
-        <p align="center">
+        <div wicket:id="warningMessage" align="center"/>
+        <p align="center" class="form-group">
             <a class="btn btn-primary btn-sm" wicket:id="ok" />
+            <a class="btn btn-primary btn-sm" wicket:id="cancel" />
         </p>
     </div>
 </wicket:panel>

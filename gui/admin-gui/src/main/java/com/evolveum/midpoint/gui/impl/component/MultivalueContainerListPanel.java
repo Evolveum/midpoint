@@ -225,7 +225,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 			@Override
 			protected WebMarkupContainer createButtonToolbar(String id) {
 				AjaxIconButton newObjectIcon = new AjaxIconButton(id, new Model<>("fa fa-plus"),
-						createStringResource("MainObjectListPanel.newObject")) {
+						getNewObjectButtonTitleModel()) {
 
 					private static final long serialVersionUID = 1L;
 
@@ -242,6 +242,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 					public boolean isVisible() {
 						return enableActionNewObject();
 					}
+
+					@Override
+					public boolean isEnabled() {
+						return isNewObjectButtonEnabled();
+					}
 				});
 				newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
 				return newObjectIcon;
@@ -253,7 +258,15 @@ public abstract class MultivalueContainerListPanel<C extends Containerable> exte
 		return itemTable;
 
 	}
-	
+
+	protected boolean isNewObjectButtonEnabled(){
+		return true;
+	}
+
+	protected IModel<String> getNewObjectButtonTitleModel(){
+		return createStringResource("MainObjectListPanel.newObject");
+	}
+
 	protected WebMarkupContainer initSearch(String headerId) {
 		SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
 			

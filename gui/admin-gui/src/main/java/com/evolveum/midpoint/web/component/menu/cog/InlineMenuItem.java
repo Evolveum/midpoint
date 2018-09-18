@@ -35,7 +35,6 @@ public abstract class InlineMenuItem implements Serializable {
     private boolean submit = false;
     private InlineMenuItemAction action;
     private int id = -1;
-    private boolean showConfirmationDialog = false;
 
     public InlineMenuItem(IModel<String> label) {
         this.label = label;
@@ -115,9 +114,5 @@ public abstract class InlineMenuItem implements Serializable {
 
    public boolean showConfirmationDialog() {
         return true;
-    }
-
-    public void setShowConfirmationDialog(boolean showConfirmationDialog) {
-        this.showConfirmationDialog = showConfirmationDialog;
     }
 }

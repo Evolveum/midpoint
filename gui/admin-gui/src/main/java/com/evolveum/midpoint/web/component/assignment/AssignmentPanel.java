@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -134,6 +136,16 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			protected void newItemPerformed(AjaxRequestTarget target) {
 				newAssignmentClickPerformed(target);				
+			}
+
+			@Override
+			protected boolean isNewObjectButtonEnabled(){
+				return !isAssignmentsLimitReached();
+			}
+
+			@Override
+			protected IModel<String> getNewObjectButtonTitleModel(){
+				return getAssignmentsLimitReachedTitleModel();
 			}
 
 			@Override
@@ -562,5 +574,36 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					validFrom, validTo, getMultivalueContainerListPanel());
 		}
 
+	}
+
+	private IModel<String> getAssignmentsLimitReachedTitleModel() {
+		return new LoadableModel<String>(true) {
+			@Override
+			protected String load() {
+				int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+						AssignmentPanel.this.getPageBase());
+				return isAssignmentsLimitReached() ?
+						AssignmentPanel.this.getPageBase().createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", assignmentsLimit)
+								.getString() : createStringResource("MainObjectListPanel.newObject").getString();
+			}
+		};
+	}
+
+	private boolean isAssignmentsLimitReached() {
+		int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+				AssignmentPanel.this.getPageBase());
+		int addedAssignmentsCount = getNewAssignmentsCount();
+		return assignmentsLimit >= 0 && addedAssignmentsCount >= assignmentsLimit;
+	}
+
+	protected int getNewAssignmentsCount() {
+		List<ContainerValueWrapper<AssignmentType>> assignmentsList = getModelObject().getValues();
+		int addedAssignmentsCount = 0;
+		for (ContainerValueWrapper<AssignmentType> assignment : assignmentsList) {
+			if (ValueStatus.ADDED.equals(assignment.getStatus())) {
+				addedAssignmentsCount++;
+			}
+		}
+		return addedAssignmentsCount;
 	}
 }
