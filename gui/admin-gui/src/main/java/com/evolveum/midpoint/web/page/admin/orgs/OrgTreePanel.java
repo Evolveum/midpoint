@@ -69,7 +69,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 	private boolean selectable;
     private String treeTitleKey = "";
-	SessionStorage storage;
+//	SessionStorage storage;
 	List<OrgType> preselecteOrgsList = new ArrayList<>();
 
 
@@ -85,8 +85,8 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 						List<OrgType> preselecteOrgsList) {
 		super(id, rootOid);
 
-		MidPointAuthWebSession session = OrgTreePanel.this.getSession();
-		storage = session.getSessionStorage();
+//		MidPointAuthWebSession session = OrgTreePanel.this.getSession();
+//		storage = session.getSessionStorage();
 
 		this.treeTitleKey = treeTitleKey;
 		this.selectable = selectable;
@@ -99,11 +99,12 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			@Override
 			protected SelectableBean<OrgType> load() {
                 TabbedPanel currentTabbedPanel = null;
+                OrgTreeStateStorage storage = getOrgTreeStateStorage();
 				if (getTree().findParent(PageOrgTree.class) != null) {
 					currentTabbedPanel = getTree().findParent(PageOrgTree.class).getTabPanel().getTabbedPanel();
                     if (currentTabbedPanel != null) {
                         int tabId = currentTabbedPanel.getSelectedTab();
-						int storedTabId = OrgTreePanel.this.getSelectedTabId(getOrgTreeStateStorage());
+						int storedTabId = storage != null ? OrgTreePanel.this.getSelectedTabId(getOrgTreeStateStorage()) : -1;
                         if (storedTabId != -1
                                 && tabId != storedTabId) {
                             OrgTreePanel.this.setSelectedItem(null, getOrgTreeStateStorage());
@@ -111,7 +112,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
                     }
 				}
 				SelectableBean<OrgType> bean;
-				if (OrgTreePanel.this.getSelectedItem(getOrgTreeStateStorage()) != null) {
+				if (storage != null && OrgTreePanel.this.getSelectedItem(getOrgTreeStateStorage()) != null) {
 					bean = OrgTreePanel.this.getSelectedItem(getOrgTreeStateStorage());
 				} else {
 					bean =  getRootFromProvider();
@@ -191,15 +192,16 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 				// screen height;
 				Component form = OrgTreePanel.this.getParent().get("memberPanel");
 				if (form != null) {
-					response.render(OnDomReadyHeaderItem.forScript(
-							"updateHeight('" + getMarkupId() + "', ['#" + form.getMarkupId() + "'], ['#"
-									+ OrgTreePanel.this.get(ID_TREE_HEADER).getMarkupId() + "'])"));
+					//TODO fix
+//					response.render(OnDomReadyHeaderItem.forScript(
+//							"updateHeight('" + getMarkupId() + "', ['#" + form.getMarkupId() + "'], ['#"
+//									+ OrgTreePanel.this.get(ID_TREE_HEADER).getMarkupId() + "'])"));
 				}
 			}
 		};
 		add(treeContainer);
 
-		TreeStateModel treeStateMode = new TreeStateModel(this, provider) {
+		TreeStateModel treeStateMode = new TreeStateModel(this, provider, getOrgTreeStateStorage()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -291,10 +293,12 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		private TreeStateSet<SelectableBean<OrgType>> set = new TreeStateSet<>();
 		private ISortableTreeProvider provider;
 		private OrgTreePanel panel;
+		private OrgTreeStateStorage storage;
 
-		TreeStateModel(OrgTreePanel panel, ISortableTreeProvider provider) {
+		TreeStateModel(OrgTreePanel panel, ISortableTreeProvider provider, OrgTreeStateStorage storage) {
 			this.panel = panel;
 			this.provider = provider;
+			this.storage = storage;
 		}
 
 		@Override
@@ -338,21 +342,17 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		}
 
 		public Set<SelectableBean<OrgType>> getExpandedItems(){
-			MidPointAuthWebSession session = panel.getSession();
-			SessionStorage storage = session.getSessionStorage();
-			return storage.getUsers().getExpandedItems();
+			return storage != null ? storage.getExpandedItems() : null;
 		}
 
 		public SelectableBean<OrgType> getCollapsedItem(){
-			MidPointAuthWebSession session = panel.getSession();
-			SessionStorage storage = session.getSessionStorage();
-			return storage.getUsers().getCollapsedItem();
+			return storage != null ? storage.getCollapsedItem() : null;
 		}
 
 		public void setCollapsedItem(SelectableBean<OrgType> item){
-			MidPointAuthWebSession session = panel.getSession();
-			SessionStorage storage = session.getSessionStorage();
-			storage.getUsers().setCollapsedItem(item);
+			if (storage != null){
+				storage.setCollapsedItem(item);
+			}
 		}
 	}
 
@@ -432,35 +432,43 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	}
 
 	public Set<SelectableBean<OrgType>> getExpandedItems(OrgTreeStateStorage storage){
-		return storage.getExpandedItems();
+		return storage != null ? storage.getExpandedItems() : null;
 	}
 
 	public void setExpandedItems(TreeStateSet items, OrgTreeStateStorage storage){
-		storage.setExpandedItems(items);
+		if (storage != null){
+			storage.setExpandedItems(items);
+		}
 	}
 
 	public SelectableBean<OrgType> getCollapsedItem(OrgTreeStateStorage storage){
-		return storage.getCollapsedItem();
+		return storage != null ? storage.getCollapsedItem() : null;
 	}
 
 	public void setCollapsedItem(SelectableBean<OrgType> item, OrgTreeStateStorage storage){
-		storage.setCollapsedItem(item);
+		if (storage != null){
+			storage.setCollapsedItem(item);
+		}
 	}
 
 	public void setSelectedItem(SelectableBean<OrgType> item, OrgTreeStateStorage storage){
-		storage.setSelectedItem(item);
+		if (storage != null){
+			storage.setSelectedItem(item);
+		}
 	}
 
 	public SelectableBean<OrgType> getSelectedItem(OrgTreeStateStorage storage){
-		return storage.getSelectedItem();
+		return storage != null ? storage.getSelectedItem() : null;
 	}
 
 	protected OrgTreeStateStorage getOrgTreeStateStorage(){
+		MidPointAuthWebSession session = OrgTreePanel.this.getSession();
+		SessionStorage storage = session.getSessionStorage();
 		return storage.getUsers();
 	}
 
 	public int getSelectedTabId(OrgTreeStateStorage storage){
-		return storage.getSelectedTabId();
+		return storage != null ? storage.getSelectedTabId() : -1;
 	}
 
 	protected IModel<Boolean> getCheckBoxValueModel(IModel<SelectableBean<OrgType>> rowModel){

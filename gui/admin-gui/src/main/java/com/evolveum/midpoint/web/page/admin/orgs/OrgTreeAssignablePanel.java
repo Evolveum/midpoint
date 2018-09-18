@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.orgs;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -104,6 +105,11 @@ public class OrgTreeAssignablePanel extends BasePanel<OrgType> implements Popupa
 								}
 							}
 						OrgTreeAssignablePanel.this.onOrgTreeCheckBoxSelectionPerformed(target, rowModel);
+					}
+
+					@Override
+					protected OrgTreeStateStorage getOrgTreeStateStorage(){
+						return null;
 					}
 				};
 
