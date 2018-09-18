@@ -35,6 +35,7 @@ public class ShadowStatistics {
     public static final String NO_RESOURCE_OID = "No resource ref or OID";
     public static final String NO_RESOURCE = "No resource";
     public static final String CANNOT_GET_RESOURCE = "Cannot get resource object";
+    public static final String NO_OBJECT_CLASS_SPECIFIED = "No object class specified";
     public static final String NO_KIND_SPECIFIED = "No kind specified";
     public static final String NO_INTENT_SPECIFIED = "No intent specified";
     public static final String NO_RESOURCE_REFINED_SCHEMA = "No resource refined schema";
@@ -59,6 +60,7 @@ public class ShadowStatistics {
             NO_RESOURCE_OID,
             NO_RESOURCE,
             CANNOT_GET_RESOURCE,
+            NO_OBJECT_CLASS_SPECIFIED,
             NO_KIND_SPECIFIED,
             NO_INTENT_SPECIFIED,
             NO_RESOURCE_REFINED_SCHEMA,

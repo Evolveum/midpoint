@@ -24,23 +24,26 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.SystemUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wss4j.dom.engine.WSSConfig;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 public class StartupConfiguration implements MidpointConfiguration {
@@ -48,8 +51,10 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final String USER_HOME_SYSTEM_PROPERTY_NAME = "user.home";
     private static final String SAFE_MODE = "safeMode";
     private static final String PROFILING_ENABLED = "profilingEnabled";
+	private static final String FILE_INDIRECTION_SUFFIX = "fileIndirectionSuffix";
 
-    private static final String DEFAULT_CONFIG_FILE_NAME = "config.xml";
+	private static final String DEFAULT_FILE_INDIRECTION_SUFFIX = "_FILE";
+	private static final String DEFAULT_CONFIG_FILE_NAME = "config.xml";
     private static final String LOGBACK_CONFIG_FILENAME = "logback.xml";
     private static final String LOGBACK_EXTRA_CONFIG_FILENAME = "logback-extra.xml";
 
@@ -59,7 +64,6 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     // TODO why CompositeConfiguration here?
     private CompositeConfiguration config = null;
-    private Document xmlConfigAsDocument = null;        // just in case when we need to access original XML document
     private String midPointHomePath = null;
     private String configFilename;
 
@@ -278,9 +282,37 @@ public class StartupConfiguration implements MidpointConfiguration {
         xmlConfig.load();
         config.addConfiguration(xmlConfig);
         applyEnvironmentProperties();
-
-        xmlConfigAsDocument = DOMUtil.parseFile(filename);
+        resolveFileReferences();
     }
+
+	private void resolveFileReferences() {
+    	String fileIndirectionSuffix = getFileIndirectionSuffix();
+		//noinspection unchecked
+		((Iterator<String>) config.getKeys()).forEachRemaining(key -> {
+			if (key.endsWith(fileIndirectionSuffix)) {
+				String filename = config.getString(key);
+				String valueKey = StringUtils.removeEnd(key, fileIndirectionSuffix);
+				try {
+					String value = readFile(filename);
+					overrideProperty(valueKey, value);
+					LOGGER.trace("Property '{}' was read from '{}': '{}'", valueKey, filename, value);
+				} catch (IOException e) {
+					String message =
+							"Couldn't read the value of configuration key '" + valueKey + "' from the file '" + filename + "': "
+									+ e.getMessage();
+					LoggingUtils.logUnexpectedException(LOGGER, message, e);
+					System.err.println(message);
+				}
+			}
+		});
+	}
+
+	private String readFile(String filename) throws IOException {
+		try (FileReader reader = new FileReader(filename)) {
+			List<String> lines = IOUtils.readLines(reader);
+			return String.join("\n", lines);
+		}
+	}
 
 	private void applyEnvironmentProperties() {
 		Properties properties = System.getProperties();
@@ -302,24 +334,32 @@ public class StartupConfiguration implements MidpointConfiguration {
 		c.setProperty(components[components.length-1], value);
 	}
 
-	@Override
-    public Document getXmlConfigAsDocument() {
-        return xmlConfigAsDocument;
-    }
-
     @Override
     public boolean isSafeMode() {
-        Configuration c = getConfiguration(ROOT_MIDPOINT_CONFIGURATION);
+        Configuration c = getRootConfiguration();
 	    return c != null && c.getBoolean(SAFE_MODE, false);
     }
 
-    @Override
+	@Override
     public boolean isProfilingEnabled() {
-        Configuration c = getConfiguration(ROOT_MIDPOINT_CONFIGURATION);
+        Configuration c = getRootConfiguration();
 	    return c != null && c.getBoolean(PROFILING_ENABLED, false);
     }
 
-    @Override
+	private String getFileIndirectionSuffix() {
+		Configuration c = getRootConfiguration();
+		if (c == null) {
+			return DEFAULT_FILE_INDIRECTION_SUFFIX;
+		} else {
+			return c.getString(FILE_INDIRECTION_SUFFIX, DEFAULT_FILE_INDIRECTION_SUFFIX);
+		}
+	}
+
+	private Configuration getRootConfiguration() {
+		return getConfiguration(ROOT_MIDPOINT_CONFIGURATION);
+	}
+
+	@Override
     public String toString() {
         @SuppressWarnings("unchecked")
         Iterator<String> i = config.getKeys();

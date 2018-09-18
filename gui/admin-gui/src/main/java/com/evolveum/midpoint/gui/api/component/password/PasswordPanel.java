@@ -27,7 +27,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -72,20 +71,16 @@ public class PasswordPanel extends InputPanel {
     public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly) {
         super(id);
         this.passwordInputVisble = model.getObject() == null;
-        initLayout(model, isReadOnly, false);
+        initLayout(model, isReadOnly);
     }
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
-        this(id, model, isReadOnly, isInputVisible, false);
-    }
-    
-    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible, boolean isSimilarAsPropertyPanel) {
         super(id);
         this.passwordInputVisble = isInputVisible;
-        initLayout(model, isReadOnly, isSimilarAsPropertyPanel);
+        initLayout(model, isReadOnly);
     }
 
-    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly,  boolean isSimilarAsPropertyPanel) {
+    private void initLayout(final IModel<ProtectedStringType> model, final boolean isReadOnly) {
     	setOutputMarkupId(true);
 		final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER) {
 			@Override
@@ -93,9 +88,6 @@ public class PasswordPanel extends InputPanel {
 				return passwordInputVisble;
 			}
 		};
-		if(!isSimilarAsPropertyPanel) {
-			inputContainer.add(AttributeAppender.prepend("class", "col-md-11"));
-		}
 		inputContainer.setOutputMarkupId(true);
 		add(inputContainer);
 

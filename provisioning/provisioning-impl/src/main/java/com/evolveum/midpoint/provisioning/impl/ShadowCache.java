@@ -1864,6 +1864,12 @@ public class ShadowCache {
 						
 						resultShadow = completeShadow(shadowCtx, resourceShadow, repoShadow, isDoDiscovery, objResult);
 						
+						//check and fix kind/intent
+						ShadowType repoShadowType = repoShadow.asObjectable();
+						if (repoShadowType.getKind() == null || repoShadowType.getIntent() == null) { //TODO: check also empty?
+							fixKindIntentForShadow(repoShadow, ctx.getResource().asPrismObject(), false);
+						}
+						
 					} else {
 						resultShadow = resourceShadow;
 					}
@@ -2106,12 +2112,6 @@ public class ShadowCache {
 
 			repoShadow = createShadowInRepository(ctx, resourceShadow, unknownIntent, isDoDiscovery, parentResult);
 		} else {
-			//check and fix kind/intent
-			ShadowType repoShadowType = repoShadow.asObjectable();
-			if (repoShadowType.getKind() == null || repoShadowType.getIntent() == null) { //TODO: check also empty?
-				fixKindIntentForShadow(repoShadow, ctx.getResource().asPrismObject(), false);
-			}
-			
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadow(repoShadow));
 			}
