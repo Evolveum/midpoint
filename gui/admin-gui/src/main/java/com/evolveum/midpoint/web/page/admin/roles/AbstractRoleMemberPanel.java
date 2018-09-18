@@ -25,9 +25,11 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -337,6 +339,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 }
 
 				@Override
+				public IModel<String> getConfirmationMessageModel() {
+					return createStringResource("abstractRoleMemberPanel.recomputeAllConfirmationLabel");
+				}
+
+				@Override
 				public String getButtonIconCssClass() {
 					return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
 				}
@@ -392,8 +399,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 
 	private void unassignMembersPerformed(AjaxRequestTarget target) {
-		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
-				getPageBase().getMainPopupBodyId()) {
+		QueryScope scope = getQueryScope(false);
+		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
+				QueryScope.ALL.equals(scope) || QueryScope.ALL_DIRECT.equals(scope) ?
+						createStringResource("abstractRoleMemberPanel.unassignAllConfirmationLabel") : null) {
 			private static final long serialVersionUID = 1L;
 			
 			@Override
@@ -408,7 +417,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			
 
 			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-				unassignMembersPerformed(type, getQueryScope(false), relations, target);
+				unassignMembersPerformed(type, scope, relations, target);
 
 			};
 		};
@@ -417,8 +426,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	}
 	
 	private void deleteMembersPerformed(AjaxRequestTarget target) {
-		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(
-				getPageBase().getMainPopupBodyId()) {
+		QueryScope scope = getQueryScope(false);
+		ChooseFocusTypeAndRelationDialogPanel chooseTypePopupContent = new ChooseFocusTypeAndRelationDialogPanel(getPageBase().getMainPopupBodyId(),
+				QueryScope.ALL.equals(scope) || QueryScope.ALL_DIRECT.equals(scope) ? createStringResource("abstractRoleMemberPanel.deleteAllConfirmationLabel") : null) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -432,7 +442,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 			}
 
 			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
-				deleteMembersPerformed(type, getQueryScope(false), relations, target);
+				deleteMembersPerformed(type, scope, relations, target);
 
 			};
 		};
@@ -458,7 +468,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			protected void okPerformed(QName type, Collection<QName> relations, AjaxRequestTarget target) {
 				if (relations == null || relations.isEmpty()) {
-					getSession().warn("No relations was selected. Cannot create member");
+					getSession().warn("No relation was selected. Cannot create member");
 					target.add(this);
 					target.add(getPageBase().getFeedbackPanel());
 					return;
@@ -478,7 +488,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	
 	protected void deleteMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
 		if (relations == null || relations.isEmpty()) {
-			getSession().warn("No relations was selected. Cannot perform delete members");
+			getSession().warn("No relation was selected. Cannot perform delete members");
 			target.add(this);
 			target.add(getPageBase().getFeedbackPanel());
 			return;
@@ -488,7 +498,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 	protected void unassignMembersPerformed(QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
 		if (relations == null || relations.isEmpty()) {
-			getSession().warn("No relations was selected. Cannot perform unassign members");
+			getSession().warn("No relation was selected. Cannot perform unassign members");
 			target.add(this);
 			target.add(getPageBase().getFeedbackPanel());
 			return;
