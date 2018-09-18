@@ -39,6 +39,8 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -279,24 +281,26 @@ public class CorrelationConfirmationEvaluator {
 		ObjectTypeUtil.normalizeFilter(q.getFilter(), relationRegistry);
 		return ObjectQuery.match(userType, q.getFilter(), matchingRuleRegistry);
 	}
+	
+	
+	public <F extends FocusType> boolean matchFocusByCorrelationRule(SynchronizationContext<F> syncCtx, PrismObject<F> focus) {
 
-	public <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusType, PrismObject<ShadowType> currentShadow,
-			PrismObject<F> userType, ObjectSynchronizationType synchronization, ResourceType resourceType, SystemConfigurationType configurationType, Task task, OperationResult result){
-
-		if (synchronization == null){
+		if (!syncCtx.hasApplicablePolicy()){
 			LOGGER.warn(
 					"Resource does not support synchronization. Skipping evaluation correlation/confirmation for  {} and  {}",
-					userType, currentShadow);
+					focus, syncCtx.getApplicableShadow());
 			return false;
 		}
 		
-		List<ConditionalSearchFilterType> conditionalFilters = synchronization.getCorrelation();
+		List<ConditionalSearchFilterType> conditionalFilters = syncCtx.getCorrelation();
 		
 		try {
 			for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
 			
-				if (matchUserCorrelationRule(focusType, currentShadow, userType, resourceType, configurationType, conditionalFilter, task, result)){
-					LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", currentShadow, userType);
+				//TODO: can we expect that systemConfig and resource are always present?
+				if (matchUserCorrelationRule(syncCtx.getFocusClass(), syncCtx.getApplicableShadow(), focus, syncCtx.getResource().asObjectable(), 
+						syncCtx.getSystemConfiguration().asObjectable(), conditionalFilter, syncCtx.getTask(), syncCtx.getResult())){
+					LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", syncCtx.getApplicableShadow(), focus);
 					return true;
 				}
 			}
@@ -305,7 +309,7 @@ public class CorrelationConfirmationEvaluator {
 		}
 
 		LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} does not match user: {}", new Object[] {
-				currentShadow, userType });
+				syncCtx.getApplicableShadow(), focus });
 		return false;
 	}
 

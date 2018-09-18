@@ -752,16 +752,6 @@ public class ModelImplUtils {
 		}
 	}
 
-	public static String getPolicyDesc(ObjectSynchronizationType synchronizationPolicy) {
-		if (synchronizationPolicy == null) {
-			return null;
-		}
-		if (synchronizationPolicy.getName() != null) {
-			return synchronizationPolicy.getName();
-		}
-		return synchronizationPolicy.toString();
-	}
-
 	public static PrismReferenceValue determineAuditTargetDeltaOps(Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOps) {
 		if (deltaOps == null || deltaOps.isEmpty()) {
 			return null;

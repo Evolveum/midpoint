@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,10 +43,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -68,17 +71,6 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	@Autowired(required = true)
 	private CorrelationConfirmationEvaluator evaluator;
 
-
-
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-//		super.initSystem(initTask, initResult);
-		// Administrator
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
-		login(userAdministrator);
-	}
-
 	@Test
 	public void test001CorrelationOrFilter() throws Exception{
 		String TEST_NAME = "test001CorrelationOrFilter";
@@ -86,8 +78,6 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
-
-		importObjectFromFile(USER_JACK_FILE);
 
 		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		//assert jack
@@ -122,8 +112,6 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
-
-//		importObjectFromFile(USER_JACK_FILENAME);
 
 		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		//assert jack
@@ -192,40 +180,24 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
-
-//		importObjectFromFile(USER_JACK_FILENAME);
-
+		
 		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		//assert jack
 		assertNotNull(userType);
-
-		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
-
-        ConditionalSearchFilterType query = PrismTestUtil.parseAtomicValue(new File(CORRELATION_CASE_INSENSITIVE), ConditionalSearchFilterType.COMPLEX_TYPE);
-//		List<QueryType> queries = new ArrayList<QueryType>();
-//		queries.add(query);
-//
-		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
-		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().clear();
-		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
 		userType.asObjectable().setName(new PolyStringType("JACK"));
-		ObjectSynchronizationType objectSynchronizationType = resourceType.getSynchronization().getObjectSynchronization().get(0);
+
+		SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, CORRELATION_CASE_INSENSITIVE, RESOURCE_DUMMY_FILE, task, result);
+
 		try{
-		boolean matchedUsers = evaluator.matchUserCorrelationRule(UserType.class,
-				shadow.asPrismObject(), userType, objectSynchronizationType, resourceType, getSystemConfiguration(), task, result);
-
-		System.out.println("matched users " + matchedUsers);
-
-		AssertJUnit.assertTrue(matchedUsers);
+			boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType);
+	
+			System.out.println("matched users " + matchedUsers);
+	
+			AssertJUnit.assertTrue(matchedUsers);
 		} catch (Exception ex){
 			LOGGER.error("exception occured: {}", ex.getMessage(), ex);
 			throw ex;
 		}
-//		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
-//		assertEquals("Found more than one user.", 1, matchedUsers.size());
-//
-//		PrismObject<UserType> jack = matchedUsers.get(0);
-//		assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "jack", "Jack Sparrow", "Jack", "Sparrow");
 
 	}
 
@@ -237,29 +209,15 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
 
-//		importObjectFromFile(USER_JACK_FILENAME);
-
 		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		//assert jack
 		assertNotNull(userType);
-
-		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
-
-        ConditionalSearchFilterType query = PrismTestUtil.parseAtomicValue(new File(CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER), ConditionalSearchFilterType.COMPLEX_TYPE);
-//		ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(null, userType.getDefinition().findItemDefinition(UserType.F_EMPLOYEE_NUMBER), "stringIgnoreCase", "ps1234"));
-//		List<QueryType> queries = new ArrayList<QueryType>();
-//		queries.add(query);
-//
-		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
-		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().clear();
-		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
-
 		userType.asObjectable().setEmployeeNumber("JaCk");
-		ObjectSynchronizationType objectSynchronizationType = resourceType.getSynchronization().getObjectSynchronization().get(0);
-
+		
+		SynchronizationContext<UserType> syncCtx = createSynchronizationContext(ACCOUNT_SHADOW_JACK_DUMMY_FILE, CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER, RESOURCE_DUMMY_FILE, task, result);
+		
 		try{
-			boolean matchedUsers = evaluator.matchUserCorrelationRule(UserType.class,
-					shadow.asPrismObject(), userType, objectSynchronizationType, resourceType, getSystemConfiguration(), task, result);
+			boolean matchedUsers = evaluator.matchFocusByCorrelationRule(syncCtx, userType);
 
 			System.out.println("matched users " + matchedUsers);
 
@@ -268,12 +226,28 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 			LOGGER.error("exception occured: {}", ex.getMessage(), ex);
 			throw ex;
 		}
-//		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
-//		assertEquals("Found more than one user.", 1, matchedUsers.size());
-//
-//		PrismObject<UserType> jack = matchedUsers.get(0);
-//		assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "jack", "Jack Sparrow", "Jack", "Sparrow");
 
+	}
+	
+	private SynchronizationContext<UserType> createSynchronizationContext(File account, String correlationFilter, File resource, Task task, OperationResult result) throws SchemaException, IOException {
+		
+		ShadowType shadow = parseObjectType(account, ShadowType.class);
+
+        ConditionalSearchFilterType query = PrismTestUtil.parseAtomicValue(new File(correlationFilter), ConditionalSearchFilterType.COMPLEX_TYPE);
+
+        ResourceType resourceType = parseObjectType(resource, ResourceType.class);
+		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().clear();
+		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
+		
+		ObjectSynchronizationType objectSynchronizationType = resourceType.getSynchronization().getObjectSynchronization().get(0);
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		assertNotNull("Unexpected null system configuration", systemConfiguration);
+		
+		SynchronizationContext<UserType> syncCtx = new SynchronizationContext<>(shadow.asPrismObject(), shadow.asPrismObject(), resourceType.asPrismObject(), null, task, result);
+		syncCtx.setSystemConfiguration(systemConfiguration);
+		syncCtx.setObjectSynchronization(objectSynchronizationType);
+		syncCtx.setFocusClass(UserType.class);
+		return syncCtx;
 	}
 
 
@@ -285,7 +259,6 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		Task task = taskManager.createTaskInstance(TEST_NAME);
 		OperationResult result = task.getResult();
 
-//		importObjectFromFile(USER_JACK_FILENAME);
 
 		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
 		//assert jack
@@ -296,9 +269,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
         ConditionalSearchFilterType query = PrismTestUtil.parseAtomicValue(new File(CORRELATION_CASE_INSENSITIVE), ConditionalSearchFilterType.COMPLEX_TYPE);
 		List<ConditionalSearchFilterType> queries = new ArrayList<>();
 		queries.add(query);
-//
+
 		ResourceType resourceType = parseObjectType(RESOURCE_DUMMY_FILE, ResourceType.class);
-//		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
 		userType.asObjectable().setName(new PolyStringType("JACK"));
 		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_NAME, userType.getDefinition(), new PolyString("JACK", "jack"));
 		repositoryService.modifyObject(UserType.class, USER_JACK_OID, modifications, result);
