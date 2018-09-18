@@ -49,7 +49,6 @@ import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpWfTask;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.lang.BooleanUtils;
@@ -230,7 +229,12 @@ public class WfTaskController {
         LOGGER.trace("startWorkflowProcessInstance finished");
     }
 
-    public void onProcessEvent(ProcessEvent event, Task task, OperationResult result)
+    // skipProcessEndNotification is a bit of hack: It is to avoid sending process end notification twice if the process ends
+	// in the same thread in which it was started (MID-4850). It could be probably solved in a more brave way e.g. by removing
+	// the whole onProcessEvent call in startActivitiProcessInstance but that could have other consequences.
+	//
+	// We get rid of these hacks when we replace Activiti with our own implementation (4.0 or 4.1).
+    public void onProcessEvent(ProcessEvent event, boolean skipProcessEndNotification, Task task, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         WfTask wfTask = recreateWfTask(task);
 
@@ -249,7 +253,7 @@ public class WfTaskController {
 
 		wfTask.commitChanges(result);
 
-		if (event instanceof ProcessFinishedEvent || !event.isRunning()) {
+		if (!skipProcessEndNotification && (event instanceof ProcessFinishedEvent || !event.isRunning())) {
             onProcessFinishedEvent(event, wfTask, result);
         }
     }

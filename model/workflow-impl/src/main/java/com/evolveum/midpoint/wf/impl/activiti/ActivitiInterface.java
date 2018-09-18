@@ -103,7 +103,7 @@ public class ActivitiInterface {
 					processInterfaceFinder);
 			event.setRunning(!pi.isEnded());
 			LOGGER.trace("Event to be sent to IDM: {}", event);
-			wfTaskController.onProcessEvent(event, task, result);
+			wfTaskController.onProcessEvent(event, true, task, result);
 		}
 	}
 
@@ -150,7 +150,7 @@ public class ActivitiInterface {
 		LOGGER.trace("Running process instance = {}, isRunning: {}", pi, qpr.isRunning());
 		LOGGER.trace("Response to be sent to midPoint: {}", qpr);
 
-		wfTaskController.onProcessEvent(qpr, task, result);
+		wfTaskController.onProcessEvent(qpr, false, task, result);
 	}
 
 	public void notifyMidpointAboutProcessFinishedEvent(DelegateExecution execution) {
@@ -176,7 +176,7 @@ public class ActivitiInterface {
 			return;
 		}
 		try {
-			wfTaskController.onProcessEvent(event, task, result);
+			wfTaskController.onProcessEvent(event, false, task, result);
 		} catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|RuntimeException e) {
 			throw new SystemException("Couldn't process a process-related event: " + e.getMessage(), e);
 		}
