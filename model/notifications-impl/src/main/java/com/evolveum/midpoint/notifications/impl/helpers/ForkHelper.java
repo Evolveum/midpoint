@@ -34,7 +34,6 @@ public class ForkHelper extends BaseHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ForkHelper.class);
 
-    @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
     		Task task, OperationResult result) {
 

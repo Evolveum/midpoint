@@ -74,12 +74,12 @@ public class AggregatedEventHandler extends BaseHandler {
         logStart(LOGGER, event, eventHandlerType);
 
         boolean shouldContinue =
-                categoryFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
-                operationFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
-                statusFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
-                kindIntentFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
-                focusTypeFilterHelper.processEvent(event, eventHandlerType, notificationManager, task, result) &&
-                expressionFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
+                categoryFilter.processEvent(event, eventHandlerType) &&
+                operationFilter.processEvent(event, eventHandlerType) &&
+                statusFilter.processEvent(event, eventHandlerType) &&
+                kindIntentFilter.processEvent(event, eventHandlerType) &&
+                focusTypeFilterHelper.processEvent(event, eventHandlerType) &&
+                expressionFilter.processEvent(event, eventHandlerType, task, result) &&
                 chainHelper.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 forkHelper.processEvent(event, eventHandlerType, notificationManager, task, result);
 
