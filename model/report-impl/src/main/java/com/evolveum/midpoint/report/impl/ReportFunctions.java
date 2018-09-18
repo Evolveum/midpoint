@@ -512,17 +512,45 @@ public class ReportFunctions {
         return PrismContainerValue.toPcvList(workItems);
     }
 
+    private AccessCertificationCampaignType getCampaignByName(String campaignName)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        Task task = taskManager.createTaskInstance();
+        if (StringUtils.isEmpty(campaignName)) {
+            return null;
+        }
+        ObjectQuery query = QueryBuilder.queryFor(AccessCertificationCampaignType.class, prismContext)
+                .item(AccessCertificationCampaignType.F_NAME).eqPoly(campaignName).matchingOrig()
+                .build();
+        List<PrismObject<AccessCertificationCampaignType>> objects = model
+                .searchObjects(AccessCertificationCampaignType.class, query, null, task, task.getResult());
+        if (objects.isEmpty()) {
+            return null;
+        } else if (objects.size() == 1) {
+            return objects.get(0).asObjectable();
+        } else {
+            throw new IllegalStateException("More than one certification campaign found by name '" + campaignName + "': " + objects);
+        }
+    }
+
+    @SuppressWarnings("unused")
     public List<PrismContainerValue<AccessCertificationWorkItemType>> getCertificationCampaignNonResponders(String campaignName, Integer stageNumber)
             throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
-        List<AccessCertificationCaseType> cases = getCertificationCampaignNotRespondedCasesAsBeans(campaignName);
         List<AccessCertificationWorkItemType> workItems = new ArrayList<>();
-        for (AccessCertificationCaseType aCase : cases) {
-            for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
-                if ((workItem.getOutput() == null || workItem.getOutput().getOutcome() == null)
-                    && (stageNumber == null || java.util.Objects.equals(workItem.getStageNumber(), stageNumber))) {
-                    workItems.add(workItem);
+        AccessCertificationCampaignType campaign = getCampaignByName(campaignName);
+        if (campaign != null) {
+            List<AccessCertificationCaseType> cases = getCertificationCampaignNotRespondedCasesAsBeans(campaignName);
+            for (AccessCertificationCaseType aCase : cases) {
+                for (AccessCertificationWorkItemType workItem : aCase.getWorkItem()) {
+                    if (norm(workItem.getIteration()) == norm(campaign.getIteration())
+                            && (workItem.getOutput() == null || workItem.getOutput().getOutcome() == null)
+                            && (stageNumber == null || Objects.equals(workItem.getStageNumber(), stageNumber))) {
+                        workItems.add(workItem);
+                    }
                 }
             }
+        } else {
+            LOGGER.debug("No campaign named '{}' was found", campaignName);
         }
         return PrismContainerValue.toPcvList(workItems);
     }

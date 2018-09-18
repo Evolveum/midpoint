@@ -70,17 +70,6 @@ public interface MidpointConfiguration {
 	 */
 	Configuration getConfiguration(String component);
 
-    /**
-     * If there's a need to retrieve original midpoint config as XML.
-     *
-     * XMLConfiguration does not work well - sometimes it omits values from the document.
-     * So it's best to parse the config ourselves.
-     *
-     * Note that values overridden by using Java system properties are *NOT* reflected in this document.
-     */
-    @Deprecated
-    Document getXmlConfigAsDocument();
-
     boolean isSafeMode();
 
 	boolean isProfilingEnabled();

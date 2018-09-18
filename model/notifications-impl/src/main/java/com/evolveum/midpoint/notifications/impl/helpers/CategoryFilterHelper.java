@@ -16,15 +16,11 @@
 
 package com.evolveum.midpoint.notifications.impl.helpers;
 
-import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
-
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,9 +31,7 @@ public class CategoryFilterHelper extends BaseHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(CategoryFilterHelper.class);
 
-    @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
-    		Task task, OperationResult result) {
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType) {
 
         if (eventHandlerType.getCategory().isEmpty()) {
             return true;

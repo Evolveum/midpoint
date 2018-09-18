@@ -57,6 +57,9 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_LOGGING_TAB_APPENDER_TABLE = "loggingTabAppenderTable";
     public static final String KEY_LOGGING_TAB_LOGGER_TABLE = "loggingTabLoggerTable";
     public static final String KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE = "notificationTabMailServerTable";
+    public static final String KEY_ROLE_MEMEBER_PANEL = "roleMemberPanel";
+    public static final String KEY_ORG_MEMEBER_PANEL = "orgMemberPanel";
+    public static final String KEY_SERVICE_MEMEBER_PANEL = "serviceMemberPanel";
 
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
@@ -261,6 +264,15 @@ public class SessionStorage implements Serializable, DebugDumpable {
     	} else if (KEY_RESOURCES.equals(key)) {
     		pageStorage = new ResourcesStorage();
     		pageStorageMap.put(KEY_RESOURCES, pageStorage);
+    	} else if (KEY_ORG_MEMEBER_PANEL.equals(key)) {
+    		pageStorage = new MemberPanelStorage();
+    		pageStorageMap.put(KEY_ORG_MEMEBER_PANEL, pageStorage);
+    	} else if (KEY_ROLE_MEMEBER_PANEL.equals(key)) {
+    		pageStorage = new MemberPanelStorage();
+    		pageStorageMap.put(KEY_ROLE_MEMEBER_PANEL, pageStorage);
+    	} else if (KEY_SERVICE_MEMEBER_PANEL.equals(key)) {
+    		pageStorage = new MemberPanelStorage();
+    		pageStorageMap.put(KEY_SERVICE_MEMEBER_PANEL, pageStorage);
     	}
     	return pageStorage;
     	//TODO: fixme
