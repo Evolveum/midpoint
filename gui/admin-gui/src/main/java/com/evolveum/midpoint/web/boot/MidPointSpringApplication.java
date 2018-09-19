@@ -16,10 +16,8 @@
 
 package com.evolveum.midpoint.web.boot;
 
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
-import java.util.Arrays;
 
 import javax.servlet.DispatcherType;
 
@@ -31,7 +29,6 @@ import org.apache.wicket.protocol.http.WicketFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.Banner;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
@@ -62,7 +59,6 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
@@ -253,16 +249,6 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
         registration.setServlet(new ReportPeerQueryInterceptor(nodeAuthenticator));
         registration.addUrlMappings("/report");
 
-        return registration;
-    }
-    
-    @Bean
-    public ServletRegistrationBean<StaticWebServlet> staticWebServlet() {
-        ServletRegistrationBean<StaticWebServlet> registration = new ServletRegistrationBean<>();
-        StaticWebServlet servlet = new StaticWebServlet(
-        		new File(startupConfiguration.getMidpointHome(), "static-web"));
-        registration.setServlet(servlet);
-        registration.addUrlMappings("/static-web/*");
         return registration;
     }
     

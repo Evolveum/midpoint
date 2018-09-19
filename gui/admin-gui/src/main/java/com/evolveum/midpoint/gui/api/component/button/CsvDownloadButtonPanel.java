@@ -60,6 +60,8 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 					((BaseSortableDataProvider) dataProvider).setExportSize(true);
 					super.exportData(dataProvider, columns, outputStream);
 					((BaseSortableDataProvider) dataProvider).setExportSize(false);
+				} catch (Exception ex){
+					LOGGER.error("Unable to export data,", ex);
 				} finally {
 					if (dataProvider instanceof SelectableBeanObjectDataProvider) {
 						((SelectableBeanObjectDataProvider) dataProvider).setExport(false);

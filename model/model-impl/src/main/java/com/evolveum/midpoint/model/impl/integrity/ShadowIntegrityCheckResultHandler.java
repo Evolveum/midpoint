@@ -505,7 +505,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
     }
 
-    private void doFixIntent(ShadowCheckResult checkResult, PrismObject<ShadowType> fetchedShadow, PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task, OperationResult result) {
+    private void doFixIntent(ShadowCheckResult checkResult, PrismObject<ShadowType> fetchedShadow, PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException {
         PrismObject<ShadowType> fullShadow;
 
         if (!checkFetch) {
@@ -518,23 +518,22 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             return;
         }
 
-        ObjectSynchronizationType synchronizationPolicy;
+        SynchronizationContext<? extends FocusType> syncCtx = null;
         try {
-        	SynchronizationContext<? extends FocusType> syncCtx = synchronizationService.loadSynchronizationContext(fullShadow, fullShadow, resource, task.getChannel(), systemObjectCache.getSystemConfiguration(result), task, result);
-            synchronizationPolicy = syncCtx.getObjectSynchronization();            
+        	syncCtx = synchronizationService.loadSynchronizationContext(fullShadow, fullShadow, resource, task.getChannel(), systemObjectCache.getSystemConfiguration(result), task, result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX, new SystemException("Couldn't prepare fix for missing intent, because the synchronization policy couldn't be determined", e));
             return;
         }
-        if (synchronizationPolicy != null) {
-            if (synchronizationPolicy.getIntent() != null) {
-                PropertyDelta delta = PropertyDelta.createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, synchronizationPolicy.getIntent());
+        if (syncCtx.hasApplicablePolicy()) {
+            if (syncCtx.getIntent() != null) {
+                PropertyDelta<String> delta = PropertyDelta.createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, syncCtx.getIntent());
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Intent fix delta (not executed now) = \n{}", delta.debugDump());
                 }
                 checkResult.addFixDelta(delta, ShadowStatistics.NO_INTENT_SPECIFIED);
             } else {
-                LOGGER.info("Synchronization policy does not contain intent: {}", synchronizationPolicy);
+                LOGGER.info("Synchronization policy does not contain intent: {}", syncCtx.toString());
             }
         } else {
             LOGGER.info("Intent couldn't be fixed, because no synchronization policy was found");
