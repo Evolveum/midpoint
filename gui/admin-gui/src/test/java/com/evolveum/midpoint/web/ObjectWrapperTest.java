@@ -36,7 +36,7 @@ import java.lang.reflect.Field;
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../ctx-test.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-admin-gui-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ObjectWrapperTest extends AbstractGuiIntegrationTest {
 
