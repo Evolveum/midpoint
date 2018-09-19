@@ -146,11 +146,12 @@ import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.*;
-import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.protocol.http.WebSession;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.resource.CoreLibrariesContributor;
@@ -164,6 +165,8 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 
+import java.io.Serializable;
+import java.net.URI;
 import java.util.*;
 
 /**
@@ -273,13 +276,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "modelController")
     private AccessCertificationService certficationService;
-    
+
     @SpringBean(name = "modelController")
     private CaseManagementService caseManagementService;
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
-    
+
     @SpringBean
     private SecurityContextManager securityContextManager;
 
@@ -291,7 +294,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean
     private LocalizationService localizationService;
-    
+
     @SpringBean
     private CacheDispatcher cacheDispatcher;
 
@@ -498,9 +501,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public AccessCertificationService getCertificationService() {
         return certficationService;
     }
-    
+
     public CaseManagementService getCaseManagementService() {
-		return caseManagementService;
+        return caseManagementService;
     }
 
     @Override
@@ -525,7 +528,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public SecurityEnforcer getSecurityEnforcer() {
         return securityEnforcer;
     }
-    
+
     @Override
     public SecurityContextManager getSecurityContextManager() {
         return securityContextManager;
@@ -539,9 +542,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     protected ModelDiagnosticService getModelDiagnosticService() {
         return modelDiagnosticService;
     }
-    
+
     public CacheDispatcher getCacheDispatcher() {
-    		return cacheDispatcher;
+        return cacheDispatcher;
     }
 
     @NotNull
@@ -571,50 +574,50 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
         return pageTask;
     }
-    
+
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	return isAuthorized(operationUrl, null, null, null, null, null);
+        return isAuthorized(operationUrl, null, null, null, null, null);
     }
-    
+
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	Task task = getPageTask();
-    	AuthorizationParameters<O,T> params = new AuthorizationParameters.Builder<O,T>()
-    		.object(object)
-    		.delta(delta)
-    		.target(target)
-    		.build();
-    	boolean isAuthorized = getSecurityEnforcer().isAuthorized(operationUrl, phase, params, ownerResolver, task, task.getResult());
-    	if (!isAuthorized && (ModelAuthorizationAction.GET.getUrl().equals(operationUrl) || ModelAuthorizationAction.SEARCH.getUrl().equals(operationUrl))){
+                                                                             PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        Task task = getPageTask();
+        AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
+                .object(object)
+                .delta(delta)
+                .target(target)
+                .build();
+        boolean isAuthorized = getSecurityEnforcer().isAuthorized(operationUrl, phase, params, ownerResolver, task, task.getResult());
+        if (!isAuthorized && (ModelAuthorizationAction.GET.getUrl().equals(operationUrl) || ModelAuthorizationAction.SEARCH.getUrl().equals(operationUrl))) {
             isAuthorized = getSecurityEnforcer().isAuthorized(ModelAuthorizationAction.READ.getUrl(), phase, params, ownerResolver, task, task.getResult());
         }
         return isAuthorized;
     }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-    	AuthorizationParameters<O,T> params = new AuthorizationParameters.Builder<O,T>()
-        		.object(object)
-        		.delta(delta)
-        		.target(target)
-        		.build();
-    	getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
+                                                                       PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
+                .object(object)
+                .delta(delta)
+                .target(target)
+                .build();
+        getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, getPageTask(), result);
     }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-    	Task task = getPageTask();
-    	AuthorizationParameters<O,T> params = new AuthorizationParameters.Builder<O,T>()
-        		.object(object)
-        		.delta(delta)
-        		.target(target)
-        		.build();
-    	getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, task, task.getResult());
+                                                                       PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        Task task = getPageTask();
+        AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
+                .object(object)
+                .delta(delta)
+                .target(target)
+                .build();
+        getSecurityEnforcer().authorize(operationUrl, phase, params, ownerResolver, task, task.getResult());
     }
 
-    
+
     public MidpointFormValidatorRegistry getFormValidatorRegistry() {
         return formValidatorRegistry;
     }
@@ -731,21 +734,21 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         pageTitleReal.setRenderBodyOnly(true);
         pageTitle.add(pageTitleReal);
 
-        IModel<List<Breadcrumb>> breadcrumbsModel =  new AbstractReadOnlyModel<List<Breadcrumb>>() {
-        	
-			private static final long serialVersionUID = 1L;
+        IModel<List<Breadcrumb>> breadcrumbsModel = new AbstractReadOnlyModel<List<Breadcrumb>>() {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public List<Breadcrumb> getObject() {
                 return getBreadcrumbs();
             }
         };
-        
+
         ListView<Breadcrumb> breadcrumbs = new ListView<Breadcrumb>(ID_BREADCRUMB, breadcrumbsModel) {
 
             private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             protected void populateItem(ListItem<Breadcrumb> item) {
                 final Breadcrumb dto = item.getModelObject();
 
@@ -798,7 +801,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         initCartButton(mainHeader);
     }
 
-    private void initCartButton(WebMarkupContainer mainHeader){
+    private void initCartButton(WebMarkupContainer mainHeader) {
         AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
             private static final long serialVersionUID = 1L;
 
@@ -816,11 +819,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         cartButton.add(createUserStatusBehaviour(true));
         mainHeader.add(cartButton);
 
-        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT,  new LoadableModel<String>(true) {
+        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT, new LoadableModel<String>(true) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public String load(){
+            public String load() {
                 return Integer.toString(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size());
             }
         });
@@ -896,10 +899,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
         customLogo.add(new VisibleEnableBehaviour() {
-        	
-          	private static final long serialVersionUID = 1L;
 
-			@Override
+            private static final long serialVersionUID = 1L;
+
+            @Override
             public boolean isVisible() {
                 return isCustomLogoVisible();
             }
@@ -921,17 +924,33 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        WebMarkupContainer customLogoImgSrc = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_SRC);
-        customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
-        customLogoImgSrc.add(new AttributeAppender("src", new AbstractReadOnlyModel<String>() {
-
-            private static final long serialVersionUID = 1L;
+        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC, new Model<Serializable>() {
 
             @Override
             public String getObject() {
-                return logoModel.getObject() != null ? logoModel.getObject().getImageUrl() : null;
+                if (logoModel.getObject() == null || logoModel.getObject().getImageUrl() == null) {
+                    return null;
+                }
+
+                String sUrl = logoModel.getObject().getImageUrl();
+                if (URI.create(sUrl).isAbsolute()) {
+                    return sUrl;
+                }
+
+                List<String> segments = RequestCycle.get().getRequest().getUrl().getSegments();
+                if (segments == null || segments.size() < 2) {
+                    return sUrl;
+                }
+
+                String prefix = StringUtils.repeat("../", segments.size() - 1);
+                if (!sUrl.startsWith("/")) {
+                    return prefix + sUrl;
+                }
+
+                return StringUtils.left(prefix, prefix.length() - 1) + sUrl;
             }
-        }));
+        });
+        customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
 
         WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
         customLogoImgCss.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isNotEmpty(logoModel.getObject().getCssClass())));
@@ -1360,7 +1379,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public boolean onCloseButtonClicked(AjaxRequestTarget target) {
                 return true;
             }
@@ -1368,8 +1387,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         modal.setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
 
-        	private static final long serialVersionUID = 1L;
-        	
+            private static final long serialVersionUID = 1L;
+
             @Override
             public void onClose(AjaxRequestTarget target) {
                 modal.close(target);
@@ -1377,8 +1396,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         });
 
         modal.add(new AbstractDefaultAjaxBehavior() {
-        	
-        	private static final long serialVersionUID = 1L;
+
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void renderHead(Component component, IHeaderResponse response) {
@@ -1550,7 +1569,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_UI_RESOURCE_EDIT_URL)) {
             items.add(createResourcesItems());
         }
- //TODO uncomment after ValuePolicies pages are finished
+        //TODO uncomment after ValuePolicies pages are finished
 //        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
 //                AuthorizationConstants.AUTZ_UI_VALUE_POLICIES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
 //            items.add(createValuePolicieItems());
@@ -1589,7 +1608,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         return menus;
     }
-    
+
 
     private void createConfigurationMenu(SideBarMenuItem item) {
         addMainMenuItem(item, "fa fa-bullseye", "PageAdmin.menu.top.configuration.bulkActions", PageBulkAction.class);
@@ -1602,9 +1621,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjectView"),
                 PageDebugView.class, null, createVisibleDisabledBehaviorForEditMenu(PageDebugView.class));
         debugs.getItems().add(menu);
-        
+
         MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null);
-        
+
         addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.basic",
                 PageSystemConfiguration.CONFIGURATION_TAB_BASIC);
         addSystemMenuItem(systemItemNew, "PageAdmin.menu.top.configuration.objectPolicy",
@@ -1743,11 +1762,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     // Izolated until the referenced value policies pages are fully implemented
-    private MainMenuItem createValuePolicieItems(){
-        MainMenuItem item = new MainMenuItem("fa fa-asterisk", createStringResource("PageAdmin.menu.top.valuePolicies"),null);
+    private MainMenuItem createValuePolicieItems() {
+        MainMenuItem item = new MainMenuItem("fa fa-asterisk", createStringResource("PageAdmin.menu.top.valuePolicies"), null);
 
         addMenuItem(item, "PageAdmin.menu.top.valuePolicies.list", PageValuePolicies.class);
-        addMenuItem(item,"PageAdmin.menu.top.valuePolicies.new", PageValuePolicy.class);
+        addMenuItem(item, "PageAdmin.menu.top.valuePolicies.new", PageValuePolicy.class);
 
         return item;
     }
@@ -1824,7 +1843,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 PageSelfCredentials.class);
         addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_REQUEST, "PageAdmin.menu.request",
                 PageAssignmentShoppingCart.class);
-        
+
         //GDPR feature.. temporary disabled MID-4281
 //        addMainMenuItem(menu, GuiStyleConstants.CLASS_ICON_CONSENT, "PageAdmin.menu.consent",
 //                PageSelfConsents.class);
@@ -2008,56 +2027,56 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return item;
     }
 
-    private void addUsersViewMenuItems(List<MenuItem> menu){
+    private void addUsersViewMenuItems(List<MenuItem> menu) {
         List<GuiObjectListViewType> objectListViews = getObjectViewsList();
-        if (objectListViews == null){
+        if (objectListViews == null) {
             return;
         }
         objectListViews.forEach(objectListView -> {
-        	//objectlistView.getType() might be null - from documentation:
-        	// It may not be present in case that the type is defined in a referenced object colleciton.
-        	
-        	if (objectListView.getType() != null && !QNameUtil.match(objectListView.getType(), UserType.COMPLEX_TYPE)) {
-        		return;
-        	}
-            
-        	ObjectReferenceType collectionRef = objectListView.getCollectionRef();
-            if (collectionRef == null){
-               return;
+            //objectlistView.getType() might be null - from documentation:
+            // It may not be present in case that the type is defined in a referenced object colleciton.
+
+            if (objectListView.getType() != null && !QNameUtil.match(objectListView.getType(), UserType.COMPLEX_TYPE)) {
+                return;
             }
-            
-			OperationResult result = new OperationResult(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
-			Task task = createSimpleTask(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
-			PrismObject<? extends ObjectType> collectionObject = WebModelServiceUtils.resolveReferenceNoFetch(collectionRef, this,
-					task, result);
-			if (collectionObject == null) {
-				return;
-			}
-			ObjectType objectType = collectionObject.asObjectable();
-			if (!(objectType instanceof ObjectCollectionType)) {
-				return;
-			}
-			
-			ObjectCollectionType collectionValue = (ObjectCollectionType) objectType;
-			if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)) {
-				return;
-			}
-			DisplayType viewDisplayType = objectListView.getDisplay();
 
-			PageParameters pageParameters = new PageParameters();
-			pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
+            ObjectReferenceType collectionRef = objectListView.getCollectionRef();
+            if (collectionRef == null) {
+                return;
+            }
 
-			MenuItem userViewMenu = new MenuItem(viewDisplayType != null && StringUtils.isNotEmpty(viewDisplayType.getLabel())
-					? createStringResource(viewDisplayType.getLabel())
-					: createStringResource("MenuItem.noName"), PageUsersView.class, pageParameters, null);
-			menu.add(userViewMenu);
-			
+            OperationResult result = new OperationResult(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
+            Task task = createSimpleTask(OPERATION_LOAD_USERS_VIEW_COLLECTION_REF);
+            PrismObject<? extends ObjectType> collectionObject = WebModelServiceUtils.resolveReferenceNoFetch(collectionRef, this,
+                    task, result);
+            if (collectionObject == null) {
+                return;
+            }
+            ObjectType objectType = collectionObject.asObjectable();
+            if (!(objectType instanceof ObjectCollectionType)) {
+                return;
+            }
+
+            ObjectCollectionType collectionValue = (ObjectCollectionType) objectType;
+            if (!QNameUtil.match(collectionValue.getType(), UserType.COMPLEX_TYPE)) {
+                return;
+            }
+            DisplayType viewDisplayType = objectListView.getDisplay();
+
+            PageParameters pageParameters = new PageParameters();
+            pageParameters.add(PageUsersView.PARAMETER_OBJECT_COLLECTION_TYPE_OID, collectionValue.getOid());
+
+            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && StringUtils.isNotEmpty(viewDisplayType.getLabel())
+                    ? createStringResource(viewDisplayType.getLabel())
+                    : createStringResource("MenuItem.noName"), PageUsersView.class, pageParameters, null);
+            menu.add(userViewMenu);
+
         });
     }
-    
-    private List<GuiObjectListViewType> getObjectViewsList(){
+
+    private List<GuiObjectListViewType> getObjectViewsList() {
         GuiObjectListViewsType objectListViews = getAdminGuiConfiguration().getObjectLists();
-        if (objectListViews == null){
+        if (objectListViews == null) {
             return null;
         }
         return objectListViews.getObjectList();
@@ -2078,9 +2097,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     private VisibleEnableBehaviour createVisibleDisabledBehaviorForEditMenu(final Class<? extends WebPage> page) {
         return new VisibleEnableBehaviour() {
 
-        	private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public boolean isVisible() {
                 return getPage().getClass().equals(page);
             }
@@ -2133,6 +2152,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     /**
      * checks if it's possible to make backStep steps back
+     *
      * @param backStep
      * @return
      */
@@ -2142,7 +2162,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             return true;
         }
         if (breadcrumbs.size() == backStep && (breadcrumbs.get(breadcrumbs.size() - backStep)) != null) {
-                return true;
+            return true;
         }
 
         return false;
@@ -2153,7 +2173,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     /**
-     *
      * @param backStep redirects back to page with backStep step
      * @return
      */
@@ -2306,9 +2325,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         IconType logo = info.getLogo();
         return StringUtils.isNotEmpty(logo.getImageUrl()) || StringUtils.isNotEmpty(logo.getCssClass());
     }
-    
+
     protected boolean isLogoLinkEnabled() {
-    	return true;
+        return true;
     }
 
     private String getSubscriptionId() {
@@ -2327,7 +2346,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         };
     }
 
-    private boolean isFooterVisible(){
+    private boolean isFooterVisible() {
         String subscriptionId = getSubscriptionId();
         if (StringUtils.isEmpty(subscriptionId)) {
             return true;
@@ -2352,17 +2371,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
     }
 
-    public void reloadShoppingCartIcon(AjaxRequestTarget target){
+    public void reloadShoppingCartIcon(AjaxRequestTarget target) {
         target.add(get(createComponentPath(ID_MAIN_HEADER, ID_NAVIGATION, ID_CART_BUTTON)));
     }
 
     public AsyncWebProcessManager getAsyncWebProcessManager() {
         return MidPointApplication.get().getAsyncWebProcessManager();
     }
-    
+
     @Override
     public Locale getLocale() {
-    	return getSession().getLocale();
+        return getSession().getLocale();
     }
 
 }

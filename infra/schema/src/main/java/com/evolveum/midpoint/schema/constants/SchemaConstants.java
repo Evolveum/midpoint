@@ -416,6 +416,7 @@ public abstract class SchemaConstants {
 	public static final String ACCOUNT_ACTIVATION_PREFIX = "/activate/accounts";
 
 	public static final String INTENT_DEFAULT = "default";
+	public static final String INTENT_UNKNOWN = "unknown";
 
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
 

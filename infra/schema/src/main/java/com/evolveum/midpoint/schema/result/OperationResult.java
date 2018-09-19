@@ -553,6 +553,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		boolean allSuccess = true;
 		boolean allNotApplicable = true;
 		String newMessage = null;
+		LocalizableMessage newUserFriendlyMessage = null;
 		for (OperationResult sub : getSubresults()) {
 			if (sub == null) {
 				continue;
@@ -568,6 +569,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				} else {
 					message = message + ": " + sub.getMessage();
 				}
+				updateLocalizableMessage(sub);
 				return;
 			}
 			if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
@@ -577,6 +579,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				} else {
 					message = message + ": " + sub.getMessage();
 				}
+				updateLocalizableMessage(sub);
 				if (asynchronousOperationReference == null) {
 					asynchronousOperationReference = sub.getAsynchronousOperationReference();
 				}
@@ -585,11 +588,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
 				newStatus = OperationResultStatus.PARTIAL_ERROR;
 				newMessage = sub.getMessage();
+				newUserFriendlyMessage = sub.getUserFriendlyMessage();
 			}
 			if (newStatus != OperationResultStatus.PARTIAL_ERROR){
 			if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
 				newStatus = OperationResultStatus.HANDLED_ERROR;
 				newMessage = sub.getMessage();
+				newUserFriendlyMessage = sub.getUserFriendlyMessage();
 			}
 			}
 			if (sub.getStatus() != OperationResultStatus.SUCCESS
@@ -600,6 +605,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				if (sub.getStatus() == OperationResultStatus.WARNING) {
 					newStatus = OperationResultStatus.WARNING;
 					newMessage = sub.getMessage();
+					newUserFriendlyMessage = sub.getUserFriendlyMessage();
 				}
 			}
 		}
@@ -614,6 +620,35 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				message = newMessage;
 			} else {
 				message = message + ": " + newMessage;
+			}
+			updateLocalizableMessage(newUserFriendlyMessage);
+		}
+	}
+	
+	private void updateLocalizableMessage(OperationResult subResult) {
+		if (userFriendlyMessage == null) {
+			userFriendlyMessage = subResult.getUserFriendlyMessage();
+		} else {
+			updateLocalizableMessage(subResult.getUserFriendlyMessage());
+		}
+	}
+	
+	private void updateLocalizableMessage(LocalizableMessage localizableMessage) {
+		if (userFriendlyMessage instanceof SingleLocalizableMessage) {
+			if (localizableMessage != null) {
+				userFriendlyMessage = new LocalizableMessageListBuilder().message(userFriendlyMessage).message(localizableMessage).separator(LocalizableMessageList.SPACE).build();
+				return;
+			}
+		}
+		
+		if (userFriendlyMessage instanceof LocalizableMessageList) {
+			if (localizableMessage instanceof SingleLocalizableMessage) {
+				((LocalizableMessageList) userFriendlyMessage).getMessages().add(localizableMessage);
+				return;
+			}
+			if (localizableMessage instanceof LocalizableMessageList) {
+				((LocalizableMessageList) userFriendlyMessage).getMessages().addAll(((LocalizableMessageList) localizableMessage).getMessages());
+				return;
 			}
 		}
 	}
@@ -1567,9 +1602,16 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		}
 		sb.append(", msg: ");
 		sb.append(message);
+		
 		if (count > 1) {
 			sb.append(" x");
 			sb.append(count);
+		}
+		if (userFriendlyMessage != null) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 2);
+			sb.append("userFriendlyMessage=");
+			userFriendlyMessage.shortDump(sb);
 		}
 		if (asynchronousOperationReference != null) {
 			sb.append("\n");
