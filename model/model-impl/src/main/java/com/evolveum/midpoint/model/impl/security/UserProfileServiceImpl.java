@@ -89,14 +89,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author lazyman
  * @author semancik
  */
 @Service(value = "userDetailsService")
-public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {
-
+public class UserProfileServiceImpl implements UserProfileService, UserDetailsService, UserDetailsContextMapper, MessageSourceAware {    
+    
     private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
 
     @Autowired
@@ -115,6 +118,9 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 
+        //optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
+        @Value("${auth.ldap.search.naming-attr:#{null}}") private String ldapNamingAttr;
+        
 	private MessageSourceAccessor messages;
 
 	@Override
@@ -438,11 +444,17 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Override
 	public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
 			Collection<? extends GrantedAuthority> authorities) {
-		try {
-			return getPrincipal(username);
+                        
+                String userNameEffective = username;                            		
+                try {                    
+                        if (ctx != null && ldapNamingAttr != null) {
+                            userNameEffective = resolveLdapName(ctx, username);
+                        }                       
+			return getPrincipal(userNameEffective);
+                        
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException("UserProfileServiceImpl.unknownUser", e);
-		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
+		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | NamingException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
 	}
@@ -453,5 +465,20 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 	}
 
+        private String resolveLdapName(DirContextOperations ctx, String username) throws NamingException, ObjectNotFoundException {
+            Attribute ldapResponse = ctx.getAttributes().get(ldapNamingAttr);
+            if (ldapResponse != null) {
+                if (ldapResponse.size() == 1) {
+                    Object namingAttrValue = ldapResponse.get(0);
 
+                    if (namingAttrValue != null) {
+                        return namingAttrValue.toString().toLowerCase();
+                    }
+                }
+                else {
+                    throw new ObjectNotFoundException("Bad response"); // naming attribute contains multiple values
+                }
+            }
+            return username; // fallback to typed-in username in case ldap value is missing
+        }
 }
