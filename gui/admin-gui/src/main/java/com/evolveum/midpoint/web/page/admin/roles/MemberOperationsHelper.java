@@ -91,6 +91,7 @@ public class MemberOperationsHelper {
 					"Failed to execute operation " + parentResult.getOperation(), e);
 			target.add(pageBase.getFeedbackPanel());
 		}
+		target.add(pageBase.getFeedbackPanel());
 		//FIXME: temporary hack
 		
 		

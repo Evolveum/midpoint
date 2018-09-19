@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
@@ -162,8 +163,21 @@ public class SynchronizationUtils {
 	}
 	
 	public static boolean isPolicyApplicable(QName objectClass, ShadowKindType kind, String intent, ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource, boolean strictIntent) throws SchemaException {
+		
 		List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
-
+		//check objectClass if match
+		if (CollectionUtils.isNotEmpty(policyObjectClasses) && objectClass != null) {
+			if (!QNameUtil.matchAny(objectClass, policyObjectClasses)) {
+				return false;
+			}
+		}
+		
+		
+		RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+		if (schema == null) {
+			throw new SchemaException("No schema defined in resource. Possible configuration problem?");
+		}
+		
 		ShadowKindType policyKind = synchronizationPolicy.getKind();
 		if (policyKind == null) {
 			policyKind = ShadowKindType.ACCOUNT;
@@ -171,43 +185,22 @@ public class SynchronizationUtils {
 		
 		String policyIntent = synchronizationPolicy.getIntent();
 		
-		boolean containsPolicyObjectClass = false;
-		
-//		List<QName> applicablePolicyObjectClasses = new ArrayList<>();
-		if (policyObjectClasses == null || policyObjectClasses.isEmpty()) {
-			
-			ObjectClassComplexTypeDefinition policyObjectClass = null;
-			RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
-			if (schema == null) {
-				throw new SchemaException("No schema defined in resource. Possible configuration problem?");
-			}
-			if (policyKind == null && policyIntent == null) {
-				policyObjectClass = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-			}
-
-			if (policyKind != null) {
-				if (StringUtils.isEmpty(policyIntent)) {
-					policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
-				} else {
-					policyObjectClass = schema.findObjectClassDefinition(policyKind, policyIntent);
-				}
-
-			}
-			if (policyObjectClass != null) {
-				containsPolicyObjectClass = true;
-			}
-			if (policyObjectClass != null && !policyObjectClass.getTypeName().equals(objectClass)) {
-				return false;
-			}
+		ObjectClassComplexTypeDefinition policyObjectClass = null;
+		if (StringUtils.isEmpty(policyIntent)) {
+			policyObjectClass = schema.findDefaultObjectClassDefinition(policyKind);
+			policyIntent = policyObjectClass.getIntent();
 		} else {
-			containsPolicyObjectClass = true;
-			if (objectClass != null && !QNameUtil.contains(policyObjectClasses, objectClass)) {
-				return false;
-			}
+			policyObjectClass = schema.findObjectClassDefinition(policyKind, policyIntent);
 		}
-
+		
+		// re-check objctClass if wasn't defined
+		if (objectClass != null && !QNameUtil.match(objectClass, policyObjectClass.getTypeName())) {
+			return false;
+		}
+		
 		// kind
-		if (!policyKind.equals(kind) && !containsPolicyObjectClass) {
+		LOGGER.trace("Comparing kinds, policy kind: {}, current kind: {}", policyKind, kind);
+		if (kind != null && !policyKind.equals(kind)) {
 			LOGGER.trace("Kinds don't match, skipping policy {}", synchronizationPolicy);
 			return false;
 		}

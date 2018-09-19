@@ -15,16 +15,23 @@
  */
 package com.evolveum.midpoint.model.impl.sync;
 
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -32,7 +39,10 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -60,6 +70,8 @@ public class SynchronizationContext<F extends FocusType> {
 	private F currentOwner;
 	private F correlatedOwner;
 	private SynchronizationSituationType situation;
+	
+	private String intent;
 	
 	private SynchronizationReactionType reaction;
 	
@@ -120,6 +132,133 @@ public class SynchronizationContext<F extends FocusType> {
 		return prop.getRealValue();
 	}
 	
+	public ShadowKindType getKind() {
+		
+		if (!hasApplicablePolicy()) {
+			return ShadowKindType.UNKNOWN;
+		}
+		
+		if (objectSynchronization.getKind() == null) {
+			return ShadowKindType.ACCOUNT;
+		}
+		
+		return objectSynchronization.getKind();
+	}
+	
+	public String getIntent() throws SchemaException { 
+		if (!hasApplicablePolicy()) {
+			return SchemaConstants.INTENT_UNKNOWN;
+		}
+		
+		if (intent == null) {
+			RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
+			ObjectClassComplexTypeDefinition occtd = schema.findDefaultObjectClassDefinition(getKind());
+			intent = occtd.getIntent();
+		}
+		return intent;
+	}
+	
+	public List<ConditionalSearchFilterType> getCorrelation() {
+		return objectSynchronization.getCorrelation();
+	}
+	
+	public ExpressionType getConfirmation() {
+		return objectSynchronization.getConfirmation();
+	}
+	
+	public ObjectReferenceType getObjectTemplateRef() {
+		if (reaction.getObjectTemplateRef() != null) {
+			return reaction.getObjectTemplateRef();
+		} 
+
+		return objectSynchronization.getObjectTemplateRef();
+	}
+	
+	public SynchronizationReactionType getReaction() throws ConfigurationException {
+		if (reaction != null) {
+			return reaction;
+		}
+		
+		SynchronizationReactionType defaultReaction = null;
+		for (SynchronizationReactionType syncReaction : objectSynchronization.getReaction()) {
+			SynchronizationSituationType reactionSituation = syncReaction.getSituation();
+			if (reactionSituation == null) {
+				throw new ConfigurationException("No situation defined for a reaction in " + resource);
+			}
+			if (reactionSituation.equals(situation)) {
+				if (syncReaction.getChannel() != null && !syncReaction.getChannel().isEmpty()) {
+					if (syncReaction.getChannel().contains("") || syncReaction.getChannel().contains(null)) {
+						defaultReaction = syncReaction;
+					}
+					if (syncReaction.getChannel().contains(chanel)) {
+						reaction = syncReaction;
+						return reaction;
+					} else {
+						LOGGER.trace("Skipping reaction {} because the channel does not match {}", reaction, chanel);
+						continue;
+					}
+				} else {
+					defaultReaction = syncReaction;
+				}
+			}
+		}
+		LOGGER.trace("Using default reaction {}", defaultReaction);
+		reaction = defaultReaction;
+		return reaction;
+	}
+	
+	public boolean hasApplicablePolicy() {
+		return objectSynchronization != null;
+	}
+	
+	public String getPolicyName() {
+		if (objectSynchronization == null) {
+			return null;
+		}
+		if (objectSynchronization.getName() != null) {
+			return objectSynchronization.getName();
+		}
+		return objectSynchronization.toString();
+	}
+	
+	public Boolean isDoReconciliation() {
+		if (reaction.isReconcile() != null) {
+			return reaction.isReconcile();
+		}
+		if (objectSynchronization.isReconcile() != null) {
+			return objectSynchronization.isReconcile();
+		}
+		return null;
+	}
+	
+	public Boolean isLimitPropagation() {
+		if (StringUtils.isNotBlank(chanel)) {
+			QName channelQName = QNameUtil.uriToQName(chanel);
+			// Discovery channel is used when compensating some inconsistent
+			// state. Therefore we do not want to propagate changes to other
+			// resources. We only want to resolve the problem and continue in
+			// previous provisioning/synchronization during which this
+			// compensation was triggered.
+			if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(channelQName)
+					&& SynchronizationSituationType.DELETED != reaction.getSituation()) {
+				return true;
+			}
+		}
+
+		if (reaction.isLimitPropagation() != null) {
+			return reaction.isLimitPropagation();
+		}
+		if (objectSynchronization.isLimitPropagation() != null) {
+			return objectSynchronization.isLimitPropagation();
+		}
+		return null;
+	}
+	
+	//TODO obejctClass??? 
+//	public QName getObjectClass() {
+//		if (objectSynchronization.getObjectClass() != )
+//	}
+	
 	
 	public PrismObject<ShadowType> getApplicableShadow() {
 		return applicableShadow;
@@ -130,17 +269,14 @@ public class SynchronizationContext<F extends FocusType> {
 	public PrismObject<ResourceType> getResource() {
 		return resource;
 	}
-	public ObjectSynchronizationType getObjectSynchronization() {
-		return objectSynchronization;
-	}
 
-	public Class<F> getFocusClass() throws ConfigurationException {
+	public Class<F> getFocusClass() throws SchemaException {
 		
 		if (focusClass != null) {
 			return focusClass;
 		}
 		
-		if (objectSynchronization == null) {
+		if (!hasApplicablePolicy()) {
 			throw new IllegalStateException("synchronizationPolicy is null");
 		}
 		
@@ -151,8 +287,7 @@ public class SynchronizationContext<F extends FocusType> {
 		}
 		ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(focusTypeQName);
 		if (objectType == null) {
-			throw new ConfigurationException(
-					"Unknown focus type " + focusTypeQName + " in synchronization policy in " + resource);
+			throw new SchemaException("Unknown focus type " + focusTypeQName + " in synchronization policy in " + resource);
 		}
 		this.focusClass = (Class<F>) objectType.getClassDefinition();
 		return focusClass;
@@ -171,6 +306,7 @@ public class SynchronizationContext<F extends FocusType> {
 	}
 
 	public void setObjectSynchronization(ObjectSynchronizationType objectSynchronization) {
+		this.intent = objectSynchronization.getIntent();
 		this.objectSynchronization = objectSynchronization;
 	}
 
@@ -212,9 +348,9 @@ public class SynchronizationContext<F extends FocusType> {
 		this.chanel = chanel;
 	}
 	
-	public SynchronizationReactionType getReaction() {
-		return reaction;
-	}
+//	public SynchronizationReactionType getReaction() {
+//		return reaction;
+//	}
 	
 	public void setReaction(SynchronizationReactionType reaction) {
 		this.reaction = reaction;
@@ -258,6 +394,22 @@ public class SynchronizationContext<F extends FocusType> {
 	
 	public void setForceIntentChange(boolean forceIntentChange) {
 		this.forceIntentChange = forceIntentChange;
+	}
+	
+	@Override
+	public String toString() {
+		String policyDesc = null;
+		if (objectSynchronization != null) {
+			if (objectSynchronization.getName() == null) {
+				policyDesc = "(kind=" + objectSynchronization.getKind() + ", intent="
+						+ objectSynchronization.getIntent() + ", objectclass="
+						+ objectSynchronization.getObjectClass() + ")";
+			} else {
+				policyDesc = objectSynchronization.getName();
+			}
+		}
+		
+		return policyDesc;
 	}
 	
 }
