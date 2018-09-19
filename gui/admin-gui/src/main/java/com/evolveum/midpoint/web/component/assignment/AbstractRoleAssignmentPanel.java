@@ -163,13 +163,21 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     }
 
     protected void addSelectedAssignmentsPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList){
-           if (newAssignmentsList == null || newAssignmentsList.isEmpty()){
-                   warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
-                   target.add(getPageBase().getFeedbackPanel());
-                   return;
-           }
-           
-           newAssignmentsList.forEach(assignment -> {
+        if (newAssignmentsList == null || newAssignmentsList.isEmpty()) {
+            warn(getParentPage().getString("AssignmentTablePanel.message.noAssignmentSelected"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+        int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
+                getPageBase());
+        int addedAssignmentsCount = getNewAssignmentsCount() + newAssignmentsList.size();
+        if (assignmentsLimit >= 0 && addedAssignmentsCount > assignmentsLimit) {
+            warn(getParentPage().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsLimit));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        newAssignmentsList.forEach(assignment -> {
         	   PrismContainerDefinition<AssignmentType> definition = getModelObject().getItem().getDefinition();
         	   PrismContainerValue<AssignmentType> newAssignment;
 			try {

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.notifications.impl.helpers;
 
-import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -24,7 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,9 +34,9 @@ public class ExpressionFilterHelper extends BaseHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionFilterHelper.class);
 
-    @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
-    		Task task, OperationResult result) {
+    @Autowired private NotificationExpressionHelper expressionHelper;
+
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, Task task, OperationResult result) {
 
         if (eventHandlerType.getExpressionFilter().isEmpty()) {
             return true;
@@ -48,8 +47,8 @@ public class ExpressionFilterHelper extends BaseHelper {
         boolean retval = true;
 
         for (ExpressionType expressionType : eventHandlerType.getExpressionFilter()) {
-            if (!evaluateBooleanExpressionChecked(expressionType, getDefaultVariables(event, result),
-                    "event filter expression", task, result)) {
+            if (!expressionHelper.evaluateBooleanExpressionChecked(expressionType,
+                    expressionHelper.getDefaultVariables(event, result), "event filter expression", task, result)) {
                 retval = false;
                 break;
             }

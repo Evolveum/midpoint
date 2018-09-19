@@ -152,7 +152,6 @@ public class ModelRestService {
 		} catch (Exception ex) {
 			parentResult.computeStatus();
 			response = RestServiceUtil.handleException(parentResult, ex);
-
 		}
 
 		finishRequest(task);
@@ -928,8 +927,8 @@ public class ModelRestService {
 				response = RestServiceUtil.createResponse(Response.Status.OK, responseData, result);
 			}
 		} catch (Exception ex) {
-			response = RestServiceUtil.handleException(result, ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute script.", ex);
+			response = RestServiceUtil.handleExceptionNoLog(result, ex);
 		}
 		result.computeStatus();
 		finishRequest(task);
@@ -1020,7 +1019,7 @@ public class ModelRestService {
 
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Cannot get log file content: fromPosition={}, maxSize={}", ex, fromPosition, maxSize);
-			response = RestServiceUtil.handleException(result, ex);
+			response = RestServiceUtil.handleExceptionNoLog(result, ex);
 		}
 
 		result.computeStatus();

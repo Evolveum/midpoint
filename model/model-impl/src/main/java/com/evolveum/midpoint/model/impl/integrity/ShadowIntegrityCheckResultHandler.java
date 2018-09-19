@@ -49,8 +49,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -101,9 +99,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     public static final List<String> KNOWN_KEYS =
             Arrays.asList(INTENTS, UNIQUENESS, NORMALIZATION, OWNERS, FETCH, EXTRA_DATA, RESOURCE_REF);
 
-    // resource oid + kind -> ROCD
-    // we silently assume that all intents for a given kind share a common attribute definition
-    private Map<Pair<String,ShadowKindType>, ObjectTypeContext> contextMap = new HashMap<>();
+    private Map<ContextMapKey, ObjectTypeContext> contextMap = new HashMap<>();
 
     private Map<String,PrismObject<ResourceType>> resources = new HashMap<>();
 
@@ -380,7 +376,13 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             doFixIntent(checkResult, fetchedShadow, shadow, resource, workerTask, result);
         }
 
-        Pair<String,ShadowKindType> key = new ImmutablePair<>(resourceOid, kind);
+        QName objectClassName = shadowType.getObjectClass();
+        if (objectClassName == null) {
+            checkResult.recordError(ShadowStatistics.NO_OBJECT_CLASS_SPECIFIED, new SchemaException("No object class specified"));
+            return;
+        }
+
+        ContextMapKey key = new ContextMapKey(resourceOid, objectClassName);
         ObjectTypeContext context = contextMap.get(key);
         if (context == null) {
             context = new ObjectTypeContext();
@@ -503,7 +505,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
     }
 
-    private void doFixIntent(ShadowCheckResult checkResult, PrismObject<ShadowType> fetchedShadow, PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task, OperationResult result) {
+    private void doFixIntent(ShadowCheckResult checkResult, PrismObject<ShadowType> fetchedShadow, PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException {
         PrismObject<ShadowType> fullShadow;
 
         if (!checkFetch) {
@@ -516,23 +518,22 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             return;
         }
 
-        ObjectSynchronizationType synchronizationPolicy;
+        SynchronizationContext<? extends FocusType> syncCtx = null;
         try {
-        	SynchronizationContext<? extends FocusType> syncCtx = synchronizationService.loadSynchronizationContext(fullShadow, fullShadow, resource, task.getChannel(), systemObjectCache.getSystemConfiguration(result), task, result);
-            synchronizationPolicy = syncCtx.getObjectSynchronization();            
+        	syncCtx = synchronizationService.loadSynchronizationContext(fullShadow, fullShadow, resource, task.getChannel(), systemObjectCache.getSystemConfiguration(result), task, result);
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | SecurityViolationException e) {
             checkResult.recordError(ShadowStatistics.CANNOT_APPLY_FIX, new SystemException("Couldn't prepare fix for missing intent, because the synchronization policy couldn't be determined", e));
             return;
         }
-        if (synchronizationPolicy != null) {
-            if (synchronizationPolicy.getIntent() != null) {
-                PropertyDelta delta = PropertyDelta.createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, synchronizationPolicy.getIntent());
+        if (syncCtx.hasApplicablePolicy()) {
+            if (syncCtx.getIntent() != null) {
+                PropertyDelta<String> delta = PropertyDelta.createReplaceDelta(fullShadow.getDefinition(), ShadowType.F_INTENT, syncCtx.getIntent());
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Intent fix delta (not executed now) = \n{}", delta.debugDump());
                 }
                 checkResult.addFixDelta(delta, ShadowStatistics.NO_INTENT_SPECIFIED);
             } else {
-                LOGGER.info("Synchronization policy does not contain intent: {}", synchronizationPolicy);
+                LOGGER.info("Synchronization policy does not contain intent: {}", syncCtx.toString());
             }
         } else {
             LOGGER.info("Intent couldn't be fixed, because no synchronization policy was found");
@@ -649,9 +650,9 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         StringBuilder details = new StringBuilder();
         StringBuilder stat = new StringBuilder();
 
-        for (Map.Entry<Pair<String,ShadowKindType>, ObjectTypeContext> entry : contextMap.entrySet()) {
-            String resourceOid = entry.getKey().getLeft();
-            ShadowKindType kind = entry.getKey().getRight();
+        for (Map.Entry<ContextMapKey, ObjectTypeContext> entry : contextMap.entrySet()) {
+            String resourceOid = entry.getKey().resourceOid;
+            QName objectClassName = entry.getKey().objectClassName;
             ObjectTypeContext ctx = entry.getValue();
             PrismObject<ResourceType> resource = resources.get(resourceOid);
             if (resource == null) {
@@ -668,7 +669,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
                     }
                     if (first) {
                         details.append("Duplicates for ").append(ObjectTypeUtil.toShortString(resource));
-                        details.append(", kind = ").append(kind);
+                        details.append(", object class = ").append(objectClassName);
                         details.append(", identifier = ").append(identifier).append(":\n");
                         first = false;
                     }

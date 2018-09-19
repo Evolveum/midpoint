@@ -21,6 +21,9 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.MemberPanelStorage;
+import com.evolveum.midpoint.web.session.PageStorage;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -110,7 +113,9 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	@Override
 	protected void unassignMembersPerformed(QName objectType, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
 		super.unassignMembersPerformed(objectType, scope, relations, target);
-		MemberOperationsHelper.unassignOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
+		if (relations != null && relations.size() > 0) {
+			MemberOperationsHelper.unassignOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
+		}
 	}
 
 	@Override
@@ -123,7 +128,8 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 
 	@Override
 	protected <O extends ObjectType> Class<O> getDefaultObjectType() {
-		return (Class) UserType.class;
+		return getMemberPanelStorage().getType() != null ? (Class) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(),
+				getMemberPanelStorage().getType().getTypeQName()) : (Class) UserType.class;
 	}
 
 	@Override
@@ -131,6 +137,16 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 		return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, getPageBase());
 	}
 
-
-
+	@Override
+	protected MemberPanelStorage getMemberPanelStorage(){
+		String storageKey = WebComponentUtil.getStorageKeyForTableId(getTableId(getComplexTypeQName()));
+		PageStorage storage = null;
+		if (StringUtils.isNotEmpty(storageKey)) {
+			storage = getPageBase().getSessionStorage().getPageStorageMap().get(storageKey);
+			if (storage == null) {
+				storage = getPageBase().getSessionStorage().initPageStorage(storageKey);
+			}
+		}
+		return (MemberPanelStorage) storage;
+	}
 }
