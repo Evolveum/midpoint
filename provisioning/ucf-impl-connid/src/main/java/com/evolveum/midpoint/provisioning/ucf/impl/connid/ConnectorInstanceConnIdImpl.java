@@ -156,6 +156,7 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -1379,7 +1380,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	@Override
 	public AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> addObject(PrismObject<? extends ShadowType> shadow, Collection<Operation> additionalOperations, StateReporter reporter,
 													  OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException {
+			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		validateShadow(shadow, "add", false);
 		ShadowType shadowType = shadow.asObjectable();
 
@@ -1511,6 +1512,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				throw (SchemaException) midpointEx;
 			} else if (midpointEx instanceof ConfigurationException) {
 				throw (ConfigurationException) midpointEx;
+			} else if (midpointEx instanceof SecurityViolationException) {
+				throw (SecurityViolationException) midpointEx;
+			} else if (midpointEx instanceof PolicyViolationException) {
+				throw (PolicyViolationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
 			} else if (midpointEx instanceof Error) {
@@ -1578,7 +1583,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					StateReporter reporter,
 					OperationResult parentResult)
 							throws ObjectNotFoundException, CommunicationException,
-								GenericFrameworkException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+								GenericFrameworkException, SchemaException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".modifyObject");
 		result.addArbitraryObjectAsParam("identification", identification);
@@ -1625,7 +1630,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					StateReporter reporter,
 					OperationResult result) 
 							throws ObjectNotFoundException, CommunicationException,
-								GenericFrameworkException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+								GenericFrameworkException, SchemaException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
 		
 		ObjectClassComplexTypeDefinition objectClassDef = identification.getObjectClassDefinition();
 		Set<AttributeDelta> sideEffect = new HashSet<>();
@@ -1706,6 +1711,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					throw (RuntimeException) midpointEx;
 				} else if (midpointEx instanceof SecurityViolationException) {
 					throw (SecurityViolationException) midpointEx;
+				} else if (midpointEx instanceof PolicyViolationException) {
+					throw (PolicyViolationException) midpointEx;
 				} else if (midpointEx instanceof Error) {
 					throw (Error) midpointEx;
 				} else {
@@ -1784,7 +1791,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			StateReporter reporter,
 			OperationResult result) 
 					throws ObjectNotFoundException, CommunicationException,
-						GenericFrameworkException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException {
+						GenericFrameworkException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, PolicyViolationException {
 
 		
 		ObjectClassComplexTypeDefinition objectClassDef = identification.getObjectClassDefinition();
@@ -1872,6 +1879,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					throw (RuntimeException) midpointEx;
 				} else if (midpointEx instanceof SecurityViolationException){
 					throw (SecurityViolationException) midpointEx;
+				} else if (midpointEx instanceof PolicyViolationException) {
+					throw (PolicyViolationException) midpointEx;
 				} else if (midpointEx instanceof Error){
 					throw (Error) midpointEx;
 				} else {
@@ -1929,6 +1938,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					throw (RuntimeException) midpointEx;
                 } else if (midpointEx instanceof SecurityViolationException) {
                     throw (SecurityViolationException) midpointEx;
+                } else if (midpointEx instanceof PolicyViolationException) {
+					throw (PolicyViolationException) midpointEx;
 				} else if (midpointEx instanceof Error) {
 					throw (Error) midpointEx;
 				} else {
@@ -1988,6 +1999,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					throw (RuntimeException) midpointEx;
 	            } else if (midpointEx instanceof SecurityViolationException) {
 	                throw (SecurityViolationException) midpointEx;
+	            } else if (midpointEx instanceof PolicyViolationException) {
+					throw (PolicyViolationException) midpointEx;
 				} else if (midpointEx instanceof Error) {
 					throw (Error) midpointEx;
 				} else {

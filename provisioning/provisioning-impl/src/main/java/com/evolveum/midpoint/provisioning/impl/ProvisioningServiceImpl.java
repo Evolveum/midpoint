@@ -77,6 +77,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -271,7 +272,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> String addObject(PrismObject<T> object, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options,
 			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
-			ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(object, "Object to add must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -296,10 +297,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.computeStatusIfUnknown();
 			} catch (GenericFrameworkException ex) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object " + object + ". Reason: " + ex.getMessage(), ex);
-				throw new CommunicationException(ex.getMessage(), ex);
-			} catch (SchemaException ex) {
-				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Schema violation: " + ex.getMessage(), ex);
-				throw new SchemaException("Couldn't add object. Schema violation: " + ex.getMessage(), ex);
+				throw new ConfigurationException(ex.getMessage(), ex);
 			} catch (ObjectAlreadyExistsException ex) {
 				result.computeStatus();
 				if (!result.isSuccess() && !result.isHandledError()) {
@@ -310,21 +308,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.cleanupResult(ex);
 				throw new ObjectAlreadyExistsException("Couldn't add object. Object already exists: " + ex.getMessage(),
 						ex);
-			} catch (ConfigurationException ex) {
-				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Configuration error: " + ex.getMessage(), ex);
-				throw ex;
-			} catch (SecurityViolationException ex) {
-				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Security violation: " + ex.getMessage(), ex);
-				throw ex;
-			} catch (ExpressionEvaluationException ex) {
-				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Expression error: " + ex.getMessage(), ex);
-				throw ex;
 			} catch (EncryptionException e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 				throw new SystemException(e.getMessage(), e);
-			} catch (RuntimeException | Error ex){
-				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't add object. Runtime error: " + ex.getMessage(), ex);
-				throw ex;
+			} catch (SchemaException | ConfigurationException | SecurityViolationException | PolicyViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
+				ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+				throw e;
 			}
 		} else {
 			RepoAddOptions addOptions = null;
@@ -609,7 +598,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public <T extends ObjectType> String modifyObject(Class<T> type, String oid,
 			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-			SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+			SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Modifications must not be null.");
@@ -656,7 +645,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 
 		} catch (CommunicationException | SchemaException | ObjectNotFoundException | ConfigurationException | SecurityViolationException 
-				| ExpressionEvaluationException | RuntimeException | Error e) {
+				| PolicyViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			throw e;
 		} catch (GenericFrameworkException e) {
@@ -677,7 +666,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public <T extends ObjectType> PrismObject<T> deleteObject(Class<T> type, String oid, ProvisioningOperationOptions options, OperationProvisioningScriptsType scripts,
 			Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
-			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(oid, "Oid of object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -692,7 +681,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		//TODO: is critical when shadow does not exits anymore?? do we need to log it?? if not, change null to allowNotFound options
 		PrismObject<T> object = getRepoObject(type, oid, null, result);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Object from repository to delete:\n{}", object.debugDump());
+			LOGGER.trace("Object from repository to delete:\n{}", object.debugDump(1));
 		}
 
 		PrismObject<T> deadShadow = null;
@@ -722,7 +711,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			} catch (ExpressionEvaluationException e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: expression errror: " + e.getMessage(), e);
 				throw e;
-			} catch (RuntimeException | Error e) {
+			} catch (PolicyViolationException | RuntimeException | Error e) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
 				throw e;
 			}

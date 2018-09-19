@@ -356,7 +356,7 @@ public class ShadowCache {
 				validateShadow(handledShadow, true);
 				return handledShadow;
 
-			} catch (GenericFrameworkException | ObjectAlreadyExistsException e) {
+			} catch (GenericFrameworkException | ObjectAlreadyExistsException | PolicyViolationException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
 		} finally {
@@ -488,7 +488,7 @@ public class ShadowCache {
 			ResourceType resource, ProvisioningOperationOptions options, Task task,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 					ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
-					ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+					ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException {
 		Validate.notNull(shadowToAdd, "Object to add must not be null.");
 
 		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
@@ -522,7 +522,7 @@ public class ShadowCache {
 			OperationResult parentResult) 
 					throws CommunicationException, GenericFrameworkException,
 					ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
-					ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+					ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException {
 
 		PrismContainer<?> attributesContainer = shadowToAdd.findContainer(ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
@@ -696,7 +696,7 @@ public class ShadowCache {
 			GetOperationOptions rootOptions,
 			Exception cause,
 			Task task,
-			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
 		if (handler == null) {
 			parentResult.recordFatalError("Error without a handler: " + cause.getMessage(), cause);
@@ -714,7 +714,7 @@ public class ShadowCache {
 			OperationResult failedOperationResult,
 			Task task,
 			OperationResult parentResult) 
-					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		
 		// TODO: record operationExecution
 		
@@ -764,7 +764,7 @@ public class ShadowCache {
 			OperationResult failedOperationResult,
 			Task task,
 			OperationResult parentResult) 
-					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		
 		// TODO: record operationExecution
 		
@@ -797,7 +797,7 @@ public class ShadowCache {
 			OperationResult failedOperationResult,
 			Task task,
 			OperationResult parentResult) 
-					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 				
 		ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
 		if (handler == null) {
@@ -912,7 +912,7 @@ public class ShadowCache {
 			Collection<? extends ItemDelta> modifications, OperationProvisioningScriptsType scripts,
 			ProvisioningOperationOptions options, Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
+					SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
 
 		Validate.notNull(repoShadow, "Object to modify must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
@@ -946,7 +946,7 @@ public class ShadowCache {
 			ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
 			Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
+					SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException, ObjectAlreadyExistsException {
 		
 		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
 		
@@ -1053,7 +1053,7 @@ public class ShadowCache {
 			Task task,
 			OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState = new ProvisioningOperationState<>();
 		opState.setRepoShadow(repoShadow);
 		
@@ -1096,7 +1096,7 @@ public class ShadowCache {
 	public PrismObject<ShadowType> deleteShadow(PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
 			OperationProvisioningScriptsType scripts, Task task, OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
 		Validate.notNull(repoShadow, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1136,7 +1136,7 @@ public class ShadowCache {
 			Task task,
 			OperationResult parentResult)
 					throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-					SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+					SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
 		PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
 		shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
@@ -1229,7 +1229,7 @@ public class ShadowCache {
 			OperationProvisioningScriptsType scripts,
 			ProvisioningOperationOptions options,
 			Task task,
-			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
 		opState.setRepoShadow(shadow);
 		
@@ -1540,7 +1540,7 @@ public class ShadowCache {
 			ProvisioningOperationState<? extends AsynchronousOperationResult> opState, 
 			Task task,
 			OperationResult result)
-					throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
+					throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException {
 		OperationProvisioningScriptsType scripts = null; // TODO
 		if (pendingDelta.isAdd()) {
 			addShadowAttempt(ctx, pendingDelta.getObjectToAdd(), scripts,
@@ -3030,7 +3030,7 @@ public class ShadowCache {
 		}
 	}
 	
-	public void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException, SecurityViolationException, EncryptionException {
+	public void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException, SecurityViolationException, PolicyViolationException, EncryptionException {
 		ResourceConsistencyType resourceConsistencyType = resource.asObjectable().getConsistency();
 		if (resourceConsistencyType == null) {
 			LOGGER.warn("Skipping propagation of {} because no there is no consistency definition in resource", shadow);

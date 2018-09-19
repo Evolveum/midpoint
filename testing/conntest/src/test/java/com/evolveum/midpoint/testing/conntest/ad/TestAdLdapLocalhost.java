@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.testing.conntest;
+package com.evolveum.midpoint.testing.conntest.ad;
 
 import java.io.File;
 
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class TestAdLdapMedusa extends AbstractAdLdapCookedTest {
+public class TestAdLdapLocalhost extends AbstractAdLdapCookedTest {
 
 	@Override
 	protected String getResourceOid() {
@@ -37,17 +37,17 @@ public class TestAdLdapMedusa extends AbstractAdLdapCookedTest {
 
 	@Override
 	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-medusa.xml");
+		return new File(getBaseDir(), "resource-localhost.xml");
 	}
 
 	@Override
 	protected String getLdapServerHost() {
-		return "medusa.lab.evolveum.com";
+		return "localhost";
 	}
 
 	@Override
 	protected int getLdapServerPort() {
-		return 636;
+		return 9636;
 	}
 
 }

@@ -36,7 +36,6 @@ import javax.naming.NameAlreadyBoundException;
 import javax.naming.NoPermissionException;
 import javax.naming.ServiceUnavailableException;
 import javax.naming.directory.AttributeInUseException;
-import javax.naming.directory.InvalidAttributeValueException;
 import javax.naming.directory.NoSuchAttributeException;
 import javax.naming.directory.SchemaViolationException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -50,6 +49,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.OperationOptions;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.AttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.CompositeFilter;
@@ -72,6 +72,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -176,6 +177,25 @@ public class ConnIdUtil {
 			connIdResult.recordFatalError("Configuration error: "+connIdException.getMessage(), newEx);
 			return newEx;
 		}
+		
+		if (connIdException instanceof InvalidAttributeValueException) {
+			// This is quite a special and flexible exception (one of the newer exceptions in ConnId).
+			// Therefore it desires a special handling.
+			Exception newEx;
+			InvalidAttributeValueException iave = (InvalidAttributeValueException)connIdException;
+			if (iave.getAffectedAttributeNames() == null || iave.getAffectedAttributeNames().isEmpty()) {
+				newEx = new SchemaException(iave.getMessage());
+			} else {
+				if (iave.getAffectedAttributeNames().contains(OperationalAttributes.PASSWORD_NAME)) {
+					newEx = new PolicyViolationException(iave.getMessage());
+				} else {
+					newEx = new SchemaException(iave.getMessage());
+				}
+			}
+			connIdResult.recordFatalError("Invalid attribute value: "+connIdException.getMessage(), newEx);
+			return newEx;
+		}
+		
         //fix of MiD-2645
         //exception brought by the connector is java.lang.RuntimeException with cause=CommunicationsException
         //this exception is to be analyzed here before the following if clause
@@ -232,12 +252,12 @@ public class ConnIdUtil {
 			connIdResult.recordFatalError("Schema violation: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		} else if (connIdException instanceof UnknownHostException) {
+		} else if (connIdException instanceof java.net.UnknownHostException) {
 			Exception newEx = new CommunicationException(createMessageFromAllExceptions("Unknown host", connIdException));
 			connIdResult.recordFatalError("Unknown host: "+connIdException.getMessage(), newEx);
 			return newEx;
 
-		}  else if (connIdException instanceof InvalidAttributeValueException) {
+		}  else if (connIdException instanceof javax.naming.directory.InvalidAttributeValueException) {
 			Exception newEx = new SchemaException(createMessageFromAllExceptions(null, connIdException));
 			connIdResult.recordFatalError("Schema violation: "+connIdException.getMessage(), newEx);
 			return newEx;
@@ -312,7 +332,7 @@ public class ConnIdUtil {
 			connIdResult.recordFatalError(
 					"Security violation: " + connIdException.getMessage(), newEx);
 			return newEx;
-		} else if (connIdException instanceof org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException) {
+		} else if (connIdException instanceof InvalidAttributeValueException) {
 			Exception newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", connIdException));
 			connIdResult.recordFatalError("Invalid attribute: " + connIdException.getMessage(), newEx);
 			return newEx;
@@ -352,10 +372,10 @@ public class ConnIdUtil {
 			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation", ex));
 			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
 			return newEx;
-        } else if (ex instanceof InvalidAttributeValueException) {
+        } else if (ex instanceof javax.naming.directory.InvalidAttributeValueException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			InvalidAttributeValueException e = (InvalidAttributeValueException) ex;
+        	javax.naming.directory.InvalidAttributeValueException e = (javax.naming.directory.InvalidAttributeValueException) ex;
 			Exception newEx = null;
 			if (e.getExplanation().contains("unique attribute conflict")){
 				newEx = new ObjectAlreadyExistsException(createMessageFromAllExceptions("Invalid attribute", ex));
