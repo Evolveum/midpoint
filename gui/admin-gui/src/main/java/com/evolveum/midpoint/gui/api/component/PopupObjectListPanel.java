@@ -21,6 +21,7 @@ import java.util.function.Supplier;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -124,7 +125,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 	}
 
 	@Override
-	protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, Supplier<Collection<? extends ObjectType>> objectsSupplier) {
+	protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends ObjectType>> objectsSupplier) {
 	}
 
 
