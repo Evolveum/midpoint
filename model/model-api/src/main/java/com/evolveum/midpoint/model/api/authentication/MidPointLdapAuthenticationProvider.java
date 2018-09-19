@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
@@ -55,6 +56,9 @@ public class MidPointLdapAuthenticationProvider extends LdapAuthenticationProvid
         	// So, be smart here and try to figure out correct error.
         	throw processInternalAuthenticationException(e, e);
         	
+        } catch (IncorrectResultSizeDataAccessException e) {
+            LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
+            throw new BadCredentialsException("LdapAuthentication.bad.user", e);
         } catch (RuntimeException e) {
             LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
             auditProvider.auditLoginFailure(authentication.getName(), null, ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI), "bad credentials");
