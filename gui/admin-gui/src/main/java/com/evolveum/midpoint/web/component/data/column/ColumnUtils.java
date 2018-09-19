@@ -294,7 +294,7 @@ public class ColumnUtils {
 				//TODO what for this label is needed? getHeader is overrided and sends "" as label
 //				return createStringResource("pageContentAccounts.isProtected");
 				//fix for icon column width
-				return null;
+				return Model.of("");
 			}
 		};
 	}

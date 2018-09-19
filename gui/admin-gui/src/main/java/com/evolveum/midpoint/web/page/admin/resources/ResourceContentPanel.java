@@ -276,6 +276,11 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 
 			@Override
+			protected boolean isRepositorySearch(){
+				return ResourceContentPanel.this.isRepositorySearch();
+			}
+
+			@Override
 			protected BaseSortableDataProvider<SelectableBean<ShadowType>> initProvider() {
 				provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
 				provider.setEmptyListOnNullQuery(true);
@@ -1225,5 +1230,9 @@ public abstract class ResourceContentPanel extends Panel {
 	protected abstract SelectorOptions<GetOperationOptions> addAdditionalOptions();
 
 	protected abstract boolean isUseObjectCounting();
+
+	protected boolean isRepositorySearch(){
+		return true;
+	}
 
 }
