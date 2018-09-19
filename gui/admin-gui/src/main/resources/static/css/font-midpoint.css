@@ -1,79 +1,43 @@
 @charset "UTF-8";
 
 @font-face {
-  font-family: "font-midpoint-10";
-  src:url("../fonts/font-midpoint-10.eot");
-  src:url("../fonts/font-midpoint-10.eot?#iefix") format("embedded-opentype"),
-    url("../fonts/font-midpoint-10.woff") format("woff"),
-    url("../fonts/font-midpoint-10.ttf") format("truetype"),
-    url("../fonts/font-midpoint-10.svg#font-midpoint-10") format("svg");
+  font-family: 'font-midpoint';
+  src:  url('../fonts/font-midpoint.eot?ec0kj0');
+  src:  url('../fonts/font-midpoint.eot?ec0kj0#iefix') format('embedded-opentype'),
+  url('../fonts/font-midpoint.ttf?ec0kj0') format('truetype'),
+  url('../fonts/font-midpoint.woff?ec0kj0') format('woff'),
+  url('../fonts/font-midpoint.svg?ec0kj0#font-midpoint') format('svg');
   font-weight: normal;
   font-style: normal;
-
 }
 
 .fm {
   display: inline-block;
-  font: normal normal normal 14px/1 font-midpoint-10;
+  font: normal normal normal 14px/1 font-midpoint;
   font-size: inherit;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/*height: 14px;*/
-/*display: inline-block;*/
-/*line-height: 14px;*/
-/*width:  20px;*/
-/*font-style: normal;*/
-/*font-size: 14px;*/
-/*background-color: white;*/
-
-
-/*[data-icon]:before {*/
-  /*font-family: "font-midpoint-10" !important;*/
-  /*content: attr(data-icon);*/
-  /*font-style: normal !important;*/
-  /*font-weight: normal !important;*/
-  /*font-variant: normal !important;*/
-  /*text-transform: none !important;*/
-  /*speak: none;*/
-  /*line-height: 1;*/
-  /*-webkit-font-smoothing: antialiased;*/
-  /*-moz-osx-font-smoothing: grayscale;*/
-/*}*/
-
-/*[class^="fm-"]:before,*/
-/*[class*=" fm-"]:before {*/
-  /*font-family: "font-midpoint-10" !important;*/
-  /*font-style: normal !important;*/
-  /*font-weight: normal !important;*/
-  /*font-variant: normal !important;*/
-  /*text-transform: none !important;*/
-  /*speak: none;*/
-  /*line-height: 1;*/
-  /*-webkit-font-smoothing: antialiased;*/
-  /*-moz-osx-font-smoothing: grayscale;*/
-/*}*/
-
 .fm-assignment:before {
-  content: "\e000";
-}
-.fm-role-top-hat:before {
-  content: "\e001";
+  content: "\e900";
 }
 .fm-midpoint-shorter-lines:before {
-  content: "\e002";
+  content: "\e901";
 }
 .fm-midpoint-wheel:before {
-  content: "\e003";
+  content: "\e902";
 }
 .fm-midpoint-with-lines:before {
-  content: "\e004";
+  content: "\e903";
 }
 .fm-role-hat:before {
-  content: "\e005";
+  content: "\e904";
 }
 .fm-role-tie:before {
-  content: "\e006";
+  content: "\e905";
+}
+.fm-role-top-hat:before {
+  content: "\e906";
 }
