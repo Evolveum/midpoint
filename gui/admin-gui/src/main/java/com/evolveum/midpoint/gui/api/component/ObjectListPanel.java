@@ -17,7 +17,6 @@ package com.evolveum.midpoint.gui.api.component;
 
 import java.util.*;
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -27,6 +26,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -622,7 +622,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	protected abstract List<InlineMenuItem> createInlineMenu();
 
-	protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, Supplier<Collection<? extends ObjectType>> objectsSupplier) {
+	protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends ObjectType>> objectsSupplier) {
 		GuiObjectListViewType guiObjectListViewType = getGuiObjectListViewType();
 		if (guiObjectListViewType != null && !guiObjectListViewType.getAction().isEmpty()) {
 			actionsList.addAll(WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getAction(),

@@ -128,7 +128,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     protected List<Component> createToolbarButtonsList(String buttonId){
         List<Component> buttonsList = new ArrayList<>();
         // TODO if displaying shadows in the repository (and not from resource) we can afford to count the objects
-        boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType());
+        boolean canCountBeforeExporting = getType() == null || !ShadowType.class.isAssignableFrom(getType()) ||
+                isRepositorySearch();
 
         AjaxIconButton newObjectIcon = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
                 createStringResource("MainObjectListPanel.newObject")) {
@@ -217,6 +218,10 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         buttonsList.add(exportDataLink);
         return buttonsList;
+    }
+
+    protected boolean isRepositorySearch(){
+        return true;
     }
 
     private static class ButtonBar extends Fragment {
