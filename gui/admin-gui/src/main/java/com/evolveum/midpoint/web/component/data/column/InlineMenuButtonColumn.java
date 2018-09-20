@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import org.apache.wicket.Component;
@@ -120,11 +121,15 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                             buttonMenuItemClickPerformed(index, buttonMenuItems, target);
                         });
                 btn.showTitleAsLabel(false);
-//                btn.add(new VisibleBehaviour(() -> isButtonVisible(index, model)));
+                btn.add(new EnableBehaviour(() -> isButtonMenuItemEnabled(model)));
 
                 return btn;
             }
         };
+    }
+
+    protected boolean isButtonMenuItemEnabled(IModel<T> rowModel){
+        return true;
     }
 
     private void setRowModelToButtonAction(IModel<T> rowModel, List<ButtonInlineMenuItem> buttonMenuItems) {

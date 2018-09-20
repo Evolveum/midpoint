@@ -168,11 +168,9 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
-        int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
-                getPageBase());
-        int addedAssignmentsCount = getNewAssignmentsCount() + newAssignmentsList.size();
-        if (assignmentsLimit >= 0 && addedAssignmentsCount > assignmentsLimit) {
-            warn(getParentPage().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsLimit));
+        boolean isAssignmentsLimitReached = isAssignmentsLimitReached(newAssignmentsList != null ? newAssignmentsList.size() : 0, true);
+        if (isAssignmentsLimitReached) {
+            warn(getParentPage().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsRequestsLimit));
             target.add(getPageBase().getFeedbackPanel());
             return;
         }
