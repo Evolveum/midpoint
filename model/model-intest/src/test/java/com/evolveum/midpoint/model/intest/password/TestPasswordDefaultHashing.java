@@ -202,8 +202,8 @@ public class TestPasswordDefaultHashing extends AbstractPasswordTest {
 	 */
 	@Test
 	@Override
-    public void test346AssignMonkeyAccountYellow() throws Exception {
-		final String TEST_NAME = "test346AssignMonkeyYellow";
+    public void test347AssignMonkeyAccountYellow() throws Exception {
+		final String TEST_NAME = "test347AssignMonkeyYellow";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
