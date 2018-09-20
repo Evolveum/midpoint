@@ -185,7 +185,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
             System.setProperty(MIDPOINT_HOME_PROPERTY, mpHome);
         }
         
-        System.setProperty("spring.config.location", MidPointSpringApplication.class.getClassLoader().getSystemResource("") + ",${midpoint.home}/");
+        System.setProperty("spring.config.location", MidPointSpringApplication.class.getResource("/") + ",${midpoint.home}/");
 
         application.bannerMode(Banner.Mode.LOG);
 
