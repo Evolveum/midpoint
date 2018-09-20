@@ -118,6 +118,7 @@ th.cog, td.cog {
 }
 
 .sidebar-menu .treeview-menu > li > span > .fa,
+.sidebar-menu .treeview-menu > li > span > .fm,
 .sidebar-menu .treeview-menu > li > span > .glyphicon,
 .sidebar-menu .treeview-menu > li > span > .ion {
   width: 20px;
@@ -128,11 +129,15 @@ th.cog, td.cog {
 	white-space: normal !important;
 }
 
+.sidebar-menu > li > a > .fm {
+	width: 20px;
+}
+
 .sidebar-form, .sidebar-menu > li.header {
 	padding: 10px 20px 10px 15px;
 	text-transform: uppercase;
 
-	& i.fa {
+	& i.fa, & i.fm {
 		margin-top: 2px;
 	}
 }
@@ -760,7 +765,7 @@ body .treeview-menu > li > span:hover {
     text-decoration: none;
     display: inline-block;
 
-    > .fa, > .glyphicon, > .ion {
+    > .fa, > .glyphicon, > .ion, > .fm {
       margin-right: 5px;
     }
   }

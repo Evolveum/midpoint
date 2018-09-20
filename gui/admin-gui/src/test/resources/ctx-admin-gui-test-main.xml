@@ -39,4 +39,8 @@
     <import resource="classpath:ctx-certification.xml" />
     <import resource="classpath:ctx-init.xml" />
     <!--<import resource="classpath:ctx-webapp.xml" />-->
+
+    <bean id="midPointApplication" class="com.evolveum.midpoint.web.security.MidPointApplication"/>
+
+    <bean id="asyncWebProcessManager" class="com.evolveum.midpoint.web.application.AsyncWebProcessManagerImpl"/>
 </beans>
