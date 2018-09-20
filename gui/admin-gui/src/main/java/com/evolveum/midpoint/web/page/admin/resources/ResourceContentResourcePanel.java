@@ -123,7 +123,11 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 				return false;
 			}
 		});
+	}
 
+	@Override
+	protected boolean isRepositorySearch(){
+		return false;
 	}
 
 }
