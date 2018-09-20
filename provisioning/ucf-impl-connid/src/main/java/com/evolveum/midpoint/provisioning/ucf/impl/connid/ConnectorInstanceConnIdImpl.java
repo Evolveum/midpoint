@@ -2759,10 +2759,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
     
     private String getNameValue(ResourceObjectIdentification resourceObjectIdentification) throws SchemaException {
-    	String nameValue = null;
 		Collection<? extends ResourceAttribute<?>> secondaryIdentifiers = resourceObjectIdentification.getSecondaryIdentifiers();
-		if (secondaryIdentifiers != null && secondaryIdentifiers.size() == 1) {
-			nameValue = (String) secondaryIdentifiers.iterator().next().getRealValue();
+		if (secondaryIdentifiers == null) {
+			return null;
+		}
+		if (secondaryIdentifiers.size() == 1) {
+			return (String) secondaryIdentifiers.iterator().next().getRealValue();
 		} else if (secondaryIdentifiers.size() > 1) {
 			for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
 				ResourceAttributeDefinition<?> definition = secondaryIdentifier.getDefinition();
@@ -2774,7 +2776,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 			throw new SchemaException("More than one secondary indentifier in "+resourceObjectIdentification+", cannot detemine ConnId __NAME__");
 		}
-		return nameValue;
+		return null;
     }
 
 	/**

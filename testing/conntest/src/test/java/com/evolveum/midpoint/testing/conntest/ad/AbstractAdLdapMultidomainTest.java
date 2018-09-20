@@ -796,8 +796,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
@@ -854,12 +853,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -895,6 +894,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "showInAdvancedViewOnly", "TRUE");
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -936,6 +936,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "showInAdvancedViewOnly", "FALSE");
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -945,35 +946,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	}
 
 	@Test
-    public void test220ModifyUserBarbossaPasswordSelfService() throws Exception {
-		final String TEST_NAME = "test220ModifyUserBarbossaPasswordSelfService";
-        displayTestTitle(TEST_NAME);
-
-        // GIVEN
-        
-        login(USER_BARBOSSA_USERNAME);
-        
-        Task task = createTask(TEST_NAME);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
-        OperationResult result = task.getResult();
-
-        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID, 
-        		USER_BARBOSSA_PASSWORD, USER_BARBOSSA_PASSWORD_AD);
-
-        // WHEN
-        displayWhen(TEST_NAME);
-        executeChanges(objectDelta, null, task, result);
-
-        // THEN
-        displayThen(TEST_NAME);
-        login(USER_ADMINISTRATOR_USERNAME);
-        assertSuccess(result);
-
-        assertBarbossaEnabled();
-        
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD);
-
-        assertLdapConnectorInstances(2);
+    public void test220ModifyUserBarbossaPasswordSelfServicePassword1() throws Exception {
+		final String TEST_NAME = "test220ModifyUserBarbossaPasswordSelfServicePassword1";
+		testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD, USER_BARBOSSA_PASSWORD_AD_1);
 	}
 	
 	/**
@@ -982,11 +957,37 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	 * this change should fail.
 	 */
 	@Test
-    public void test222ModifyUserBarbossaPasswordSelfServiceAgain() throws Exception {
-		final String TEST_NAME = "test222ModifyUserBarbossaPasswordSelfServiceAgain";
+    public void test222ModifyUserBarbossaPasswordSelfServicePassword1Again() throws Exception {
+		final String TEST_NAME = "test222ModifyUserBarbossaPasswordSelfServicePassword1Again";
+		testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_1);
+	}
+	
+	/**
+	 * Change to different password. This should go well for both admin and self-service.
+	 */
+	@Test
+    public void test224ModifyUserBarbossaPasswordSelfServicePassword2() throws Exception {
+		final String TEST_NAME = "test220ModifyUserBarbossaPasswordSelfServicePassword1";
+		testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_2);
+	}
+	
+	/**
+	 * Change password back to the first password. This password was used before.
+	 * In admin mode this should go well. Admin can set password to anything.
+	 * But in self-service mode (in subclass) this should fail due to password history check.
+	 */
+	@Test
+    public void test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain() throws Exception {
+		final String TEST_NAME = "test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain";
+		testModifyUserBarbossaPasswordSelfServiceSuccess(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_2, USER_BARBOSSA_PASSWORD_AD_1);
+	}
+	
+	protected void testModifyUserBarbossaPasswordSelfServiceSuccess(final String TEST_NAME, String oldPassword, String newPassword) throws Exception {
         displayTestTitle(TEST_NAME);
-
         // GIVEN
+        
+        // precondition
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, oldPassword);
         
         login(USER_BARBOSSA_USERNAME);
         
@@ -995,7 +996,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID, 
-        		USER_BARBOSSA_PASSWORD_AD, USER_BARBOSSA_PASSWORD_AD);
+        		oldPassword, newPassword);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -1008,10 +1009,40 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         assertBarbossaEnabled();
         
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD);
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, newPassword);
 
         assertLdapConnectorInstances(2);
 	}
+	
+	protected void testModifyUserBarbossaPasswordSelfServiceFailure(final String TEST_NAME, String oldPassword, String newPassword) throws Exception {
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        
+        login(USER_BARBOSSA_USERNAME);
+        
+        Task task = createTask(TEST_NAME);
+        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+        OperationResult result = task.getResult();
+
+        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID, 
+        		oldPassword, newPassword);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        executeChanges(objectDelta, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        login(USER_ADMINISTRATOR_USERNAME);
+        assertPartialError(result);
+
+        assertBarbossaEnabled();
+        
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, oldPassword);
+
+        assertLdapConnectorInstances(2);
+	}
+	
 
 	@Test
     public void test230DisableUserBarbossa() throws Exception {
@@ -1174,7 +1205,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAttribute(entry, "title", "Captain");
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "FALSE");
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
 
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
