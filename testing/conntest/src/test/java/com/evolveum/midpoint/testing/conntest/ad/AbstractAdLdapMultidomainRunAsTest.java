@@ -136,7 +136,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
         // THEN
         displayThen(TEST_NAME);
         login(USER_ADMINISTRATOR_USERNAME);
-        assertSuccess(result);
+        assertPartialError(result);
 
         assertBarbossaEnabled();
         
