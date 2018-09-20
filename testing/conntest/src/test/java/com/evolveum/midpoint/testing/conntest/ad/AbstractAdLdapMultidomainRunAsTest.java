@@ -106,6 +106,45 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 		
 		assertCapability(nativeCapabilities, RunAsCapabilityType.class);
 	}
+	
+	/**
+	 * Try to set the same password again. If this is "admin mode" (no runAs capability - in superclass)
+	 * the such change should be successful. In "selfservice mode" (runAs capability)
+	 * this change should fail.
+	 */
+	@Test
+	@Override
+    public void test222ModifyUserBarbossaPasswordSelfServiceAgain() throws Exception {
+		final String TEST_NAME = "test222ModifyUserBarbossaPasswordSelfServiceAgain";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        
+        login(USER_BARBOSSA_USERNAME);
+        
+        Task task = createTask(TEST_NAME);
+        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+        OperationResult result = task.getResult();
+
+        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID, 
+        		USER_BARBOSSA_PASSWORD_AD, USER_BARBOSSA_PASSWORD_AD);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        executeChanges(objectDelta, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        login(USER_ADMINISTRATOR_USERNAME);
+        assertSuccess(result);
+
+        assertBarbossaEnabled();
+        
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD);
+
+        assertLdapConnectorInstances(2);
+	}
+
 
 
 }

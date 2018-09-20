@@ -75,6 +75,10 @@
 	        <level>DEBUG</level>
 	        <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
       	</classLogger>
+      	<classLogger>
+	        <level>TRACE</level>
+	        <package>com.evolveum.midpoint.model.impl.lens.ChangeExecutor</package>
+      	</classLogger>
         <classLogger>
 	        <level>TRACE</level>
 	        <package>com.evolveum.midpoint.provisioning</package>

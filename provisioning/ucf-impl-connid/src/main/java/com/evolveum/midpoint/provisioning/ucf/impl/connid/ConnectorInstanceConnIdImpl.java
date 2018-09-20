@@ -1136,7 +1136,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 							+ resourceObjectIdentification + " from " + description);
 		}
 
-		ObjectClass icfObjectClass = connIdNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass icfObjectClass = connIdNameMapper.objectClassToConnId(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
 		if (icfObjectClass == null) {
 			result.recordFatalError("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
@@ -1402,7 +1402,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		// getting icf object class from resource object class
-		ObjectClass icfObjectClass = connIdNameMapper.objectClassToIcf(shadow, getSchemaNamespace(), connectorType, BooleanUtils.isNotFalse(legacySchema));
+		ObjectClass icfObjectClass = connIdNameMapper.objectClassToConnId(shadow, getSchemaNamespace(), connectorType, BooleanUtils.isNotFalse(legacySchema));
 
 		if (icfObjectClass == null) {
 			result.recordFatalError("Couldn't get icf object class from " + shadow);
@@ -1461,7 +1461,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		List<String> icfAuxiliaryObjectClasses = new ArrayList<>();
 		for (QName auxiliaryObjectClass: shadowType.getAuxiliaryObjectClass()) {
 			icfAuxiliaryObjectClasses.add(
-					connIdNameMapper.objectClassToIcf(auxiliaryObjectClass, resourceSchemaNamespace,
+					connIdNameMapper.objectClassToConnId(auxiliaryObjectClass, resourceSchemaNamespace,
 							connectorType, false).getObjectClassValue());
 		}
 		if (!icfAuxiliaryObjectClasses.isEmpty()) {
@@ -1595,7 +1595,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			return AsynchronousOperationReturnValue.wrap(new ArrayList<PropertyModificationOperation>(0), result);
 		}
 
-		ObjectClass objClass = connIdNameMapper.objectClassToIcf(identification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass objClass = connIdNameMapper.objectClassToConnId(identification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
 		
 		Uid uid;
 		try {
@@ -1645,6 +1645,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		converter.setProtector(protector);
 		converter.setResourceSchema(resourceSchema);
 		converter.setResourceSchemaNamespace(resourceSchemaNamespace);
+		converter.setOptions(options);
 
 		try {
 			
@@ -1679,13 +1680,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 
 			try {
-				// Call ConnId
 				InternalMonitor.recordConnectorOperation("update");
 				InternalMonitor.recordConnectorModification("update");
 				recordIcfOperationStart(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, uid);
+				
+				// Call ConnId
 				sideEffect = connIdConnectorFacade.updateDelta(objClass, uid, attributesDelta, connIdOptions);
+				
 				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, null, uid);
-
 				connIdResult.recordSuccess();
 			} catch (Throwable ex) {
 				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_UPDATE, objectClassDef, ex, uid);
@@ -2127,7 +2129,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				+ ".deleteObject");
 		result.addArbitraryObjectCollectionAsParam("identifiers", identifiers);
 
-		ObjectClass objClass = connIdNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass objClass = connIdNameMapper.objectClassToConnId(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 		Uid uid;
 		try {
 			uid = getUid(objectClass, identifiers);
@@ -2201,7 +2203,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (objectClassDef == null) {
 			icfObjectClass = ObjectClass.ALL;
 		} else {
-			icfObjectClass = connIdNameMapper.objectClassToIcf(objectClassDef, getSchemaNamespace(), connectorType, legacySchema);
+			icfObjectClass = connIdNameMapper.objectClassToConnId(objectClassDef, getSchemaNamespace(), connectorType, legacySchema);
 		}
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
@@ -2271,7 +2273,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (objectClass == null) {
 			icfObjectClass = ObjectClass.ALL;
 		} else {
-			icfObjectClass = connIdNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType, legacySchema);
+			icfObjectClass = connIdNameMapper.objectClassToConnId(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 		}
 
 		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
@@ -2387,7 +2389,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			throw new IllegalArgumentException("objectClass not defined");
 		}
 
-		ObjectClass icfObjectClass = connIdNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
+		ObjectClass icfObjectClass = connIdNameMapper.objectClassToConnId(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
 		if (icfObjectClass == null) {
 			IllegalArgumentException ex = new IllegalArgumentException(
 					"Unable to determine object class from QName " + objectClassDefinition
@@ -2511,7 +2513,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	        		throw e;
 	        	}
 	        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
-	        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToIcf(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
+	        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
 	        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
 				optionsBuilder.setContainer(containerQualifiedUid);
 	        }
@@ -2622,7 +2624,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             throw new IllegalArgumentException("objectClass not defined");
         }
 
-        ObjectClass icfObjectClass = connIdNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
+        ObjectClass icfObjectClass = connIdNameMapper.objectClassToConnId(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
         if (icfObjectClass == null) {
             IllegalArgumentException ex = new IllegalArgumentException(
                     "Unable to determine object class from QName " + objectClassDefinition
@@ -2756,11 +2758,21 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		return null;
 	}
     
-    private String getNameValue(ResourceObjectIdentification resourceObjectIdentification) {
+    private String getNameValue(ResourceObjectIdentification resourceObjectIdentification) throws SchemaException {
     	String nameValue = null;
 		Collection<? extends ResourceAttribute<?>> secondaryIdentifiers = resourceObjectIdentification.getSecondaryIdentifiers();
 		if (secondaryIdentifiers != null && secondaryIdentifiers.size() == 1) {
 			nameValue = (String) secondaryIdentifiers.iterator().next().getRealValue();
+		} else if (secondaryIdentifiers.size() > 1) {
+			for (ResourceAttribute<?> secondaryIdentifier : secondaryIdentifiers) {
+				ResourceAttributeDefinition<?> definition = secondaryIdentifier.getDefinition();
+				if (definition != null) {
+					if (Name.NAME.equals(definition.getFrameworkAttributeName())) {
+						return (String) secondaryIdentifier.getRealValue();
+					}
+				}
+			}
+			throw new SchemaException("More than one secondary indentifier in "+resourceObjectIdentification+", cannot detemine ConnId __NAME__");
 		}
 		return nameValue;
     }
@@ -3231,7 +3243,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 	}
 	
-	private OperationOptions createConnIdOptions(ConnectorOperationOptions options, Collection<Operation> changes) {
+	private OperationOptions createConnIdOptions(ConnectorOperationOptions options, Collection<Operation> changes) throws SchemaException {
 		OperationOptionsBuilder connIdOptionsBuilder = new OperationOptionsBuilder();
 		if (options != null) {
 			ResourceObjectIdentification runAsIdentification = options.getRunAsIdentification();

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.testing.conntest.ad;
 
 import static org.testng.AssertJUnit.assertNull;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -38,7 +37,6 @@ import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
 import org.apache.directory.api.ldap.model.name.Ava;
 import org.apache.directory.api.ldap.model.name.Rdn;
-import org.apache.directory.api.util.GeneralizedTime;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
@@ -77,7 +75,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -304,10 +301,13 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		repoAddObjectFromFile(USER_SUBMARINE_FILE, initResult);
 
 		// Roles
+		repoAddObjectFromFile(ROLE_END_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PIRATES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SUBMISSIVE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_META_ORG_FILE, initResult);
 		repoAddObjectFromFile(ROLE_META_ORG_GROUP_FILE, initResult);
+		
+		assignRole(USER_BARBOSSA_OID, ROLE_END_USER_OID);
 
 	}
 
@@ -945,28 +945,70 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	}
 
 	@Test
-    public void test220ModifyUserBarbossaPassword() throws Exception {
-		final String TEST_NAME = "test220ModifyUserBarbossaPassword";
+    public void test220ModifyUserBarbossaPasswordSelfService() throws Exception {
+		final String TEST_NAME = "test220ModifyUserBarbossaPasswordSelfService";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
+        
+        login(USER_BARBOSSA_USERNAME);
+        
         Task task = createTask(TEST_NAME);
+        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
-        ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue("here.There.Be.Monsters");
+        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID, 
+        		USER_BARBOSSA_PASSWORD, USER_BARBOSSA_PASSWORD_AD);
 
         // WHEN
         displayWhen(TEST_NAME);
-        modifyUserReplace(USER_BARBOSSA_OID,
-        		new ItemPath(UserType.F_CREDENTIALS,  CredentialsType.F_PASSWORD, PasswordType.F_VALUE),
-        		task, result, userPasswordPs);
+        executeChanges(objectDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
+        login(USER_ADMINISTRATOR_USERNAME);
         assertSuccess(result);
 
         assertBarbossaEnabled();
+        
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD);
+
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * Try to set the same password again. If this is "admin mode" (no runAs capability)
+	 * the such change should be successful. In "selfservice mode" (runAs capability - in subclass)
+	 * this change should fail.
+	 */
+	@Test
+    public void test222ModifyUserBarbossaPasswordSelfServiceAgain() throws Exception {
+		final String TEST_NAME = "test222ModifyUserBarbossaPasswordSelfServiceAgain";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        
+        login(USER_BARBOSSA_USERNAME);
+        
+        Task task = createTask(TEST_NAME);
+        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+        OperationResult result = task.getResult();
+
+        ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID, 
+        		USER_BARBOSSA_PASSWORD_AD, USER_BARBOSSA_PASSWORD_AD);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        executeChanges(objectDelta, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        login(USER_ADMINISTRATOR_USERNAME);
+        assertSuccess(result);
+
+        assertBarbossaEnabled();
+        
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD);
 
         assertLdapConnectorInstances(2);
 	}
@@ -1124,7 +1166,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertLdapConnectorInstances(2);
 	}
 
-	private PrismObject<UserType> assertBarbossaEnabled() throws Exception {
+	protected PrismObject<UserType> assertBarbossaEnabled() throws Exception {
 		PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
 

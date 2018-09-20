@@ -3564,21 +3564,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_VALID_4);
 	}
 	
-
-	private ObjectDelta<UserType> createOldNewPasswordDelta(String oid, String oldPassword, String newPassword) throws SchemaException {
-		ProtectedStringType oldPasswordPs = new ProtectedStringType();
-		oldPasswordPs.setClearValue(oldPassword);
-		
-		ProtectedStringType newPasswordPs = new ProtectedStringType();
-		newPasswordPs.setClearValue(newPassword);
-		
-		return deltaFor(UserType.class)
-			.item(PASSWORD_VALUE_PATH)
-				.oldRealValue(oldPasswordPs)
-				.replace(newPasswordPs)
-				.asObjectDelta(USER_JACK_OID);
-	}
-	
 	/**
 	 * Self-service password change. User's own identity should be used
 	 * to change password on resource that have runAs capability.

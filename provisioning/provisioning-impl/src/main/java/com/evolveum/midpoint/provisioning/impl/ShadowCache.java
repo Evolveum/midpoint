@@ -494,7 +494,7 @@ public class ShadowCache {
 		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start adding shadow object:\n{}", shadowToAdd.debugDump(1));
+			LOGGER.trace("Start adding shadow object{}:\n{}", getAdditionalOperationDesc(scripts, options), shadowToAdd.debugDump(1));
 		}
 
 		ProvisioningContext ctx = ctxFactory.create(shadowToAdd, task, parentResult);
@@ -916,6 +916,11 @@ public class ShadowCache {
 
 		Validate.notNull(repoShadow, "Object to modify must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Start modifying {}{}:\n{}", repoShadow, getAdditionalOperationDesc(scripts, options), 
+					DebugUtil.debugDump(modifications, 1));
+		}
 
 		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
@@ -1100,6 +1105,10 @@ public class ShadowCache {
 
 		Validate.notNull(repoShadow, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Start deleting {}{}", repoShadow, getAdditionalOperationDesc(scripts, options));
+		}
 
 		InternalMonitor.recordCount(InternalCounters.SHADOW_CHANGE_OPERATION_COUNT);
 
@@ -3212,8 +3221,29 @@ public class ShadowCache {
 		shadowCaretaker.applyAttributesDefinition(runAsCtx, runAsShadow);
 		ResourceObjectIdentification runAsIdentification = ResourceObjectIdentification.createFromShadow(runAsCtx.getObjectClassDefinition(), runAsShadow.asObjectable());
 		ConnectorOperationOptions connOptions = new ConnectorOperationOptions();
+		LOGGER.trace("RunAs identification: {}", runAsIdentification);
 		connOptions.setRunAsIdentification(runAsIdentification);
 		return connOptions;
+	}
+	
+	private String getAdditionalOperationDesc(OperationProvisioningScriptsType scripts,
+			ProvisioningOperationOptions options) {
+		if (scripts == null && options == null) {
+			return "";
+		}
+		StringBuilder sb = new StringBuilder(" (");
+		if (options != null) {
+			sb.append("options:");
+			options.shortDump(sb);
+			if (scripts != null) {
+				sb.append("; ");
+			}
+		}
+		if (scripts != null) {
+			sb.append("scripts");
+		}
+		sb.append(")");
+		return sb.toString();
 	}
 
 	
