@@ -392,7 +392,7 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
                         
 		} catch (ObjectNotFoundException e) {
 			throw new UsernameNotFoundException("UserProfileServiceImpl.unknownUser", e);
-		} catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException | NamingException e) {
+		} catch (SchemaException | NamingException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
 	}
