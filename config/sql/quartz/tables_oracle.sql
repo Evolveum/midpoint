@@ -23,7 +23,6 @@ BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_paused_trigger_grps'; EXCEPTION   WHE
 BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_locks';               EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
 BEGIN   EXECUTE IMMEDIATE 'DROP TABLE qrtz_scheduler_state';     EXCEPTION   WHEN OTHERS THEN      IF SQLCODE != -942 THEN         RAISE;      END IF;     END;
 END;
-/
 
 CREATE TABLE qrtz_job_details
   (
