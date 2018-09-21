@@ -231,4 +231,8 @@ public class AdUtils {
         assertTrue("msExchHideFromAddressLists add", accountMsExchHideFromAddressListsDef.canAdd());
 	}
 
+	public static long getWin32Filetime(long millis) {
+		return (millis + 11644473600000L) * 10000L;
+	}
+
 }
