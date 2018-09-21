@@ -273,7 +273,25 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	public void setReadonly(boolean readonly) {
+		setReadonly(readonly, false);
+	}
+
+	public void setReadonly(boolean readonly, boolean recursive) {
 		this.readonly = readonly;
+		if (recursive) {
+			getItems().forEach(item -> {
+				if (item instanceof PropertyOrReferenceWrapper) {
+					((PropertyOrReferenceWrapper) item).setReadonly(readonly);
+					return;
+				}
+				if (item instanceof ContainerWrapper){
+					List<ContainerValueWrapper> itemWrapperValues = ((ContainerWrapper) item).getValues();
+					itemWrapperValues.forEach(containerValueWrapper -> {
+						containerValueWrapper.setReadonly(readonly, recursive);
+					});
+				}
+			});
+		}
 	}
 
 	public boolean isSelected() {

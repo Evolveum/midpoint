@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.github.sommeri.less4j.utils.ArraysUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -96,6 +97,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	protected boolean assignmentDetailsVisible;
 	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
+	protected int assignmentsRequestsLimit = -1;
 
 	public AssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
 		super(id, assignmentContainerWrapperModel);
@@ -106,6 +108,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
+		assignmentsRequestsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase());
 		initPaging();
 		initLayout();
 	}
@@ -129,7 +132,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 		assignmentsContainer.add(assignmentTable);
 
 		AjaxIconButton newObjectIcon = new AjaxIconButton(ID_NEW_ASSIGNMENT_BUTTON, new Model<>("fa fa-plus"),
-				getAssignmentsLimitReachedTitleModel()) {
+				getAssignmentsLimitReachedTitleModel("MainObjectListPanel.newObject")) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -199,7 +202,18 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 		List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = initBasicColumns();
 		List<InlineMenuItem> menuActionsList = getAssignmentMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, menuActionsList.size(), getPageBase()));
+		columns.add(new InlineMenuButtonColumn<ContainerValueWrapper<AssignmentType>>(menuActionsList, menuActionsList.size(), getPageBase()){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isButtonEnabled(int id, IModel<ContainerValueWrapper<AssignmentType>> rowModel){
+				if (rowModel != null
+						&& ValueStatus.ADDED.equals(rowModel.getObject().getStatus())) {
+					return true;
+				}
+				return !isAssignmentsLimitReached();
+			}
+		});
 
 		BoxedTablePanel<ContainerValueWrapper<AssignmentType>> assignmentTable = new BoxedTablePanel<ContainerValueWrapper<AssignmentType>>(ID_ASSIGNMENTS_TABLE,
 				assignmentsProvider, columns, getTableId(), getItemsPerPage()) {
@@ -303,35 +317,35 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 
 	}
 
-	private IModel<String> getAssignmentsLimitReachedTitleModel(){
+	private IModel<String> getAssignmentsLimitReachedTitleModel(String defaultTitleKey){
 		return new LoadableModel<String>(true) {
 			@Override
 			protected String load() {
-				int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
-						AssignmentPanel.this.getPageBase());
 				return isAssignmentsLimitReached() ?
-						AssignmentPanel.this.getPageBase().createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", assignmentsLimit)
-								.getString() : "";
+						AssignmentPanel.this.getPageBase().createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle",
+						assignmentsRequestsLimit).getString() : createStringResource(defaultTitleKey).getString();
 			}
 		};
 	}
 
 	protected boolean isAssignmentsLimitReached(){
-		int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
-				AssignmentPanel.this.getPageBase());
-		int addedAssignmentsCount = getNewAssignmentsCount();
-		return assignmentsLimit >= 0 && addedAssignmentsCount >= assignmentsLimit;
+		return isAssignmentsLimitReached(0, false);
 	}
 
-	protected int getNewAssignmentsCount(){
+	protected boolean isAssignmentsLimitReached(int selectedAssignmentsCount, boolean actionPerformed){
+		if (assignmentsRequestsLimit < 0){
+			return false;
+		}
+		int changedItems = 0;
 		List<ContainerValueWrapper<AssignmentType>> assignmentsList = getModelObject().getValues();
-		int addedAssignmentsCount = 0;
-		for (ContainerValueWrapper<AssignmentType> assignment : assignmentsList){
-			if (ValueStatus.ADDED.equals(assignment.getStatus())){
-				addedAssignmentsCount++;
+		for (ContainerValueWrapper assignment : assignmentsList){
+			if (assignment.hasChanged()){
+				changedItems++;
 			}
 		}
-		return addedAssignmentsCount;
+
+		return actionPerformed ? (changedItems + selectedAssignmentsCount) > assignmentsRequestsLimit :
+				(changedItems + selectedAssignmentsCount)  >= assignmentsRequestsLimit;
 	}
 
 	private void initDetailsPanel() {
@@ -364,6 +378,11 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 			@Override
 			protected void populateItem(ListItem<ContainerValueWrapper<AssignmentType>> item) {
 				Form form = this.findParent(Form.class);
+				if (isAssignmentsLimitReached()){
+					item.getModelObject().setReadonly(true, true);
+				} else if (item.getModelObject().isReadonly()){
+					item.getModelObject().setReadonly(false, true);
+				}
 				AbstractAssignmentDetailsPanel details = createDetailsPanel(ID_ASSIGNMENT_DETAILS, form, item.getModel());
 				item.add(details);
 				details.setOutputMarkupId(true);
@@ -427,7 +446,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 					AuthorizationPhaseType.REQUEST, obj,
 					null, null, null);
 			if (isUnassignAuthorized) {
-                menuItems.add(new InlineMenuItem(createStringResource("PageBase.button.unassign"), new Model<Boolean>(true),
+                menuItems.add(new InlineMenuItem(getAssignmentsLimitReachedTitleModel("PageBase.button.unassign"), new Model<Boolean>(true),
                         new Model<Boolean>(true), false, createDeleteColumnAction(), 0, GuiStyleConstants.CLASS_DELETE_MENU_ITEM,
                         DoubleButtonColumn.BUTTON_COLOR_CLASS.DANGER.toString()));
 				isUnassignMenuAdded = true;
@@ -481,11 +500,7 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	}
 
 	protected void assignmentDetailsPerformed(AjaxRequestTarget target, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-		assignmentDetailsVisible = true;
-		detailsPanelAssignmentsList.clear();
-		detailsPanelAssignmentsList.add(rowModel.getObject());
-		rowModel.getObject().setSelected(false);
-		target.add(AssignmentPanel.this);
+		assignmentDetailsPerformed(target, ArraysUtils.asList(rowModel.getObject()));
 	}
 
 	protected void assignmentDetailsPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<AssignmentType>> rowModel) {
@@ -507,6 +522,19 @@ public abstract class AssignmentPanel extends BasePanel<ContainerWrapper<Assignm
 	}
 
 	protected void deleteAssignmentPerformed(AjaxRequestTarget target, List<ContainerValueWrapper<AssignmentType>> toDelete) {
+		int countAddedAssignments = 0;
+		for (ContainerValueWrapper<AssignmentType> assignment : toDelete) {
+			if (ValueStatus.ADDED.equals(assignment.getStatus())){
+				countAddedAssignments++;
+			}
+		}
+		boolean isLimitReached = isAssignmentsLimitReached(toDelete.size() - countAddedAssignments, true);
+		if (isLimitReached) {
+			warn(getParentPage().getString("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsRequestsLimit));
+			target.add(getPageBase().getFeedbackPanel());
+			return;
+		}
+
 		if (toDelete == null){
 			return;
 		}

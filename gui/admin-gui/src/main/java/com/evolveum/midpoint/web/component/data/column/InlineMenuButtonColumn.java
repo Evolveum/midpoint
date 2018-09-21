@@ -108,6 +108,11 @@ public class InlineMenuButtonColumn<T extends Serializable> extends MultiButtonC
             }
 
             @Override
+            public boolean isButtonEnabled(int id, IModel<T> model) {
+                return InlineMenuButtonColumn.this.isButtonEnabled(id, model);
+            }
+
+            @Override
             public String getButtonSizeCssClass(int id) {
                 return InlineMenuButtonColumn.this.getButtonSizeCssClass(id);
             }
